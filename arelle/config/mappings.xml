@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="mappings.xsd" >
+    <!-- mapFile provides an individual file mapping, such as to a content in an archive 
+              from is the original URL, such as a web file that isn't really on the web
+              to is a redirect, such as a web-located zip with a file inside it (see examples below)
+         mapPath provides directory mapping, where
+              from represents the path segment to be mapped (leading directory path segments to replace)
+              to represents the replacement (leading directory path segments, which can direct into a zip file)
+    -->
+    
+    <!-- in this example the original .xsd doesn't have companion linkbases on the web but the .xsd and its
+         companion linkbases are all available within the zip file, at the relative directory path inside 
+         that zip file, and the zip file is web accessible.  It gets downloaded to the web cache and the
+         needed files parsed from within the zip (the zip file is not expanded on disk storage or in the web
+         cache, because the parser reads directly from within the web cached zip file). -->
+    <mapFile 
+        from="http://www.xbrl.org/uk/fr/gaap/pt/2008-01-15/uk-gaap-pt-2008-01-15.xsd" 
+        to="http://www.hmrc.gov.uk/ebu/ct_techpack/uk-gaap.zip/UK GAAP 2008-01-15/Taxonomy/monolithic/2008-01-15/uk-gaap-pt-2008-01-15.xsd" />
+    <mapFile 
+        from="http://www.xbrl.org/uk/cd/pres/2008-01-15/uk-cd-pres-2008-01-15.xsd" 
+        to="http://www.hmrc.gov.uk/ebu/ct_techpack/uk-common-data.zip/uk-cd-2008-01-15/uk-cd-pres-2008-01-15.xsd" />
+    <mapFile 
+        from="http://www.hmrc.gov.uk/schemas/ct/comp/taxonomies/2009-07-03/ct-2009-07-03.xsd" 
+        to="http://www.hmrc.gov.uk/ebu/ct_techpack/ct-comp-tax-09-07-03.zip/ct-comp-taxonomy-2009-07-03/ct-2009-07-03.xsd" />
+    <mapFile 
+        from="http://www.hmrc.gov.uk/schemas/ct/comp/taxonomies/2010-06-15/ct-2010-06-15.xsd" 
+        to="http://www.hmrc.gov.uk/ebu/ct_techpack/ct-comp-10-06-15.zip/ct-2010-06-15.xsd" />
+</mappings>

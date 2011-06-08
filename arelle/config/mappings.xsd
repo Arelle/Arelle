@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" >
+    <xsd:element name="mappings">
+        <xsd:complexType>
+            <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                <xsd:element ref="mapFile"/>
+                <xsd:element ref="mapPath"/>
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="mapEntry">
+        <xsd:restriction base="xsd:string">
+            <xsd:attribute name="from" type="anyURI"/>
+            <xsd:attribute name="to" type="anyURI"/>
+        </xsd:restriction>
+    </xsd:complexType>
+    <xsd:element name="mapFile" type="mapEntry" />
+    <xsd:element name="mapPath" type="mapEntry" />
+</xsd:schema>

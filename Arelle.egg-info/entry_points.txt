@@ -1,0 +1,4 @@
+[console_scripts]
+arelle = arelle.CntlrCmdLine:main
+arelle-gui = arelle.CntlrWinMain:main
+
