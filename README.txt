@@ -22,4 +22,4 @@ Users can explore the functionality and features from either an interactive GUI
 or command line interface, and can develop their own controller interfaces as
 needed.
 
-Arelle is supported on the website: http://arelle.org/
+Arelle is supported on the website: http://arelle.org/ and github project Arelle
