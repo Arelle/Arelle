@@ -1500,7 +1500,7 @@ class ModelContext(ModelObject):
 
     @property
     def entityIdentifier(self):
-        return (self.entityIdentifierElement.getAttributeNS("identifier", "scheme"),
+        return (self.entityIdentifierElement.getAttribute("scheme"),
                 XmlUtil.text(self.entityIdentifierElement))
     @property
     def hasSegment(self):
