@@ -72,9 +72,9 @@ def evaluateVar(xpCtx, varSet, varIndex):
         # record completed evaluation, for fallback blocking purposes
         fbVars = set(vb.qname for vb in xpCtx.varBindings.values() if vb.isFallback)
         thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
-        if fallbackIsUnnecessary(thisEvaluation, xpCtx.evaluations):
+        if evaluationIsUnnecessary(thisEvaluation, xpCtx.evaluations):
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.error( _("Variable set {0} fallback evaluation skipped, duplicates a real evaluation").format( varSet ),
+                xpCtx.modelXbrl.error( _("Variable set {0} non-different or fallback evaluation skipped, duplicates another evaluation").format( varSet ),
                     "info", "formula:trace")
             return
         xpCtx.evaluations.append(thisEvaluation)
@@ -308,12 +308,12 @@ def aspectMatches(fact1, fact2, aspects):
             break
     return matches
 
-def fallbackIsUnnecessary(thisEval, otherEvals):
-    if None in thisEval:
-        r = range(len(thisEval))
-        for otherEval in otherEvals:
-            if all([thisEval[i] is None or thisEval[i] == otherEval[i] for i in r]):
-                return True
+def evaluationIsUnnecessary(thisEval, otherEvals):
+    # detects evaluations which are not different (duplicate) and extra fallback evaluations
+    r = range(len(thisEval))
+    for otherEval in otherEvals:
+        if all([thisEval[i] is None or thisEval[i] == otherEval[i] for i in r]):
+            return True
     return False
 
 def produceOutputFact(xpCtx, formula, result):
