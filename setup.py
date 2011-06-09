@@ -48,7 +48,7 @@ elif sys.platform == 'win32':
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
         } )
-    
+   
     cx_FreezeExecutables = [
         Executable(
                 script="runGUI.pyw",
