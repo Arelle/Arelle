@@ -66,6 +66,8 @@ class QNameDef(ModelValue.QName):
             return other.loc == self.loc and super().__eq__(other) 
         else:
             return super().__eq__(other)
+    def __ne__(self,other):
+    	return not self.__eq__(other)
 
 def pushQName( sourceStr, loc, toks ):
     qname = toks[0]
@@ -110,7 +112,8 @@ class OpDef:
         return ("op({0})".format(self.name))
     def __eq__(self,other):
         return isinstance(other,OpDef) and other.name == self.name and other.loc == self.loc
-        
+    def __ne__(self,other):
+    	return not self.__eq__(other)
 
 def pushOp( sourceStr, loc, toks ):
     op = OpDef(loc, toks)

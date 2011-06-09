@@ -18,7 +18,7 @@ def load(modelManager, url, nextaction, base=None):
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
     from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document
-    #XmlValidate.xmlValidate(modelXbrl.modelDocument)
+    XmlValidate.xmlValidate(modelXbrl.modelDocument)
     modelManager.cntlr.webCache.saveUrlCheckTimes()
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl

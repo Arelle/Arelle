@@ -98,6 +98,8 @@ class QName:
         elif isinstance(other,xml.dom.Node) and other.nodeType == 1:
             return self.namespaceURI == other.namespaceURI and self.localName == other.localName
         return False
+    def __ne__(self,other):
+        return not self.__eq__(other)
     def __lt__(self,other):
         return (self.namespaceURI is None and other.namespaceURI) or \
                 (self.namespaceURI and other.namespaceURI and self.namespaceURI < other.namespaceURI) or \
