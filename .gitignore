@@ -2,3 +2,6 @@ __pycache__
 *.pyc
 build
 dist
+buildRenameX64.bat
+buildRenameX86.bat
+arelle/Version.py
