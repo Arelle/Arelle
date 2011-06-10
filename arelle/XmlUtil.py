@@ -61,11 +61,14 @@ def schemaLocation(element, namespace):
     treeElt = element
     while treeElt.nodeType == 1:
         if treeElt.hasAttribute("xsi:schemaLocation"):
-            s = treeElt.getAttribute("xsi:schemaLocation").split()
-            try:
-                return s[s.index(namespace) + 1]
-            except (ValueError, IndexError):
-                return None
+            isNs = True
+            for entry in treeElt.getAttribute("xsi:schemaLocation").split():
+                if isNs:
+                    if entry == namespace:
+                        return treeElt
+                    isNs = False
+                else:
+                    isNs = True
         treeElt = treeElt.parentNode
     return None
 

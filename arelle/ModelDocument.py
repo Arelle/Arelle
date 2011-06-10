@@ -142,6 +142,8 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
             else:
                 modelDocument = ModelDocument(modelXbrl, type, mappedUri, filepath, xmlDocument)
             modelDocument.xmlRootElement = rootNode
+            modelDocument.schemaLocationElements.add(rootNode)
+
             if isEntry:
                 modelDocument.inDTS = True
             
@@ -262,6 +264,8 @@ class ModelDocument:
         self.idObjects = {}  # by id
         self.modelObjects = [] # all model objects
         self.hrefObjects = []
+        self.schemaLocationElements = set()
+        self.referencedNamespaces = set()
         self.inDTS = False
 
     def objectId(self,refId=""):
@@ -306,6 +310,8 @@ class ModelDocument:
         self.idObjects = {}  # by id
         self.modelObjects = []
         self.hrefObjects = []
+        self.schemaLocationElements = set()
+        self.referencedNamespaces = set()
         if self.xmlDocument:
             del self.xmlDocument.modelDocument
             self.xmlDocument.unlink()
@@ -323,6 +329,7 @@ class ModelDocument:
         targetNamespace = rootElement.getAttribute("targetNamespace")
         if rootElement.hasAttribute("targetNamespace") and targetNamespace != "":
             self.targetNamespace = targetNamespace
+            self.referencedNamespaces.add(targetNamespace)
             self.modelXbrl.namespaceDocs[targetNamespace].append(self)
             if namespace and targetNamespace != namespace:
                 self.modelXbrl.error(
@@ -430,18 +437,32 @@ class ModelDocument:
                            isIncluded=isIncluded, namespace=importNamespace)
             if doc is not None and self.referencesDocument.get(doc) is None:
                 self.referencesDocument[doc] = element.localName #import or include
+                self.referencedNamespaces.add(importNamespace)
                 doc.inDTS = True
                 
     def schemalocateElementNamespace(self, element):
         eltNamespace = element.namespaceURI 
-        if eltNamespace not in self.modelXbrl.namespaceDocs:
-            schemaLocation = XmlUtil.schemaLocation(element, eltNamespace)
-            if schemaLocation:
-                importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(schemaLocation, self.baseForElement(element))
-                doc = load(self.modelXbrl, importSchemaLocation, 
-                           isIncluded=False, namespace=eltNamespace)
-                if doc:
-                    doc.inDTS = False
+        if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
+            schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace)
+            if schemaLocationElement:
+                self.schemaLocationElements.add(schemaLocationElement)
+                self.referencedNamespaces.add(eltNamespace)
+
+    def loadSchemalocatedSchemas(self):
+        # schemaLocation requires loaded schemas for validation
+        for elt in self.schemaLocationElements:
+            if elt.hasAttributeNS(XbrlConst.xsi, "schemaLocation"):
+                ns = None
+                for entry in elt.getAttributeNS(XbrlConst.xsi, "schemaLocation").split():
+                    if ns is None:
+                        ns = entry
+                    else:
+                        if ns not in self.modelXbrl.namespaceDocs:
+                            importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(entry, self.baseForElement(elt))
+                            doc = load(self.modelXbrl, importSchemaLocation, isIncluded=False, namespace=ns)
+                            if doc:
+                                doc.inDTS = False
+                        ns = None
                 
     def schemaLinkbaseRefsDiscover(self, tree):
         for refln in ("schemaRef", "linkbaseRef"):
@@ -699,4 +720,4 @@ class ModelDocument:
                 testcaseDoc = load(self.modelXbrl, testuri, base=testbase)
                 if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:
                     self.referencesDocument[testcaseDoc] = "registryIndex"
-
+        
