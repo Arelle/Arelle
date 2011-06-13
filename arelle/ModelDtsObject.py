@@ -1,0 +1,917 @@
+'''
+Created on Oct 5, 2010
+Refactored from ModelObject on Jun 11, 2011
+
+@author: Mark V Systems Limited
+(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+'''
+from collections import defaultdict
+from lxml import etree
+from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
+from arelle.ModelObject import ModelObject
+
+class ModelRoleType(ModelObject):
+    def _init(self):
+        super()._init()
+        
+    @property
+    def isArcrole(self):
+        return self.localName == "arcroleType"
+    
+    @property
+    def roleURI(self):
+        return self.get("roleURI")
+    
+    @property
+    def arcroleURI(self):
+        return self.get("arcroleURI")
+    
+    @property
+    def cyclesAllowed(self):
+        return self.get("cyclesAllowed")
+
+    @property
+    def definition(self):
+        try:
+            return self._definition
+        except AttributeError:
+            definition = XmlUtil.child(self, XbrlConst.link, "definition")
+            self._definition = definition.text if definition is not None else None
+            return self._definition
+
+    @property
+    def definitionNotStripped(self):
+        definition = XmlUtil.child(self, XbrlConst.link, "definition")
+        return definition.textNotStripped if definition is not None else None
+    
+    @property
+    def usedOns(self): 
+        try:
+            return self._usedOns
+        except AttributeError:
+            self._usedOns = set(ModelValue.qname(usedOn, usedOn.text)
+                                for usedOn in self.iterdescendants("{http://www.xbrl.org/2003/linkbase}usedOn")
+                                if isinstance(usedOn,ModelObject))
+            return self._usedOns
+    
+    @property
+    def propertyView(self):
+        if self.isArcrole:
+            return (("arcrole Uri", self.arcroleURI),
+                    ("definition", self.definition),
+                    ("used on", self.usedOns))
+        else:
+            return (("role Uri", self.roleURI),
+                    ("definition", self.definition),
+                    ("used on", self.usedOns))
+        
+    def __repr__(self):
+        return ("{0}[{1}]{2})".format('modelArcroleType' if self.isArcrole else 'modelRoleType', self.objectId(),self.propertyView))
+
+    @property
+    def viewConcept(self):  # concept trees view roles as themselves
+        return self
+
+class ModelSchemaObject(ModelObject):
+    def _init(self):
+        return super()._init()
+        
+    @property
+    def name(self):
+        return self.get("name")
+    
+    @property
+    def namespaceURI(self):
+        return self.modelDocument.targetNamespace
+        
+    @property
+    def qname(self):
+        try:
+            return self._qname
+        except AttributeError:
+            name = self.name
+            if self.name:
+                prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
+                self._qname =  ModelValue.qname(self.modelDocument.targetNamespace, 
+                                                prefix + ":" + name if prefix else name)
+            else:
+                self._qname = None
+            return self._qname
+    
+    @property
+    def isGlobalDeclaration(self):
+        parent = self.getparent()
+        return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"
+
+anonymousTypeSuffix = "@anonymousType"
+
+class ModelConcept(ModelSchemaObject):
+    def _init(self):
+        if super()._init() and self.name:  # don't index elements with ref and no name
+            self.modelXbrl.qnameConcepts[self.qname] = self
+            self.modelXbrl.nameConcepts[self.name].append(self)
+            self._baseXsdAttrType = {}
+        
+    @property
+    def abstract(self):
+        return self.get("abstract") if self.get("abstract") else 'false'
+    
+    @property
+    def isAbstract(self):
+        return self.abstract == "true"
+    
+    @property
+    def periodType(self):
+        return self.get("{http://www.xbrl.org/2003/instance}periodType")
+    
+    @property
+    def balance(self):
+        return self.get("{http://www.xbrl.org/2003/instance}balance")
+    
+    @property
+    def typeQname(self):
+        try:
+            return self._typeQname
+        except AttributeError:
+            if self.get("type"):
+                self._typeQname = self.prefixedNameQname(self.get("type"))
+            else:
+                # check if anonymous type exists
+                typeQname = ModelValue.qname(self.qname.nsname() +  anonymousTypeSuffix)
+                if typeQname in self.modelXbrl.qnameTypes:
+                    self._typeQname = typeQname
+                else:
+                    # try substitution group for type
+                    subs = self.substitutionGroup
+                    if subs is not None:
+                        self._typeQname = subs.typeQname
+                    else:
+                        self._typeQname =  None
+            return self._typeQname
+        
+    @property
+    def niceType(self):
+        if self.isHypercubeItem: return "Table"
+        if self.isDimensionItem: return "Axis"
+        if self.typeQname.localName.endswith("ItemType"):
+            return self.typeQname.localName[0].upper() + self.typeQname.localName[1:-8]
+        niceName = self.typeQname.localName
+        return niceName
+        
+    @property
+    def baseXsdType(self):
+        try:
+            return self._baseXsdType
+        except AttributeError:
+            typeqname = self.typeQname
+            if typeqname.namespaceURI == XbrlConst.xsd:
+                return typeqname.localName
+            type = self.type
+            self._baseXsdType = type.baseXsdType if type is not None else None
+            return self._baseXsdType
+    
+    def baseXsdAttrType(self,attrName):
+        try:
+            return self._baseXsdAttrType[attrName]
+        except KeyError:
+            attrType = self.type.baseXsdAttrType(attrName)
+            self._baseXsdAttrType[attrName] = attrType
+            return attrType
+    
+    @property
+    def baseXbrliType(self):
+        try:
+            return self._baseXbrliType
+        except AttributeError:
+            typeqname = self.typeQname
+            if typeqname.namespaceURI == XbrlConst.xbrli:
+                return typeqname.localName
+            self._baseXbrliType = self.type.baseXbrliType if self.type is not None else None
+            return self._baseXbrliType
+        
+    def instanceOfType(self, typeqname):
+        if typeqname == self.typeQname:
+            return True
+        type = self.type
+        if type and self.type.isDerivedFrom(typeqname):
+            return True
+        subs = self.substitutionGroup
+        if subs: 
+            return subs.instanceOfType(typeqname)
+        return False
+    
+    @property
+    def isNumeric(self):
+        try:
+            return self._isNumeric
+        except AttributeError:
+            self._isNumeric = XbrlConst.isNumericXsdType(self.baseXsdType)
+            return self._isNumeric
+    
+    @property
+    def isFraction(self):
+        try:
+            return self._isFraction
+        except AttributeError:
+            self._isFraction = self.baseXbrliType == "fractionItemType"
+            return self._isFraction
+    
+    @property
+    def isMonetary(self):
+        try:
+            return self._isMonetary
+        except AttributeError:
+            self._isMonetary = self.baseXbrliType == "monetaryItemType"
+            return self._isMonetary
+    
+    @property
+    def isShares(self):
+        try:
+            return self._isShares
+        except AttributeError:
+            self._isShares = self.baseXbrliType == "sharesItemType"
+            return self._isShares
+    
+    @property
+    def isTextBlock(self):
+        return self.type.isTextBlock
+    
+    @property
+    def type(self):
+        try:
+            return self._type
+        except AttributeError:
+            self._type = self.modelXbrl.qnameTypes.get(self.typeQname)
+            return self._type
+    
+    @property
+    def substitutionGroup(self):
+        subsgroupqname = self.substitutionGroupQname
+        if subsgroupqname is not None:
+            return self.modelXbrl.qnameConcepts.get(subsgroupqname)
+        return None
+        
+    @property
+    def substitutionGroupQname(self):
+        try:
+            return self._substitutionGroupQname
+        except AttributeError:
+            self._substitutionGroupQname = None
+            if self.get("substitutionGroup"):
+                self._substitutionGroupQname = self.prefixedNameQname(self.get("substitutionGroup"))
+            return self._substitutionGroupQname
+        
+    @property
+    def substitutionGroupQnames(self):   # ordered list of all substitution group qnames
+        qnames = []
+        subs = self
+        subNext = subs.substitutionGroup
+        while subNext is not None:
+            qnames.append(subNext.qname)
+            subs = subNext
+            subNext = subs.substitutionGroup
+        return qnames
+    
+    @property
+    def nillable(self):
+        return self.get("nillable") if self.get("nillable") else 'false'
+        
+    @property
+    def block(self):
+        return self.get("block")
+    
+    @property
+    def default(self):
+        return self.get("default")
+    
+    @property
+    def fixed(self):
+        return self.get("fixed") if self.get("fixed") else None
+    
+    @property
+    def final(self):
+        return self.get("final") if self.get("final") else None
+    
+    @property
+    def isRoot(self):
+        return self.getparent().localName == "schema"
+    
+    def label(self,preferredLabel=None,fallbackToQname=True,lang=None):
+        if preferredLabel is None: preferredLabel = XbrlConst.standardLabel
+        if preferredLabel == XbrlConst.conceptNameLabelRole: return str(self.qname)
+        labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+        if labelsRelationshipSet:
+            label = labelsRelationshipSet.label(self, preferredLabel, lang)
+            if label is not None:
+                return label
+        return str(self.qname) if fallbackToQname else None
+    
+    def relationshipToResource(self, resourceObject, arcrole):    
+        relationshipSet = self.modelXbrl.relationshipSet(arcrole)
+        if relationshipSet:
+            for modelRel in relationshipSet.fromModelObject(self):
+                if modelRel.toModelObject == resourceObject:
+                    return modelRel
+        return None
+    
+    @property
+    def isItem(self): # true for a substitution for item but not xbrli:item itself
+        try:
+            return self._isItem
+        except AttributeError:
+            self._isItem = self.subGroupHeadQname == XbrlConst.qnXbrliItem and self.namespaceURI != XbrlConst.xbrli
+            return self._isItem
+
+    @property
+    def isTuple(self): # true for a substitution for item but not xbrli:item itself
+        try:
+            return self._isTuple
+        except AttributeError:
+            self._isTuple = self.subGroupHeadQname == XbrlConst.qnXbrliTuple and self.namespaceURI != XbrlConst.xbrli
+            return self._isTuple
+        
+    @property
+    def isLinkPart(self): # true for a substitution for item but not link:part itself
+        try:
+            return self._isLinkPart
+        except AttributeError:
+            self._isLinkPart = self.subGroupHeadQname == XbrlConst.qnLinkPart and self.namespaceURI != XbrlConst.link
+            return self._isLinkPart
+        
+    @property
+    def isPrimaryItem(self):
+        try:
+            return self._isPrimaryItem
+        except AttributeError:
+            self._isPrimaryItem = self.isItem and not \
+            (self.substitutesForQname(XbrlConst.qnXbrldtHypercubeItem) or self.substitutesForQname(XbrlConst.qnXbrldtDimensionItem))
+            return self._isPrimaryItem
+
+    @property
+    def isDomainMember(self):
+        return self.isPrimaryItem   # same definition in XDT
+        
+    @property
+    def isHypercubeItem(self):
+        try:
+            return self._isHypercubeItem
+        except AttributeError:
+            self._isHypercubeItem = self.substitutesForQname(XbrlConst.qnXbrldtHypercubeItem)
+            return self._isHypercubeItem
+        
+    @property
+    def isDimensionItem(self):
+        try:
+            return self._isDimensionItem
+        except AttributeError:
+            self._isDimensionItem = self.substitutesForQname(XbrlConst.qnXbrldtDimensionItem)
+            return self._isDimensionItem
+        
+    @property
+    def isTypedDimension(self):
+        try:
+            return self._isTypedDimension
+        except AttributeError:
+            self._isTypedDimension = self.isDimensionItem and self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef")
+            return self._isTypedDimension
+        
+    @property
+    def isExplicitDimension(self):
+        return self.isDimensionItem and not self.isTypedDimension
+    
+    @property
+    def typedDomainElement(self):
+        try:
+            return self._typedDomainElement
+        except AttributeError:
+            self._typedDomainElement = self.resolveUri(uri=self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"))
+            return self._typedDomainElement
+        
+    def substitutesForQname(self, subsQname):
+        subs = self
+        subNext = subs.substitutionGroup
+        while subNext is not None:
+            if subsQname == subs.substitutionGroupQname:
+                return True
+            subs = subNext
+            subNext = subs.substitutionGroup
+        return False
+        
+    @property
+    def subGroupHeadQname(self): # true for a substitution but not item itself (differs from w3c definition)
+        subs = self
+        subNext = subs.substitutionGroup
+        while subNext is not None:
+            subs = subNext
+            subNext = subs.substitutionGroup
+        return subs.qname
+    
+    @property
+    def typedDomainRefQname(self):
+        if self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"):
+            return self.prefixedNameQname(self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"))
+        return None
+
+    @property
+    def propertyView(self):
+        return (("label", self.label(lang=self.modelXbrl.modelManager.defaultLang)),
+                ("name", self.name),
+                ("id", self.id),
+                ("abstract", self.abstract),
+                ("type", self.typeQname),
+                ("subst grp", self.substitutionGroupQname),
+                ("period type", self.periodType) if self.periodType else (),
+                ("balance", self.balance) if self.balance else ())
+        
+    def __repr__(self):
+        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+
+    @property
+    def viewConcept(self):
+        return self
+            
+class ModelAttribute(ModelSchemaObject):
+    def _init(self):
+        if super()._init():
+            self.modelXbrl.qnameAttributes[self.qname] = self
+            self._baseXsdAttrType = {}
+        
+    @property
+    def typeQname(self):
+        if self.get("type"):
+            return self.prefixedNameQname(self.get("type"))
+        else:
+            # check if anonymous type exists
+            typeqname = ModelValue.qname(self.qname.nsname() +  "@anonymousType")
+            if typeqname in self.modelXbrl.qnameTypes:
+                return typeqname
+            # try substitution group for type
+            subs = self.substitutionGroup
+            if subs:
+                return subs.typeQname
+            return None
+    
+    @property
+    def type(self):
+        try:
+            return self._type
+        except AttributeError:
+            self._type = self.modelXbrl.qnameTypes.get(self.typeQname)
+            return self._type
+    
+    @property
+    def baseXsdType(self):
+        try:
+            return self._baseXsdType
+        except AttributeError:
+            typeqname = self.typeQname
+            if typeqname.namespaceURI == XbrlConst.xsd:
+                return typeqname.localName
+            type = self.type
+            self._baseXsdType = type.baseXsdType if type is not None else None
+            return self._baseXsdType
+    
+    @property
+    def isNumeric(self):
+        try:
+            return self._isNumeric
+        except AttributeError:
+            self._isNumeric = XbrlConst.isNumericXsdType(self.baseXsdType)
+            return self._isNumeric
+    
+    @property
+    def default(self):
+        return self.get("default")
+    
+    @property
+    def fixed(self):
+        return self.get("fixed")
+    
+            
+class ModelType(ModelSchemaObject):
+    def _init(self):
+        if super()._init():      
+            self.modelXbrl.qnameTypes[self.qname] = self
+        
+    @property
+    def name(self):
+        if self.get("name"):
+            return self.get("name")
+        # may be anonymous type of parent self.element.tagName
+        element = self.getparent()
+        while element is not None:
+            if element.get("name"):
+                return element.get("name") + "@anonymousType"
+            element = element.getparent()
+        return None
+    
+    @property
+    def qnameDerivedFrom(self):
+        return self.prefixedNameQname(XmlUtil.descendantAttr(self, XbrlConst.xsd, ("extension","restriction"), "base"))
+    
+    @property
+    def baseXsdType(self):
+        try:
+            return self._baseXsdType
+        except AttributeError:
+            if self.qname == XbrlConst.qnXbrliDateUnion:
+                return "XBRLI_DATEUNION"
+            qnameDerivedFrom = self.qnameDerivedFrom
+            if qnameDerivedFrom and qnameDerivedFrom.namespaceURI == XbrlConst.xsd:
+                self._baseXsdType = qnameDerivedFrom.localName
+            else:
+                typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+                #assert typeDerivedFrom is not None, _("Unable to determine derivation of {0}").format(qnameDerivedFrom)
+                self._baseXsdType = typeDerivedFrom.baseXsdType if typeDerivedFrom is not None else None
+            return self._baseXsdType
+    
+    @property
+    def baseXbrliType(self):
+        try:
+            return self._baseXbrliType
+        except AttributeError:
+            self._baseXbrliType = None
+            if self.qname == XbrlConst.qnXbrliDateUnion:
+                return "XBRLI_DATEUNION"
+            qnameDerivedFrom = self.qnameDerivedFrom
+            if qnameDerivedFrom:
+                if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
+                    self._baseXbrliType = qnameDerivedFrom.localName
+                elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:    # xsd type
+                    self._baseXbrliType = qnameDerivedFrom.localName
+                else:
+                    typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+                    self._baseXbrliType = typeDerivedFrom.baseXbrliType if typeDerivedFrom is not None else None
+            return self._baseXbrliType
+    
+    @property
+    def isTextBlock(self):
+        if self.name == "textBlockItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.usTypesStartsWith):
+            return True
+        if self.name == "escapedItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+            return True
+        qnameDerivedFrom = self.qnameDerivedFrom
+        if qnameDerivedFrom and (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli)):
+            return False
+        typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+        return typeDerivedFrom.isTextBlock if typeDerivedFrom else False
+
+    @property
+    def isDomainItemType(self):
+        if self.name == "domainItemType" and \
+           (self.modelDocument.targetNamespace.startswith(XbrlConst.usTypesStartsWith) or
+            self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith)):
+            return True
+        qnameDerivedFrom = self.qnameDerivedFrom
+        if qnameDerivedFrom and (qnameDerivedFrom.namespaceURI in (XbrlConst.xsd,XbrlConst.xbrli)):
+            return False
+        typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+        return typeDerivedFrom.isDomainItemType if typeDerivedFrom else False
+    
+    def isDerivedFrom(self, typeqname):
+        qnameDerivedFrom = self.qnameDerivedFrom
+        if qnameDerivedFrom == typeqname:
+            return True
+        typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+        return typeDerivedFrom.isDerivedFrom(typeqname) if typeDerivedFrom else False
+        
+    
+    @property
+    def attributes(self):
+        return XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "attribute")
+
+    @property
+    def elements(self):
+        return XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "element")
+    
+    @property
+    def facets(self):
+        try:
+            return self._facets
+        except AttributeError:
+            self._facets = self.constrainingFacets()
+            return self._facets
+    
+    def constrainingFacets(self, facetValues=None):
+        facetValues = facetValues if facetValues else {}
+        for facetElt in XmlUtil.descendants(self, XbrlConst.xsd, (
+                    "length", "minLength", "maxLength", "pattern", "whiteSpace",  
+                    "maxInclusive", "maxExclusive", "minExclusive", "totalDigits", "fractionDigits")):
+            facetName = facetElt.localName
+            if facetName not in facetValues:
+                facetValues[facetName] = facetElt.get("value")
+        if "enumeration" not in facetValues:
+            for facetElt in XmlUtil.descendants(self, XbrlConst.xsd, "enumeration"):
+                facetValues.setdefault("enumeration",set()).add(facetElt.get("value"))
+        typeDerivedFrom = self.modelXbrl.qnameTypes.get(self.qnameDerivedFrom)
+        if typeDerivedFrom is not None:
+            typeDerivedFrom.constrainingFacets(facetValues)
+        return facetValues
+                
+        
+    
+    def baseXsdAttrType(self, attrName):
+        attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
+        if attr is not None and attr.get("type"):
+            qnameAttrType = ModelValue.qname(attr, attr.get("type"))
+            if qnameAttrType and qnameAttrType.namespaceURI == XbrlConst.xsd:
+                return qnameAttrType.localName
+            typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameAttrType)
+            if typeDerivedFrom is not None:
+                return typeDerivedFrom.baseXsdType
+        return None
+
+    def fixedOrDefaultAttrValue(self, attrName):
+        attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
+        if attr is not None:
+            if attr.get("fixed"):
+                return attr.get("fixed")
+            elif attr.get("default"):
+                return attr.get("default")
+        return None
+    
+    @property
+    def propertyView(self):
+        return (("name", self.name),
+                ("xsd type", self.baseXsdType),
+                ("derived from", self.qnameDerivedFrom),
+                ("facits", self.facets))
+        
+    def __repr__(self):
+        return ("modelType[{0}]{1})".format(self.objectId(),self.propertyView))
+    
+class ModelEnumeration(ModelSchemaObject):
+    def _init(self):
+        super()._init()
+        
+    @property
+    def value(self):
+        return self.get("value")
+    
+class ModelLink(ModelObject):
+    def _init(self):
+        super()._init()
+        self.labeledResources = defaultdict(list)
+        
+    @property
+    def role(self):
+        return self.get("{http://www.w3.org/1999/xlink}role")
+        
+    def modelResourceOfResourceElement(self,resourceElement):
+        label = resourceElement.get("{http://www.w3.org/1999/xlink}label")
+        for modelResource in self.labeledResources[label]:
+            if modelResource == resourceElement:
+                return modelResource
+        return None
+
+class ModelResource(ModelObject):
+    def _init(self):
+        if super()._init():
+            if self.xmlLang:
+                self.modelXbrl.langs.add(self.xmlLang)
+            if self.localName == "label":
+                self.modelXbrl.labelroles.add(self.role)
+        
+    @property
+    def role(self):
+        return self.get("{http://www.w3.org/1999/xlink}role")
+        
+    @property
+    def xlinkLabel(self):
+        return self.get("{http://www.w3.org/1999/xlink}label")
+
+    @property
+    def xmlLang(self):
+        lang = self.get("{http://www.w3.org/XML/1998/namespace}lang")
+        return lang
+
+    def viewText(self, labelrole=None, lang=None): # text of label or reference parts
+        return " ".join([resourceElt.text
+                           for resourceElt in self.iter()
+                              if isinstance(resourceElt,ModelObject) and 
+                                  not resourceElt.localName.startswith("URI")])
+    def dereference(self):
+        return self
+        
+class ModelLocator(ModelResource):
+    def _init(self):
+        super()._init()
+    
+    def dereference(self):
+        # resource is a loc with href document and id modelHref a tuple with href's element, modelDocument, id
+        return self.resolveUri(self.modelHref)
+    
+class RelationStatus:
+    Unknown = 0
+    EFFECTIVE = 1
+    OVERRIDDEN = 2
+    PROHIBITED = 3
+    INEFFECTIVE = 4
+    
+class ModelRelationship(ModelObject):
+    def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
+        # copy model object properties from arcElement
+        self.arcElement = arcElement
+        self.setModelDocument(modelDocument)
+        self.fromModelObject = fromModelObject
+        self.toModelObject = toModelObject
+        
+    # simulate etree operations
+    def get(self, attrname):
+        return self.arcElement.get(attrname)
+    
+    @property
+    def qname(self):
+        return self.arcElement.qname
+        
+    @property
+    def fromLabel(self):
+        return self.get("{http://www.w3.org/1999/xlink}from")
+        
+    @property
+    def toLabel(self):
+        return self.get("{http://www.w3.org/1999/xlink}to")
+        
+    @property
+    def arcrole(self):
+        return self.get("{http://www.w3.org/1999/xlink}arcrole")
+
+    @property
+    def order(self):
+        if not self.get("order"):
+            return 1.0
+        try:
+            return float(self.get("order"))
+        except (ValueError) :
+            return float("nan")
+
+    @property
+    def priority(self):
+        if not self.get("priority"):
+            return 0
+        try:
+            return int(self.get("priority"))
+        except (ValueError) :
+            # XBRL validation error needed
+            return 0
+
+    @property
+    def weight(self):
+        if not self.get("weight"):
+            return None
+        try:
+            return float(self.get("weight"))
+        except (ValueError) :
+            # XBRL validation error needed
+            return float("nan")
+
+    @property
+    def use(self):
+        return self.get("use")
+    
+    @property
+    def isProhibited(self):
+        return self.use == "prohibited"
+    
+    @property
+    def prohibitedUseSortKey(self):
+        return 2 if self.isProhibited else 1
+    
+    @property
+    def preferredLabel(self):
+        return self.get("preferredLabel")
+
+    @property
+    def variablename(self):
+        return self.get("name")
+
+    @property
+    def variableQname(self):
+        return ModelValue.qname(self, self.get("name"), noPrefixIsNoNamespace=True) if self.get("name") else None
+
+    @property
+    def linkrole(self):
+        return self.arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
+    
+    @property
+    def linkQname(self):
+        return ModelValue.qname(self.arcElement.getparent())
+    
+    @property
+    def contextElement(self):
+        return self.get("{http://xbrl.org/2005/xbrldt}contextElement")
+    
+    @property
+    def targetRole(self):
+        return self.get("{http://xbrl.org/2005/xbrldt}targetRole")
+    
+    @property
+    def consecutiveLinkrole(self):
+        return self.targetRole if self.targetRole else self.linkrole
+    
+    @property
+    def isUsable(self):
+        return self.get("{http://xbrl.org/2005/xbrldt}usable") == "true" if self.get("{http://xbrl.org/2005/xbrldt}usable") else True
+    
+    @property
+    def closed(self):
+        return self.get("{http://xbrl.org/2005/xbrldt}closed") if self.get("{http://xbrl.org/2005/xbrldt}closed") else "false"
+
+    @property
+    def isComplemented(self):
+        try:
+            return self._isComplemented
+        except AttributeError:
+            self._isComplemented = self.get("complement") == "true" if self.get("complement") else False
+            return self._isComplemented
+    
+    @property
+    def isCovered(self):
+        try:
+            return self._isCovered
+        except AttributeError:
+            self._isCovered = self.get("cover") == "true" if self.get("cover") else False
+            return self._isCovered
+    
+    @property
+    def isClosed(self):
+        try:
+            return self._isClosed
+        except AttributeError:
+            self._isClosed = self.get("{http://xbrl.org/2005/xbrldt}closed") == "true" if self.get("{http://xbrl.org/2005/xbrldt}closed") else False
+            return self._isClosed
+
+    @property
+    def usable(self):
+        try:
+            return self._usable
+        except AttributeError:
+            if self.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
+                self._usable = self.get("{http://xbrl.org/2005/xbrldt}usable") if self.get("{http://xbrl.org/2005/xbrldt}usable") else "true"
+            else:
+                self._usable = None
+            return self._usable
+        
+    @property
+    def equivalenceKey(self):
+        return (self.qname, 
+                self.linkQname,
+                self.linkrole,  # needed when linkrole=None merges multiple links
+                self.fromModelObject.objectIndex if self.fromModelObject is not None else -1, 
+                self.toModelObject.objectIndex if self.toModelObject is not None else -1,
+                self.order, 
+                self.weight, 
+                self.preferredLabel) + \
+                XbrlUtil.attributes(self.modelXbrl, self.arcElement,
+                    exclusions=(XbrlConst.xlink, "use","priority","order","weight","preferredLabel"))
+                
+    def isIdenticalTo(self, otherModelRelationship):
+        return (otherModelRelationship is not None and
+                self.arcElement == otherModelRelationship.arcElement and
+                self.fromModelObject is not None and otherModelRelationship.fromModelObject is not None and
+                self.toModelObject is not None and otherModelRelationship.toModelObject is not None and
+                self.fromModelObject == otherModelRelationship.fromModelObject and
+                self.toModelObject == otherModelRelationship.toModelObject)
+
+    def priorityOver(self, otherModelRelationship):
+        if otherModelRelationship is None:
+            return True
+        priority = self.priority
+        otherPriority = otherModelRelationship.priority
+        if priority > otherPriority:
+            return True
+        elif priority < otherPriority:
+            return False
+        if otherModelRelationship.isProhibited:
+            return False
+        return True
+    
+    @property
+    def propertyView(self):
+        return self.toModelObject.propertyView + \
+               (("arcrole", self.arcrole),
+                ("weight", self.weight) if self.arcrole == XbrlConst.summationItem else (),
+                ("contextElement", self.contextElement)  if self.arcrole in (self.arcrole == XbrlConst.all, XbrlConst.notAll)  else (),
+                ("closed", self.closed) if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
+                ("usable", self.usable) if self.arcrole == XbrlConst.domainMember  else (),
+                ("targetRole", self.targetRole) if self.arcrole.startswith(XbrlConst.dimStartsWith) else (),
+                ("order", self.order),
+                ("priority", self.priority))
+        
+    def __repr__(self):
+        return ("modelRelationship[{0}]{1})".format(self.objectId(),self.propertyView))
+
+    @property
+    def viewConcept(self):
+        if isinstance(self.toModelObject, ModelConcept):
+            return self.toModelObject
+        elif isinstance(self.fromModelObject, ModelConcept):
+            return self.fromModelObject
+        return None
+           
+from arelle.ModelObjectFactory import elementSubstitutionModelClass
+elementSubstitutionModelClass.update((
+     (XbrlConst.qnXlExtended, ModelLink),
+     (XbrlConst.qnXlLocator, ModelLocator),
+     (XbrlConst.qnXlResource, ModelResource),
+    ))

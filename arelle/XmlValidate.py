@@ -13,6 +13,7 @@ UNKNOWN = 0
 INVALID = 1
 NONE = 2
 VALID = 3
+VALID_ID = 4
 
 def xmlValidate(entryModelDocument):
     # test of schema validation using lxml (trial experiment, commented out for production use)
@@ -64,7 +65,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
         text = XmlUtil.text(elt)
         qnElt = qname(elt)
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
-        if modelConcept:
+        if modelConcept is not None:
             baseXsdType = modelConcept.baseXsdType
             if len(text) == 0 and modelConcept.default is not None:
                 text = modelConcept.default
@@ -73,74 +74,87 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
         else:
             baseXsdType = None
         if attrQname is None:
-            validateNode(modelXbrl, elt, elt, baseXsdType, text)
+            validateValue(modelXbrl, elt, None, baseXsdType, text)
+        if not hasattr(elt, "xAttributes"):
+            elt.xAttributes = {}
         # validate attributes
         # find missing attributes for default values
-        for i in range(len(elt.attributes)):
-            attr = elt.attributes.item(i)
-            attrNsURI = attr.namespaceURI
-            if (attr.name not in ("xmlns") and attr.prefix != "xmlns"):
-                if attrNsURI:
-                    qn = qname(attrNsURI, attr.localName)
-                else:
-                    qn = qname(attr.localName)
-                if attrQname and attrQname != qn:
-                    continue
-                baseXsdAttrType = None
-                if modelConcept:
-                    baseXsdAttrType = modelConcept.baseXsdAttrType(qn) if modelConcept else None
-                if baseXsdAttrType is None:
-                    attrObject = modelXbrl.qnameAttributes.get(qn)
-                    if attrObject:
-                        baseXsdAttrType = attrObject.baseXsdType
-                    elif attr.localName == "dimension" and elt.namespaceURI == XbrlConst.xbrldi:
-                        baseXsdAttrType = "QName"
-                validateNode(modelXbrl, elt, attr, baseXsdAttrType, attr.value)
+        for attrTag, attrValue in elt.items():
+            qn = qname(attrTag)
+            if attrQname and attrQname != qn:
+                continue
+            baseXsdAttrType = None
+            if modelConcept is not None:
+                baseXsdAttrType = modelConcept.baseXsdAttrType(qn)
+            if baseXsdAttrType is None:
+                attrObject = modelXbrl.qnameAttributes.get(qn)
+                if attrObject is not None:
+                    baseXsdAttrType = attrObject.baseXsdType
+                elif attrTag == "{http://xbrl.org/2006/xbrldi}dimension":
+                    baseXsdAttrType = "QName"
+            validateValue(modelXbrl, elt, attrTag, baseXsdAttrType, attrValue)
     if recurse:
-        for child in elt.childNodes:
-            if child.nodeType == 1:
-                validate(modelXbrl, child)
+        for child in elt.getchildren():
+            validate(modelXbrl, child)
 
-def validateNode(modelXbrl, elt, node, baseXsdType, value):
+def validateValue(modelXbrl, elt, attrTag, baseXsdType, value):
     if baseXsdType:
         try:
+            xValid = VALID
             if baseXsdType in ("decimal", "float", "double"):
-                node.xValue = float(value)
+                xValue = sValue = float(value)
             elif baseXsdType in ("integer",):
-                node.xValue = int(value)
+                xValue = sValue = int(value)
             elif baseXsdType == "boolean":
-                if value in ("true", "1"): node.xValue = True
-                elif value in ("false", "0"): node.xValue = False
+                if value in ("true", "1"):  
+                    xValue = sValue = True
+                elif value in ("false", "0"): 
+                    xValue = sValue = False
                 else: raise ValueError
             elif baseXsdType == "QName":
-                node.xValue = qname(elt, value, castException=ValueError)
-            elif baseXsdType in ("normalizedString","token","language","NMTOKEN","Name","NCName","ID","IDREF","ENTITY"):
-                node.xValue = value.strip()
+                xValue = qname(elt, value, castException=ValueError)
+                sValue = value
+            elif baseXsdType in ("normalizedString","token","language","NMTOKEN","Name","NCName","IDREF","ENTITY"):
+                xValue = value.strip()
+                sValue = value
+            elif baseXsdType == "ID":
+                xValue = value.strip()
+                sValue = value
+                xValid = VALID_ID
             elif baseXsdType == "dateTime":
-                node.xValue = dateTime(value, type=DATETIME, castException=ValueError)
+                xValue = dateTime(value, type=DATETIME, castException=ValueError)
+                sValue = value
             elif baseXsdType == "date":
-                node.xValue = dateTime(value, type=DATE, castException=ValueError)
+                xValue = dateTime(value, type=DATE, castException=ValueError)
+                sValue = value
             else:
-                node.xValue = value
-            node.xValid = VALID
+                xValue = value
+                sValue = value
         except ValueError:
-            if node.nodeType == 1:
-                modelXbrl.error(
-                    _("Element {0} type {1} value error: {2}").format(
-                    elt.tagName,
-                    baseXsdType,
-                    value),
-                    "err", "xmlSchema:valueError")
-            else:
+            if attrTag:
                 modelXbrl.error(
                     _("Element {0} attribute {1} type {2} value error: {3}").format(
-                    elt.tagName,
-                    node.name,
+                    elt.tag,
+                    attrTag,
                     baseXsdType,
                     value),
                     "err", "xmlSchema:valueError")
-            node.xValue = None
-            node.xValid = INVALID
+            else:
+                modelXbrl.error(
+                    _("Element {0} type {1} value error: {2}").format(
+                    elt.tag,
+                    baseXsdType,
+                    value),
+                    "err", "xmlSchema:valueError")
+            xValue = None
+            sValue = value
+            xValid = INVALID
     else:
-        node.xValue = None
-        node.xValid = UNKNOWN
+        xValue = sValue = None
+        xValid = UNKNOWN
+    if attrTag:
+        elt.xAttributes[attrTag] = (xValid, xValue, sValue)
+    else:
+        elt.xValid = xValid
+        elt.xValue = xValue
+        elt.sValue = sValue

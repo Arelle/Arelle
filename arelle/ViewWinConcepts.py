@@ -4,7 +4,9 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ViewWinTree, ModelObject, XbrlConst)
+from arelle import ViewWinTree, XbrlConst
+from arelle.ModelDtsObject import ModelRelationship
+from arelle.ModelInstanceObject import ModelFact
 from collections import defaultdict
 
 def viewConcepts(modelXbrl, tabWin, header, lang=None):
@@ -95,7 +97,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     if concept.balance:
                         self.treeView.set(node, "balance", concept.balance)
                     conceptType = concept.type
-                    if conceptType:
+                    if conceptType is not None:
                         facets = conceptType.facets
                         if len(facets) > 0:
                             self.treeView.set(node, "facets",
@@ -122,9 +124,9 @@ class ViewConcepts(ViewWinTree.ViewTree):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                if isinstance(modelObject, ModelObject.ModelRelationship):
+                if isinstance(modelObject, ModelRelationship):
                     conceptId = modelObject.toModelObject.objectId()
-                elif isinstance(modelObject, ModelObject.ModelFact):
+                elif isinstance(modelObject, ModelFact):
                     conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()
                 else:
                     conceptId = modelObject.objectId()
@@ -133,6 +135,6 @@ class ViewConcepts(ViewWinTree.ViewTree):
                 if self.treeView.exists(node):
                     self.treeView.see(node)
                     self.treeView.selection_set(node)
-            except KeyError:
+            except (AttributeError, KeyError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1

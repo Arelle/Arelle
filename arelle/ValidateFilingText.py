@@ -367,7 +367,7 @@ xhtmlEntities = {
     }
 
 def checkfile(modelXbrl, filepath):
-    result = ""
+    result = []
     lineNum = 1
     with modelXbrl.fileSource.file(filepath) as f:
         while True:
@@ -388,9 +388,9 @@ def checkfile(modelXbrl, filepath):
                         "Disallowed character '{0}' in file {1} at line {2} col {3}".format(
                                   str, os.path.basename(filepath), lineNum, match.start()), 
                         "err", "EFM.5.2.1.1")
-            result += line
+            result.append(line)
             lineNum += 1
-    return io.StringIO(initial_value=result)
+    return io.StringIO(initial_value=''.join(result))
         
 def removeEntities(text):
     entitylessText = []

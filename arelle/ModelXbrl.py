@@ -154,9 +154,9 @@ class ModelXbrl:
         if elementQname in subsGrpMatchTable:
             return subsGrpMatchTable[elementQname] # head of substitution group
         elementMdlObj = self.qnameConcepts.get(elementQname)
-        if elementMdlObj:
+        if elementMdlObj is not None:
             subsGrpMdlObj = elementMdlObj.substitutionGroup
-            while subsGrpMdlObj:
+            while subsGrpMdlObj is not None:
                 subsGrpQname = subsGrpMdlObj.qname
                 if subsGrpQname in subsGrpMatchTable:
                     return subsGrpMatchTable[subsGrpQname]
@@ -231,7 +231,7 @@ class ModelXbrl:
                 modelObject = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
                 modelObject = self.modelObject(objectId)
-            if modelObject:
+            if modelObject is not None:
                 for view in self.views:
                     view.viewModelObject(modelObject)
         except (IndexError, ValueError, AttributeError)as err:

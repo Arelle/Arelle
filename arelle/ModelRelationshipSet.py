@@ -7,7 +7,7 @@ Created on Oct 5, 2010
 
 # initialize object from loaded linkbases
 from collections import defaultdict
-from arelle import (ModelObject, XbrlConst, XmlUtil, ModelValue)
+from arelle import (ModelDtsObject, XbrlConst, XmlUtil, ModelValue)
 import os
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
@@ -17,21 +17,20 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     relationships = defaultdict(list)
     for modelLink in baseSetModelLinks:
         arcs = []
-        for linkChild in modelLink.element.childNodes:
-            if linkChild.nodeType == 1 and \
-               linkChild.getAttributeNS(XbrlConst.xlink, "type") == "arc" and \
-               arcrole == linkChild.getAttributeNS(XbrlConst.xlink, "arcrole") and \
+        for linkChild in modelLink.getchildren():
+            if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and \
+               arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole") and \
                (arcqname is None or arcqname == linkChild):
                 arcs.append(linkChild)
                     
         # build network
         for arcElement in arcs:
-            arcrole = arcElement.getAttributeNS(XbrlConst.xlink, "arcrole")
-            fromLabel = arcElement.getAttributeNS(XbrlConst.xlink, "from")
-            toLabel = arcElement.getAttributeNS(XbrlConst.xlink, "to")
+            arcrole = arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
+            fromLabel = arcElement.get("{http://www.w3.org/1999/xlink}from")
+            toLabel = arcElement.get("{http://www.w3.org/1999/xlink}to")
             for fromResource in modelLink.labeledResources[fromLabel]:
                 for toResource in modelLink.labeledResources[toLabel]:
-                    modelRel = ModelObject.createRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
+                    modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
                     relationships[modelRel.equivalenceKey].append(modelRel)
     # determine ineffective relationships
     ineffectives = []
@@ -94,11 +93,10 @@ class ModelRelationshipSet:
         for modelLink in modelLinks:
             arcs = []
             linkEltQname = modelLink.qname
-            for linkChild in modelLink.element.childNodes:
-                if linkChild.nodeType == 1 and \
-                   linkChild.getAttributeNS(XbrlConst.xlink, "type") == "arc" and \
-                   linkChild.hasAttributeNS(XbrlConst.xlink, "arcrole"):
-                    linkChildArcrole = linkChild.getAttributeNS(XbrlConst.xlink, "arcrole")
+            for linkChild in modelLink.getchildren():
+                if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and \
+                   linkChild.get("{http://www.w3.org/1999/xlink}arcrole"):
+                    linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
                     linkChildQname = linkChild
                     if isFootnoteRel:
                         arcs.append(linkChild)
@@ -118,12 +116,12 @@ class ModelRelationshipSet:
                         
             # build network
             for arcElement in arcs:
-                arcrole = arcElement.getAttributeNS(XbrlConst.xlink, "arcrole")
-                fromLabel = arcElement.getAttributeNS(XbrlConst.xlink, "from")
-                toLabel = arcElement.getAttributeNS(XbrlConst.xlink, "to")
+                arcrole = arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
+                fromLabel = arcElement.get("{http://www.w3.org/1999/xlink}from")
+                toLabel = arcElement.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelObject.createRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
+                        modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
                         modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
                         if modelRelEquivalenceKey not in relationships or \
                            modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
@@ -155,7 +153,7 @@ class ModelRelationshipSet:
             self.modelRelationshipsFrom = defaultdict(list)
             for modelRel in self.modelRelationships:
                 fromModelObject = modelRel.fromModelObject
-                if fromModelObject: # none if concepts failed to load
+                if fromModelObject is not None: # none if concepts failed to load
                     self.modelRelationshipsFrom[fromModelObject].append(modelRel)
     
     def loadModelRelationshipsTo(self):
@@ -163,7 +161,7 @@ class ModelRelationshipSet:
             self.modelRelationshipsTo = defaultdict(list)
             for modelRel in self.modelRelationships:
                 toModelObject = modelRel.toModelObject
-                if toModelObject:   # none if concepts failed to load
+                if toModelObject is not None:   # none if concepts failed to load
                     self.modelRelationshipsTo[toModelObject].append(modelRel)
                 
     def fromModelObjects(self):

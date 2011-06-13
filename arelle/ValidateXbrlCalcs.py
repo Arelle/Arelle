@@ -134,7 +134,7 @@ class ValidateXbrlCalcs:
                                                     _("Essence-Alias inconsistent units from {0} to {1} in link role {2} context {3}").format(
                                                           essenceConcept.qname, aliasConcept.qname, ELR, context.id), 
                                                     "err", "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency")
-                                            if not XbrlUtil.vEqual(essenceConcept, eF.element, aliasConcept, aF.element):
+                                            if not XbrlUtil.vEqual(eF, aF):
                                                 self.modelXbrl.error(
                                                     _("Essence-Alias inconsistent value from {0} to {1} in link role {2} context {3}").format(
                                                           essenceConcept.qname, aliasConcept.qname, ELR, context.id), 
@@ -153,7 +153,7 @@ class ValidateXbrlCalcs:
     def bindFacts(self, facts, ancestors):
         for f in facts:
             concept = f.concept
-            if concept:
+            if concept is not None:
                 # index facts by their calc relationship set
                 if concept.isNumeric:
                     for ancestor in ancestors:
@@ -175,7 +175,7 @@ class ValidateXbrlCalcs:
                     else:
                         self.duplicateKeyFacts[calcKey] = f
                 elif concept.isTuple:
-                    self.bindFacts(f.modelTupleFacts, ancestors + [f.element])
+                    self.bindFacts(f.modelTupleFacts, ancestors + [f])
 
                 # index facts by their essence alias relationship set
                 if concept in self.conceptsInEssencesAlias and not f.isNil:

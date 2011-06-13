@@ -6,6 +6,7 @@ Created on Oct 22, 2010
 '''
 import re, datetime, xml.dom.minidom, xml.dom
 from arelle import XbrlConst
+from arelle.ModelObject import ModelObject
 
 datetimePattern = re.compile('\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|'
                              '\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*')
@@ -13,6 +14,8 @@ xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
 
 def xmlns(element, prefix):
+    return element.nsmap.get(prefix)
+    '''
     if prefix is None or prefix == "":
         xmlnsattr = "xmlns"
     elif prefix == "xml":  # never declared explicitly
@@ -28,12 +31,18 @@ def xmlns(element, prefix):
             break
         treeElt = treeElt.parentNode
     return ns
+    '''
 
 def xmlnsprefix(element, ns):
     if ns is None:
         return None
     if ns == XbrlConst.xml: # never declared explicitly
         return 'xml'
+    for prefix, NS in element.nsmap.items():
+        if NS == ns:
+            return prefix
+    return None
+    '''
     treeElt = element
     while treeElt.nodeType == 1:
         for i in range(len(treeElt.attributes)):
@@ -48,28 +57,30 @@ def xmlnsprefix(element, ns):
                     return attribute.localName
         treeElt = treeElt.parentNode
     return None
+    '''
 
 def targetNamespace(element):
     treeElt = element
-    while treeElt.nodeType == 1:
-        if treeElt.localName == "schema" and treeElt.namespaceURI == XbrlConst.xsd and treeElt.hasAttribute("targetNamespace"):
-            return treeElt.getAttribute("targetNamespace")
-        treeElt = treeElt.parentNode
+    while treeElt is not None:
+        if treeElt.localName == "schema" and treeElt.namespaceURI == XbrlConst.xsd and treeElt.get("targetNamespace"):
+            return treeElt.get("targetNamespace")
+        treeElt = treeElt.getparent()
     return None
 
 def schemaLocation(element, namespace):
     treeElt = element
-    while treeElt.nodeType == 1:
-        if treeElt.hasAttribute("xsi:schemaLocation"):
+    while treeElt is not None:
+        sl = treeElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
+        if sl:
             isNs = True
-            for entry in treeElt.getAttribute("xsi:schemaLocation").split():
+            for entry in sl.split():
                 if isNs:
                     if entry == namespace:
                         return treeElt
                     isNs = False
                 else:
                     isNs = True
-        treeElt = treeElt.parentNode
+        treeElt = treeElt.getparent()
     return None
 
 # provide python-style QName, e.g., {namespaceURI}localName
@@ -125,8 +136,8 @@ def childText(element, childNamespaceURI, childLocalNames):
     return textNotStripped(element).strip() if element else None
 
 def textNotStripped(element):
-    if not element: return ""   
-    return "".join(child.nodeValue for child in element.childNodes if child.nodeType == 3 or child.nodeType == 4)
+    if element is None: return ""   
+    return element.text
 
 def innerText(element, ixExclude=False):   
     try:
@@ -136,31 +147,29 @@ def innerText(element, ixExclude=False):
 
 def innerTextList(element, ixExclude=False):   
     try:
-        return ", ".join(child.nodeValue.strip() for child in innerTextNodes(element, ixExclude, []) if len(child.nodeValue.strip()) > 0)
+        return ", ".join(child.text.strip() for child in innerTextNodes(element, ixExclude) if len(child.text.strip()) > 0)
     except TypeError:
         return ""
 
-def innerTextNodes(element, ixExclude, nodes):
-    for child in element.childNodes:
-        if child.nodeType == 3 or child.nodeType == 4:  # text or cdata nodes
-            nodes.append(child)
-        elif child.nodeType == 1 and \
-            (not ixExclude or (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL")):
-            innerTextNodes(child, ixExclude, nodes)
-    return nodes
+def innerTextNodes(element, ixExclude):
+    return [child
+            for child in element.iterdescendants()
+            if isinstance(child,ModelObject) and (
+               not ixExclude or (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL"))]
 
 def parentId(element, parentNamespaceURI, parentLocalName):
-    while element.nodeType == 1:
+    while element is not None:
         if element.namespaceURI == parentNamespaceURI and element.localName == parentLocalName:
-            return element.getAttribute("id")
-        element = element.parentNode
+            return element.get("id")
+        element = element.getparent()
     return None
     
 def hasChild(element, childNamespaceURI, childLocalNames):
     if not isinstance(childLocalNames,tuple): childLocalNames = (childLocalNames ,)
     wildLocalName = childLocalNames == ('*',)
-    for child in element.childNodes:
-        if child.nodeType == 1 and child.namespaceURI == childNamespaceURI and \
+    for child in element.iterchildren():
+        if isinstance(child,ModelObject) and \
+            child.elementNamespaceURI == childNamespaceURI and \
             (wildLocalName or child.localName in childLocalNames):
             return True
     return False
@@ -168,51 +177,52 @@ def hasChild(element, childNamespaceURI, childLocalNames):
 def hasDescendant(element, childNamespaceURI, childLocalNames):
     for childLocalName in childLocalNames if isinstance(childLocalNames,tuple) else (childLocalNames,):
         for child in element.getElementsByTagNameNS(childNamespaceURI, childLocalName):
-            return True
+            if isinstance(child,ModelObject):
+                return True
     return False
     
 def hasAncestor(element, ancestorNamespaceURI, ancestorLocalNames):
-    treeElt = element.parentNode
-    while treeElt and treeElt.nodeType == 1:
-        if treeElt.namespaceURI == ancestorNamespaceURI:
+    treeElt = element.getparent()
+    while treeElt is not None:
+        if treeElt.elementNamespaceURI == ancestorNamespaceURI:
             if isinstance(ancestorLocalNames,tuple):
                 if treeElt.localName in ancestorLocalNames:
                     return True
             elif treeElt.localName == ancestorLocalNames:
                 return True
-        treeElt = treeElt.parentNode
+        treeElt = treeElt.getparent()
     return False
     
 def ancestor(element, ancestorNamespaceURI, ancestorLocalNames):
-    treeElt = element.parentNode
-    while treeElt and treeElt.nodeType == 1:
-        if treeElt.namespaceURI == ancestorNamespaceURI:
+    treeElt = element.getparent()
+    while treeElt is not None:
+        if treeElt.elementNamespaceURI == ancestorNamespaceURI:
             if isinstance(ancestorLocalNames,tuple):
                 if treeElt.localName in ancestorLocalNames:
                     return treeElt
             elif treeElt.localName == ancestorLocalNames:
                 return treeElt
-        treeElt = treeElt.parentNode
+        treeElt = treeElt.getparent()
     return None
     
 def parent(element):
-    return element.parentNode
+    return element.getparent()
 
 def ancestors(element):
     ancestors = []
-    ancestor = element.parentNode
-    while ancestor.nodeType == 1:
+    ancestor = element.getparent()
+    while ancestor is not None:
         ancestors.append(ancestor)
-        ancestor = ancestor.parentNode
+        ancestor = ancestor.getparent()
     return ancestors
     
 def childAttr(element, childNamespaceURI, childLocalNames, attrLocalName):
     childElt = child(element, childNamespaceURI, childLocalNames)
-    return childElt.getAttribute(attrLocalName) if childElt else None
+    return childElt.get(attrLocalName) if childElt else None
 
 def descendantAttr(element, childNamespaceURI, childLocalNames, attrLocalName, attrName=None, attrValue=None):
     descendantElt = descendant(element, childNamespaceURI, childLocalNames, attrName, attrValue)
-    return descendantElt.getAttribute(attrLocalName) if descendantElt else None
+    return descendantElt.get(attrLocalName) if (descendantElt is not None) else None
 
 def children(element, childNamespaceURI, childLocalNames):
     children = []
@@ -220,9 +230,9 @@ def children(element, childNamespaceURI, childLocalNames):
     wildLocalName = childLocalNames == ('*',)
     wildNamespaceURI = not childNamespaceURI or childNamespaceURI == '*'
     if element is not None:
-        for child in element.childNodes:
-            if child.nodeType == 1 and \
-                (wildNamespaceURI or child.namespaceURI == childNamespaceURI) and \
+        for child in element.iterchildren():
+            if isinstance(child,ModelObject) and \
+                (wildNamespaceURI or child.elementNamespaceURI == childNamespaceURI) and \
                 (wildLocalName or child.localName in childLocalNames):
                 children.append(child)
     return children
@@ -234,18 +244,16 @@ def child(element, childNamespaceURI, childLocalNames):
     return None
 
 def previousSiblingElement(element):
-    result = element
-    while True:
-        result = result.previousSibling
-        if result is None or result.nodeType == 1:
+    for result in element.itersiblings(preceding=True):
+        if isinstance(result,ModelObject):
             return result
+    return None
     
 def nextSiblingElement(element):
-    result = element
-    while True:
-        result = result.nextSibling
-        if result is None or result.nodeType == 1:
+    for result in element.itersiblings(preceding=False):
+        if isinstance(result,ModelObject):
             return result
+    return None
     
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
@@ -342,72 +350,74 @@ def childrenAttrs(element, childNamespaceURI, childLocalNames, attrLocalName):
     childrenElts = children(element, childNamespaceURI, childLocalNames)
     childrenAttrs = []
     for childElt in childrenElts:
-        if childElt.hasAttribute(attrLocalName):
-            childrenAttrs.append(childElt.getAttribute(attrLocalName))
+        if childElt.get(attrLocalName):
+            childrenAttrs.append(childElt.get(attrLocalName))
     childrenAttrs.sort()
     return childrenAttrs
 
 def descendant(element, descendantNamespaceURI, descendantLocalNames, attrName=None, attrValue=None):
-    for descendantLocalName in descendantLocalNames if isinstance(descendantLocalNames,tuple) else (descendantLocalNames,):
-        for child in element.getElementsByTagNameNS(descendantNamespaceURI, descendantLocalName):
-            if attrName:
-                if child.getAttribute(attrName) == attrValue or (attrValue == "*" and child.hasAttribute(attrName)):
-                    return child
-            else: 
-                return child
+    d = descendants(element, descendantNamespaceURI, descendantLocalNames, attrName, attrValue, breakOnFirst=True)
+    if d:
+        return d[0]
     return None
     
-def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=None, attrValue=None):
+def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=None, attrValue=None, breakOnFirst=False):
     descendants = []
-    for descendantLocalName in descendantLocalNames if isinstance(descendantLocalNames,tuple) else (descendantLocalNames,):
-        for child in element.getElementsByTagNameNS(descendantNamespaceURI, descendantLocalName):
-            if attrName:
-                if child.getAttribute(attrName) == attrValue or (attrValue == "*" and child.hasAttribute(attrName)):
-                    descendants.append(child)
-            else: 
+    if not isinstance(descendantLocalNames,tuple): descendantLocalNames = (descendantLocalNames ,)
+    wildLocalName = descendantLocalNames == ('*',)
+    wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
+    if element is not None:
+        for child in element.iterdescendants():
+            if isinstance(child,ModelObject) and \
+                (wildNamespaceURI or child.elementNamespaceURI == descendantNamespaceURI) and \
+                (wildLocalName or child.localName in descendantLocalNames):
                 descendants.append(child)
+                if breakOnFirst:
+                    break
     return descendants
     
 def isDescendantOf(element, ancestorElement):
-    while element.nodeType == 1:
+    while element is not None:
         if element == ancestorElement:
             return True
-        element = element.parentNode
+        element = element.getparent()
     return False
 
 def schemaDescendantsNames(element, descendantNamespaceURI, descendantLocalName, qnames=None):
     from arelle.ModelValue import (qname)
     if qnames is None: qnames = set()
-    for child in element.getElementsByTagNameNS(descendantNamespaceURI, descendantLocalName):
-        if child.hasAttribute("name"):
-            # need to honor attribute/element form default
-            qnames.add(qname(targetNamespace(element), child.getAttribute("name")))
-        elif child.hasAttribute("ref"):
-            qnames.add(qname(element, child.getAttribute("ref")))
+    for child in element.iterdescendants(tag="{{{0}}}{1}".format(descendantNamespaceURI,descendantLocalName)):
+        if isinstance(child,ModelObject):
+            if child.get("name"):
+                # need to honor attribute/element form default
+                qnames.add(qname(targetNamespace(element), child.get("name")))
+            elif child.get("ref"):
+                qnames.add(qname(element, child.get("ref")))
     return qnames
 
 def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name):
     from arelle.ModelValue import (qname,QName)
-    for child in element.getElementsByTagNameNS(descendantNamespaceURI, descendantLocalName):
-        # need to honor attribute/element form default
-        if descendantLocalName == "attribute":
-            if child.getAttribute("name") == (name.localName if isinstance(name,QName) else name):
-                return child
-        else:
-            if qname(child, child.getAttribute("name")) == name:
-                return child
+    for child in element.iterdescendants(tag="{{{0}}}{1}".format(descendantNamespaceURI,descendantLocalName)):
+        if isinstance(child,ModelObject):
+            # need to honor attribute/element form default
+            if descendantLocalName == "attribute":
+                if child.get("name") == (name.localName if isinstance(name,QName) else name):
+                    return child
+            else:
+                if qname(child, child.get("name")) == name:
+                    return child
     return None
 
 def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeName=None, qnames=False):
     list = []
     if parentElement:
         for childLocalName in childLocalNames if isinstance(childLocalNames,tuple) else (childLocalNames,):
-            for child in parentElement.getElementsByTagNameNS(childNamespaceUri, childLocalName):
+            for child in parentElement.iterdescendants(tag="{{{0}}}{1}".format(childNamespaceUri,childLocalName)):
                 value = text(child)
                 if qnames:
                     value = prefixedNameToPyQname(child, value)
                 if childAttributeName is not None:
-                    list.append((child.tagName, value, child.getAttribute(childAttributeName)))
+                    list.append((child.tagName, value, child.get(childAttributeName)))
                 else:
                     list.append((child.tagName, value))
         list.sort()
@@ -448,14 +458,6 @@ def xpointerSchemes(fragmentIdentifier):
             schemes.append((scheme,path))
     return schemes
 
-def markIdAttributes(parent):
-    if parent.hasAttribute("id"):
-        parent.setIdAttribute("id")
-    for child in parent.childNodes:
-        if child.nodeType == 1:
-            markIdAttributes(child)
-
-
 def xpointerElement(modelDocument, fragmentIdentifier):
     matches = xpointerFragmentIdentifierPattern.findall(fragmentIdentifier)
     if matches is None:
@@ -481,28 +483,30 @@ def xpointerElement(modelDocument, fragmentIdentifier):
                     continue    # this scheme fails
             else:
                 node = modelDocument.xmlDocument
+                iter = (node.getroot(),)
             i = 1
             while i < len(pathParts):
                 childNbr = int(pathParts[i])
                 eltNbr = 1
                 parent = node
                 node = None
-                for child in parent.childNodes:
-                    if child.nodeType == 1:
+                for child in iter:
+                    if isinstance(child,ModelObject):
                         if childNbr == eltNbr:
                             node = child
                             break
                         eltNbr += 1
                 if node is None:
                     break   # not found in this scheme, scheme fails
+                iter = node.iterchildren()
                 i += 1
-            if node:    # found
+            if node is not None:    # found
                 return node
     return None
 
 def elementFragmentIdentifier(element):
-    if element.hasAttribute("id"):
-        location = element.getAttribute("id")
+    if element.id:
+        location = element.id
     else:
         childSequence = [""] # "" represents document element for / on the join below
         while element:

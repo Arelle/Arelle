@@ -4,9 +4,11 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom.minidom, xml.parsers.expat, os
-from arelle import (XbrlConst, XmlUtil, UrlUtil, ModelObject, ValidateFilingText, XmlValidate)
-from arelle.ModelValue import (qname)
+import os
+from lxml import etree
+from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
+from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 
 def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=None, reloadCache=False):
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
@@ -58,7 +60,9 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
             file = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
             file = modelXbrl.fileSource.file(filepath)
-        xmlDocument = xml.dom.minidom.parse(file)
+        from arelle import ModelObjectFactory
+        parser = ModelObjectFactory.parser(modelXbrl)
+        xmlDocument = etree.parse(file,parser=parser,base_url=filepath)
         file.close()
     except EnvironmentError as err:
         modelXbrl.error(
@@ -69,8 +73,7 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
         if file:
             file.close()
         return None
-    except (xml.parsers.expat.ExpatError,
-            xml.dom.DOMException,
+    except (etree.LxmlError,
             ValueError) as err:  # ValueError raised on bad format of qnames, xmlns'es, or parameters
         modelXbrl.error(
                 "{0}: import error: {1}".format(
@@ -87,88 +90,82 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
     modelXbrl.modelManager.showStatus(_("loading {0}").format(uri))
     modelDocument = None
     
-    for rootNode in xmlDocument.childNodes:
-        if rootNode.nodeType == 1: #element
-            ln = rootNode.localName
-            ns = rootNode.namespaceURI
-            
-            # type classification
-            if ns == XbrlConst.xsd and ln == "schema":
-                type = Type.SCHEMA
-            elif ns == XbrlConst.link:
-                if ln == "linkbase":
-                    type = Type.LINKBASE
-                elif ln == "xbrl":
-                    type = Type.INSTANCE
-            elif ns == XbrlConst.xbrli:
-                if ln == "xbrl":
-                    type = Type.INSTANCE
-            elif ns == XbrlConst.xhtml and \
-                 ln == "html" or ln == "xhtml":
-                type = Type.Unknown
-                for i in range(len(rootNode.attributes)):
-                    if rootNode.attributes.item(i).value == XbrlConst.ixbrl:
-                        type = Type.INLINEXBRL
-                        break
-                XmlUtil.markIdAttributes(rootNode)  # required for minidom searchability
-            elif ln == "report" and ns == XbrlConst.ver:
-                type = Type.VERSIONINGREPORT
-            elif ln == "testcases" or ln == "documentation":
-                type = Type.TESTCASESINDEX
-            elif ln == "testcase":
-                type = Type.TESTCASE
-            elif ln == "registry" and ns == XbrlConst.registry:
-                type = Type.REGISTRY
-            elif ln == "rss":
-                type = Type.RSSFEED
-            else:
-                type = Type.Unknown
-                nestedInline = XmlUtil.descendant(rootNode, XbrlConst.xhtml, ("html", "xhtml"))
-                if nestedInline:
-                    for i in range(len(nestedInline.attributes)):
-                        if nestedInline.attributes.item(i).value == XbrlConst.ixbrl:
-                            type = Type.INLINEXBRL
-                            rootNode = nestedInline
-                            break
-                XmlUtil.markIdAttributes(rootNode)  # required for minidom searchability
+    rootNode = xmlDocument.getroot()
+    if rootNode is not None:
+        ln = rootNode.localName
+        ns = rootNode.namespaceURI
+        
+        # type classification
+        if ns == XbrlConst.xsd and ln == "schema":
+            type = Type.SCHEMA
+        elif ns == XbrlConst.link:
+            if ln == "linkbase":
+                type = Type.LINKBASE
+            elif ln == "xbrl":
+                type = Type.INSTANCE
+        elif ns == XbrlConst.xbrli:
+            if ln == "xbrl":
+                type = Type.INSTANCE
+        elif ns == XbrlConst.xhtml and \
+             (ln == "html" or ln == "xhtml"):
+            type = Type.Unknown
+            if XbrlConst.ixbrl in rootNode.nsmap.values():
+                type = Type.INLINEXBRL
+        elif ln == "report" and ns == XbrlConst.ver:
+            type = Type.VERSIONINGREPORT
+        elif ln == "testcases" or ln == "documentation":
+            type = Type.TESTCASESINDEX
+        elif ln == "testcase":
+            type = Type.TESTCASE
+        elif ln == "registry" and ns == XbrlConst.registry:
+            type = Type.REGISTRY
+        elif ln == "rss":
+            type = Type.RSSFEED
+        else:
+            type = Type.Unknown
+            nestedInline = XmlUtil.descendant(rootNode, XbrlConst.xhtml, ("html", "xhtml"))
+            if nestedInline:
+                if XbrlConst.ixbrl in nestedInline.nsmap.values():
+                    type = Type.INLINEXBRL
+                    rootNode = nestedInline
 
-            #create modelDocument object or subtype as identified
-            if type == Type.VERSIONINGREPORT:
-                from arelle.ModelVersReport import ModelVersReport
-                modelDocument = ModelVersReport(modelXbrl, type, mappedUri, filepath, xmlDocument)
-            elif type == Type.RSSFEED:
-                from arelle.ModelRssObject import ModelRssObject 
-                modelDocument = ModelRssObject(modelXbrl, type, mappedUri, filepath, xmlDocument)
-            else:
-                modelDocument = ModelDocument(modelXbrl, type, mappedUri, filepath, xmlDocument)
-            modelDocument.xmlRootElement = rootNode
-            modelDocument.schemaLocationElements.add(rootNode)
+        #create modelDocument object or subtype as identified
+        if type == Type.VERSIONINGREPORT:
+            from arelle.ModelVersReport import ModelVersReport
+            modelDocument = ModelVersReport(modelXbrl, type, mappedUri, filepath, xmlDocument)
+        elif type == Type.RSSFEED:
+            from arelle.ModelRssObject import ModelRssObject 
+            modelDocument = ModelRssObject(modelXbrl, type, mappedUri, filepath, xmlDocument)
+        else:
+            modelDocument = ModelDocument(modelXbrl, type, mappedUri, filepath, xmlDocument)
+        rootNode.setModelDocument(modelDocument)
+        modelDocument.xmlRootElement = rootNode
+        modelDocument.schemaLocationElements.add(rootNode)
 
-            if isEntry:
-                modelDocument.inDTS = True
-            
-            # discovery (parsing)
-            if type == Type.SCHEMA:
-                modelDocument.schemaDiscover(rootNode, isIncluded, namespace)
-            elif type == Type.LINKBASE:
-                modelDocument.linkbaseDiscover(rootNode)
-            elif type == Type.INSTANCE:
-                modelDocument.instanceDiscover(rootNode)
-            elif type == Type.INLINEXBRL:
-                modelDocument.inlineXbrlDiscover(rootNode)
-            elif type == Type.VERSIONINGREPORT:
-                modelDocument.versioningReportDiscover(rootNode)
-            elif type == Type.TESTCASESINDEX:
-                modelDocument.testcasesIndexDiscover(xmlDocument)
-            elif type == Type.TESTCASE:
-                modelDocument.testcaseDiscover(rootNode)
-            elif type == Type.REGISTRY:
-                modelDocument.registryDiscover(rootNode)
-            elif type == Type.VERSIONINGREPORT:
-                modelDocument.versioningReportDiscover(rootNode)
-            elif type == Type.RSSFEED:
-                modelDocument.rssFeedDiscover(rootNode)
-            break
+        if isEntry:
+            modelDocument.inDTS = True
+        
+        # discovery (parsing)
+        if type == Type.SCHEMA:
+            modelDocument.schemaDiscover(rootNode, isIncluded, namespace)
+        elif type == Type.LINKBASE:
+            modelDocument.linkbaseDiscover(rootNode)
+        elif type == Type.INSTANCE:
+            modelDocument.instanceDiscover(rootNode)
+        elif type == Type.INLINEXBRL:
+            modelDocument.inlineXbrlDiscover(rootNode)
+        elif type == Type.VERSIONINGREPORT:
+            modelDocument.versioningReportDiscover(rootNode)
+        elif type == Type.TESTCASESINDEX:
+            modelDocument.testcasesIndexDiscover(xmlDocument)
+        elif type == Type.TESTCASE:
+            modelDocument.testcaseDiscover(rootNode)
+        elif type == Type.REGISTRY:
+            modelDocument.registryDiscover(rootNode)
+        elif type == Type.VERSIONINGREPORT:
+            modelDocument.versioningReportDiscover(rootNode)
+        elif type == Type.RSSFEED:
+            modelDocument.rssFeedDiscover(rootNode)
     return modelDocument
 
 def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
@@ -200,7 +197,11 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         type = Type.Unknown
         Xml = '<?xml version="1.0" encoding="UTF-8"?>'
     if Xml:
-        xmlDocument = xml.dom.minidom.parseString(Xml)
+        import io
+        file = io.StringIO(Xml)
+        from arelle import ModelObjectFactory
+        xmlDocument = etree.parse(file,parser=ModelObjectFactory.parser(modelXbrl),base_url=filepath)
+        file.close()
     else:
         xmlDocument = None
     if type == Type.RSSFEED:
@@ -243,9 +244,10 @@ class Type:
                 "testcase",
                 "registry",
                 "registry testcase")
+    
+# schema elements which end the include/import scah
+schemaBottom = {"element", "attribute", "notation", "simpleType", "complexType", "group", "attributeGroup"}
 
-# constants for parsing
-xsdModelObjects = {"element", "attribute", "simpleType", "complexType", "enumeration"}
 
 class ModelDocument:
     
@@ -255,7 +257,6 @@ class ModelDocument:
         self.uri = uri
         self.filepath = filepath
         self.xmlDocument = xmlDocument
-        if xmlDocument: xmlDocument.modelDocument = self
         self.targetNamespace = None
         modelXbrl.urlDocs[uri] = self
         self.objectIndex = len(modelXbrl.modelObjects)
@@ -312,10 +313,7 @@ class ModelDocument:
         self.hrefObjects = []
         self.schemaLocationElements = set()
         self.referencedNamespaces = set()
-        if self.xmlDocument:
-            del self.xmlDocument.modelDocument
-            self.xmlDocument.unlink()
-            self.xmlDocument = None
+        self.xmlDocument = None
         visited.remove(self)
         
     def gettype(self):
@@ -326,8 +324,8 @@ class ModelDocument:
         
     
     def schemaDiscover(self, rootElement, isIncluded, namespace):
-        targetNamespace = rootElement.getAttribute("targetNamespace")
-        if rootElement.hasAttribute("targetNamespace") and targetNamespace != "":
+        targetNamespace = rootElement.get("targetNamespace")
+        if targetNamespace:
             self.targetNamespace = targetNamespace
             self.referencedNamespaces.add(targetNamespace)
             self.modelXbrl.namespaceDocs[targetNamespace].append(self)
@@ -347,6 +345,7 @@ class ModelDocument:
                 self.targetNamespace = namespace
                 self.modelXbrl.namespaceDocs[targetNamespace].append(self)
         if targetNamespace == XbrlConst.xbrldt:
+            # BUG: should not set this if obtained from schemaLocation instead of import (but may be later imported)
             self.modelXbrl.hasXDT = True
         try:
             self.schemaDiscoverChildElements(rootElement)
@@ -356,52 +355,48 @@ class ModelDocument:
                         err))
             
     
-    def schemaDiscoverChildElements(self, parentElement):
-        for element in parentElement.childNodes:
-            if element.nodeType == 1: #element
-                ln = element.localName
-                ns = element.namespaceURI
-                modelObject = None
+    def schemaDiscoverChildElements(self, parentModelObject):
+        # must find import/include before processing linkbases or elements
+        for modelObject in parentModelObject.iterchildren():
+            if isinstance(modelObject,ModelObject) and modelObject.namespaceURI == XbrlConst.xsd:
+                ln = modelObject.localName
+                if ln == "import" or ln == "include":
+                    self.importDiscover(modelObject)
+                if ln in schemaBottom:
+                    break
+        # find roleTypes, elements, and linkbases
+        for modelObject in parentModelObject.iterchildren():
+            if isinstance(modelObject,ModelObject):
+                ln = modelObject.localName
+                ns = modelObject.namespaceURI
                 if ns == XbrlConst.link:
                     if ln == "roleType":
-                        modelObject = ModelObject.create(self, element)
                         self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)
                     elif ln == "arcroleType":
-                        modelObject = ModelObject.create(self, element)
                         self.modelXbrl.arcroleTypes[modelObject.arcroleURI].append(modelObject)
                     elif ln == "linkbaseRef":
-                        self.schemaLinkbaseRefDiscover(element)
+                        self.schemaLinkbaseRefDiscover(modelObject)
                     elif ln == "linkbase":
-                        self.linkbaseDiscover(element)
-                elif ns == XbrlConst.xsd:
-                    if ln in xsdModelObjects:
-                        modelObject = ModelObject.create(self, element)
-                    elif ln == "import" or ln == "include":
-                        self.importDiscover(element)
-                # save document objects indexed by id
-                if modelObject is not None and element.hasAttribute("id"):
-                    self.idObjects[element.getAttribute("id")] = modelObject
+                        self.linkbaseDiscover(modelObject)
                 # recurse to children
-                self.schemaDiscoverChildElements(element)
+                self.schemaDiscoverChildElements(modelObject)
             
     def baseForElement(self, element):
         base = ""
         baseElt = element
-        while baseElt.nodeType == 1:
-            if baseElt.hasAttribute("xml:base"):
+        while baseElt is not None:
+            baseAttr = baseElt.get("{http://www.w3.org/XML/1998/namespace}base")
+            if baseAttr:
                 if self.modelXbrl.modelManager.validateDisclosureSystem:
                     self.modelXbrl.error(
-                        "Prohibited base attribute: {0}, in file {1}".format(
-                                   baseElt.getAttribute("xml:base"), 
-                                   os.path.basename(self.uri)), 
+                        "Prohibited base attribute: {0}, in file {1}".format(baseAttr, os.path.basename(self.uri)), 
                         "err", "EFM.6.03.11", "GFM.1.1.7")
                 else:
-                    baseAttr = baseElt.getAttribute("xml:base")
                     if baseAttr.startswith("/"):
                         base = baseAttr
                     else:
                         base = baseAttr + base
-            baseElt = baseElt.parentNode
+            baseElt = baseElt.getparent()
         if base: # neither None nor ''
             if base.startswith('http://') or os.path.isabs(base):
                 return base
@@ -410,14 +405,14 @@ class ModelDocument:
         return self.filepath
             
     def importDiscover(self, element):
-        schemaLocation = element.getAttribute("schemaLocation")
+        schemaLocation = element.get("schemaLocation")
         if element.localName == "include":
             importNamespace = self.targetNamespace
             isIncluded = True
         else:
-            importNamespace = element.getAttribute("namespace")
+            importNamespace = element.get("namespace")
             isIncluded = False
-        if importNamespace != "" and schemaLocation != "":
+        if importNamespace and schemaLocation:
             importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(schemaLocation, self.baseForElement(element))
             if (self.modelXbrl.modelManager.validateDisclosureSystem and 
                     self.modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences and
@@ -444,16 +439,17 @@ class ModelDocument:
         eltNamespace = element.namespaceURI 
         if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
             schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace)
-            if schemaLocationElement:
+            if schemaLocationElement is not None:
                 self.schemaLocationElements.add(schemaLocationElement)
                 self.referencedNamespaces.add(eltNamespace)
 
     def loadSchemalocatedSchemas(self):
         # schemaLocation requires loaded schemas for validation
         for elt in self.schemaLocationElements:
-            if elt.hasAttributeNS(XbrlConst.xsi, "schemaLocation"):
+            schemaLocation = elt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
+            if schemaLocation:
                 ns = None
-                for entry in elt.getAttributeNS(XbrlConst.xsi, "schemaLocation").split():
+                for entry in schemaLocation.split():
                     if ns is None:
                         ns = entry
                     else:
@@ -465,20 +461,22 @@ class ModelDocument:
                         ns = None
                 
     def schemaLinkbaseRefsDiscover(self, tree):
-        for refln in ("schemaRef", "linkbaseRef"):
-            for element in tree.getElementsByTagNameNS(XbrlConst.link, refln):
-                self.schemaLinkbaseRefDiscover(element)
+        for refln in ("{http://www.xbrl.org/2003/linkbase}schemaRef", "{http://www.xbrl.org/2003/linkbase}linkbaseRef"):
+            for element in tree.iterdescendants(tag=refln):
+                if isinstance(element,ModelObject):
+                    self.schemaLinkbaseRefDiscover(element)
 
     def schemaLinkbaseRefDiscover(self, element):
         return self.discoverHref(element)
     
     def linkbasesDiscover(self, tree):
-        for linkbaseElement in tree.getElementsByTagNameNS(XbrlConst.link, "linkbase"):
-            self.linkbaseDiscover(self, linkbaseElement)
+        for linkbaseElement in tree.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
+            if isinstance(linkbaseElement,ModelObject):
+                self.linkbaseDiscover(self, linkbaseElement)
 
     def linkbaseDiscover(self, linkbaseElement, inInstance=False):
-        for lbElement in linkbaseElement.childNodes:
-            if lbElement.nodeType == 1: #element
+        for lbElement in linkbaseElement.iterchildren():
+            if isinstance(lbElement,ModelObject):
                 lbLn = lbElement.localName
                 lbNs = lbElement.namespaceURI
                 if lbNs == XbrlConst.link:
@@ -493,79 +491,83 @@ class ModelDocument:
                         else:
                             self.hrefObjects.append(href)
                         continue
-                if lbElement.getAttributeNS(XbrlConst.xlink, "type") == "extended":
-                    self.schemalocateElementNamespace(lbElement)
-                    arcrolesFound = set()
-                    dimensionArcFound = False
-                    formulaArcFound = False
-                    euRenderingArcFound = False
-                    linkQn = qname(lbElement)
-                    linkrole = lbElement.getAttributeNS(XbrlConst.xlink, "role")
-                    modelLink = ModelObject.createLink(self, lbElement)
-                    if inInstance:
-                        #index footnote links even if no arc children
-                        baseSetKeys = (("XBRL-footnotes",None,None,None), 
-                                       ("XBRL-footnotes",linkrole,None,None))
-                        for baseSetKey in baseSetKeys:
-                            self.modelXbrl.baseSets[baseSetKey].append(modelLink)
-                    for linkElement in lbElement.childNodes:
-                        if linkElement.nodeType == 1: #element
-                            self.schemalocateElementNamespace(linkElement)
-                            xlinkType = linkElement.getAttributeNS(XbrlConst.xlink, "type")
-                            modelResource = None
-                            if xlinkType == "locator":
-                                nonDTS = linkElement.namespaceURI != XbrlConst.link or linkElement.localName != "loc"
-                                # only link:loc elements are discovered or processed
-                                href = self.discoverHref(linkElement, nonDTS=nonDTS)
-                                if href is None:
-                                    self.modelXbrl.error(
-                                            "Linkbase in {0} {1} href attribute missing or malformed".format(
-                                              os.path.basename(self.uri),
-                                              lbLn),
-                                            "err", "xbrl:hrefMissing")
-                                else:
-                                    modelResource = ModelObject.createLocator(self, linkElement, href)
-                            elif xlinkType == "arc":
-                                arcQn = qname(linkElement)
-                                arcrole = linkElement.getAttributeNS(XbrlConst.xlink, "arcrole")
-                                if arcrole not in arcrolesFound:
-                                    if linkrole == "":
-                                        linkrole = XbrlConst.defaultLinkRole
-                                    #index by both arcrole and linkrole#arcrole and dimensionsions if applicable
-                                    baseSetKeys = [(arcrole, linkrole, linkQn, arcQn)]
-                                    baseSetKeys.append((arcrole, linkrole, None, None))
-                                    baseSetKeys.append((arcrole, None, None, None))
-                                    if XbrlConst.isDimensionArcrole(arcrole) and not dimensionArcFound:
-                                        baseSetKeys.append(("XBRL-dimensions", None, None, None)) 
-                                        baseSetKeys.append(("XBRL-dimensions", linkrole, None, None))
-                                        dimensionArcFound = True
-                                    if XbrlConst.isFormulaArcrole(arcrole) and not formulaArcFound:
-                                        baseSetKeys.append(("XBRL-formulae", None, None, None)) 
-                                        baseSetKeys.append(("XBRL-formulae", linkrole, None, None))
-                                        formulaArcFound = True
-                                    if XbrlConst.isEuRenderingArcrole(arcrole) and not euRenderingArcFound:
-                                        baseSetKeys.append(("EU-rendering", None, None, None)) 
-                                        baseSetKeys.append(("EU-rendering", linkrole, None, None)) 
-                                        euRenderingArcFound = True
-                                        self.modelXbrl.hasEuRendering = True
-                                    for baseSetKey in baseSetKeys:
-                                        self.modelXbrl.baseSets[baseSetKey].append(modelLink)
-                                    arcrolesFound.add(arcrole)
-                            elif xlinkType == "resource": 
-                                # create resource and make accessible by id for document
-                                modelResource = ModelObject.createResource(self, linkElement)
-                            if modelResource is not None:
-                                if linkElement.hasAttribute("id"):
-                                    self.idObjects[linkElement.getAttribute("id")] = modelResource
-                                modelLink.labeledResources[linkElement.getAttributeNS(XbrlConst.xlink, "label")] \
-                                    .append(modelResource)
-                            else:
-                                XmlUtil.markIdAttributes(linkElement)
-                    
+                if lbElement.get("{http://www.w3.org/1999/xlink}type") == "extended":
+                    from arelle.ModelDtsObject import ModelLink, ModelResource
+                    if isinstance(lbElement, ModelLink):
+                        self.schemalocateElementNamespace(lbElement)
+                        arcrolesFound = set()
+                        dimensionArcFound = False
+                        formulaArcFound = False
+                        euRenderingArcFound = False
+                        linkQn = qname(lbElement)
+                        linkrole = lbElement.get("{http://www.w3.org/1999/xlink}role")
+                        if inInstance:
+                            #index footnote links even if no arc children
+                            baseSetKeys = (("XBRL-footnotes",None,None,None), 
+                                           ("XBRL-footnotes",linkrole,None,None))
+                            for baseSetKey in baseSetKeys:
+                                self.modelXbrl.baseSets[baseSetKey].append(lbElement)
+                        for linkElement in lbElement.iterchildren():
+                            if isinstance(linkElement,ModelObject):
+                                self.schemalocateElementNamespace(linkElement)
+                                xlinkType = linkElement.get("{http://www.w3.org/1999/xlink}type")
+                                modelResource = None
+                                if xlinkType == "locator":
+                                    nonDTS = linkElement.namespaceURI != XbrlConst.link or linkElement.localName != "loc"
+                                    # only link:loc elements are discovered or processed
+                                    href = self.discoverHref(linkElement, nonDTS=nonDTS)
+                                    if href is None:
+                                        self.modelXbrl.error(
+                                                "Linkbase in {0} {1} href attribute missing or malformed".format(
+                                                  os.path.basename(self.uri),
+                                                  lbLn),
+                                                "err", "xbrl:hrefMissing")
+                                    else:
+                                        linkElement.modelHref = href
+                                        modelResource = linkElement
+                                elif xlinkType == "arc":
+                                    arcQn = qname(linkElement)
+                                    arcrole = linkElement.get("{http://www.w3.org/1999/xlink}arcrole")
+                                    if arcrole not in arcrolesFound:
+                                        if linkrole == "":
+                                            linkrole = XbrlConst.defaultLinkRole
+                                        #index by both arcrole and linkrole#arcrole and dimensionsions if applicable
+                                        baseSetKeys = [(arcrole, linkrole, linkQn, arcQn)]
+                                        baseSetKeys.append((arcrole, linkrole, None, None))
+                                        baseSetKeys.append((arcrole, None, None, None))
+                                        if XbrlConst.isDimensionArcrole(arcrole) and not dimensionArcFound:
+                                            baseSetKeys.append(("XBRL-dimensions", None, None, None)) 
+                                            baseSetKeys.append(("XBRL-dimensions", linkrole, None, None))
+                                            dimensionArcFound = True
+                                        if XbrlConst.isFormulaArcrole(arcrole) and not formulaArcFound:
+                                            baseSetKeys.append(("XBRL-formulae", None, None, None)) 
+                                            baseSetKeys.append(("XBRL-formulae", linkrole, None, None))
+                                            formulaArcFound = True
+                                        if XbrlConst.isEuRenderingArcrole(arcrole) and not euRenderingArcFound:
+                                            baseSetKeys.append(("EU-rendering", None, None, None)) 
+                                            baseSetKeys.append(("EU-rendering", linkrole, None, None)) 
+                                            euRenderingArcFound = True
+                                            self.modelXbrl.hasEuRendering = True
+                                        for baseSetKey in baseSetKeys:
+                                            self.modelXbrl.baseSets[baseSetKey].append(lbElement)
+                                        arcrolesFound.add(arcrole)
+                                elif xlinkType == "resource": 
+                                    # create resource and make accessible by id for document
+                                    modelResource = linkElement
+                                if modelResource is not None:
+                                    lbElement.labeledResources[linkElement.get("{http://www.w3.org/1999/xlink}label")] \
+                                        .append(modelResource)
+                    else:
+                        self.modelXbrl.error(
+                                "Linkbase in {0} {1} extended link element missing schema import".format(
+                                  os.path.basename(self.uri), lbElement.prefixedName),
+                                "err", "xbrl:schemaImportMissing")
+                        
                 
     def discoverHref(self, element, nonDTS=False):
-        if element.hasAttributeNS(XbrlConst.xlink, "href"):
-            url, id = UrlUtil.splitDecodeFragment(element.getAttributeNS(XbrlConst.xlink, "href"))
+        href = element.get("{http://www.w3.org/1999/xlink}href")
+        if href:
+            url, id = UrlUtil.splitDecodeFragment(href)
             if url == "":
                 doc = self
             else:
@@ -584,8 +586,8 @@ class ModelDocument:
         self.instanceContentsDiscover(xbrlElement)
 
     def instanceContentsDiscover(self,xbrlElement):
-        for instElement in xbrlElement.childNodes:
-            if instElement.nodeType == 1: #element
+        for instElement in xbrlElement.iterchildren():
+            if isinstance(instElement,ModelObject):
                 ln = instElement.localName
                 ns = instElement.namespaceURI
                 if ns == XbrlConst.xbrli:
@@ -598,30 +600,28 @@ class ModelDocument:
                 else: # concept elements
                     self.factDiscover(instElement, self.modelXbrl.facts)
                     
-    def contextDiscover(self, cntxElement):
-        id = cntxElement.getAttribute("id")
-        self.modelXbrl.contexts[id] = modelContext = ModelObject.createContext(self,cntxElement)
-        for container in (("segment", modelContext.segDimValues, modelContext.segNonDimValues),
-                          ("scenario", modelContext.scenDimValues, modelContext.scenNonDimValues)):
+    def contextDiscover(self, modelContext):
+        id = modelContext.id
+        self.modelXbrl.contexts[id] = modelContext
+        for container in (("{http://www.xbrl.org/2003/instance}segment", modelContext.segDimValues, modelContext.segNonDimValues),
+                          ("{http://www.xbrl.org/2003/instance}scenario", modelContext.scenDimValues, modelContext.scenNonDimValues)):
             containerName, containerDimValues, containerNonDimValues = container
-            for containerElement in XmlUtil.descendants(cntxElement, XbrlConst.xbrli, containerName):
-                for sElt in containerElement.childNodes:
-                    if sElt.nodeType == 1:
-                        if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
-                            XmlValidate.validate(self.modelXbrl, sElt)
-                            modelDimValue = ModelObject.createDimensionValue(self,sElt)
-                            dimension = modelDimValue.dimension
-                            if dimension and dimension not in containerDimValues:
-                                containerDimValues[dimension] = modelDimValue
-                            else:
-                                modelContext.errorDimValues.append(modelDimValue)
-                            modelContext.qnameDims[modelDimValue.dimensionQname] = modelDimValue # both seg and scen
+            for containerElement in modelContext.iterdescendants(tag=containerName):
+                for sElt in containerElement.iterchildren():
+                    if isinstance(sElt,ModelObject) and \
+                       sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
+                        XmlValidate.validate(self.modelXbrl, sElt)
+                        dimension = sElt.dimension
+                        if dimension is not None and dimension not in containerDimValues:
+                            containerDimValues[dimension] = sElt
                         else:
-                            containerNonDimValues.append(sElt)
+                            modelContext.errorDimValues.append(sElt)
+                        modelContext.qnameDims[sElt.dimensionQname] = sElt # both seg and scen
+                    else:
+                        containerNonDimValues.append(sElt)
                             
     def unitDiscover(self, unitElement):
-        id = unitElement.getAttribute("id")
-        self.modelXbrl.units[id] = ModelObject.createUnit(self,unitElement)
+        self.modelXbrl.units[unitElement.id] = unitElement
                 
     def inlineXbrlDiscover(self, htmlElement):
         self.schemaLinkbaseRefsDiscover(htmlElement)
@@ -630,20 +630,20 @@ class ModelDocument:
             
         tuplesByElement = {}
         tuplesByTupleID = {}
-        for inlineElement in htmlElement.getElementsByTagNameNS(XbrlConst.ixbrl, "tuple"):
-            modelInlineFact = ModelObject.createInlineFact(self, inlineElement)
-            modelInlineFact.unorderedTupleFacts = []
-            if modelInlineFact.tupleID:
-                tuplesByTupleID[modelInlineFact.tupleID] = modelInlineFact
-            tuplesByElement[inlineElement] = modelInlineFact
+        for modelInlineTuple in htmlElement.getdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}tuple"):
+            if isinstance(modelInlineTuple,ModelObject):
+                modelInlineTuple.unorderedTupleFacts = []
+                if modelInlineTuple.tupleID:
+                    tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
+                tuplesByElement[inlineElement] = modelInlineTuple
         # hook up tuples to their container
         for tupleFact in tuplesByElement.values():
             self.inlineXbrlLocateFactInTuple(tupleFact, tuplesByTupleID, tuplesByElement)
 
-        for ln in ("nonNumeric", "nonFraction", "fraction"):
-            for inlineElement in htmlElement.getElementsByTagNameNS(XbrlConst.ixbrl, ln):
-                modelInlineFact = ModelObject.createInlineFact(self, inlineElement)
-                self.inlineXbrlLocateFactInTuple(modelInlineFact, tuplesByTupleID, tuplesByElement)
+        for tag in ("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric", "{http://www.xbrl.org/2008/inlineXBRL}nonFraction", "{http://www.xbrl.org/2008/inlineXBRL}fraction"):
+            for modelInlineFact in htmlElement.getdescendants(tag=tag):
+                if isinstance(modelInlineFact,ModelObject):
+                    self.inlineXbrlLocateFactInTuple(modelInlineFact, tuplesByTupleID, tuplesByElement)
         # order tuple facts
         for tupleFact in tuplesByElement.values():
             tupleFact.modelTupleFacts = [
@@ -668,56 +668,60 @@ class ModelDocument:
         else:
             self.modelXbrl.facts.append(modelFact)
                 
-    def factDiscover(self, factElement, modelFacts):
-        modelFact = ModelObject.createFact(self, factElement)
-        modelFacts.append( modelFact )
-        self.modelXbrl.factsInInstance.append( modelFact )
-        id = modelFact.id
-        if id is not None:
-            self.idObjects[id] = modelFact
-        for tupleElement in factElement.childNodes:
-            if tupleElement.nodeType == 1: #element
-                self.factDiscover(tupleElement, modelFact.modelTupleFacts)
-                
-        return modelFact
+    def factDiscover(self, modelFact, parentModelFacts):
+        from arelle.ModelInstanceObject import ModelFact
+        if isinstance(modelFact, ModelFact):
+            parentModelFacts.append( modelFact )
+            self.modelXbrl.factsInInstance.append( modelFact )
+            id = modelFact.id
+            if id is not None:
+                self.idObjects[id] = modelFact
+            for tupleElement in modelFact.getchildren():
+                if isinstance(tupleElement,ModelObject):
+                    self.factDiscover(tupleElement, modelFact.modelTupleFacts)
+        else:
+            self.modelXbrl.error(
+                    "Instance {0} line {1} fact {2} missing schema definition ".format(
+                      os.path.basename(self.uri), modelFact.sourceline, modelFact.prefixedName),
+                    "err", "xbrl:schemaImportMissing")
     
     def testcasesIndexDiscover(self, rootNode):
-        for testcasesElement in rootNode.getElementsByTagName("testcases"):
-            rootAttr = testcasesElement.getAttribute("root")
-            if rootAttr != "":
-                base = os.path.join(os.path.dirname(self.filepath),rootAttr) + os.sep
-            else:
-                base = self.filepath
-            for testcaseElement in testcasesElement.childNodes:
-                if testcaseElement.nodeType == 1 and testcaseElement.localName == "testcase":
-                    if testcaseElement.hasAttribute("uri"):
-                        uriAttr = testcaseElement.getAttribute("uri")
-                        doc = load(self.modelXbrl, uriAttr, base=base)
-                        if doc is not None and self.referencesDocument.get(doc) is None:
-                            self.referencesDocument[doc] = "testcaseIndex"
+        for testcasesElement in rootNode.iter():
+            if isinstance(testcasesElement,ModelObject) and testcasesElement.localName == "testcases":
+                rootAttr = testcasesElement.get("root")
+                if rootAttr:
+                    base = os.path.join(os.path.dirname(self.filepath),rootAttr) + os.sep
+                else:
+                    base = self.filepath
+                for testcaseElement in testcasesElement.getchildren():
+                    if isinstance(testcaseElement,ModelObject) and testcaseElement.localName == "testcase":
+                        if testcaseElement.get("uri"):
+                            uriAttr = testcaseElement.get("uri")
+                            doc = load(self.modelXbrl, uriAttr, base=base)
+                            if doc is not None and self.referencesDocument.get(doc) is None:
+                                self.referencesDocument[doc] = "testcaseIndex"
 
     def testcaseDiscover(self, testcaseElement):
         if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn):
             self.type = Type.REGISTRYTESTCASE
-        self.testcaseVariations = [ModelObject.createTestcaseVariation(self, variationElement)
-                                   for variationElement in testcaseElement.getElementsByTagName("variation")]
+        self.testcaseVariations = [modelVariation
+                                   for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, "variation")
+                                   if isinstance(modelVariation,ModelObject)]
         if len(self.testcaseVariations) == 0:
             # may be a inline test case
-            for i in range(len(testcaseElement.attributes)):
-                if testcaseElement.attributes.item(i).value == XbrlConst.ixbrl:
-                    modelVariation = ModelObject.createTestcaseVariation(self, testcaseElement)
-                    self.testcaseVariations.append(modelVariation)
-                    break
+            if XbrlConst.ixbrl in testcaseElement.values():
+                self.testcaseVariations.append(testcaseElement)
 
     def registryDiscover(self, rootNode):
         base = self.filepath
-        for entryElement in rootNode.getElementsByTagNameNS(XbrlConst.registry, "entry"):
-            uri = XmlUtil.childAttr(entryElement, XbrlConst.registry, "url", "xlink:href")
-            functionDoc = load(self.modelXbrl, uri, base=base)
-            if functionDoc is not None:
-                testuri = XmlUtil.childAttr(functionDoc.xmlRootElement, XbrlConst.function, "conformanceTest", "xlink:href")
-                testbase = functionDoc.filepath
-                testcaseDoc = load(self.modelXbrl, testuri, base=testbase)
-                if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:
-                    self.referencesDocument[testcaseDoc] = "registryIndex"
-        
+        for entryElement in rootNode.getdescendants(tag="{http://xbrl.org/2008/registry}entry"):
+            if isinstance(entryElement,ModelObject): 
+                uri = XmlUtil.childAttr(entryElement, XbrlConst.registry, "url", "xlink:href")
+                functionDoc = load(self.modelXbrl, uri, base=base)
+                if functionDoc is not None:
+                    testuri = XmlUtil.childAttr(functionDoc.xmlRootElement, XbrlConst.function, "conformanceTest", "xlink:href")
+                    testbase = functionDoc.filepath
+                    testcaseDoc = load(self.modelXbrl, testuri, base=testbase)
+                    if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:
+                        self.referencesDocument[testcaseDoc] = "registryIndex"
+            

@@ -4,22 +4,23 @@ Created on Jan 4, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, re, copy, datetime
+import re, copy, datetime
 
 def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, prefixException=None):
-    # either value can be an xml.dom Node: if no name then qname is element tag quanem
+    # either value can be an etree ModelObject element: if no name then qname is element tag quanem
     #     if name provided qname uses element as xmlns reference and name as prefixed name
     # value can be namespaceURI and name is localname or prefix:localname
     # value can be prefix:localname (and localname omitted)
     # for xpath qnames which do not take default namespace if no prefix, specify noPrefixIsNoNamespace
-    if isinstance(value, xml.dom.Node):
+    from arelle.ModelObject import ModelObject
+    if isinstance(value, ModelObject):
         if name:
             element = value  # may be an attribute
             value = name
             name = None
         else:
             return QName(value.prefix, value.namespaceURI, value.localName)
-    elif isinstance(name, xml.dom.Node):
+    elif isinstance(name, ModelObject):
         element = name
         name = None
     elif value is None:
@@ -32,9 +33,12 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     elif not isinstance(value,str):
         if castException: raise castException
         return None
-    if value.startswith('{'):
-        namespaceURI,sep,localName = value[1:].partition('}')
-        prefix = None
+    if value.startswith('{'): # clark notation (with optional prefix)
+        namespaceURI,sep,prefixedLocalName = value[1:].partition('}')
+        prefix,sep,localName = prefixedLocalName.partition(':')
+        if len(localName) == 0:
+            localName = prefix
+            prefix = None
     else:
         if name is not None:
             if name:  # len > 0
@@ -44,19 +48,16 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
             value = name
         else:
             namespaceURI = None
-        names = value.partition(":")
-        if names[2] == "":
+        prefix,sep,localName = value.partition(":")
+        if len(localName) == 0:
             #default namespace
+            localName = prefix
             prefix = None
-            localName = names[0]
             if noPrefixIsNoNamespace:
                 return QName(None, None, localName)
-        else:
-            prefix = names[0]
-            localName = names[2]
     if namespaceURI:
         return QName(prefix, namespaceURI, localName)
-    elif element:
+    elif element is not None:
         from arelle import (XmlUtil)
         namespaceURI = XmlUtil.xmlns(element, prefix)
     if not namespaceURI:
@@ -92,10 +93,11 @@ class QName:
             return self.__hash__() == other.__hash__() and self.nsname() == other
         el
         '''
+        from arelle.ModelObject import ModelObject
         if isinstance(other,QName):
             return self.hash == other.hash and \
                     self.namespaceURI == other.namespaceURI and self.localName == other.localName
-        elif isinstance(other,xml.dom.Node) and other.nodeType == 1:
+        elif isinstance(other,ModelObject):
             return self.namespaceURI == other.namespaceURI and self.localName == other.localName
         return False
     def __ne__(self,other):
@@ -133,18 +135,13 @@ DATE = 1
 DATETIME = 2
 DATEUNION = 3
 def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
+    from arelle.ModelObject import ModelObject
     if value == "MinDate":
         return DateTime(datetime.MINYEAR,1,1)
     elif value == "maxyear":
         return DateTime(datetime.MAXYEAR,12,31)
-    elif isinstance(value, xml.dom.Node):
-        if value.nodeType == xml.dom.Node.ELEMENT_NODE:
-            from arelle import (XmlUtil)
-            value = XmlUtil.text(value)
-        elif value.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-            value = value.value
-        else:
-            value = None
+    elif isinstance(value, ModelObject):
+        value = value.text
     elif isinstance(value, DateTime) and not addOneDay and (value.dateOnly == (type == DATE)):
         return value    # no change needed for cast or conversion
     elif isinstance(value, datetime.datetime):
@@ -302,18 +299,13 @@ class DayTimeDuration(datetime.timedelta):
         return "P{0}DT{1}H{2}M{3}S".format(x[0], x[1], x[2], x[3])
         
 def time(value, castException=None):
+    from arelle.ModelObject import ModelObject
     if value == "MinTime":
         return Time(time.min)
     elif value == "MaxTime":
         return Time(time.max)
-    elif isinstance(value, xml.dom.Node):
-        if value.nodeType == xml.dom.Node.ELEMENT_NODE:
-            from arelle import (XmlUtil)
-            value = XmlUtil.text(value)
-        elif value.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-            value = value.value
-        else:
-            value = None
+    elif isinstance(value, ModelObject):
+        value = value.text
     elif isinstance(value, datetime.time):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
     elif isinstance(value, datetime.datetime):
