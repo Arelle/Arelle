@@ -131,7 +131,7 @@ class ValidateUtr:
             aInvalidUnits = []
             for f in modelXbrl.facts:
                 concept = f.concept
-                if concept:
+                if concept is not None:
                     if concept.isNumeric:
                         unit = f.unit
                         if f.unitID != None and unit != None:  # Would have failed XBRL validation otherwise

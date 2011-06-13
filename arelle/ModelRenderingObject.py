@@ -30,22 +30,22 @@ class ModelAxisCoord(ModelRenderingResource):
         
     @property
     def abstract(self):
-        return self.element.getAttribute("abstract") if self.element.hasAttribute("abstract") else 'false'
+        return self.get("abstract") if self.get("abstract") else 'false'
     
     @property
     def primaryItemQname(self):
-        priItem = XmlUtil.childAttr(self.element, XbrlConst.euRend, "primaryItem", "name")
+        priItem = XmlUtil.childAttr(self, XbrlConst.euRend, "primaryItem", "name")
         return self.prefixedNameQname(priItem) if priItem else None
     
     @property
     def explicitDims(self):
-        return {(self.prefixedNameQname(e.getAttribute("dimension")),
-                 self.prefixedNameQname(e.getAttribute("value")))
-                for e in XmlUtil.children(self.element, XbrlConst.euRend, "explicitDimCoord")}
+        return {(self.prefixedNameQname(e.get("dimension")),
+                 self.prefixedNameQname(e.get("value")))
+                for e in XmlUtil.children(self, XbrlConst.euRend, "explicitDimCoord")}
     
     @property
     def instant(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.euRend, "timeReference","instant")
+        return XmlUtil.childAttr(self, XbrlConst.euRend, "timeReference","instant")
     
     @property
     def propertyView(self):

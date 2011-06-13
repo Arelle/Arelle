@@ -6,7 +6,7 @@ Created on Nov 15, 2010
 '''
 from collections import defaultdict
 import os, datetime
-from arelle import (ViewWinTree, ModelObject, XbrlConst)
+from arelle import (ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst)
 
 def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentChild, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
@@ -130,7 +130,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
         self.setRowFacts(childnode,concept,preferredLabel)
         self.id += 1
         self.tag_has[modelObject.objectId()].append(childnode)
-        if isinstance(modelObject, ModelObject.ModelRelationship):
+        if isinstance(modelObject, ModelDtsObject.ModelRelationship):
             self.tag_has[modelObject.toModelObject.objectId()].append(childnode)
         if concept not in visited:
             visited.add(concept)
@@ -155,7 +155,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
             
     def setRowFacts(self, node, concept, preferredLabel):
         for fact in self.conceptFacts[concept.qname]:
-            if fact.context:
+            try:
                 colId = self.contextColId[fact.context.objectId()]
                 # special case of start date, pick column corresponding
                 if preferredLabel == XbrlConst.periodStartLabel:
@@ -168,7 +168,8 @@ class ViewFactTable(ViewWinTree.ViewTree):
                 factObjectId = fact.objectId()
                 self.tag_has[factObjectId].append(node)
                 self.rowColFactId[node + colId] = factObjectId
-
+            except AttributeError:  # not a fact or no concept
+                pass
             
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
@@ -200,7 +201,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             try:
                 # get concept of fact or toConcept of relationship, role obj if roleType
-                if not isinstance(modelObject, ModelObject.ModelFact):
+                if not isinstance(modelObject, ModelInstanceObject.ModelFact):
                     modelObject = modelObject.viewConcept
                 if modelObject:
                     items = self.tag_has.get(modelObject.objectId())

@@ -61,7 +61,7 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
         else:
             file = modelXbrl.fileSource.file(filepath)
         from arelle import ModelObjectFactory
-        parser = ModelObjectFactory.parser(modelXbrl)
+        parser = ModelObjectFactory.parser(modelXbrl, filepath)
         xmlDocument = etree.parse(file,parser=parser,base_url=filepath)
         file.close()
     except EnvironmentError as err:
@@ -168,6 +168,13 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
             modelDocument.rssFeedDiscover(rootNode)
     return modelDocument
 
+def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl):
+    importSchemaLocation = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relativeUrl, baseUrl)
+    doc = load(modelXbrl, importSchemaLocation, isIncluded=False, namespace=namespace)
+    if doc:
+        doc.inDTS = False
+    return doc
+            
 def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, None)
     if isEntry:
@@ -438,7 +445,7 @@ class ModelDocument:
     def schemalocateElementNamespace(self, element):
         eltNamespace = element.namespaceURI 
         if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
-            schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace)
+            schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace, returnElement=True)
             if schemaLocationElement is not None:
                 self.schemaLocationElements.add(schemaLocationElement)
                 self.referencedNamespaces.add(eltNamespace)
@@ -454,12 +461,9 @@ class ModelDocument:
                         ns = entry
                     else:
                         if ns not in self.modelXbrl.namespaceDocs:
-                            importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(entry, self.baseForElement(elt))
-                            doc = load(self.modelXbrl, importSchemaLocation, isIncluded=False, namespace=ns)
-                            if doc:
-                                doc.inDTS = False
+                            loadSchemalocatedSchema(self.modelXbrl, elt, entry, ns, self.baseForElement(elt))
                         ns = None
-                
+                        
     def schemaLinkbaseRefsDiscover(self, tree):
         for refln in ("{http://www.xbrl.org/2003/linkbase}schemaRef", "{http://www.xbrl.org/2003/linkbase}linkbaseRef"):
             for element in tree.iterdescendants(tag=refln):

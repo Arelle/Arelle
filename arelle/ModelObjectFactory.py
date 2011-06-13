@@ -7,8 +7,7 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 '''
 from arelle.ModelObject import ModelObject
 
-elementSubstitutionModelClass = {
-    None: ModelObject}
+elementSubstitutionModelClass = {}
 
 from lxml import etree
 from arelle import XbrlConst
@@ -17,13 +16,15 @@ from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelType, Mode
                                    ModelRoleType, ModelLocator, ModelLink)
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
 
-def parser(modelXbrl):
+def parser(modelXbrl, baseUrl):
     parser = etree.XMLParser()
-    parser.set_element_class_lookup(ModelObjectClassLookup(modelXbrl))
+    parser.set_element_class_lookup(KnownNamespacesModelObjectClassLookup(modelXbrl,
+                                    fallback=DiscoveringClassLookup(modelXbrl, baseUrl)))
     return parser
 
-class ModelObjectClassLookup(etree.CustomElementClassLookup):
-    def __init__(self, modelXbrl):
+class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
+    def __init__(self, modelXbrl, fallback=None):
+        super().__init__(fallback)
         self.modelXbrl = modelXbrl
         
     def lookup(self, node_type, document, ns, ln):
@@ -55,3 +56,36 @@ class ModelObjectClassLookup(etree.CustomElementClassLookup):
         elif node_type == "entity":
             return etree.EntityBase
 
+class DiscoveringClassLookup(etree.PythonElementClassLookup):
+    def __init__(self, modelXbrl, baseUrl, fallback=None):
+        super().__init__(fallback)
+        self.modelXbrl = modelXbrl
+        self.baseUrl = baseUrl
+        self.discoveryAttempts = set()
+        
+    def lookup(self, document, proxyElement):
+        # check if proxyElement's namespace is not known
+        ns, sep, ln = proxyElement.tag.partition("}")
+        if sep:
+            ns = ns[1:]
+        else:
+            ln = ns
+            ns = None
+        if (ns and 
+            ns not in self.discoveryAttempts and 
+            ns not in self.modelXbrl.namespaceDocs):
+            # is schema loadable?  requires a schemaLocation
+            from arelle import XmlUtil, ModelDocument
+            relativeUrl = XmlUtil.schemaLocation(proxyElement, ns)
+            self.discoveryAttempts.add(ns)
+            if relativeUrl:
+                doc = ModelDocument.loadSchemalocatedSchema(self.modelXbrl, proxyElement, relativeUrl, ns, self.baseUrl)
+
+        modelObjectClass = self.modelXbrl.matchSubstitutionGroup(
+            qname(ns, ln),
+            elementSubstitutionModelClass)
+        
+        if modelObjectClass is not None:
+            return modelObjectClass
+        else:
+            return ModelObject

@@ -7,13 +7,14 @@ Created on Oct 17, 2010
 import re
 from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst, 
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
-from arelle.ModelValue import (qname)
+from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 
 arcNamesTo21Resource = {"labelArc","referenceArc"}
-xlinkTypeValues = {"", "simple", "extended", "locator", "arc", "resource", "title", "none"}
-xlinkActuateValues = {"", "onLoad", "onRequest", "other", "none"}
-xlinkShowValues = {"", "new", "replace", "embed", "other", "none"}
-xlinkLabelAttributes = {"label", "from", "to"}
+xlinkTypeValues = {None, "simple", "extended", "locator", "arc", "resource", "title", "none"}
+xlinkActuateValues = {None, "onLoad", "onRequest", "other", "none"}
+xlinkShowValues = {None, "new", "replace", "embed", "other", "none"}
+xlinkLabelAttributes = {"{http://www.w3.org/1999/xlink}label", "{http://www.w3.org/1999/xlink}from", "{http://www.w3.org/1999/xlink}to"}
 periodTypeValues = {"instant","duration"}
 balanceValues = {None, "credit","debit"}
 baseXbrliTypes = {
@@ -68,25 +69,25 @@ class ValidateXbrl:
             locLabels = {}
             resourceLabels = {}
             resourceArcTos = []
-            for arcElt in modelLink.element.childNodes:
-                if arcElt.nodeType == 1:
-                    xlinkType = arcElt.getAttributeNS(XbrlConst.xlink, "type")
+            for arcElt in modelLink.iterchildren():
+                if isinstance(arcElt,ModelObject):
+                    xlinkType = arcElt.get("{http://www.w3.org/1999/xlink}type")
                     # locator must have an href
                     if xlinkType == "locator":
-                        if not arcElt.hasAttributeNS(XbrlConst.xlink, "href"):
+                        if arcElt.get("{http://www.w3.org/1999/xlink}href") is None:
                             modelXbrl.error(
                                 _("Linkbase {0} extended link {1} locator {2} missing href").format(
                                       modelLink.modelDocument.basename,
                                       modelLink.role, 
-                                      arcElt.hasAttributeNS(XbrlConst.xlink, "label")), 
+                                      arcElt.get("{http://www.w3.org/1999/xlink}label")), 
                                 "err", "xlink:locatorHref")
-                        locLabels[arcElt.getAttributeNS(XbrlConst.xlink, "label")] = arcElt
+                        locLabels[arcElt.get("{http://www.w3.org/1999/xlink}label")] = arcElt
                     elif xlinkType == "resource":
-                        resourceLabels[arcElt.getAttributeNS(XbrlConst.xlink, "label")] = arcElt
+                        resourceLabels[arcElt.get("{http://www.w3.org/1999/xlink}label")] = arcElt
                     # can be no duplicated arcs between same from and to
                     elif xlinkType == "arc":
-                        fromLabel = arcElt.getAttributeNS(XbrlConst.xlink, "from")
-                        toLabel = arcElt.getAttributeNS(XbrlConst.xlink, "to")
+                        fromLabel = arcElt.get("{http://www.w3.org/1999/xlink}from")
+                        toLabel = arcElt.get("{http://www.w3.org/1999/xlink}to")
                         fromTo = (fromLabel,toLabel)
                         if fromTo in fromToArcs:
                             modelXbrl.error(
@@ -98,9 +99,9 @@ class ValidateXbrl:
                             fromToArcs[fromTo] = arcElt
                         if arcElt.namespaceURI == XbrlConst.link:
                             if arcElt.localName in arcNamesTo21Resource: #("labelArc","referenceArc"):
-                                resourceArcTos.append((toLabel, arcElt.getAttribute("use")))
+                                resourceArcTos.append((toLabel, arcElt.get("use")))
                         elif self.isGenericArc(arcElt):
-                            arcrole = arcElt.getAttributeNS(XbrlConst.xlink, "arcrole")
+                            arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole")
                             self.genericArcArcroles.add(arcrole)
                             if arcrole in (XbrlConst.elementLabel, XbrlConst.elementReference):
                                 resourceArcTos.append((toLabel, arcrole))
@@ -112,7 +113,7 @@ class ValidateXbrl:
                                   modelLink.role, xlinkType), 
                             "err", "xlink:type")
                     # values of actuate (not needed for validating parsers)
-                    xlinkActuate = arcElt.getAttributeNS(XbrlConst.xlink, "actuate")
+                    xlinkActuate = arcElt.get("{http://www.w3.org/1999/xlink}actuate")
                     if xlinkActuate not in xlinkActuateValues: # ("", "onLoad", "onRequest", "other", "none"):
                         modelXbrl.error(
                             _("Linkbase {0} extended link {1} actuate {2} invalid").format(
@@ -120,7 +121,7 @@ class ValidateXbrl:
                                   modelLink.role, xlinkActuate), 
                             "err", "xlink:actuate")
                     # values of show (not needed for validating parsers)
-                    xlinkShow = arcElt.getAttributeNS(XbrlConst.xlink, "show")
+                    xlinkShow = arcElt.get("{http://www.w3.org/1999/xlink}show")
                     if xlinkShow not in xlinkShowValues: # ("", "new", "replace", "embed", "other", "none"):
                         modelXbrl.error(
                             _("Linkbase {0} extended link {1} show {2} invalid").format(
@@ -129,13 +130,13 @@ class ValidateXbrl:
                             "err", "xlink:show")
                     # values of label, from, to (not needed for validating parsers)
                     for name in xlinkLabelAttributes: # ("label", "from", "to"):
-                        value = arcElt.getAttributeNS(XbrlConst.xlink, name)
-                        if value != "" and not self.NCnamePattern.match(value):
+                        value = arcElt.get(name)
+                        if value is not None and not self.NCnamePattern.match(value):
                             modelXbrl.error(
                                 _("Linkbase {0} extended link {1} element {2} {3} '{4}' not an NCname").format(
                                       modelLink.modelDocument.basename,
                                       modelLink.role, 
-                                      arcElt.tagName,
+                                      arcElt.prefixedName,
                                       name,
                                       value), 
                                 "err", "xlink:{0}".format(name) )
@@ -150,7 +151,7 @@ class ValidateXbrl:
                                   modelLink.role, fromLabel, toLabel, name), 
                             "err", "xbrl.{0}:arcResource".format(sect))
                 if arcElt.localName == "footnoteArc" and arcElt.namespaceURI == XbrlConst.link and \
-                   arcElt.getAttributeNS(XbrlConst.xlink,"arcrole") == XbrlConst.factFootnote:
+                   arcElt.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.factFootnote:
                     if fromLabel not in locLabels:
                         modelXbrl.error(
                             _("FootnoteArc in {0} extended link {1} from {2} to {3} \"from\" is not a loc").format(
@@ -176,7 +177,7 @@ class ValidateXbrl:
                                   modelLink.modelDocument.basename,
                                   modelLink.role, 
                                   resourceArcToLabel, 
-                                  toLabel.getAttributeNS(XbrlConst.xlink, "href")), 
+                                  toLabel.get("{http://www.w3.org/1999/xlink}href")), 
                             "err", "xbrl.5.2.2.3:labelArcRemoteResource")
                 elif resourceArcToLabel in resourceLabels:
                     toResource = resourceLabels[resourceArcToLabel]
@@ -242,7 +243,7 @@ class ValidateXbrl:
                     weight = modelRel.weight
                     fromConcept = modelRel.fromModelObject
                     toConcept = modelRel.toModelObject
-                    if fromConcept and toConcept:
+                    if fromConcept is not None and toConcept is not None:
                         if weight == 0:
                             modelXbrl.error(
                                 _("Calculation relationship has zero weight from {0} to {1} in link role {2}").format(
@@ -268,7 +269,7 @@ class ValidateXbrl:
                 for modelRel in relsSet.modelRelationships:
                     preferredLabel = modelRel.preferredLabel
                     toConcept = modelRel.toModelObject
-                    if preferredLabel and toConcept and \
+                    if preferredLabel is not None and toConcept is not None and \
                        toConcept.label(preferredLabel=preferredLabel,fallbackToQname=False) is None:
                         modelXbrl.error(
                             _("Presentation relationship from {0} to {1} in link role {2} missing preferredLabel {3}").format(
@@ -279,7 +280,7 @@ class ValidateXbrl:
                 for modelRel in relsSet.modelRelationships:
                     fromConcept = modelRel.fromModelObject
                     toConcept = modelRel.toModelObject
-                    if fromConcept and toConcept:
+                    if fromConcept is not None and toConcept is not None:
                         if fromConcept.type != toConcept.type or fromConcept.periodType != toConcept.periodType:
                             modelXbrl.error(
                                 _("Essence-alias relationship from {0} to {1} in link role {2} has different types or periodTypes").format(
@@ -305,7 +306,7 @@ class ValidateXbrl:
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             for f in modelXbrl.facts:
                 concept = f.concept
-                if concept:
+                if concept is not None:
                     if concept.isNumeric:
                         unit = f.unit
                         if f.unitID is None or unit is None:
@@ -400,11 +401,11 @@ class ValidateXbrl:
                                         "err", "xbrl.5.1.1:fractionPrecisionDecimals")
                         else:
                             if modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
-                                for child in f.element.childNodes:
-                                    if child.nodeType == 1:
+                                for child in f.iterchildren():
+                                    if isinstance(child,ModelObject):
                                         self.modelXbrl.error(
                                             _("Fact {0} context {1} may not have child elements {2}").format(
-                                                  f.qname, f.contextID, child.tagName), 
+                                                  f.qname, f.contextID, child.prefixedName), 
                                             "err", "xbrl.5.1.1:itemMixedContent")
                                         break
                             if concept.isNumeric and not hasPrecision and not hasDecimals:
@@ -424,7 +425,7 @@ class ValidateXbrl:
                                       f.qname), 
                                 "err", "xbrl.4.6.3:tuplePrecisionDecimals")
                         # custom attributes may be allowed by anyAttribute but not by 2.1
-                        for attrQname, attrValue in XbrlUtil.attributes(self.modelXbrl, concept, f.element):
+                        for attrQname, attrValue in XbrlUtil.attributes(self.modelXbrl, concept, f):
                             if attrQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
                                 self.modelXbrl.error(
                                     _("Fact {0} is a tuple and must not have attribute in this namespace {1}").format(
@@ -438,7 +439,7 @@ class ValidateXbrl:
                                   f.qname), 
                             "err", "xbrl.4.6:notItemOrTuple")
                         
-                from arelle.ModelObject import ModelInlineFact
+                from arelle.ModelInstanceObject import ModelInlineFact
                 if isinstance(f, ModelInlineFact):
                     self.footnoteRefs.update(f.footnoteRefs)
             
@@ -451,7 +452,7 @@ class ValidateXbrl:
                                 _("Context {0} must have startDate less than endDate").format(
                                       cntx.id), 
                                 "err", "xbrl.4.7.2:periodStartBeforeEnd")
-                    except ValueError as err:
+                    except (TypeError, ValueError) as err:
                         self.modelXbrl.error(
                             _("Context {0} startDate or endDate: {1}").format(
                                   cntx.id, err), 
@@ -497,7 +498,7 @@ class ValidateXbrl:
             
             if concept.isTuple:
                 # must be global
-                if not concept.element.parentNode.localName == "schema":
+                if not concept.getparent().localName == "schema":
                     self.modelXbrl.error(
                         _("Tuple {0} must be declared globally").format(
                               concept.qname), 
@@ -520,12 +521,12 @@ class ValidateXbrl:
                                   concept.qname, attributeQname), 
                             "err", "xbrl.4.9:tupleAttribute")
                 # check for mixed="true" or simple content
-                if XmlUtil.descendantAttr(conceptType.element, XbrlConst.xsd, ("complexType", "complexContent"), "mixed") == "true":
+                if XmlUtil.descendantAttr(conceptType, XbrlConst.xsd, ("complexType", "complexContent"), "mixed") == "true":
                     self.modelXbrl.error(
                         _("Tuple {0} must not have mixed content").format(
                               concept.qname), 
                         "err", "xbrl.4.9:tupleMixedContent")
-                if XmlUtil.descendant(conceptType.element, XbrlConst.xsd, "simpleContent"):
+                if XmlUtil.descendant(conceptType, XbrlConst.xsd, "simpleContent"):
                     self.modelXbrl.error(
                         _("Tuple {0} must not have simple content").format(
                               concept.qname), 
@@ -601,7 +602,7 @@ class ValidateXbrl:
         
     def fwdCycle(self, relsSet, rels, noUndirected, fromConcepts, cycleType="directed", revCycleRel=None):
         for rel in rels:
-            if revCycleRel and rel.isIdenticalTo(revCycleRel):
+            if revCycleRel is not None and rel.isIdenticalTo(revCycleRel):
                 continue # don't double back on self in undirected testing
             relTo = rel.toModelObject
             if relTo in fromConcepts: #forms a directed cycle
@@ -644,18 +645,18 @@ class ValidateXbrl:
             if element.namespaceURI == XbrlConst.xbrli:
                 self.modelXbrl.error(
                     _("Context {0} {1} cannot have xbrli element {2}").format(
-                          contextId, name, element.tagName), 
+                          contextId, name, element.prefixedName), 
                     "err", "xbrl.{0}:{1}XbrliElement".format(sect,name))
             else:
                 concept = self.modelXbrl.qnameConcepts.get(qname(element))
-                if concept and (concept.isItem or concept.isTuple):
+                if concept is not None and (concept.isItem or concept.isTuple):
                     self.modelXbrl.error(
                         _("Context {0} {1} cannot have item or tuple element {2}").format(
-                              contextId, name, element.tagName), 
+                              contextId, name, element.prefixedName), 
                         "err", "xbrl.{0}:{1}ItemOrTuple".format(sect,name))
         hasChild = False
-        for child in element.childNodes:
-            if child.nodeType == 1:
+        for child in element.iterchildren():
+            if isinstance(child,ModelObject):
                 self.segmentScenario(child, contextId, name, sect, topLevel=False)
                 hasChild = True
         if topLevel and not hasChild:
@@ -674,7 +675,7 @@ class ValidateXbrl:
         return self.isGenericObject(elt, XbrlConst.qnGenArc)
     
     def isGenericResource(self, elt):
-        return self.isGenericObject(elt.parentNode, XbrlConst.qnGenLink)
+        return self.isGenericObject(elt.getparent(), XbrlConst.qnGenLink)
 
     def isGenericLabel(self, elt):
         return self.isGenericObject(elt, XbrlConst.qnGenLabel)

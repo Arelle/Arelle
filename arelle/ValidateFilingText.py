@@ -8,6 +8,7 @@ import xml.sax, xml.sax.handler
 import os, re, io
 from arelle import XbrlConst
 
+XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
 CDATApattern = re.compile(r"<!\[CDATA\[(.+)\]\]")
 #EFM table 5-1 and all &xxx; patterns
@@ -369,6 +370,7 @@ xhtmlEntities = {
 def checkfile(modelXbrl, filepath):
     result = []
     lineNum = 1
+    foundXmlDeclaration = False
     with modelXbrl.fileSource.file(filepath) as f:
         while True:
             line = f.readline()
@@ -388,9 +390,22 @@ def checkfile(modelXbrl, filepath):
                         "Disallowed character '{0}' in file {1} at line {2} col {3}".format(
                                   str, os.path.basename(filepath), lineNum, match.start()), 
                         "err", "EFM.5.2.1.1")
+            if lineNum == 1:
+                xmlDeclarationMatch = XMLdeclaration.search(line)
+                if xmlDeclarationMatch: # remove it for lxml
+                    start,end = xmlDeclarationMatch.span()
+                    line = line[0:start] + line[end:]
+                    foundXmlDeclaration = True
             result.append(line)
             lineNum += 1
-    return io.StringIO(initial_value=''.join(result))
+    result = io.StringIO(initial_value=''.join(result))
+    if not foundXmlDeclaration: # may be multiline, try again
+        xmlDeclarationMatch = XMLdeclaration.search(result)
+        if xmlDeclarationMatch: # remove it for lxml
+            start,end = xmlDeclarationMatch.span()
+            result = result[0:start] + result[end:]
+            foundXmlDeclaration = True
+    return result
         
 def removeEntities(text):
     entitylessText = []

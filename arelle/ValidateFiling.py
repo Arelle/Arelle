@@ -7,9 +7,11 @@ Created on Oct 17, 2010
 import xml.dom, xml.parsers
 import os, re, collections, datetime
 from collections import defaultdict
-from arelle import (ModelObject, ModelDocument, ModelValue, ValidateXbrl,
+from arelle import (ModelDocument, ModelValue, ValidateXbrl,
                 ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,
                 ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
+from arelle.ModelObject import ModelObject
+from arelle.ModelInstanceObject import ModelFact
 
 class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
@@ -43,7 +45,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         
         # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks
         super(ValidateFiling,self).validate(modelXbrl, parameters)
-        xbrlInstDoc = modelXbrl.modelDocument.xmlDocument
+        xbrlInstDoc = modelXbrl.modelDocument.xmlDocument.getroot()
         self.modelXbrl = modelXbrl
         modelXbrl.modelManager.showStatus(_("validating {0}").format(self.disclosureSystem.name))
         
@@ -61,85 +63,88 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             #6.5.1 scheme, 6.5.2, 6.5.3 identifier
             entityIdentifierValue = None
             if self.disclosureSystem.identifierValueName:   # omit if no checks
-                for entityIdentifierElt in xbrlInstDoc.getElementsByTagNameNS(XbrlConst.xbrli, "identifier"):
-                    schemeAttr = entityIdentifierElt.getAttribute("scheme")
-                    if not self.disclosureSystem.identifierSchemePattern.match(schemeAttr):
-                        modelXbrl.error(
-                            _("Invalid entity identifier scheme: {0}").format(schemeAttr), 
-                            "err", "EFM.6.05.01", "GFM.1.02.01")
-                    entityIdentifier = XmlUtil.text(entityIdentifierElt)
-                    if not self.disclosureSystem.identifierValuePattern.match(entityIdentifier):
-                        modelXbrl.error(
-                            _("Invalid entity identifier {0}: {1}").format(
-                                       self.disclosureSystem.identifierValueName,
-                                       entityIdentifier), 
-                            "err", "EFM.6.05.02", "GFM.1.02.02")
-                    if not entityIdentifierValue:
-                        entityIdentifierValue = entityIdentifier
-                    elif entityIdentifier != entityIdentifierValue:
-                        modelXbrl.error(
-                            _("Multiple {0}s: {1}, {2}").format(
-                                       self.disclosureSystem.identifierValueName,
-                                       entityIdentifierValue, entityIdentifier), 
-                            "err", "EFM.6.05.03", "GFM.1.02.03")
+                for entityIdentifierElt in xbrlInstDoc.iterdescendants("{http://www.xbrl.org/2003/instance}identifier"):
+                    if isinstance(entityIdentifierElt,ModelObject):
+                        schemeAttr = entityIdentifierElt.get("scheme")
+                        if not self.disclosureSystem.identifierSchemePattern.match(schemeAttr):
+                            modelXbrl.error(
+                                _("Invalid entity identifier scheme: {0}").format(schemeAttr), 
+                                "err", "EFM.6.05.01", "GFM.1.02.01")
+                        entityIdentifier = XmlUtil.text(entityIdentifierElt)
+                        if not self.disclosureSystem.identifierValuePattern.match(entityIdentifier):
+                            modelXbrl.error(
+                                _("Invalid entity identifier {0}: {1}").format(
+                                           self.disclosureSystem.identifierValueName,
+                                           entityIdentifier), 
+                                "err", "EFM.6.05.02", "GFM.1.02.02")
+                        if not entityIdentifierValue:
+                            entityIdentifierValue = entityIdentifier
+                        elif entityIdentifier != entityIdentifierValue:
+                            modelXbrl.error(
+                                _("Multiple {0}s: {1}, {2}").format(
+                                           self.disclosureSystem.identifierValueName,
+                                           entityIdentifierValue, entityIdentifier), 
+                                "err", "EFM.6.05.03", "GFM.1.02.03")
     
             #6.5.7 duplicated contextx
             contextIDs = []
             priorContexts = collections.OrderedDict()
-            for contextElt in xbrlInstDoc.getElementsByTagNameNS(XbrlConst.xbrli, "context"):
-                contextID = contextElt.getAttribute("id")
-                contextIDs.append(contextID)
-                key = tuple( 
-                    XmlUtil.sortKey(contextElt, XbrlConst.xbrli, "identifier", "scheme") + 
-                    XmlUtil.sortKey(contextElt, XbrlConst.xbrli, ("startDate", "endDate", "instant", "forever")) + 
-                    XmlUtil.sortKey(contextElt, XbrlConst.xbrldi, "explicitMember", "dimension"))
-                duplicated = False
-                for priorKey in priorContexts.keys():
-                    if priorKey == key:
-                        duplicated = True
-                        modelXbrl.error(
-                            _("Context ID {0} is equivalent to context ID {1}").format(
-                                 priorContexts[priorKey], contextID), 
-                            "err", "EFM.6.05.07", "GFM.1.02.07    ")
-                if not duplicated:
-                    priorContexts[key] = contextID 
-                    
-                #GFM no time in contexts
-                if self.validateGFM:
-                    for dateElt in XmlUtil.children(contextElt, XbrlConst.xbrli, ("startDate", "endDate", "instant")):
-                        dateText = XmlUtil.text(dateElt)
-                        if not self.GFMcontextDatePattern.match(dateText):
+            for contextElt in xbrlInstDoc.iterdescendants("{http://www.xbrl.org/2003/instance}context"):
+                if isinstance(contextElt,ModelObject):
+                    contextID = contextElt.id
+                    contextIDs.append(contextID)
+                    key = tuple( 
+                        XmlUtil.sortKey(contextElt, XbrlConst.xbrli, "identifier", "scheme") + 
+                        XmlUtil.sortKey(contextElt, XbrlConst.xbrli, ("startDate", "endDate", "instant", "forever")) + 
+                        XmlUtil.sortKey(contextElt, XbrlConst.xbrldi, "explicitMember", "dimension"))
+                    duplicated = False
+                    for priorKey in priorContexts.keys():
+                        if priorKey == key:
+                            duplicated = True
                             modelXbrl.error(
-                                _("Context id {0} {1} invalid content {2}").format(
-                                     contextID, dateElt.tagName, dateText), 
-                                "err", "GFM.1.02.25")
-                #6.5.4 scenario
-                hasSegment = XmlUtil.hasChild(contextElt, XbrlConst.xbrli, "segment")
-                hasScenario = XmlUtil.hasChild(contextElt, XbrlConst.xbrli, "scenario")
-                notAllowed = None
-                if self.disclosureSystem.contextElement == "segment" and hasScenario:
-                    notAllowed = _("Scenario")
-                elif self.disclosureSystem.contextElement == "scenario" and hasSegment:
-                    notAllowed = _("Segment")
-                elif self.disclosureSystem.contextElement == "either" and hasSegment and hasScenario:
-                    notAllowed = _("Both segment and scenario")
-                elif self.disclosureSystem.contextElement == "none" and (hasSegment or hasScenario):
-                    notAllowed = _("Neither segment nor scenario")
-                if notAllowed:
-                    modelXbrl.error(
-                        _("{0} element not allowed in context Id: {1}").format(
-                             notAllowed, contextID), 
-                        "err", "EFM.6.05.04", "GFM.1.02.04", "SBR.NL.2.3.5.06")
-        
-                #6.5.5 segment only explicit dimensions
-                for contextName in ("segment","scenario"):
-                    for segScenElt in contextElt.getElementsByTagNameNS(XbrlConst.xbrli, contextName):
-                        childTags = ", ".join(child.tagName for child in segScenElt.childNodes if child.nodeType == 1 and \
-                                              (child.namespaceURI != XbrlConst.xbrldi or child.localName != "explicitMember"))
-                        if len(childTags) > 0:
-                            modelXbrl.error(_("Segment of context Id {0} has disallowed content: {1}").format(
-                                     contextID, childTags), 
-                                "err", "EFM.6.05.05", "GFM.1.02.05")
+                                _("Context ID {0} is equivalent to context ID {1}").format(
+                                     priorContexts[priorKey], contextID), 
+                                "err", "EFM.6.05.07", "GFM.1.02.07    ")
+                    if not duplicated:
+                        priorContexts[key] = contextID 
+                        
+                    #GFM no time in contexts
+                    if self.validateGFM:
+                        for dateElt in XmlUtil.children(contextElt, XbrlConst.xbrli, ("startDate", "endDate", "instant")):
+                            dateText = XmlUtil.text(dateElt)
+                            if not self.GFMcontextDatePattern.match(dateText):
+                                modelXbrl.error(
+                                    _("Context id {0} {1} invalid content {2}").format(
+                                         contextID, dateElt.tagName, dateText), 
+                                    "err", "GFM.1.02.25")
+                    #6.5.4 scenario
+                    hasSegment = XmlUtil.hasChild(contextElt, XbrlConst.xbrli, "segment")
+                    hasScenario = XmlUtil.hasChild(contextElt, XbrlConst.xbrli, "scenario")
+                    notAllowed = None
+                    if self.disclosureSystem.contextElement == "segment" and hasScenario:
+                        notAllowed = _("Scenario")
+                    elif self.disclosureSystem.contextElement == "scenario" and hasSegment:
+                        notAllowed = _("Segment")
+                    elif self.disclosureSystem.contextElement == "either" and hasSegment and hasScenario:
+                        notAllowed = _("Both segment and scenario")
+                    elif self.disclosureSystem.contextElement == "none" and (hasSegment or hasScenario):
+                        notAllowed = _("Neither segment nor scenario")
+                    if notAllowed:
+                        modelXbrl.error(
+                            _("{0} element not allowed in context Id: {1}").format(
+                                 notAllowed, contextID), 
+                            "err", "EFM.6.05.04", "GFM.1.02.04", "SBR.NL.2.3.5.06")
+            
+                    #6.5.5 segment only explicit dimensions
+                    for contextName in ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"):
+                        for segScenElt in contextElt.iterdescendants(contextName):
+                            if isinstance(segScenElt,ModelObject):
+                                childTags = ", ".join(child.prefixedName for child in segScenElt.iterchildren() and \
+                                                      (child.tag != "{http://www.xbrl.org/2003/instance}explicitMember"))
+                                if len(childTags) > 0:
+                                    modelXbrl.error(_("Segment of context Id {0} has disallowed content: {1}").format(
+                                             contextID, childTags), 
+                                        "err", "EFM.6.05.05", "GFM.1.02.05")
         
     
             #fact items from standard context (no dimension)
@@ -191,8 +196,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     contextIDs.remove(factContextID)
                     
                 context = f.context
-                factElementName = f.element.localName
-                factInDeiNamespace = self.disclosureSystem.deiNamespacePattern.match(f.element.namespaceURI)
+                factElementName = f.localName
+                factInDeiNamespace = self.disclosureSystem.deiNamespacePattern.match(f.namespaceURI)
                 # standard dei items from required context
                 if not context.hasSegment and not context.hasScenario: 
                     #default context
@@ -237,18 +242,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     # segment present
                     
                     # note all concepts used in explicit dimensions
-                    for dimElt in context.element.getElementsByTagNameNS(XbrlConst.xbrldi,"explicitMember"):
-                        dim = ModelValue.qname(dimElt,dimElt.getAttribute("dimension"))
-                        mem = ModelValue.qname(dimElt,XmlUtil.text(dimElt))
-                        for qname in (dim,mem):
-                            dConcept = modelXbrl.qnameConcepts.get(qname)
-                            if dConcept:
-                                conceptsUsed[dConcept] = False
-                        if (factElementName == "EntityCommonStockSharesOutstanding" and
-                            dim.localName == "StatementClassOfStockAxis"):
-                            commonSharesItemsByStockClass[mem].append(f)
-                            if commonSharesClassMembers is None:
-                                commonSharesClassMembers = self.getDimMembers(modelXbrl.qnameConcepts.get(dim))
+                    for dimElt in context.iterdescendants("{http://xbrl.org/2006/xbrldi}explicitMember"):
+                        if isinstance(dimElt,ModelObject):
+                            dim = ModelValue.qname(dimElt,dimElt.get("dimension"))
+                            mem = ModelValue.qname(dimElt,dimElt.text)
+                            for qname in (dim,mem):
+                                dConcept = modelXbrl.qnameConcepts.get(qname)
+                                if dConcept:
+                                    conceptsUsed[dConcept] = False
+                            if (factElementName == "EntityCommonStockSharesOutstanding" and
+                                dim.localName == "StatementClassOfStockAxis"):
+                                commonSharesItemsByStockClass[mem].append(f)
+                                if commonSharesClassMembers is None:
+                                    commonSharesClassMembers = self.getDimMembers(modelXbrl.qnameConcepts.get(dim))
                                     
                 #6.5.17 facts with precision
                 concept = f.concept
@@ -269,7 +275,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 "err", "EFM.6.05.17", "GFM.1.02.16")
                     
                 if validateInlineXbrlGFM:
-                    if f.element.localName == "nonFraction" or f.element.localName == "fraction":
+                    if f.localName == "nonFraction" or f.localName == "fraction":
                         syms = self.signOrCurrency.findall(f.text)
                         if syms:
                             modelXbrl.error(_('ix-numeric Fact {0} of context {1} has a sign or currency symbol "{2}" in "{3}"').format(
@@ -323,19 +329,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for u1 in modelUnits:
                 if u1.isDivide:
                     u1key = \
-                        XmlUtil.sortKey(XmlUtil.descendant(u1.element, XbrlConst.xbrli, "unitNumerator"), XbrlConst.xbrli, "measure", qnames=True) + \
+                        XmlUtil.sortKey(XmlUtil.descendant(u1, XbrlConst.xbrli, "unitNumerator"), XbrlConst.xbrli, "measure", qnames=True) + \
                         [("unitDenominator")] + \
-                        XmlUtil.sortKey(XmlUtil.descendant(u1.element, XbrlConst.xbrli, "unitDenominator"), XbrlConst.xbrli, "measure", qnames=True)
+                        XmlUtil.sortKey(XmlUtil.descendant(u1, XbrlConst.xbrli, "unitDenominator"), XbrlConst.xbrli, "measure", qnames=True)
                 else:
-                    u1key = XmlUtil.sortKey(u1.element, XbrlConst.xbrli, "measure", qnames=True)
+                    u1key = XmlUtil.sortKey(u1, XbrlConst.xbrli, "measure", qnames=True)
                 for u2 in modelUnits[iU1:]:
                     if u2.isDivide:
                         u2key = \
-                            XmlUtil.sortKey(XmlUtil.descendant(u2.element, XbrlConst.xbrli, "unitNumerator"), XbrlConst.xbrli, "measure", qnames=True) + \
+                            XmlUtil.sortKey(XmlUtil.descendant(u2, XbrlConst.xbrli, "unitNumerator"), XbrlConst.xbrli, "measure", qnames=True) + \
                             [("unitDenominator")] + \
-                            XmlUtil.sortKey(XmlUtil.descendant(u2.element, XbrlConst.xbrli, "unitDenominator"), XbrlConst.xbrli, "measure", qnames=True)
+                            XmlUtil.sortKey(XmlUtil.descendant(u2, XbrlConst.xbrli, "unitDenominator"), XbrlConst.xbrli, "measure", qnames=True)
                     else:
-                        u2key = XmlUtil.sortKey(u2.element, XbrlConst.xbrli, "measure", qnames=True)
+                        u2key = XmlUtil.sortKey(u2, XbrlConst.xbrli, "measure", qnames=True)
                     if u1key == u2key:
                         modelXbrl.error(
                             _("Units {0} and {1} are equivalent.").format(u1.id, u2.id), 
@@ -599,89 +605,90 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
             #6.5.27 footnote elements, etc
             footnoteLinkNbr = 0
-            for footnoteLinkElt in xbrlInstDoc.getElementsByTagNameNS(XbrlConst.link, "footnoteLink"):
-                footnoteLinkNbr += 1
-                
-                linkrole = footnoteLinkElt.getAttributeNS(XbrlConst.xlink, "role")
-                if linkrole != XbrlConst.defaultLinkRole:
-                    modelXbrl.error(
-                        _("FootnoteLink {0} has disallowed role {1}").format(
-                            footnoteLinkNbr, linkrole), 
-                        "err", "EFM.6.05.28", "GFM.1.02.20")
-    
-                # find modelLink of this footnoteLink
-                modelLink = modelXbrl.baseSetModelLink(footnoteLinkElt)
-                relationshipSet = modelXbrl.relationshipSet("XBRL-footnotes", linkrole)
-                if (not modelLink) or (not relationshipSet):
-                    continue    # had no child elements to parse
-                locNbr = 0
-                arcNbr = 0
-                for child in footnoteLinkElt.childNodes:
-                    if child.nodeType == 1:
-                        xlinkType = child.getAttributeNS(XbrlConst.xlink, "type")
-                        if child.namespaceURI != XbrlConst.link or \
-                           xlinkType not in ("locator", "resource", "arc") or \
-                           child.localName not in ("loc", "footnote", "footnoteArc"):
-                                modelXbrl.error(
-                                    _("FootnoteLink {0} has disallowed child element <{1}>").format(
-                                        footnoteLinkNbr, child.tagName), 
-                                    "err", "EFM.6.05.27", "GFM.1.02.19")
-                        elif xlinkType == "locator":
-                            locNbr += 1
-                            locrole = child.getAttributeNS(XbrlConst.xlink, "role")
-                            if locrole != "" and (self.disclosureSystem.GFM or \
-                                                  not self.disclosureSystem.uriAuthorityValid(locrole)): 
-                                modelXbrl.error(
-                                    _("FootnoteLink {0} loc {1} has disallowed role {2}").format(
-                                        footnoteLinkNbr, locNbr, locrole), 
-                                    "err", "EFM.6.05.29", "GFM.1.02.21")
-                            href = child.getAttributeNS(XbrlConst.xlink, "href")
-                            if not href.startswith("#"): 
-                                modelXbrl.error(
-                                    _("FootnoteLink {0} loc {1} has disallowed href {2}").format(
-                                        footnoteLinkNbr, locNbr, href), 
-                                    "err", "EFM.6.05.32", "GFM.1.02.23")
-                            else:
-                                label = child.getAttributeNS(XbrlConst.xlink, "label")
-                        elif xlinkType == "arc":
-                            arcNbr += 1
-                            arcrole = child.getAttributeNS(XbrlConst.xlink, "arcrole")
-                            if (self.validateEFM and not self.disclosureSystem.uriAuthorityValid(arcrole)) or \
-                               (self.disclosureSystem.GFM  and arcrole != XbrlConst.factFootnote and arcrole != XbrlConst.factExplanatoryFact): 
-                                modelXbrl.error(
-                                    _("FootnoteLink {0} arc {1} has disallowed arcrole {2}").format(
-                                        footnoteLinkNbr, arcNbr, arcrole), 
-                                    "err", "EFM.6.05.30", "GFM.1.02.22")
-                        elif xlinkType == "resource": # footnote
-                            footnoterole = child.getAttributeNS(XbrlConst.xlink, "role")
-                            if footnoterole == "":
-                                modelXbrl.error(
-                                    _("Footnote {0} is missing a role").format(
-                                        child.getAttributeNS(XbrlConst.xlink, "label")), 
-                                    "err", "EFM.6.05.28", "GFM.1.2.20")
-                            elif (self.validateEFM and not self.disclosureSystem.uriAuthorityValid(footnoterole)) or \
-                                 (self.disclosureSystem.GFM  and footnoterole != XbrlConst.footnote): 
-                                modelXbrl.error(
-                                    _("Footnote {0} has disallowed role {1}").format(
-                                        child.getAttributeNS(XbrlConst.xlink, "label"),
-                                        footnoterole), 
-                                    "err", "EFM.6.05.28", "GFM.1.2.20")
-                            if self.validateEFM:
-                                ValidateFilingText.validateFootnote(modelXbrl, child)
-                            # find modelResource for this element
-                            modelResource = modelLink.modelResourceOfResourceElement(child)
-                            foundFact = False
-                            if XmlUtil.text(child) != "":
-                                for relationship in relationshipSet.toModelObject(modelResource):
-                                    if isinstance(relationship.fromModelObject, ModelObject.ModelFact):
-                                        foundFact = True
-                                        break
-                                if not foundFact:
+            for footnoteLinkElt in xbrlInstDoc.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink"):
+                if isinstance(footnoteLinkElt,ModelObject):
+                    footnoteLinkNbr += 1
+                    
+                    linkrole = footnoteLinkElt.get("{http://www.w3.org/1999/xlink}role")
+                    if linkrole != XbrlConst.defaultLinkRole:
+                        modelXbrl.error(
+                            _("FootnoteLink {0} has disallowed role {1}").format(
+                                footnoteLinkNbr, linkrole), 
+                            "err", "EFM.6.05.28", "GFM.1.02.20")
+        
+                    # find modelLink of this footnoteLink
+                    modelLink = modelXbrl.baseSetModelLink(footnoteLinkElt)
+                    relationshipSet = modelXbrl.relationshipSet("XBRL-footnotes", linkrole)
+                    if (not modelLink) or (not relationshipSet):
+                        continue    # had no child elements to parse
+                    locNbr = 0
+                    arcNbr = 0
+                    for child in footnoteLinkElt.getchildren():
+                        if isinstance(child,ModelObject):
+                            xlinkType = child.get("{http://www.w3.org/1999/xlink}type")
+                            if child.namespaceURI != XbrlConst.link or \
+                               xlinkType not in ("locator", "resource", "arc") or \
+                               child.localName not in ("loc", "footnote", "footnoteArc"):
                                     modelXbrl.error(
-                                        _("FootnoteLink {0} footnote {1} has no linked fact").format(
-                                            footnoteLinkNbr, 
-                                            child.getAttributeNS(XbrlConst.xlink, "label")), 
-                                        "err", "EFM.6.05.33", "GFM.1.02.24")
+                                        _("FootnoteLink {0} has disallowed child element <{1}>").format(
+                                            footnoteLinkNbr, child.tagName), 
+                                        "err", "EFM.6.05.27", "GFM.1.02.19")
+                            elif xlinkType == "locator":
+                                locNbr += 1
+                                locrole = child.get("{http://www.w3.org/1999/xlink}role")
+                                if locrole != "" and (self.disclosureSystem.GFM or \
+                                                      not self.disclosureSystem.uriAuthorityValid(locrole)): 
+                                    modelXbrl.error(
+                                        _("FootnoteLink {0} loc {1} has disallowed role {2}").format(
+                                            footnoteLinkNbr, locNbr, locrole), 
+                                        "err", "EFM.6.05.29", "GFM.1.02.21")
+                                href = child.get("{http://www.w3.org/1999/xlink}href")
+                                if not href.startswith("#"): 
+                                    modelXbrl.error(
+                                        _("FootnoteLink {0} loc {1} has disallowed href {2}").format(
+                                            footnoteLinkNbr, locNbr, href), 
+                                        "err", "EFM.6.05.32", "GFM.1.02.23")
+                                else:
+                                    label = child.get("{http://www.w3.org/1999/xlink}label")
+                            elif xlinkType == "arc":
+                                arcNbr += 1
+                                arcrole = child.get("{http://www.w3.org/1999/xlink}arcrole")
+                                if (self.validateEFM and not self.disclosureSystem.uriAuthorityValid(arcrole)) or \
+                                   (self.disclosureSystem.GFM  and arcrole != XbrlConst.factFootnote and arcrole != XbrlConst.factExplanatoryFact): 
+                                    modelXbrl.error(
+                                        _("FootnoteLink {0} arc {1} has disallowed arcrole {2}").format(
+                                            footnoteLinkNbr, arcNbr, arcrole), 
+                                        "err", "EFM.6.05.30", "GFM.1.02.22")
+                            elif xlinkType == "resource": # footnote
+                                footnoterole = child.get("{http://www.w3.org/1999/xlink}role")
+                                if footnoterole == "":
+                                    modelXbrl.error(
+                                        _("Footnote {0} is missing a role").format(
+                                            child.get("{http://www.w3.org/1999/xlink}label")), 
+                                        "err", "EFM.6.05.28", "GFM.1.2.20")
+                                elif (self.validateEFM and not self.disclosureSystem.uriAuthorityValid(footnoterole)) or \
+                                     (self.disclosureSystem.GFM  and footnoterole != XbrlConst.footnote): 
+                                    modelXbrl.error(
+                                        _("Footnote {0} has disallowed role {1}").format(
+                                            child.get("{http://www.w3.org/1999/xlink}label"),
+                                            footnoterole), 
+                                        "err", "EFM.6.05.28", "GFM.1.2.20")
+                                if self.validateEFM:
+                                    ValidateFilingText.validateFootnote(modelXbrl, child)
+                                # find modelResource for this element
+                                modelResource = modelLink.modelResourceOfResourceElement(child)
+                                foundFact = False
+                                if XmlUtil.text(child) != "":
+                                    for relationship in relationshipSet.toModelObject(modelResource):
+                                        if isinstance(relationship.fromModelObject, ModelFact):
+                                            foundFact = True
+                                            break
+                                    if not foundFact:
+                                        modelXbrl.error(
+                                            _("FootnoteLink {0} footnote {1} has no linked fact").format(
+                                                footnoteLinkNbr, 
+                                                child.get("{http://www.w3.org/1999/xlink}label")), 
+                                            "err", "EFM.6.05.33", "GFM.1.02.24")
 
         # all-labels and references checks
         defaultLangStandardLabels = {}
@@ -923,7 +930,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 else:
                                     orderRels[order] = rel
                                 if (arcrole not in (XbrlConst.dimensionDomain, XbrlConst.domainMember) and
-                                    rel.element.getAttributeNS(XbrlConst.xbrldt,"usable") == "false"):
+                                    rel.get("{http://xbrl.org/2005/xbrldt}usable") == "false"):
                                     self.modelXbrl.error(
                                         _("Disallowed xbrldt:usable='false' attribute on {0} relationship from concept {1} in base set role {2} to concept {3}").format(
                                               os.path.basename(arcrole), relFrom.qname, rel.linkrole, rel.toModelObject.qname), 

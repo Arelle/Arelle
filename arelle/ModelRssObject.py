@@ -11,6 +11,10 @@ from arelle.ModelValue import qname
 from email.utils import parseaddr
 
 edgr = "http://www.sec.gov/Archives/edgar"
+edgrDescription = "{http://www.sec.gov/Archives/edgar}description"
+edgrFile = "{http://www.sec.gov/Archives/edgar}file"
+edgrType = "{http://www.sec.gov/Archives/edgar}type"
+edgrUrl = "{http://www.sec.gov/Archives/edgar}url"
 
 class RssWatchOptions():
     def __init__(self):
@@ -55,19 +59,19 @@ class ModelRssItem(ModelObject.ModelObject):
         
     @property
     def cikNumber(self):
-        return XmlUtil.text(XmlUtil.descendant(self.element, edgr, "cikNumber"))
+        return XmlUtil.text(XmlUtil.descendant(self, edgr, "cikNumber"))
     
     @property
     def accessionNumber(self):
-        return XmlUtil.text(XmlUtil.descendant(self.element, edgr, "accessionNumber"))
+        return XmlUtil.text(XmlUtil.descendant(self, edgr, "accessionNumber"))
     
     @property
     def companyName(self):
-        return XmlUtil.text(XmlUtil.descendant(self.element, edgr, "companyName"))
+        return XmlUtil.text(XmlUtil.descendant(self, edgr, "companyName"))
     
     @property
     def formType(self):
-        return XmlUtil.text(XmlUtil.descendant(self.element, edgr, "formType"))
+        return XmlUtil.text(XmlUtil.descendant(self, edgr, "formType"))
     
     @property
     def pubDate(self):
@@ -75,7 +79,7 @@ class ModelRssItem(ModelObject.ModelObject):
             return self._pubDate
         except AttributeError:
             from arelle.UrlUtil import parseRfcDatetime
-            self._pubDate = parseRfcDatetime(XmlUtil.text(XmlUtil.descendant(self.element, None, "pubDate")))
+            self._pubDate = parseRfcDatetime(XmlUtil.text(XmlUtil.descendant(self, None, "pubDate")))
             return self._pubDate
     @property
     def filingDate(self):
@@ -84,7 +88,7 @@ class ModelRssItem(ModelObject.ModelObject):
         except AttributeError:
             import datetime
             self._filingDate = None
-            date = XmlUtil.text(XmlUtil.descendant(self.element, edgr, "filingDate"))
+            date = XmlUtil.text(XmlUtil.descendant(self, edgr, "filingDate"))
             d = date.split("/") 
             if d and len(d) == 3:
                 self._filingDate = datetime.date(int(d[2]),int(d[0]),int(d[1]))
@@ -92,14 +96,14 @@ class ModelRssItem(ModelObject.ModelObject):
     
     @property
     def period(self):
-        per = XmlUtil.text(XmlUtil.descendant(self.element, edgr, "period"))
+        per = XmlUtil.text(XmlUtil.descendant(self, edgr, "period"))
         if per and len(per) == 8:
             return "{0}-{1}-{2}".format(per[0:4],per[4:6],per[6:8])
         return None
     
     @property
     def fiscalYearEnd(self):
-        yrEnd = XmlUtil.text(XmlUtil.descendant(self.element, edgr, "fiscalYearEnd"))
+        yrEnd = XmlUtil.text(XmlUtil.descendant(self, edgr, "fiscalYearEnd"))
         if yrEnd and len(yrEnd) == 4:
             return "{0}-{1}".format(yrEnd[0:2],yrEnd[2:4])
         return None
@@ -110,9 +114,9 @@ class ModelRssItem(ModelObject.ModelObject):
             return self._url
         except AttributeError:
             self._url = None
-            for instDocElt in XmlUtil.descendants(self.element, edgr, "xbrlFile"):
-                if instDocElt.getAttributeNS(edgr,"type").endswith(".INS"):
-                    self._url = instDocElt.getAttributeNS(edgr,"url")
+            for instDocElt in XmlUtil.descendants(self, edgr, "xbrlFile"):
+                if instDocElt.get(edgrType).endswith(".INS"):
+                    self._url = instDocElt.get(edgrUrl)
                     break
             return self._url
         
@@ -129,9 +133,9 @@ class ModelRssItem(ModelObject.ModelObject):
             return self._htmURLs
         except AttributeError:
             self._htmURLs = [
-                (instDocElt.getAttributeNS(edgr,"description"),instDocElt.getAttributeNS(edgr,"url"))
-                  for instDocElt in XmlUtil.descendants(self.element, edgr, "xbrlFile")
-                    if instDocElt.getAttributeNS(edgr,"file").endswith(".htm")]
+                (instDocElt.get(edgrDescription),instDocElt.get(edgrUrl))
+                  for instDocElt in XmlUtil.descendants(self, edgr, "xbrlFile")
+                    if instDocElt.get(edgrFile).endswith(".htm")]
             return self._htmURLs
         
     def setResults(self, modelXbrl):

@@ -88,7 +88,7 @@ class Validate:
                 resultIsXbrlInstance = modelTestcaseVariation.resultIsXbrlInstance
                 formulaOutputInstance = None
                 inputDTSes = defaultdict(list)
-                baseForElement = testcase.baseForElement(modelTestcaseVariation.element)
+                baseForElement = testcase.baseForElement(modelTestcaseVariation)
                 # try to load instance document
                 self.modelXbrl.error(_("variation {0} {1}: {2}").format(modelTestcaseVariation.id, modelTestcaseVariation.name, modelTestcaseVariation.expected))
                 for readMeFirstUri in modelTestcaseVariation.readMeFirstUris:

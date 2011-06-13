@@ -6,7 +6,7 @@ Created on Oct 6, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import (ViewWinTree, ModelObject, XbrlConst, XmlUtil)
+from arelle import (ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil)
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
     relationshipSet =  modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
@@ -113,8 +113,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, parentnode, n, relationshipSet, visited):
         if concept is None:
             return
-        isRelation = isinstance(modelObject, ModelObject.ModelRelationship)
-        if isinstance(concept, ModelObject.ModelConcept):
+        isRelation = isinstance(modelObject, ModelDtsObject.ModelRelationship)
+        if isinstance(concept, ModelDtsObject.ModelConcept):
             text = labelPrefix + concept.label(preferredLabel,lang=self.lang)
         elif self.arcrole == "EU-rendering" and isRelation:
             text = concept.genLabel(lang=self.lang)
@@ -124,7 +124,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     text = "{0} {1}".format(os.path.basename(relArcrole), concept.xlinkLabel)
             elif not text:
                 text = concept.localName
-        elif isinstance(concept, ModelObject.ModelResource):
+        elif isinstance(concept, ModelDtsObject.ModelResource):
             text = concept.text
         else:   # just a resource
             text = concept.localName
@@ -195,7 +195,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             try:
                 # check if modelObject is a relationship in given linkrole
-                if isinstance(modelObject, ModelObject.ModelRelationship):
+                if isinstance(modelObject, ModelDtsObject.ModelRelationship):
                     linkroleId = self.tag_has.get(modelObject.linkrole)
                     if linkroleId: 
                         linkroleId = linkroleId[0]

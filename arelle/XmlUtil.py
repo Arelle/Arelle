@@ -67,19 +67,21 @@ def targetNamespace(element):
         treeElt = treeElt.getparent()
     return None
 
-def schemaLocation(element, namespace):
+def schemaLocation(element, namespace, returnElement=False):
     treeElt = element
     while treeElt is not None:
         sl = treeElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
         if sl:
-            isNs = True
+            ns = None
             for entry in sl.split():
-                if isNs:
-                    if entry == namespace:
+                if ns is None:
+                    if returnElement and entry == namespace:
                         return treeElt
-                    isNs = False
+                    ns = entry
                 else:
-                    isNs = True
+                    if not returnElement and ns == namespace:
+                        return entry
+                    ns = None
         treeElt = treeElt.getparent()
     return None
 
@@ -476,7 +478,7 @@ def xpointerElement(modelDocument, fragmentIdentifier):
             if len(pathParts) >= 1 and len(pathParts[0]) > 0 and not pathParts[0].isnumeric():
                 id = pathParts[0]
                 if id in modelDocument.idObjects:
-                    node = modelDocument.idObjects.get(id).element
+                    node = modelDocument.idObjects.get(id)
                 else:
                     node = modelDocument.xmlDocument.getElementById(id)
                 if node is None:
