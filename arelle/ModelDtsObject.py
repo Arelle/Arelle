@@ -566,14 +566,14 @@ class ModelType(ModelSchemaObject):
         if qnameDerivedFrom and (qnameDerivedFrom.namespaceURI in (XbrlConst.xsd,XbrlConst.xbrli)):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
-        return typeDerivedFrom.isDomainItemType if typeDerivedFrom else False
+        return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False
     
     def isDerivedFrom(self, typeqname):
         qnameDerivedFrom = self.qnameDerivedFrom
         if qnameDerivedFrom == typeqname:
             return True
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
-        return typeDerivedFrom.isDerivedFrom(typeqname) if typeDerivedFrom else False
+        return typeDerivedFrom.isDerivedFrom(typeqname) if typeDerivedFrom is not None else False
         
     
     @property

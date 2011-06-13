@@ -139,8 +139,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     for contextName in ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"):
                         for segScenElt in contextElt.iterdescendants(contextName):
                             if isinstance(segScenElt,ModelObject):
-                                childTags = ", ".join(child.prefixedName for child in segScenElt.iterchildren() and \
-                                                      (child.tag != "{http://www.xbrl.org/2003/instance}explicitMember"))
+                                childTags = ", ".join([child.prefixedName for child in segScenElt.iterchildren()
+                                                       if isinstance(child,ModelObject) and 
+                                                       child.tag != "{http://www.xbrl.org/2003/instance}explicitMember"])
                                 if len(childTags) > 0:
                                     modelXbrl.error(_("Segment of context Id {0} has disallowed content: {1}").format(
                                              contextID, childTags), 
@@ -248,7 +249,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             mem = ModelValue.qname(dimElt,dimElt.text)
                             for qname in (dim,mem):
                                 dConcept = modelXbrl.qnameConcepts.get(qname)
-                                if dConcept:
+                                if dConcept is not None:
                                     conceptsUsed[dConcept] = False
                             if (factElementName == "EntityCommonStockSharesOutstanding" and
                                 dim.localName == "StatementClassOfStockAxis"):
@@ -258,7 +259,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     
                 #6.5.17 facts with precision
                 concept = f.concept
-                if not concept:
+                if concept is None:
                     modelXbrl.error(
                         _("Fact {0} of context {1} has an XBRL error").format(
                                   f.qname, f.contextID), 
@@ -365,7 +366,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
                     factsForLang.setdefault(langTestKey, []).append(f1)
                     lang = f1.xmlLang
-                    if lang != "" and not lang.startswith(factLangStartsWith):
+                    if lang and not lang.startswith(factLangStartsWith):
                         keysNotDefaultLang[langTestKey] = f1
                         
                     if self.disclosureSystem.GFM and f1.isNumeric and \
@@ -597,7 +598,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             if self.validateEFM:
                 for f in modelXbrl.facts:
                     concept = f.concept
-                    if concept and concept.type and concept.type.isDomainItemType:
+                    if concept is not None and concept.type is not None and concept.type.isDomainItemType:
                         modelXbrl.error(
                             _("Domain item {0} in context {1} may not appear as a fact").format(
                                 f.qname, f.contextID), 
@@ -619,7 +620,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     # find modelLink of this footnoteLink
                     modelLink = modelXbrl.baseSetModelLink(footnoteLinkElt)
                     relationshipSet = modelXbrl.relationshipSet("XBRL-footnotes", linkrole)
-                    if (not modelLink) or (not relationshipSet):
+                    if (modelLink is None) or (not relationshipSet):
                         continue    # had no child elements to parse
                     locNbr = 0
                     arcNbr = 0
@@ -897,7 +898,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             for rel in rels:
                                 relTo = rel.toModelObject
     
-                                if not (relTo.type and relTo.type.isDomainItemType) and \
+                                if not (relTo.type is not None and relTo.type.isDomainItemType) and \
                                    rel.modelDocument.uri not in self.disclosureSystem.standardTaxonomiesDict:
                                     self.modelXbrl.error(
                                         _("Definition relationship from {0} to {1} in role {2} requires domain item target").format(

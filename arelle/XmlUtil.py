@@ -412,16 +412,16 @@ def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name)
 
 def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeName=None, qnames=False):
     list = []
-    if parentElement:
+    if parentElement is not None:
         for childLocalName in childLocalNames if isinstance(childLocalNames,tuple) else (childLocalNames,):
             for child in parentElement.iterdescendants(tag="{{{0}}}{1}".format(childNamespaceUri,childLocalName)):
                 value = text(child)
                 if qnames:
                     value = prefixedNameToPyQname(child, value)
                 if childAttributeName is not None:
-                    list.append((child.tagName, value, child.get(childAttributeName)))
+                    list.append((child.tag, value, child.get(childAttributeName)))
                 else:
-                    list.append((child.tagName, value))
+                    list.append((child.tag, value))
         list.sort()
     return list
 
@@ -468,10 +468,10 @@ def xpointerElement(modelDocument, fragmentIdentifier):
     for scheme, parenPart, path in matches:
         if scheme and (parenPart is None or len(parenPart) == 0): # shorthand id notation
             if scheme in modelDocument.idObjects:
-                node = modelDocument.idObjects.get(scheme).element
+                node = modelDocument.idObjects.get(scheme)
             else:
-                node = modelDocument.xmlDocument.getElementById(scheme)
-            if node:
+                node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(scheme))
+            if node is not None:
                 return node    # this scheme fails
         elif scheme == "element" and parenPart and path:
             pathParts = path.split("/")

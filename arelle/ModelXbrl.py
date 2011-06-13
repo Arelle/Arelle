@@ -146,7 +146,7 @@ class ModelXbrl:
     
     def baseSetModelLink(self, linkElement):
         for modelLink in self.baseSets[("XBRL-footnotes",None,None,None)]:
-            if modelLink.element == linkElement:
+            if modelLink == linkElement:
                 return modelLink
         return None
     
