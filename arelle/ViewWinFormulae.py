@@ -79,13 +79,13 @@ class ViewFormulae(ViewWinTree.ViewTree):
     def viewFormulaObjects(self, parentNode, fromObject, fromRel, relationshipSet, visited):
         if fromObject is None:
             return
-        if isinstance(fromObject, ModelVariable) and fromRel:
+        if isinstance(fromObject, ModelVariable) and fromRel is not None:
             text = "{0} ${1}".format(fromObject.localName, fromRel.variableQname)
         else:
             text = fromObject.localName
         childnode = self.treeView.insert(parentNode, "end", fromObject.objectId(self.id), text=text)
         self.treeView.set(childnode, "label", fromObject.xlinkLabel)
-        if fromRel and fromRel.arcrole == XbrlConst.variableFilter:
+        if fromRel is not None and fromRel.arcrole == XbrlConst.variableFilter:
             self.treeView.set(childnode, "cover", "true" if fromRel.isCovered else "false")
             self.treeView.set(childnode, "complement", "true" if fromRel.isComplemented else "false")
         if isinstance(fromObject, ModelVariable):

@@ -637,8 +637,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             elif xlinkType == "locator":
                                 locNbr += 1
                                 locrole = child.get("{http://www.w3.org/1999/xlink}role")
-                                if locrole != "" and (self.disclosureSystem.GFM or \
-                                                      not self.disclosureSystem.uriAuthorityValid(locrole)): 
+                                if locrole is not None and (self.disclosureSystem.GFM or \
+                                                            not self.disclosureSystem.uriAuthorityValid(locrole)): 
                                     modelXbrl.error(
                                         _("FootnoteLink {0} loc {1} has disallowed role {2}").format(
                                             footnoteLinkNbr, locNbr, locrole), 

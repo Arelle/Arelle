@@ -9,7 +9,6 @@ import datetime, re
 from arelle import (XmlUtil, XbrlConst, XPathParser, XPathContext)
 from arelle.ModelValue import (qname, QName)
 from arelle.ModelObject import ModelObject
-from arelle.ModelObjectFactory import elementSubstitutionModelClass
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
 from arelle.XbrlUtil import (typedValue)
@@ -147,8 +146,8 @@ class Trace():
     TEST = 8 #such as testcase test or API formula test
 
 class ModelFormulaResource(ModelResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
         
     @property
     def descendantArcroles(self):
@@ -177,9 +176,11 @@ class ModelFormulaResource(ModelResource):
         return varRefSet
     
 class ModelAssertionSet(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        self.modelXbrl.hasFormulae = True
+    def _init(self):
+        if super()._init():
+            self.modelXbrl.hasFormulae = True
+            return True
+        return False
 
     @property
     def descendantArcroles(self):
@@ -194,10 +195,12 @@ class ModelAssertionSet(ModelFormulaResource):
         return ("modelAssertionSet[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class ModelVariableSet(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        self.modelXbrl.modelVariableSets.add(self)
-        self.modelXbrl.hasFormulae = True
+    def _init(self):
+        if super()._init():
+            self.modelXbrl.modelVariableSets.add(self)
+            self.modelXbrl.hasFormulae = True
+            return True
+        return False
         
     @property
     def descendantArcroles(self):        
@@ -226,8 +229,8 @@ class ModelVariableSet(ModelFormulaResource):
         return ("modelVariableSet[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class ModelFormula(ModelVariableSet):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
     
     def compile(self):
         if not hasattr(self, "valueProg"):
@@ -369,7 +372,7 @@ class ModelFormula(ModelVariableSet):
             if len(ruleElements) > 0: ruleElement = ruleElements[0]
         if ruleElement is None and aspect not in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
             ruleElement = self
-        while (ruleElement and ruleElement.nodeType == 1 and (acceptFormulaSource or ruleElement != self)):
+        while (isinstance(ruleElement,ModelObject) and (acceptFormulaSource or ruleElement != self)):
             if ruleElement.get("source") is not None:
                 return qname(ruleElement, ruleElement.get("source"), noPrefixIsNoNamespace=True)
             if ruleElement == self: break
@@ -398,8 +401,8 @@ class ModelFormula(ModelVariableSet):
         return self.value
                 
 class ModelVariableSetAssertion(ModelVariableSet):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
     
     def compile(self):
         if not hasattr(self, "testProg"):
@@ -434,13 +437,13 @@ class ModelVariableSetAssertion(ModelVariableSet):
         return self.get("test")
                 
 class ModelExistenceAssertion(ModelVariableSetAssertion):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
         self.evaluationsCount = 0
+        return super()._init()
                 
 class ModelValueAssertion(ModelVariableSetAssertion):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
                 
     def evaluate(self, xpCtx):
         try:
@@ -449,9 +452,11 @@ class ModelValueAssertion(ModelVariableSetAssertion):
             return None
             
 class ModelConsistencyAssertion(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        self.modelXbrl.hasFormulae = True
+    def _init(self):
+        if super()._init():
+            self.modelXbrl.hasFormulae = True
+            return True
+        return False
                 
     def compile(self):
         if not hasattr(self, "radiusProg"):
@@ -505,14 +510,16 @@ class ModelConsistencyAssertion(ModelFormulaResource):
         return ("modelConsistencyAssertion[{0}]{1})".format(self.objectId(),self.propertyView))
                 
 class ModelParameter(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        if self.qname in self.modelXbrl.qnameParameters:
-            self.modelXbrl.error(
-                _("Parameter name used on multiple parameters {0}").format(self.qname), 
-                "err", "xbrlve:parameterNameClash")
-        else:
-            self.modelXbrl.qnameParameters[self.qname] = self
+    def _init(self):
+        if super()._init():
+            if self.qname in self.modelXbrl.qnameParameters:
+                self.modelXbrl.error(
+                    _("Parameter name used on multiple parameters {0}").format(self.qname), 
+                    "err", "xbrlve:parameterNameClash")
+            else:
+                self.modelXbrl.qnameParameters[self.qname] = self
+            return True
+        return False
     
     def compile(self):
         if not hasattr(self, "selectProg"):
@@ -574,12 +581,12 @@ class ModelParameter(ModelFormulaResource):
         return self.select
 
 class ModelInstance(ModelParameter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
 class ModelVariable(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
         
     def compile(self):
         super().compile()
@@ -589,8 +596,8 @@ class ModelVariable(ModelFormulaResource):
         return self.get("bindAsSequence")
 
 class ModelFactVariable(ModelVariable):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
     
     def compile(self):
         if not hasattr(self, "fallbackValueProg"):
@@ -640,8 +647,8 @@ class ModelFactVariable(ModelVariable):
         return ("fallbackValue =" + self.fallbackValue) if self.fallbackValue else ""
 
 class ModelGeneralVariable(ModelVariable):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
     
     def compile(self):
         if not hasattr(self, "selectProg"):
@@ -669,8 +676,8 @@ class ModelGeneralVariable(ModelVariable):
         return self.select
 
 class ModelPrecondition(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
     
     def compile(self):
         if not hasattr(self, "testProg"):
@@ -703,8 +710,8 @@ class ModelPrecondition(ModelFormulaResource):
         return self.test
 
 class ModelFilter(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
         
     def aspectsCovered(self, varBinding):
         return set()    #enpty set
@@ -720,8 +727,8 @@ class ModelFilter(ModelFormulaResource):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
 class ModelTestFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def compile(self):
         if not hasattr(self, "testProg"):
@@ -754,8 +761,8 @@ class ModelTestFilter(ModelFilter):
         return self.test
 
 class ModelPatternFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def pattern(self):
@@ -782,8 +789,8 @@ class ModelPatternFilter(ModelFilter):
         return self.pattern
 
 class ModelAspectCover(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding, xpCtx=None):
         try:
@@ -851,8 +858,8 @@ class ModelAspectCover(ModelFilter):
         return XmlUtil.innerTextList(self)
 
 class ModelBooleanFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
         
     @property
     def descendantArcroles(self):        
@@ -863,24 +870,24 @@ class ModelBooleanFilter(ModelFilter):
         return self.modelXbrl.relationshipSet(XbrlConst.booleanFilter).fromModelObject(self)
     
 class ModelAndFilter(ModelBooleanFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         from arelle.FormulaEvaluator import filterFacts
         return filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "and")
         
 class ModelOrFilter(ModelBooleanFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         from arelle.FormulaEvaluator import filterFacts
         return filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "or")
 
 class ModelConceptName(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -936,8 +943,8 @@ class ModelConceptName(ModelFilter):
         return XmlUtil.innerTextList(self)
 
 class ModelConceptPeriodType(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -963,8 +970,8 @@ class ModelConceptPeriodType(ModelFilter):
         return self.periodType
 
 class ModelConceptBalance(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -990,8 +997,8 @@ class ModelConceptBalance(ModelFilter):
         return self.balance
 
 class ModelConceptFilterWithQnameExpression(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -1024,8 +1031,8 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
         return super().variableRefs(self.qnameExpressionProg, varRefSet)
 
 class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def value(self):
@@ -1068,8 +1075,8 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
                 (" = " + self.value) if self.value else ""
 
 class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def strict(self):
@@ -1097,8 +1104,8 @@ class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
         return self.qname if self.qname else self.qnameExpression
 
 class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def strict(self):
@@ -1126,8 +1133,8 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
         return self.qname if self.qname else self.qnameExpression
 
 class ModelConceptRelation(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -1331,8 +1338,8 @@ class ModelConceptRelation(ModelFilter):
         return XmlUtil.innerTextList(self)
 
 class ModelEntityIdentifier(ModelTestFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1344,8 +1351,8 @@ class ModelEntityIdentifier(ModelTestFilter):
         return {Aspect.ENTITY_IDENTIFIER}
         
 class ModelEntitySpecificIdentifier(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1384,8 +1391,8 @@ class ModelEntitySpecificIdentifier(ModelFilter):
         return "{0} {1}".format(self.scheme, self.value)
 
 class ModelEntityScheme(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1417,8 +1424,8 @@ class ModelEntityScheme(ModelFilter):
         return self.scheme
 
 class ModelEntityRegexpIdentifier(ModelPatternFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1429,8 +1436,8 @@ class ModelEntityRegexpIdentifier(ModelPatternFilter):
                              self.rePattern.search(fact.context.entityIdentifier[1]) is not None)] 
 
 class ModelEntityRegexpScheme(ModelPatternFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1441,8 +1448,8 @@ class ModelEntityRegexpScheme(ModelPatternFilter):
                              self.rePattern.search(fact.context.entityIdentifier[0]) is not None)] 
 
 class ModelGeneral(ModelTestFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1450,8 +1457,8 @@ class ModelGeneral(ModelTestFilter):
     
     
 class ModelMatchFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def aspectName(self):
@@ -1511,8 +1518,8 @@ class ModelMatchFilter(ModelFilter):
         return self.dimension
 
 class ModelPeriod(ModelTestFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.PERIOD}
@@ -1523,8 +1530,8 @@ class ModelPeriod(ModelTestFilter):
                              self.evalTest(xpCtx, fact.context.period))] 
     
 class ModelDateTimeFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.PERIOD}
@@ -1568,8 +1575,8 @@ class ModelDateTimeFilter(ModelFilter):
 
     
 class ModelPeriodStart(ModelDateTimeFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1577,8 +1584,8 @@ class ModelPeriodStart(ModelDateTimeFilter):
                              fact.context.startDatetime == self.evalDatetime(xpCtx, fact, addOneDay=False))] 
 
 class ModelPeriodEnd(ModelDateTimeFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1586,8 +1593,8 @@ class ModelPeriodEnd(ModelDateTimeFilter):
                              and fact.context.endDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True)))] 
 
 class ModelPeriodInstant(ModelDateTimeFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1595,8 +1602,8 @@ class ModelPeriodInstant(ModelDateTimeFilter):
                              fact.context.instantDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True))] 
     
 class ModelForever(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1606,8 +1613,8 @@ class ModelForever(ModelFilter):
         return {Aspect.PERIOD}
         
 class ModelInstantDuration(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.PERIOD}
@@ -1662,8 +1669,8 @@ class MemberModel():
         self.axis = axis
     
 class ModelExplicitDimension(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {self.dimQname}
@@ -1806,8 +1813,8 @@ class ModelExplicitDimension(ModelFilter):
         return XmlUtil.innerTextList(self)
 
 class ModelTypedDimension(ModelTestFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {self.dimQname}
@@ -1856,8 +1863,8 @@ class ModelTypedDimension(ModelTestFilter):
         return XmlUtil.innerTextList(self)
 
 class ModelRelativeFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def variable(self):
@@ -1893,8 +1900,8 @@ class ModelRelativeFilter(ModelFilter):
         return self.variable
 
 class ModelSegmentFilter(ModelTestFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.COMPLETE_SEGMENT}
@@ -1905,8 +1912,8 @@ class ModelSegmentFilter(ModelTestFilter):
                              (fact.context.hasSegment and self.evalTest(xpCtx, fact.context.segment)))] 
     
 class ModelScenarioFilter(ModelTestFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.COMPLETE_SCENARIO}
@@ -1917,8 +1924,8 @@ class ModelScenarioFilter(ModelTestFilter):
                              (fact.context.hasScenario and self.evalTest(xpCtx, fact.context.scenario)))] 
     
 class ModelAncestorFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -1971,8 +1978,8 @@ class ModelAncestorFilter(ModelFilter):
         return self.ancestorQname if self.ancestorQname else self.qnameExpression
 
 class ModelParentFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -2026,8 +2033,8 @@ class ModelParentFilter(ModelFilter):
         return self.parentQname if self.parentQname else self.qnameExpression
 
 class ModelLocationFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -2080,8 +2087,8 @@ class ModelLocationFilter(ModelFilter):
         return "{0} {1}".format(self.location, self.variable)
 
 class ModelSiblingFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -2120,8 +2127,8 @@ class ModelSiblingFilter(ModelFilter):
         return self.variable
 
 class ModelGeneralMeasures(ModelTestFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.UNIT}
@@ -2132,8 +2139,8 @@ class ModelGeneralMeasures(ModelTestFilter):
                              (fact.isNumeric and self.evalTest(xpCtx, fact.unit)))] 
     
 class ModelSingleMeasure(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def aspectsCovered(self, varBinding):
         return {Aspect.UNIT}
@@ -2186,16 +2193,16 @@ class ModelSingleMeasure(ModelFilter):
         return self.qname if self.qname else self.qnameExpression
 
 class ModelNilFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
                 if cmplmt ^ fact.isNil] 
     
 class ModelPrecisionFilter(ModelFilter):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def minimum(self):
@@ -2224,8 +2231,8 @@ class ModelPrecisionFilter(ModelFilter):
         return self.minimum
 
 class ModelMessage(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def _init(self):
+        return super()._init()
 
     @property
     def separator(self):
@@ -2264,10 +2271,12 @@ class ModelMessage(ModelFormulaResource):
         return self.minimum
 
 class ModelCustomFunctionSignature(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        self.modelXbrl.modelCustomFunctionSignatures[self.qname] = self
-        self.customFunctionImplementation = None
+    def _init(self):
+        if super()._init():
+            self.modelXbrl.modelCustomFunctionSignatures[self.qname] = self
+            self.customFunctionImplementation = None
+            return True
+        return False
 
     @property
     def descendantArcroles(self):
@@ -2322,9 +2331,11 @@ class ModelCustomFunctionSignature(ModelFormulaResource):
 
 
 class ModelCustomFunctionImplementation(ModelFormulaResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        self.modelXbrl.modelCustomFunctionImplementations.add(self)
+    def _init(self):
+        if super()._init():
+            self.modelXbrl.modelCustomFunctionImplementations.add(self)
+            return True
+        return False
 
     @property
     def inputNames(self):
@@ -2382,6 +2393,7 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
                           [_("output: \n{0}").format(self.outputExpression)])
     
 
+from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((
      (XbrlConst.qnAssertionSet, ModelAssertionSet),
      (XbrlConst.qnConsistencyAssertion, ModelConsistencyAssertion),

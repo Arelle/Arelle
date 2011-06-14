@@ -39,8 +39,7 @@ class ValidateXbrlCalcs:
 
         # identify equal contexts
         contexts = tuple(self.modelXbrl.contexts.values())
-        for i in range(len(contexts)):
-            cntx1 = contexts[i]
+        for i, cntx1 in enumerate(contexts):
             for j in range(i+1, len(contexts)):
                 cntx2 = contexts[j]
                 if cntx1.isEqualTo(cntx2) and not cntx2 in self.mapContext:
@@ -48,8 +47,7 @@ class ValidateXbrlCalcs:
 
         # identify equal contexts
         units = tuple(self.modelXbrl.units.values())
-        for i in range(len(units)):
-            unit1 = units[i]
+        for i, unit1 in enumerate(units):
             for j in range(i+1, len(units)):
                 unit2 = units[j]
                 if unit1.isEqualTo(unit2) and not unit2 in self.mapUnit:

@@ -4,10 +4,11 @@ Created on Dec 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                           exceptionErrorIndication)
-from arelle import (ModelObject, ModelXbrl, XbrlConst, XmlUtil)
+from arelle import (ModelXbrl, XbrlConst, XmlUtil)
+from arelle.ModelObject import ModelObject
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
 
 class XPathException(Exception):
@@ -206,9 +207,7 @@ class XPathContext:
                         result = []
                     else:
                         n1 = s1[0]
-                        if isinstance(n1,ModelObject.ModelObject): n1 = n1.element
                         n2 = s2[0][0]
-                        if isinstance(n2,ModelObject.ModelObject): n2 = n2.element
                         result = False;
                         for op1 in s1:
                             for op2 in s2:
@@ -264,8 +263,6 @@ class XPathContext:
                     result = False
                     s1 = self.flattenSequence( resultStack.pop() ) if len(resultStack) > 0 else []
                     arity = len(s1)
-                    if isinstance(s1,ModelObject.ModelObject):
-                        s1 = s1.element
                     if len(p.args) > 1:
                         occurenceIndicator = p.args[1]
                         if (occurenceIndicator == '?' and arity in (0,1) ) or \
@@ -296,13 +293,13 @@ class XPathContext:
                                         if result and type == DateTime:
                                             result = x.dateOnly == (t.localName == "date")
                             elif isinstance(t, OperationDef):
-                                if t.name == "element" and isinstance(x,xml.dom.Node):
+                                if t.name == "element" and isinstance(x,ModelObject):
                                     if len(t.args) >= 1:
                                         qn = t.args[0]
                                         if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
                                             result = True
                                             if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
-                                                modelXbrl = x.ownerDocument.modelDocument.modelXbrl
+                                                modelXbrl = x.modelDocument.modelXbrl
                                                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                                                 if not modelConcept.instanceOfType(t.args[1]):
                                                     result = False
@@ -321,9 +318,7 @@ class XPathContext:
                 elif op == '.':
                     result = contextItem
                 elif op == '..':
-                    result = XmlUtil.parent(contextItem.element 
-                                            if isinstance(contextItem, ModelObject.ModelObject)
-                                            else contextItem)
+                    result = XmlUtil.parent(contextItem)
                 elif op in ('/', '//', 'rootChild', 'rootDescendant'):
                     if op in ('rootChild', 'rootDescendant'):
                         # fix up for multi-instance
@@ -410,26 +405,21 @@ class XPathContext:
             
     def isNodeSequence(self, x):
         for el in x:
-            if not isinstance(el,(xml.dom.Node, ModelObject.ModelObject) ):
+            if not isinstance(el,ModelObject):
                 return False
         return True
 
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,(ModelObject.ModelObject, xml.dom.Node)):
+            if not isinstance(node,ModelObject):
                 raise XPathException(p, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
-            if isinstance(node, ModelObject.ModelObject): node = node.element
             if isinstance(p,QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
-                    if p.unprefixed:
-                        if node.hasAttribute(localname):
-                            targetNodes.append(node.getAttribute(localname))
-                    else:
-                        if node.hasAttributeNS(ns,localname):
-                            targetNodes.append(node.getAttributeNS(ns,localname))
+                    if node.get(p.nsname) is not None:
+                        targetNodes.append(node.get(p.nsname))
                 elif op == '/' or op is None:
                     targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
@@ -475,43 +465,25 @@ class XPathContext:
             return x
         baseXsdType = None
         e = None
-        if isinstance(x, ModelObject.ModelFact):
+        if isinstance(x, ModelFact):
             if x.isTuple:
                 raise XPathException(p, 'err:FOTY0012', _('Atomizing tuple {0} that does not have a typed value').format(x))
             if x.isNil:
                 return []
             baseXsdType = x.concept.baseXsdType
             v = x.value # resolves default value
-            e = x.element
+            e = x
         else:
-            if isinstance(x, ModelObject.ModelObject):
-                e = x.element
-            elif isinstance(x, xml.dom.Node):
+            if isinstance(x, ModelObject):
                 e = x
             if e:
-                if x.nodeType == xml.dom.Node.ELEMENT_NODE:
-                    if e.getAttributeNS(XbrlConst.xsi,"nil") == "true":
-                        return []
-                    modelXbrl = x.ownerDocument.modelDocument.modelXbrl
-                    modelConcept = modelXbrl.qnameConcepts.get(qname(x))
-                    if modelConcept:
-                        baseXsdType = modelConcept.baseXsdType
-                    v = XmlUtil.text(x)
-                elif x.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-                    e = x.ownerElement
-                    modelXbrl = e.ownerDocument.modelDocument.modelXbrl
-                    if x.namespaceURI:
-                        attrQname = qname(x.namespaceURI, x.localName)
-                    else:
-                        attrQname = qname(x.localName)
-                    modelConcept = modelXbrl.qnameConcepts.get(qname(e))
-                    if modelConcept:
-                        baseXsdType = modelConcept.baseXsdAttrType(attrQname) if modelConcept else None
-                    if baseXsdType is None:
-                        attrObject = modelXbrl.qnameAttributes.get(attrQname)
-                        if attrObject:
-                            baseXsdType = attrObject.baseXsdType
-                    v = x.value
+                if e.getAttributeNS(XbrlConst.xsi,"nil") == "true":
+                    return []
+                modelXbrl = x.ownerDocument.modelDocument.modelXbrl
+                modelConcept = modelXbrl.qnameConcepts.get(qname(x))
+                if modelConcept:
+                    baseXsdType = modelConcept.baseXsdType
+                v = XmlUtil.text(x)
         if baseXsdType in ("decimal", "float", "double"):
             try:
                 x = float(v)
@@ -561,10 +533,8 @@ class XPathContext:
     def documentOrderedNodes(self, x):
         l = set()  # must have unique nodes only
         for e in x:
-            if isinstance(e,ModelObject.ModelObject):
+            if isinstance(e,ModelObject):
                 h = e.objectIndex
-            elif isinstance(e,xml.dom.Node):
-                h = e.__hash__()
             else:
                 h = 0
             l.add((h,e))
@@ -572,23 +542,14 @@ class XPathContext:
     
     def modelItem(self, x):
         modelItem = None
-        if isinstance(x, xml.dom.Node) and x.nodeType == 1:
-            elt = x
-            x = None
-            for docModelObject in elt.ownerDocument.modelDocument.modelObjects:
-                if docModelObject.element == elt:
-                    x = docModelObject
-                    break
-        if isinstance(x, (ModelObject.ModelFact, ModelObject.ModelInlineFact)) and x.isItem:
+        if isinstance(x, (ModelFact, ModelInlineFact)) and x.isItem:
             return x
         return None
 
     def modelInstance(self, x):
         if isinstance(x, ModelXbrl.ModelXbrl):
             return x
-        if isinstance(x, xml.dom.Node) and x.nodeType == 1:
-            return x.ownerDocument.modelDocument.modelXbrl
-        if isinstance(x, ModelObject.ModelObject):
+        if isinstance(x, ModelObject):
             return x.modelXbrl
         return None
               

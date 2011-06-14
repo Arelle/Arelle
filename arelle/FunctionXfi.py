@@ -5,7 +5,8 @@ Created on Dec 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import xml.dom
-from arelle import (ModelObject, XPathContext, XbrlConst, XbrlUtil, XmlUtil)
+from arelle import (XPathContext, XbrlConst, XbrlUtil, XmlUtil)
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import (qname, QName, dateTime, DATE, DATETIME, DATEUNION, anyURI)
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
 from math import (isnan,isinf)
@@ -38,7 +39,7 @@ def item_context_element(xc, args, name):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     context = item_context(xc, args)
     if context:
-        return XmlUtil.descendant(context.element, XbrlConst.xbrli, name)
+        return XmlUtil.descendant(context, XbrlConst.xbrli, name)
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
 def context(xc, p, args):
@@ -59,8 +60,7 @@ def unit_numerator(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:unit")
     unit = args[0][0]
-    if isinstance(unit,ModelObject.ModelObject): unit = unit.element
-    if isinstance(unit,xml.dom.Node) and unit.nodeType == 1 and \
+    if isinstance(unit,ModelObject) and \
        unit.localName == "unit" and unit.namespaceURI == XbrlConst.xbrli: 
         measuresParent = XmlUtil.descendant(unit, XbrlConst.xbrli, "unitNumerator")
         if measuresParent is None: measuresParent = unit
@@ -71,8 +71,7 @@ def unit_denominator(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:unit")
     unit = args[0][0]
-    if isinstance(unit,ModelObject.ModelObject): unit = unit.element
-    if isinstance(unit,xml.dom.Node) and unit.nodeType == 1 and \
+    if isinstance(unit,ModelObject) and \
        unit.localName == "unit" and unit.namespaceURI == XbrlConst.xbrli: 
         measuresParent = XmlUtil.descendant(unit, XbrlConst.xbrli, "unitDenominator")
         if measuresParent is None: return []
@@ -83,7 +82,7 @@ def measure_name(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:measure")
     unit = args[0][0]
-    if isinstance(unit,xml.dom.Node) and unit.nodeType == 1 and \
+    if isinstance(unit,ModelObject) and \
        unit.localName == "measure" and unit.namespaceURI == XbrlConst.xbrli:
         return qname(unit, XmlUtil.text(unit)) 
     raise XPathContext.FunctionArgType(1,"xbrl:unit")
@@ -98,15 +97,14 @@ def parent_child(args, parentName, descendantName):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:" + parentName)
     parent = args[0][0]
-    if isinstance(parent,ModelObject.ModelObject): parent = parent.element 
-    if isinstance(parent,xml.dom.Node) and parent.nodeType == 1 and \
+    if isinstance(parent,ModelObject) and isinstance(parent,ModelObject) and \
        parent.localName == parentName and parent.namespaceURI == XbrlConst.xbrli:
         if descendantName.startswith('@'):
-            return parent.getAttribute(descendantName[1:])
+            return parent.get(descendantName[1:])
         elif descendantName == 'text()':
-            return XmlUtil.text(parent)
+            return parent.textNotStripped
         elif descendantName == 'strip-text()':
-            return XmlUtil.text(parent).strip()
+            return parent.text
         else:
             return XmlUtil.child(parent, XbrlConst.xbrli, descendantName)
     raise XPathContext.FunctionArgType(1,"xbrl:" + parentName)
@@ -127,7 +125,7 @@ def is_period_type(args, periodElement):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:period")
     period = args[0][0]
-    if isinstance(period,xml.dom.Node) and period.nodeType == 1 and \
+    if isinstance(period,ModelObject) and \
        period.localName == "period" and period.namespaceURI == XbrlConst.xbrli:
         return XmlUtil.hasChild(period, XbrlConst.xbrli, periodElement)
     raise XPathContext.FunctionArgType(1,"xbrl:period")
@@ -145,7 +143,7 @@ def period_datetime(p, args, periodElement, addOneDay):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:period")
     period = args[0][0]
-    if (isinstance(period,xml.dom.Node) and period.nodeType == 1 and 
+    if (isinstance(period,ModelObject) == 1 and 
         period.localName == "period" and period.namespaceURI == XbrlConst.xbrli):
         child = XmlUtil.child(period, XbrlConst.xbrli, periodElement)
         if child:
@@ -181,7 +179,7 @@ def fact_identifier_value(xc, p, args):
     return XmlUtil.text(item_context_element(xc, args, "identifier")).strip()
 
 def fact_identifier_scheme(xc, p, args):
-    return item_context_element(xc, args, "identifier").getAttribute("scheme")
+    return item_context_element(xc, args, "identifier").get("scheme")
 
 def segment(xc, p, args):
     return item_context_element(xc, args, "segment")
@@ -386,25 +384,20 @@ def concept(xc, p, args):
 
 def concept_balance(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return concept(xc,p,args).element.getAttributeNS(XbrlConst.xbrli, "balance")
+    return concept(xc,p,args).get("{http://www.xbrl.org/2003/instance}balance")
 
 def concept_period_type(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return concept(xc,p,args).element.getAttributeNS(XbrlConst.xbrli, "periodType")
+    return concept(xc,p,args).get("{http://www.xbrl.org/2003/instance}periodType")
 
 def concept_custom_attribute(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     qnAttr = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
     if not qnAttr: raise XPathContext.FunctionArgType(2,"xs:QName")
-    element = concept(xc,p,args).element
-    if qnAttr.namespaceURI:
-        if not element.hasAttributeNS(qnAttr.namespaceURI, qnAttr.localName):
-            return ()
-        return xc.atomize(p, element.getAttributeNodeNS(qnAttr.namespaceURI, qnAttr.localName))
-    else:
-        if not element.hasAttribute(qnAttr.localName):
-            return ()
-        return xc.atomize(p, element.getAttributeNode(qnAttr.localName))
+    element = concept(xc,p,args)
+    if element.get(qnAttr.nsname) is None:
+        return ()
+    return xc.atomize(p, element.get(qnAttr.nsname))
 
 def concept_data_type(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -752,16 +745,11 @@ def element_attribute(xc, p, args, elementParent=False):
     if not modelRel: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
     qnAttr = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
     if not qnAttr: raise XPathContext.FunctionArgType(2,"xs:QName")
-    element = modelRel.element
-    if elementParent: element = element.parentNode
-    if qnAttr.namespaceURI:
-        if not element.hasAttributeNS(qnAttr.namespaceURI, qnAttr.localName):
-            return ()
-        return xc.atomize(p, element.getAttributeNodeNS(qnAttr.namespaceURI, qnAttr.localName))
-    else:
-        if not element.hasAttribute(qnAttr.localName):
-            return ()
-        return xc.atomize(p, element.getAttributeNode(qnAttr.localName))
+    element = modelRel.arcElement
+    if elementParent: element = element.getparent()
+    if element.get(qnAttr.nsname) is None:
+        return ()
+    return xc.atomize(p, element.get(qnAttr.nsname))
    
 def relationship_attribute(xc, p, args):
     return element_attribute(xc, p, args)
@@ -773,8 +761,8 @@ def element_name(xc, p, args, elementParent=False):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     modelRel = anytypeArg(xc, args, 0, "arelle:ModelRelationship", None)
     if not modelRel: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
-    element = modelRel.element
-    if elementParent: element = element.parentNode
+    element = modelRel.arcElement
+    if elementParent: element = element.getparent()
     return qname(element)
 
 def relationship_name(xc, p, args):
