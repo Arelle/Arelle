@@ -16,15 +16,16 @@ def load(modelManager, url, nextaction, base=None):
     else:
         modelXbrl.fileSource = FileSource.FileSource(url)
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
-    # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
-    modelDocumentsSchemaLocated = set()
-    while True: # need this logic because each new pass may add new urlDocs
-        modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
-        if not modelDocuments:
-            break
-        modelDocument = modelDocuments.pop()
-        modelDocumentsSchemaLocated.add(modelDocument)
-        modelDocument.loadSchemalocatedSchemas()
+    if modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
+        modelDocumentsSchemaLocated = set()
+        while True: # need this logic because each new pass may add new urlDocs
+            modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            if not modelDocuments:
+                break
+            modelDocument = modelDocuments.pop()
+            modelDocumentsSchemaLocated.add(modelDocument)
+            modelDocument.loadSchemalocatedSchemas()
         
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document

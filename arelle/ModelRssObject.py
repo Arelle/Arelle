@@ -4,7 +4,7 @@ Created on Nov 11, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, re, xml.dom.minidom, xml.parsers.expat
+import os, re
 from collections import defaultdict
 from arelle import (XbrlConst, XbrlUtil, XmlUtil, UrlUtil, ModelXbrl, ModelDocument, ModelObject, ModelVersObject)
 from arelle.ModelValue import qname
@@ -43,7 +43,7 @@ class ModelRssObject(ModelDocument.ModelDocument):
     def rssFeedDiscover(self, rootElement):
         # add self to namespaced document
         self.xmlRootElement = rootElement
-        for itemElt in rootElement.getElementsByTagName("item"):
+        for itemElt in XmlUtil.descendants(rootElement, None, "item"):
             self.items.append(ModelRssItem(self, itemElt))
             
 class ModelRssItem(ModelObject.ModelObject):

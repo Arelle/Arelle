@@ -115,7 +115,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if not self.GFMcontextDatePattern.match(dateText):
                                 modelXbrl.error(
                                     _("Context id {0} {1} invalid content {2}").format(
-                                         contextID, dateElt.tagName, dateText), 
+                                         contextID, dateElt.prefixedName, dateText), 
                                     "err", "GFM.1.02.25")
                     #6.5.4 scenario
                     hasSegment = XmlUtil.hasChild(contextElt, XbrlConst.xbrli, "segment")
@@ -141,7 +141,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if isinstance(segScenElt,ModelObject):
                                 childTags = ", ".join([child.prefixedName for child in segScenElt.iterchildren()
                                                        if isinstance(child,ModelObject) and 
-                                                       child.tag != "{http://www.xbrl.org/2003/instance}explicitMember"])
+                                                       child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember"])
                                 if len(childTags) > 0:
                                     modelXbrl.error(_("Segment of context Id {0} has disallowed content: {1}").format(
                                              contextID, childTags), 
@@ -632,7 +632,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                child.localName not in ("loc", "footnote", "footnoteArc"):
                                     modelXbrl.error(
                                         _("FootnoteLink {0} has disallowed child element <{1}>").format(
-                                            footnoteLinkNbr, child.tagName), 
+                                            footnoteLinkNbr, child.prefixedName), 
                                         "err", "EFM.6.05.27", "GFM.1.02.19")
                             elif xlinkType == "locator":
                                 locNbr += 1
@@ -706,7 +706,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("Concept {0} of a standard taxonomy cannot have a documentation label, in {1}.").format(
                                 concept.qname, text, modelLabel.modelDocument.basename),
                             "err", "EFM.6.10.05", "GFM.1.05.05", "SBR.NL.2.1.0.08")
-                elif lang and lang.startswith(self.disclosureSystem.defaultXmlLang):
+                elif text and lang and lang.startswith(self.disclosureSystem.defaultXmlLang):
                     if role == XbrlConst.standardLabel:
                         if text in defaultLangStandardLabels:
                             modelXbrl.error(
@@ -727,7 +727,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _('Xbrl File {0}, label for concept {1} role {2} has disallowed characters: "{3}"').format(
                                 modelLabel.modelDocument.basename, concept.qname, role, match.group()),
                             "err", "EFM.6.10.06", "GFM.1.05.07", "SBR.NL.2.3.8.07")
-                if len(text) > 0 and \
+                if text is not None and len(text) > 0 and \
                    (modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[0]) or \
                     modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1])):
                     modelXbrl.error(
@@ -786,7 +786,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         ineffectiveArcs = ModelRelationshipSet.ineffectiveArcs(baseSetModelLinks, arcrole)
                         #validate ineffective arcs
                         for modelRel in ineffectiveArcs:
-                            if modelRel.fromModelObject and modelRel.toModelObject:
+                            if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
                                 self.modelXbrl.error(
                                     _("Linkbase {0} ineffective arc {1} in link role {2} arcrole {3} from {4} to {5}").format(
                                           modelRel.modelDocument.basename,

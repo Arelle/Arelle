@@ -4,7 +4,8 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, math, re
+import math, re
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
@@ -31,8 +32,8 @@ def node_name(xc, p, contextItem, args):
 
 def nilled(xc, p, contextItem, args):
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
-    if node != () and node.nodeType == xml.dom.Node.ELEMENT_NODE:
-        return node.getAttribute("xsi:nil") == "true"
+    if node != () and isinstance(node,ModelObject):
+        return node.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
     return ()
 
 def string(xc, p, contextItem, args):
@@ -465,7 +466,7 @@ def QName_functions(xc, p, args, prefix=False, localName=False, namespaceURI=Fal
 def namespace_uri_for_prefix(xc, p, contextItem, args):
     prefix = nodeArg(xc, args, 0, 'string?', emptyFallback='')
     node = nodeArg(xc, args, 1, 'element()', emptyFallback=())
-    if node and isinstance(node,xml.dom.Node) and node.nodeType == xml.dom.Node.ELEMENT_NODE:
+    if node is not None and isinstance(node,ModelObject):
         return XmlUtil.xmlns(node, prefix)
     return ()
 
@@ -483,8 +484,8 @@ def namespace_uri(xc, p, contextItem, args):
 
 def Node_functions(xc, contextItem, args, name=None, localName=None, namespaceURI=None):
     node = nodeArg(xc, args, 0, 'node()?', missingArgFallback=contextItem, emptyFallback=())
-    if node != () and node.nodeType in (xml.dom.Node.ELEMENT_NODE, xml.dom.Node.ATTRIBUTE_NODE):
-        if name: return node.tagName
+    if node != () and node.nodeType is ModelObject:
+        if name: return node.prefixedName
         if localName: return node.localName
         if namespaceURI: return node.namespaceURI
     return ''
@@ -506,7 +507,7 @@ def boolean(xc, p, contextItem, args):
     if inputSequence is None or len(inputSequence) == 0:
         return False
     item = inputSequence[0]
-    if isinstance(item, ModelObject.ModelObject) or isinstance(item, xml.dom.Node):
+    if isinstance(item, ModelObject.ModelObject):
         return True
     if len(inputSequence) == 1:
         if isinstance(item, bool):

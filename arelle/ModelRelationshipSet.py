@@ -8,6 +8,7 @@ Created on Oct 5, 2010
 # initialize object from loaded linkbases
 from collections import defaultdict
 from arelle import (ModelDtsObject, XbrlConst, XmlUtil, ModelValue)
+from arelle.ModelObject import ModelObject
 import os
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
@@ -18,9 +19,10 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     for modelLink in baseSetModelLinks:
         arcs = []
         for linkChild in modelLink.getchildren():
-            if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and \
-               arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole") and \
-               (arcqname is None or arcqname == linkChild):
+            if (isinstance(linkChild,ModelObject) and 
+                linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and 
+                arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole") and
+                (arcqname is None or arcqname == linkChild)):
                 arcs.append(linkChild)
                     
         # build network

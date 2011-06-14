@@ -279,7 +279,7 @@ def checkContext(val, cntx):
                             problem = _("multiple contents")
                         elif element.localName != typedDomainConcept.name or \
                             element.namespaceURI != typedDomainConcept.namespaceURI:
-                            problem = _("wrong content {0}").format(element.tagName)
+                            problem = _("wrong content {0}").format(element.prefixedName)
                         else:
                             problem = None
                 if problem:

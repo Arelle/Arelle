@@ -42,6 +42,15 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             elif ns == XbrlConst.link:
                 if ln == "roleType" or ln == "arcroleType":
                     return ModelRoleType
+            elif ns == "http://edgar/2009/conformance":
+                # don't force loading of test schema
+                if ln == "variation":
+                    return ModelTestcaseVariation
+                else:
+                    return ModelObject
+            elif ln == "testcase" and (
+                ns is None or ns in ("http://edgar/2009/conformance",) or ns.startswith("http://xbrl.org/")):
+                return ModelObject
             elif ln == "variation" and (
                 ns is None or ns in ("http://edgar/2009/conformance",) or ns.startswith("http://xbrl.org/")):
                 return ModelTestcaseVariation

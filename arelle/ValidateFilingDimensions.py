@@ -134,7 +134,7 @@ def checkDimensions(val, drsELRs):
                 getDrsRels(val, ELR, rels, ELR, drsRelsFrom, drsRelsTo)
                 fromConceptELRs[relFrom].add(ELR)
                 cycleCausingConcept = undirectedFwdCycle(val, ELR, rels, ELR, drsRelsFrom, drsRelsTo, fromConceptELRs)
-                if cycleCausingConcept:
+                if cycleCausingConcept is not None:
                     val.modelXbrl.error(
                         _("Domain-member primary-item relationships have an undirected cycle in DRS role {0} starting from {1} at {2}").format(
                               ELR, relFrom.qname, cycleCausingConcept.qname), 
@@ -232,12 +232,12 @@ def undirectedFwdCycle(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromC
                 domMbrRels = val.modelXbrl.relationshipSet(
                          XbrlConst.domainMember, toELR).fromModelObject(relTo)
             cycleCausingConcept = undirectedFwdCycle(val, toELR, domMbrRels, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited)
-            if cycleCausingConcept:
+            if cycleCausingConcept is not None:
                 return cycleCausingConcept
             fromConceptELRs[relTo].discard(toELR)
             # look for back path in any of the ELRs visited (pass None as ELR)
             cycleCausingConcept = undirectedRevCycle(val, None, relTo, rel, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited)
-            if cycleCausingConcept:
+            if cycleCausingConcept is not None:
                 return cycleCausingConcept
     return None
 
@@ -265,7 +265,7 @@ def undirectedRevCycle(val, fromELR, mbrConcept, turnbackRel, drsELR, drsRelsFro
                 if relFrom in fromConceptELRs and relELR in fromConceptELRs[relFrom]:
                     return turnbackRel.toModelObject
                 cycleCausingConcept = undirectedRevCycle(val, relELR, relFrom, turnbackRel, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited)
-                if cycleCausingConcept:
+                if cycleCausingConcept is not None:
                     return cycleCausingConcept
     return None
                 

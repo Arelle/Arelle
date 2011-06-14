@@ -497,7 +497,7 @@ class ModelType(ModelSchemaObject):
     def name(self):
         if self.get("name"):
             return self.get("name")
-        # may be anonymous type of parent self.element.tagName
+        # may be anonymous type of parent
         element = self.getparent()
         while element is not None:
             if element.get("name"):
@@ -554,7 +554,7 @@ class ModelType(ModelSchemaObject):
         if qnameDerivedFrom and (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli)):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
-        return typeDerivedFrom.isTextBlock if typeDerivedFrom else False
+        return typeDerivedFrom.isTextBlock if typeDerivedFrom is not None else False
 
     @property
     def isDomainItemType(self):

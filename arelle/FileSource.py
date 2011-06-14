@@ -5,7 +5,7 @@ Created on Oct 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import zipfile, os, io, base64, gzip
-import xml.dom.minidom, xml.parsers, xml.parsers.expat
+from lxml import etree
 from arelle import XmlUtil
 
 archivePathSeparators = (".zip" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
@@ -100,21 +100,21 @@ class FileSource:
                     file.seek(0,io.SEEK_SET)
                     
                 try:
-                    self.xfdDocument = xml.dom.minidom.parse(file)
+                    self.xfdDocument = etree.parse(file)
                     file.close()
                     self.isOpen = True
                 except EnvironmentError as err:
                     return # provide error message later
-                except xml.parsers.expat.ExpatError as err:
+                except etree.LxmlError as err:
                     return # provide error message later
                 
             elif self.isRss:
                 try:
-                    self.rssDocument = xml.dom.minidom.parse(self.basefile)
+                    self.rssDocument = etree.parse(self.basefile)
                     self.isOpen = True
                 except EnvironmentError as err:
                     return # provide error message later
-                except xml.parsers.expat.ExpatError as err:
+                except etree.LxmlError as err:
                     return # provide error message later
 
                     
@@ -179,8 +179,8 @@ class FileSource:
                         encoding=XmlUtil.encoding(b))
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.getElementsByTagName("data"):
-                    outfn = XmlUtil.text(data.getElementsByTagName("filename")[0])
-                    b64data = XmlUtil.text(data.getElementsByTagName("mimedata")[0])
+                    outfn = XmlUtil.text(XmlUtil.descendant(data, None, "filename"))
+                    b64data = XmlUtil.text(XmlUtil.descendant(data, None, "mimedata"))
                     if len(outfn) > 1 and len(b64data) > 1 and outfn == archiveFileName:
                         # convert to bytes
                         #byteData = []
@@ -220,8 +220,8 @@ class FileSource:
             self.filesDir = files
         elif self.isXfd:
             files = []
-            for data in self.xfdDocument.getElementsByTagName("data"):
-                outfn = XmlUtil.text(data.getElementsByTagName("filename")[0])
+            for data in XmlUtil.descendants(self.xfdDocument, None, "data"):
+                outfn = XmlUtil.text(XmlUtil.descendants(data, None, "filename")[0])
                 if len(outfn) > 1:
                     if len(outfn) > 2 and outfn[0].isalpha() and \
                         outfn[1] == ':' and outfn[2] == '\\':
@@ -232,11 +232,11 @@ class FileSource:
             files = []  # return title, descr, pubdate, linst doc
             edgr = "http://www.sec.gov/Archives/edgar"
             try:
-                for dsElt in self.rssDocument.getElementsByTagName("item"):
+                for dsElt in XmlUtil.descendants(self.rssDocument, None, "item"):
                     instDoc = None
                     for instDocElt in XmlUtil.descendants(dsElt, edgr, "xbrlFile"):
-                        if instDocElt.getAttributeNS(edgr,"description").endswith("INSTANCE DOCUMENT"):
-                            instDoc = instDocElt.getAttributeNS(edgr,"url")
+                        if instDocElt.get("(http://www.sec.gov/Archives/edgar}description").endswith("INSTANCE DOCUMENT"):
+                            instDoc = instDocElt.get("(http://www.sec.gov/Archives/edgar}url")
                             break
                     if not instDoc:
                         continue
@@ -254,8 +254,7 @@ class FileSource:
                         instDoc))
                 self.filesDir = files
             except (EnvironmentError,
-                    xml.parsers.expat.ExpatError,
-                    xml.dom.DOMException) as err:
+                    etree.LxmlError) as err:
                 pass
         return self.filesDir
     

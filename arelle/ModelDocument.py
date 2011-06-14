@@ -629,7 +629,7 @@ class ModelDocument:
                 
     def inlineXbrlDiscover(self, htmlElement):
         self.schemaLinkbaseRefsDiscover(htmlElement)
-        for inlineElement in htmlElement.getElementsByTagNameNS(XbrlConst.ixbrl, "resources"):
+        for inlineElement in htmlElement.getdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}resources"):
             self.instanceContentsDiscover(inlineElement)
             
         tuplesByElement = {}
@@ -666,7 +666,7 @@ class ModelDocument:
             else:
                 tuple = tuplesByTupleID[tupleRef]
         else:
-            tuple = tuplesByElement.get(XmlUtil.ancestor(modelFact.element, XbrlConst.ixbrl, "tuple"))
+            tuple = tuplesByElement.get(XmlUtil.ancestor(modelFact, XbrlConst.ixbrl, "tuple"))
         if tuple:
             tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
         else:

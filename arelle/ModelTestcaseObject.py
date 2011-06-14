@@ -144,8 +144,8 @@ class ModelTestcaseVariation(ModelObject):
             assertions.append(("   satisfied", assertionElement.get("countSatisfied")))
             assertions.append(("   not sat.", assertionElement.get("countNotSatisfied")))
         '''
-        for assertionElement in self.element.getElementsByTagName("assert"):
-            efmNum = assertionElement.getAttribute("num")
+        for assertionElement in XmlUtil.descendants(self, None, "assert"):
+            efmNum = assertionElement.get("num")
             assertions.append(("assertion",
                                "EFM.{0}.{1}.{2}".format(efmNum[0], efmNum[1:2], efmNum[3:4])))
             assertions.append(("   not sat.", "1"))

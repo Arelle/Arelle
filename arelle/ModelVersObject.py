@@ -52,7 +52,7 @@ class ModelVersObject(ModelObject.ModelObject):
         
     @property
     def name(self):
-        return self.element.localName
+        return self.localName
 
     def viewText(self, labelrole=None, lang=None):
         return ''
@@ -64,15 +64,15 @@ class ModelAssignment(ModelVersObject):
         
     @property
     def categoryqname(self):
-        for child in self.element.childNodes:
-            if child.nodeType == 1:
+        for child in self.iterchildren():
+            if isinstance(child, ModelObject):
                 return "{" + child.namespaceURI + "}" + child.localName
 
     @property
     def categoryQName(self):
-        for child in self.element.childNodes:
-            if child.nodeType == 1:
-                return child.tagName
+        for child in self.iterchildren():
+            if isinstance(child, ModelObject):
+                return child.prefixedName
         return None
 
     @property
@@ -90,7 +90,7 @@ class ModelAction(ModelVersObject):
         
     @property
     def assignmentRefs(self):
-        return XmlUtil.childrenAttrs(self.element, XbrlConst.ver, "assignmentRef", "ref")
+        return XmlUtil.childrenAttrs(self, XbrlConst.ver, "assignmentRef", "ref")
         
     @property
     def propertyView(self):
@@ -104,11 +104,11 @@ class ModelUriMapped(ModelVersObject):
         
     @property
     def fromURI(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.ver, "fromURI", "value")
+        return XmlUtil.childAttr(self, XbrlConst.ver, "fromURI", "value")
         
     @property
     def toURI(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.ver, "toURI", "value")
+        return XmlUtil.childAttr(self, XbrlConst.ver, "toURI", "value")
 
     @property
     def propertyView(self):
@@ -135,21 +135,21 @@ class ModelConceptChange(ModelVersObject):
         
     @property
     def actionId(self):
-        return XmlUtil.parentId(self.element, XbrlConst.ver, "action")
+        return XmlUtil.parentId(self, XbrlConst.ver, "action")
     
     @property
     def fromConceptQname(self):
-        fromConcept = XmlUtil.child(self.element, XbrlConst.vercb, "fromConcept")
-        if fromConcept and fromConcept.hasAttribute("name"):
-            return qname(fromConcept, fromConcept.getAttribute("name"))
+        fromConcept = XmlUtil.child(self, XbrlConst.vercb, "fromConcept")
+        if fromConcept is not None and fromConcept.get("name"):
+            return qname(fromConcept, fromConcept.get("name"))
         else:
             return None
         
     @property
     def toConceptQname(self):
-        toConcept = XmlUtil.child(self.element, XbrlConst.vercb, "toConcept")
-        if toConcept and toConcept.hasAttribute("name"):
-            return qname(toConcept, toConcept.getAttribute("name"))
+        toConcept = XmlUtil.child(self, XbrlConst.vercb, "toConcept")
+        if toConcept is not None and toConcept.get("name"):
+            return qname(toConcept, toConcept.get("name"))
         else:
             return None
         
@@ -212,7 +212,7 @@ class ModelConceptBasicChange(ModelConceptChange):
     def __init__(self, modelDocument, element):
         super().__init__(modelDocument, element)
         modelDocument.conceptBasicChanges.append(self)
-        ln = self.element.localName
+        ln = self.localName
             
         
 class ModelConceptExtendedChange(ModelConceptChange):
@@ -221,9 +221,9 @@ class ModelConceptExtendedChange(ModelConceptChange):
         modelDocument.conceptExtendedChanges.append(self)
         
     def customAttributeQname(self, eventName):
-        custAttrElt = XmlUtil.child(self.element, XbrlConst.verce, eventName)
-        if custAttrElt and custAttrElt.hasAttribute("name"):
-            return qname(custAttrElt, custAttrElt.getAttribute("name"))
+        custAttrElt = XmlUtil.child(self, XbrlConst.verce, eventName)
+        if custAttrElt is not None and custAttrElt.get("name"):
+            return qname(custAttrElt, custAttrElt.get("name"))
         return None
         
     @property
@@ -236,11 +236,11 @@ class ModelConceptExtendedChange(ModelConceptChange):
         
     @property
     def fromResourceValue(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.verce, "fromResource", "value")
+        return XmlUtil.childAttr(self, XbrlConst.verce, "fromResource", "value")
         
     @property
     def toResourceValue(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.verce, "toResource", "value")
+        return XmlUtil.childAttr(self, XbrlConst.verce, "toResource", "value")
         
     @property
     def fromResource(self):
@@ -284,7 +284,7 @@ class ModelRelationshipSet(ModelVersObject):
         
     @property
     def isFromDTS(self):
-        return self.element.localName == "fromRelationshipSet"
+        return self.localName == "fromRelationshipSet"
         
     @property
     def dts(self):
@@ -292,33 +292,33 @@ class ModelRelationshipSet(ModelVersObject):
         
     @property
     def relationshipSetElement(self):
-        return XmlUtil.child(self.element, XbrlConst.verrels, "relationshipSet")
+        return XmlUtil.child(self, XbrlConst.verrels, "relationshipSet")
 
     @property
     def link(self):
-        if self.relationshipSetElement.hasAttribute("link"):
-            return self.prefixedNameQname(self.relationshipSetElement.getAttribute("link"))
+        if self.relationshipSetElement.get("link"):
+            return self.prefixedNameQname(self.relationshipSetElement.get("link"))
         else:
             return None
         
     @property
     def linkrole(self):
-        if self.relationshipSetElement.hasAttribute("linkrole"):
-            return self.relationshipSetElement.getAttribute("linkrole")
+        if self.relationshipSetElement.get("linkrole"):
+            return self.relationshipSetElement.get("linkrole")
         else:
             return None
         
     @property
     def arc(self):
-        if self.relationshipSetElement.hasAttribute("arc"):
-            return self.prefixedNameQname(self.relationshipSetElement.getAttribute("arc"))
+        if self.relationshipSetElement.get("arc"):
+            return self.prefixedNameQname(self.relationshipSetElement.get("arc"))
         else:
             return None
         
     @property
     def arcrole(self):
-        if self.relationshipSetElement.hasAttribute("arcrole"):
-            return self.relationshipSetElement.getAttribute("arcrole")
+        if self.relationshipSetElement.get("arcrole"):
+            return self.relationshipSetElement.get("arcrole")
         else:
             return None
         
@@ -338,14 +338,14 @@ class ModelRelationships(ModelVersObject):
         
     @property
     def fromName(self):
-        if self.element.hasAttribute("fromName"):
-            return self.prefixedNameQname(self.element.getAttribute("fromName"))
+        if self.get("fromName"):
+            return self.prefixedNameQname(self.get("fromName"))
         else:
             return None
         
     @property
     def toName(self):
-        return self.prefixedNameQname(self.element.getAttribute("toName")) if self.element.hasAttribute("toName") else None
+        return self.prefixedNameQname(self.get("toName")) if self.get("toName") else None
         
     @property
     def fromConcept(self):
@@ -359,8 +359,8 @@ class ModelRelationships(ModelVersObject):
         
     @property
     def axis(self):
-        if self.element.hasAttribute("axis"):
-            return self.element.getAttribute("axis")
+        if self.get("axis"):
+            return self.get("axis")
         else:
             return None
         
@@ -417,7 +417,7 @@ class ModelInstanceAspects(ModelVersObject):
         
     @property
     def isFromDTS(self):
-        return self.element.localName == "fromAspects"
+        return self.localName == "fromAspects"
         
     @property
     def dts(self):
@@ -425,7 +425,7 @@ class ModelInstanceAspects(ModelVersObject):
         
     @property
     def excluded(self):
-        return self.element.getAttribute("excluded") if self.element.hasAttribute("excluded") else None
+        return self.get("excluded") if self.get("excluded") else None
         
     @property
     def propertyView(self):
@@ -440,7 +440,7 @@ class ModelInstanceAspect(ModelVersObject):
 
     @property
     def conceptName(self):
-        return self.prefixedNameQname(self.element.getAttribute("name")) if self.element.hasAttribute("name") else None
+        return self.prefixedNameQname(self.get("name")) if self.get("name") else None
         
     @property
     def concept(self):
@@ -471,7 +471,7 @@ class ModelInstanceMemberAspect(ModelVersObject):
         
     @property
     def conceptName(self):
-        return self.prefixedNameQname(self.element.getAttribute("name")) if self.element.hasAttribute("name") else None
+        return self.prefixedNameQname(self.get("name")) if self.get("name") else None
         
     @property
     def concept(self):

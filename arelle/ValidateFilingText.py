@@ -464,30 +464,29 @@ def validateFootnote(modelXbrl, footnote, parent=None):
         parent = footnote
     
     if parent != footnote:
-        for i in range(len(footnote.attributes)):
-            attr = footnote.attributes.item(i)
-            if not (attr.name in htmlAttributes and \
-                (footnote.localName in htmlAttributes[attr.name] or '*' in htmlAttributes[attr.name])):
+        for attrName, attrValue in footnote.items():
+            if not (attrName in htmlAttributes and \
+                (footnote.localName in htmlAttributes[attrName] or '*' in htmlAttributes[attrName])):
                 modelXbrl.error(
                     _("Footnote {0} has attribute '{1}' not allowed for <{2}>").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
-                        attr.name, attr.value), 
+                        footnote.get("{http://www.w3.org/1999/xlink}label"),
+                        attrName, attrValue), 
                     "err", "EFM.6.05.34")
-            elif (attr.name == "href" and footnote.localName == "a") or \
-                 (attr.name == "src" and footnote.localName == "img"):
-                if "javascript:" in attr.value:
+            elif (attrName == "href" and footnote.localName == "a") or \
+                 (attrName == "src" and footnote.localName == "img"):
+                if "javascript:" in attrValue:
                     modelXbrl.error(
                         _("Footnote {0} has javascript in '{1}' for <{2}>").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
-                        attr.name, footnote.localName), 
+                        footnote.get("{http://www.w3.org/1999/xlink}label"),
+                        attrName, footnote.localName), 
                         "err", "EFM.6.05.34")
-                elif attr.value.startswith("http://www.sec.gov/Archives/edgar/data/") and footnote.localName == "a":
+                elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and footnote.localName == "a":
                     pass
-                elif "http:" in attr.value or "https:" in attr.value or "ftp:" in attr.value:
+                elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
                     modelXbrl.error(
                         _("Footnote {0} has an invalid external reference in '{1}' for <{2}>: {3}").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
-                        attr.name, footnote.localName, attr.value), 
+                        footnote.get("{http://www.w3.org/1999/xlink}label"),
+                        attrName, footnote.localName, attrValue), 
                         "err", "EFM.6.05.34")
             
     for child in footnote.iterchildren():
@@ -495,7 +494,7 @@ def validateFootnote(modelXbrl, footnote, parent=None):
             if not child.localName in bodyTags:
                 modelXbrl.error(
                     _("Footnote {0} has disallowed html tag: <{1}>").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
+                        footnote.get("{http://www.w3.org/1999/xlink}label"),
                         child.localName), 
                     "err", "EFM.6.05.34")
             else:
