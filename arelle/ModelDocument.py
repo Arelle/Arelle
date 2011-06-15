@@ -9,6 +9,8 @@ from lxml import etree
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
+from arelle.ModelDtsObject import ModelLink, ModelResource
+from arelle.ModelInstanceObject import ModelFact
 
 def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=None, reloadCache=False):
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
@@ -496,7 +498,6 @@ class ModelDocument:
                             self.hrefObjects.append(href)
                         continue
                 if lbElement.get("{http://www.w3.org/1999/xlink}type") == "extended":
-                    from arelle.ModelDtsObject import ModelLink, ModelResource
                     if isinstance(lbElement, ModelLink):
                         self.schemalocateElementNamespace(lbElement)
                         arcrolesFound = set()
@@ -673,7 +674,6 @@ class ModelDocument:
             self.modelXbrl.facts.append(modelFact)
                 
     def factDiscover(self, modelFact, parentModelFacts):
-        from arelle.ModelInstanceObject import ModelFact
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.append( modelFact )

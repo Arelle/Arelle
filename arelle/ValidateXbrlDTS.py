@@ -7,6 +7,7 @@ Created on Oct 17, 2010
 from arelle import (ModelDocument, ModelDtsObject, UrlUtil, XmlUtil, XbrlUtil, XbrlConst)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
+from arelle.HtmlUtil import attrValue
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 xsd1_1datatypes = {qname(XbrlConst.xsd,'anyAtomicType'), qname(XbrlConst.xsd,'yearMonthDuration'), qname(XbrlConst.xsd,'dayTimeDuration'), qname(XbrlConst.xsd,'dateTimeStamp'), qname(XbrlConst.xsd,'precisionDecimal')}
@@ -265,7 +266,6 @@ def checkElements(val, modelDocument, parent):
         if parent is not None: # element
             if parent.localName == "meta" and parent.namespaceURI == XbrlConst.xhtml and \
             parent.get("http-equiv").lower() == "content-type":
-                from arelle.HtmlUtil import attrValue
                 val.metaContentTypeEncoding = attrValue(parent.get("content"), "charset")
         elif parent is None: # documentNode
             val.documentTypeEncoding = parent._get_encoding()

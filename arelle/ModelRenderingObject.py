@@ -5,7 +5,7 @@ Created on Mar 7, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import (XmlUtil, XbrlConst)
-from arelle.ModelObject import (ModelResource, resourceConstructors)
+from arelle.ModelDtsObject import ModelResource
 
 class ModelRenderingResource(ModelResource):
     def __init__(self, modelDocument, element):
@@ -65,7 +65,8 @@ class ModelAxisCoord(ModelRenderingResource):
     def __repr__(self):
         return ("axisCoord[{0}]{1})".format(self.objectId(),self.propertyView))
 
-resourceConstructors.update((
+from arelle.ModelObjectFactory import elementSubstitutionModelClass
+elementSubstitutionModelClass.update((
     (XbrlConst.qnEuTable, ModelTable),
     (XbrlConst.qnEuAxisCoord, ModelAxisCoord),
      ))

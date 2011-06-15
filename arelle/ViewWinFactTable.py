@@ -203,7 +203,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
                 # get concept of fact or toConcept of relationship, role obj if roleType
                 if not isinstance(modelObject, ModelInstanceObject.ModelFact):
                     modelObject = modelObject.viewConcept
-                if modelObject:
+                if modelObject is not None:
                     items = self.tag_has.get(modelObject.objectId())
                     if items is not None and self.treeView.exists(items[0]):
                         self.treeView.see(items[0])

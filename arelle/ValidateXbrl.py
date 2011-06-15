@@ -8,6 +8,7 @@ import re
 from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst, 
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
 from arelle.ModelObject import ModelObject
+from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 
 arcNamesTo21Resource = {"labelArc","referenceArc"}
@@ -439,7 +440,6 @@ class ValidateXbrl:
                                   f.qname), 
                             "err", "xbrl.4.6:notItemOrTuple")
                         
-                from arelle.ModelInstanceObject import ModelInlineFact
                 if isinstance(f, ModelInlineFact):
                     self.footnoteRefs.update(f.footnoteRefs)
             

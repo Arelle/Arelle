@@ -7,6 +7,7 @@ Created on Oct 6, 2010
 from collections import defaultdict
 import os
 from arelle import (ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil)
+from arelle.ViewUtil import viewReferences
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
     relationshipSet =  modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
@@ -131,7 +132,6 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
         if self.arcrole == XbrlConst.parentChild: # extra columns
             self.treeView.set(childnode, "type", concept.niceType)
-            from arelle.ViewUtil import viewReferences
             self.treeView.set(childnode, "references", viewReferences(concept))
         elif self.arcrole == XbrlConst.summationItem:
             if isRelation:
@@ -146,7 +146,6 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                 self.treeView.set(childnode, "usable", modelObject.usable)
         elif self.arcrole == "EU-rendering" and isRelation: # extra columns
-            from arelle.ModelRenderingObject import ModelAxisCoord
             if relArcrole == XbrlConst.euTableAxis:
                 self.treeView.set(childnode, "axis", modelObject.element.getAttribute("axisType"))
             if isinstance(concept, ModelAxisCoord):
@@ -223,3 +222,5 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         elif node:
             return self.hasAncestor(self.treeView.parent(node), ancestor)
         return False
+    
+from arelle.ModelRenderingObject import ModelAxisCoord
