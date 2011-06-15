@@ -117,6 +117,7 @@ class QName:
         return (self.namespaceURI and other.namespaceURI is None) or \
                 (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
                 (self.namespaceURI == other.namespaceURI and self.localName >= other.localName)
+
     
 from arelle.ModelObject import ModelObject
 def anyURI(value):

@@ -6,9 +6,9 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
-from arelle.ModelValue import qname
 
 class ModelObject(etree.ElementBase):
+    
     def _init(self):
         self.isChanged = False
         parent = self.getparent()
@@ -209,6 +209,8 @@ class ModelObject(etree.ElementBase):
         
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+
+from arelle.ModelValue import qname
     
 class ModelComment(etree.CommentBase):
     def _init(self):
