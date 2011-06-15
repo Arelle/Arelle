@@ -91,11 +91,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
             #6.5.7 duplicated contextx
             contexts = modelXbrl.contexts.values()
-            contextIDs = []
+            contextIDs = set()
             uniqueContextHashes = {}
             for context in contexts:
                 contextID = context.id
-                contextIDs.append(contextID)
+                contextIDs.add(contextID)
                 h = context.contextDimAwareHash
                 if h in uniqueContextHashes:
                     if context.isEqualTo(uniqueContextHashes[h]):
@@ -193,7 +193,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             #6.5.8 unused contexts
             for f in modelXbrl.facts:
                 factContextID = f.contextID
-                if contextIDs.count(factContextID) > 0:
+                if factContextID in contextIDs:
                     contextIDs.remove(factContextID)
                     
                 context = f.context
@@ -422,12 +422,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             self.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
     
             #6.5.14 facts without english text
-            for itemNotDefaultLang in keysNotDefaultLang.items():
-                keyNotDefaultLang, factNotDefaultLang = itemNotDefaultLang
+            for keyNotDefaultLang, factNotDefaultLang in keysNotDefaultLang.items():
                 anyDefaultLangFact = False
                 for fact in factsForLang[keyNotDefaultLang]:
                     if fact.xmlLang.startswith(factLangStartsWith):
                         anyDefaultLangFact = True
+                        break
                 if not anyDefaultLangFact:
                     self.modelXbrl.error(
                         _("Fact {0} of context {1} has text of xml:lang '{2}' without corresponding {3} text").format(
@@ -443,7 +443,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             else:
                 for concept in conceptsUsed.keys():
                     hasDefaultLangStandardLabel = False
-                    dupLabels = []
+                    dupLabels = set()
                     for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
                         modelLabel = modelLabelRel.toModelObject
                         if modelLabel.xmlLang.startswith(self.disclosureSystem.defaultXmlLang) and \
@@ -456,7 +456,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     concept.qname, dupDetectKey[0], dupDetectKey[1]),
                                 "err", "EFM.6.10.02", "GFM.1.5.2")
                         else:
-                            dupLabels.append(dupDetectKey)
+                            dupLabels.add(dupDetectKey)
                             
                     #6 10.1 en-US standard label
                     if not hasDefaultLangStandardLabel:
@@ -466,11 +466,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             "err", "EFM.6.10.01", "GFM.1.05.01")
                         
                     #6 10.3 default lang label for every role
-                    dupLabels.append(("zzzz",self.disclosureSystem.defaultXmlLang)) #to allow following loop
-                    dupLabels.sort()
+                    dupLabels.add(("zzzz",self.disclosureSystem.defaultXmlLang)) #to allow following loop
                     priorRole = None
                     hasDefaultLang = True
-                    for role, lang in dupLabels:
+                    for role, lang in sorted(dupLabels):
                         if role != priorRole:
                             if not hasDefaultLang:
                                 modelXbrl.error(
