@@ -490,6 +490,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         _("%s in %.2f secs"), 
                                         (action, time.time() - startedAt)))
             self.showStatus(_("{0}, preparing views").format(action))
+            self.waitForUiThreadQueue() # force status update
             self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS]))
         else:
             self.addToLog(format_string(self.modelManager.locale, 
@@ -945,6 +946,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.uiThreadQueue.put((askUserPassword, [self.parent, host, realm, untilDone, result]))
         untilDone.wait()
         return result[0]
+    
+    def waitForUiThreadQueue(self):
+        for i in range(40): # max 2 secs
+            if self.uiThreadQueue.empty():
+                break
+            time.sleep(0.05)
 
     def uiThreadChecker(self, widget, delayMsecs=100):        # 10x per second
         # process callback on main (UI) thread

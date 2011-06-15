@@ -38,20 +38,28 @@ class ValidateXbrlCalcs:
 
 
         # identify equal contexts
-        contexts = tuple(self.modelXbrl.contexts.values())
-        for i, cntx1 in enumerate(contexts):
-            for j in range(i+1, len(contexts)):
-                cntx2 = contexts[j]
-                if cntx1.isEqualTo(cntx2) and not cntx2 in self.mapContext:
-                    self.mapContext[cntx2] = cntx1
+        self.modelXbrl.profileActivity()
+        uniqueContextHashes = {}
+        for context in self.modelXbrl.contexts.values():
+            h = hash(context)
+            if h in uniqueContextHashes:
+                if context.isEqualTo(uniqueContextHashes[h]):
+                    self.mapContext[context] = uniqueContextHashes[h]
+            else:
+                uniqueContextHashes[h] = context
+        del uniqueContextHashes
+        self.modelXbrl.profileActivity("... identify equal contexts", minTimeToShow=1.0)
 
         # identify equal contexts
-        units = tuple(self.modelXbrl.units.values())
-        for i, unit1 in enumerate(units):
-            for j in range(i+1, len(units)):
-                unit2 = units[j]
-                if unit1.isEqualTo(unit2) and not unit2 in self.mapUnit:
-                    self.mapUnit[unit2] = unit1
+        uniqueUnitHashes = {}
+        for unit in self.modelXbrl.units.values():
+            h = hash(unit)
+            if h in uniqueUnitHashes:
+                if unit.isEqualTo(uniqueUnitHashes[h]):
+                    self.mapUnit[unit] = uniqueUnitHashes[h]
+            else:
+                uniqueUnitHashes[h] = unit
+        self.modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
                     
         # identify concepts participating in essence-alias relationships
         # identify calcluation & essence-alias base sets (by key)
@@ -64,8 +72,10 @@ class ValidateXbrlCalcs:
                     for modelRel in self.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname).modelRelationships:
                         for concept in (modelRel.fromModelObject, modelRel.toModelObject):
                             conceptsSet.add(concept)
+        self.modelXbrl.profileActivity("... identify requires-element and esseance-aliased concepts", minTimeToShow=1.0)
 
         self.bindFacts(self.modelXbrl.facts,[self.modelXbrl.modelDocument.xmlRootElement])
+        self.modelXbrl.profileActivity("... bind facts", minTimeToShow=1.0)
         
         # identify calcluation & essence-alias base sets (by key)
         for baseSetKey in self.modelXbrl.baseSets.keys():
@@ -147,6 +157,8 @@ class ValidateXbrlCalcs:
                                         _("Requies-Element {0} missing required fact for {1} in link role {2}").format(
                                               sourceConcept.qname, requiredConcept.qname, ELR), 
                                         "err", "xbrl.5.2.6.2.4:requiresElementInconsistency")
+        self.modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
+        self.modelXbrl.profileActivity() # reset
     
     def bindFacts(self, facts, ancestors):
         for f in facts:

@@ -111,7 +111,7 @@ def checkDimensions(val, drsELRs):
                             fromConceptELRs[hc].add(dimELR)
                             fromConceptELRs[dim].add(domELR)
                             cycleCausingConcept = undirectedFwdCycle(val, domELR, dimDomRels, ELR, drsRelsFrom, drsRelsTo, fromConceptELRs)
-                            if cycleCausingConcept:
+                            if cycleCausingConcept is not None:
                                 val.modelXbrl.error(
                                     _("Dimension relationships have an undirected cycle in DRS role {0} starting from table {1}, axis {2}, at {3}").format(
                                           ELR, hc.qname, dim.qname, cycleCausingConcept.qname), 

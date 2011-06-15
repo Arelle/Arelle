@@ -16,7 +16,7 @@ def load(modelManager, url, nextaction, base=None):
     else:
         modelXbrl.fileSource = FileSource.FileSource(url)
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
-    if modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+    if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
         modelDocumentsSchemaLocated = set()
         while True: # need this logic because each new pass may add new urlDocs
@@ -271,3 +271,15 @@ class ModelXbrl:
         if severity == 'err': self.logCountErr += 1
         elif severity == 'wrn': self.logCountWrn += 1
         elif severity == 'info': self.logCountInfo += 1
+        
+    def profileActivity(self, activityCompleted=None, minTimeToShow=0):
+        import time
+        try:
+            if activityCompleted:
+                timeTaken = time.time() - self._startedAt
+                if timeTaken > minTimeToShow:
+                    self.modelManager.addToLog("{0} {1:.2f} secs".format(activityCompleted, timeTaken))
+        except AttributeError:
+            pass
+        self._startedAt = time.time()
+
