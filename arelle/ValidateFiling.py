@@ -96,7 +96,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for context in contexts:
                 contextID = context.id
                 contextIDs.append(contextID)
-                h = hash(context)
+                h = context.contextDimAwareHash
                 if h in uniqueContextHashes:
                     if context.isEqualTo(uniqueContextHashes[h]):
                         modelXbrl.error(
@@ -328,7 +328,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             #6.5.11 equivalent units
             uniqueUnitHashes = {}
             for unit in self.modelXbrl.units.values():
-                h = hash(unit)
+                h = unit.hash
                 if h in uniqueUnitHashes:
                     if unit.isEqualTo(uniqueUnitHashes[h]):
                         modelXbrl.error(

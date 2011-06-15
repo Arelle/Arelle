@@ -41,7 +41,7 @@ class ValidateXbrlCalcs:
         self.modelXbrl.profileActivity()
         uniqueContextHashes = {}
         for context in self.modelXbrl.contexts.values():
-            h = hash(context)
+            h = context.contextDimAwareHash
             if h in uniqueContextHashes:
                 if context.isEqualTo(uniqueContextHashes[h]):
                     self.mapContext[context] = uniqueContextHashes[h]
@@ -53,7 +53,7 @@ class ValidateXbrlCalcs:
         # identify equal contexts
         uniqueUnitHashes = {}
         for unit in self.modelXbrl.units.values():
-            h = hash(unit)
+            h = unit.hash
             if h in uniqueUnitHashes:
                 if unit.isEqualTo(uniqueUnitHashes[h]):
                     self.mapUnit[unit] = uniqueUnitHashes[h]

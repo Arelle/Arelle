@@ -501,7 +501,7 @@ class ModelContext(ModelObject):
         try:
             return self._dimsHash
         except AttributeError:
-            self._dimsHash = hash( frozenset(self.qnameDims) )
+            self._dimsHash = hash( frozenset(self.qnameDims.values()) )
             return self._dimsHash
     
     def nonDimValues(self, contextElement):
@@ -524,18 +524,20 @@ class ModelContext(ModelObject):
             self._nonDimsHash = hash( (tuple(self.nonDimValues("segment")), tuple(self.nonDimValues("scenario"))) )
             return self._nonDimsHash
         
+    @property
     def contextDimAwareHash(self):
         try:
             return self._contextDimAwareHash
         except AttributeError:
-            self._contextDimAwareHash = hash( (self.periodHash, self.entityIdentiferHash, self.dimsHash, self.nonDimsHash) )
+            self._contextDimAwareHash = hash( (self.periodHash, self.entityIdentifierHash, self.dimsHash, self.nonDimHash) )
             return self._contextDimAwareHash
         
+    @property
     def contextNonDimAwareHash(self):
         try:
             return self._contextNonDimAwareHash
         except AttributeError:
-            self._contextNonDimAwareHash = hash( (tuple(self.periodHash, self.entityIdentiferHash, self.segHash, self.scenHash)) )
+            self._contextNonDimAwareHash = hash( (tuple(self.periodHash, self.entityIdentifierHash, self.segHash, self.scenHash)) )
             return self._contextNonDimAwareHash
         
     
@@ -633,7 +635,13 @@ def measuresStr(m):
 
 class ModelDimensionValue(ModelObject):
     def _init(self):
-        super()._init()        
+        super()._init()
+        
+    def __hash__(self):
+        if self.isExplicit:
+            return hash( (self.dimensionQname, self.memberQname) )
+        else:
+            return None # TBD      
        
     @property
     def dimensionQname(self):
