@@ -137,8 +137,8 @@ def hasChild(element, childNamespaceURI, childLocalNames):
     result = children(element, childNamespaceURI, childLocalNames)
     return bool(result)
     
-def hasDescendant(element, childNamespaceURI, childLocalNames):
-    d = descendants(element, descendantNamespaceURI, descendantLocalNames, attrName, attrValue, breakOnFirst=True)
+def hasDescendant(element, descendantNamespaceURI, descendantLocalNames):
+    d = descendants(element, descendantNamespaceURI, descendantLocalNames)
     return bool(d)
     
 def hasAncestor(element, ancestorNamespaceURI, ancestorLocalNames):

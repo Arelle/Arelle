@@ -42,6 +42,20 @@ class ModelFact(ModelObject):
         return self.get("unitRef")
 
     @property
+    def conceptContextUnitLangHash(self): # for EFM 6.5.12
+        try:
+            return self._conceptContextUnitLangHash
+        except AttributeError:
+            context = self.context
+            unit = self.unit
+            self._conceptContextUnitLangHash = hash( 
+                (self.concept.qname,
+                 context.contextDimAwareHash if context is not None else None,
+                 unit.hash if unit is not None else None,
+                 self.xmlLang) )
+            return self._conceptContextUnitLangHash
+
+    @property
     def isItem(self):
         try:
             return self._isItem
@@ -399,6 +413,14 @@ class ModelContext(ModelObject):
             return self._period
 
     @property
+    def periodHash(self):
+        try:
+            return self._periodHash
+        except AttributeError:
+            self._periodHash = hash((self.startDatetime,self.endDatetime)) # instant hashes (None, inst), forever hashes (None,None)
+            return self._periodHash
+
+    @property
     def entity(self):
         try:
             return self._entity
@@ -418,6 +440,14 @@ class ModelContext(ModelObject):
     def entityIdentifier(self):
         return (self.entityIdentifierElement.get("scheme"),
                 XmlUtil.text(self.entityIdentifierElement))
+    @property
+    def entityIdentifierHash(self):
+        try:
+            return self._entityIdentifierHash
+        except AttributeError:
+            self._entityIdentifierHash = hash(self.entityIdentifier)
+            return self._entityIdentifierHash
+
     @property
     def hasSegment(self):
         return XmlUtil.hasChild(self.entity, XbrlConst.xbrli, "segment")
@@ -466,6 +496,14 @@ class ModelContext(ModelObject):
     def dimAspects(self):
         return set(self.qnameDims.keys() | self.modelXbrl.qnameDimensionDefaults.keys())
     
+    @property
+    def dimsHash(self):
+        try:
+            return self._dimsHash
+        except AttributeError:
+            self._dimsHash = hash( frozenset(self.qnameDims.values()) )
+            return self._dimsHash
+    
     def nonDimValues(self, contextElement):
         from arelle.ModelFormulaObject import Aspect
         if contextElement in ("segment", Aspect.NON_XDT_SEGMENT):
@@ -477,6 +515,31 @@ class ModelContext(ModelObject):
         elif contextElement == Aspect.COMPLETE_SCENARIO and self.hasScenario:
             return XmlUtil.children(self.scenario, None, "*")
         return []
+    
+    @property
+    def nonDimHash(self):
+        try:
+            return self._nonDimsHash
+        except AttributeError:
+            self._nonDimsHash = hash( (tuple(self.nonDimValues("segment")), tuple(self.nonDimValues("scenario"))) )
+            return self._nonDimsHash
+        
+    @property
+    def contextDimAwareHash(self):
+        try:
+            return self._contextDimAwareHash
+        except AttributeError:
+            self._contextDimAwareHash = hash( (self.periodHash, self.entityIdentifierHash, self.dimsHash, self.nonDimHash) )
+            return self._contextDimAwareHash
+        
+    @property
+    def contextNonDimAwareHash(self):
+        try:
+            return self._contextNonDimAwareHash
+        except AttributeError:
+            self._contextNonDimAwareHash = hash( (tuple(self.periodHash, self.entityIdentifierHash, self.segHash, self.scenHash)) )
+            return self._contextNonDimAwareHash
+        
     
     def isPeriodEqualTo(self, cntx2):
         if self.isForeverPeriod:
@@ -505,7 +568,18 @@ class ModelContext(ModelObject):
             return result
         
     def isEqualTo_(self, cntx2, dimensionalAspectModel):
-        if not self.isPeriodEqualTo(cntx2) or not self.isEntityIdentifierEqualTo(cntx2):
+        if (self.periodHash != cntx2.periodHash or
+            self.entityIdentifierHash != cntx2.entityIdentifierHash):
+            return False 
+        if dimensionalAspectModel:
+            if (self.dimsHash != cntx2.dimsHash or
+                self.nonDimHash != cntx2.nonDimHash):
+                return False
+        else:
+            if (self.segHash != cntx2.segHash or
+                self.scenHash != cntx2.scenHash):
+                return False
+        if self.periodHash != cntx2.periodHash or not self.isPeriodEqualTo(cntx2) or not self.isEntityIdentifierEqualTo(cntx2):
             return False
         if dimensionalAspectModel:
             if self.qnameDims.keys() != cntx2.qnameDims.keys():
@@ -561,7 +635,13 @@ def measuresStr(m):
 
 class ModelDimensionValue(ModelObject):
     def _init(self):
-        super()._init()        
+        super()._init()
+        
+    def __hash__(self):
+        if self.isExplicit:
+            return hash( (self.dimensionQname, self.memberQname) )
+        else:
+            return None # TBD      
        
     @property
     def dimensionQname(self):
@@ -635,6 +715,14 @@ class ModelUnit(ModelObject):
             else:
                 self._measures = (measuresOf(self),[])
             return self._measures
+
+    @property
+    def hash(self):
+        try:
+            return self._hash
+        except AttributeError:
+            self._hash = hash( ( tuple(self.measures[0]),tuple(self.measures[1]) ) )
+            return self._hash
 
     @property
     def isDivide(self):

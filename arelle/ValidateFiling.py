@@ -49,10 +49,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         self.modelXbrl = modelXbrl
         modelXbrl.modelManager.showStatus(_("validating {0}").format(self.disclosureSystem.name))
         
+        self.modelXbrl.profileActivity()
         conceptsUsed = {} # key=concept object value=True if has presentation label
         labelsRelationshipSet = modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         presentationRelationshipSet = modelXbrl.relationshipSet(XbrlConst.parentChild)
         referencesRelationshipSetWithProhibits = modelXbrl.relationshipSet(XbrlConst.conceptReference, includeProhibits=True)
+        self.modelXbrl.profileActivity("... cache lbl, pre, ref relationships", minTimeToShow=1.0)
         
         validateInlineXbrlGFM = (modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and
                                  self.validateGFM)
@@ -85,68 +87,66 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                            self.disclosureSystem.identifierValueName,
                                            entityIdentifierValue, entityIdentifier), 
                                 "err", "EFM.6.05.03", "GFM.1.02.03")
+                self.modelXbrl.profileActivity("... filer identifier checks", minTimeToShow=1.0)
     
             #6.5.7 duplicated contextx
+            contexts = modelXbrl.contexts.values()
             contextIDs = []
-            priorContexts = collections.OrderedDict()
-            for contextElt in xbrlInstDoc.iterdescendants("{http://www.xbrl.org/2003/instance}context"):
-                if isinstance(contextElt,ModelObject):
-                    contextID = contextElt.id
-                    contextIDs.append(contextID)
-                    key = tuple( 
-                        XmlUtil.sortKey(contextElt, XbrlConst.xbrli, "identifier", "scheme") + 
-                        XmlUtil.sortKey(contextElt, XbrlConst.xbrli, ("startDate", "endDate", "instant", "forever")) + 
-                        XmlUtil.sortKey(contextElt, XbrlConst.xbrldi, "explicitMember", "dimension"))
-                    duplicated = False
-                    for priorKey in priorContexts.keys():
-                        if priorKey == key:
-                            duplicated = True
-                            modelXbrl.error(
-                                _("Context ID {0} is equivalent to context ID {1}").format(
-                                     priorContexts[priorKey], contextID), 
-                                "err", "EFM.6.05.07", "GFM.1.02.07    ")
-                    if not duplicated:
-                        priorContexts[key] = contextID 
-                        
-                    #GFM no time in contexts
-                    if self.validateGFM:
-                        for dateElt in XmlUtil.children(contextElt, XbrlConst.xbrli, ("startDate", "endDate", "instant")):
-                            dateText = XmlUtil.text(dateElt)
-                            if not self.GFMcontextDatePattern.match(dateText):
-                                modelXbrl.error(
-                                    _("Context id {0} {1} invalid content {2}").format(
-                                         contextID, dateElt.prefixedName, dateText), 
-                                    "err", "GFM.1.02.25")
-                    #6.5.4 scenario
-                    hasSegment = XmlUtil.hasChild(contextElt, XbrlConst.xbrli, "segment")
-                    hasScenario = XmlUtil.hasChild(contextElt, XbrlConst.xbrli, "scenario")
-                    notAllowed = None
-                    if self.disclosureSystem.contextElement == "segment" and hasScenario:
-                        notAllowed = _("Scenario")
-                    elif self.disclosureSystem.contextElement == "scenario" and hasSegment:
-                        notAllowed = _("Segment")
-                    elif self.disclosureSystem.contextElement == "either" and hasSegment and hasScenario:
-                        notAllowed = _("Both segment and scenario")
-                    elif self.disclosureSystem.contextElement == "none" and (hasSegment or hasScenario):
-                        notAllowed = _("Neither segment nor scenario")
-                    if notAllowed:
+            uniqueContextHashes = {}
+            for context in contexts:
+                contextID = context.id
+                contextIDs.append(contextID)
+                h = context.contextDimAwareHash
+                if h in uniqueContextHashes:
+                    if context.isEqualTo(uniqueContextHashes[h]):
                         modelXbrl.error(
-                            _("{0} element not allowed in context Id: {1}").format(
-                                 notAllowed, contextID), 
-                            "err", "EFM.6.05.04", "GFM.1.02.04", "SBR.NL.2.3.5.06")
-            
-                    #6.5.5 segment only explicit dimensions
-                    for contextName in ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"):
-                        for segScenElt in contextElt.iterdescendants(contextName):
-                            if isinstance(segScenElt,ModelObject):
-                                childTags = ", ".join([child.prefixedName for child in segScenElt.iterchildren()
-                                                       if isinstance(child,ModelObject) and 
-                                                       child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember"])
-                                if len(childTags) > 0:
-                                    modelXbrl.error(_("Segment of context Id {0} has disallowed content: {1}").format(
-                                             contextID, childTags), 
-                                        "err", "EFM.6.05.05", "GFM.1.02.05")
+                            _("Context ID {0} is equivalent to context ID {1}").format(
+                                 contextID, uniqueContextHashes[h].id), 
+                            "err", "EFM.6.05.07", "GFM.1.02.07    ")
+                else:
+                    uniqueContextHashes[h] = context
+                    
+                #GFM no time in contexts
+                if self.validateGFM:
+                    for dateElt in XmlUtil.children(context, XbrlConst.xbrli, ("startDate", "endDate", "instant")):
+                        dateText = XmlUtil.text(dateElt)
+                        if not self.GFMcontextDatePattern.match(dateText):
+                            modelXbrl.error(
+                                _("Context id {0} {1} invalid content {2}").format(
+                                     contextID, dateElt.prefixedName, dateText), 
+                                "err", "GFM.1.02.25")
+                #6.5.4 scenario
+                hasSegment = XmlUtil.hasChild(context, XbrlConst.xbrli, "segment")
+                hasScenario = XmlUtil.hasChild(context, XbrlConst.xbrli, "scenario")
+                notAllowed = None
+                if self.disclosureSystem.contextElement == "segment" and hasScenario:
+                    notAllowed = _("Scenario")
+                elif self.disclosureSystem.contextElement == "scenario" and hasSegment:
+                    notAllowed = _("Segment")
+                elif self.disclosureSystem.contextElement == "either" and hasSegment and hasScenario:
+                    notAllowed = _("Both segment and scenario")
+                elif self.disclosureSystem.contextElement == "none" and (hasSegment or hasScenario):
+                    notAllowed = _("Neither segment nor scenario")
+                if notAllowed:
+                    modelXbrl.error(
+                        _("{0} element not allowed in context Id: {1}").format(
+                             notAllowed, contextID), 
+                        "err", "EFM.6.05.04", "GFM.1.02.04", "SBR.NL.2.3.5.06")
         
+                #6.5.5 segment only explicit dimensions
+                for contextName in ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"):
+                    for segScenElt in context.iterdescendants(contextName):
+                        if isinstance(segScenElt,ModelObject):
+                            childTags = ", ".join([child.prefixedName for child in segScenElt.iterchildren()
+                                                   if isinstance(child,ModelObject) and 
+                                                   child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember"])
+                            if len(childTags) > 0:
+                                modelXbrl.error(_("Segment of context Id {0} has disallowed content: {1}").format(
+                                         contextID, childTags), 
+                                    "err", "EFM.6.05.05", "GFM.1.02.05")
+            del uniqueContextHashes
+            self.modelXbrl.profileActivity("... filer context checks", minTimeToShow=1.0)
+    
     
             #fact items from standard context (no dimension)
             amendmentDescription = None
@@ -243,19 +243,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     # segment present
                     
                     # note all concepts used in explicit dimensions
-                    for dimElt in context.iterdescendants("{http://xbrl.org/2006/xbrldi}explicitMember"):
-                        if isinstance(dimElt,ModelObject):
-                            dim = ModelValue.qname(dimElt,dimElt.get("dimension"))
-                            mem = ModelValue.qname(dimElt,dimElt.text)
-                            for qname in (dim,mem):
-                                dConcept = modelXbrl.qnameConcepts.get(qname)
+                    for dimValue in context.qnameDims.values():
+                        if dimValue.isExplicit:
+                            dimConcept = dimValue.dimension
+                            memConcept = dimValue.member
+                            for dConcept in (dimConcept, memConcept):
                                 if dConcept is not None:
                                     conceptsUsed[dConcept] = False
                             if (factElementName == "EntityCommonStockSharesOutstanding" and
-                                dim.localName == "StatementClassOfStockAxis"):
-                                commonSharesItemsByStockClass[mem].append(f)
+                                dimConcept.name == "StatementClassOfStockAxis"):
+                                commonSharesItemsByStockClass[memConcept.qname].append(f)
                                 if commonSharesClassMembers is None:
-                                    commonSharesClassMembers = self.getDimMembers(modelXbrl.qnameConcepts.get(dim))
+                                    commonSharesClassMembers = self.getDimMembers(dimConcept)
                                     
                 #6.5.17 facts with precision
                 concept = f.concept
@@ -282,6 +281,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelXbrl.error(_('ix-numeric Fact {0} of context {1} has a sign or currency symbol "{2}" in "{3}"').format(
                                      f.qname, f.contextID, "".join(s for t in syms for s in t), f.text),
                                 "err", "EFM.N/A", "GFM.1.10.18")
+            self.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
     
             if len(contextIDs) > 0:
                 modelXbrl.error(_("The instance document contained a context(s) {0} that was(are) not used in any fact.").format(
@@ -291,11 +291,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             #6.5.9 start-end durations
             if self.disclosureSystem.GFM or \
                documentType in ('20-F', '40-F', '10-Q', '10-K', '10', 'N-CSR', 'N-CSRS', 'NCSR', 'N-Q'):
-                for c1 in modelXbrl.contexts.values():
+                for c1 in contexts:
                     if c1.isStartEndPeriod:
                         end1 = c1.endDatetime
                         start1 = c1.startDatetime
-                        for c2 in modelXbrl.contexts.values():
+                        for c2 in contexts:
                             if c1 != c2 and c2.isStartEndPeriod:
                                 duration = end1 - c2.startDatetime
                                 if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
@@ -310,10 +310,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("Context {0} startDate and {1} end (instant) have a duration of one day; that is inconsistent with document type {2}.").format(
                                              c1.id, c2.id, documentType), 
                                         "err", "EFM.6.05.10")
+                self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
                 
             #6.5.19 required context
             foundRequiredContext = False
-            for c in modelXbrl.contexts.values():
+            for c in contexts:
                 if c.isStartEndPeriod:
                     if not c.hasSegment:
                         foundRequiredContext = True
@@ -325,30 +326,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     "err", "EFM.6.05.19", "GFM.1.02.18")
                 
             #6.5.11 equivalent units
-            modelUnits = list(modelXbrl.units.values())
-            iU1 = 1
-            for u1 in modelUnits:
-                if u1.isDivide:
-                    u1key = \
-                        XmlUtil.sortKey(XmlUtil.descendant(u1, XbrlConst.xbrli, "unitNumerator"), XbrlConst.xbrli, "measure", qnames=True) + \
-                        [("unitDenominator")] + \
-                        XmlUtil.sortKey(XmlUtil.descendant(u1, XbrlConst.xbrli, "unitDenominator"), XbrlConst.xbrli, "measure", qnames=True)
-                else:
-                    u1key = XmlUtil.sortKey(u1, XbrlConst.xbrli, "measure", qnames=True)
-                for u2 in modelUnits[iU1:]:
-                    if u2.isDivide:
-                        u2key = \
-                            XmlUtil.sortKey(XmlUtil.descendant(u2, XbrlConst.xbrli, "unitNumerator"), XbrlConst.xbrli, "measure", qnames=True) + \
-                            [("unitDenominator")] + \
-                            XmlUtil.sortKey(XmlUtil.descendant(u2, XbrlConst.xbrli, "unitDenominator"), XbrlConst.xbrli, "measure", qnames=True)
-                    else:
-                        u2key = XmlUtil.sortKey(u2, XbrlConst.xbrli, "measure", qnames=True)
-                    if u1key == u2key:
+            uniqueUnitHashes = {}
+            for unit in self.modelXbrl.units.values():
+                h = unit.hash
+                if h in uniqueUnitHashes:
+                    if unit.isEqualTo(uniqueUnitHashes[h]):
                         modelXbrl.error(
-                            _("Units {0} and {1} are equivalent.").format(u1.id, u2.id), 
+                            _("Units {0} and {1} are equivalent.").format(unit.id, uniqueUnitHashes[h].id), 
                             "err", "EFM.6.05.11", "GFM.1.02.10")
-                iU1 += 1
-    
+                else:
+                    uniqueUnitHashes[h] = unit
+            del uniqueUnitHashes
+            self.modelXbrl.profileActivity("... filer unit checks", minTimeToShow=1.0)
+   
     
             # EFM.6.05.14, GFM.1.02.13 xml:lang tests, EFM is just 'en', GFM is full default lang
             if self.validateEFM:
@@ -358,6 +348,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
 
             #6.5.12 equivalent facts
             factsForLang = {}
+            factForConceptContextUnitLangHash = {}
             keysNotDefaultLang = {}
             iF1 = 1
             for f1 in modelXbrl.facts:
@@ -385,7 +376,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                       f1.qname, f1.contextID, f1.decimals, f1.value), 
                                 "err", "GFM.1.02.26")
                 # 6.5.12 test
-                for f2 in modelXbrl.facts[iF1:]:
+                h = f1.conceptContextUnitLangHash
+                if h in factForConceptContextUnitLangHash:
+                    f2 = factForConceptContextUnitLangHash[h]
                     if f1.qname == f2.qname and \
                        f1.contextID == f2.contextID and \
                        f1.unitID == f2.unitID and \
@@ -394,7 +387,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("Facts {0} of context {1} and {2} are equivalent.").format(
                                       f1.qname, f1.contextID, f2.contextID), 
                             "err", "EFM.6.05.12", "GFM.1.02.11")
+                else:
+                    factForConceptContextUnitLangHash[h] = f1
                 iF1 += 1
+            del factForConceptContextUnitLangHash
+            self.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
     
             #6.5.14 facts without english text
             for itemNotDefaultLang in keysNotDefaultLang.items():
@@ -481,6 +478,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 self.disclosureSystem.deiDocumentPeriodEndDateElement,
                                 documentPeriodEndDate), 
                             "err", "EFM.6.05.20", "GFM.3.02.01")
+            self.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
     
             if self.validateEFM:
                 if amendmentFlag == "true" and not amendmentDescription:
@@ -593,6 +591,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("dei:{0} is required in the default context").format(
                                   deiItem), 
                             "err", "GFM.3.02.01")
+            self.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
     
             #6.5.25 domain items as facts
             if self.validateEFM:
@@ -637,8 +636,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             elif xlinkType == "locator":
                                 locNbr += 1
                                 locrole = child.get("{http://www.w3.org/1999/xlink}role")
-                                if locrole != "" and (self.disclosureSystem.GFM or \
-                                                      not self.disclosureSystem.uriAuthorityValid(locrole)): 
+                                if locrole is not None and (self.disclosureSystem.GFM or \
+                                                            not self.disclosureSystem.uriAuthorityValid(locrole)): 
                                     modelXbrl.error(
                                         _("FootnoteLink {0} loc {1} has disallowed role {2}").format(
                                             footnoteLinkNbr, locNbr, locrole), 
@@ -690,6 +689,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                 footnoteLinkNbr, 
                                                 child.get("{http://www.w3.org/1999/xlink}label")), 
                                             "err", "EFM.6.05.33", "GFM.1.02.24")
+            self.modelXbrl.profileActivity("... filer rfootnotes checks", minTimeToShow=1.0)
 
         # all-labels and references checks
         defaultLangStandardLabels = {}
@@ -763,11 +763,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("Concept {0} not referred to by presentation relationship.").format(
                                 concept.qname),
                             "err", "SBR.NL.2.2.0.21")
+        self.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
 
         defaultLangStandardLabels = None #dereference
 
         # checks on all documents: instance, schema, instance                                
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
+        self.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
+
         
         conceptsUsedWithPreferredLabels = defaultdict(list)
         usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
@@ -937,10 +940,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                               os.path.basename(arcrole), relFrom.qname, rel.linkrole, rel.toModelObject.qname), 
                                         "err", "GFM.1.08.11")
 
-    
+        self.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
+
                                 
         # checks on dimensions
         ValidateFilingDimensions.checkDimensions(self, drsELRs)
+        self.modelXbrl.profileActivity("... filer dimensions checks", minTimeToShow=1.0)
                                         
         for concept, hasPresentationRelationship in conceptsUsed.items():
             if not hasPresentationRelationship:

@@ -71,7 +71,7 @@ class QNameDef(ModelValue.QName):
 
 def pushQName( sourceStr, loc, toks ):
     qname = toks[0]
-    if xmlElement:
+    if xmlElement is not None:
         nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname)
         if nsLocalname is None:
             modelXbrl.error(

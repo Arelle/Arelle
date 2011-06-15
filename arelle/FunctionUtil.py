@@ -5,7 +5,8 @@ Created on Dec 31, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import xml.dom, datetime
-from arelle import (ModelValue,  ModelObject, XmlUtil)
+from arelle import (ModelValue, XmlUtil)
+from arelle.ModelObject import ModelObject
 from arelle.XPathContext import (XPathException, FunctionArgType)
 
 def anytypeArg(xc, args, i, type, missingArgFallback=None):
@@ -17,8 +18,6 @@ def anytypeArg(xc, args, i, type, missingArgFallback=None):
         if len(item) > 1: raise FunctionArgType(i,type)
         if len(item) == 0: return ()
         item = item[0]
-    if isinstance(item, ModelObject.ModelObject) and not type.startswith("arelle:Model"): 
-        item = item.element
     return item
     
 def atomicArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
@@ -29,13 +28,8 @@ def atomicArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
 def stringArg(xc, args, i, type, missingArgFallback=None, emptyFallback=''):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
-    if isinstance(item, xml.dom.Node):
-        if item.nodeType == xml.dom.Node.ELEMENT_NODE:
-            return XmlUtil.text(item)
-        elif item.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-            return item.value
-        else:
-            return ""
+    if isinstance(item, ModelObject):
+        return item.text
     return str(item)
 
 def numericArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, convertFallback=None):
@@ -61,7 +55,7 @@ def qnameArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
 def nodeArg(xc, args, i, type, missingArgFallback=None, emptyFallback=None):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
-    if not isinstance(item, xml.dom.Node): raise FunctionArgType(i,type)
+    if not isinstance(item, ModelObject): raise FunctionArgType(i,type)
     return item
 
 def testTypeCompatiblity(xc, p, op, a1, a2):

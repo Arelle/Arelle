@@ -188,7 +188,7 @@ def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
             result = filter.filter(xpCtx, vb, facts, varFilterRel.isComplemented)
             if xpCtx.formulaOptions.traceVariableFilterWinnowing:
                 xpCtx.modelXbrl.error( _("Fact Variable ${0} {1} {2} filter {3} passes {4} facts").format( 
-                      vb.qname, typeLbl, filter.element.localName, filter.xlinkLabel, len(result)),
+                      vb.qname, typeLbl, filter.localName, filter.xlinkLabel, len(result)),
                         "info", "formula:trace")
             if orFilter: 
                 for fact in result: factSet.add(fact)
@@ -225,7 +225,7 @@ def aspectMatches(fact1, fact2, aspects):
     for aspect in (aspects if hasattr(aspects,'__iter__') else (aspects,)):
         if aspect == Aspect.LOCATION:
             if (fact1.modelXbrl == fact2.modelXbrl and # test deemed true for multi-instance comparisons
-                fact1.element.parentNode != fact2.element.parentNode): matches = False
+                fact1.getparent() != fact2.getparent()): matches = False
         elif aspect == Aspect.CONCEPT:
             if fact1.concept.qname != fact2.concept.qname: matches = False
         elif fact1.isTuple or fact2.isTuple:
@@ -255,7 +255,7 @@ def aspectMatches(fact1, fact2, aspects):
             u2 = fact2.unit
             if (u1 is None) != (u2 is None):
                 matches = False
-            elif u1 and u2 and u1.measures != u2.measures:
+            elif u1 is not None and u2 is not None and u1.measures != u2.measures:
                 matches = False
         elif aspect == Aspect.DIMENSIONS:
             ''' (no implicit filtering on ALL dimensions for now)
@@ -271,7 +271,7 @@ def aspectMatches(fact1, fact2, aspects):
                         break
             '''
         elif isinstance(aspect, QName):
-            from arelle.ModelObject import ModelDimensionValue
+            from arelle.ModelInstanceObject import ModelDimensionValue
             dimValue1 = fact1.context.dimValue(aspect)
             dimValue2 = fact2.context.dimValue(aspect)
             if isinstance(dimValue1, ModelDimensionValue):
@@ -435,7 +435,7 @@ def produceOutputFact(xpCtx, formula, result):
          dimAspects, segOCCs, scenOCCs)
     if prevCntx:
         cntxId = prevCntx.id
-        newCntxElt = prevCntx.element
+        newCntxElt = prevCntx
     else:
         cntxId = 'c-{0:02n}'.format( len(outputXbrlInstance.contexts) + 1)
         newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
@@ -458,7 +458,7 @@ def produceOutputFact(xpCtx, formula, result):
                              text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
         segmentElt = None
         scenarioElt = None
-        from arelle.ModelObject import ModelDimensionValue
+        from arelle.ModelInstanceObject import ModelDimensionValue
         if dimAspects:
             for dimQname in sorted(dimAspects.keys()):
                 dimValue = dimAspects[dimQname]
@@ -508,7 +508,7 @@ def produceOutputFact(xpCtx, formula, result):
         prevUnit = outputXbrlInstance.matchUnit(multiplyBy, divideBy)
         if prevUnit:
             unitId = prevUnit.id
-            newUnitElt = prevUnit.element
+            newUnitElt = prevUnit
         else:
             unitId = 'u-{0:02n}'.format( len(outputXbrlInstance.units) + 1)
             newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
@@ -812,7 +812,7 @@ class VariableBinding:
             else:
                 return None
         if aspect == Aspect.LOCATION:
-            return self.yieldedFact.element.parentNode
+            return self.yieldedFact.getparent()
         elif aspect == Aspect.CONCEPT:
             return self.yieldedFact.concept.qname
         elif self.yieldedFact.isTuple or self.yieldedFactContext is None:
@@ -840,7 +840,7 @@ class VariableBinding:
                         Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
             return self.yieldedFactContext.nonDimValues(aspect)
         elif aspect == Aspect.UNIT and self.yieldedFact.unit:
-            return self.yieldedFact.unit.element
+            return self.yieldedFact.unit
         elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
             return self.yieldedFact.unit.measures
         elif aspect == Aspect.DIMENSIONS:

@@ -252,7 +252,7 @@ def checkContext(val, cntx):
             dimensionConcept = modelDimValue.dimension
             if dimensionConcept is None or \
                 not dimensionConcept.isDimensionItem or \
-                modelDimValue.isTyped != dimensionConcept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef") is not None:
+                modelDimValue.isTyped != (dimensionConcept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef") is not None):
                 val.modelXbrl.error(
                     _("Context {0} {1} {2} is not an appropriate dimension item").format(
                           cntx.id, modelDimValue.prefixedName,

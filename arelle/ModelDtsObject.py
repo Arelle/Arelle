@@ -671,6 +671,8 @@ class ModelResource(ModelObject):
                 self.modelXbrl.langs.add(self.xmlLang)
             if self.localName == "label":
                 self.modelXbrl.labelroles.add(self.role)
+            return True
+        return False
         
     @property
     def role(self):
@@ -720,6 +722,22 @@ class ModelRelationship(ModelObject):
     def get(self, attrname):
         return self.arcElement.get(attrname)
     
+    @property
+    def localName(self):
+        return self.arcElement.localName
+        
+    @property
+    def namespaceURI(self):
+        return self.arcElement.namespaceURI
+        
+    @property
+    def prefixedName(self):
+        return self.arcElement.prefixedName
+        
+    @property
+    def tag(self):
+        return self.arcElement.tag
+        
     @property
     def qname(self):
         return self.arcElement.qname
@@ -787,7 +805,7 @@ class ModelRelationship(ModelObject):
 
     @property
     def variableQname(self):
-        return ModelValue.qname(self, self.get("name"), noPrefixIsNoNamespace=True) if self.get("name") else None
+        return ModelValue.qname(self.arcElement, self.get("name"), noPrefixIsNoNamespace=True) if self.get("name") else None
 
     @property
     def linkrole(self):
