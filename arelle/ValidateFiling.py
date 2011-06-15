@@ -291,6 +291,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             #6.5.9 start-end durations
             if self.disclosureSystem.GFM or \
                documentType in ('20-F', '40-F', '10-Q', '10-K', '10', 'N-CSR', 'N-CSRS', 'NCSR', 'N-Q'):
+                '''
                 for c1 in contexts:
                     if c1.isStartEndPeriod:
                         end1 = c1.endDatetime
@@ -310,6 +311,33 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("Context {0} startDate and {1} end (instant) have a duration of one day; that is inconsistent with document type {2}.").format(
                                              c1.id, c2.id, documentType), 
                                         "err", "EFM.6.05.10")
+                '''
+                durationCntxStartDatetimes = defaultdict(list)
+                for cntx in contexts:
+                    if cntx.isStartEndPeriod:
+                        durationCntxStartDatetimes[cntx.startDatetime].append(cntx)
+                for cntx in contexts:
+                    end = cntx.endDatetime
+                    if cntx.isStartEndPeriod:
+                        for otherStart, otherCntxs in durationCntxStartDatetimes.items():
+                            duration = end - otherStart
+                            if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
+                                for otherCntx in otherCntxs:
+                                    if cntx != otherCntx:
+                                        modelXbrl.error(
+                                            _("Context {0} endDate and {1} startDate have a duration of one day; that is inconsistent with document type {2}.").format(
+                                                 cntx.id, otherCntx.id, documentType), 
+                                            "err", "EFM.6.05.09", "GFM.1.2.9")
+                    if self.validateEFM and cntx.isInstantPeriod:
+                        for otherStart, otherCntxs in durationCntxStartDatetimes.items():
+                            duration = end - otherStart
+                            if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
+                                for otherCntx in otherCntxs:
+                                    modelXbrl.error(
+                                        _("Context {0} startDate and {1} end (instant) have a duration of one day; that is inconsistent with document type {2}.").format(
+                                             otherCntx.id, cntx.id, documentType), 
+                                        "err", "EFM.6.05.10")
+                del durationCntxStartDatetimes
                 self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
                 
             #6.5.19 required context
