@@ -12,7 +12,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     # value can be namespaceURI and name is localname or prefix:localname
     # value can be prefix:localname (and localname omitted)
     # for xpath qnames which do not take default namespace if no prefix, specify noPrefixIsNoNamespace
-    from arelle.ModelObject import ModelObject
+
     if isinstance(value, ModelObject):
         if name:
             element = value  # may be an attribute
@@ -93,7 +93,6 @@ class QName:
             return self.__hash__() == other.__hash__() and self.nsname() == other
         el
         '''
-        from arelle.ModelObject import ModelObject
         if isinstance(other,QName):
             return self.hash == other.hash and \
                     self.namespaceURI == other.namespaceURI and self.localName == other.localName
@@ -119,6 +118,7 @@ class QName:
                 (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
                 (self.namespaceURI == other.namespaceURI and self.localName >= other.localName)
     
+from arelle.ModelObject import ModelObject
 def anyURI(value):
 	return AnyURI(value)
 	
