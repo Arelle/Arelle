@@ -92,8 +92,7 @@ class ModelSchemaObject(ModelObject):
             name = self.name
             if self.name:
                 prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
-                self._qname =  ModelValue.qname(self.modelDocument.targetNamespace, 
-                                                prefix + ":" + name if prefix else name)
+                self._qname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
             else:
                 self._qname = None
             return self._qname
