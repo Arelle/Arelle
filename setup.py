@@ -63,8 +63,9 @@ elif sys.platform == 'win32':
                 script="arelleCmdLine.py",
                 )                            
         ]
-# Otherwise pretend it's a *nix
 else:
+    from setuptools import os, setup, find_packages
+    packages = find_packages('.')
     dataFiles = [        
 	('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
       ]
