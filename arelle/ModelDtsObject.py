@@ -92,8 +92,7 @@ class ModelSchemaObject(ModelObject):
             name = self.name
             if self.name:
                 prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
-                self._qname =  ModelValue.qname(self.modelDocument.targetNamespace, 
-                                                prefix + ":" + name if prefix else name)
+                self._qname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
             else:
                 self._qname = None
             return self._qname
@@ -710,6 +709,8 @@ class RelationStatus:
     PROHIBITED = 3
     INEFFECTIVE = 4
     
+arcCustAttrsExclusions = {XbrlConst.xlink, "use","priority","order","weight","preferredLabel"}
+    
 class ModelRelationship(ModelObject):
     def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
         # copy model object properties from arcElement
@@ -744,44 +745,62 @@ class ModelRelationship(ModelObject):
         
     @property
     def fromLabel(self):
-        return self.get("{http://www.w3.org/1999/xlink}from")
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}from")
         
     @property
     def toLabel(self):
-        return self.get("{http://www.w3.org/1999/xlink}to")
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}to")
         
     @property
     def arcrole(self):
-        return self.get("{http://www.w3.org/1999/xlink}arcrole")
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
 
     @property
     def order(self):
-        if not self.get("order"):
-            return 1.0
         try:
-            return float(self.get("order"))
-        except (ValueError) :
-            return float("nan")
+            return self.arcElement._order
+        except AttributeError:
+            o = self.arcElement.get("order")
+            if o is None:
+                order = 1.0
+            try:
+                order = float(o)
+            except (TypeError,ValueError) :
+                order = float("nan")
+            self.arcElement._order = order
+            return order
 
     @property
     def priority(self):
-        if not self.get("priority"):
-            return 0
         try:
-            return int(self.get("priority"))
-        except (ValueError) :
-            # XBRL validation error needed
-            return 0
+            return self.arcElement._priority
+        except AttributeError:
+            p = self.arcElement.get("priority")
+            if p is None:
+                priority = 0
+            try:
+                priority = int(p)
+            except (TypeError,ValueError) :
+                # XBRL validation error needed
+                priority = 0
+            self.arcElement._priority = priority
+            return priority
 
     @property
     def weight(self):
-        if not self.get("weight"):
-            return None
         try:
-            return float(self.get("weight"))
-        except (ValueError) :
-            # XBRL validation error needed
-            return float("nan")
+            return self.arcElement._weight
+        except AttributeError:
+            w = self.arcElement.get("weight")
+            if w is None:
+                weight = None
+            try:
+                weight = float(w)
+            except (TypeError,ValueError) :
+                # XBRL validation error needed
+                weight = float("nan")
+            self.arcElement._weight = weight
+            return weight
 
     @property
     def use(self):
@@ -872,6 +891,7 @@ class ModelRelationship(ModelObject):
         
     @property
     def equivalenceKey(self):
+        # cannot be cached because this is unique per relationship
         return (self.qname, 
                 self.linkQname,
                 self.linkrole,  # needed when linkrole=None merges multiple links
@@ -880,8 +900,8 @@ class ModelRelationship(ModelObject):
                 self.order, 
                 self.weight, 
                 self.preferredLabel) + \
-                XbrlUtil.attributes(self.modelXbrl, self.arcElement,
-                    exclusions=(XbrlConst.xlink, "use","priority","order","weight","preferredLabel"))
+                XbrlUtil.attributes(self.modelXbrl, self.arcElement, 
+                    exclusions=arcCustAttrsExclusions, keyByTag=True) # use clark tag for key instead of qname
                 
     def isIdenticalTo(self, otherModelRelationship):
         return (otherModelRelationship is not None and
@@ -909,7 +929,8 @@ class ModelRelationship(ModelObject):
         return self.toModelObject.propertyView + \
                (("arcrole", self.arcrole),
                 ("weight", self.weight) if self.arcrole == XbrlConst.summationItem else (),
-                ("contextElement", self.contextElement)  if self.arcrole in (self.arcrole == XbrlConst.all, XbrlConst.notAll)  else (),
+                ("preferredLabel", self.preferredLabel)  if self.arcrole == XbrlConst.parentChild and self.preferredLabel else (),
+                ("contextElement", self.contextElement)  if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
                 ("closed", self.closed) if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
                 ("usable", self.usable) if self.arcrole == XbrlConst.domainMember  else (),
                 ("targetRole", self.targetRole) if self.arcrole.startswith(XbrlConst.dimStartsWith) else (),

@@ -49,29 +49,31 @@ def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=False, dts2=None, ns2
             return False
     return True
 
-def attributeDict(modelXbrl, elt, exclusions=(), equalMode=S_EQUAL, excludeIDs=False, ns2ns1Tbl=None):
+def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeIDs=False, ns2ns1Tbl=None, keyByTag=False):
     if not hasattr(elt,"xValid"):
         XmlValidate.validate(modelXbrl, elt)
     attrs = {}
     for attrTag, attrValue in elt.items():
         ns, sep, localName = attrTag.partition('}')
-        attrNsURI = ns if sep else None
+        attrNsURI = ns[1:] if sep else None
         if ns2ns1Tbl and attrNsURI in ns2ns1Tbl:
             attrNsURI = ns2ns1Tbl[attrNsURI]
         if (attrTag not in exclusions and 
             (attrNsURI is None or attrNsURI not in exclusions)):
-            if attrNsURI:
-                qname = ModelValue.qname(attrNsURI, localName)
+            if keyByTag:
+                qname = attrTag
+            elif attrNsURI:
+                qname = ModelValue.QName(None, attrNsURI, localName)
             else:
-                qname = ModelValue.qname(attrTag)
+                qname = ModelValue.QName(None, None, attrTag)
             xValid, xValue, sValue = elt.xAttributes[attrTag]
             if excludeIDs and xValid == XmlValidate.VALID_ID:
                 continue
             attrs[qname] = sValue if equalMode == S_EQUAL2 else xValue
     return attrs
 
-def attributes(modelXbrl, elt, exclusions=(), ns2ns1Tbl=None):
-    a = attributeDict(modelXbrl, elt, exclusions, ns2ns1Tbl=ns2ns1Tbl)
+def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False):
+    a = attributeDict(modelXbrl, elt, exclusions, ns2ns1Tbl=ns2ns1Tbl, keyByTag=keyByTag)
     return tuple( (k,a[k]) for k in sorted(a.keys()) )    
 
 def childElements(elt):
