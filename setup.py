@@ -61,6 +61,13 @@ elif sys.platform == 'win32':
                 script="arelleCmdLine.py",
                 )                            
         ]
+else:
+    from setuptools import os, setup, find_packages
+    packages = find_packages('.')
+    dataFiles = [        
+	('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+      ]
+    cx_FreezeExecutables = None
 
 setup(name='Arelle',
       version='0.9.0',
