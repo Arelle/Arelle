@@ -109,7 +109,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
                     k = i + j
                     for relationshipSet, name in ((event.fromRelationshipSet, "fromRelationshipSet"),
                                                   (event.toRelationshipSet, "toRelationshipSet")):
-                        if relationshipSet:
+                        if relationshipSet is not None:
                             relSetNode = self.treeView.insert(eventNode, "end", relationshipSet.objectId(), 
                                                               text=relationshipSet.localName, 
                                                               tags=("odd" if k & 1 else "even",))

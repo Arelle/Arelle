@@ -9,8 +9,8 @@ from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 
 class ModelTestcaseVariation(ModelObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         self.status = ""
         self.actual = []
         self.assertions = None
@@ -42,7 +42,7 @@ class ModelTestcaseVariation(ModelObject):
                     if anElement.get("{http://www.w3.org/1999/xlink}href"):
                         uri = anElement.get("{http://www.w3.org/1999/xlink}href")
                     else:
-                        uri = anElement.innerText
+                        uri = XmlUtil.innerText(anElement)
                     if anElement.get("name"):
                         self._readMeFirstUris.append( (ModelValue.qname(anElement, anElement.get("name")), uri) )
                     elif anElement.get("dts"):

@@ -11,8 +11,8 @@ from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
 from arelle.ModelObject import ModelObject
 
 class ModelRoleType(ModelObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def isArcrole(self):
@@ -73,8 +73,8 @@ class ModelRoleType(ModelObject):
         return self
 
 class ModelSchemaObject(ModelObject):
-    def _init(self):
-        return super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def name(self):
@@ -105,11 +105,12 @@ class ModelSchemaObject(ModelObject):
 anonymousTypeSuffix = "@anonymousType"
 
 class ModelConcept(ModelSchemaObject):
-    def _init(self):
-        if super()._init() and self.name:  # don't index elements with ref and no name
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        if self.name:  # don't index elements with ref and no name
             self.modelXbrl.qnameConcepts[self.qname] = self
             self.modelXbrl.nameConcepts[self.name].append(self)
-            self._baseXsdAttrType = {}
+        self._baseXsdAttrType = {}
         
     @property
     def abstract(self):
@@ -136,7 +137,7 @@ class ModelConcept(ModelSchemaObject):
                 self._typeQname = self.prefixedNameQname(self.get("type"))
             else:
                 # check if anonymous type exists
-                typeQname = ModelValue.qname(self.qname.nsname() +  anonymousTypeSuffix)
+                typeQname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
                 if typeQname in self.modelXbrl.qnameTypes:
                     self._typeQname = typeQname
                 else:
@@ -430,10 +431,10 @@ class ModelConcept(ModelSchemaObject):
         return self
             
 class ModelAttribute(ModelSchemaObject):
-    def _init(self):
-        if super()._init():
-            self.modelXbrl.qnameAttributes[self.qname] = self
-            self._baseXsdAttrType = {}
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelXbrl.qnameAttributes[self.qname] = self
+        self._baseXsdAttrType = {}
         
     @property
     def typeQname(self):
@@ -441,7 +442,7 @@ class ModelAttribute(ModelSchemaObject):
             return self.prefixedNameQname(self.get("type"))
         else:
             # check if anonymous type exists
-            typeqname = ModelValue.qname(self.qname.nsname() +  "@anonymousType")
+            typeqname = ModelValue.qname(self.qname.clarkNotation +  "@anonymousType")
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
@@ -488,9 +489,9 @@ class ModelAttribute(ModelSchemaObject):
     
             
 class ModelType(ModelSchemaObject):
-    def _init(self):
-        if super()._init():      
-            self.modelXbrl.qnameTypes[self.qname] = self
+    def init(self, modelDocument):
+        super().init(modelDocument)     
+        self.modelXbrl.qnameTypes[self.qname] = self
         
     @property
     def name(self):
@@ -640,16 +641,16 @@ class ModelType(ModelSchemaObject):
         return ("modelType[{0}]{1})".format(self.objectId(),self.propertyView))
     
 class ModelEnumeration(ModelSchemaObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def value(self):
         return self.get("value")
     
 class ModelLink(ModelObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         self.labeledResources = defaultdict(list)
         
     @property
@@ -664,14 +665,12 @@ class ModelLink(ModelObject):
         return None
 
 class ModelResource(ModelObject):
-    def _init(self):
-        if super()._init():
-            if self.xmlLang:
-                self.modelXbrl.langs.add(self.xmlLang)
-            if self.localName == "label":
-                self.modelXbrl.labelroles.add(self.role)
-            return True
-        return False
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        if self.xmlLang:
+            self.modelXbrl.langs.add(self.xmlLang)
+        if self.localName == "label":
+            self.modelXbrl.labelroles.add(self.role)
         
     @property
     def role(self):
@@ -687,7 +686,7 @@ class ModelResource(ModelObject):
         return lang
 
     def viewText(self, labelrole=None, lang=None): # text of label or reference parts
-        return " ".join([resourceElt.text
+        return " ".join([XmlUtil.text(resourceElt)
                            for resourceElt in self.iter()
                               if isinstance(resourceElt,ModelObject) and 
                                   not resourceElt.localName.startswith("URI")])
@@ -695,8 +694,8 @@ class ModelResource(ModelObject):
         return self
         
 class ModelLocator(ModelResource):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
     
     def dereference(self):
         # resource is a loc with href document and id modelHref a tuple with href's element, modelDocument, id
@@ -715,7 +714,7 @@ class ModelRelationship(ModelObject):
     def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
         # copy model object properties from arcElement
         self.arcElement = arcElement
-        self.setModelDocument(modelDocument)
+        self.init(modelDocument)
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject
         

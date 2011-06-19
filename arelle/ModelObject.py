@@ -13,11 +13,9 @@ class ModelObject(etree.ElementBase):
         self.isChanged = False
         parent = self.getparent()
         if parent is not None and hasattr(parent, "modelDocument"):
-            self.setModelDocument(parent.modelDocument)
-            return True
-        return False # not initialized
+            self.init(parent.modelDocument)
             
-    def setModelDocument(self, modelDocument):
+    def init(self, modelDocument):
         self.modelDocument = modelDocument
         self.objectIndex = len(modelDocument.modelXbrl.modelObjects)
         modelDocument.modelXbrl.modelObjects.append(self)
@@ -25,7 +23,7 @@ class ModelObject(etree.ElementBase):
         id = self.get("id")
         if id:
             modelDocument.idObjects[id] = self
-        
+                
     def __del__(self):
         if self.modelDocument is not None and self.modelDocument.modelXbrl is not None:
             self.modelXbrl.modelObjects[self.objectIndex] = None
@@ -131,21 +129,6 @@ class ModelObject(etree.ElementBase):
         return qname(self, prefixedName)
     
     @property
-    def innerText(self):
-        return ''.join([t for t in self.itertext()]).strip()
-    
-    @property
-    def text(self):
-        txt = super().text
-        if txt:
-            return txt.strip()
-        return ""
-    
-    @property
-    def textNotStripped(self):
-        return super().text
-    
-    @property
     def elementAttributesTuple(self):
         return tuple((name,value) for name,value in self.items())
     
@@ -217,9 +200,9 @@ class ModelComment(etree.CommentBase):
         self.isChanged = False
         parent = self.getparent()
         if parent is not None and hasattr(parent, "modelDocument"):
-            self.setModelDocument(parent.modelDocument)
+            self.init(parent.modelDocument)
 
-    def setModelDocument(self, modelDocument):
+    def init(self, modelDocument):
         self.modelDocument = modelDocument
                     
 class ModelProcessingInstruction(etree.PIBase):

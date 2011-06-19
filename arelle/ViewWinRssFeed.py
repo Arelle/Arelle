@@ -80,7 +80,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
             self.menu.delete(0, 0) # remove old filings
             menuRow = self.treeView.identify_row(event.y) # this is the object ID
             modelRssItem = self.modelXbrl.modelObject(menuRow)
-            if modelRssItem:
+            if modelRssItem is not None:
                 for description, url in modelRssItem.htmURLs:
                     filingMenu.add_command(label=description, underline=0, 
                                            command=lambda u=url: webbrowser.open(u))
@@ -88,7 +88,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
                 
     def openInstance(self):
         rssItemObj = self.modelXbrl.modelObject(self.menuRow)
-        if rssItemObj:
+        if rssItemObj is not None:
             self.modelXbrl.modelManager.cntlr.fileOpenFile(rssItemObj.zippedUrl)
         
     def treeviewEnter(self, *args):

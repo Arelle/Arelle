@@ -120,8 +120,9 @@ class FileSource:
                     
             
     def close(self):
-        for referencedFileSource in self.referencedFileSources.values():
-            referencedFileSource.close()
+        if self.referencedFileSources:
+            for referencedFileSource in self.referencedFileSources.values():
+                referencedFileSource.close()
         self.referencedFileSources = None
         if self.isZip and self.isOpen:
             self.fs.close()

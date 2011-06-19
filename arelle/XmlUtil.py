@@ -4,9 +4,11 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re, datetime, xml.dom.minidom, xml.dom
+import re, datetime
+from lxml import etree
 from arelle import XbrlConst
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelComment
+from arelle.ModelValue import qname, QName
 
 datetimePattern = re.compile('\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|'
                              '\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*')
@@ -23,7 +25,10 @@ def xmlnsprefix(element, ns):
         return 'xml'
     for prefix, NS in element.nsmap.items():
         if NS == ns:
-            return prefix
+            if prefix is not None:
+                return prefix
+            else:
+                return ""   # prefix none but exists, xml process as zero-length string
     return None
 
 def targetNamespace(element):
@@ -105,8 +110,12 @@ def childText(element, childNamespaceURI, childLocalNames):
     return textNotStripped(element).strip() if element else None
 
 def textNotStripped(element):
-    if element is None: return ""   
-    return element.text
+    if element is None: 
+        return ""
+    text = element.text
+    if text is None:
+        return ""   
+    return text
 
 def innerText(element, ixExclude=False):   
     try:
@@ -178,7 +187,7 @@ def ancestors(element):
     
 def childAttr(element, childNamespaceURI, childLocalNames, attrLocalName):
     childElt = child(element, childNamespaceURI, childLocalNames)
-    return childElt.get(attrLocalName) if childElt else None
+    return childElt.get(attrLocalName) if childElt is not None else None
 
 def descendantAttr(element, childNamespaceURI, childLocalNames, attrLocalName, attrName=None, attrValue=None):
     descendantElt = descendant(element, childNamespaceURI, childLocalNames, attrName, attrValue)
@@ -253,7 +262,6 @@ def isDescendantOf(element, ancestorElement):
     return False
 
 def schemaDescendantsNames(element, descendantNamespaceURI, descendantLocalName, qnames=None):
-    from arelle.ModelValue import (qname)
     if qnames is None: qnames = set()
     for child in element.iterdescendants(tag="{{{0}}}{1}".format(descendantNamespaceURI,descendantLocalName)):
         if isinstance(child,ModelObject):
@@ -265,7 +273,6 @@ def schemaDescendantsNames(element, descendantNamespaceURI, descendantLocalName,
     return qnames
 
 def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name):
-    from arelle.ModelValue import (qname,QName)
     for child in element.iterdescendants(tag="{{{0}}}{1}".format(descendantNamespaceURI,descendantLocalName)):
         if isinstance(child,ModelObject):
             # need to honor attribute/element form default
@@ -280,93 +287,95 @@ def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name)
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
 def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None):
-    from arelle.ModelValue import (QName)
-    from arelle.FunctionXs import (string)
-    document = parent.ownerDocument
-    documentElement = document.documentElement
+    from arelle.FunctionXs import xsString
+    modelDocument = parent.modelDocument
     if isinstance(childName1, QName):
-        child = document.createElementNS(childName1.namespaceURI, 
-                                         addQnameValue(documentElement, childName1))
+        addQnameValue(modelDocument, childName1)
+        child = modelDocument.parser.makeelement(childName1.clarkNotation)
     else:   # called with namespaceURI, localName
-        existingPrefix = xmlnsprefix(documentElement, childName1)
-        if existingPrefix is None:  # assume prefix is used consistently and doesn't need cross-checking
-            prefix, sep, localName = childName2.partition(":")
-            if sep and localName:
-                setXmlns(documentElement, prefix, childName1)
-        child = document.createElementNS(childName1, childName2)
-    if afterSibling:
-        parent.insertBefore(child, afterSibling.nextSibling)
+        existingPrefix = xmlnsprefix(parent, childName1)
+        prefix, sep, localName = childName2.partition(":")
+        if localName:
+            if existingPrefix is None:
+                setXmlns(modelDocument, prefix, childName1)
+        else:
+            localName = prefix
+        child = modelDocument.parser.makeelement("{{{0}}}{1}".format(childName1, localName))
+    child.init(modelDocument)
+    if afterSibling is not None:
+        afterSibling.addnext(child)
     else:
-        parent.appendChild(child)
+        parent.append(child)
     if attributes:
         for name, value in (attributes if len(attributes) > 0 and isinstance(attributes[0],tuple) else (attributes,)):
             if isinstance(name,QName):
-                child.setAttributeNS(name.namespaceURI,
-                                     addQnameValue(document.documentElement, name),
-                                     str(value))
+                if name.namespaceURI:
+                    addQnameValue(modelDocument, name)
+                child.set(name.clarkNotation, str(value))
             else:
-                child.setAttribute(name, string(None, value) )
+                child.set(name, xsString(None, value) )
     if text:
-        textNode = document.createTextNode(string(None, text))
-        child.appendChild(textNode)
+        child.text = xsString(None, text)
     return child
 
 def copyNodes(parent, elts):
-    from arelle.ModelValue import (qname)
-    document = parent.ownerDocument
-    xmlnsElement = document.documentElement
+    modelDocument = parent.modelDocument
     for origElt in elts if hasattr(elts, '__iter__') else (elts,):
-        copyElt = document.createElementNS(origElt.namespaceURI, 
-                                           addQnameValue(document.documentElement, qname(origElt)))
-        parent.appendChild(copyElt)
-        for i in range(len(origElt.attributes)):
-            origAttr = origElt.attributes.item(i)
-            if origAttr.prefix and origAttr.namespaceURI:
-                copyElt.setAttributeNS(origAttr.namespaceURI,
-                                       addQnameValue(document.documentElement, qname(origAttr.namespaceURI,origAttr.name)),
-                                       origAttr.value)
+        addQnameValue(modelDocument, origElt.elementQname)
+        copyElt = modelDocument.parser.makeelement(origElt.tag)
+        copyElt.init(modelDocument)
+        parent.append(copyElt)
+        for attrTag, attrValue in origElt.items():
+            qn = qname(attrTag)
+            if qn.prefix and qn.namespaceURI:
+                setXmlns(modelDocument, qn.prefix, qn.namespaceURI)
+                copyElt.set(attrTag, attrValue)
             else:
-                copyElt.setAttribute(origAttr.name, origAttr.value)
+                copyElt.set(attrTag, attrValue)
         textContentSet = False
         if hasattr(origElt, "xValue"):
-            from arelle.ModelValue import (QName)
             if isinstance(origElt.xValue,QName):
-                copyElt.appendChild(document.createTextNode(
-                           addQnameValue(document.documentElement, origElt.xValue)))
+                copyElt.text = addQnameValue(modelDocument, origElt.xValue)
                 textContentSet = True
-        for childNode in origElt.childNodes:
-            if (childNode.nodeType == 3 or childNode.nodeType == 4) and not textContentSet:
-                copyElt.appendChild(document.createTextNode(childNode.nodeValue))
-            elif childNode.nodeType == 1:
+        for childNode in origElt.getchildren():
+            if isinstance(childNode,ModelObject):
                 copyNodes(copyElt,childNode)
                 
 def copyChildren(parent, elt):
-    for childNode in elt.childNodes:
-        if childNode.nodeType == 1:
+    for childNode in elt.getchildren():
+        if isinstance(childNode,ModelObject):
             copyNodes(parent, childNode)
 
 def addComment(parent, commentText):
-    document = parent.ownerDocument
-    child = document.createComment( str(commentText) )
-    parent.appendChild(child)
+    child = ModelObject.ModelComment( str(commentText) )
+    parent.append(child)
     
-def addQnameValue(xmlnsElement, qnameValue):
-    from arelle.ModelValue import (qname)
-    existingPrefix = xmlnsprefix(xmlnsElement, qnameValue.namespaceURI)
+def addQnameValue(modelDocument, qnameValue):
+    if isinstance(modelDocument, ModelObject): modelDocument = modelDocument.modelDocument
+    existingPrefix = xmlnsprefix(modelDocument.xmlRootElement, qnameValue.namespaceURI)
     if existingPrefix is not None:  # namespace is already declared, use that for qnameValue's prefix
         return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName
     prefix = qnameValue.prefix
     dupNum = 2 # start with _2 being 'second' use of same prefix, etc.
     while (dupNum < 10000): # check if another namespace has prefix already (but don't die if running away)
-        if xmlns(xmlnsElement, prefix) is None:
+        if xmlns(modelDocument.xmlRootElement, prefix) is None:
             break   # ok to use this prefix
         prefix = "{0}_{1}".format(qnameValue.prefix if qnameValue.prefix else '', dupNum)
         dupNum += 1
-    setXmlns(xmlnsElement, prefix, qnameValue.namespaceURI)
+    setXmlns(modelDocument, prefix, qnameValue.namespaceURI)
     return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName
 
-def setXmlns(xmlnsElement, prefix, namespaceURI):
-    xmlnsElement.setAttribute('xmlns' if len(prefix) == 0 else 'xmlns:' + prefix, namespaceURI )
+def setXmlns(modelDocument, prefix, namespaceURI):
+    elementTree = modelDocument.xmlDocument
+    root = elementTree.getroot()
+    if prefix == "":
+        prefix = None  # default xmlns prefix stores as None
+    if prefix not in root.nsmap:
+        newmap = root.nsmap
+        newmap[prefix] = namespaceURI
+        newroot = etree.Element(root.tag, nsmap=newmap)
+        newroot.extend(root.getchildren())
+        elementTree._setroot(newroot)
 
 def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeName=None, qnames=False):
     list = []
@@ -482,35 +491,64 @@ def elementFragmentIdentifier(element):
         location = "/".join(childSequence)
     return "element({0})".format(location)
 
-def writexml(writer, node, encoding=None, indent=''):
+def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
     # customized from xml.minidom to provide correct indentation for data items
-    if node.nodeType == xml.dom.Node.DOCUMENT_NODE:
+    if isinstance(node,etree._ElementTree):
         if encoding:
             writer.write('<?xml version="1.0" encoding="%s"?>\n' % (encoding,))
         else:
             writer.write('<?xml version="1.0"?>\n')
-        for child in node.childNodes:
-            writexml(writer, child, indent=indent)
-    elif node.nodeType == xml.dom.Node.ELEMENT_NODE:
-        writer.write(indent+"<" + node.tagName)
-
-        attrs = node._get_attributes()
-        a_names = sorted(attrs.keys())
+        for child in node.iter():
+            if child.getparent() is not None:
+                break   # stop depth first iteration after comment and root node
+            if child.tag == 'nsmap':
+                for nsmapChild in child.getchildren():
+                    writexml(writer, nsmapChild, indent=indent, parentNsmap={}) # force all xmlns in next element
+            else:
+                writexml(writer, child, indent=indent, parentNsmap={})
+    elif isinstance(node,ModelObject):
+        if parentNsmap is None: 
+            parent = node.getparent()
+            if parent is not None:
+                parentNsmap = parent.nsmap
+            else:
+                # first node, no _ElementTree argument, needs document header
+                if encoding:
+                    writer.write('<?xml version="1.0" encoding="%s"?>\n' % (encoding,))
+                else:
+                    writer.write('<?xml version="1.0"?>\n')
+                parentNsmap = {}
+        writer.write(indent+"<" + node.prefixedName)
+        attrs = {}
+        for prefix, ns in sorted((k if k is not None else '', v) 
+                                 for k, v in (node.nsmap.items() - parentNsmap.items())):
+            if prefix:
+                attrs["xmlns:" + prefix] = ns
+            else:
+                attrs["xmlns"] = ns
+        for aTag,aValue in node.items():
+            ns, sep, localName = aTag.partition('}')
+            if sep:
+                prefixedName = xmlnsprefix(node,ns[1:]) + ":" + localName
+            else:
+                prefixedName = ns
+            attrs[prefixedName] = aValue
+        aSortedNames = sorted(attrs.keys())
 
         # should attribute names be indented on separate lines?
         numAttrs = 0
         lenAttrs = 0
-        for a_name in a_names:
+        for aName,aValue in attrs.items():
             numAttrs += 1
-            lenAttrs += 4 + len(a_name) + len(attrs[a_name].value)
+            lenAttrs += 4 + len(aName) + len(aValue)
         indentAttrs = ("\n" + indent + "  ") if numAttrs > 1 and lenAttrs > 60 else " "
-        for a_name in a_names:
-            writer.write("%s%s=\"" % (indentAttrs, a_name))
-            if a_name != "xsi:schemaLocation":
-                xml.dom.minidom._write_data(writer, attrs[a_name].value)
+        for aName in aSortedNames:
+            writer.write("%s%s=\"" % (indentAttrs, aName))
+            if aName != "xsi:schemaLocation":
+                writer.write(attrs[aName].replace('"','&quot;'))
             else:
                 indentUri = "\n" + indent + "                      "
-                for i, a_uri in enumerate(attrs[a_name].value.split()):
+                for i, a_uri in enumerate(attrs[aName].split()):
                     if i & 1:   #odd
                         writer.write(" " + a_uri)
                     elif i > 0:   #even
@@ -518,16 +556,21 @@ def writexml(writer, node, encoding=None, indent=''):
                     else:
                         writer.write(a_uri)
             writer.write("\"")
-        if node.childNodes:
-            if len(node.childNodes) == 1 and node.childNodes[0].nodeType == xml.dom.Node.TEXT_NODE:
-                # not indented
-                writer.write(">%s</%s>\n" % (node.childNodes[0].data, node.tagName))
-            else: # ordinary indented child nodes
+        hasChildNodes = False
+        firstChild = True
+        for child in node.iterchildren():
+            hasChildNodes = True
+            if firstChild:
                 writer.write(">\n")
-                for child in node.childNodes:
-                    writexml(writer, child, indent=indent+'    ')
-                writer.write("%s</%s>\n" % (indent, node.tagName))
+                if node.text:
+                    writer.write(node.text.replace("<","&lt;"))
+                firstChild = False
+            writexml(writer, child, indent=indent+'    ')
+        if hasChildNodes:
+            writer.write("%s</%s>\n" % (indent, node.prefixedName))
+        elif node.text:
+            writer.write(">%s</%s>\n" % (node.text.replace("<","&lt;"), node.prefixedName))
         else:
             writer.write("/>\n")
-    else: # ok to use minidom implementation
-        node.writexml(writer, indent=indent, addindent='    ', newl='\n')
+    elif isinstance(node,ModelComment): # ok to use minidom implementation
+        writer.write(indent+"<!--" + node.text + "-->\n")

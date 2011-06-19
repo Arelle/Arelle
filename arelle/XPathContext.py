@@ -418,8 +418,8 @@ class XPathContext:
             if isinstance(p,QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
-                    if node.get(p.nsname) is not None:
-                        targetNodes.append(node.get(p.nsname))
+                    if node.get(p.clarkNotation) is not None:
+                        targetNodes.append(node.get(p.clarkNotation))
                 elif op == '/' or op is None:
                     targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':

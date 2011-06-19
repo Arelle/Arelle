@@ -195,7 +195,7 @@ class Validate:
                                     "err", "formula:resultFactCounts")
                             else:
                                 for fact in expectedInstance.facts:
-                                    if not formulaOutputInstance.matchFact(fact):
+                                    if formulaOutputInstance.matchFact(fact) is None:
                                         formulaOutputInstance.error(
                                             _("Formula output missing expected fact {0}").format(
                                                  fact), 

@@ -12,7 +12,8 @@ versioning reports, per Roland Hommes 2010-12-10
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 
 '''
-import time, datetime, os, gettext, xml.dom.minidom
+import time, datetime, os, gettext, io
+from lxml import etree
 from optparse import OptionParser
 from arelle import (Cntlr, ModelXbrl, ModelDocument, ModelVersReport, FileSource, XmlUtil, Version)
 from arelle import xlrd
@@ -44,8 +45,8 @@ class CntlrGenVersReports(Cntlr.Cntlr):
         super().__init__()
         
     def runFromExcel(self, options):
-        testGenFileName = options.excelfilename
-        #testGenFileName = r"C:\Users\Herm Fischer\Documents\mvsl\projects\XBRL.org\conformance-versioning\trunk\versioningReport\conf\creation\1000-2000-index.xls"
+        #testGenFileName = options.excelfilename
+        testGenFileName = r"C:\Users\Herm Fischer\Documents\mvsl\projects\XBRL.org\conformance-versioning\trunk\versioningReport\conf\0000-2000-index.xls"
         testGenDir = os.path.dirname(testGenFileName)
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         if options.testfiledate:
@@ -65,17 +66,25 @@ class CntlrGenVersReports(Cntlr.Cntlr):
         # start index file
         indexFiles = [testGenDir + os.sep + 'creationTestcasesIndex.xml',
                       testGenDir + os.sep + 'consumptionTestcasesIndex.xml']
-        indexDocs = [xml.dom.minidom.parseString(
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<!-- XBRL Versioning 1.0 {0} Tests -->'
-            '<!-- Copyright 2011 XBRL International.  All Rights Reserved. -->'
-            '<?xml-stylesheet type="text/xsl" href="infrastructure/testcases-index.xsl"?>'
-            '<testcases name="XBRL Versioning 1.0 Consumption Tests" date="{1}" '
-            ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
-            ' xsi:noNamespaceSchemaLocation="infrastructure/testcases-index.xsd">'
-            '</testcases>'.format(purpose, today)
-            ) for purpose in ("Creation","Consumption")]
-        testcasesElements = [XmlUtil.child(indexDoc, None, "testcases") for indexDoc in indexDocs]
+        indexDocs = []
+        testcasesElements = []
+        for purpose in ("Creation","Consumption"):
+            file = io.StringIO(
+                #'<?xml version="1.0" encoding="UTF-8"?>'
+                '<!-- XBRL Versioning 1.0 {0} Tests -->'
+                '<!-- Copyright 2011 XBRL International.  All Rights Reserved. -->'
+                '<?xml-stylesheet type="text/xsl" href="infrastructure/testcases-index.xsl"?>'
+                '<testcases name="XBRL Versioning 1.0 {0} Tests" '
+                ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+                ' xsi:noNamespaceSchemaLocation="infrastructure/testcases-index.xsd">'
+                '</testcases>'.format(purpose, today)
+                )
+            doc = etree.parse(file)
+            file.close()
+            indexDocs.append(doc)
+            for elt in doc.iter(tag="testcases"):
+                testcasesElements.append(elt)
+                break
         priorTestcasesDir = None
         testcaseFiles = None
         testcaseDocs = None
@@ -117,7 +126,8 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                     reportDir = os.path.dirname(reportUri)
                     if reportDir: reportDir += os.sep
                     reportName = os.path.basename(reportUri).replace("from.xsd","report.xml")
-                    reportFile = reportDir + "report" + os.sep + reportName
+                    reportFile = reportDir + "out" + os.sep + reportName
+                    #reportFile = reportDir + "report" + os.sep + reportName
                     reportFullPath = self.webCache.normalizeUrl(
                                         reportFile, 
                                         base)
@@ -132,28 +142,36 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         testcaseFiles = [testcasesDir + os.sep + testcaseName + "-creation-testcase.xml",
                                          testcasesDir + os.sep + testcaseName + "-consumption-testcase.xml"]
                         for i,testcaseFile in enumerate(testcaseFiles):
-                            XmlUtil.addChild(testcasesElements[i], None, "testcase", 
-                                             ("uri", 
-                                              testcaseFile[len(testGenDir)+1:].replace("\\","/")) )
+                            etree.SubElement(testcasesElements[i], "testcase", 
+                                             attrib={"uri": 
+                                                     testcaseFile[len(testGenDir)+1:].replace("\\","/")} )
                         
                         # start testcase file
-                        testcaseDocs = [xml.dom.minidom.parseString(
-                            '<?xml version="1.0" encoding="UTF-8"?>'
-                            '<!-- Copyright 2011 XBRL International.  All Rights Reserved. -->'
-                            '<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>'
-                            '<testcase name="XBRL Versioning 1.0 {1} Tests" date="{2}" '
-                            ' xmlns="http://xbrl.org/2008/conformance"'
-                            ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
-                            ' xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd">'
-                            '<creator>'
-                            '<name>Roland Hommes</name>'
-                            '<email>roland@rhocon.nl</email>'
-                            '</creator>'
-                            '<name>{0}</name>'
-                            '<description>{0}</description>'
-                            '</testcase>'.format(testcaseName,purpose,today)
-                            ) for purpose in ("Creation","Consumption")]
-                        testcaseElements = [XmlUtil.child(testcaseDoc, conformanceNS, "testcase") for testcaseDoc in testcaseDocs]
+                        testcaseDocs = []
+                        testcaseElements = []
+                        for purpose in ("Creation","Consumption"):
+                            file = io.StringIO(
+                                #'<?xml version="1.0" encoding="UTF-8"?>'
+                                '<!-- Copyright 2011 XBRL International.  All Rights Reserved. -->'
+                                '<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>'
+                                '<testcase name="XBRL Versioning 1.0 {1} Tests" date="{2}" '
+                                ' xmlns="http://xbrl.org/2008/conformance"'
+                                ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+                                ' xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd">'
+                                '<creator>'
+                                '<name>Roland Hommes</name>'
+                                '<email>roland@rhocon.nl</email>'
+                                '</creator>'
+                                '<name>{0}</name>'
+                                '<description>{0}</description>'
+                                '</testcase>'.format(testcaseName,purpose,today)
+                                )
+                            doc = etree.parse(file)
+                            file.close()
+                            testcaseDocs.append(doc)
+                            for elt in doc.iter(tag="testcase"):
+                                testcaseElements.append(elt)
+                                break
                         priorTestcasesDir = testcasesDir
                         variationID = 1
                     try:
@@ -166,7 +184,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                     # check for expected elements
                     if expectedEvent and expectedEvent not in (
                            "No change", "N.A."):
-                        if len(modelVersReport.xmlDocument.getElementsByTagNameNS('*',expectedEvent)) == 0:
+                        if len(modelVersReport.xmlDocument.findall('//{*}' + expectedEvent)) == 0:
                             modelTestcases.error(
                                 "Generated test case {0} missing expected event {1}".format(
                                            reportName, 
@@ -175,21 +193,24 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                     
                     modelVersReport.close([])
                     for i,testcaseElt in enumerate(testcaseElements):
-                        variationElement = XmlUtil.addChild(testcaseElt, conformanceNS, "variation", 
-                                      attributes=("id", "_{0:02n}".format(variationID)))
-                        XmlUtil.addChild(variationElement, conformanceNS, "name", text=intention)
-                        dataElement = XmlUtil.addChild(variationElement, conformanceNS, "data")
+                        variationElement = etree.SubElement(testcaseElt, "{http://xbrl.org/2008/conformance}variation", 
+                                                            attrib={"id": "_{0:02n}".format(variationID)})
+                        nameElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}name")
+                        nameElement.text = intention
+                        dataElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}data")
                         for schemaURIs, dtsAttr in ((uriFrom,"from"), (uriTo,"to")):
                             for schemaURI in schemaURIs.split(","): 
-                                XmlUtil.addChild(dataElement, conformanceNS, "schema", 
-                                                 attributes=((("dts",dtsAttr),) +
-                                                             ((("readMeFirst","true"),) if i == 0 else ())), 
-                                                 text=os.path.basename(schemaURI.strip()))
-                        resultElement = XmlUtil.addChild(variationElement, conformanceNS, "result")
-                        XmlUtil.addChild(resultElement if i == 0 else dataElement, 
-                                         conformanceNS, "versioningReport", 
-                                         attributes=(("readMeFirst","true") if i == 1 else ()), 
-                                         text="report/" + reportName)
+                                schemaElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}schema")
+                                schemaElement.set("dts",dtsAttr)
+                                if i == 0:
+                                    schemaElement.set("readMeFirst","true")
+                                schemaElement.text=os.path.basename(schemaURI.strip())
+                        resultElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}result")
+                        reportElement = etree.SubElement(resultElement if i == 0 else dataElement, 
+                                         "{http://xbrl.org/2008/conformance}versioningReport")
+                        if 1 == 1:
+                            reportElement.set("readMeFirst","true")
+                            reportElement.text = "report/" + reportName
                     variationID += 1
         
         with open(logMessagesFile, "w") as fh:
@@ -210,43 +231,41 @@ class CntlrGenVersReports(Cntlr.Cntlr):
         modelTestcases = self.modelManager.load(filesource, _("views loading"))
         self.addToLog(_("[info] loaded in {0:.2} secs").format(time.time() - startedAt))
         if modelTestcases.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
-            for testcasesElement in modelTestcases.modelDocument.xmlRootElement. \
-                    getElementsByTagName("testcases"):
-                rootAttr = testcasesElement.getAttribute("root")
-                title = testcasesElement.getAttribute("title")
+            for testcasesElement in modelTestcases.modelDocument.iter(tag="testcases"):
+                rootAttr = testcasesElement.get("root")
+                title = testcasesElement.get("title")
                 self.addToLog(_("[info] testcases {0}").format(title))
-                if rootAttr != "":
+                if rootAttr is not None:
                     base = os.path.join(os.path.dirname(modelTestcases.modelDocument.filepath),rootAttr) + os.sep
                 else:
                     base = self.filepath
-                for testcaseElement in testcasesElement.childNodes:
-                    if testcaseElement.nodeType == 1 and testcaseElement.localName == "testcase":
-                        uriFrom = testcaseElement.getAttribute("uriFrom")
-                        uriTo = testcaseElement.getAttribute("uriTo")
-                        self.addToLog(_("[info] testcase uriFrom {0}").format(uriFrom))
-                        if uriFrom and uriTo:
-                            modelDTSfrom = ModelXbrl.load(modelTestcases.modelManager, 
-                                                       uriFrom,
-                                                       _("loading from DTS"), 
-                                                       base=base)
-                            modelDTSto = ModelXbrl.load(modelTestcases.modelManager, 
-                                                       uriTo,
-                                                       _("loading to DTS"), 
-                                                       base=base)
-                            if modelDTSfrom and modelDTSto:
-                                # generate differences report
-                                reportName = os.path.basename(uriFrom).replace("from.xsd","report.xml")
-                                reportFile = os.path.dirname(uriFrom) + "\\report\\" + reportName
-                                reportFullPath = self.webCache.normalizeUrl(
-                                                    reportFile, 
-                                                    base)
-                                try:
-                                    os.makedirs(os.path.dirname(reportFullPath))
-                                except WindowsError:
-                                    pass # dir already exists
-                                ModelVersReport.ModelVersReport(modelTestcases).diffDTSes(
-                                              reportFullPath,
-                                              modelDTSfrom, modelDTSto)
+                for testcaseElement in testcasesElement.iterchildren(tag="testcase"):
+                    uriFrom = testcaseElement.get("uriFrom")
+                    uriTo = testcaseElement.get("uriTo")
+                    self.addToLog(_("[info] testcase uriFrom {0}").format(uriFrom))
+                    if uriFrom is not None and uriTo is not None:
+                        modelDTSfrom = ModelXbrl.load(modelTestcases.modelManager, 
+                                                   uriFrom,
+                                                   _("loading from DTS"), 
+                                                   base=base)
+                        modelDTSto = ModelXbrl.load(modelTestcases.modelManager, 
+                                                   uriTo,
+                                                   _("loading to DTS"), 
+                                                   base=base)
+                        if modelDTSfrom and modelDTSto:
+                            # generate differences report
+                            reportName = os.path.basename(uriFrom).replace("from.xsd","report.xml")
+                            reportFile = os.path.dirname(uriFrom) + "\\report\\" + reportName
+                            reportFullPath = self.webCache.normalizeUrl(
+                                                reportFile, 
+                                                base)
+                            try:
+                                os.makedirs(os.path.dirname(reportFullPath))
+                            except WindowsError:
+                                pass # dir already exists
+                            ModelVersReport.ModelVersReport(modelTestcases).diffDTSes(
+                                          reportFullPath,
+                                          modelDTSfrom, modelDTSto)
 
     def addToLog(self, message):
         self.logMessages.append(message + '\n')

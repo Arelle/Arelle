@@ -246,7 +246,7 @@ def gDay(xc, source):
 def gMonth(xc, source):
     raise xsFunctionNotAvailable()
   
-def string(xc, source):
+def xsString(xc, source):
     if isinstance(source,bool):
         return 'true' if source else 'false'
     elif isinstance(source,float):
@@ -354,7 +354,7 @@ xsFunctions = {
     'gMonthDay': gMonthDay,
     'gDay': gDay,
     'gMonth': gMonth,
-    'string': string,
+    'string': xsString,
     'normalizedString': normalizedString,
     'token': token,
     'language': language,

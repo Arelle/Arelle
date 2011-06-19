@@ -79,10 +79,10 @@ class ViewWinDiffs:
                 self.blockViewModelObject += 1  # prevent recursion
                 if isinstance(modelObject, ModelVersObject.ModelConceptChange):
                     fromConcept = modelObject.fromConcept
-                    if fromConcept:
+                    if fromConcept is not None:
                         self.fromDTS.viewModelObject(fromConcept.objectId())
                     toConcept = modelObject.toConcept
-                    if toConcept:
+                    if toConcept is not None:
                         self.toDTS.viewModelObject(toConcept.objectId())
                 elif isinstance(modelObject, ModelVersObject.ModelRelationships):
                     if modelObject.isFromDTS:

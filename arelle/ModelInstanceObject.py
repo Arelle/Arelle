@@ -11,8 +11,8 @@ from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
 from arelle.ModelObject import ModelObject
 
 class ModelFact(ModelObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         self.modelTupleFacts = []
         
     def __del__(self):
@@ -235,8 +235,8 @@ class ModelFact(ModelObject):
         return self.concept
 
 class ModelInlineFact(ModelFact):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def qname(self):
@@ -326,7 +326,7 @@ class ModelInlineFact(ModelFact):
         if self.localName == "nonFraction" or self.localName == "fraction":
             numProperties = (("format", self.format),
                 ("scale", self.scale),
-                ("html value", self.innerText))
+                ("html value", XmlUtil.innerText(self)))
         else:
             numProperties = ()
         return super(ModelInlineFact,self).propertyView + \
@@ -336,8 +336,8 @@ class ModelInlineFact(ModelFact):
         return ("modelInlineFact[{0}]{1})".format(self.objectId(),self.propertyView))
                
 class ModelContext(ModelObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         self.segDimValues = {}
         self.scenDimValues = {}
         self.qnameDims = {}
@@ -505,7 +505,6 @@ class ModelContext(ModelObject):
             return self._dimsHash
     
     def nonDimValues(self, contextElement):
-        from arelle.ModelFormulaObject import Aspect
         if contextElement in ("segment", Aspect.NON_XDT_SEGMENT):
             return self.segNonDimValues
         elif contextElement in ("scenario", Aspect.NON_XDT_SCENARIO):
@@ -516,6 +515,16 @@ class ModelContext(ModelObject):
             return XmlUtil.children(self.scenario, None, "*")
         return []
     
+    @property
+    def segmentHash(self):
+        # s-equality hash
+        return XbrlUtil.equalityHash( self.scenario ) # self-caching
+        
+    @property
+    def scenarioHash(self):
+        # s-equality hash
+        return XbrlUtil.equalityHash( self.scenario ) # self-caching
+        
     @property
     def nonDimHash(self):
         try:
@@ -537,7 +546,7 @@ class ModelContext(ModelObject):
         try:
             return self._contextNonDimAwareHash
         except AttributeError:
-            self._contextNonDimAwareHash = hash( (tuple(self.periodHash, self.entityIdentifierHash, self.segHash, self.scenHash)) )
+            self._contextNonDimAwareHash = hash( (tuple(self.periodHash, self.entityIdentifierHash, self.segmentHash, self.scenarioHash)) )
             return self._contextNonDimAwareHash
         
     
@@ -576,8 +585,8 @@ class ModelContext(ModelObject):
                 self.nonDimHash != cntx2.nonDimHash):
                 return False
         else:
-            if (self.segHash != cntx2.segHash or
-                self.scenHash != cntx2.scenHash):
+            if (self.segmentHash != cntx2.segmentHash or
+                self.scenarioHash != cntx2.scenarioHash):
                 return False
         if self.periodHash != cntx2.periodHash or not self.isPeriodEqualTo(cntx2) or not self.isEntityIdentifierEqualTo(cntx2):
             return False
@@ -634,8 +643,8 @@ def measuresStr(m):
 
 
 class ModelDimensionValue(ModelObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     def __hash__(self):
         if self.isExplicit:
@@ -701,8 +710,8 @@ class ModelDimensionValue(ModelObject):
             return (str(self.dimensionQname),XmlUtil.child(self).toxml())
         
 class ModelUnit(ModelObject):
-    def _init(self):
-        super()._init()
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def measures(self):
@@ -762,6 +771,7 @@ class ModelUnit(ModelObject):
         else:
             return tuple(('',m) for m in self.measures[0])
 
+from arelle.ModelFormulaObject import Aspect
            
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((

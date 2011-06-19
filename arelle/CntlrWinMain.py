@@ -31,7 +31,7 @@ from arelle import (DialogURL,
                 Updater
                )
 from arelle.ModelFormulaObject import FormulaOptions
-from arelle.ModelRssObject import RssWatchOptions
+from arelle.ModelRssItem import RssWatchOptions
 from arelle.FileSource import openFileSource
 
 restartMain = True

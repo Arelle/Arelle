@@ -73,13 +73,14 @@ class QName:
         self.hash = ((hash(namespaceURI) * 1000003) & 0xffffffff) ^ hash(localName)
     def __hash__(self):
         return self.hash
-    def nsname(self):
+    @property
+    def clarkNotation(self):
         if self.namespaceURI:
             return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
         else:
             return self.localName
     def __repr__(self):
-        return self.__str__() # self.nsname()
+        return self.__str__() 
     def __str__(self):
         if self.prefix and self.prefix != '':
             return self.prefix + ':' + self.localName
@@ -89,7 +90,7 @@ class QName:
         ''' don't think this is used any longer
         if isinstance(other,str):
             # only compare nsnames {namespace}localname format, if other has same hash
-            return self.__hash__() == other.__hash__() and self.nsname() == other
+            return self.__hash__() == other.__hash__() and self.clarkNotation == other
         el
         '''
         if isinstance(other,QName):

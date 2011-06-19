@@ -23,6 +23,28 @@ def nodesCorrespond(dts1, elt1, elt2, dts2=None):
 # dts2 is for second element assumed same unless dts2 and ns2 to ns1 maping table provided
 #   (as used in versioning reports and multi instance
 
+def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=False):
+    if not isinstance(elt, ModelObject):
+        return hash(None)
+    try:
+        if equalMode == S_EQUAL:
+            return elt._hashSEqual
+        else:
+            return elt._hashXpathEqual
+    except AttributeError:
+        dts = elt.modelXbrl
+        if not hasattr(elt,"xValid"):
+            XmlValidate.validate(dts, elt)
+        _hash = hash((elt.sValue if equalMode == S_EQUAL else elt.xValue,
+                      tuple(attributeDict(dts, elt, (), equalMode, excludeIDs).items()),
+                      tuple(hash(dts,child,equalMode,excludeIDs) for child in childElements(elt))
+                      ))
+        if equalMode == S_EQUAL:
+            elt._hashSEqual = _hash
+        else:
+            elt._hashXpathEqual = _hash
+        return _hash
+
 def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=False, dts2=None, ns2ns1Tbl=None):
     if dts2 is None: dts2 = dts1
     if elt1.localName != elt2.localName:
@@ -100,7 +122,7 @@ def typedValue(dts, element, attrQname=None):
     try:
         if element.xValid == XmlValidate.VALID:
             if attrQname:
-                valid, xValue, sValue = element.xAttributes[attrQname.nsname]
+                valid, xValue, sValue = element.xAttributes[attrQname.clarkNotation]
             else:
                 xValue = element.xValue
             return xValue

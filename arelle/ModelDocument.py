@@ -11,6 +11,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource
 from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelObjectFactory import parser
 
 def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=None, reloadCache=False):
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
@@ -62,9 +63,8 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
             file = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
             file = modelXbrl.fileSource.file(filepath)
-        from arelle import ModelObjectFactory
-        parser = ModelObjectFactory.parser(modelXbrl, filepath)
-        xmlDocument = etree.parse(file,parser=parser,base_url=filepath)
+        _parser = parser(modelXbrl,filepath)
+        xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         file.close()
     except EnvironmentError as err:
         modelXbrl.error(
@@ -140,7 +140,8 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
             modelDocument = ModelRssObject(modelXbrl, type, mappedUri, filepath, xmlDocument)
         else:
             modelDocument = ModelDocument(modelXbrl, type, mappedUri, filepath, xmlDocument)
-        rootNode.setModelDocument(modelDocument)
+        rootNode.init(modelDocument)
+        modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
         modelDocument.xmlRootElement = rootNode
         modelDocument.schemaLocationElements.add(rootNode)
 
@@ -185,31 +186,31 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         for i in range(modelXbrl.modelManager.disclosureSystem.maxSubmissionSubdirectoryEntryNesting):
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir)
     filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+    # XML document has nsmap root element to replace nsmap as new xmlns entries are required
     if type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
-        Xml = ('<?xml version="1.0" encoding="UTF-8"?>' 
+        Xml = ('<nsmap>'
                '<xbrl xmlns="http://www.xbrl.org/2003/instance"'
                ' xmlns:link="http://www.xbrl.org/2003/linkbase"'
                ' xmlns:xlink="http://www.w3.org/1999/xlink">')
         if schemaRefs:
             for schemaRef in schemaRefs:
                 Xml += '<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(schemaRef.replace("\\","/"))
-        Xml += '</xbrl>'
+        Xml += '</xbrl></nsmap>'
     elif type == Type.SCHEMA:
-        Xml = ('<?xml version="1.0" encoding="UTF-8"?>'
-               '<schema xmlns="http://www.w3.org/2001/XMLSchema" />')
+        Xml = ('<nsmap><schema xmlns="http://www.w3.org/2001/XMLSchema" /></nsmap>')
     elif type == Type.RSSFEED:
-        Xml = '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" />'
+        Xml = '<nsmap><rss version="2.0" /></nsmap>'
     elif type == Type.DTSENTRIES:
         Xml = None
     else:
         type = Type.Unknown
-        Xml = '<?xml version="1.0" encoding="UTF-8"?>'
+        Xml = '<nsmap/>'
     if Xml:
         import io
         file = io.StringIO(Xml)
-        from arelle import ModelObjectFactory
-        xmlDocument = etree.parse(file,parser=ModelObjectFactory.parser(modelXbrl),base_url=filepath)
+        _parser = parser(modelXbrl,filepath)
+        xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         file.close()
     else:
         xmlDocument = None
@@ -218,8 +219,13 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)
     else:
         modelDocument = ModelDocument(modelXbrl, type, normalizedUri, filepath, xmlDocument)
+    modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
+    rootNode = xmlDocument.getroot()
+    rootNode.init(modelDocument)
     if xmlDocument:
-        modelDocument.xmlRootElement = modelDocument.xmlDocument.documentElement
+        for semanticRoot in rootNode.iterchildren():
+            modelDocument.xmlRootElement = semanticRoot
+            break
     if type == Type.INSTANCE:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
     elif type == Type.RSSFEED:

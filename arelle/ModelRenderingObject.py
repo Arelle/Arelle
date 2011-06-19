@@ -8,13 +8,13 @@ from arelle import (XmlUtil, XbrlConst)
 from arelle.ModelDtsObject import ModelResource
 
 class ModelRenderingResource(ModelResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def __init__(self, modelDocument):
+        super().__init__(modelDocument)
         
 
 class ModelTable(ModelRenderingResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def __init__(self, modelDocument):
+        super().__init__(modelDocument)
         
     @property
     def propertyView(self):
@@ -25,8 +25,8 @@ class ModelTable(ModelRenderingResource):
         return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class ModelAxisCoord(ModelRenderingResource):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def __init__(self, modelDocument):
+        super().__init__(modelDocument)
         
     @property
     def abstract(self):

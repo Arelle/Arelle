@@ -725,7 +725,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
                 modelLabel = modelLabelRel.toModelObject
                 role = modelLabel.role
-                text = modelLabel.textNotStripped
+                text = modelLabel.text
                 lang = modelLabel.xmlLang
                 if role == XbrlConst.documentationLabel:
                     if concept.modelDocument.targetNamespace in self.disclosureSystem.standardTaxonomiesDict:

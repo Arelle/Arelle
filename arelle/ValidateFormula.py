@@ -456,7 +456,8 @@ def validate(val):
 
     # linked consistency assertions
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
-        if modelRel.fromModelObject and modelRel.toModelObject and isinstance(modelRel.toModelObject,ModelFormula):
+        if (modelRel.fromModelObject is not None and modelRel.toModelObject is not None and 
+            isinstance(modelRel.toModelObject,ModelFormula)):
             consisAsser = modelRel.fromModelObject
             consisAsser.countSatisfied = 0
             consisAsser.countNotSatisfied = 0
@@ -530,7 +531,8 @@ def validate(val):
                     "info", "formula:trace")
 
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
-        if modelRel.fromModelObject and modelRel.toModelObject and isinstance(modelRel.toModelObject,ModelFormula):
+        if modelRel.fromModelObject is not None and modelRel.toModelObject is not None and \
+           isinstance(modelRel.toModelObject,ModelFormula):
             consisAsser = modelRel.fromModelObject
             asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied)
             if formulaOptions.traceAssertionResultCounts:
@@ -615,7 +617,7 @@ def checkFormulaRules(val, formula, nameVariables):
                                 "err", "xbrlfe:missingPeriodRule") 
     # for unit need to see if the qname is statically determinable to determine if numeric
     concept = val.modelXbrl.qnameConcepts.get(formula.evaluateRule(None, Aspect.CONCEPT))
-    if not concept: # is there a source with a static QName filter
+    if concept is None: # is there a source with a static QName filter
         sourceFactVar = nameVariables.get(formula.source(Aspect.CONCEPT))
         if isinstance(sourceFactVar, ModelFactVariable):
             for varFilterRels in (formula.groupFilterRelationships, sourceFactVar.filterRelationships):
@@ -651,7 +653,7 @@ def checkFormulaRules(val, formula, nameVariables):
         for dimElt in XmlUtil.descendants(formula, XbrlConst.formula, eltName):
             dimQname = qname(dimElt, dimElt.get("dimension"))
             dimConcept = val.modelXbrl.qnameConcepts.get(dimQname)
-            if dimQname and (not dimConcept or (not dimConcept.isExplicitDimension if dim == "explicit" else not dimConcept.isTypedDimension)):
+            if dimQname and (dimConcept is None or (not dimConcept.isExplicitDimension if dim == "explicit" else not dimConcept.isTypedDimension)):
                 val.modelXbrl.error(_("Formula {0} dimension attribute {1} on the {2} dimension rule contains a QName that does not identify an {2} dimension.").format(formula.xlinkLabel, dimQname, dim),
                                     "err", badUsageErr) 
             elif not XmlUtil.hasChild(dimElt, XbrlConst.formula, "*") and not formula.source(Aspect.DIMENSIONS, dimElt):

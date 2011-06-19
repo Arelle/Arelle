@@ -132,7 +132,7 @@ def concat(xc, p, contextItem, args):
     for i in range(len(args)):
         item = anytypeArg(xc, args, i, "xs:anyAtomicType?")
         if item != ():
-            atomizedArgs.append( FunctionXs.string( xc, xc.atomize(p, item) ) )
+            atomizedArgs.append( FunctionXs.xsString( xc, xc.atomize(p, item) ) )
     return ''.join(atomizedArgs)
 
 def string_join(xc, p, contextItem, args):

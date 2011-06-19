@@ -5,7 +5,7 @@ Created on Jan 9, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil)
-from arelle.FunctionXs import (string)
+from arelle.FunctionXs import xsString
 from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFormula, ModelExistenceAssertion,
                                  ModelValueAssertion, 
@@ -366,7 +366,7 @@ def produceOutputFact(xpCtx, formula, result):
                     "err", str(periodEndInstant))
         
     # unit
-    if modelConcept and modelConcept.isNumeric:
+    if modelConcept is not None and modelConcept.isNumeric:
         unitSource = aspectValue(xpCtx, formula, Aspect.UNIT_MEASURES, None)
         multDivBy = aspectValue(xpCtx, formula, Aspect.MULTIPLY_BY, "xbrlfe:missingUnitRule")
         if isinstance(multDivBy, VariableBindingError):
@@ -405,12 +405,12 @@ def produceOutputFact(xpCtx, formula, result):
         if dimQnames:
             for dimQname in dimQnames:
                 dimConcept = xpCtx.modelXbrl.qnameConcepts[dimQname]
-                dimErr = "xbrlfe:missing{0}DimensionRule".format("typed" if dimConcept and dimConcept.isTypedDimension else "explicit")
+                dimErr = "xbrlfe:missing{0}DimensionRule".format("typed" if dimConcept is not None and dimConcept.isTypedDimension else "explicit")
                 dimValue = aspectValue(xpCtx, formula, dimQname, dimErr)
                 if isinstance(dimValue, VariableBindingError):
                     xpCtx.modelXbrl.error( _("Formula {0} dimension {1}: {2}").format( formula, dimQname, dimValue.msg ),
                             "err", dimErr)
-                elif dimValue and xpCtx.modelXbrl.qnameDimensionDefaults.get(dimQname) != dimValue:
+                elif dimValue is not None and xpCtx.modelXbrl.qnameDimensionDefaults.get(dimQname) != dimValue:
                     dimAspects[dimQname] = dimValue
         segOCCs = aspectValue(xpCtx, formula, Aspect.NON_XDT_SEGMENT, None)
         scenOCCs = aspectValue(xpCtx, formula, Aspect.NON_XDT_SCENARIO, None)
@@ -433,7 +433,7 @@ def produceOutputFact(xpCtx, formula, result):
     prevCntx = outputXbrlInstance.matchContext(
          entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
          dimAspects, segOCCs, scenOCCs)
-    if prevCntx:
+    if prevCntx is not None:
         cntxId = prevCntx.id
         newCntxElt = prevCntx
     else:
@@ -470,11 +470,11 @@ def produceOutputFact(xpCtx, formula, result):
                     dimMemberQname = dimValue
                     contextEltName = xpCtx.modelXbrl.qnameDimensionContextElement.get(dimQname)
                 if contextEltName == "segment":
-                    if not segmentElt: 
+                    if segmentElt is None: 
                         segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
                     contextElt = segmentElt
                 elif contextEltName == "scenario":
-                    if not scenarioElt: 
+                    if scenarioElt is None: 
                         scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
                     contextElt = scenarioElt
                 else:
@@ -506,7 +506,7 @@ def produceOutputFact(xpCtx, formula, result):
     # add unit
     if modelConcept.isNumeric:
         prevUnit = outputXbrlInstance.matchUnit(multiplyBy, divideBy)
-        if prevUnit:
+        if prevUnit is not None:
             unitId = prevUnit.id
             newUnitElt = prevUnit
         else:
@@ -561,7 +561,7 @@ def produceOutputFact(xpCtx, formula, result):
                 if (isnan(x) or
                     (precision and (isinf(precision) or precision == 0)) or 
                     (decimals and isinf(decimals))):
-                    v = string(xpCtx, x)
+                    v = xsString(xpCtx, x)
                 elif decimals is not None:
                     v = "%.*f" % ( int(decimals), x)
                 elif precision is not None:
@@ -569,13 +569,13 @@ def produceOutputFact(xpCtx, formula, result):
                     log = log10(a) if a != 0 else 0
                     v = "%.*f" % ( int(precision) - int(log) - (1 if a >= 1 else 0), x)
                 else: # no implicit precision yet
-                    v = string(xpCtx, x)
+                    v = xsString(xpCtx, x)
             elif isinstance(x,QName):
                 v = XmlUtil.addQnameValue(xbrlElt, x)
             elif isinstance(x,datetime.datetime):
                 v = XmlUtil.dateunionValue(x)
             else:
-                v = string(xpCtx, x)
+                v = xsString(xpCtx, x)
         itemElt = XmlUtil.addChild(xbrlElt, conceptQname,
                                    attributes=attrs, text=v,
                                    afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))
@@ -589,7 +589,7 @@ def aspectValue(xpCtx, formula, aspect, srcMissingErr):
 
     ruleValue = formula.evaluateRule(xpCtx, aspect)
     
-    if ruleValue:
+    if ruleValue is not None:
         if aspect in (Aspect.CONCEPT, 
                       Aspect.VALUE, Aspect.SCHEME,
                       Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT,
@@ -839,7 +839,7 @@ class VariableBinding:
         elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO,
                         Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
             return self.yieldedFactContext.nonDimValues(aspect)
-        elif aspect == Aspect.UNIT and self.yieldedFact.unit:
+        elif aspect == Aspect.UNIT and self.yieldedFact.unit is not None:
             return self.yieldedFact.unit
         elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
             return self.yieldedFact.unit.measures

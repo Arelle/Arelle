@@ -11,6 +11,6 @@ def viewReferences(concept):
     references = []
     for refrel in concept.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(concept):
         ref = refrel.toModelObject
-        if ref:
+        if ref is not None:
             references.append(ref.viewText())
     return ", ".join(references)

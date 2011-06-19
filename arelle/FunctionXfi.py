@@ -9,6 +9,8 @@ from arelle import (XPathContext, XbrlConst, XbrlUtil, XmlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import (qname, QName, dateTime, DATE, DATETIME, DATEUNION, anyURI)
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
+from arelle.ModelDtsObject import anonymousTypeSuffix
+from arelle.ModelInstanceObject import ModelDimensionValue
 from math import (isnan,isinf)
 
 class xfiFunctionNotAvailable(Exception):
@@ -248,21 +250,21 @@ def uncovered_aspect(xc, p, args):
         qn = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
         
     # check function use after checking argument types
-    if xc.progHeader and xc.progHeader.element:
+    if xc.progHeader is not None and xc.progHeader.element is not None:
         if xc.progHeader.element.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message"):
             raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
-        if xc.variableSet and xc.variableSet.implicitFiltering  == "false":
+        if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
             raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
         
     if aspect == Aspect.DIMENSIONS:
         if qn:
             modelConcept = xc.modelXbrl.qnameConcepts.get(qn)
-            if modelConcept and modelConcept.isDimensionItem:
+            if modelConcept is not None and modelConcept.isDimensionItem:
                 aspect = qn
             else:
                 return ()   # not a dimension
             dimValue = uncoveredAspectValue(xc, aspect)
-            if isinstance(dimValue, ModelObject.ModelDimensionValue):
+            if isinstance(dimValue, ModelDimensionValue):
                 if dimValue.isExplicit: 
                     return dimValue.memberQname
                 elif dimValue.isTyped:
@@ -395,14 +397,14 @@ def concept_custom_attribute(xc, p, args):
     qnAttr = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
     if not qnAttr: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = concept(xc,p,args)
-    if element.get(qnAttr.nsname) is None:
+    if element.get(qnAttr.clarkNotation) is None:
         return ()
-    return xc.atomize(p, element.get(qnAttr.nsname))
+    return xc.atomize(p, element.get(qnAttr.clarkNotation))
 
 def concept_data_type(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     typeQname = concept(xc,p,args).typeQname
-    if not typeQname or typeQname.localName.endswith(ModelObject.anonymousTypeSuffix):
+    if not typeQname or typeQname.localName.endswith(anonymousTypeSuffix):
         return ()
     return typeQname
 
@@ -512,7 +514,7 @@ def fact_explicit_dimension_value_value(xc, p, args):
         if not dimConcept or not dimConcept.isExplicitDimension:
             raise XPathContext.XPathException(p, 'xfie:invalidExplicitDimensionQName', _('dimension does not specify an explicit dimension'))
         dimValue = context.dimValue(qn)
-        if isinstance(dimValue, ModelObject.ModelDimensionValue) and dimValue.isExplicit:
+        if isinstance(dimValue, ModelDimensionValue) and dimValue.isExplicit:
             return dimValue.memberQname # known to be valid given instance is valid
         elif isinstance(dimValue, QName): #default, check if this is valid 
             ''' removed 2011-03-01 FWG clarification that default always applies
@@ -563,9 +565,9 @@ def fact_dimension_s_equal2(xc, p, args):
                 return False
             dimValue1 = context1.dimValue(qn)
             dimValue2 = context1.dimValue(qn)
-            if dimValue1 and isinstance(dimValue1,ModelObject.ModelDimensionValue):
+            if dimValue1 and isinstance(dimValue1,ModelDimensionValue):
                     return dimValue1.isEqualTo(dimValue2)
-            elif dimValue2 and isinstance(dimValue2,ModelObject.ModelDimensionValue):
+            elif dimValue2 and isinstance(dimValue2,ModelDimensionValue):
                     return dimValue2.isEqualTo(dimValue1)
             return dimValue1 == dimValue2
         raise XPathContext.FunctionArgType(2,"xbrl:item")
@@ -747,9 +749,9 @@ def element_attribute(xc, p, args, elementParent=False):
     if not qnAttr: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = modelRel.arcElement
     if elementParent: element = element.getparent()
-    if element.get(qnAttr.nsname) is None:
+    if element.get(qnAttr.clarkNotation) is None:
         return ()
-    return xc.atomize(p, element.get(qnAttr.nsname))
+    return xc.atomize(p, element.get(qnAttr.clarkNotation))
    
 def relationship_attribute(xc, p, args):
     return element_attribute(xc, p, args)
