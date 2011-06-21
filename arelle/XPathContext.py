@@ -361,7 +361,7 @@ class XPathContext:
                 prefix,sep,localName = type.partition(':')
                 if prefix == 'xs':
                     if localName.endswith('*'): localName = localName[:-1]
-                    if hasattr(result, "__iter__") and not isinstance(result, (str,ModelObject)):
+                    if isinstance(result, (tuple,list,set)):
                         from arelle import (FunctionXs)
                         if type.endswith('*'):
                             return[FunctionXs.call(self,progHeader,localName,(r,)) for r in result]
@@ -378,7 +378,7 @@ class XPathContext:
             r = self.evaluate(p.bindingSeq, contextItem=contextItem)
             if len(r) == 1: # should be an expr single
                 r = r[0]
-                if hasattr(r, '__iter__') and not isinstance(r, (str,ModelObject)):
+                if isinstance(r, (tuple,list,set)):
                     if len(r) == 1 and isinstance(r[0],range):
                         r = r[0]
                     rvQname = p.rangeVar.name
@@ -453,7 +453,7 @@ class XPathContext:
             
     def atomize(self, p, x):
         # sequence
-        if hasattr(x, '__iter__') and not isinstance(x, (str,ModelObject,range)):
+        if isinstance(x, (tuple,list,set)):
             sequence = []
             for item in self.flattenSequence(x):
                 atomizedItem = self.atomize(p, item)
@@ -519,11 +519,11 @@ class XPathContext:
     # flatten into a sequence
     def flattenSequence(self, x, sequence=None):
         if sequence is None: 
-            if isinstance(x, (str,ModelObject,range)) or not hasattr(x, '__iter__'):
+            if not isinstance(x, (tuple,list,set)):
                 return [x]
             sequence = []
         for el in x:
-            if hasattr(el, '__iter__') and not isinstance(el, (str,ModelObject,range)):
+            if isinstance(el, (tuple,list,set)):
                 self.flattenSequence(el, sequence=sequence)
             else:
                 sequence.append(el)
@@ -534,7 +534,7 @@ class XPathContext:
         l = set()  # must have unique nodes only
         for e in x:
             if isinstance(e,ModelObject):
-                h = e.objectIndex
+                h = e.sourceline
             else:
                 h = 0
             l.add((h,e))

@@ -315,7 +315,7 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
 
 def copyNodes(parent, elts):
     modelDocument = parent.modelDocument
-    for origElt in elts if hasattr(elts, '__iter__') else (elts,):
+    for origElt in elts if isinstance(elts, (tuple,list,set)) else (elts,):
         addQnameValue(modelDocument, origElt.elementQname)
         copyElt = modelDocument.parser.makeelement(origElt.tag)
         copyElt.init(modelDocument)
@@ -332,6 +332,8 @@ def copyNodes(parent, elts):
             if isinstance(origElt.xValue,QName):
                 copyElt.text = addQnameValue(modelDocument, origElt.xValue)
                 textContentSet = True
+        if not textContentSet and origElt.text is not None:
+            copyElt.text = origElt.text
         for childNode in origElt.getchildren():
             if isinstance(childNode,ModelObject):
                 copyNodes(copyElt,childNode)

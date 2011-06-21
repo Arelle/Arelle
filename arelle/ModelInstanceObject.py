@@ -299,7 +299,7 @@ class ModelInlineFact(ModelFact):
         negate = -1 if self.sign else 1
         mult = 1
         decSep = "," if self.format.endswith("comma") else "."
-        for c in self.text:
+        for c in XmlUtil.text(self):
             if c == decSep:
                 mult = 0.1
             elif c.isnumeric():
@@ -678,7 +678,7 @@ class ModelDimensionValue(ModelObject):
 
     @property
     def memberQname(self):
-        return self.prefixedNameQname(self.text)
+        return self.prefixedNameQname(XmlUtil.text(self))
         
     @property
     def member(self):

@@ -523,7 +523,7 @@ def index_of(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     seq = xc.atomize(p, args[0])
     srch = xc.atomize(p, args[1])
-    if hasattr(srch, '__iter__') and not isinstance(srch,(str,ModelObject)):
+    if isinstance(srch,(tuple,list)):
         if len(srch) != 1: raise XPathContext.FunctionArgType(1,'xs:anyAtomicType')
         srch = srch[0]
     indices = []

@@ -482,12 +482,12 @@ def produceOutputFact(xpCtx, formula, result):
                 dimConcept = xpCtx.modelXbrl.qnameConcepts[dimQname]
                 dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, dimConcept.qname))
                 if dimConcept.isTypedDimension:
-                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "typedMember", 
+                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
                                               attributes=dimAttr)
                     if isinstance(dimValue, ModelDimensionValue) and dimValue.isTyped:
                         XmlUtil.copyChildren(dimElt, dimValue.typedMember)
                 elif dimMemberQname:
-                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "explicitMember",
+                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
                                               attributes=dimAttr,
                                               text=XmlUtil.addQnameValue(xbrlElt, dimMemberQname))
         if segOCCs:

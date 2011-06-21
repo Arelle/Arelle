@@ -78,7 +78,7 @@ class ModelTestcaseVariation(ModelObject):
     def resultXbrlInstanceUri(self):
         resultInstance = XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "instance")
         if resultInstance is not None:
-            return resultInstance.text
+            return XmlUtil.text(resultInstance)
         return None
     
     
@@ -112,10 +112,10 @@ class ModelTestcaseVariation(ModelObject):
             return self.document.basename[:4]   #starts with PASS or FAIL
         errorElement = XmlUtil.descendant(self, None, "error")
         if errorElement is not None:
-            return ModelValue.qname(errorElement, errorElement.text)
+            return ModelValue.qname(errorElement, XmlUtil.text(errorElement))
         versioningReport = XmlUtil.descendant(self, None, "versioningReport")
         if versioningReport is not None:
-            return versioningReport.text
+            return XmlUtil.text(versioningReport)
         resultElement = XmlUtil.descendant(self, None, "result")
         if resultElement is not None:
             expected = resultElement.get("expected")
