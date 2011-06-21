@@ -244,7 +244,11 @@ def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=
             if isinstance(child,ModelObject) and \
                 (wildNamespaceURI or child.elementNamespaceURI == descendantNamespaceURI) and \
                 (wildLocalName or child.localName in descendantLocalNames):
-                descendants.append(child)
+                if attrName:
+                    if child.get(attrName) == attrValue or (attrValue == "*" and child.get(attrName) is not None):
+                        descendants.append(child)
+                else: 
+                    descendants.append(child)
                 if breakOnFirst:
                     break
     return descendants
