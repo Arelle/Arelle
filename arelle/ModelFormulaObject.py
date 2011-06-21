@@ -1001,7 +1001,7 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
     @property
     def filterQname(self):
         qnameElt = XmlUtil.descendant(self, XbrlConst.cf, "qname")
-        if qnameElt:
+        if qnameElt is not None:
             return qname( qnameElt, XmlUtil.text(qnameElt) )
         return None
     
@@ -1013,7 +1013,7 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
     def compile(self):
         if not hasattr(self, "qnameExpressionProg"):
             qnExprElt = XmlUtil.descendant(self, XbrlConst.cf, "qnameExpression")
-            qnExpr = XmlUtil.text(qnExprElt) if qnExprElt else None
+            qnExpr = XmlUtil.text(qnExprElt) if qnExprElt is not None else None
             self.qnameExpressionProg = XPathParser.parse(self, qnExpr, qnExprElt, "qnameExpression", Trace.VARIABLE)
             super().compile()
         
@@ -1051,7 +1051,8 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
                 for qn in (self.evalQname(xpCtx,fact),)
                 for v in (self.evalValue(xpCtx,fact),)
                 for c in (fact.concept,)
-                if cmplmt ^ (c.get(qn.clarkNotation) and
+                if cmplmt ^ (qn is not None and
+                             c.get(qn.clarkNotation) is not None and
                              (v is None or v == typedValue(xpCtx.modelXbrl, c, attrQname=qn)))] 
 
     @property
@@ -1697,7 +1698,7 @@ class ModelExplicitDimension(ModelFilter):
                 axis = XmlUtil.child(memberElt, XbrlConst.df, "axis")
                 memberModel = MemberModel(
                     qname( qnameElt, XmlUtil.text(qnameElt) ) if qnameElt is not None else None,
-                    XPathParser.parse(self, XmlUtil.text(qnameExpr), memberElt, "memQnameExpressionProg", Trace.VARIABLE) if qnameExpr else None,
+                    XPathParser.parse(self, XmlUtil.text(qnameExpr), memberElt, "memQnameExpressionProg", Trace.VARIABLE) if qnameExpr is not None else None,
                     qname( variableElt, XmlUtil.text(variableElt), noPrefixIsNoNamespace=True ) if variableElt is not None else None,
                     XmlUtil.text(linkrole) if linkrole is not None else None,
                     XmlUtil.text(arcrole) if arcrole is not None else None,
@@ -1750,7 +1751,7 @@ class ModelExplicitDimension(ModelFilter):
                             elif memberModel.qnameExprProg:
                                 matchMemQname = xpCtx.evaluateAtomicValue(memberModel.qnameExprProg, 'xs:QName', fact)
                             memConcept = xpCtx.modelXbrl.qnameConcepts.get(matchMemQname)
-                            if not memConcept:
+                            if memConcept is None:
                                 #self.modelXbrl.error(_("{0} is not a domain item concept.").format(matchMemQname), 
                                 #                     "err", "xbrldfe:invalidDomainMember")
                                 return []
@@ -1928,7 +1929,7 @@ class ModelAncestorFilter(ModelFilter):
     @property
     def ancestorQname(self):
         ancestorQname = XmlUtil.descendant(self, XbrlConst.tf, "qname")
-        if ancestorQname:
+        if ancestorQname is not None:
             return qname( ancestorQname, XmlUtil.text(ancestorQname) )
         return None
     
@@ -1982,7 +1983,7 @@ class ModelParentFilter(ModelFilter):
     @property
     def parentQname(self):
         parentQname = XmlUtil.descendant(self, XbrlConst.tf, "qname")
-        if parentQname:
+        if parentQname is not None:
             return qname( parentQname, XmlUtil.text(parentQname) )
         return None
     
@@ -2150,7 +2151,7 @@ class ModelSingleMeasure(ModelFilter):
     @property
     def qnameExpression(self):
         qnameExpression = XmlUtil.descendant(self, XbrlConst.uf, "qnameExpression")
-        if qnameExpression:
+        if qnameExpression is not None:
             return XmlUtil.text(qnameExpression)
         return None
     

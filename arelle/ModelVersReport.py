@@ -370,20 +370,19 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     fromType = fromConcept.type # it is null for xsd:anyType
                     toType = toConcept.type
                     # TBD change to xml comparison with namespaceURI mappings, prefixes ignored
-                    if fromType and toType and fromType.element.toxml() != toType.element.toxml():
+                    if fromType and toType and fromType.toxml() != toType.toxml():
                         action = self.createConceptEvent(verce, "verce:tupleContentModelChange", fromConcept, toConcept, action)
                 # custom attributes in from Concept
                 fromCustAttrs = {}
                 toCustAttrs = {}
                 for concept, attrs in ((fromConcept,fromCustAttrs),(toConcept,toCustAttrs)):
-                    for i in range(len(concept.element.attributes)):
-                        attr = concept.element.attributes.item(i)
-                        if (attr.name not in ("abstract","block","default","final","fixed","form","id","maxOccurs",
+                    for attrName, attrValue in concept.items():
+                        attrQname = qname(attrName)
+                        if (attrName not in ("abstract","block","default","final","fixed","form","id","maxOccurs",
                                              "minOccurs","name","nillable","ref","substitutionGroup","type") and 
-                            attr.prefix != "xmlns" and 
-                            attr.namespaceURI != XbrlConst.xbrli and 
-                            attr.namespaceURI != XbrlConst.xbrldt):
-                            attrs[concept.prefixedNameQname(attr.name)] = attr.value
+                            attrQname.namespaceURI != XbrlConst.xbrli and 
+                            attrQname.namespaceURI != XbrlConst.xbrldt):
+                            attrs[concept.prefixedNameQname(attrQname)] = attrValue
                 for attr in fromCustAttrs.keys():
                     if attr not in toCustAttrs:
                         action = self.createConceptEvent(verce, "verce:conceptAttributeDelete", fromConcept, None, action, fromCustomAttribute=attr, fromValue=fromCustAttrs[attr])
@@ -407,9 +406,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                     resource = rel.toModelObject
                                     key = (rel.linkrole, arcrole, resource.role, resource.xmlLang,
                                            rel.linkQname, rel.qname, resource.qname) + \
-                                           XbrlUtil.attributes(dts, None, rel.element,
+                                           XbrlUtil.attributes(dts, None, rel.arcElement,
                                                 exclusions=(XbrlConst.xlink, "use","priority","order","id")) + \
-                                           XbrlUtil.attributes(dts, None, resource.element,
+                                           XbrlUtil.attributes(dts, None, resource,
                                                 exclusions=(XbrlConst.xlink))
                                     resources[key] = resource
                     for key,label in fromResources.items():
@@ -419,7 +418,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         else:
                             toLabel = toResources[key]
                             toText = XmlUtil.innerText(toLabel)
-                            if not XbrlUtil.sEqual(self.fromDTS, label.element, toLabel.element, excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameTo):
+                            if not XbrlUtil.sEqual(self.fromDTS, label, toLabel, excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameTo):
                                 action = self.createConceptEvent(verce, event + "Change", fromConcept, toConcept, action, fromResource=label, toResource=toResources[key], fromResourceText=fromText, toResourceText=toText)
                     for key,label in toResources.items():
                         toText = XmlUtil.innerText(label)
@@ -495,9 +494,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
             toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept else None
             toRel = toRels[i] if i < len(toRels) else None
             if toRel and toRel.toModelObject and toRel.toModelObject.qname == toTgtQname:
-                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromRel.element,
+                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
-                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toRel.element,
+                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion,
                      ns2ns1Tbl=self.namespaceRenameTo)
                 if fromRelAttrs != toRelAttrs:
@@ -714,9 +713,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
             toRel = toRels[i] if i < len(toRels) else None
             if toRel and toRel.toModelObject and toRel.toModelObject.qname == toTgtQname:
                 toTgtConcept = toRel.toModelObject
-                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromRel.element,
+                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
-                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toRel.element,
+                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion,
                      ns2ns1Tbl=self.namespaceRenameTo)
                 if fromRelAttrs != toRelAttrs:
@@ -749,9 +748,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
             try:
                 toHcRel = fromHcRels[toPriItemQname, toHcQname, isNotAll]
                 fromHcRel = fromHcRels[fromHcRelKey]
-                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromHcRel.element,
+                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromHcRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
-                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toHcRel.element,
+                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toHcRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion,
                      ns2ns1Tbl=self.namespaceRenameTo)
                 if fromRelAttrs != toRelAttrs:
@@ -767,7 +766,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             fromTypedDomain = fromDimConcept.typedDomainElement
             toTypedDomain = toDimConcept.typedDomainElement
             isCorresponding = (fromTypedDomain and toTypedDomain and
-                               XbrlUtil.sEqual(self.fromDTS, fromTypedDomain.element, toTypedDomain.element, 
+                               XbrlUtil.sEqual(self.fromDTS, fromTypedDomain, toTypedDomain, 
                                               excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameTo))
             self.typedDomainsCorrespond[fromDimConcept, toDimConcept] = isCorresponding
             return isCorresponding
@@ -881,19 +880,19 @@ class ModelVersReport(ModelDocument.ModelDocument):
     def conceptHref(self, concept):
         conceptId = concept.id
         return (self.relativeUri(concept.modelDocument.uri) + "#" + 
-            (conceptId if conceptId else XmlUtil.elementFragmentIdentifier(concept.element)))  
+            (conceptId if conceptId else XmlUtil.elementFragmentIdentifier(concept)))  
         
     def createRelationshipSetEvent(self, eventName, linkrole=None, arcrole=None, fromConcept=None, toConcept=None, axis=None, attrValues=None, comment=None, eventParent=None):
-        if not eventParent:
+        if eventParent is None:
             eventParent = self.createAction()
         eventAttributes = []
         if linkrole:
             eventAttributes.append(("linkrole", linkrole))
         if arcrole:
             eventAttributes.append(("arcrole", arcrole))
-        if fromConcept:
+        if fromConcept is not None:
             eventAttributes.append(("fromName", XmlUtil.addQnameValue(self.reportElement, fromConcept.qname)))
-        if toConcept:
+        if toConcept is not None:
             eventAttributes.append(("toName", XmlUtil.addQnameValue(self.reportElement, toConcept.qname)))
         if axis:
             eventAttributes.append(("axis", axis))

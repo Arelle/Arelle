@@ -219,13 +219,15 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)
     else:
         modelDocument = ModelDocument(modelXbrl, type, normalizedUri, filepath, xmlDocument)
-    modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
-    rootNode = xmlDocument.getroot()
-    rootNode.init(modelDocument)
-    if xmlDocument:
-        for semanticRoot in rootNode.iterchildren():
-            modelDocument.xmlRootElement = semanticRoot
-            break
+    if Xml:
+        modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
+        rootNode = xmlDocument.getroot()
+        rootNode.init(modelDocument)
+        if xmlDocument:
+            for semanticRoot in rootNode.iterchildren():
+                if isinstance(semanticRoot, ModelObject):
+                    modelDocument.xmlRootElement = semanticRoot
+                    break
     if type == Type.INSTANCE:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
     elif type == Type.RSSFEED:
@@ -619,17 +621,17 @@ class ModelDocument:
             containerName, containerDimValues, containerNonDimValues = container
             for containerElement in modelContext.iterdescendants(tag=containerName):
                 for sElt in containerElement.iterchildren():
-                    if isinstance(sElt,ModelObject) and \
-                       sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
-                        XmlValidate.validate(self.modelXbrl, sElt)
-                        dimension = sElt.dimension
-                        if dimension is not None and dimension not in containerDimValues:
-                            containerDimValues[dimension] = sElt
+                    if isinstance(sElt,ModelObject):
+                        if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
+                            XmlValidate.validate(self.modelXbrl, sElt)
+                            dimension = sElt.dimension
+                            if dimension is not None and dimension not in containerDimValues:
+                                containerDimValues[dimension] = sElt
+                            else:
+                                modelContext.errorDimValues.append(sElt)
+                            modelContext.qnameDims[sElt.dimensionQname] = sElt # both seg and scen
                         else:
-                            modelContext.errorDimValues.append(sElt)
-                        modelContext.qnameDims[sElt.dimensionQname] = sElt # both seg and scen
-                    else:
-                        containerNonDimValues.append(sElt)
+                            containerNonDimValues.append(sElt)
                             
     def unitDiscover(self, unitElement):
         self.modelXbrl.units[unitElement.id] = unitElement

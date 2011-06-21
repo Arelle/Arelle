@@ -14,7 +14,7 @@ def anytypeArg(xc, args, i, type, missingArgFallback=None):
         item = args[i]
     else:
         item = missingArgFallback
-    if hasattr(item, "__iter__") and not isinstance(item, str):
+    if hasattr(item, "__iter__") and not isinstance(item, (str,ModelObject)):
         if len(item) > 1: raise FunctionArgType(i,type)
         if len(item) == 0: return ()
         item = item[0]

@@ -126,7 +126,10 @@ class ModelObject(etree.ElementBase):
         return self.modelDocument
     
     def prefixedNameQname(self, prefixedName):
-        return qname(self, prefixedName)
+        if prefixedName:    # passing None would return element qname, not prefixedName None Qname
+            return qname(self, prefixedName)
+        else:
+            return None
     
     @property
     def elementAttributesTuple(self):

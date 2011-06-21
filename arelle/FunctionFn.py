@@ -9,7 +9,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
-from arelle import (FunctionXs, XPathContext, ModelObject, XbrlUtil, XmlUtil)
+from arelle import (FunctionXs, XPathContext, XbrlUtil, XmlUtil)
     
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
@@ -484,7 +484,7 @@ def namespace_uri(xc, p, contextItem, args):
 
 def Node_functions(xc, contextItem, args, name=None, localName=None, namespaceURI=None):
     node = nodeArg(xc, args, 0, 'node()?', missingArgFallback=contextItem, emptyFallback=())
-    if node != () and node.nodeType is ModelObject:
+    if node != () and isinstance(node, ModelObject):
         if name: return node.prefixedName
         if localName: return node.localName
         if namespaceURI: return node.namespaceURI
@@ -507,7 +507,7 @@ def boolean(xc, p, contextItem, args):
     if inputSequence is None or len(inputSequence) == 0:
         return False
     item = inputSequence[0]
-    if isinstance(item, ModelObject.ModelObject):
+    if isinstance(item, ModelObject):
         return True
     if len(inputSequence) == 1:
         if isinstance(item, bool):
@@ -523,7 +523,7 @@ def index_of(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     seq = xc.atomize(p, args[0])
     srch = xc.atomize(p, args[1])
-    if hasattr(srch, '__iter__'):
+    if hasattr(srch, '__iter__') and not isinstance(srch,(str,ModelObject)):
         if len(srch) != 1: raise XPathContext.FunctionArgType(1,'xs:anyAtomicType')
         srch = srch[0]
     indices = []

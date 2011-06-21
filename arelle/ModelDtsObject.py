@@ -193,10 +193,10 @@ class ModelConcept(ModelSchemaObject):
         if typeqname == self.typeQname:
             return True
         type = self.type
-        if type and self.type.isDerivedFrom(typeqname):
+        if type is not None and self.type.isDerivedFrom(typeqname):
             return True
         subs = self.substitutionGroup
-        if subs: 
+        if subs is not None: 
             return subs.instanceOfType(typeqname)
         return False
     

@@ -178,12 +178,7 @@ def parent(element):
     return element.getparent()
 
 def ancestors(element):
-    ancestors = []
-    ancestor = element.getparent()
-    while ancestor is not None:
-        ancestors.append(ancestor)
-        ancestor = ancestor.getparent()
-    return ancestors
+    return [ancestor for ancestor in element.getancestors()]
     
 def childAttr(element, childNamespaceURI, childLocalNames, attrLocalName):
     childElt = child(element, childNamespaceURI, childLocalNames)
@@ -206,7 +201,7 @@ def children(element, childNamespaceURI, childLocalNames):
                 children.append(child)
     return children
 
-def child(element, childNamespaceURI, childLocalNames):
+def child(element, childNamespaceURI=None, childLocalNames=("*",)):
     result = children(element, childNamespaceURI, childLocalNames)
     if result and len(result) > 0:
         return result[0]
@@ -347,7 +342,7 @@ def copyChildren(parent, elt):
             copyNodes(parent, childNode)
 
 def addComment(parent, commentText):
-    child = ModelObject.ModelComment( str(commentText) )
+    child = ModelComment( str(commentText) )
     parent.append(child)
     
 def addQnameValue(modelDocument, qnameValue):

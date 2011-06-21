@@ -88,7 +88,7 @@ class ModelFact(ModelObject):
             return self._isFraction
         except AttributeError:
             concept = self.concept
-            self._isFraction = concept and concept.isFraction
+            self._isFraction = (concept is not None) and concept.isFraction
             return self._isFraction
         
     @property
@@ -100,7 +100,7 @@ class ModelFact(ModelObject):
         try:
             return self._ancestorQnames
         except AttributeError:
-            self._ancestorQnames = set( ModelValue.qname(ancestor) for ancestor in self.getancestors() )
+            self._ancestorQnames = set( ModelValue.qname(ancestor) for ancestor in self.iterancestors() )
             return self._ancestorQnames
 
     @property
@@ -150,7 +150,7 @@ class ModelFact(ModelObject):
     @property
     def value(self):
         v = self.text
-        if len(v) == 0:
+        if v is None:
             if self.concept.default is not None:
                 v = self.concept.default
             elif self.concept.fixed is not None:
@@ -650,7 +650,7 @@ class ModelDimensionValue(ModelObject):
         if self.isExplicit:
             return hash( (self.dimensionQname, self.memberQname) )
         else:
-            return None # TBD      
+            return hash( (self.dimensionQname, XbrlUtil.equalityHash(XmlUtil.child(self))) )
        
     @property
     def dimensionQname(self):

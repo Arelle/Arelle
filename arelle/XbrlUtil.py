@@ -37,7 +37,7 @@ def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=False):
             XmlValidate.validate(dts, elt)
         _hash = hash((elt.sValue if equalMode == S_EQUAL else elt.xValue,
                       tuple(attributeDict(dts, elt, (), equalMode, excludeIDs).items()),
-                      tuple(hash(dts,child,equalMode,excludeIDs) for child in childElements(elt))
+                      tuple(equalityHash(child,equalMode,excludeIDs) for child in childElements(elt))
                       ))
         if equalMode == S_EQUAL:
             elt._hashSEqual = _hash
@@ -99,11 +99,7 @@ def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False)
     return tuple( (k,a[k]) for k in sorted(a.keys()) )    
 
 def childElements(elt):
-    children = []
-    for child in elt.getchildren():
-        if isinstance(child,ModelObject):
-            children.append(child)
-    return children
+    return [child for child in elt.getchildren() if isinstance(child,ModelObject)]
 
 def xEqual(elt1, elt2, equalMode=S_EQUAL):
     if equalMode == S_EQUAL:

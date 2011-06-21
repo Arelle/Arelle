@@ -63,6 +63,8 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         if prefix: 
             if castException: raise castException
             return None  # error, prefix not found
+    if not namespaceURI:
+        namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
 
 class QName:

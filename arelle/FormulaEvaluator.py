@@ -302,7 +302,7 @@ def aspectMatches(fact1, fact2, aspects):
                     elif dimValue1 != dimValue2.memberQname:
                         matches = False 
             elif dimValue1 is None:
-                if dimValue2:
+                if dimValue2 is not None:
                     matches = False
         if not matches: 
             break
@@ -491,11 +491,11 @@ def produceOutputFact(xpCtx, formula, result):
                                               attributes=dimAttr,
                                               text=XmlUtil.addQnameValue(xbrlElt, dimMemberQname))
         if segOCCs:
-            if not segmentElt: 
+            if segmentElt is None: 
                 segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
             XmlUtil.copyNodes(segmentElt, segOCCs)
         if scenOCCs:
-            if not scenarioElt: 
+            if scenarioElt is None: 
                 scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
             XmlUtil.copyNodes(scenarioElt, scenOCCs)
                 
