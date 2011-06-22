@@ -124,13 +124,14 @@ def vEqual(elt1, elt2):
 
 def typedValue(dts, element, attrQname=None):
     try:
-        if element.xValid == XmlValidate.VALID:
-            if attrQname:
-                valid, xValue, sValue = element.xAttributes[attrQname.clarkNotation]
-            else:
-                xValue = element.xValue
-            return xValue
-    except AttributeError:
+        if attrQname: # PSVI attribute value
+            valid, xValue, sValue = element.xAttributes[attrQname.clarkNotation]
+            if valid == XmlValidate.VALID:
+                return xValue
+        else: # PSVI element value (of text)
+            if element.xValid == XmlValidate.VALID:
+                return element.xValue
+    except (AttributeError, KeyError):
         if dts:
             XmlValidate.validate(dts, element, recurse=False, attrQname=attrQname)
             return typedValue(None, element, attrQname=attrQname)
