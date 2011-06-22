@@ -336,8 +336,12 @@ def copyNodes(parent, elts):
             if isinstance(origElt.xValue,QName):
                 copyElt.text = addQnameValue(modelDocument, origElt.xValue)
                 textContentSet = True
-        if not textContentSet and origElt.text is not None:
-            copyElt.text = origElt.text
+        if not textContentSet:
+            text = origElt.text
+            if text is not None:
+                text = text.strip()  # don't copy whitespace text
+                if text:
+                    copyElt.text = text
         for childNode in origElt.getchildren():
             if isinstance(childNode,ModelObject):
                 copyNodes(copyElt,childNode)
@@ -559,18 +563,21 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
             writer.write("\"")
         hasChildNodes = False
         firstChild = True
+        text = node.text
+        if text is not None:
+            text = text.strip().replace("<","&lt;")
         for child in node.iterchildren():
             hasChildNodes = True
             if firstChild:
                 writer.write(">\n")
-                if node.text:
-                    writer.write(node.text.replace("<","&lt;"))
+                if text:
+                    writer.write(text)
                 firstChild = False
             writexml(writer, child, indent=indent+'    ')
         if hasChildNodes:
             writer.write("%s</%s>\n" % (indent, node.prefixedName))
-        elif node.text:
-            writer.write(">%s</%s>\n" % (node.text.replace("<","&lt;"), node.prefixedName))
+        elif text:
+            writer.write(">%s</%s>\n" % (text, node.prefixedName))
         else:
             writer.write("/>\n")
     elif isinstance(node,ModelComment): # ok to use minidom implementation

@@ -48,14 +48,14 @@ class ViewFormulae(ViewWinTree.ViewTree):
         # remove formulae under consistency assertions from root objects
         consisAsserFormulaRelSet = self.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula)
         for modelRel in consisAsserFormulaRelSet.modelRelationships:
-            if modelRel.fromModelObject and modelRel.toModelObject:
+            if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
                 rootObjects.add(modelRel.fromModelObject)   # display consis assertion
                 rootObjects.discard(modelRel.toModelObject) # remove formula from root objects
                 
         # remove assertions under assertion sets from root objects
         assertionSetRelSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSet)
         for modelRel in assertionSetRelSet.modelRelationships:
-            if modelRel.fromModelObject and modelRel.toModelObject:
+            if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
                 rootObjects.add(modelRel.fromModelObject)   # display assertion set
                 rootObjects.discard(modelRel.toModelObject) # remove assertion from root objects
                 

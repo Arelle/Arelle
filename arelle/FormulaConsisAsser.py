@@ -4,9 +4,9 @@ Created on Jan 9, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (XbrlConst)
-from arelle.XbrlUtil import (xEqual,S_EQUAL2)
-from arelle.ValidateXbrlCalcs import (inferredPrecision, roundValue)
+from arelle import XbrlConst
+from arelle.XbrlUtil import xEqual, S_EQUAL2
+from arelle.ValidateXbrlCalcs import inferredPrecision, roundValue
 from math import fabs
 
 def evaluate(xpCtx, varSet, derivedFact):
@@ -95,7 +95,7 @@ def evaluate(xpCtx, varSet, derivedFact):
                         roundValue(derivedFact.vEqValue, precision=p) != roundValue(fact.vEqValue, precision=p)):
                         isSatisfied = False
             else:
-                if not xEqual(fact.concept, fact.element, derivedFact.element, equalMode=S_EQUAL2):
+                if not xEqual(fact, derivedFact, equalMode=S_EQUAL2):
                     isSatisfied = False
         for paramQname in paramQnamesAdded:
             xpCtx.inScopeVars.pop(paramQname)

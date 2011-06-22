@@ -576,11 +576,11 @@ def produceOutputFact(xpCtx, formula, result):
                 v = XmlUtil.dateunionValue(x)
             else:
                 v = xsString(xpCtx, x)
-        itemElt = XmlUtil.addChild(xbrlElt, conceptQname,
+        newFact = XmlUtil.addChild(xbrlElt, conceptQname,
                                    attributes=attrs, text=v,
                                    afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))
-        xpCtx.outputLastFact[outputInstanceQname] = itemElt
-        newFact = outputXbrlInstance.modelDocument.factDiscover(itemElt, outputXbrlInstance.facts)
+        xpCtx.outputLastFact[outputInstanceQname] = newFact
+        outputXbrlInstance.modelDocument.factDiscover(newFact, outputXbrlInstance.facts)
         return newFact
 
 def aspectValue(xpCtx, formula, aspect, srcMissingErr):

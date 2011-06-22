@@ -685,9 +685,6 @@ class ModelDocument:
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.append( modelFact )
-            id = modelFact.id
-            if id is not None:
-                self.idObjects[id] = modelFact
             for tupleElement in modelFact.getchildren():
                 if isinstance(tupleElement,ModelObject):
                     self.factDiscover(tupleElement, modelFact.modelTupleFacts)

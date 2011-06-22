@@ -23,7 +23,7 @@ conformanceNS = "http://xbrl.org/2008/conformance"
 def main():
     gettext.install("arelle")
     usage = "usage: %prog [options]"
-    parser = OptionParser(usage, version="Arelle(TM) {0}".format(Version.version))
+    parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
     parser.add_option("--excelfile", dest="excelfilename",
                       help=_("FILENAME is an excel 95-2003 index file containing columns: \n"
                              "Dir is a test directory, \n"

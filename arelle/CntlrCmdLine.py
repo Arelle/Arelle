@@ -18,7 +18,7 @@ from arelle.ModelFormulaObject import FormulaOptions
 def main():
     gettext.install("arelle")
     usage = "usage: %prog [options]"
-    parser = OptionParser(usage, version="Arelle(TM) {0}".format(Version.version))
+    parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
     parser.add_option("-f", "--file", dest="filename",
                       help=_("FILENAME is an entry point, which may be"
                              "an XBRL instance, schema, linkbase file, "
@@ -89,7 +89,7 @@ def main():
     
     (options, args) = parser.parse_args()
     if options.about:
-        print(_("\narelle(TM) {0}\n\n"
+        print(_("\narelle(r) {0}\n\n"
                 "An open source XBRL platform\n"
                 "(c) 2010-2011 Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -103,7 +103,7 @@ def main():
                 "See the License for the specific language governing permissions and \n"
                 "limitations under the License."
                 "\n\nIncludes:"
-                "\n   Python (c) 2001-2010 Python Software Foundation"
+                "\n   Python(r) (c) 2001-2010 Python Software Foundation"
                 "\n   PyParsing (c) 2003-2010 Paul T. McGuire"
                 "\n   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 "\n   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"

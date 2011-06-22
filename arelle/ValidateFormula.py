@@ -428,7 +428,8 @@ def validate(val):
     # add instances with variable sets with no variables or other dependencies
     for independentInstance in instanceProducingVariableSets.keys() - orderedInstancesList:
         orderedInstancesList.append(independentInstance)
-    orderedInstancesList.append(None)  # assertions come after all formulas that produce outputs
+    if None not in orderedInstancesList:
+        orderedInstancesList.append(None)  # assertions come after all formulas that produce outputs
 
     # anything unresolved?
     for instqname, depInsts in instanceDependencies.items():

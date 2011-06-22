@@ -454,7 +454,7 @@ class ModelConsistencyAssertion(ModelFormulaResource):
                 
     def compile(self):
         if not hasattr(self, "radiusProg"):
-            self.radiusProg = XPathParser.parse(self, self.viewExpression, self, "radius", Trace.VARIABLE_SET)
+            self.radiusProg = XPathParser.parse(self, self.radiusExpression, self, "radius", Trace.VARIABLE_SET)
             super().compile()
 
     def evalRadius(self, xpCtx, factValue):
@@ -488,10 +488,18 @@ class ModelConsistencyAssertion(ModelFormulaResource):
         return None
     
     @property
+    def radiusExpression(self):
+        if self.get("proportionalAcceptanceRadius") is not None:
+            return self.get("proportionalAcceptanceRadius")
+        elif self.get("absoluteAcceptanceRadius") is not None:
+            return self.get("absoluteAcceptanceRadius")
+        return ""
+
+    @property
     def viewExpression(self):
-        if self.get("proportionalAcceptanceRadius"):
+        if self.get("proportionalAcceptanceRadius") is not None:
             return "proportionalAcceptanceRadius=" + self.get("proportionalAcceptanceRadius")
-        elif self.get("absoluteAcceptanceRadius"):
+        elif self.get("absoluteAcceptanceRadius") is not None:
             return "absoluteAcceptanceRadius=" + self.get("absoluteAcceptanceRadius")
         return ""
 

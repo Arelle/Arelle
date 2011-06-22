@@ -530,7 +530,8 @@ class ModelContext(ModelObject):
         try:
             return self._nonDimsHash
         except AttributeError:
-            self._nonDimsHash = hash( (tuple(self.nonDimValues("segment")), tuple(self.nonDimValues("scenario"))) )
+            self._nonDimsHash = hash( (XbrlUtil.equalityHash(self.nonDimValues("segment")), 
+                                       XbrlUtil.equalityHash(self.nonDimValues("scenario"))) )
             return self._nonDimsHash
         
     @property
