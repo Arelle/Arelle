@@ -6,7 +6,7 @@ This module is Arelle's controller in windowing interactive UI mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, subprocess, pickle, time, locale
+import os, subprocess, pickle, time, locale, re
 from tkinter import *
 import tkinter.tix
 from tkinter.ttk import *
@@ -255,7 +255,42 @@ class CntlrWinMain (Cntlr.Cntlr):
         window.columnconfigure(0, weight=1)
         window.rowconfigure(0, weight=1)
         
-        self.parent.geometry(self.config['windowGeometry'])
+        priorState = self.config.get('windowState')
+        if priorState == "zoomed":
+            self.parent.state("zoomed")
+        else:
+            priorGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
+            if priorGeometry and priorGeometry.lastindex >= 4:
+                try:
+                    w = int(priorGeometry.group(1))
+                    h = int(priorGeometry.group(2))
+                    x = int(priorGeometry.group(3))
+                    y = int(priorGeometry.group(4))
+                    screenW = self.parent.winfo_screenwidth() - 16 # allow for window edge
+                    screenH = self.parent.winfo_screenheight() - 64 # allow for caption and menus
+                    if x + w > screenW:
+                        if w < screenW:
+                            x = screenW - w
+                        else:
+                            x = 0
+                            w = screenW
+                    elif x < 0:
+                        x = 0
+                        if w > screenW:
+                            w = screenW
+                    if y + h > screenH:
+                        if y < screenH:
+                            y = screenH - h
+                        else:
+                            y = 0
+                            h = screenH
+                    elif y < 0:
+                        y = 0
+                        if h > screenH:
+                            h = screenH
+                    self.parent.geometry("{0}x{1}+{2}+{3}".format(w,h,x,y))
+                except:
+                    pass
         
         self.parent.title(_("arelle\u00ae - Unnamed"))
         
@@ -665,7 +700,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         if self.okayToContinue():
             global restartMain
             restartMain = restartAfterQuit
-            self.config["windowGeometry"] = self.parent.geometry()
+            state = self.parent.state()
+            if state == "normal":
+                self.config["windowGeometry"] = self.parent.geometry()
+            if state in ("normal", "zoomed"):
+                self.config["windowState"] = state
             super().close()
             self.parent.unbind_all(())
             self.parent.destroy()
