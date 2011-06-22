@@ -331,7 +331,7 @@ class XPathContext:
                         innerFocusNodes = contextItem
                     navSequence = []
                     for innerFocusNode in self.flattenSequence(innerFocusNodes):
-                        self.evaluate(p.args, contextItem=innerFocusNode, resultStack=navSequence, parentOp=op)
+                        navSequence += self.evaluate(p.args, contextItem=innerFocusNode, parentOp=op)
                     result = self.documentOrderedNodes(self.flattenSequence(navSequence))
             elif isinstance(p,ProgHeader):
                 self.progHeader = p
