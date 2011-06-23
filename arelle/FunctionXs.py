@@ -272,7 +272,7 @@ def xsString(xc, source):
 def normalizedString(xc, source):
     return str(source)
   
-tokenPattern = re.compile("(^\s([.]*[\s])*)$")
+tokenPattern = re.compile(r"^\s*([-\.:\w]+)\s*$")
 def token(xc, source):
     s = str(source)
     if tokenPattern.match(s): return s

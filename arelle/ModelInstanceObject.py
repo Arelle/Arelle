@@ -708,7 +708,7 @@ class ModelDimensionValue(ModelObject):
         if self.isExplicit:
             return (str(self.dimensionQname),str(self.memberQname))
         else:
-            return (str(self.dimensionQname),XmlUtil.child(self).toxml())
+            return (str(self.dimensionQname), etree.tounicode( XmlUtil.child(self) ) )
         
 class ModelUnit(ModelObject):
     def init(self, modelDocument):

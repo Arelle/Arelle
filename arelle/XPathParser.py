@@ -69,10 +69,14 @@ class QNameDef(ModelValue.QName):
     def __ne__(self,other):
     	return not self.__eq__(other)
 
+defaultNsmap = {
+    "fn":"http://www.w3.org/2005/xpath-functions",
+    }
+
 def pushQName( sourceStr, loc, toks ):
     qname = toks[0]
     if xmlElement is not None:
-        nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname)
+        nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
         if nsLocalname is None:
             modelXbrl.error(
                 _("QName prefix not defined for {0}").format(qname),

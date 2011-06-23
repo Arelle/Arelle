@@ -125,7 +125,14 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
             type = Type.RSSFEED
         else:
             type = Type.Unknown
-            nestedInline = XmlUtil.descendant(rootNode, XbrlConst.xhtml, ("html", "xhtml"))
+            nestedInline = None
+            for htmlElt in rootNode.iter(tag="{http://www.w3.org/1999/xhtml}html"):
+                nestedInline = htmlElt
+                break
+            if nestedInline is None:
+                for htmlElt in rootNode.iter(tag="{http://www.w3.org/1999/xhtml}xhtml"):
+                    nestedInline = htmlElt
+                    break
             if nestedInline:
                 if XbrlConst.ixbrl in nestedInline.nsmap.values():
                     type = Type.INLINEXBRL
@@ -264,6 +271,9 @@ class Type:
     
 # schema elements which end the include/import scah
 schemaBottom = {"element", "attribute", "notation", "simpleType", "complexType", "group", "attributeGroup"}
+fractionParts = {"{http://www.xbrl.org/2003/instance}numerator",
+                 "{http://www.xbrl.org/2003/instance}denominator"}
+
 
 
 class ModelDocument:
@@ -686,7 +696,7 @@ class ModelDocument:
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.append( modelFact )
             for tupleElement in modelFact.getchildren():
-                if isinstance(tupleElement,ModelObject):
+                if isinstance(tupleElement,ModelObject) and tupleElement.tag not in fractionParts:
                     self.factDiscover(tupleElement, modelFact.modelTupleFacts)
         else:
             self.modelXbrl.error(
@@ -723,12 +733,12 @@ class ModelDocument:
 
     def registryDiscover(self, rootNode):
         base = self.filepath
-        for entryElement in rootNode.getdescendants(tag="{http://xbrl.org/2008/registry}entry"):
+        for entryElement in rootNode.iterdescendants(tag="{http://xbrl.org/2008/registry}entry"):
             if isinstance(entryElement,ModelObject): 
-                uri = XmlUtil.childAttr(entryElement, XbrlConst.registry, "url", "xlink:href")
+                uri = XmlUtil.childAttr(entryElement, XbrlConst.registry, "url", "{http://www.w3.org/1999/xlink}href")
                 functionDoc = load(self.modelXbrl, uri, base=base)
                 if functionDoc is not None:
-                    testuri = XmlUtil.childAttr(functionDoc.xmlRootElement, XbrlConst.function, "conformanceTest", "xlink:href")
+                    testuri = XmlUtil.childAttr(functionDoc.xmlRootElement, XbrlConst.function, "conformanceTest", "{http://www.w3.org/1999/xlink}href")
                     testbase = functionDoc.filepath
                     testcaseDoc = load(self.modelXbrl, testuri, base=testbase)
                     if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:

@@ -138,7 +138,6 @@ DATE = 1
 DATETIME = 2
 DATEUNION = 3
 def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
-    from arelle.ModelObject import ModelObject
     if value == "MinDate":
         return DateTime(datetime.MINYEAR,1,1)
     elif value == "maxyear":
@@ -302,7 +301,6 @@ class DayTimeDuration(datetime.timedelta):
         return "P{0}DT{1}H{2}M{3}S".format(x[0], x[1], x[2], x[3])
         
 def time(value, castException=None):
-    from arelle.ModelObject import ModelObject
     if value == "MinTime":
         return Time(time.min)
     elif value == "MaxTime":

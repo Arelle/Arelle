@@ -102,8 +102,8 @@ class ModelTestcaseVariation(ModelObject):
         except AttributeError:
             self._cfcnTest = None
             testElement = XmlUtil.descendant(self, XbrlConst.cfcn, "test")
-            if testElement:
-                self._cfcnTest = (testElement.innerText, testElement)
+            if testElement is not None:
+                self._cfcnTest = (XmlUtil.innerText(testElement), testElement)
             return self._cfcnTest
     
     @property

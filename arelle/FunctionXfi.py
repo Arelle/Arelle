@@ -95,20 +95,22 @@ def period(xc, p, args):
 def context_period(xc, p, args):
     return parent_child(args, "context", "period")
 
-def parent_child(args, parentName, descendantName):
+def parent_child(args, parentName, childName, findDescendant=False):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:" + parentName)
     parent = args[0][0]
-    if isinstance(parent,ModelObject) and isinstance(parent,ModelObject) and \
+    if isinstance(parent,ModelObject) and \
        parent.localName == parentName and parent.namespaceURI == XbrlConst.xbrli:
-        if descendantName.startswith('@'):
-            return parent.get(descendantName[1:])
-        elif descendantName == 'text()':
-            return parent.textNotStripped
-        elif descendantName == 'strip-text()':
-            return parent.text
+        if childName.startswith('@'):
+            return parent.get(childName[1:])
+        elif childName == 'text()':
+            return XmlUtil.textNotStripped(parent)
+        elif childName == 'strip-text()':
+            return XmlUtil.text(parent)
+        elif findDescendant:
+            return XmlUtil.descendant(parent, XbrlConst.xbrli, childName)
         else:
-            return XmlUtil.child(parent, XbrlConst.xbrli, descendantName)
+            return XmlUtil.child(parent, XbrlConst.xbrli, childName)
     raise XPathContext.FunctionArgType(1,"xbrl:" + parentName)
 
 def is_start_end_period(xc, p, args):
@@ -133,15 +135,15 @@ def is_period_type(args, periodElement):
     raise XPathContext.FunctionArgType(1,"xbrl:period")
 
 def period_start(xc, p, args):
-    return period_datetime(p, args, ("startDate","instant"), False)
+    return period_datetime(p, args, ("startDate","instant"))
 
 def period_end(xc, p, args):
-    return period_datetime(p, args, ("endDate","instant"), True)
+    return period_datetime(p, args, ("endDate","instant"))
 
 def period_instant(xc, p, args):
-    return period_datetime(p, args, "instant", True)
+    return period_datetime(p, args, "instant")
 
-def period_datetime(p, args, periodElement, addOneDay):
+def period_datetime(p, args, periodElement):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:period")
     period = args[0][0]
@@ -149,6 +151,7 @@ def period_datetime(p, args, periodElement, addOneDay):
         period.localName == "period" and period.namespaceURI == XbrlConst.xbrli):
         child = XmlUtil.child(period, XbrlConst.xbrli, periodElement)
         if child is not None:
+            addOneDay = child.localName != "startDate"
             return dateTime( child, addOneDay=addOneDay, type=DATETIME)
         elif periodElement == "instant":
             raise XPathContext.XPathException(p, 'xfie:PeriodIsNotInstant', _('Period is not instant'))
@@ -166,7 +169,7 @@ def identifier(xc, p, args):
     return item_context_element(xc, args, "identifier")
 
 def context_identifier(xc, p, args):
-    return parent_child(args, "context", "identifier")
+    return parent_child(args, "context", "identifier", True)
 
 def entity_identifier(xc, p, args):
     return parent_child(args, "entity", "identifier")
@@ -190,7 +193,7 @@ def entity_segment(xc, p, args):
     return parent_child(args, "entity", "segment")
 
 def context_segment(xc, p, args):
-    return parent_child(args, "context", "segment")
+    return parent_child(args, "context", "segment", True)
 
 def scenario(xc, p, args):
     return item_context_element(xc, args, "scenario")
@@ -235,7 +238,7 @@ def conceptProperty(xc, p, args, property):
     qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     if qn:
         modelConcept = xc.modelXbrl.qnameConcepts.get(qn)
-        if modelConcept:
+        if modelConcept is not None:
             if property == "numeric": return modelConcept.isNumeric
             if property == "non-numeric": return not modelConcept.isNumeric
             if property == "fraction": return modelConcept.isFraction
@@ -380,7 +383,7 @@ def non_nil_facts_in_instance(xc, p, args):
 def concept(xc, p, args):
     qnConcept = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     srcConcept = xc.modelXbrl.qnameConcepts.get(qnConcept)
-    if not (srcConcept and (srcConcept.isItem or srcConcept.isTuple)): 
+    if srcConcept is None or not (srcConcept.isItem or srcConcept.isTuple): 
         raise XPathContext.XPathException(p, 'xfie:invalidConceptQName', _('Argument 1 {0} is not a concept in the DTS.').format(qnConcept))
     return srcConcept
 
@@ -395,7 +398,7 @@ def concept_period_type(xc, p, args):
 def concept_custom_attribute(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     qnAttr = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
-    if not qnAttr: raise XPathContext.FunctionArgType(2,"xs:QName")
+    if qnAttr is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = concept(xc,p,args)
     if element.get(qnAttr.clarkNotation) is None:
         return ()
@@ -404,14 +407,14 @@ def concept_custom_attribute(xc, p, args):
 def concept_data_type(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     typeQname = concept(xc,p,args).typeQname
-    if not typeQname or typeQname.localName.endswith(anonymousTypeSuffix):
+    if typeQname is None or typeQname.localName.endswith(anonymousTypeSuffix):
         return ()
     return typeQname
 
 def concept_data_type_derived_from(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     qnType = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
-    if not qnType: raise XPathContext.FunctionArgType(2,"xs:QName")
+    if qnType is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     return concept(xc,p,args).instanceOfType(qnType)
 
 def concept_substitutions(xc, p, args):
@@ -428,10 +431,10 @@ def filter_member_network_selection(xc, p, args):
     if not axis in ('descendant-or-self', 'child-or-self', 'descendant', 'child'):
         return ()
     dimConcept = xc.modelXbrl.qnameConcepts.get(qnDim)
-    if not dimConcept or not dimConcept.isDimensionItem:
+    if dimConcept is None or not dimConcept.isDimensionItem:
         raise XPathContext.XPathException(p, 'xfie:invalidDimensionQName', _('Argument 1 {0} is not a dimension concept QName.').format(qnDim))
     memConcept = xc.modelXbrl.qnameConcepts.get(qnMem)
-    if not memConcept or not memConcept.isDomainMember:
+    if memConcept is None or not memConcept.isDomainMember:
         # removed error 2011-03-10: raise XPathContext.XPathException(p, 'xfie:unrecognisedExplicitDimensionValueQName', _('Argument 1 {0} is not a member concept QName.').format(qnMem))
         return ()
     relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI, linkroleURI)
@@ -497,13 +500,13 @@ def fact_dim_value(xc, p, args, dimType):
 def fact_has_explicit_dimension(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     dimValue = fact_dim_value(xc, p, args, "Explicit")
-    return dimValue and (isinstance(dimValue,QName) or
-                         dimValue.isExplicit)
+    return dimValue is not None and (isinstance(dimValue,QName) or
+                                     dimValue.isExplicit)
 
 def fact_has_typed_dimension(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     dimValue = fact_dim_value(xc, p, args, "Explicit")
-    return dimValue and not isinstance(dimValue,QName) and dimValue.isTyped
+    return dimValue is not None and not isinstance(dimValue,QName) and dimValue.isTyped
 
 def fact_explicit_dimension_value_value(xc, p, args):
     context = item_context(xc, args)
@@ -545,10 +548,10 @@ def fact_typed_dimension_value(xc, p, args):
         qn = qnameArg(xc, p, args, 1, 'QName', emptyFallback=())
         if qn == (): raise XPathContext.FunctionArgType(2,"xbrl:QName")
         modelConcept = xc.modelXbrl.qnameConcepts.get(qn) # check qname is explicit dimension
-        if not modelConcept or not modelConcept.isTypedDimension:
+        if modelConcept is None or not modelConcept.isTypedDimension:
             raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
         result = context.dimValue(qn)
-        return result.typedMember if result else ()
+        return result.typedMember if result is not None else ()
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
 def fact_dimension_s_equal2(xc, p, args):
@@ -560,14 +563,14 @@ def fact_dimension_s_equal2(xc, p, args):
             qn = qnameArg(xc, p, args, 2, 'QName', emptyFallback=())
             if qn == (): raise XPathContext.FunctionArgType(3,"xbrl:QName")
             modelConcept = xc.modelXbrl.qnameConcepts.get(qn) # check qname is explicit dimension
-            if not modelConcept or not modelConcept.isTypedDimension:
+            if modelConcept is None or not modelConcept.isTypedDimension:
                 # raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
                 return False
             dimValue1 = context1.dimValue(qn)
             dimValue2 = context1.dimValue(qn)
-            if dimValue1 and isinstance(dimValue1,ModelDimensionValue):
+            if dimValue1 is not None and isinstance(dimValue1,ModelDimensionValue):
                     return dimValue1.isEqualTo(dimValue2)
-            elif dimValue2 and isinstance(dimValue2,ModelDimensionValue):
+            elif dimValue2 is not None and isinstance(dimValue2,ModelDimensionValue):
                     return dimValue2.isEqualTo(dimValue1)
             return dimValue1 == dimValue2
         raise XPathContext.FunctionArgType(2,"xbrl:item")
@@ -648,7 +651,7 @@ def concept_relationships(xc, p, args):
         return ()
     if qnSource != XbrlConst.qnXfiRoot:
         srcConcept = xc.modelXbrl.qnameConcepts.get(qnSource)
-        if not srcConcept:
+        if srcConcept is None:
             return ()
     if lenArgs > 4:
         generations = numericArg(xc, p, args, 4, "xs:integer", convertFallback=0)
@@ -744,9 +747,9 @@ def distinct_nonAbstract_parent_concepts(xc, p, args):
 def element_attribute(xc, p, args, elementParent=False):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     modelRel = anytypeArg(xc, args, 0, "arelle:ModelRelationship", None)
-    if not modelRel: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
+    if modelRel is None: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
     qnAttr = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
-    if not qnAttr: raise XPathContext.FunctionArgType(2,"xs:QName")
+    if qnAttr is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = modelRel.arcElement
     if elementParent: element = element.getparent()
     if element.get(qnAttr.clarkNotation) is None:
@@ -762,9 +765,9 @@ def relationship_link_attribute(xc, p, args):
 def element_name(xc, p, args, elementParent=False):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     modelRel = anytypeArg(xc, args, 0, "arelle:ModelRelationship", None)
-    if not modelRel: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
+    if modelRel is None: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
     element = modelRel.arcElement
-    if elementParent: element = element.getparent()
+    if elementParent is not None: element = element.getparent()
     return qname(element)
 
 def relationship_name(xc, p, args):

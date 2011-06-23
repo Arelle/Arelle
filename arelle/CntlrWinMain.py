@@ -292,7 +292,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 except:
                     pass
         
-        self.parent.title(_("arelle\u00ae - Unnamed"))
+        self.parent.title(_("arelle - Unnamed"))
         
         self.logFile = None
         
@@ -330,14 +330,14 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.dirty = False
         self.filename = None
         self.data = {}
-        self.parent.title(_("arelle\u00ae - Unnamed"));
+        self.parent.title(_("arelle - Unnamed"));
         self.modelManager.load(None);
         
     def okayToContinue(self):
         if not self.dirty:
             return True
         reply = tkinter.messagebox.askyesnocancel(
-                    _("arelle\u00ae - Unsaved Changes"),
+                    _("arelle - Unsaved Changes"),
                     _("Save unsaved changes?"), 
                     parent=self.parent)
         if reply is None:
@@ -350,7 +350,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if self.modelManager.modelXbrl:
             if self.modelManager.modelXbrl.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
                 filename = tkinter.filedialog.asksaveasfilename(
-                        title=_("arelle\u00ae - Save Test Results"),
+                        title=_("arelle - Save Test Results"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
                         filetypes=[(_("CSV file"), "*.csv")],
                         defaultextension=".csv",
@@ -360,14 +360,14 @@ class CntlrWinMain (Cntlr.Cntlr):
                 try:
                     ViewCsvTests.viewTests(self.modelManager.modelXbrl, filename)
                 except (IOError, EnvironmentError) as err:
-                    tkinter.messagebox.showwarning(_("arelle\u00ae - Error"),
+                    tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
                                         self.filename, err),
                                         parent=self.parent)
                 return True
             elif self.modelManager.modelXbrl.formulaOutputInstance:
                 filename = tkinter.filedialog.asksaveasfilename(
-                        title=_("arelle\u00ae - Save Formula Result Instance Document"),
+                        title=_("arelle - Save Formula Result Instance Document"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
                         filetypes=[(_("XBRL output instance .xml"), "*.xml"), (_("XBRL output instance .xbrl"), "*.xbrl")],
                         defaultextension=".xml",
@@ -380,14 +380,14 @@ class CntlrWinMain (Cntlr.Cntlr):
                         XmlUtil.writexml(fh, self.modelManager.modelXbrl.formulaOutputInstance.modelDocument.xmlDocument, encoding="utf-8")
                     self.addToLog(_("[info] Saved formula output instance to {0}").format(filename) )
                 except (IOError, EnvironmentError) as err:
-                    tkinter.messagebox.showwarning(_("arelle\u00ae - Error"),
+                    tkinter.messagebox.showwarning(_("arelle - Error"),
                                     _("Failed to save {0}:\n{1}").format(
                                     self.filename, err),
                                     parent=self.parent)
                 return True
         if self.filename is None:
             filename = tkinter.filedialog.asksaveasfilename(
-                    title=_("arelle\u00ae - Save File"),
+                    title=_("arelle - Save File"),
                     initialdir=".",
                     filetypes=[(_("Xbrl file"), "*.x*")],
                     defaultextension=".xbrl",
@@ -404,10 +404,10 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.uiShowStatus(_("Saved {0} items to {1}").format(
                                 len(self.data),
                                 self.filename), clearAfter=5000)
-            self.parent.title(_("arelle\u00ae - {0}").format(
+            self.parent.title(_("arelle - {0}").format(
                                 os.path.basename(self.filename)))
         except (EnvironmentError, pickle.PickleError) as err:
-            tkinter.messagebox.showwarning(_("arelle\u00ae - Error"),
+            tkinter.messagebox.showwarning(_("arelle - Error"),
                                 _("Failed to save {0}:\n{1}").format(
                                 self.filename, err),
                                 parent=self.parent)
@@ -417,7 +417,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not self.okayToContinue():
             return
         filename = tkinter.filedialog.askopenfilename(
-                            title=_("arelle\u00ae - Open file"),
+                            title=_("arelle - Open file"),
                             initialdir=self.config.setdefault("fileOpenDir","."),
                             filetypes=[] if self.isMac else [(_("XBRL files"), "*.*")],
                             defaultextension=".xbrl",
@@ -434,11 +434,11 @@ class CntlrWinMain (Cntlr.Cntlr):
     def importOpen(self, *ignore):
         if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
              ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-            tkinter.messagebox.showwarning(_("arelle\u00ae - Warning"),
+            tkinter.messagebox.showwarning(_("arelle - Warning"),
                             _("Import requires an opened DTS"), parent=self.parent)
             return False
         filename = tkinter.filedialog.askopenfilename(
-                            title=_("arelle\u00ae - Import file into opened DTS"),
+                            title=_("arelle - Import file into opened DTS"),
                             initialdir=self.config.setdefault("importOpenDir","."),
                             filetypes=[] if self.isMac else [(_("XBRL files"), "*.*")],
                             defaultextension=".xml",
@@ -538,7 +538,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         try:
             if attach:
                 modelXbrl.closeViews()
-            self.parent.title(_("arelle\u00ae - {0}").format(
+            self.parent.title(_("arelle - {0}").format(
                             os.path.basename(modelXbrl.modelDocument.uri)))
             self.setValidateTooltipText()
             if modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, 
@@ -614,7 +614,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not self.okayToContinue():
             return
         self.modelManager.close()
-        self.parent.title(_("arelle\u00ae - Unnamed"))
+        self.parent.title(_("arelle - Unnamed"))
         self.setValidateTooltipText()
 
     def validate(self):
@@ -641,12 +641,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def compareDTSes(self):
         countLoadedDTSes = len(self.modelManager.loadedModelXbrls)
         if countLoadedDTSes != 2:
-            tkinter.messagebox.showwarning(_("arelle\u00ae - Warning"),
+            tkinter.messagebox.showwarning(_("arelle - Warning"),
                             _("Two DTSes are required for the Compare DTSes operation, {0} found").format(countLoadedDTSes),
                             parent=self.parent)
             return False
         versReportFile = tkinter.filedialog.asksaveasfilename(
-                title=_("arelle\u00ae - Save Versioning Report File"),
+                title=_("arelle - Save Versioning Report File"),
                 initialdir=self.config.setdefault("versioningReportDir","."),
                 filetypes=[(_("Versioning report file"), "*.xml")],
                 defaultextension=".xml",
@@ -686,11 +686,11 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.showStatus(_("Loaded {0} items from {1}").format(
                             self.listbox.size(),
                             self.filename), clearAfter=5000)
-            self.parent.title(_("arelle\u00ae - {0}").format(
+            self.parent.title(_("arelle - {0}").format(
                             os.path.basename(self.filename)))
                             
         except (EnvironmentError, pickle.PickleError) as err:
-            tkinter.messagebox.showwarning(_("arelle\u00ae - Error"),
+            tkinter.messagebox.showwarning(_("arelle - Error"),
                             _("Failed to load {0}\n{1}").format(
                             self.filename,
                             err),
@@ -722,7 +722,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             
     def confirmClearWebCache(self):
         if tkinter.messagebox.askyesno(
-                    _("arelle\u00ae - Clear Internet Cache"),
+                    _("arelle - Clear Internet Cache"),
                     _("Are you sure you want to clear the internet cache?"), 
                     parent=self.parent):
             self.webCache.clear()
@@ -812,7 +812,7 @@ class CntlrWinMain (Cntlr.Cntlr):
     def languagesDialog(self, *args):
         override = self.lang if self.lang != self.modelManager.defaultLang else ""
         import tkinter.simpledialog
-        newValue = tkinter.simpledialog.askstring(_("arelle\u00ae - Labels language code setting"),
+        newValue = tkinter.simpledialog.askstring(_("arelle - Labels language code setting"),
                 _("The system default language is: {0} \n\n"
                   "You may override with a different language for labels display. \n\n"
                   "Current language override code: {1} \n"
@@ -883,7 +883,7 @@ class CntlrWinMain (Cntlr.Cntlr):
     def helpAbout(self, event=None):
         from arelle import DialogAbout, Version
         DialogAbout.about(self.parent,
-                          _("About arelle\u00ae"),
+                          _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
                           _("arelle\u00ae {0}\n"
                               "An open source XBRL platform\n"
@@ -926,7 +926,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         
     def logSaveToFile(self, *ignore):
         filename = tkinter.filedialog.asksaveasfilename(
-                title=_("arelle\u00ae - Save Messages Log"),
+                title=_("arelle - Save Messages Log"),
                 initialdir=".",
                 filetypes=[(_("Txt file"), "*.txt")],
                 defaultextension=".txt",
@@ -936,7 +936,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         try:
             self.logView.saveToFile(filename)
         except (IOError, EnvironmentError) as err:
-            tkinter.messagebox.showwarning(_("arelle\u00ae - Error"),
+            tkinter.messagebox.showwarning(_("arelle - Error"),
                                 _("Failed to save {0}:\n{1}").format(
                                 filename, err),
                                 parent=self.parent)

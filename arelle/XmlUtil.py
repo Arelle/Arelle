@@ -58,7 +58,7 @@ def schemaLocation(element, namespace, returnElement=False):
     return None
 
 # provide python-style QName, e.g., {namespaceURI}localName
-def prefixedNameToNamespaceLocalname(element, prefixedName):
+def prefixedNameToNamespaceLocalname(element, prefixedName, defaultNsmap=None):
     if prefixedName is None or prefixedName == "":
         return None
     names = prefixedName.partition(":")
@@ -71,7 +71,11 @@ def prefixedNameToNamespaceLocalname(element, prefixedName):
         localName = names[2]
     ns = xmlns(element, prefix)
     if ns is None:
-        if prefix: return None  # error, prefix not found
+        if prefix: 
+            if prefix in defaultNsmap:
+                ns = defaultNsmap[prefix]
+            else:
+                return None  # error, prefix not found
     return (ns, localName, prefix)
 
 # provide python-style QName, e.g., {namespaceURI}localName
@@ -180,25 +184,30 @@ def parent(element):
 def ancestors(element):
     return [ancestor for ancestor in element.getancestors()]
     
-def childAttr(element, childNamespaceURI, childLocalNames, attrLocalName):
+def childAttr(element, childNamespaceURI, childLocalNames, attrClarkName):
     childElt = child(element, childNamespaceURI, childLocalNames)
-    return childElt.get(attrLocalName) if childElt is not None else None
+    return childElt.get(attrClarkName) if childElt is not None else None
 
-def descendantAttr(element, childNamespaceURI, childLocalNames, attrLocalName, attrName=None, attrValue=None):
+def descendantAttr(element, childNamespaceURI, childLocalNames, attrClarkName, attrName=None, attrValue=None):
     descendantElt = descendant(element, childNamespaceURI, childLocalNames, attrName, attrValue)
-    return descendantElt.get(attrLocalName) if (descendantElt is not None) else None
+    return descendantElt.get(attrClarkName) if (descendantElt is not None) else None
 
 def children(element, childNamespaceURI, childLocalNames):
     children = []
     if not isinstance(childLocalNames,tuple): childLocalNames = (childLocalNames ,)
     wildLocalName = childLocalNames == ('*',)
     wildNamespaceURI = not childNamespaceURI or childNamespaceURI == '*'
-    if element is not None:
+    if isinstance(element,ModelObject):
         for child in element.iterchildren():
             if isinstance(child,ModelObject) and \
                 (wildNamespaceURI or child.elementNamespaceURI == childNamespaceURI) and \
                 (wildLocalName or child.localName in childLocalNames):
                 children.append(child)
+    elif isinstance(element,etree._ElementTree): # document root
+        child = element.getroot()
+        if (wildNamespaceURI or child.elementNamespaceURI == childNamespaceURI) and \
+           (wildLocalName or child.localName in childLocalNames):
+            children.append(child)
     return children
 
 def child(element, childNamespaceURI=None, childLocalNames=("*",)):
@@ -239,8 +248,8 @@ def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=
     if not isinstance(descendantLocalNames,tuple): descendantLocalNames = (descendantLocalNames ,)
     wildLocalName = descendantLocalNames == ('*',)
     wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
-    if element is not None:
-        for child in element.iterdescendants():
+    if isinstance(element,(ModelObject,etree._ElementTree)):
+        for child in (element.iterdescendants() if isinstance(element,ModelObject) else element.iter()):
             if isinstance(child,ModelObject) and \
                 (wildNamespaceURI or child.elementNamespaceURI == descendantNamespaceURI) and \
                 (wildLocalName or child.localName in descendantLocalNames):
@@ -407,12 +416,21 @@ def datetimeValue(element, addOneDay=False, none=None):
     match = datetimePattern.match(text(element).strip())
     if match is None:
         return None
+    hour24 = False
     if match.lastindex == 6:
-        result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)))
+        hour = int(match.group(4))
+        min = int(match.group(5))
+        sec = int(match.group(6))
+        if hour == 24 and min == 0 and sec == 0:
+            hour24 = True
+            hour = 0
+        result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),hour,min,sec)
     else:
         result = datetime.datetime(int(match.group(7)),int(match.group(8)),int(match.group(9)))
     if addOneDay and match.lastindex == 9:
-        result += datetime.timedelta(1)   #add one day
+        result += datetime.timedelta(1) 
+    if hour24:  #add one day
+        result += datetime.timedelta(1) 
     return result
 
 def dateunionValue(datetimeValue, subtractOneDay=False):

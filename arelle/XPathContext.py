@@ -10,6 +10,7 @@ from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
+from lxml import etree
 
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
@@ -19,6 +20,8 @@ class XPathException(Exception):
             self.column = progStep.loc
         elif isinstance(progStep, ProgHeader):
             self.line = progStep.sourceStr
+        else:
+            self.line = "(not available)"
         self.code = code
         self.message = message
         self.args = ( self.__repr__(), )
@@ -412,14 +415,15 @@ class XPathContext:
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,ModelObject):
-                raise XPathException(p, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
+            if not isinstance(node,(ModelObject, etree._ElementTree)):
+                raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
             if isinstance(p,QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
-                    if node.get(p.clarkNotation) is not None:
-                        targetNodes.append(node.get(p.clarkNotation))
+                    attrTag = p.localName if p.unprefixed else p.clarkNotation
+                    if node.get(attrTag) is not None:
+                        targetNodes.append(node.get(attrTag))
                 elif op == '/' or op is None:
                     targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
