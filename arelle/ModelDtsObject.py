@@ -146,7 +146,7 @@ class ModelConcept(ModelSchemaObject):
                     if subs is not None:
                         self._typeQname = subs.typeQname
                     else:
-                        self._typeQname =  None
+                        self._typeQname =  XbrlConst.qnXsdDefaultType
             return self._typeQname
         
     @property
@@ -164,10 +164,11 @@ class ModelConcept(ModelSchemaObject):
             return self._baseXsdType
         except AttributeError:
             typeqname = self.typeQname
-            if typeqname.namespaceURI == XbrlConst.xsd:
-                return typeqname.localName
-            type = self.type
-            self._baseXsdType = type.baseXsdType if type is not None else None
+            if typeqname is not None and typeqname.namespaceURI == XbrlConst.xsd:
+                self._baseXsdType = typeqname.localName
+            else:
+                type = self.type
+                self._baseXsdType = type.baseXsdType if type is not None else "anyType"
             return self._baseXsdType
     
     def baseXsdAttrType(self,attrName):
