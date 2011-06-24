@@ -370,7 +370,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     fromType = fromConcept.type # it is null for xsd:anyType
                     toType = toConcept.type
                     # TBD change to xml comparison with namespaceURI mappings, prefixes ignored
-                    if fromType and toType and fromType.toxml() != toType.toxml():
+                    if fromType is not None and toType and XbrlUtil.nodesCorrespond(self.fromDTS, fromType, toType, self.toDTS):
                         action = self.createConceptEvent(verce, "verce:tupleContentModelChange", fromConcept, toConcept, action)
                 # custom attributes in from Concept
                 fromCustAttrs = {}
@@ -468,7 +468,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     toRoots = toRelationshipSet.rootConcepts
                     for fromRoot in fromRoots:
                         toRootConcept = self.toDTS.qnameConcepts.get(self.toDTSqname(fromRoot.qname))
-                        if toRootConcept and toRootConcept not in toRoots: # added qname
+                        if toRootConcept is not None and toRootConcept not in toRoots: # added qname
                             if self.relSetDeletedEvent is None:
                                 relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelDelete")
                                 relSetEvent = self.createRelationshipSetEvent("fromRelationshipSet", eventParent=relSetMdlEvent)
@@ -479,7 +479,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                             self.diffRelationships(fromRoot, toRootConcept, fromRelationshipSet, toRelationshipSet)
                     for toRoot in toRoots:
                         fromRootConcept = self.toDTS.qnameConcepts.get(self.fromDTSqname(toRoot.qname))
-                        if fromRootConcept and fromRootConcept not in fromRoots: # added qname
+                        if fromRootConcept is not None and fromRootConcept not in fromRoots: # added qname
                             if self.relSetAddedEvent is None:
                                 relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelAdd")
                                 relSetEvent = self.createRelationshipSetEvent("toRelationshipSet", eventParent=relSetMdlEvent)
@@ -493,7 +493,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             fromTgtConcept = fromRel.toModelObject
             toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept else None
             toRel = toRels[i] if i < len(toRels) else None
-            if toRel and toRel.toModelObject and toRel.toModelObject.qname == toTgtQname:
+            if toRel is not None and toRel.toModelObject and toRel.toModelObject.qname == toTgtQname:
                 fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
                 toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toRel.arcElement,
@@ -516,7 +516,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelDelete")
                     relSetEvent = self.createRelationshipSetEvent("fromRelationshipSet", eventParent=relSetMdlEvent)
                     self.relSetDeletedEvent = self.createRelationshipSetEvent("relationshipSet", eventParent=relSetEvent, linkrole=fromRelationshipSet.linkrole, arcrole=fromRelationshipSet.arcrole)
-                if toRel:
+                if toRel is not None:
                     comment = _('corresponding relationship {0} toDTS toName="{1}"').format(i+1, XmlUtil.addQnameValue(self.reportElement, toRel.toModelObject.qname))
                 else:
                     comment = _('toDTS does not have a corresponding relationship at position {0}'.format(i+1))
@@ -525,12 +525,12 @@ class ModelVersReport(ModelDocument.ModelDocument):
             toTgtConcept = toRel.toModelObject
             fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject else None
             fromRel = fromRels[i] if i < len(fromRels) else None
-            if not fromRel or not fromRel.toModelObject or fromRel.toModelObject.qname != fromTgtQname:
+            if fromRel is None or fromRel.toModelObject is None or fromRel.toModelObject.qname != fromTgtQname:
                 if self.relSetAddedEvent is None:
                     relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelAdd")
                     relSetEvent = self.createRelationshipSetEvent("toRelationshipSet", eventParent=relSetMdlEvent)
                     self.relSetAddedEvent = self.createRelationshipSetEvent("relationshipSet", eventParent=relSetEvent, linkrole=toRelationshipSet.linkrole, arcrole=toRelationshipSet.arcrole)
-                if fromRel:
+                if fromRel is not None:
                     comment = _('corresponding relationship {0} toDTS toName="{1}"').format(i+1, XmlUtil.addQnameValue(self.reportElement, fromRel.toModelObject.qname))
                 else:
                     comment = _('fromDTS does not have a corresponding relationship at position {0}'.format(i+1))
@@ -620,14 +620,14 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     priItemDifferences = self.DRSdiff(priItemConcept, linkrole, otherDTSpriItemConcept, otherLinkrole, XbrlConst.domainMember)
                     if priItemDifferences:
                         for fromRel, toRel, fromAttrSet, toAttrSet in priItemDifferences:
-                            if fromRel:
-                                if toRel: e = "aspectModelChange"
-                                else:     e = "aspectModelAdd"
-                            else:         e = "aspectModelDelete"
+                            if fromRel is not None:
+                                if toRel is not None: e = "aspectModelChange"
+                                else:                 e = "aspectModelAdd"
+                            else:                     e = "aspectModelDelete"
                             aspectMdlEvent = self.createInstanceAspectsEvent(e)
                             for rel, attrSet, e in ((fromRel, fromAttrSet-toAttrSet, "fromAspects"),
                                                     (toRel, toAttrSet-fromAttrSet, "toAspects")):
-                                if rel:
+                                if rel is not None:
                                     aspectEvent = self.createInstanceAspectsEvent(e, eventParent=aspectMdlEvent)
                                     priItemInheritRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
                                     priItem = self.createInstanceAspectsEvent("concept", 
@@ -652,14 +652,14 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     dimsDifferences = self.DRSdimsDiff(dts, priItemDRSrels, otherDTS, otherDTSpriItemDRSrels)
                     if dimsDifferences:
                         for fromDimRel, toDimRel, isNotAll, mbrDiffs in dimsDifferences:
-                            if fromDimRel:
-                                if toDimRel: e = "aspectModelChange"
-                                else:            e = "aspectModelAdd"
-                            else:                e = "aspectModelDelete"
+                            if fromDimRel is not None:
+                                if toDimRel is not None: e = "aspectModelChange"
+                                else:                    e = "aspectModelAdd"
+                            else:                        e = "aspectModelDelete"
                             aspectMdlEvent = self.createInstanceAspectsEvent(e)
                             for dimRel, e, isFrom in ((fromDimRel, "fromAspects", True),
                                                       (toDimRel, "toAspects", False)):
-                                if dimRel:
+                                if dimRel is not None:
                                     aspectEvent = self.createInstanceAspectsEvent(e, eventParent=aspectMdlEvent)
                                     priItemInheritRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
                                     priItem = self.createInstanceAspectsEvent("concept", 
@@ -677,7 +677,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                         for fromRel, toRel, fromAttrSet, toAttrSet in mbrDiffs:
                                             if isFrom: rel = fromRel
                                             else:      rel = toRel
-                                            if rel:
+                                            if rel is not None:
                                                 domHasMemRels = dts.relationshipSet(XbrlConst.domainMember, rel.linkrole).fromModelObject(rel.toModelObject)
                                                 self.createInstanceAspectsEvent("member", (('name',rel.toModelObject.qname),) + \
                                                                                           ((('linkrole',rel.linkrole),
@@ -730,7 +730,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             toTgtConcept = toRel.toModelObject
             fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject else None
             fromRel = fromRels[i] if i < len(fromRels) else None
-            if not fromRel or not fromRel.toModelObject or fromRel.toModelObject.qname != fromTgtQname:
+            if fromRel is None or not fromRel.toModelObject or fromRel.toModelObject.qname != fromTgtQname:
                 diffs.append((None, toRel, None, None))
         return diffs
     
@@ -785,7 +785,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             fromDimConcept = fromDimRel.toModelObject
             toDimQname = self.toDTSqname(fromDimQname)
             toDimRel = toDims.get( (toDimQname, fromIsNotAll) )
-            if toDimRel:
+            if toDimRel is not None:
                 toDimConcept = toDimRel.toModelObject
                 mbrDiffs = self.DRSdiff(fromDimConcept, fromDimRel.consecutiveLinkrole,
                                         toDimConcept, toDimRel.consecutiveLinkrole,

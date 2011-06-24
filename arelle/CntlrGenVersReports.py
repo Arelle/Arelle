@@ -116,8 +116,9 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         DTSdoc.inDTS = True
                         for uri in URIs.split(','):
                             doc = ModelDocument.load(modelDTS, uri.strip(), base=base)
-                            DTSdoc.referencesDocument[doc] = "import"  #fake import
-                            doc.inDTS = True
+                            if doc is not None:
+                                DTSdoc.referencesDocument[doc] = "import"  #fake import
+                                doc.inDTS = True
                     if isFrom: modelDTSfrom = modelDTS
                     else: modelDTSto = modelDTS
                 if modelDTSfrom and modelDTSto:
@@ -252,7 +253,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                                                    uriTo,
                                                    _("loading to DTS"), 
                                                    base=base)
-                        if modelDTSfrom and modelDTSto:
+                        if modelDTSfrom is not None and modelDTSto is not None:
                             # generate differences report
                             reportName = os.path.basename(uriFrom).replace("from.xsd","report.xml")
                             reportFile = os.path.dirname(uriFrom) + "\\report\\" + reportName
