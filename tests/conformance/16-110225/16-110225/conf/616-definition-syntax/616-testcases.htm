@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>v16</title>
+</head>
+<body><table style="border:0; empty-cells:show;"><tbody>
+<tr>
+<td colspan="3">v16</td>
+<td colspan="3">2011-02-26</td>
+</tr>
+<tr><td colspan="2"></td></tr>
+<tr>
+<th>Name</th>
+<th>Variations</th>
+<th>Error Codes</th>
+<th>Remarks</th>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-01-definition-relationship-has-order/616-01-definition-relationship-has-order-testcase.xml">EDGAR Filer Manual v16 6.16.1 page 6-57</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">Definition-Relationship-Order-Missing</td>
+<td valign="top"><p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing
+in edgartaxonomies.xml violated this rule it would be included in a 'good' test variation.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-03-dimension-domain-is-domain/616-03-dimension-domain-is-domain-testcase.xml">EDGAR Filer Manual v16 6.16.3 page 6-58</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Dimension-Domain-Target-Mismatch</td>
+<td valign="top"><p>REMARK: Note that it is not necessary for the target element to be used in the instance, for this to be a violation.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-04-domain-member-no-cycles/616-04-domain-member-no-cycles-testcase.xml">EDGAR Filer Manual v16 6.16.4 page 6-58</a></td>
+<td align="center" valign="top">13</td>
+<td nowrap valign="top">Domain-Is-Tangled</td>
+<td valign="top"><p>REMARK: DRS discovery begins at dimension-domain relationships. Whether the domain member appears in instance facts is not relevant.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-05-one-all-per-base-set/616-05-one-all-per-base-set-testcase.xml">EDGAR Filer Manual v16 6.16.5 page 6-58</a></td>
+<td align="center" valign="top">3</td>
+<td nowrap valign="top">Primary-Element-Has-Redundant-Tables</td>
+<td valign="top"><p>REMARK: This constraint does not take primary item inheritance into account, and therefore rules out the simplest uses of unions of
+'all' hypercubes. A future release may take primary item inheritance into account and therefore implementors may wish to issue a
+warning in situations like that shown in variation 002gd.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-06-notall-must-have-closed-false/616-06-notall-must-have-closed-false-testcase.xml">EDGAR Filer Manual v16 6.16.6 page 6-58</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">Not-All-Relationship-Is-Closed</td>
+<td valign="top"><p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml violated
+this rule it would be included in a 'good' test variation.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-07-notall-axis-requires-all/616-07-notall-axis-requires-all-testcase.xml">EDGAR Filer Manual v16 6.16.7 page 6-59</a></td>
+<td align="center" valign="top">4</td>
+<td nowrap valign="top">Axis-Excluded-Not-In-Table</td>
+<td valign="top">
+<p>REMARK: Ordinarily there would be a test here which would have a prohibited notAll arc somewhere; can't do that in this test because
+no standard taxonomy has a notAll, and the prohibition on ineffectual arcs prevents me from putting one in here. So those were
+variations 001 and 003 and they are not in here.</p>
+<p>REMARK: This rule is intended to ensure that the notAll arc does not forbid members of a dimension that is not even relevant to a
+hypercube. domain-member relationships between P1 and P2 are not relevant, since neither all nor notAll are ever consecutive from
+domain-member. Note that the rule assumes, but does not require, that the target roles on HcDim1 and HcDim2 are different, so that the
+members of Dim1 are different in HC1 and HC2.</p>
+<p>REMARK: The rule, as written, fails to make explicit that the condition can only be evaluated with respect to some primary item;
+without some primary item as a common ancestor, dimensions are irrelevant to each other. In variation 003ng,
+the element EntityTaxIdentificationNumber has a notAll, but no all (and neither does any ancestor in that role).</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-08-notall-all-are-distinct/616-08-notall-all-are-distinct-testcase.xml">EDGAR Filer Manual v16 6.16.8 page 6-59</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Table-Excludes-Itself</td>
+<td valign="top"><p>REMARK: This rule complements 6.16.7 by ensuring that HC1 and HC2 are distinct. The combination of this constraint, 6.16.4, and XBRL
+Dimensions 1.0 constraint's prohibition of undirected cycles in HcDim relationships prevents using @targetRole to give the same HC
+element different members of the same axis.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="616-09-consecutive-relationship-required/616-09-consecutive-relationship-required-testcase.xml">EDGAR Filer Manual v16 6.16.9 page 6-59</a></td>
+<td align="center" valign="top">9</td>
+<td nowrap valign="top">Target-Role-With-No-Consecutive-Relationships</td>
+<td valign="top"><p>REMARK: Consecutive relationships are defined at <a href="http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1">http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1</a> and consist only of the following initial-following arc role
+pairs: all, hypercube-dimension; not-all, hypercube-dimension; hypercube-dimension, dimension-domain; dimension-domain, domain-member;
+domain-member, domain-member. Note that domain-member is never followed by all, not-all, or any arcrole other than domain-member.</p></td>
+</tr>
+</tbody></table></body>
+</html>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>12030</number>
+  <name>Concept rules processing examples</name>
+  <description>
+    Tests of formula concept rules processing
+  </description>
+  <reference specification="FORMULA" id="sec-concept-rules"/>
+
+  <variation id="V-01">
+    <name>Test of dynamic concept QName expressions</name>
+    <description>Tests that the output concept is that produced by a QName expression, which in this case reverses the fact item concept name-value matchup sequence, from that of the source input.  E.g., the value, context, and unit of m1 are output as m4, m2 as m3, m3 as m2, and m4 as m1.</description>
+    <reference specification="FORMULA" id="example-dynamic-concept-rules"/>
+    <data>
+      <schema>12030-concept-tests.xsd</schema>
+      <linkbase>12030-dynamic-concept-formula.xml</linkbase>
+      <instance readMeFirst="true">12030-dynamic-concept-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12030-dynamic-concept-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

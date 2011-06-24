@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!-- Edited by Walter Hamscher, Standard Advantage; walter@hamscher.com -->
+<!-- Copyright 2006 XBRL International. All Rights Reserved. -->
+<xsd:schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/xbrl" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:a="http://example.com/xbrl">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<link:linkbaseRef xlink:type="simple" xlink:href="213-03-SummationNumeric_ItemNonNumeric-calculation.xml" xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:element name="str1" id="a_str1" type="xbrli:stringItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+	<xsd:element name="num2" id="a_num2" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+</xsd:schema>

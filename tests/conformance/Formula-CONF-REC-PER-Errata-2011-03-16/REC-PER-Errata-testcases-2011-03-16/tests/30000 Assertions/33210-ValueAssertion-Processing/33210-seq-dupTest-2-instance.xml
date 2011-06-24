@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="33210-sequence-dim-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="33210-seq-dupTest-2-formula.xml"/>
+  
+  <context id="context-earth">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Earth</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-earth-twin">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Earth</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-mars">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Mars</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-mars-green-men">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Mars</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-jupiter">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Jupiter</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-saturn">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Saturn</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-uranus">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Uranus</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-neptune">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Neptune</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <unit id="u-moon-count">
+    <measure>pure</measure>
+  </unit>
+  
+
+
+    <!-- Earth moon fails precondition, not tested -->
+    <concept:Moon contextRef="context-earth">Moon</concept:Moon>
+
+    <!-- this count passes precondition and is duplicated, passes assertion -->
+    <concept:MoonCount decimals="0" contextRef="context-earth" unitRef="u-moon-count">1</concept:MoonCount>
+    <concept:MoonCount decimals="0" contextRef="context-earth-twin" unitRef="u-moon-count">1</concept:MoonCount>
+
+    <!-- deimos moon is duplicated here, passes precond with Phobos and fail assertion 
+         because not EVERY moon is duplicated -->
+    <concept:Moon contextRef="context-mars">Phobos</concept:Moon>
+    <concept:Moon contextRef="context-mars">Deimos</concept:Moon>
+    <concept:Moon contextRef="context-mars-green-men">Deimos</concept:Moon>
+
+    <!-- fails assertion for this concept & context -->
+    <concept:MoonCount decimals="0" contextRef="context-mars" unitRef="u-moon-count">1</concept:MoonCount>
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-jupiter">Metis</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Adrastea</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Amalthea</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Thebe</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Io</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Europa</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Ganymede</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Callisto</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Leda</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Himalia</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Lysithea</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Elara</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Ananke</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Carme</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Pasiphae</concept:Moon>
+    <concept:Moon contextRef="context-jupiter">Sinope</concept:Moon>
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-saturn">Pan</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Atlas</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Prometheus</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Pandora</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Epimetheus</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Janus</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Mimas</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Enceladus</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Tethys</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Telesto</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Calypso</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Dione</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Helene</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Rhea</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Titan</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Hyperion</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Iapetus</concept:Moon>
+    <concept:Moon contextRef="context-saturn">Phoebe</concept:Moon>
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-neptune">Cordelia</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Ophelia</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Bianca</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Cressida</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Desdemona</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Juliet</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Portia</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Rosalind</concept:Moon>
+    <concept:Moon contextRef="context-neptune">2003U2</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Belinda</concept:Moon>
+    <concept:Moon contextRef="context-neptune">1986U10</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Puck</concept:Moon>
+    <concept:Moon contextRef="context-neptune">2003U1</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Miranda</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Ariel</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Umbriel</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Titania</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Oberon</concept:Moon>
+    <concept:Moon contextRef="context-neptune">2001U3</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Caliban</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Stephano</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Trinculo</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Sycorax</concept:Moon>
+    <concept:Moon contextRef="context-neptune">2003U3</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Prospero</concept:Moon>
+    <concept:Moon contextRef="context-neptune">Setebos</concept:Moon>
+    <concept:Moon contextRef="context-neptune">2002U2</concept:Moon>
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-uranus">Naiad</concept:Moon>
+    <concept:Moon contextRef="context-uranus">Thalassa</concept:Moon>
+    <concept:Moon contextRef="context-uranus">Despina</concept:Moon>
+    <concept:Moon contextRef="context-uranus">Galatea</concept:Moon>
+    <concept:Moon contextRef="context-uranus">Larissa</concept:Moon>
+    <concept:Moon contextRef="context-uranus">Proteus</concept:Moon>
+    <concept:Moon contextRef="context-uranus">Triton</concept:Moon>
+    <concept:Moon contextRef="context-uranus">Nereid</concept:Moon>
+
+</xbrl>
+
+
+
+

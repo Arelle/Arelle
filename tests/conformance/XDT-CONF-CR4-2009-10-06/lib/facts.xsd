@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xbrli="http://www.xbrl.org/2003/instance">
+    <xs:import namespace="http://www.xbrl.org/2003/instance"
+        schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+    <xs:simpleType name="xpointer">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[1-9][0-9]*(/[1-9][0-9]*)*"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:element name="facts">
+        <xs:annotation>
+            <xs:documentation>The nearly-denormalised version of an item with all (typed and
+                explicit) dimensions making the defualts explicit.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="item" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="qnElement" type="xs:QName"/>
+<!--                            
+                            <xs:element name="sValue" type="xs:string" minOccurs="0"/>
+                           
+                            <xs:element name="tDec" type="xbrli:decimalsType" minOccurs="0"/>
+                            <xs:element name="tPre" type="xbrli:precisionType" minOccurs="0"/>
+                            <xs:element name="ncUnit" type="xs:NCName" minOccurs="0"/>
+                            <xs:element name="bNil" type="xs:boolean" minOccurs="0" default="false"/>
+--> 
+                            <xs:element name="sPointer" type="xpointer"/>
+<!--                           
+                            <xs:element name="dtStart" type="xbrli:dateUnion" minOccurs="0">
+                                <xs:annotation>
+                                    <xs:documentation>For an Instant, no startDate. For
+                                        &lt;forever/&gt;, both dtStart and dtEnd are
+                                        absent.</xs:documentation>
+                                </xs:annotation>
+                            </xs:element>
+                            <xs:element name="dtEnd" type="xbrli:dateUnion" minOccurs="0"/>
+                            <xs:element name="auScheme">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:anyURI">
+                                        <xs:minLength value="1"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="tIdentifier" type="xs:token"/>
+-->                            
+                            <xs:element name="member" minOccurs="0" maxOccurs="unbounded">
+                                <xs:annotation>
+                                    <xs:documentation>A non-dimensional piece of XML does does not appear 
+                                        as a 'member'.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="qnDimension" type="xs:QName"/>
+                                        <xs:element name="bDefaulted" type="xs:boolean">
+                                            <xs:annotation>
+                                                <xs:documentation>If the axis was not present in the
+                                                  context, and so the value is here by virtue of
+                                                  being a default then this is true; else false.</xs:documentation>
+                                            </xs:annotation>
+                                        </xs:element>
+                                        <!--
+                                        <xs:element name="qnType" type="xs:QName"/>   
+                                        <xs:element name="oValue">
+                                            <xs:annotation>
+                                                <xs:documentation>Any random non-dimensional
+                                                  object.</xs:documentation>
+                                            </xs:annotation>
+                                            </xs:element>
+                                        -->
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

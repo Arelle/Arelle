@@ -1,0 +1,28 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+	">
+	<!-- This comment to be replaced by a <link:documentation> element
+		
+		This calculation linkbase extends ArcCylcesSINC_calculation.xml. 
+		 It connects	concept conceptZ in ArcCyclesSINCExtension.xsd to 
+		 conceptG in ArcCyclesSINC.xsd.  
+		 It also prohibits the conceptB to conceptG arc and creates a new arc between
+		 conceptA and conceptD.  
+		The network of these arcs form no cycles.
+	-->
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINC.xsd#conceptG" xlink:label="conceptG"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINCExtension.xsd#conceptZ" xlink:label="conceptZ"/>
+		<calculationArc xlink:type="arc" xlink:from="conceptG" xlink:to="conceptZ" weight="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"/>
+	</calculationLink>
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINC.xsd#conceptB" xlink:label="conceptB"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINC.xsd#conceptD" xlink:label="conceptD"/>
+		<calculationArc xlink:type="arc" xlink:from="conceptB" xlink:to="conceptD" weight="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" use="prohibited" priority="1"/>
+	</calculationLink>
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINC.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINC.xsd#conceptD" xlink:label="conceptD"/>
+		<calculationArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptD" weight="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" priority="1"/>
+	</calculationLink>
+</linkbase>

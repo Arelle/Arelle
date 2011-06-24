@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2006-07-25 17:18).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-26 17:27:25
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="ArcRoleCustomEndPoints.xsd#isStatisticOf-tuple" arcroleURI="http://www.example.com/isStatisticOf-tuple" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_AverageRevenue" xlink:label="test_AverageRevenue" />
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_Widget" xlink:label="test_Widget" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://www.example.com/isStatisticOf-tuple" xlink:from="test_AverageRevenue" xlink:to="test_Widget" order="1" use="optional" />
+  </definitionLink>
+</linkbase>

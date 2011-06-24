@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="nogood-20081231.xsd#nogood_Abstract_1_3"
+xlink:label="Abstract"/>
+<link:loc xlink:type="locator" xlink:href="nogood-20081231.xsd#nogood_Monetary_1_4"
+xlink:label="Number"/>
+<link:label xlink:type="resource" xlink:label="label_Abstract"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Abstract">Abstract (/1/3)</link:label>
+<link:label xlink:type="resource" xlink:label="label_Number"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Number">Monetary (/1/4)</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Abstract"
+xlink:to="label_Abstract"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Number"
+xlink:to="label_Number"/>
+</link:labelLink>
+</link:linkbase>

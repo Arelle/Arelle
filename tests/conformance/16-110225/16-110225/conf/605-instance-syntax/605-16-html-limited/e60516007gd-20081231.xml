@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20081231.xsd"/>
+<xbrli:context id="d">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2008-01-01</xbrli:startDate>
+<xbrli:endDate>2008-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="i">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2008-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="shares">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="usd">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<dei:DocumentInformationTextBlock contextRef="d">&lt;h2&gt;Legal HTML Entity References&lt;/h2&gt; &lt;table
+align="center" border="0" cellspacing="0" cellpadding="2"&gt; &lt;tr&gt; &lt;th align="left"
+width="145" valign="top" height="40"&gt; &lt;font size="+1"&gt;Description&lt;/font&gt;
+&lt;/th&gt; &lt;th align="left" width="72" valign="top" height="40"&gt;Hex &lt;/th&gt;
+&lt;th align="left" width="160" valign="middle" height="40"&gt;Character Reference (Dec) &lt;/th&gt;
+&lt;th align="left" width="114" valign="top" height="40"&gt;Entity Name &lt;/th&gt; &lt;th
+align="left" width="74" valign="top" height="40"&gt;Symbol &lt;/th&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;small italic f, function
+of, f florin &lt;/td&gt; &lt;td align="left" width="72" valign="top" height="39"&gt;83
+&lt;/td&gt; &lt;td align="left" width="160" valign="top" height="39"&gt;&amp;amp;#131;
+&lt;/td&gt; &lt;td align="left" width="114" valign="top" height="39"&gt;&amp;amp;fnof;
+&lt;/td&gt; &lt;td align="left" width="74" valign="top" height="39"&gt;&amp;fnof;
+&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="24"&gt;low horizontal ellipsis &lt;/td&gt; &lt;td align="left" width="72" valign="middle"
+height="24"&gt;85 &lt;/td&gt; &lt;td align="left" width="160" valign="middle"
+height="24"&gt;&amp;amp;#133; &lt;/td&gt; &lt;td align="left" width="114" valign="middle"
+height="24"&gt;&amp;amp;hellip; &lt;/td&gt; &lt;td align="left" width="74"
+valign="middle" height="24"&gt;&amp;hellip; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="24"&gt;dagger mark &lt;/td&gt; &lt;td
+align="left" width="72" valign="middle" height="24"&gt;86 &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#134; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;dagger; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;dagger; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="24"&gt;double dagger mark
+&lt;/td&gt; &lt;td align="left" width="72" valign="middle" height="24"&gt;87 &lt;/td&gt;
+&lt;td align="left" width="160" valign="middle" height="24"&gt;&amp;amp;#135; &lt;/td&gt;
+&lt;td align="left" width="114" valign="middle" height="24"&gt;&amp;amp;Dagger; &lt;/td&gt;
+&lt;td align="left" width="74" valign="middle" height="24"&gt;&amp;Dagger; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;letter
+modifying circumflex &lt;/td&gt; &lt;td align="left" width="72" valign="top" height="39"&gt;88
+&lt;/td&gt; &lt;td align="left" width="160" valign="top" height="39"&gt;&amp;amp;#136;
+&lt;/td&gt; &lt;td align="left" width="114" valign="top" height="39"/&gt; &lt;td align="left"
+width="74" valign="top" height="39"&gt;&amp;sup1; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="39"&gt;per thousand (mille) sign &lt;/td&gt;
+&lt;td align="left" width="72" valign="top" height="39"&gt;89 &lt;/td&gt; &lt;td align="left"
+width="160" valign="top" height="39"&gt;&amp;amp;#137; &lt;/td&gt; &lt;td align="left"
+width="114" valign="top" height="39"&gt;&amp;amp;permil; &lt;/td&gt; &lt;td align="left"
+width="74" valign="top" height="39"&gt;&amp;permil; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;capital S caron or hacek
+&lt;/td&gt; &lt;td align="left" width="72" valign="top" height="39"&gt;8A &lt;/td&gt;
+&lt;td align="left" width="160" valign="top" height="39"&gt;&amp;amp;#138; &lt;/td&gt;
+&lt;td align="left" width="114" valign="top" height="39"&gt;&amp;amp;Scaron; &lt;/td&gt;
+&lt;td align="left" width="74" valign="top" height="39"&gt;&amp;Scaron; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;left
+single angle quotemark (guillemet) &lt;/td&gt; &lt;td align="left" width="72" valign="top"
+height="39"&gt;8B &lt;/td&gt; &lt;td align="left" width="160" valign="top"
+height="39"&gt;&amp;amp;#139; &lt;/td&gt; &lt;td align="left" width="114" valign="top"
+height="39"&gt;&amp;amp;lsaquo; &lt;/td&gt; &lt;td align="left" width="74" valign="top"
+height="39"&gt;&amp;lsaquo; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="24"&gt;capital OE ligature &lt;/td&gt; &lt;td
+align="left" width="72" valign="middle" height="24"&gt;8C &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#140; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;OElig; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;OElig; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="top" height="30"&gt;round filled bullet
+&lt;/td&gt; &lt;td align="left" width="72" valign="top" height="30"&gt;95 &lt;/td&gt;
+&lt;td align="left" width="160" valign="top" height="30"&gt;&amp;amp;#149; &lt;/td&gt;
+&lt;td align="left" width="114" valign="top" height="30"&gt;&amp;amp;bull; &lt;/td&gt;
+&lt;td align="left" width="74" valign="middle" height="30"&gt; &lt;font
+size="+1"&gt;&amp;#9679;&lt;/font&gt; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="24"&gt;trademark sign &lt;/td&gt; &lt;td
+align="left" width="72" valign="middle" height="24"&gt;99 &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#153; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;trade; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;trade; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;small s caron or hacek
+&lt;/td&gt; &lt;td align="left" width="72" valign="top" height="39"&gt;9A &lt;/td&gt;
+&lt;td align="left" width="160" valign="top" height="39"&gt;&amp;amp;#154; &lt;/td&gt;
+&lt;td align="left" width="114" valign="top" height="39"&gt;&amp;amp;scaron; &lt;/td&gt;
+&lt;td align="left" width="74" valign="top" height="39"&gt;&amp;scaron; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;right
+single angle quotemark (guillemet) &lt;/td&gt; &lt;td align="left" width="72" valign="top"
+height="39"&gt;9B &lt;/td&gt; &lt;td align="left" width="160" valign="top"
+height="39"&gt;&amp;amp;#155; &lt;/td&gt; &lt;td align="left" width="114" valign="top"
+height="39"&gt;&amp;amp;rsaquo; &lt;/td&gt; &lt;td align="left" width="74" valign="top"
+height="39"&gt;&amp;rsaquo; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="24"&gt;small oe ligature &lt;/td&gt; &lt;td
+align="left" width="72" valign="middle" height="24"&gt;9C &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#156; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;oelig; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;oelig; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;capital Y dieresis or
+umlaut &lt;/td&gt; &lt;td align="left" width="72" valign="top" height="39"&gt;9F &lt;/td&gt;
+&lt;td align="left" width="160" valign="top" height="39"&gt;&amp;amp;#159; &lt;/td&gt;
+&lt;td align="left" width="114" valign="top" height="39"&gt;&amp;amp;Yuml; &lt;/td&gt;
+&lt;td align="left" width="74" valign="top" height="39"&gt;&amp;Yuml; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="24"&gt;non-breaking space &lt;/td&gt; &lt;td align="left" width="72" valign="middle"
+height="24"&gt;A0 &lt;/td&gt; &lt;td align="left" width="160" valign="middle"
+height="24"&gt;&amp;amp;#160; &lt;/td&gt; &lt;td align="left" width="114" valign="middle"
+height="24"&gt;&amp;amp;nbsp; &lt;/td&gt; &lt;td align="left" width="74" valign="top"
+height="24"/&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="39"&gt;inverted exclamation mark &lt;/td&gt; &lt;td align="left" width="72" valign="top"
+height="39"&gt;A1 &lt;/td&gt; &lt;td align="left" width="160" valign="top"
+height="39"&gt;&amp;amp;#161; &lt;/td&gt; &lt;td align="left" width="114" valign="top"
+height="39"&gt;&amp;amp;iexcl; &lt;/td&gt; &lt;td align="left" width="74" valign="top"
+height="39"&gt;&amp;iexcl; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="24"&gt;cent sign &lt;/td&gt; &lt;td align="left"
+width="72" valign="middle" height="24"&gt;A2 &lt;/td&gt; &lt;td align="left" width="160"
+valign="middle" height="24"&gt;&amp;amp;#162; &lt;/td&gt; &lt;td align="left" width="114"
+valign="middle" height="24"&gt;&amp;amp;cent; &lt;/td&gt; &lt;td align="left" width="74"
+valign="middle" height="24"&gt;&amp;cent; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="24"&gt;pound sterling sign &lt;/td&gt;
+&lt;td align="left" width="72" valign="middle" height="24"&gt;A3 &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#163; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;pound; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;pound; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="24"&gt;general currency sign
+&lt;/td&gt; &lt;td align="left" width="72" valign="middle" height="24"&gt;A4 &lt;/td&gt;
+&lt;td align="left" width="160" valign="middle" height="24"&gt;&amp;amp;#164; &lt;/td&gt;
+&lt;td align="left" width="114" valign="middle" height="24"&gt;&amp;amp;curren; &lt;/td&gt;
+&lt;td align="left" width="74" valign="middle" height="24"&gt;&amp;curren; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="24"&gt;yen
+sign &lt;/td&gt; &lt;td align="left" width="72" valign="middle" height="24"&gt;A5
+&lt;/td&gt; &lt;td align="left" width="160" valign="middle" height="24"&gt;&amp;amp;#165;
+&lt;/td&gt; &lt;td align="left" width="114" valign="middle" height="24"&gt;&amp;amp;yen;
+&lt;/td&gt; &lt;td align="left" width="74" valign="middle" height="24"&gt;&amp;yen;
+&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="24"&gt;section sign &lt;/td&gt; &lt;td align="left" width="72" valign="middle"
+height="24"&gt;A7 &lt;/td&gt; &lt;td align="left" width="160" valign="middle"
+height="24"&gt;&amp;amp;#167; &lt;/td&gt; &lt;td align="left" width="114" valign="middle"
+height="24"&gt;&amp;amp;sect; &lt;/td&gt; &lt;td align="left" width="74" valign="middle"
+height="24"&gt;&amp;sect; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"
+width="145" valign="middle" height="39"&gt;spacing dieresis or umlaut &lt;/td&gt; &lt;td
+align="left" width="72" valign="top" height="39"&gt;A8 &lt;/td&gt; &lt;td align="left" width="160"
+valign="top" height="39"&gt;&amp;amp;#168; &lt;/td&gt; &lt;td align="left" width="114"
+valign="top" height="39"&gt;&amp;amp;uml; &lt;/td&gt; &lt;td align="left"
+width="74" valign="top" height="39"&gt;&amp;uml; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="24"&gt;copyright sign &lt;/td&gt; &lt;td
+align="left" width="72" valign="middle" height="24"&gt;A9 &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#169; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;copy; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;copy; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="39"&gt;feminine ordinal indicator
+&lt;/td&gt; &lt;td align="left" width="72" valign="top" height="39"&gt;AA &lt;/td&gt;
+&lt;td align="left" width="160" valign="top" height="39"&gt;&amp;amp;#170; &lt;/td&gt;
+&lt;td align="left" width="114" valign="top" height="39"&gt;&amp;amp;ordf; &lt;/td&gt;
+&lt;td align="left" width="74" valign="middle" height="39"&gt;&amp;ordf; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="40"&gt;left
+(double) angle quote (guillemet) &lt;/td&gt; &lt;td align="left" width="72" valign="top"
+height="40"&gt;AB &lt;/td&gt; &lt;td align="left" width="160" valign="top"
+height="40"&gt;&amp;amp;#171; &lt;/td&gt; &lt;td align="left" width="114" valign="top"
+height="40"&gt;&amp;amp;laquo; &lt;/td&gt; &lt;td align="left" width="74" valign="top"
+height="40"&gt;&amp;laquo; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="39"&gt;registered trademark sign &lt;/td&gt; &lt;td
+align="left" width="72" valign="top" height="39"&gt;AE &lt;/td&gt; &lt;td align="left" width="160"
+valign="top" height="39"&gt;&amp;amp;#174; &lt;/td&gt; &lt;td align="left" width="114"
+valign="top" height="39"&gt;&amp;amp;reg; &lt;/td&gt; &lt;td align="left" width="74"
+valign="top" height="39"&gt;&amp;reg; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="39"&gt;spacing macron (long) accent, &lt;/td&gt;
+&lt;td align="left" width="72" valign="top" height="39"&gt;AF &lt;/td&gt; &lt;td align="left"
+width="160" valign="top" height="39"&gt;&amp;amp;#175; &lt;/td&gt; &lt;td align="left"
+width="114" valign="top" height="39"&gt;&amp;amp;macr; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="39"&gt;&amp;macr; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="24"&gt;degree sign
+&lt;/td&gt; &lt;td align="left" width="72" valign="middle" height="24"&gt;B0 &lt;/td&gt;
+&lt;td align="left" width="160" valign="middle" height="24"&gt;&amp;amp;#176; &lt;/td&gt;
+&lt;td align="left" width="114" valign="middle" height="24"&gt;&amp;amp;deg; &lt;/td&gt;
+&lt;td align="left" width="74" valign="middle" height="24"&gt;&amp;deg; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="24"&gt;plus-or-minus sign &lt;/td&gt; &lt;td align="left" width="72" valign="middle"
+height="24"&gt;B1 &lt;/td&gt; &lt;td align="left" width="160" valign="middle"
+height="24"&gt;&amp;amp;#177; &lt;/td&gt; &lt;td align="left" width="114" valign="middle"
+height="24"&gt;&amp;amp;plusmn; &lt;/td&gt; &lt;td align="left" width="74" valign="middle"
+height="24"&gt;&amp;plusmn; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="24"&gt;superscript 2 &lt;/td&gt; &lt;td
+align="left" width="72" valign="middle" height="24"&gt;B2 &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#178; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;sup2; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;sup2; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="24"&gt;superscript 3
+&lt;/td&gt; &lt;td align="left" width="72" valign="middle" height="24"&gt;B3 &lt;/td&gt;
+&lt;td align="left" width="160" valign="middle" height="24"&gt;&amp;amp;#179; &lt;/td&gt;
+&lt;td align="left" width="114" valign="middle" height="24"&gt;&amp;amp;sup3; &lt;/td&gt;
+&lt;td align="left" width="74" valign="middle" height="24"&gt;&amp;sup3; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="24"&gt;spacing acute accent &lt;/td&gt; &lt;td align="left" width="72" valign="middle"
+height="24"&gt;B4 &lt;/td&gt; &lt;td align="left" width="160" valign="middle"
+height="24"&gt;&amp;amp;#180; &lt;/td&gt; &lt;td align="left" width="114" valign="middle"
+height="24"&gt;&amp;amp;acute; &lt;/td&gt; &lt;td align="left" width="74" valign="middle"
+height="24"&gt;&amp;acute; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="24"&gt;micro sign &lt;/td&gt; &lt;td align="left"
+width="72" valign="middle" height="24"&gt;B5 &lt;/td&gt; &lt;td align="left" width="160"
+valign="middle" height="24"&gt;&amp;amp;#181; &lt;/td&gt; &lt;td align="left" width="114"
+valign="middle" height="24"&gt;&amp;amp;micro; &lt;/td&gt; &lt;td align="left" width="74"
+valign="middle" height="24"&gt;&amp;micro; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="39"&gt;middle dot, centered dot &lt;/td&gt;
+&lt;td align="left" width="72" valign="top" height="39"&gt;B7 &lt;/td&gt; &lt;td align="left"
+width="160" valign="top" height="39"&gt;&amp;amp;#183; &lt;/td&gt; &lt;td align="left"
+width="114" valign="top" height="39"&gt;&amp;amp;middot; &lt;/td&gt; &lt;td align="left"
+width="74" valign="top" height="39"&gt;&amp;bull; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="24"&gt;spacing cedilla &lt;/td&gt;
+&lt;td align="left" width="72" valign="middle" height="24"&gt;B8 &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#184; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;cedil; &lt;/td&gt; &lt;td align="left"
+width="74" valign="top" height="24"&gt;&amp;cedil; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="24"&gt;superscript 1
+&lt;/td&gt; &lt;td align="left" width="72" valign="middle" height="24"&gt;B9 &lt;/td&gt;
+&lt;td align="left" width="160" valign="middle" height="24"&gt;&amp;amp;#185; &lt;/td&gt;
+&lt;td align="left" width="114" valign="middle" height="24"&gt;&amp;amp;sup1; &lt;/td&gt;
+&lt;td align="left" width="74" valign="middle" height="24"&gt;&amp;sup1; &lt;/td&gt;
+&lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="39"&gt;masculine ordinal indicator &lt;/td&gt; &lt;td align="left" width="72" valign="top"
+height="39"&gt;BA &lt;/td&gt; &lt;td align="left" width="160" valign="top"
+height="39"&gt;&amp;amp;#186; &lt;/td&gt; &lt;td align="left" width="114" valign="top"
+height="39"&gt;&amp;amp;ordm; &lt;/td&gt; &lt;td align="left" width="74" valign="top"
+height="39"&gt;&amp;ordm; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left"
+width="145" valign="middle" height="39"&gt;right (double) angle quote(guillemet) &lt;/td&gt; &lt;td
+align="left" width="72" valign="top" height="39"&gt;BB &lt;/td&gt; &lt;td align="left" width="160"
+valign="top" height="39"&gt;&amp;amp;#187; &lt;/td&gt; &lt;td align="left" width="114"
+valign="top" height="39"&gt;&amp;amp;raquo; &lt;/td&gt; &lt;td align="left" width="74"
+valign="top" height="39"&gt;&amp;raquo; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt;
+&lt;td align="left" width="145" valign="middle" height="24"&gt;fraction 1/4 &lt;/td&gt; &lt;td
+align="left" width="72" valign="middle" height="24"&gt;BC &lt;/td&gt; &lt;td align="left"
+width="160" valign="middle" height="24"&gt;&amp;amp;#188; &lt;/td&gt; &lt;td align="left"
+width="114" valign="middle" height="24"&gt;&amp;amp;frac14; &lt;/td&gt; &lt;td align="left"
+width="74" valign="middle" height="24"&gt;&amp;frac14; &lt;/td&gt; &lt;/tr&gt;
+&lt;tr&gt; &lt;td align="left" width="145" valign="middle" height="24"&gt;fraction 1/2
+&lt;/td&gt; &lt;td align="left" width="72" valign="middle" height="24"&gt;BD &lt;/td&gt;
+&lt;td align="left" width="160" valign="middle" height="24"&gt;&amp;amp;#189; &lt;/td&gt;
+&lt;td align="left" width="114" valign="middle" height="24"&gt;&amp;amp;frac12; 
+&lt;/td&gt; &lt;td align="left" width="74" valign="middle" height="24"&gt;&amp;frac12;
+&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td align="left" width="145" valign="middle"
+height="24"&gt;fraction 3/4 &lt;/td&gt; &lt;td align="left" width="72" valign="middle"
+height="24"&gt;BE &lt;/td&gt; &lt;td align="left" width="160" valign="middle"
+height="24"&gt;&amp;amp;#190; &lt;/td&gt; &lt;td align="left" width="114" valign="middle"
+height="24"&gt;&amp;amp;frac34; &lt;/td&gt; &lt;td align="left" width="74" valign="middle"
+height="24"&gt;&amp;frac34; &lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td
+align="left" width="145" valign="middle" height="40"&gt;inverted question mark &lt;/td&gt; &lt;td
+align="left" width="72" valign="top" height="40"&gt;BF &lt;/td&gt; &lt;td align="left" width="160"
+valign="top" height="40"&gt;&amp;amp;#191; &lt;/td&gt; &lt;td align="left" width="114"
+valign="top" height="40"&gt;&amp;amp;iquest; &lt;/td&gt; &lt;td align="left" width="74"
+valign="top" height="40"&gt;&amp;iquest; &lt;/td&gt; &lt;/tr&gt;
+&lt;/table&gt;</dei:DocumentInformationTextBlock>
+<dei:DocumentType contextRef="d">8-K</dei:DocumentType>
+<dei:DocumentReportType contextRef="d">Annual Report</dei:DocumentReportType>
+<dei:AmendmentFlag contextRef="d">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="d">2008-12-31</dei:DocumentPeriodEndDate>
+<dei:EntityRegistrantName contextRef="d">e60516007gd</dei:EntityRegistrantName>
+<dei:EntityCentralIndexKey contextRef="d">9876543210</dei:EntityCentralIndexKey>
+<dei:CurrentFiscalYearEndDate contextRef="d">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:EntityWellKnownSeasonedIssuer contextRef="d">No</dei:EntityWellKnownSeasonedIssuer>
+<dei:EntityVoluntaryFilers contextRef="d">No</dei:EntityVoluntaryFilers>
+<dei:EntityCurrentReportingStatus contextRef="d">Yes</dei:EntityCurrentReportingStatus>
+<dei:EntityFilerCategory contextRef="d">Smaller Reporting Company</dei:EntityFilerCategory>
+<dei:EntityCommonStockSharesOutstanding decimals="0" contextRef="i" unitRef="shares">0</dei:EntityCommonStockSharesOutstanding>
+<dei:EntityPublicFloat decimals="0" contextRef="i" unitRef="usd">0</dei:EntityPublicFloat>
+</xbrli:xbrl>

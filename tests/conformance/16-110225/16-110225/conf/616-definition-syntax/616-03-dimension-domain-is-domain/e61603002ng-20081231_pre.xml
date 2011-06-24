@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://edgar/role/OtherInformation" xlink:type="simple"
+xlink:href="edgar-20081231.xsd#OtherInformation"/>
+<link:roleRef roleURI="http://edgar/role/EntityInformation" xlink:type="simple"
+xlink:href="edgar-20081231.xsd#EntityInformation"/>
+<link:presentationLink xlink:type="extended" xlink:role="http://edgar/role/OtherInformation">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntitiesTable"
+xlink:label="EntitiesTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityInformationLineItems"
+xlink:label="EntityInformationLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityContactPersonnelContactPersonTypeAxis"
+xlink:label="EntityContactPersonnelContactPersonTypeAxis"/>
+<link:loc xlink:type="locator" xlink:href="e61603002ng-20081231.xsd#e6160300_Statistics"
+xlink:label="Statistics"/>
+<link:loc xlink:type="locator"
+xlink:href="e61603002ng-20081231.xsd#e6160300_Acquisitions"
+xlink:label="Acquisitions"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntitiesTable"
+xlink:to="EntityInformationLineItems"
+order="2.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityInformationLineItems"
+xlink:to="Statistics"
+use="optional"
+order="2.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntitiesTable"
+xlink:to="EntityContactPersonnelContactPersonTypeAxis"
+order="3.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityContactPersonnelContactPersonTypeAxis"
+xlink:to="Acquisitions"
+use="optional"
+order="1.0"/>
+</link:presentationLink>
+<link:presentationLink xlink:type="extended" xlink:role="http://edgar/role/EntityInformation"/>
+</link:linkbase>

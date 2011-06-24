@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2086.16077 (2005-09-17 09:21).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-09-20 06:02:10
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_AllProducts" xlink:label="products_AllProducts" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_PharmaceuticalsSegment" xlink:label="products_PharmaceuticalsSegment" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_GenericsSegment" xlink:label="products_GenericsSegment" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_ConsumerHealthSegment" xlink:label="products_ConsumerHealthSegment" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_OtherSegments" xlink:label="products_OtherSegments" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="products_AllProducts" xlink:to="products_PharmaceuticalsSegment" order="1" use="optional" xbrldt:usable="true"  />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="products_AllProducts" xlink:to="products_GenericsSegment" order="2" use="optional" xbrldt:usable="true" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="products_AllProducts" xlink:to="products_ConsumerHealthSegment" order="3" use="optional" xbrldt:usable="true" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="products_AllProducts" xlink:to="products_OtherSegments" order="4" use="optional" xbrldt:usable="true" />
+  </definitionLink>
+</linkbase>

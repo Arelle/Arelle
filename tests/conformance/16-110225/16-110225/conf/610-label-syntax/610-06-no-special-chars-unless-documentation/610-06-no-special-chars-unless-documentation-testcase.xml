@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>610-06</number>
+<name>EDGAR Filer Manual v16 6.10.6 page 6-49</name>
+<description>
+<h2>The ASCII text of link:label must be a string of fewer than 511 characters with no consecutive XML whitespace
+characters and no occurrences of '&lt;' unless its xlink:role attribute is 'http://www.xbrl.org/2003/label/documentation'.</h2>
+<p>ASCII character 60 (decimal) and the following ASCII sequences are prohibited in the content of labels other than documentation
+labels: &amp;lt; &amp;#60; &amp;#x3C.</p>
+<p>REMARK: This only applies to company extension label linkbases. If a standard taxonomy label linkbase appearing in
+edgartaxonomies.xml violated this rule it would be included in a 'good' test variation.</p>
+</description>
+<reference specification="11200"/>
+<variation id="_000gd">
+<name>6.10.6, a documentation label that is over 1000 characters with the special character '&lt;', GOOD.</name>
+<description> a documentation label that is over 1000 characters with the special character '&lt;',
+GOOD.</description>
+<reference specification="11200"/>
+<data>
+<instance readMeFirst="true">e61006000gd-20081231.xml</instance>
+<linkbase>e61006000gd-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61006000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.10.6, a standard label of 562 characters, NOGOOD.</name>
+<description> a standard label of 562 characters, NOGOOD.</description>
+<reference specification="11200"/>
+<data>
+<instance readMeFirst="true">e61006002ng-20081231.xml</instance>
+<linkbase>e61006002ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61006002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61006" name="Label-Disallowed" frd="rq"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.10.6, a verbose label containing &lt; character, NOGOOD.</name>
+<description> a verbose label containing &lt; character, NOGOOD.</description>
+<reference specification="11200"/>
+<data>
+<instance readMeFirst="true">e61006003ng-20081231.xml</instance>
+<linkbase>e61006003ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61006003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61006" name="Label-Disallowed" frd="rq"/>
+</result>
+</variation>
+<variation id="_004gd">
+<name>6.10.6, a standard label containing &gt; character which used to be 'special', GOOD.</name>
+<description> a standard label containing &gt; character which used to be 'special', GOOD.</description>
+<reference specification="11200"/>
+<data>
+<instance readMeFirst="true">e61006004gd-20081231.xml</instance>
+<linkbase>e61006004gd-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61006004gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>51240</number>
+  <name>Tuple Location Filter Processing</name>
+  <description>
+    Test tuple location filter processing.
+  </description>
+  <reference specification="TUPLE-FILTER" id="sec-location-filter"/>
+
+  <variation id="V-01">
+    <name>Filter for facts that have same parent as another variable</name>
+    <description>
+    The fact that variable $v:b has evaluated to must be a child of the element that is the parent of the fact being filtered. E.g., $v:b represents a sibling of the fact being filtered.  Qname of variable whose fact is to be a sibling is v:b, location is &quot;../*&quot;.  If filter were absent four facts would be produced instead of two (including cross combinations of facts between tuples). 
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-sibling-filter"/>
+    <data>
+      <schema>51240-tuple-test-concepts.xsd</schema>
+      <linkbase>51240-locationInSameParent-formula.xml</linkbase>
+      <instance readMeFirst="true">51240-locationInSameParent-instance.xml</instance>
+    </data>
+    <result>
+      <instance>51240-locationInSameParent-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Filter for facts that have another variable as child of sibling tuple</name>
+    <description>
+The fact that variable $v:b has evaluated to must be a child of an &lt;eg:u&gt; tuple element that is a sibling of the fact being filtered. 
+E.g., variable being filtered is to have variable $v:b's fact as a nephew of sibling &lt;eg:u&gt;.  The fact being filtered is the uncle of variable $v:b's fact.
+If filter were absent four facts would be produced instead of two (including cross combinations of facts between tuples). 
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-sibling-filter"/>
+    <data>
+      <schema>51240-tuple-test-concepts.xsd</schema>
+      <linkbase>51240-locationIsNephew-formula.xml</linkbase>
+      <instance readMeFirst="true">51240-locationIsNephew-instance.xml</instance>
+    </data>
+    <result>
+      <instance>51240-locationIsNephew-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Filter for facts that are children of a tuple</name>
+    <description>
+The fact variable $tuple evaluates one by one to tuples in the instance document.  The fact variables $b and $c bind to its children by a location filter.  Tests that tuple iteration works.
+If filter were absent four facts would be produced instead of two (including cross combinations of facts between tuples). Implicit filtering is disabled so that there is no attempt to match absent tuple aspects to the items (entity, period, etc).
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-sibling-filter"/>
+    <data>
+      <schema>51240-tuple-test-concepts.xsd</schema>
+      <linkbase>51240-locationByParent-formula.xml</linkbase>
+      <instance readMeFirst="true">51240-locationByParent-instance.xml</instance>
+    </data>
+    <result>
+      <instance>51240-locationByParent-result.xml</instance>
+    </result>
+  </variation>
+
+<!-- Bad test per specification
+  <variation id="V-04">
+    <name>Filter variable attribute has unresolvable prefix</name>
+    <description>
+Same as V-01 but variable attribute has unresovable prefix
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-sibling-filter"/>
+    <data>
+      <schema>51240-tuple-test-concepts.xsd</schema>
+      <linkbase>51240-badLocationVariablePrefix-formula.xml</linkbase>
+      <instance readMeFirst="true">51240-badLocationVariablePrefix-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">
+         xbrlve:variableNameResolutionFailure
+      </error>
+    </result>
+  </variation>
+-->
+
+  <variation id="V-05">
+    <name>Filter variable attribute has no-namespace prefix</name>
+    <description>
+    Same as V-01 except for no-namespace no-prefix variable name, and use of default xmlns on elements.
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-sibling-filter"/>
+    <data>
+      <schema>51240-tuple-test-concepts.xsd</schema>
+      <linkbase>51240-noPrefixVariableName-formula.xml</linkbase>
+      <instance readMeFirst="true">51240-noPrefixVariableName-instance.xml</instance>
+    </data>
+    <result>
+      <instance>51240-locationInSameParent-result.xml</instance>
+    </result>
+  </variation>
+
+
+</testcase>
+

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47208</number>
+  <name>Segment dimension matching filter test</name>
+  <description>
+    Tests of segment dimension matching filter.
+      
+      P1, P2, and P3 are primary items all inheriting the hc1 all hypercube.
+      
+      P4 inherits from all, and is used as factvar1 in all tests.
+      
+      hc1 is an all and has two dimensions:
+      
+      explDim1 is an explicit dimension with a domain member domain1, which has
+      children member1 and member2;
+      
+      typeDim1 is a typed dimension with a complex typed element dimVal which has:
+      
+      attributes a1 (string), a2 (decimal), and a3 (double);
+      
+      any contents such as strVal (string), decVal (decimal), and dblVal (double), each of which also have the previously-noted three attributes;
+      
+      (additional hypercube alternatives are provided in separate extended link roles to allow valid missing dimensions for these tests).
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-segment-dimension-matching-filter"/>
+
+  <variation id="V-01">
+    <name>Explicit dimensions are equal, they have same member</name>
+    <description>Explicit dimensions are equal, they have same member</description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-explDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v01.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-v01.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Typed dimensions are equal, they have same composition and values.</name>
+    <description>
+      Note that left and right arguments have attributes in different orders.  Decimal and double attributes and text values must be compared using respective typed comparison operators.  Also explicit dimension (not subject of match filter) differs, but shouldn&apos;t be considered.
+     </description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-typeDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v02.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-v02.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Typed dimensions are equal, but factvar2 is out of factvar1&apos;s order</name>
+    <description>
+      Reuse of variation V-02, but right has typed sub-elements in different order, so result of match filter is false, e.g., no output fact results.
+     </description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-typeDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v03.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-tNoMatch.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Explicit dimension of V-01 factvar2 is different from that of factvar1</name>
+    <description>Explicit dimension of V-01 factvar2 is different from that of factvar1</description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-explDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v04.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-eNoMatch.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>Explicit dimension of V-01 factvar1 is missing from factvar2</name>
+    <description>Explicit dimension of V-01 factvar1 is missing from factvar2</description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-explDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v05.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-eNoMatch.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Typed dimension of V-01 factvar1 is missing from factvar2</name>
+    <description>Typed dimension of V-01 factvar1 is missing from factvar2</description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-typeDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v06.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-tNoMatch.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Explicit dimension of V-05 factvar2 also missing, since both missing, match result is true</name>
+    <description>Explicit dimension of V-05 factvar2 also missing, since both missing, match result is true</description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-explDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v07.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-v07.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Typed dimension of V-06 is missing from both factvars so match result is true</name>
+    <description>Typed dimension of V-06 is missing from both factvars so match result is true</description>
+    <data>
+      <schema>segDimMatch-concepts.xsd</schema>
+      <linkbase>segDimMatch-definition.xml</linkbase>
+      <linkbase>segDimMatch-typeDim1-formula.xml</linkbase>
+      <instance readMeFirst="true">segDimMatch-instance-v08.xml</instance>
+    </data>
+    <result>
+      <instance>segDimMatch-result-v08.xml</instance>
+    </result>
+  </variation>  
+
+
+</testcase>
+
+

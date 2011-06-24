@@ -1,0 +1,754 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><HTML lang="ENG">
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>EDGAR XBRL Validation Errors</TITLE>
+</HEAD>
+<body style="topmargin: 0; leftmargin: 0; marginwidth: 0; marginheight: 0;">
+<h2>EDGAR XBRL Validation Errors</h2>
+<table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="center">
+<td width="200"><strong>Message ID</strong></td>
+<td width="402"><strong>Message</strong></td>
+<td width="50"><strong>Subsection</strong></td>
+</tr>
+</table><a name="cp-0200-Standard-Taxonomies-Version-Conflict" id="cp-0200-Standard-Taxonomies-Version-Conflict"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0200-Standard-Taxonomies-Version-Conflict</td>
+<td width="402">The same roles are declared in us-roles-2008-03-31.xsd and us-roles-2009-01-31.xsd.  Please recheck your
+      submission and remove the conflict.</td>
+<td width="50" align="center">6.2.0</td>
+</tr>
+</table><a name="" id=""></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200"></td>
+<td width="402">The document type and naming of "{...}" naming is not consistent with one or more of the following:<br>
+      <br> EX-101.INS - XBRL Instance document (Required) *.xml<br> EX-101.SCH - XBRL Taxonomy Extension Schema
+      document *.xsd<br> EX-101.CAL - XBRL Taxonomy Extension Calculation Linkbase document *.xml<br> EX-101.DEF -
+      XBRL Taxonomy Extension Definition Linkbase document *.xml<br> EX-101.LAB - XBRL Taxonomy Extension Labels
+      Linkbase document *.xml<br> EX-101.PRE - XBRL Taxonomy Extension Presentation Linkbase document *.xml<br>
+      EX-101.REF - XBRL Taxonomy Extension Reference Linkbase document *.xml<br>
+      <br> Please ensure that you comply with the document type and naming provided.</td>
+<td width="50" align="center">6.3.3</td>
+</tr>
+</table><a name="cp-0306-Fragment-Not-Shorthand-Xpointer" id="cp-0306-Fragment-Not-Shorthand-Xpointer"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0306-Fragment-Not-Shorthand-Xpointer</td>
+<td width="402">Illegal shorthand pointer syntax {...} referenced by {...} in {...} on line {...}</td>
+<td width="50" align="center">6.3.6</td>
+</tr>
+</table><a name="du-0311-Use-Of-Xml-Base-Attribute-Illegal" id="du-0311-Use-Of-Xml-Base-Attribute-Illegal"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0311-Use-Of-Xml-Base-Attribute-Illegal</td>
+<td width="402">Illegal use of xml:base to {...} referenced by {...} in {...} on line {...}</td>
+<td width="50" align="center">6.3.11</td>
+</tr>
+</table><a name="cp-0501-Entity-Identifier-Scheme" id="cp-0501-Entity-Identifier-Scheme"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0501-Entity-Identifier-Scheme</td>
+<td width="402">Your identifier for the CIK code, {...}, or scheme {...}, in context {...}, did not adhere to the standard
+      naming convention of &lt;identifier
+      scheme="http://www.sec.gov/CIK" &gt;xxxxxxxxxx&lt;/identifier&gt;".  Please
+      recheck your submission and comply with the standard naming convention.</td>
+<td width="50" align="center">6.5.1</td>
+</tr>
+</table><a name="cp-0504-No-Scenario" id="cp-0504-No-Scenario"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0504-No-Scenario</td>
+<td width="402">There must be no contexts with scenarios, but {...} was(were) found: {...}.</td>
+<td width="50" align="center">6.5.4</td>
+</tr>
+</table><a name="cp-0505-Segment-Child-Not-Explicit-Member" id="cp-0505-Segment-Child-Not-Explicit-Member"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0505-Segment-Child-Not-Explicit-Member</td>
+<td width="402">There must be no segments with non-explicitDimension content, but {…} was(were) found: {…}</td>
+<td width="50" align="center">6.5.5</td>
+</tr>
+</table><a name="du-0507-Duplicate-Contexts" id="du-0507-Duplicate-Contexts"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0507-Duplicate-Contexts</td>
+<td width="402">The instance document contained more than one context equivalent to {...}.  Please remove duplicate contexts
+      from the instance.</td>
+<td width="50" align="center">6.5.7</td>
+</tr>
+</table><a name="du-0508-Unused-Context" id="du-0508-Unused-Context"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0508-Unused-Context</td>
+<td width="402">The instance document contained a context {...} that was not used in any fact. Please remove the context from
+      the instance.</td>
+<td width="50" align="center">6.5.8</td>
+</tr>
+</table><a name="fs-0509-Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type" id="fs-0509-Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0509-Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type</td>
+<td width="402">fs-0509-Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-TypeContext {...} endDate and {...} startDate have a duration of one day; that is inconsistent with document type
+      {...}.</td>
+<td width="50" align="center">6.5.9</td>
+</tr>
+</table><a name="fs-0510-Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type" id="fs-0510-Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0510-Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type</td>
+<td width="402">fs-0510-Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-TypeContexts {...} and {...} have an overlap of one day; that is inconsistent with document type {...}.</td>
+<td width="50" align="center">6.5.10</td>
+</tr>
+</table><a name="du-0511-Duplicate-Units" id="du-0511-Duplicate-Units"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0511-Duplicate-Units</td>
+<td width="402">There is more than one unit equivalent to {...}.  Please remove all but one and resubmit.</td>
+<td width="50" align="center">6.5.11</td>
+</tr>
+</table><a name="du-0512-Duplicate-Facts" id="du-0512-Duplicate-Facts"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0512-Duplicate-Facts</td>
+<td width="402">The instance document contained an element, {...} that was used more than once in contexts equivalent to
+      {...}.  Please ensure there are no duplicate combinations of concept and context in the instance.</td>
+<td width="50" align="center">6.5.12</td>
+</tr>
+</table><a name="du-0514-English-Text-Missing" id="du-0514-English-Text-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0514-English-Text-Missing</td>
+<td width="402">Element {...} in context {...} has text with xml:lang other than "en-US" without matching
+      English text.  Please provide a fact with xml:lang equal to "en-US".</td>
+<td width="50" align="center">6.5.14</td>
+</tr>
+</table><a name="cp-0515-Text-Block-Not-Well-Formed-XML" id="cp-0515-Text-Block-Not-Well-Formed-XML"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0515-Text-Block-Not-Well-Formed-XML</td>
+<td width="402">A {...} fact contains unbalanced tags, in {...}, line {...}. (For example, &lt;BR&gt; must be followed
+      by &lt;/BR&gt;; values of attributes such as "align" must be quoted, as in
+      align="center".)  XML parser messages: {...}.</td>
+<td width="50" align="center">6.5.15</td>
+</tr>
+</table><a name="cp-0516-Prohibited-Html-Body" id="cp-0516-Prohibited-Html-Body"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0516-Prohibited-Html-Body</td>
+<td width="402">A {...} fact, in {...}, line {...}, contains text that is not valid for the content of the HTML "body" tag:
+      {...}.</td>
+<td width="50" align="center">6.5.16</td>
+</tr>
+</table><a name="fs-0517-Decimals-Not-Precision" id="fs-0517-Decimals-Not-Precision"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0517-Decimals-Not-Precision</td>
+<td width="402">Your filing contained elements using the precision attribute.  Please recheck your submission and replace the
+      precision attribute with the decimals attribute.</td>
+<td width="50" align="center">6.5.17</td>
+</tr>
+</table><a name="cp-0520-Document-Period-End-Date-Existence" id="cp-0520-Document-Period-End-Date-Existence"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0520-Document-Period-End-Date-Existence</td>
+<td width="402">You did not include the following data: DocumentPeriodEndDate.  Please include DocumentPeriodEndDate.</td>
+<td width="50" align="center">6.5.20</td>
+</tr>
+</table><a name="cp-0520-Document-Type-Existence" id="cp-0520-Document-Type-Existence"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0520-Document-Type-Existence</td>
+<td width="402">You did not include the following data: DocumentType  Please include DocumentType.</td>
+<td width="50" align="center">6.5.20</td>
+</tr>
+</table><a name="cp-0520-Document-Type-Value" id="cp-0520-Document-Type-Value"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0520-Document-Type-Value</td>
+<td width="402">Your dei:DocumentType has an illegal value, {...}.  Please correct it.</td>
+<td width="50" align="center">6.5.20</td>
+</tr>
+</table><a name="fs-0520-Amendment-Description-Without-Amendment-Flag" id="fs-0520-Amendment-Description-Without-Amendment-Flag"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0520-Amendment-Description-Without-Amendment-Flag</td>
+<td width="402">AmendmentFlag is not true in context {...}, so do not provide an AmendmentDescription in that context.</td>
+<td width="50" align="center">6.5.20</td>
+</tr>
+</table><a name="cp-0521-Central-Index-Key" id="cp-0521-Central-Index-Key"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0521-Central-Index-Key</td>
+<td width="402">You did not include the following data: EntityCentralIndexKey for the required context.  Please include
+      EntityCentralIndexKey.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="cp-0520-Amendment-Flag-Existence" id="cp-0520-Amendment-Flag-Existence"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0520-Amendment-Flag-Existence</td>
+<td width="402">You did not include the following data: AmendmentFlag.  Please include AmendmentFlag.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="" id=""></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200"></td>
+<td width="402">The value provided for Amendment Flag, {...}, is not a valid boolean value (true or false).  Please include a
+      valid AmendmentFlag.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Document-Period-End-Date-Existence" id="im-0521-Document-Period-End-Date-Existence"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Document-Period-End-Date-Existence</td>
+<td width="402">You did not include the following data: DocumentPeriodEndDate.  Please include DocumentPeriodEndDate.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Entity-Current-Reporting-Status" id="im-0521-Entity-Current-Reporting-Status"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Entity-Current-Reporting-Status</td>
+<td width="402">You did not include the following data: EntityCurrentReportingStatus.  Please include
+      EntityCurrentReportingStatus.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Entity-Filer-Category" id="im-0521-Entity-Filer-Category"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Entity-Filer-Category</td>
+<td width="402">You did not include the following data: EntityFilerCategory.  Please include EntityFilerCategory.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Entity-Common-Shares-Outstanding" id="im-0521-Entity-Common-Shares-Outstanding"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Entity-Common-Shares-Outstanding</td>
+<td width="402">The instance document has Document Type of {...} but does not have a value for the number of common shares
+      outstanding, dei:EntityCommonStockSharesOutstanding.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Entity-Public-Float" id="im-0521-Entity-Public-Float"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Entity-Public-Float</td>
+<td width="402">The instance document has dei:DocumentType of {...} but does not have a value for the public float,
+      dei:EntityPublicFloat.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Current-Fiscal-Year-End-Date" id="im-0521-Current-Fiscal-Year-End-Date"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Current-Fiscal-Year-End-Date</td>
+<td width="402">Document type {...} requires a value for dei:CurrentFiscalYearEndDate in the Required Context.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Well-Known-Seasoned-Issuer" id="im-0521-Well-Known-Seasoned-Issuer"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Well-Known-Seasoned-Issuer</td>
+<td width="402">Document type {...} requires a value for dei:EntityWellKnownSeasonedIssuer in the Required Context.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="im-0521-Entity-Voluntary-Filers" id="im-0521-Entity-Voluntary-Filers"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">im-0521-Entity-Voluntary-Filers</td>
+<td width="402">Document type {...} requires a value for dei:EntityVoluntaryFilers in the Required Context.  Please recheck
+      your submission and provide the current voluntary filer information.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="cp-0521-Entity-Registrant-Name" id="cp-0521-Entity-Registrant-Name"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0521-Entity-Registrant-Name</td>
+<td width="402">The Official Registrant name, {...}, does not match the value {...} in the Required Context.  Please correct
+      dei:EntityRegistrantName.</td>
+<td width="50" align="center">6.5.21</td>
+</tr>
+</table><a name="cp-0523-Non-Matching-Cik" id="cp-0523-Non-Matching-Cik"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0523-Non-Matching-Cik</td>
+<td width="402">The submission CIK, {...} does not match either the EntityCentralIndexKey, {...}, or context identifier CIK(s)
+      {...}, or is not 10 digits, for required context(s).  Please include a correct matching EntityCentralIndexKey and
+      context identifier CIK(s) in the filing.</td>
+<td width="50" align="center">6.5.23</td>
+</tr>
+</table><a name="cp-0524-Registrant-Name-Mismatch" id="cp-0524-Registrant-Name-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0524-Registrant-Name-Mismatch</td>
+<td width="402">The Official Registrant name, {...}, does not match the value {...} in the Required Context. Please correct
+      dei:EntityRegistrantName.</td>
+<td width="50" align="center">6.5.24</td>
+</tr>
+</table><a name="du-0525-Domain-As-Fact" id="du-0525-Domain-As-Fact"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0525-Domain-As-Fact</td>
+<td width="402">The domain item {...} cannot appear as a fact, in {...} line {...}.  Please remove the fact from context
+      {...}.</td>
+<td width="50" align="center">6.5.25</td>
+</tr>
+</table><a name="du-0527-Footnote-Substitution-Group" id="du-0527-Footnote-Substitution-Group"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0527-Footnote-Substitution-Group</td>
+<td width="402">Footnote link {...} has a child element {...} that is not allowed.  Please remove it.</td>
+<td width="50" align="center">6.5.27</td>
+</tr>
+</table><a name="du-0528-Footnote-Custom-Footnote-Role" id="du-0528-Footnote-Custom-Footnote-Role"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0528-Footnote-Custom-Footnote-Role</td>
+<td width="402">Footnote {...} has a role {... } that is not allowed. Please replace it with the default footnote role.</td>
+<td width="50" align="center">6.5.28</td>
+</tr>
+</table><a name="fs-0528-Footnote-Role-Missing" id="fs-0528-Footnote-Role-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0528-Footnote-Role-Missing</td>
+<td width="402">Footnote {...} has missing role.</td>
+<td width="50" align="center">6.5.28</td>
+</tr>
+</table><a name="du-0529-Footnote-Custom-Loc-Role" id="du-0529-Footnote-Custom-Loc-Role"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0529-Footnote-Custom-Loc-Role</td>
+<td width="402">Footnote locator {...} has a custom role, {...} that is not allowed.  Please replace it with the default
+      footnote role.</td>
+<td width="50" align="center">6.5.29</td>
+</tr>
+</table><a name="du-0530-Footnote-Custom-Arcrole" id="du-0530-Footnote-Custom-Arcrole"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0530-Footnote-Custom-Arcrole</td>
+<td width="402">Footnote relationship {...} has a custom arc role {...} that is not allowed.  Please replace it with the
+      default (fact-footnote) arcrole.</td>
+<td width="50" align="center">6.5.30</td>
+</tr>
+</table><a name="du-0532-Footnote-Locator-Portable" id="du-0532-Footnote-Locator-Portable"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0532-Footnote-Locator-Portable</td>
+<td width="402">Footnote {...} refers to a location, {...}, that does not begin with "#" so that any change
+      to the file name would render the XBRL invalid.</td>
+<td width="50" align="center">6.5.32</td>
+</tr>
+</table><a name="cp-0533-Dangling-Footnote" id="cp-0533-Dangling-Footnote"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0533-Dangling-Footnote</td>
+<td width="402">The footnote with label {...} and text "{...}" is not connected to any fact.  Please remove
+      the footnote, or link it to a fact.</td>
+<td width="50" align="center">6.5.33</td>
+</tr>
+</table><a name="cp-0534-Prohibited-Html-Footnote-Body" id="cp-0534-Prohibited-Html-Footnote-Body"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0534-Prohibited-Html-Footnote-Body</td>
+<td width="402">Footnote {...}, line {...}, contains text that is not valid for the content of the HTML "body" tag:
+      {...}.</td>
+<td width="50" align="center">6.5.34</td>
+</tr>
+</table><a name="cp-60535-Incompatible-Numeric-Type-And-Unit" id="cp-60535-Incompatible-Numeric-Type-And-Unit"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-60535-Incompatible-Numeric-Type-And-Unit</td>
+<td width="402">Element {...} has a unitRef, {...}, that is not valid for its type, {...}.</td>
+<td width="50" align="center">6.5.35</td>
+</tr>
+</table><a name="du-0701-Schema-Include-Present" id="du-0701-Schema-Include-Present"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0701-Schema-Include-Present</td>
+<td width="402">The schema contains an "include" element, in {...} line {...}.  Please remove it and
+      resubmit.</td>
+<td width="50" align="center">6.7.1</td>
+</tr>
+</table><a name="cp-0702-Target-Is-Standard-Taxonomy-Namespace" id="cp-0702-Target-Is-Standard-Taxonomy-Namespace"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0702-Target-Is-Standard-Taxonomy-Namespace</td>
+<td width="402">The target namespace, {...} at location {...} cannot be the same as a standard taxonomy.  Remove the import
+      element or change the target namespace.</td>
+<td width="50" align="center">6.7.2</td>
+</tr>
+</table><a name="fs-0703-Extension-Has-Standard-Namespace-Authority" id="fs-0703-Extension-Has-Standard-Namespace-Authority"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0703-Extension-Has-Standard-Namespace-Authority</td>
+<td width="402">The target namespace, {...} cannot have the same authority ({...}) as a standard taxonomy, in {...}.  Please
+      change your target namespace.</td>
+<td width="50" align="center">6.7.3</td>
+</tr>
+</table><a name="cp-0704-Taxonomy-Valid-Target-Namespace" id="cp-0704-Taxonomy-Valid-Target-Namespace"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0704-Taxonomy-Valid-Target-Namespace</td>
+<td width="402">You did not adhere to the requirements for target namespace, for {...} in {...}.  Please recheck your
+      submission and adhere to the target namespace requirements.</td>
+<td width="50" align="center">6.7.4</td>
+</tr>
+</table><a name="du-0707-Recommended-Prefix-Disallowed" id="du-0707-Recommended-Prefix-Disallowed"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0707-Recommended-Prefix-Disallowed</td>
+<td width="402">The schema does not supply a prefix for {...} without an underscore character, in file {...}. Please provide
+      or change a prefix</td>
+<td width="50" align="center">6.7.7</td>
+</tr>
+</table><a name="cp-0708-No-Embedded-Linkbases" id="cp-0708-No-Embedded-Linkbases"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0708-No-Embedded-Linkbases</td>
+<td width="402">Your filing contained embedded linkbases in {...}.  Please recheck your submission and remove all embedded
+      linkbases.</td>
+<td width="50" align="center">6.7.8</td>
+</tr>
+</table><a name="du-0709-Role-Namespace-Mismatch" id="du-0709-Role-Namespace-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0709-Role-Namespace-Mismatch</td>
+<td width="402">Role {...} does not begin with {...}'s scheme and authority, in {...} line {...}. Please change the role URI
+      or target namespace URI.</td>
+<td width="50" align="center">6.7.9</td>
+</tr>
+</table><a name="du-0710-Role-Type-Duplicates" id="du-0710-Role-Type-Duplicates"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0710-Role-Type-Duplicates</td>
+<td width="402">Role {...} was declared more than once ({...} times, in {...}).  Please remove all but one declaration.</td>
+<td width="50" align="center">6.7.10</td>
+</tr>
+</table><a name="du-0711-Role-Type-Declaration-Incomplete" id="du-0711-Role-Type-Declaration-Incomplete"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0711-Role-Type-Declaration-Incomplete</td>
+<td width="402">The role {...} did not provide a usedOn element for all three link types (presentation, calculation and
+      definition), in {...} line {...}. Change the declaration to be for all three types of link, and resubmit.</td>
+<td width="50" align="center">6.7.11</td>
+</tr>
+</table><a name="rq-0712-Role-Definition-Mismatch" id="rq-0712-Role-Definition-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">rq-0712-Role-Definition-Mismatch</td>
+<td width="402">The definition "{...}" of role {...} does not match the expected format, in {...} line
+      {...}. Please check that the definition matches {number} - {type} - {text}.</td>
+<td width="50" align="center">6.7.12</td>
+</tr>
+</table><a name="du-0713-Arcrole-Namespace-Mismatch" id="du-0713-Arcrole-Namespace-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0713-Arcrole-Namespace-Mismatch</td>
+<td width="402">Relationship role {...} does not begin with {...}'s scheme and authority, in {...} line {...}.  Please change
+      the relationship role URI or target namespace URI.</td>
+<td width="50" align="center">6.7.13</td>
+</tr>
+</table><a name="du-0714-Arcrole-Type-Duplicates" id="du-0714-Arcrole-Type-Duplicates"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0714-Arcrole-Type-Duplicates</td>
+<td width="402">Relationship arc role {...} is declared more than once ({...} duplicates, {...}).  Please remove all but one
+      of them.</td>
+<td width="50" align="center">6.7.14</td>
+</tr>
+</table><a name="du-0715-Arcrole-Definition-Missing" id="du-0715-Arcrole-Definition-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0715-Arcrole-Definition-Missing</td>
+<td width="402">Relationship role declaration {...} is missing a definition, in {...} line {...}.  Please provide a
+      definition.</td>
+<td width="50" align="center">6.7.15</td>
+</tr>
+</table><a name="cp-0716-Element-Name-Same-As-Base" id="cp-0716-Element-Name-Same-As-Base"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0716-Element-Name-Same-As-Base</td>
+<td width="402">Your extension taxonomy contains an element, {...}, which has the same name as an element in the base
+      taxonomy, {...}.  Please ensure that this extension is appropriate and if so, please change the extension concept
+      name.</td>
+<td width="50" align="center">6.7.16</td>
+</tr>
+</table><a name="cp-0717-Element-Id" id="cp-0717-Element-Id"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0717-Element-Id</td>
+<td width="402">You did not adhere to the declarations for concepts by containing an "id" attribute whose
+      value begins with the recommended namespace prefix of the taxonomy, followed by an underscore, followed by an
+      element name, for the concept {...}.  Please recheck your submission.</td>
+<td width="50" align="center">6.7.17</td>
+</tr>
+</table><a name="du-0718-Nillable-Not-True" id="du-0718-Nillable-Not-True"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0718-Nillable-Not-True</td>
+<td width="402">Element {...} is declared without a "true" value for the nillable attribute, in {...} line
+      {...}.  Please set the value to "true".</td>
+<td width="50" align="center">6.7.18</td>
+</tr>
+</table><a name="cp-0719-No-Tuple-Element" id="cp-0719-No-Tuple-Element"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0719-No-Tuple-Element</td>
+<td width="402">Your instance document contains one or more tuple element(s), please remove all tuple(s) from your instance
+      document.</td>
+<td width="50" align="center">6.7.19</td>
+</tr>
+</table><a name="" id=""></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200"></td>
+<td width="402">You provided an extension concept which is a tuple, {...}.  Please remove tuples and check your
+      submission.</td>
+<td width="50" align="center">6.7.19</td>
+</tr>
+</table><a name="du-0720-Typed-Domain-Ref-Disallowed" id="du-0720-Typed-Domain-Ref-Disallowed"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0720-Typed-Domain-Ref-Disallowed</td>
+<td width="402">There is an xbrldt:typedDomainRef attribute on {...}, in {...} line {...}. Please remove it.</td>
+<td width="50" align="center">6.7.20</td>
+</tr>
+</table><a name="du-0721-Abstract-Is-Instant" id="du-0721-Abstract-Is-Instant"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0721-Abstract-Is-Instant</td>
+<td width="402">Element {...} is declared as an abstract item with period type "instant", in {...} line
+      {...}.  Please change it to "duration" or make the element not abstract.</td>
+<td width="50" align="center">6.7.21</td>
+</tr>
+</table><a name="du-0722-Abstract-Type-Not-String" id="du-0722-Abstract-Type-Not-String"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0722-Abstract-Type-Not-String</td>
+<td width="402">Element {...} is declared as an item with type {...}, in {...} line {...}.  Please change it to
+      xbrli:stringItemType or make the element not abstract.</td>
+<td width="50" align="center">6.7.22</td>
+</tr>
+</table><a name="du-0723-Axis-Dimension-Name-Mismatch" id="du-0723-Axis-Dimension-Name-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0723-Axis-Dimension-Name-Mismatch</td>
+<td width="402">The substitution group "xbrldt:dimensionItem" is only consistent with an element name that
+      ends with "Axis".  Please change {...} or change the substitutionGroup, in {...} line
+      {...}.</td>
+<td width="50" align="center">6.7.23</td>
+</tr>
+</table><a name="du-0724-Table-Hypercube-Name-Mismatch" id="du-0724-Table-Hypercube-Name-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0724-Table-Hypercube-Name-Mismatch</td>
+<td width="402">The substitution group "xbrldt:hypercubeItem" is only allowed with an element name that ends
+      with "Table".  Please change {...} or change the substitutionGroup, in {...} line {...}.</td>
+<td width="50" align="center">6.7.24</td>
+</tr>
+</table><a name="du-0725-Substitution-Group-Custom" id="du-0725-Substitution-Group-Custom"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0725-Substitution-Group-Custom</td>
+<td width="402">The substitution group attribute value {...} of element {...} is not allowed, in {...} line {...}.  Please
+      change it to one of "xbrli:item", "xbrldt:dimensionItem" or
+      "xbrldt:hypercubeItem".</td>
+<td width="50" align="center">6.7.25</td>
+</tr>
+</table><a name="du-0726-LineItems-Abstract-Name-Mismatch" id="du-0726-LineItems-Abstract-Name-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0726-LineItems-Abstract-Name-Mismatch</td>
+<td width="402">The element {...} ends with "LineItems" but is not abstract. Please change {...} or the
+      value of the "abstract" attribute, in {...}, line {...}.</td>
+<td width="50" align="center">6.7.26</td>
+</tr>
+</table><a name="du-0727-Domain-Type-Name-Mismatch" id="du-0727-Domain-Type-Name-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0727-Domain-Type-Name-Mismatch</td>
+<td width="402">The type "us-types:domainItemType" is only allowed with an element name that ends with
+      "Domain" or "Member".  Please change {...} or change the type, in {...}, line
+      {...}.</td>
+<td width="50" align="center">6.7.27</td>
+</tr>
+</table><a name="du-0728-Domain-Member-Is-Instant" id="du-0728-Domain-Member-Is-Instant"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0728-Domain-Member-Is-Instant</td>
+<td width="402">Element {...} is declared as a us-types:domainItemType with period type "instant", in {...}
+      line {...}.  Please change it to "duration" or change the item type.</td>
+<td width="50" align="center">6.7.28</td>
+</tr>
+</table><a name="du-0903-Relationship-Ineffectual" id="du-0903-Relationship-Ineffectual"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0903-Relationship-Ineffectual</td>
+<td width="402">The {...} relationship from {...} to {...}, link role {...}, in the submission is ineffectual.  Please remove
+      or correct the relationship.</td>
+<td width="50" align="center">6.9.3</td>
+</tr>
+</table><a name="fs-0904-Resource-Role-Missing" id="fs-0904-Resource-Role-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0904-Resource-Role-Missing</td>
+<td width="402">The {...} element requires an xlink:role such as the default, “http://www.xbrl.org/2003/role/label”, in {...}
+      line {...}.  Please recheck submission.</td>
+<td width="50" align="center">6.9.4</td>
+</tr>
+</table><a name="fs-0905-Custom-Resource-Role-Used" id="fs-0905-Custom-Resource-Role-Used"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0905-Custom-Resource-Role-Used</td>
+<td width="402">The {...} element has a role, {...}, that is not defined in a standard taxonomy, resource labeled {...}, in
+      {...} line {...}.  Please recheck submission.</td>
+<td width="50" align="center">6.9.5</td>
+</tr>
+</table><a name="fs-0906-Custom-Arcrole-Referenced" id="fs-0906-Custom-Arcrole-Referenced"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-0906-Custom-Arcrole-Referenced</td>
+<td width="402">An arcroleRef element refers to {...}, an arcrole, {...}, that is not defined in a standard taxonomy, in
+      {...}, line {...}. Please recheck submission.</td>
+<td width="50" align="center">6.9.6</td>
+</tr>
+</table><a name="cp-0907-Linkbases-Distinct" id="cp-0907-Linkbases-Distinct"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-0907-Linkbases-Distinct</td>
+<td width="402">Your filing contained extended type links with roles of different namesapces and local names, {...} in the
+      same linkbase, {...}.  Please recheck your submission and ensure that all extended-type links in a single linkbase
+      have the same namespace and local name.</td>
+<td width="50" align="center">6.9.7</td>
+</tr>
+</table><a name="du-0909-Relationship-Priority-Not-Less-Than-Ten" id="du-0909-Relationship-Priority-Not-Less-Than-Ten"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-0909-Relationship-Priority-Not-Less-Than-Ten</td>
+<td width="402">The priority attribute {...} has a value of ten or greater, on arc {...}, in {...}, line {...}. Please change
+      the priority to value less than 10 and resubmit.</td>
+<td width="50" align="center">6.9.9</td>
+</tr>
+</table><a name="cp-1001-Element-Used-Standard-Label" id="cp-1001-Element-Used-Standard-Label"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-1001-Element-Used-Standard-Label</td>
+<td width="402">You have submitted an instance using an element without an en-US standard label {...} in {...} line {...}.
+      Please check your submission and correct the labels.</td>
+<td width="50" align="center">6.10.1</td>
+</tr>
+</table><a name="cp-1003-Element-Used-Standard-English-Label" id="cp-1003-Element-Used-Standard-English-Label"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-1003-Element-Used-Standard-English-Label</td>
+<td width="402">You have submitted an instance using an element {...} with {...} for role {...} in instance {...} line {...}.
+      Labels are in {...}. Please check your submission and correct the labels.</td>
+<td width="50" align="center">6.10.3</td>
+</tr>
+</table><a name="du-1004-English-Standard-Labels-Duplicated" id="du-1004-English-Standard-Labels-Duplicated"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-1004-English-Standard-Labels-Duplicated</td>
+<td width="402">More than one element has {...} as its English standard label ({...} in {...}, line {...} and {...} in {...},
+      line {...}).  Please change or remove all but one label.</td>
+<td width="50" align="center">6.10.4</td>
+</tr>
+</table><a name="cp-1005-Custom-Documentation-Standard-Element" id="cp-1005-Custom-Documentation-Standard-Element"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-1005-Custom-Documentation-Standard-Element</td>
+<td width="402">Your filing attempted to add a new definition, "{...}", to an existing concept in the
+      standard taxonomy, {...}.  Please remove this definition.</td>
+<td width="50" align="center">6.10.5</td>
+</tr>
+</table><a name="rq-1006-Label-Disallowed" id="rq-1006-Label-Disallowed"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">rq-1006-Label-Disallowed</td>
+<td width="402">Element {...} has more than 511 characters or contains a left-angle-bracket character in the label for role
+      {...} , in {...} line {...}. Please correct the label.</td>
+<td width="50" align="center">6.10.6</td>
+</tr>
+</table><a name="du-1008-Label-Not-Trimmed" id="du-1008-Label-Not-Trimmed"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-1008-Label-Not-Trimmed</td>
+<td width="402">The label {...} of element {...} has leading or trailing white space, in {...} line {...}.  Please remove
+      it.</td>
+<td width="50" align="center">6.10.8</td>
+</tr>
+</table><a name="rq-1201-Presentation-Order-Missing" id="rq-1201-Presentation-Order-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">rq-1201-Presentation-Order-Missing</td>
+<td width="402">The presentation relationship from {...} to {...} does not have an order attribute, in {...} line {...}. 
+      Please provide a value.</td>
+<td width="50" align="center">6.12.1</td>
+</tr>
+</table><a name="rq-1202-Presentation-Order-Duplicates" id="rq-1202-Presentation-Order-Duplicates"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">rq-1202-Presentation-Order-Duplicates</td>
+<td width="402">More than one presentation relationship in role {...} has order value {...}, in {...}, line {...} and {...} in
+      {...}.  Change all but one so they are distinct.</td>
+<td width="50" align="center">6.12.2</td>
+</tr>
+</table><a name="cp-1203-Element-Used-Not-Presented" id="cp-1203-Element-Used-Not-Presented"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-1203-Element-Used-Not-Presented</td>
+<td width="402">Element {...} is used in a fact or context in the instance, but is not in any presentation relationships. 
+      Element is defined in {...} on line {...}.  Add the element to at least one presentation group</td>
+<td width="50" align="center">6.12.3</td>
+</tr>
+</table><a name="" id=""></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200"></td>
+<td width="402">Element {...} has no English value for role {...}, but there is a presentation relationship from {...} to
+      {...} that requires it, in {...}, line {...}. Provide a label with xml:lang equal to
+      "en-US".</td>
+<td width="50" align="center">6.12.4</td>
+</tr>
+</table><a name="rq-1205-Preferred-Label-Duplicates" id="rq-1205-Preferred-Label-Duplicates"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">rq-1205-Preferred-Label-Duplicates</td>
+<td width="402">Relationships from {...} to {...} in role {...} do not have distinct values for the preferredLabel attribute,
+      in {...}, line {...} and {...} in {...}.  Change all but one value of preferredLabel.</td>
+<td width="50" align="center">6.12.5</td>
+</tr>
+</table><a name="du-1401-Calculation-Relationship-Order-Missing" id="du-1401-Calculation-Relationship-Order-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-1401-Calculation-Relationship-Order-Missing</td>
+<td width="402">The calculation relationship from {...} to {...} does not have an order attribute, in {...} line {...}.</td>
+<td width="50" align="center">6.14.1</td>
+</tr>
+</table><a name="fs-1402-Calculation-Relationship-Weight-Not-Unitary" id="fs-1402-Calculation-Relationship-Weight-Not-Unitary"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1402-Calculation-Relationship-Weight-Not-Unitary</td>
+<td width="402">Weight value {...} on the calculation relationship from {...} to {...} must be equal to 1 or to -1, in {...}
+      line {...}. Please recheck submission.</td>
+<td width="50" align="center">6.14.2</td>
+</tr>
+</table><a name="fs-1403-Calculation-Relationship-Has-Different-Period-Types" id="fs-1403-Calculation-Relationship-Has-Different-Period-Types"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1403-Calculation-Relationship-Has-Different-Period-Types</td>
+<td width="402">Element {...} and element {...} have different period types, but there is a calculation relationship between
+      them in role {...}, in {...}, line {...}. Please recheck submission calculation links.</td>
+<td width="50" align="center">6.14.3</td>
+</tr>
+</table><a name="fs-1404-Circular-Calculation" id="fs-1404-Circular-Calculation"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1404-Circular-Calculation</td>
+<td width="402">Element {...} is summed into itself in calculation group {...}.  Please recheck submission.</td>
+<td width="50" align="center">6.14.4</td>
+</tr>
+</table><a name="du-1405-Facts-In-Calculations-Presentation-Missing" id="du-1405-Facts-In-Calculations-Presentation-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-1405-Facts-In-Calculations-Presentation-Missing</td>
+<td width="402">Context {...} has facts of elements {...} and {...}, with a calculation relationship in {...}, but these
+      elements are not in any common corresponding presentation relationship group.  The calculation relationship is in
+      {...} line {...}.</td>
+<td width="50" align="center">6.14.5</td>
+</tr>
+</table><a name="du-1601-Definition-Relationship-Order-Missing" id="du-1601-Definition-Relationship-Order-Missing"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-1601-Definition-Relationship-Order-Missing</td>
+<td width="402">The {...} relationship from {...} to {...} does not have an order attribute, in {...} line {...}.</td>
+<td width="50" align="center">6.16.1</td>
+</tr>
+</table><a name="du-1603-Dimension-Domain-Target-Mismatch" id="du-1603-Dimension-Domain-Target-Mismatch"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">du-1603-Dimension-Domain-Target-Mismatch</td>
+<td width="402">There is a dimension-domain relationship from {...} but its target element {...} is not a domain, in {...},
+      line {...}.  Please change the relationship or change the type of the target element.</td>
+<td width="50" align="center">6.16.3</td>
+</tr>
+</table><a name="fs-1604-Domain-Is-Tangled" id="fs-1604-Domain-Is-Tangled"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1604-Domain-Is-Tangled</td>
+<td width="402">Element {...} appears in overlapping sets of members in a Directed Relationship Set in role {...}; remove it
+      as a target of one of its domain-member relationships. Please recheck submission</td>
+<td width="50" align="center">6.16.4</td>
+</tr>
+</table><a name="fs-1605-Primary-Element-Has-Redundant-Tables" id="fs-1605-Primary-Element-Has-Redundant-Tables"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1605-Primary-Element-Has-Redundant-Tables</td>
+<td width="402">Element {...} is a primary element of more than one Table in relationship group {...}, to {...} in {...}, line
+      {...}, and to {...} defined in {...}, line {...}. Please modify the "all" relationships that
+      have the element as a source so that it has only one primary axis.</td>
+<td width="50" align="center">6.16.5</td>
+</tr>
+</table><a name="fs-1606-Not-All-Relationship-Is-Closed" id="fs-1606-Not-All-Relationship-Is-Closed"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1606-Not-All-Relationship-Is-Closed</td>
+<td width="402">The notAll relationship for table {...} must have the closed attribute set to 'false' so that it can achieve
+      its intended purpose of excluding combinations of domain values, on relationship from {...}, in {...}, line {...}.
+      Please recheck submission.</td>
+<td width="50" align="center">6.16.6</td>
+</tr>
+</table><a name="fs-1607-Axis-Excluded-Not-In-Table" id="fs-1607-Axis-Excluded-Not-In-Table"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1607-Axis-Excluded-Not-In-Table</td>
+<td width="402">Members of axis {...} are excluded, in role {...}, from primary item {...} but not included in any table. 
+      Please modify the relationships to make it consistent.</td>
+<td width="50" align="center">6.16.7</td>
+</tr>
+</table><a name="fs-1608-Table-Excludes-Itself" id="fs-1608-Table-Excludes-Itself"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1608-Table-Excludes-Itself</td>
+<td width="402">Element {...} is a table that negates itself in {...} for primary item {...}.  Modify the
+      "all" and "notAll" relationships that have the element as a target.  Please
+      recheck submission.</td>
+<td width="50" align="center">6.16.8</td>
+</tr>
+</table><a name="fs-1609-Target-Role-With-No-Consecutive-Relationships" id="fs-1609-Target-Role-With-No-Consecutive-Relationships"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">fs-1609-Target-Role-With-No-Consecutive-Relationships</td>
+<td width="402">A table is malformed because the {...} from {...} to {...} in link role {...} has no consecutive
+      relationships, in {...}, line {...}.  Remove the targetRole attribute, or provide a consecutive
+      relationship.</td>
+<td width="50" align="center">6.16.9</td>
+</tr>
+</table><a name="cp-1801-Custom-Element-Has-Reference" id="cp-1801-Custom-Element-Has-Reference"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-1801-Custom-Element-Has-Reference</td>
+<td width="402">Your filing provides a reference, "{...}", for an custom concept in extension taxonomy,
+      {...}.  Please remove this reference.</td>
+<td width="50" align="center">6.18.1</td>
+</tr>
+</table><a name="cp-1802-Standard-Element-Has-Reference" id="cp-1802-Standard-Element-Has-Reference"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-1802-Standard-Element-Has-Reference</td>
+<td width="402">Your filing attempted to add a new reference, "{...}", to an existing concept in the
+      standard taxonomy, {...}.  Please remove this reference.</td>
+<td width="50" align="center">6.18.2</td>
+</tr>
+</table><a name="cp-2202-Prohibited-Href-Or-Schema-Location" id="cp-2202-Prohibited-Href-Or-Schema-Location"></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200">cp-2202-Prohibited-Href-Or-Schema-Location</td>
+<td width="402">File "{...}" referenced in {...} is not supported. Please see
+      <a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">edgartaxonommies.shtml</a> for a listing of supported files.</td>
+<td width="50" align="center">6.22.0</td>
+</tr>
+</table><a name="" id=""></a><table width="652" border="1" cellspacing="0" cellpadding="0" bgcolor="white" style="border-bottom: 0; font-family: Verdana, Arial, Helvetica; font-size: 9pt;">
+<tr align="left" valign="top">
+<td width="200"></td>
+<td width="402">Prohibited-Href-Or-Schema-LocationIllegal Href or schemaLocation to {...} referenced by {...} in {...} on line {...}</td>
+<td width="50" align="center">6.22.2</td>
+</tr>
+</table>
+</body>
+</HTML>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Cycles in Declared Arcs" description="Section 5.5.9" outpath="out" owner="phillipengel@kpmg.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-1" name="No declared arc cyles with no cycles">
+		<description>207.01 DecArcCyclesNN.xsd declares an arcrole that does not allow any cycles.  It references the DecArcCyclesNN_definition.xml linkbase.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesNN.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesNN_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesNN.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="No declared arc cyles with undirected cycles exist">
+		<description>207.02 DecArcCyclesNU.xsd declares an arcrole that does not allow any cycles.  It references the DecArcCyclesNU_definition.xml linkbase which contains an undirected cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesNU.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesNU_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesNU.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-3" name="No declared arc cyles with directed cycles exist">
+		<description>207.03 DecArcCyclesND.xsd declares an arcrole that does not allow any cycles.  It references the DecArcCyclesND_definition.xml linkbase which contains a directed cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesND.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesND_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesND.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-4" name="No declared arc cyles with undirected cycles through extension">
+		<description>207.04 DecArcCyclesNUE.xsd declares an arcrole that does not allow any cycles.  It references the DecArcCyclesNUE_definition.xml linkbase which in itself contains no cycles.  However, via the DTS DecArcCyclesNUE2.xsd and DecArcCyclesNUE2_definition.xml are also discovered.  The combined linkbases form a network containing an undirected cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesNUE.xsd</xsd>
+			<xsd readMeFirst="false">DecArcCyclesNUE2.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesNUE_definition.xml</linkbase>
+			<linkbase readMeFirst="false">DecArcCyclesNUE2_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesNUE.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-5" name="No declared arc cyles with prohibited undirected cycles through extension">
+		<description>207.05 DecArcCyclesNE.xsd declares an arcrole that does not allow any cycles.  It references the DecArcCyclesNE_definition.xml linkbase which in itself contains an undirected cycle.  However, via the DTS DecArcCyclesNE2.xsd and DecArcCyclesNE2_definition.xml are also discovered.  DecArcCyclesNE2_definition.xml prohibits the arcs that form the undirected cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesNE.xsd</xsd>
+			<xsd readMeFirst="false">DecArcCyclesNE2.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesNE_definition.xml</linkbase>
+			<linkbase readMeFirst="false">DecArcCyclesNE2_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesNE.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-6" name="Declared undirected declared arc cyles">
+		<description>207.06 DecArcCyclesUN.xsd declares an arcrole that allows undirected cycles.  It references the DecArcCyclesUN_definition.xml linkbase which contains no cycles.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesUN.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesUN_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesUN.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-7" name="Declared undirected declared arc cyles with undirected cycles">
+		<description>207.07 DecArcCyclesUU.xsd declares an arcrole that allows undirected cycles.  It references the DecArcCyclesUU_definition.xml linkbase which contains an undirected cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesUU.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesUU_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesUU.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-8" name="Declared undirected declared arc cyles with directed cycles">
+		<description>207.08 DecArcCyclesUD.xsd declares an arcrole that allows undirected cycles.  It references the DecArcCyclesUD_definition.xml linkbase which contains a directed cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesUD.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesUD_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesUD.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-9" name="Declared unidrected cyles with undirected cycles through extension">
+		<description>207.09 DecArcCyclesUUE.xsd declares an arcrole that allows undirected cycles.  It references the DecArcCyclesUUE_definition.xml linkbase which in itself contains no cycles.  However, via the DTS DecArcCyclesUUE2.xsd and DecArcCyclesUUE2_definition.xml are also discovered.  The combined linkbases form a network of arcs that have an undirected cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesUUE.xsd</xsd>
+			<xsd readMeFirst="false">DecArcCyclesUUE2.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesUUE_definition.xml</linkbase>
+			<linkbase readMeFirst="false">DecArcCyclesUUE2_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesUUE.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-10" name="Declared unidrected cyles with directed cycles through extension">
+		<description>207.10 DecArcCyclesUDE.xsd declares an arcrole that allows undirected cycles.  It references the DecArcCyclesUDE_definition.xml linkbase which in itself contains no cycles.  However, via the DTS DecArcCyclesUDE2.xsd and DecArcCyclesUDE2_definition.xml are also discovered.  The combined linkbases form a network of arcs that have a directed cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesUDE.xsd</xsd>
+			<xsd readMeFirst="false">DecArcCyclesUDE2.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesUDE_definition.xml</linkbase>
+			<linkbase readMeFirst="false">DecArcCyclesUDE2_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesUDE.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-11" name="Declared any cyles with no cycles">
+		<description>207.11 DecArcCyclesDN.xsd declares an arcrole that allows any cycles.  It references the DecArcCyclesDN_definition.xml linkbase.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesDN.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesDN_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesDN.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-12" name="Declared any cyles with undirected cycles">
+		<description>207.12 DecArcCyclesDU.xsd declares an arcrole that allows any cycles.  It references the DecArcCyclesDU_definition.xml linkbase which contains an undirected cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesDU.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesDU_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesDU.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-13" name="Declared any cyles with directed cycles">
+		<description>207.13 DecArcCyclesDD.xsd declares an arcrole that allows any cycles.  It references the DecArcCyclesDD_definition.xml linkbase which contains a directed cycle.</description>
+		<data>
+			<xsd readMeFirst="false">DecArcCyclesDD.xsd</xsd>
+			<linkbase readMeFirst="false">DecArcCyclesDD_definition.xml</linkbase>
+			<instance readMeFirst="true">DecArcCyclesDD.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>

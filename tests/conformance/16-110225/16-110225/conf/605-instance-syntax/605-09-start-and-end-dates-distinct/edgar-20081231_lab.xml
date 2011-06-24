@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentInformationLineItems"
+xlink:label="DocumentInformationLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentType"
+xlink:label="DocumentType"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AmendmentFlag"
+xlink:label="AmendmentFlag"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AmendmentDescription"
+xlink:label="AmendmentDescription"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentPeriodEndDate"
+xlink:label="DocumentPeriodEndDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityRegistrantName"
+xlink:label="EntityRegistrantName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityPublicFloat"
+xlink:label="EntityPublicFloat"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCentralIndexKey"
+xlink:label="EntityCentralIndexKey"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCurrentReportingStatus"
+xlink:label="EntityCurrentReportingStatus"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityFilerCategory"
+xlink:label="EntityFilerCategory"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityVoluntaryFilers"
+xlink:label="EntityVoluntaryFilers"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityWellKnownSeasonedIssuer"
+xlink:label="EntityWellKnownSeasonedIssuer"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentReportType"
+xlink:label="DocumentReportType"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCommonStockSharesOutstanding"
+xlink:label="EntityCommonStockSharesOutstanding"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_CurrentFiscalYearEndDate"
+xlink:label="CurrentFiscalYearEndDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentFiscalYearFocus"
+xlink:label="DocumentFiscalYearFocus"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentFiscalPeriodFocus"
+xlink:label="DocumentFiscalPeriodFocus"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityInformationLineItems"
+xlink:label="EntityInformationLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityTextBlock"
+xlink:label="EntityTextBlock"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntitiesTable"
+xlink:label="EntitiesTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalEntityAxis"
+xlink:label="LegalEntityAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityDomain"
+xlink:label="EntityDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityNumberOfEmployees"
+xlink:label="EntityNumberOfEmployees"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentDescription"
+xlink:label="DocumentDescription"/>
+<link:label xlink:type="resource" xlink:label="label_DocumentInformationLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentInformationLineItems">Document Information Line Items</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentType">Document Type</link:label>
+<link:label xlink:type="resource" xlink:label="label_AmendmentFlag"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_AmendmentFlag">Amendment Flag</link:label>
+<link:label xlink:type="resource" xlink:label="label_AmendmentDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_AmendmentDescription">Description (if Amendment Flag is True)</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentPeriodEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentPeriodEndDate">Period End Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityRegistrantName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityRegistrantName">Registrant Name</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityPublicFloat"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityPublicFloat">Public Float</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityCentralIndexKey"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityCentralIndexKey">Central Index Key</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityCurrentReportingStatus"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityCurrentReportingStatus">Current Reporting Status</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityFilerCategory"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityFilerCategory">Filer Category</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityVoluntaryFilers"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityVoluntaryFilers">Voluntary Filers</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityWellKnownSeasonedIssuer"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityWellKnownSeasonedIssuer">Well Known Seasoned Issuer</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentReportType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentReportType">Report Type</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityCommonStockSharesOutstanding"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityCommonStockSharesOutstanding">Common Stock Shares Outstanding</link:label>
+<link:label xlink:type="resource" xlink:label="label_CurrentFiscalYearEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_CurrentFiscalYearEndDate">Current Fiscal Year End Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentFiscalYearFocus"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentFiscalYearFocus">Fiscal Year Focus</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentFiscalPeriodFocus"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentFiscalPeriodFocus">Fiscal Period Focus</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityInformationLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityInformationLineItems">EDGAR Optional</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityTextBlock"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityTextBlock">Entity Text</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntitiesTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntitiesTable">Entities Table</link:label>
+<link:label xlink:type="resource" xlink:label="label_LegalEntityAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_LegalEntityAxis">Legal Entity</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityDomain">Entity Default</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityNumberOfEmployees"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityNumberOfEmployees">Number of Employees</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentDescription">Document Description</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentInformationLineItems"
+xlink:to="label_DocumentInformationLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentType"
+xlink:to="label_DocumentType"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AmendmentFlag"
+xlink:to="label_AmendmentFlag"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AmendmentDescription"
+xlink:to="label_AmendmentDescription"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentPeriodEndDate"
+xlink:to="label_DocumentPeriodEndDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityRegistrantName"
+xlink:to="label_EntityRegistrantName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityPublicFloat"
+xlink:to="label_EntityPublicFloat"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityCentralIndexKey"
+xlink:to="label_EntityCentralIndexKey"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityCurrentReportingStatus"
+xlink:to="label_EntityCurrentReportingStatus"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityFilerCategory"
+xlink:to="label_EntityFilerCategory"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityVoluntaryFilers"
+xlink:to="label_EntityVoluntaryFilers"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityWellKnownSeasonedIssuer"
+xlink:to="label_EntityWellKnownSeasonedIssuer"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentReportType"
+xlink:to="label_DocumentReportType"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityCommonStockSharesOutstanding"
+xlink:to="label_EntityCommonStockSharesOutstanding"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="CurrentFiscalYearEndDate"
+xlink:to="label_CurrentFiscalYearEndDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentFiscalYearFocus"
+xlink:to="label_DocumentFiscalYearFocus"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentFiscalPeriodFocus"
+xlink:to="label_DocumentFiscalPeriodFocus"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityInformationLineItems"
+xlink:to="label_EntityInformationLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityTextBlock"
+xlink:to="label_EntityTextBlock"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntitiesTable"
+xlink:to="label_EntitiesTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LegalEntityAxis"
+xlink:to="label_LegalEntityAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityDomain"
+xlink:to="label_EntityDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityNumberOfEmployees"
+xlink:to="label_EntityNumberOfEmployees"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentDescription"
+xlink:to="label_DocumentDescription"/>
+</link:labelLink>
+</link:linkbase>

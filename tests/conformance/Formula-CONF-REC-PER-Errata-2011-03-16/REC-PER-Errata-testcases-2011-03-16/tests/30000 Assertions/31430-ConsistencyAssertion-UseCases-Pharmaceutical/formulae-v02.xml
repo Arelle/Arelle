@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:validation="http://xbrl.org/2008/validation"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:company="http://www.SampleCompany.com/Company"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:ci="http://www.UBmatrix.com/Patterns/Sales"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/formula ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/assertion/consistency ../../../core_schemas/consistency-assertion.xsd
+  http://xbrl.org/2008/variable ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../../core_schemas/dimension-filter.xsd
+  http://xbrl.org/2008/filter/general ../../../core_schemas/general-filter.xsd
+  http://xbrl.org/2008/label ../../../core_schemas/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../../core_schemas/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/consistency-assertion-formula" xlink:href="../../../core_schemas/consistency-assertion.xsd#consistency-assertion-formula" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/label" xlink:href="../../../core_schemas/generic-label.xsd#standard-label" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- provide assertion for 1 Euro check -->
+    <ca:consistencyAssertion xlink:type="resource" xlink:label="assertion"
+        id="assertion"
+        strict="false" absoluteAcceptanceRadius="1"/>
+
+    <formula:formula xlink:type="resource" xlink:label="formulaProdBreakdown"
+      value="sum($v:prodSalesBreakdown)"
+      source="v:prodSales"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:decimals>2</formula:decimals>
+    </formula:formula>
+
+    <formula:formula xlink:type="resource" xlink:label="formulaRegBreakdown"
+      value="sum($v:regSalesBreakdown)"
+      source="v:regSales"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:decimals>2</formula:decimals>
+    </formula:formula>
+
+    <!--  Arc from the assertion to each formula -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/consistency-assertion-formula" 
+      xlink:from="assertion" xlink:to="formulaProdBreakdown" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/consistency-assertion-formula" 
+      xlink:from="assertion" xlink:to="formulaRegBreakdown" order="1.0"/>
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_prodSales"  bindAsSequence="false"/>
+    <variable:factVariable xlink:type="resource" xlink:label="variable_regSales"  bindAsSequence="false"/>
+
+    <variable:factVariable xlink:type="resource" xlink:label="variable_prodSalesBreakdown"  bindAsSequence="true"/>
+    <variable:factVariable xlink:type="resource" xlink:label="variable_regSalesBreakdown"  bindAsSequence="true"/>
+
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_sales">
+      <cf:concept>
+        <cf:qname>ci:Sales</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <!-- filters for prod & region breakdowns -->
+
+    <!--  Dimension filters for the fact variables by product breakdown -->
+    <df:explicitDimension xlink:type="resource" xlink:label="filter_dimensionProdBreakdown">
+      <df:dimension>
+        <df:qname>company:ByProductPlaceholder</df:qname>
+      </df:dimension>
+      <df:member>
+        <df:variable>v:prodSales</df:variable>
+        <df:linkrole>http://www.xbrl.org/2003/role/link</df:linkrole>
+        <df:arcrole>http://xbrl.org/int/dim/arcrole/domain-member</df:arcrole>
+        <df:axis>child</df:axis>
+      </df:member>
+    </df:explicitDimension>
+
+    <!--  Dimension filters for the fact variables by region breakdown -->
+    <df:explicitDimension xlink:type="resource" xlink:label="filter_dimensionRegBreakdown">
+      <df:dimension>
+        <df:qname>company:ByRegionPlaceholder</df:qname>
+      </df:dimension>
+      <df:member>
+        <df:variable>v:regSales</df:variable>
+        <df:linkrole>http://www.xbrl.org/2003/role/link</df:linkrole>
+        <df:arcrole>http://xbrl.org/int/dim/arcrole/domain-member</df:arcrole>
+        <df:axis>child</df:axis>
+      </df:member>
+    </df:explicitDimension>
+
+    <!-- Parameter of the QName for each dimension -->
+    <variable:parameter xlink:type="resource" xlink:label="prodDim"
+     name="prodDim" 
+     select="QName('http://www.SampleCompany.com/Company','company:ByProductPlaceholder')"/>
+    <variable:parameter xlink:type="resource" xlink:label="regDim"
+     name="regDim" 
+     select="QName('http://www.SampleCompany.com/Company','company:ByRegionPlaceholder')"/>
+
+    <!--  Labels for the formula and each variable -->
+    <label:label xlink:type="resource" xlink:label="assertion_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Tests aggregate of sales is within 1.00 of contributor sales items.</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_sales_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Binds to any sales fact</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_salesBreakdown_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Sequence of contributors which are dimensional children of product, implicit matching of period etc to sales</label:label>    
+
+    <!-- Product Breakdown Arcs -->
+
+    <!-- Arcs from labels to the formula and variables being labelled -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="assertion" xlink:to="assertion_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_prodSales" xlink:to="variable_sales_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_prodSalesBreakdown" xlink:to="variable_salesBreakdown_label" order="1.0"/>
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:prodDim" xlink:from="formulaProdBreakdown" xlink:to="prodDim" order="1.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:regDim" xlink:from="formulaProdBreakdown" xlink:to="regDim" order="2.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:prodSales" xlink:from="formulaProdBreakdown" xlink:to="variable_prodSales" order="3.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:prodSalesBreakdown" xlink:from="formulaProdBreakdown" xlink:to="variable_prodSalesBreakdown" order="4.0" />
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_prodSales" xlink:to="filter_sales" order="2.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_prodSalesBreakdown" xlink:to="filter_sales" order="3.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_prodSalesBreakdown" xlink:to="filter_dimensionProdBreakdown" order="3.0"/>
+    
+    <!-- Region Breakdown Arcs -->
+
+    <!-- Arcs from labels to the formula and variables being labelled -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_regSales" xlink:to="variable_sales_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_regSalesBreakdown" xlink:to="variable_salesBreakdown_label" order="1.0"/>
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:regDim" xlink:from="formulaRegBreakdown" xlink:to="regDim" order="1.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:prodDim" xlink:from="formulaRegBreakdown" xlink:to="prodDim" order="2.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:regSales" xlink:from="formulaRegBreakdown" xlink:to="variable_regSales" order="3.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:regSalesBreakdown" xlink:from="formulaRegBreakdown" xlink:to="variable_regSalesBreakdown" order="4.0" />
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_regSales" xlink:to="filter_sales" order="2.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_regSalesBreakdown" xlink:to="filter_sales" order="3.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_regSalesBreakdown" xlink:to="filter_dimensionRegBreakdown" order="3.0"/>
+      
+
+  </generic:link>
+
+</link:linkbase>

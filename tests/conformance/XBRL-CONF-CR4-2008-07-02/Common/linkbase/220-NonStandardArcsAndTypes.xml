@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Non-standard Embedded Linkbases" description="Non-standard Embedded linkbases" outpath="out" owner="dws@decisionsoft.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	
+	<variation id="V-01" name="220-01-NonStandardArcroleCycle.xsd">
+		<description>A cycle between arcs in a non-core extended link, and non-core arcs.</description>
+		<data>
+			<xsd readMeFirst="true">220-01-NonStandardArcrole.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	
+	<variation id="V-02" name="220-02-NonStandardArcWithUndefinedArcrole.xsd">
+		<description>Cycle in custom arc with arcrole URI that isnt defined in an arcroleRef or arcroleType. Cycles should be OK.</description>
+		<data>
+			<xsd readMeFirst="true">220-02-NonStandardArcWithUndefinedArcrole.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-03" name="220-03-CycleInUnreferencedArcrole.xsd">
+		<description>ArcroleType and linkbase in same file, linkbase doesnt reference arcroleType which prohibits cycles. We have a cycle.</description>
+		<data>
+			<xsd readMeFirst="true">220-03-CycleInUnreferencedArcrole.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-04" name="220-04-StandardArcWithUnreferencedArcrole.xsd">
+		<description>Arcrole defined in same file as linkbase where it is used, but with no arcroleRef. Should require arcroleRef.</description>
+		<data>
+			<xsd readMeFirst="true">220-04-StandardArcWithUnreferencedArcrole.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+  
+	<variation id="V-05" name="220-05-UsedOnSignificanceOnCustomArc.xsd">
+		<description>Custom arcrole type with usedOn of presentationArc. Referenced and used on a non-standard arc. Should get error according to 5.1.4.5.</description>
+		<data>
+			<xsd readMeFirst="true">220-05-UsedOnSignificanceOnCustomArc.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-06" name="220-06-Change of error depending on DTS">
+		<description>Individually linkbases are valid, but putting them together is undefined. Should we report the cycles?</description>
+		<data>
+			<xsd readMeFirst="true">220-06-Taxonomy.xsd</xsd>
+	    <linkbase readMeFirst="false">220-06-Linkbase1.xml</linkbase>
+	    <linkbase readMeFirst="false">220-06-Linkbase2.xml</linkbase>
+			<xsd readMeFirst="false">220-06-Concepts.xsd</xsd>
+			<xsd readMeFirst="false">220-06-Arcrole.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-07" name="220-07-Change of error depending on DTS">
+		<description>Test of just linkbase1. It has the cycle, but no arcrole ref.</description>
+		<data>
+	    <linkbase readMeFirst="true">220-06-Linkbase1.xml</linkbase>
+			<xsd readMeFirst="false">220-06-Concepts.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-08" name="220-08-Change of error depending on DTS">
+		<description>Test of just linkbase1. It has the cycle, but no arcrole ref. Yet we add the arcrole type definition to the DTS.</description>
+		<data>
+			<xsd readMeFirst="true">220-08-Taxonomy.xsd</xsd>
+	    <linkbase readMeFirst="false">220-06-Linkbase1.xml</linkbase>
+			<xsd readMeFirst="false">220-06-Concepts.xsd</xsd>
+			<xsd readMeFirst="false">220-06-Arcrole.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+  
+	
+</testcase>

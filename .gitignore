@@ -5,3 +5,10 @@ dist
 buildRenameX64.bat
 buildRenameX86.bat
 arelle/Version.py
+profile.dot
+profile.stats
+.DS_Store
+.project
+.pydevproject
+.settings
+gprof2dot.py

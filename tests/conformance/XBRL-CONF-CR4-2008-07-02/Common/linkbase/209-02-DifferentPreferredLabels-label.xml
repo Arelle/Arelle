@@ -1,0 +1,21 @@
+﻿<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+
+	http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <loc xlink:type="locator" xlink:href="209-02-DifferentPreferredLabels.xsd#conceptG" xlink:label="conceptG" />
+
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="conceptG" xlink:to="conceptG_lbl" />
+
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="conceptG" xlink:to="conceptG_lbl2" />
+
+	<label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/terseLabel" xlink:label="conceptG_lbl2" xml:lang="en">conceptG-Terse</label>
+
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="conceptG_lbl" xml:lang="en">conceptG-Standard</label>
+
+
+
+  </labelLink>
+
+</linkbase>

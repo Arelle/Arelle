@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://www.xbrl.org/2009/role/negatedLabel" xlink:type="simple"
+xlink:href="http://www.xbrl.org/lrr/role/negated-2009-12-16.xsd#negatedLabel"/>
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="e61405003gd-20081231.xsd#e6140500_Statistics"
+xlink:label="Statistics"/>
+<link:loc xlink:type="locator"
+xlink:href="e61405003gd-20081231.xsd#e6140500_DeferredTaxAssetsNetCurrent"
+xlink:label="DeferredTaxAssetsNetCurrent_2"/>
+<link:loc xlink:type="locator"
+xlink:href="e61405003gd-20081231.xsd#e6140500_DeferredTaxAssetsNetNoncurrent"
+xlink:label="DeferredTaxAssetsNetNoncurrent_2"/>
+<link:loc xlink:type="locator"
+xlink:href="e61405003gd-20081231.xsd#e6140500_DeferredTaxAssetsNet"
+xlink:label="DeferredTaxAssetsNet_2"/>
+<link:loc xlink:type="locator"
+xlink:href="e61405003gd-20081231.xsd#e6140500_DeferredTaxAssetsValuationAllowance"
+xlink:label="DeferredTaxAssetsValuationAllowance_2"/>
+<link:loc xlink:type="locator"
+xlink:href="e61405003gd-20081231.xsd#e6140500_DeferredTaxAssetsGross"
+xlink:label="DeferredTaxAssetsGross_2"/>
+<link:loc xlink:type="locator"
+xlink:href="e61405003gd-20081231.xsd#e6140500_DeferredTaxAssetsLiabilitiesNetAbstract"
+xlink:label="DeferredTaxAssetsLiabilitiesNetAbstract_2"/>
+<link:loc xlink:type="locator"
+xlink:href="e61405003gd-20081231.xsd#e6140500_DeferredTaxAssetsLiabilitiesNet"
+xlink:label="DeferredTaxAssetsLiabilitiesNet"/>
+<link:label xlink:type="resource" xlink:label="label_Statistics"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Statistics">Statistics</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsNetCurrent_2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsNetCurrent_2">Deferred Tax Assets, Net, Current</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsNetNoncurrent_2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsNetNoncurrent_2">Deferred Tax Assets, Net, Noncurrent</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsNet_2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsNet_2">Deferred Tax Assets, Net</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsValuationAllowance_3"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsValuationAllowance_3">Deferred Tax Assets, Valuation Allowance</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsValuationAllowance_4"
+xlink:role="http://www.xbrl.org/2009/role/negatedLabel"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsValuationAllowance_4">Deferred Tax Assets, Valuation Allowance</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsGross_2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsGross_2">Deferred Tax Assets, Gross</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_DeferredTaxAssetsLiabilitiesNetAbstract_2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsLiabilitiesNetAbstract_2">Deferred Tax Assets, Net:</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsLiabilitiesNet"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsLiabilitiesNet">Deferred Tax Assets (Liabilities), Net</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Statistics"
+xlink:to="label_Statistics"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsNetCurrent_2"
+xlink:to="label_DeferredTaxAssetsNetCurrent_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsNetNoncurrent_2"
+xlink:to="label_DeferredTaxAssetsNetNoncurrent_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsNet_2"
+xlink:to="label_DeferredTaxAssetsNet_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsValuationAllowance_2"
+xlink:to="label_DeferredTaxAssetsValuationAllowance_3"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsValuationAllowance_2"
+xlink:to="label_DeferredTaxAssetsValuationAllowance_4"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsGross_2"
+xlink:to="label_DeferredTaxAssetsGross_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsLiabilitiesNetAbstract_2"
+xlink:to="label_DeferredTaxAssetsLiabilitiesNetAbstract_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsLiabilitiesNet"
+xlink:to="label_DeferredTaxAssetsLiabilitiesNet"/>
+</link:labelLink>
+</link:linkbase>

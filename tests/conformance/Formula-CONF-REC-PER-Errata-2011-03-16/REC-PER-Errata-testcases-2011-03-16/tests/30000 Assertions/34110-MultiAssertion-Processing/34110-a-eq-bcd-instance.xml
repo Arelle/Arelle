@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="34110-multiAssertion-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="34110-existence-consistency-sharedArcs-formula.xml"/>  
+
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+  
+  <eg:a decimals="2" contextRef="context" unitRef="unit">111.03</eg:a>
+  <eg:b decimals="2" contextRef="context" unitRef="unit">001.01</eg:b>
+  <eg:c decimals="2" contextRef="context" unitRef="unit">010.01</eg:c>
+  <eg:d decimals="2" contextRef="context" unitRef="unit">100.01</eg:d>
+
+</xbrl>
+
+

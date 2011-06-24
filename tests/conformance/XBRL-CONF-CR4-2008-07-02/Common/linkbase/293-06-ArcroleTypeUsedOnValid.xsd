@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2006 XBRL International. All Rights Reserved. -->
+<xsd:schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:mc="http://mycompany.com/xbrl/taxonomy">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:arcroleType arcroleURI="http://mycompany.com/xbrl/taxonomy/art01" cyclesAllowed="any" id="art01">
+        <link:usedOn>link:formulaArc</link:usedOn>
+      </link:arcroleType>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+</xsd:schema>

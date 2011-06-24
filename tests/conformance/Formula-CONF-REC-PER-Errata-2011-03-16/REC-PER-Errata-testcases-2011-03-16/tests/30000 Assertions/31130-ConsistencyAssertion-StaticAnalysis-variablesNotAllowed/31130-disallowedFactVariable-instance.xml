@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="31130-consistencyAssertion-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="31130-disallowedFactVariable-formula.xml"/>  
+
+  <context id="context-1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">02</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+  
+  
+  <eg:a decimals="0" contextRef="context-1" unitRef="unit">877</eg:a>
+  <eg:b decimals="0" contextRef="context-1" unitRef="unit">111</eg:b>
+  <eg:c decimals="0" contextRef="context-1" unitRef="unit">7</eg:c>
+  
+  <eg:a decimals="0" contextRef="context-2" unitRef="unit">12445</eg:a>
+  <eg:b decimals="0" contextRef="context-2" unitRef="unit">2469</eg:b>
+  <eg:c decimals="0" contextRef="context-2" unitRef="unit">5</eg:c>
+
+</xbrl>
+
+

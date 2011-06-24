@@ -1,0 +1,7 @@
+[XMLsyntax] 320-CalculationBinding.xml: import error: Start tag expected, '<' not found, line 1, column 1
+testcase 301-idScope.xml
+variation V-1 IdScopeValid: valid
+Validating calculations inferring decimals
+... cache lbl, pre, ref relationships 0.00 secs
+... filer context checks 0.00 secs
+[exception] Validation exception: 'NoneType' object has no attribute 'match' at ['  File "/Users/ivan.judson/Code/Arelle/arelle/ModelManager.py", line 59, in validate\n    Validate.validate(self.modelXbrl)\n', '  File "/Users/ivan.judson/Code/Arelle/arelle/Validate.py", line 15, in validate\n    validate.validate()\n', '  File "/Users/ivan.judson/Code/Arelle/arelle/Validate.py", line 46, in validate\n    self.validateTestcase(self.modelXbrl.modelObject(testcaseTuple[1]))\n', '  File "/Users/ivan.judson/Code/Arelle/arelle/Validate.py", line 167, in validateTestcase\n    self.instValidator.validate(modelXbrl, parameters)\n', '  File "/Users/ivan.judson/Code/Arelle/arelle/ValidateFiling.py", line 202, in validate\n    factInDeiNamespace = self.disclosureSystem.deiNamespacePattern.match(f.namespaceURI)\n']

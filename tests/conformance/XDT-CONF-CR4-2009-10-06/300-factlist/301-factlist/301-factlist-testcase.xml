@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2009 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors"
+        xmlns="http://xbrl.org/2005/conformance" name="301-FactList" outpath="out" description="Fact List"
+        owner="walter@hamscher.com" minimal="true"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Generate an output file -->
+        <variation id="V-01" name="FourFactsTwoAxesWithDefaultsInSameRole">
+                <description>Dump four facts on two axes where there are defaults for both.</description>
+                <data>
+                        <xsd readMeFirst="false">together.xsd</xsd>
+                        <linkbase readMeFirst="false">together_lab.xml</linkbase>
+                        <linkbase readMeFirst="false">together_def.xml</linkbase>
+                        <linkbase readMeFirst="false">together_pre.xml</linkbase>
+                        <instance readMeFirst="true">together.xml</instance>
+                </data>
+                <result>
+                        <file>together.xml</file>
+                </result>
+        </variation>
+        <variation id="V-02" name="FourFactsTwoAxesWithDefaultsInDifferentRole">
+                <description>Dump four facts on two axes where there are defaults for both.</description>
+                <data>
+                        <xsd readMeFirst="false">apart.xsd</xsd>
+                        <linkbase readMeFirst="false">apart_lab.xml</linkbase>
+                        <linkbase readMeFirst="false">apart_def.xml</linkbase>
+                        <linkbase readMeFirst="false">apart_pre.xml</linkbase>
+                        <instance readMeFirst="true">apart.xml</instance>
+                </data>
+                <result>
+                        <file>apart.xml</file>
+                </result>
+        </variation>
+<!--
+        <variation id="V-03" name="Junk in the Segment">
+                <description>XBRL 2.1-valid Junk in the segment.</description>
+                <data>
+                        <xsd readMeFirst="false">SegmentValid.xsd</xsd>
+                        <instance readMeFirst="true">302-01-SegmentValid.xml</instance>
+                </data>
+                <result >
+                        <file>302-01-SegmentValid.xml</file>
+                </result>
+        </variation>
+
+        <variation id="V-04" name="Junk in the Scenario">
+                <description>XBRL 2.1-valid Junk in the scenario.</description>
+                <data>
+                        <xsd readMeFirst="false">SegmentValid.xsd</xsd>
+                        <instance readMeFirst="true">302-02-ScenarioValid.xml</instance>
+                </data>
+                <result>
+                        <file>302-02-ScenarioValid.xml</file>
+                </result>
+        </variation>
+
+        <variation id="V-05" name="Junk in the Scenario">
+                <description>XBRL 2.1-valid Junk in the segment and scenario.</description>
+                <data>
+                        <xsd readMeFirst="false">SegmentValid.xsd</xsd>
+                        <instance readMeFirst="true">302-03-SegmentScenarioValid.xml</instance>
+                </data>
+                <result>
+                        <file>302-03-SegmentScenarioValid.xml</file>
+                </result>
+        </variation>
+        
+-->        
+        <variation id="V-06" name="Tuples and Dimensions">
+                <description>XBRL 2.1-valid Tuple with contexts having a the segment and scenario.</description>
+                <data>
+                        <xsd readMeFirst="false">SegmentValid.xsd</xsd>
+                        <instance readMeFirst="true">302-04-SegmentScenarioTupleValid.xml</instance>
+                </data>
+                <result>
+                        <file>302-04-SegmentScenarioTupleValid.xml</file>
+                </result>
+        </variation>
+</testcase>

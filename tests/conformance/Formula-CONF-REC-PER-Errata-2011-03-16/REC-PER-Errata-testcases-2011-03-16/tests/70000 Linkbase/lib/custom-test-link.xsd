@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema 
+  targetNamespace="http://xbrl.org/formula/conformance/custom-test-link"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:test="http://xbrl.org/formula/conformance/custom-test-link"
+  elementFormDefault="qualified"
+  xmlns:xl="http://www.xbrl.org/2003/XLink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  >
+
+  <import 
+    namespace="http://www.xbrl.org/2003/XLink"
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd" />
+
+  <import 
+    namespace="http://www.xbrl.org/2003/linkbase"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" />
+
+  <import 
+    namespace="http://xbrl.org/2008/generic"
+    schemaLocation="../../../core_schemas/generic-link.xsd" />
+
+  <annotation>
+    <appinfo>
+
+      <link:arcroleType id="test-arc-gen"
+            cyclesAllowed="none" 
+            arcroleURI="http://xbrl.org/arcrole/2008/test-arcrole-gen">
+        <link:definition>test arcrole for generic arc</link:definition>
+        <link:usedOn>generic:arc</link:usedOn>
+      </link:arcroleType>
+
+      <link:arcroleType id="test-arc-cust"
+            cyclesAllowed="none" 
+            arcroleURI="http://xbrl.org/arcrole/2008/test-arcrole-test">
+        <link:definition>test arcrole for test-arc</link:definition>
+        <link:usedOn>test:arc</link:usedOn>
+      </link:arcroleType>
+
+    </appinfo>
+  </annotation>
+
+  <element name="arc" id="arc" substitutionGroup="xl:arc">
+    <complexType>
+      <complexContent>
+        <extension base="xl:arcType">
+          <attribute name="id" type="ID" />
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element name="genericarc" id="genericarc" substitutionGroup="generic:arc">
+    <complexType>
+      <complexContent>
+        <extension base="generic:genericArcType">
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <complexType name="linkType" >
+    <complexContent>
+      <restriction base="xl:extendedType" >
+        <choice minOccurs="0" maxOccurs="unbounded" >
+          <element ref="xl:title" />
+          <element ref="xl:documentation" />
+          <element ref="link:loc" />
+          <element ref="xl:arc" />
+          <element ref="xl:resource" />
+        </choice>
+        <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax" />
+      </restriction>
+    </complexContent>
+  </complexType>
+
+  <element name="loc" type="xl:locatorType" substitutionGroup="link:loc" />
+
+  <complexType name="linkTypeWithOpenAttrs" >
+    <complexContent>
+      <extension base="test:linkType" >
+        <anyAttribute namespace="##other" />
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <element name="link" id="link" substitutionGroup="xl:extended"
+    type="test:linkTypeWithOpenAttrs">
+  </element>
+
+  <element id="thing" name="thing" substitutionGroup="xl:resource">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="xl:resourceType">
+          <sequence>
+            <any namespace="http://www.w3.org/1999/xhtml" 
+              processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+          </sequence>
+          <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" 
+            processContents="lax"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+</schema>
+

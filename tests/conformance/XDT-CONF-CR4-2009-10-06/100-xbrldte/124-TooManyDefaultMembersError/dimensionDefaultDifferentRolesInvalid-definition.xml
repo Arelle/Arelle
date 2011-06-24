@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2173.19174 (2005-12-13 10:38).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-12-13 11:00:12
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all" arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <roleRef xlink:type="simple" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#H2" roleURI="http://www.xbrl.org/2003/role/link/H2" />
+  <roleRef xlink:type="simple" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#H1" roleURI="http://www.xbrl.org/2003/role/link/H1" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension" arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_IncomeStatement" xlink:label="pr_IncomeStatement" xlink:title="definition: IncomeStatement to GrossProfitPresentation" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_GrossProfitPresentation" xlink:label="pr_GrossProfitPresentation" xlink:title="definition: IncomeStatement to GrossProfitPresentation" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="pr_IncomeStatement" xlink:to="pr_GrossProfitPresentation" xlink:title="definition: IncomeStatement to GrossProfitPresentation" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_RevenueTotal" xlink:label="pr_RevenueTotal" xlink:title="definition: GrossProfitPresentation to RevenueTotal" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="pr_GrossProfitPresentation" xlink:to="pr_RevenueTotal" xlink:title="definition: GrossProfitPresentation to RevenueTotal" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_sales" xlink:label="pr_Sales" xlink:title="definition: RevenueTotal to Sales" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="pr_RevenueTotal" xlink:to="pr_Sales" xlink:title="definition: RevenueTotal to Sales" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_hypercubeH2" xlink:label="tpl_H2" xlink:title="definition: Sales to H2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="pr_Sales" xlink:to="tpl_H2" xlink:title="definition: Sales to H2" order="1" use="optional" xbrldt:targetRole="http://www.xbrl.org/2003/role/link/H2" xbrldt:contextElement="scenario" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_CostOfSales" xlink:label="pr_CostOfSales" xlink:title="definition: GrossProfitPresentation to CostOfSales" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="pr_GrossProfitPresentation" xlink:to="pr_CostOfSales" xlink:title="definition: GrossProfitPresentation to CostOfSales" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_GrossProfit" xlink:label="pr_GrossProfit" xlink:title="definition: GrossProfitPresentation to GrossProfit" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="pr_GrossProfitPresentation" xlink:to="pr_GrossProfit" xlink:title="definition: GrossProfitPresentation to GrossProfit" order="3" use="optional" />
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_hypercubeH1" xlink:label="tpl_H1" xlink:title="definition: IncomeStatement to H1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="pr_IncomeStatement" xlink:to="tpl_H1" xlink:title="definition: IncomeStatement to H1" order="2" use="optional" xbrldt:targetRole="http://www.xbrl.org/2003/role/link/H1" xbrldt:contextElement="scenario" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link/H2">
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_hypercubeH2" xlink:label="tpl_H2" xlink:title="definition: H2 to ProductDim" />
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_ProductDim" xlink:label="tpl_ProductDim" xlink:title="definition: H2 to ProductDim" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="tpl_H2" xlink:to="tpl_ProductDim" xlink:title="definition: H2 to ProductDim" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/products.xsd#p_AllProducts" xlink:label="p_AllProducts" xlink:title="definition: ProductDim to AllProducts" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="tpl_ProductDim" xlink:to="p_AllProducts" xlink:title="definition: ProductDim to AllProducts" order="1" use="optional" xbrldt:targetRole="http://www.xbrl.org/2003/role/link" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/products.xsd#p_Cars" xlink:label="p_Cars" xlink:title="definition: ProductDim to Cars" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default" xlink:from="tpl_ProductDim" xlink:to="p_Cars" xlink:title="definition: ProductDim to Cars" order="2" use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link/H1">
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_hypercubeH1" xlink:label="tpl_H1" xlink:title="definition: H1 to ProductDim" />
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_ProductDim" xlink:label="tpl_ProductDim" xlink:title="definition: H1 to ProductDim" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="tpl_H1" xlink:to="tpl_ProductDim" xlink:title="definition: H1 to ProductDim" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/products.xsd#p_AllProducts" xlink:label="p_AllProducts" xlink:title="definition: ProductDim to AllProducts" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="tpl_ProductDim" xlink:to="p_AllProducts" xlink:title="definition: ProductDim to AllProducts" order="1" use="optional" xbrldt:targetRole="http://www.xbrl.org/2003/role/link" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link/H1">
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_ProductDim" xlink:label="tpl_ProductDim" xlink:title="definition: ProductDim to AllProducts" />
+    <loc xlink:type="locator" xlink:href="../../lib/base/products.xsd#p_AllProducts" xlink:label="p_AllProducts" xlink:title="definition: ProductDim to AllProducts" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default" xlink:from="tpl_ProductDim" xlink:to="p_AllProducts" xlink:title="definition: ProductDim to AllProducts" order="2" use="optional" />
+  </definitionLink>
+</linkbase>

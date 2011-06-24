@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-15</number>
+<name>EDGAR Filer Manual v16 6.7.15 page 6-37</name>
+<description>
+<h2>A link:arcroleType element must have a nonempty link:definition.</h2>
+<p>The link:arcroleType link:definition text should explain the purpose of the arc role.</p>
+<p>The content of link:usedOn is the QName of an arc element; however, note that there are additional rules that restrict what may be
+used as the value of the xlink:arcrole attribute in instances, schemas and linkbases.</p>
+<p>REMARK: The test for emptiness is done after trimming.</p>
+<p>REMARK: this applies only to company extension schemas, so if there were any exceptions standard schemas those would not be
+invalid.</p>
+</description>
+<reference specification="11006"/>
+<variation id="_001ng">
+<name>6.7.15 arcrole has no definition element, NOGOOD.</name>
+<description>arcrole has no definition element, NOGOOD.</description>
+<reference specification="11006"/>
+<data>
+<instance readMeFirst="true">e60715001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60715001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60715" name="Arcrole-Definition-Missing" frd="du"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.7.15 arcrole has a definition element with empty content after trimming, NOGOOD.</name>
+<description>arcrole has a definition element with empty content after trimming, NOGOOD.</description>
+<reference specification="11006"/>
+<data>
+<instance readMeFirst="true">e60715002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60715002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60715" name="Arcrole-Definition-Missing" frd="du"/>
+</result>
+</variation>
+</testcase>

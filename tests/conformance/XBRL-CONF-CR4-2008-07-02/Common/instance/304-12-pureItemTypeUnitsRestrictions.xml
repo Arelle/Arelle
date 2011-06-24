@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:my="http://www.someCompany.com"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.someCompany.com 304-12-pureItemTypeUnitsRestrictions.xsd">
+			      
+  <link:schemaRef xlink:href="304-12-pureItemTypeUnitsRestrictions.xsd" xlink:type="simple"/>
+
+  <my:percentageChangeInSomething unitRef="u1" contextRef="c1" precision="4">5.6</my:percentageChangeInSomething>
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://www.someCompany.com">example</identifier> 
+    </entity>
+    <period>
+      <startDate>2003-02-27</startDate>
+      <endDate>2003-03-27</endDate>
+    </period>		 
+  </context>
+  <!-- Namespace isn't the right one, but the spec doesn't care -->
+  <unit id="u1">
+    <measure xmlns:xbrli="http://www.xbrl.org/notThePureNamespace">xbrli:pure</measure>
+  </unit>
+
+</xbrl>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:Sales</qnElement>
+      <sPointer>4</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/389/contextContainsRepeatedDimension">tx:hc_CustCodeDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:CostOfSales</qnElement>
+      <sPointer>5</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/389/contextContainsRepeatedDimension">tx:hc_CustCodeDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:GrossProfit</qnElement>
+      <sPointer>6</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/389/contextContainsRepeatedDimension">tx:hc_CustCodeDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:RevenueTotal</qnElement>
+      <sPointer>7</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/389/contextContainsRepeatedDimension">tx:hc_CustCodeDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

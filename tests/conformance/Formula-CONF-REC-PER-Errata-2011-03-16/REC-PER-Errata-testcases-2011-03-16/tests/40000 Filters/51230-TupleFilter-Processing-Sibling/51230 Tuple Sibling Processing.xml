@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>51230</number>
+  <name>Tuple Sibling Filter Processing</name>
+  <description>
+    Test tuple sibling filter processing.
+  </description>
+  <reference specification="TUPLE-FILTER" id="sec-sibling-filter"/>
+
+  <variation id="V-01">
+    <name>Sibling in same tuple as specified variable bound to.</name>
+    <description>
+       The fact must be a sibling of the fact that variable &lt;v:a&gt; has evaluated to.  Test case produces two results for two tuples, if filter were not sibling filtering, there would be four results.
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-sibling-filter"/>
+    <data>
+      <schema>51230-tuple-test-concepts.xsd</schema>
+      <linkbase>51230-siblingInSameTuple-formula.xml</linkbase>
+      <instance readMeFirst="true">51230-siblingInSameTuple-instance.xml</instance>
+    </data>
+    <result>
+      <instance>51230-siblingInSameTuple-result.xml</instance>
+    </result>
+  </variation>
+
+
+</testcase>
+

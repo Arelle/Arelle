@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  xmlns:xqt-err="http://www.w3.org/2005/xqt-errors"
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22010</number>
+  <name>XPath Usage Tests</name>
+  <description>
+    Tests of XPath usage in expressions
+  </description>
+  <reference specification="VARIABLES" id="sec-xpath-usage"/>
+
+  <variation id="V-01">
+    <name>HTML Character Entity Encodings are accepted</name>
+    <description>
+       Tests that character entity encodings are accepted, here the quotation mark, represented as &amp;quot; instead of &quot;, and &amp;lt; instead of &lt;, etc.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-character-encodings-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-character-encodings-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-character-encodings-result.xml</instance>
+    </result>
+  </variation>  
+
+  <!-- the variable name tests (was V-02) moved to 22060 -->
+
+  <variation id="V-03">
+    <name>No-namespace-prefix XPath 2 function names are accepted as default-function namespace</name>
+    <description>
+       Tests that XPath function names with no prefix are treated
+       as XPath 2 functions (and do not get confused with the
+       xmlns="namespace" default namespace.  This is to support
+       the XPath 2 conventions of omitting the "fn" namespace on
+       functions.  There is extensive googlable information on
+       Saxonica and other implementations that suggest fn: should not
+       be used on the XPath 2 built-in functions.  In this variation both
+       fn: and no-prefix are tested, with the default QName
+       prefix deliberately set to the concepts taxonomy.  If the
+       default namespace is applied for XPath function QNames this
+       test will fail to compile. (Caveat:  the xmlns:fn may for
+       some processors may need to be changed to "http://www.w3.org/2005/02/xpath-functions" instead of "http://www.w3.org/2005/xpath-functions".
+       If so you might need to hand-edit 22010-fn-prefix-formula.xml,
+       the xmlns:fn= line.
+       This uncertainty of correct namespace is one reason (excuse)
+       why it is ususally suggested to omit the fn: prefix and
+       xmlns for XPath 2 function namespace.)
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-fn-prefix-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-fn-prefix-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-fn-prefix-result.xml</instance>
+    </result>
+  </variation> 
+
+  <variation id="V-04">
+    <name>Comments are accepted</name>
+    <description>
+       Tests that XPath2 comments are accepted in expressions
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-comments-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-comments-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-comments-result.xml</instance>
+    </result>
+  </variation>  
+ 
+
+  <variation id="V-05">
+    <name>Evaluations do not use the XPath 1 compatibility mode</name>
+    <description>
+       Tests that XPath 1 compatibility mode is not used.  This is tested
+       by subtracting two xs:dates.  In XPath 1 compatibility mode the
+       result is double NaN, but in the 2.0 mode the result
+       is of type xs:dayTimeDuration.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-xpath1-compatibilityMode-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-xpath1-compatibilityMode-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-xpath1-compatibilityMode-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Evaluation exceptions can be raised by XPath, syntax errors</name>
+    <description>
+       Tests that XPath evaluation exceptions are raised.  In this case
+       a static error is created by too many right parentheses.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-xpath-static-error-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-xpath-static-error-instance.xml</instance>
+    </data>
+    <result>
+      <error>xqt-err:XPST0003</error>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Evaluation exceptions can be raised by XPath, dynamic errors</name>
+    <description>
+       Tests that XPath evaluation exceptions are raised.  In this case
+       a dynamic expression ensures dynamic run-time evaluation by trying
+        to divide a string-length by the minutes of the instant which
+        will be zero because it was reported as a date, causing a divide
+        by zero dynamic error. 
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-xpath-dynamic-error-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-xpath-dynamic-error-instance.xml</instance>
+    </data>
+    <result>
+      <error>xqt-err:FOAR0001</error>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Evaluation exceptions can be raised by XPath, type errors</name>
+    <description>
+       Tests that XPath evaluation exceptions are raised.  In this case
+       a dynamic expression tries to compare a dateTimeItemType concept which
+       is an xbrli:dateUnion fact (reported as date without time) 
+       to an xs:dateTime returned by xfi:periodInstant function, 
+       so this results in a run time type error.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-xpath-dynamic-type-error-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-xpath-dynamic-type-error-instance.xml</instance>
+    </data>
+    <result>
+      <error>xqt-err:XPTY0004</error>
+    </result>
+  </variation>  
+
+  <variation id="V-09">
+    <name>Evaluation exceptions can be prevented by type-safe XPath expressions, here for dateUnion and instant/end-date handling</name>
+    <description>
+       Tests that XPath evaluation exceptions preventable by type-safe
+       coding.  Here (if not empty or nil) 
+       a dynamic expression compares a dateUnion fact (reported without time) 
+       to the xf:periodInstant function result, and has type-safe code
+       to change when reported as date without time into a dateTime of next
+       midnight.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-xpath-dynamic-type-safe-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-xpath-dynamic-type-safe-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-xpath-dynamic-type-safe-ok-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-10">
+    <name>Variation of V-09 with dateTime value for dateUnion</name>
+    <description>
+       Same as V-09, here the dateUnion fact is reported with time.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-xpath-dynamic-type-safe-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-xpath-dynamic-type-safe-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-xpath-dynamic-type-safe-ok-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-11">
+    <name>Variation of V-09 with nil value for dateUnion</name>
+    <description>
+       Same as V-09, here the dateUnion fact is reported as nil.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-xpath-dynamic-type-safe-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-xpath-dynamic-type-safe-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-xpath-dynamic-type-safe-nil-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-12">
+    <name>
+       An external XML document provides lookup table of rates and categories
+    </name>
+    <description>
+       An external XML file's table, loaded by fn:doc, contains rates (decimal) and categories (QNames) each with lower and upper number threshold for lookup, maybe like a primitive tax rates step table.  The instance provides values for each step, and the formula assures that the nodes are delivered of proper type in atomization for the value expression.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <schema>22010-xml-doc-test.xsd</schema>
+      <linkbase>22010-table-lookup-xml-doc-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-table-lookup-xml-doc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-table-lookup-xml-doc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-13">
+    <name>
+       An external XML document has no xml:base attribute, is in same directory as formula.
+    </name>
+    <description>
+       An external XML file's table, loaded by fn:doc, is located by the static context of the formula element containing the xpath expression, which in this case is the same directory as that containing the formula, because there is no xml:base attribute.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <schema>22010-xml-base-test.xsd</schema>
+      <linkbase>22010-base-1-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-base-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-base-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-14">
+    <name>
+       An external XML document has an xml:base attribute, two directories below that of the formula linkbase.
+    </name>
+    <description>
+       An external XML file's table, loaded by fn:doc, is located by the static context of the formula element containing the xpath expression, which in this case is the two directories below that containing the formula. 
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <schema>22010-xml-base-test.xsd</schema>
+      <linkbase>22010-base-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-base-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-base-2-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-15">
+    <name>
+       An external XML document has an xml:base attribute, three directories beneath that of the formula linkbase.  Each element level of element contributes a base of one more directory of navigation, to accumulate to the three levels down.
+    </name>
+    <description>
+       An external XML file's table, loaded by fn:doc, is located by the static context of the formula element containing the xpath expression, which in this case is three beneath that containing the formula, specified by an xml:base attribute.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <schema>22010-xml-base-test.xsd</schema>
+      <linkbase>22010-base-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-base-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-base-3-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-15a">
+    <name>
+       An external XML document has an xml:base attribute, one directory below that of the formula linkbase, with an xml:base not ending in a /.
+    </name>
+    <description>
+       An external XML file's table, loaded by fn:doc, is located by the static context of the formula element containing the xpath expression, the parent of containing element contributes subdir-1/, the containing element contributes subdir-2 without ending /, so the actual base remains subdir-1.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <schema>22010-xml-base-test.xsd</schema>
+      <linkbase>22010-base-4-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-base-4-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-base-4-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-16">
+    <name>
+       Static context provides no default-collation other than unicode sequence.
+    </name>
+    <description>
+       The absence of a mechanism to provide a default-collation implies it must be the unicode sequence.  The XPath2 functions and operators spec requires this unicode sequence namespace: http://www.w3.org/2005/xpath-functions/collation/codepoint.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>22010-xpathUsage-tests.xsd</schema>
+      <linkbase>22010-default-collation-formula.xml</linkbase>
+      <instance readMeFirst="true">22010-default-collation-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22010-default-collation-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+
+
+
+
+

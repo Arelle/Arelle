@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:test="http://xbrl.org/formula/conformance/custom-test-link"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"  
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic 
+      ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/label 
+      ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/custom-test-link
+      ../lib/custom-test-link.xsd
+  ">
+  
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/element-label" 
+      xlink:href="../../../core_schemas/generic-label.xsd#element-label" 
+      xlink:type="simple"/>
+
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/test-arcrole-test" 
+      xlink:href="../lib/custom-test-link.xsd#test-arc-cust" 
+      xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <test:thing xlink:type="resource" xlink:label="a" id="a">
+       Thing a.
+    </test:thing>
+    
+    <!-- label for the preceeding linkbase thing -->
+    <label:label xlink:type="resource" xlink:label="thing_a_label" 
+      xlink:role="http://www.xbrl.org/2003/role/label" 
+      xml:lang="en">
+        Description goes here for thing a.
+    </label:label>
+
+    <!-- arcs for labels, relationship not to a label thus invalid -->
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:to="a" xlink:from="thing_a_label" order="1.0"/>
+
+  </generic:link>
+
+</link:linkbase>
+
+
+
+

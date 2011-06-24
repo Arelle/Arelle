@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="41230-booleanFilter-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="41230-tandemBoolFilters-formula.xml"/>  
+
+  <context id="context-1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <startDate>2007-01-01</startDate>
+      <endDate>2007-12-31</endDate>
+    </period>
+  </context>
+  
+  <context id="context-2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">02</identifier>
+    </entity>
+    <period>
+      <startDate>2007-01-01</startDate>
+      <endDate>2007-12-31</endDate>
+    </period>
+  </context>
+
+  <context id="context-3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">03</identifier>
+    </entity>
+    <period>
+      <forever/>
+    </period>
+  </context>
+  
+  <context id="context-4">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">04</identifier>
+    </entity>
+    <period>
+      <forever/>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+  
+  
+  <eg:t>
+   <eg:b decimals="0" contextRef="context-1" unitRef="unit">222</eg:b>
+   <eg:c decimals="0" contextRef="context-1" unitRef="unit">8</eg:c>
+   <eg:e decimals="0" contextRef="context-1" unitRef="unit">-99</eg:e>
+  </eg:t>
+
+  <eg:b decimals="0" contextRef="context-1" unitRef="unit">111</eg:b>
+  <eg:c decimals="0" contextRef="context-1" unitRef="unit">9</eg:c>
+  <eg:e decimals="0" contextRef="context-1" unitRef="unit">-99</eg:e>
+  
+  <eg:b decimals="0" contextRef="context-2" unitRef="unit">2469</eg:b>
+  <eg:d decimals="0" contextRef="context-2" unitRef="unit">8</eg:d>
+  <eg:e decimals="0" contextRef="context-2" unitRef="unit">-77</eg:e>
+
+  <eg:b decimals="0" contextRef="context-3" unitRef="unit">111</eg:b>
+  <eg:c decimals="0" contextRef="context-3" unitRef="unit">7</eg:c>
+  <eg:e decimals="0" contextRef="context-3" unitRef="unit">-99</eg:e>
+  
+  <eg:b decimals="0" contextRef="context-4" unitRef="unit">2469</eg:b>
+  <eg:d decimals="0" contextRef="context-4" unitRef="unit">5</eg:d>
+  <eg:e decimals="0" contextRef="context-4" unitRef="unit">-88</eg:e>
+
+</xbrl>
+
+

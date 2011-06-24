@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  XBRL 2.1 Tests 
+  -->
+<!--  Copyright 2003 XBRL International. All Rights Reserved. 
+  -->
+<schema targetNamespace="http://mycompany.com/xbrl/decArcCyclesUUE2" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:self="http://mycompany.com/xbrl/arcCycles">
+	<annotation>
+		<appinfo>
+			<link:roleType id="differentRole" roleURI="http://mycompany.com/xbrl/decArcCyclesUUE2/differentRole">
+				<link:usedOn>link:definitionLink</link:usedOn>
+			</link:roleType>
+			<link:linkbaseRef xlink:type="simple" xlink:href="DecArcCyclesUUE2_definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="conceptY" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptY" xbrli:periodType="instant" xbrli:balance="debit"/>
+</schema>

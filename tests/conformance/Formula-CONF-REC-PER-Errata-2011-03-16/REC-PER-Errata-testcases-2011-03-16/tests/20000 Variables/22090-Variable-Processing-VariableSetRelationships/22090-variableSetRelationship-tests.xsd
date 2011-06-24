@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eg="http://xbrl.org/formula/conformance/example" xmlns:formula="http://xbrl.org/2008/formula" xmlns:variable="http://xbrl.org/2008/variable" xmlns:label="http://xbrl.org/2008/label" xmlns:generic="http://xbrl.org/2008/generic" targetNamespace="http://xbrl.org/formula/conformance/example" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+
+      <link:roleType id="extlink1"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink1">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink2"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink2">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink3"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink3">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink4"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink4">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink5"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink5">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink6"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink6">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink7"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink7">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink8"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink8">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink9"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink9">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink10"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink10">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink11"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink11">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink12"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink12">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink13"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink13">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:roleType id="extlink14"
+            roleURI="http://xbrl.org/formula/conformance/example/extlink14">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+
+    </appinfo>
+  </annotation>
+
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="c1" name="c1" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+</schema>

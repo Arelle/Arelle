@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:sc="http://www.abc.org/inheritanceSharedCube">sc:p3</qnElement>
+      <sPointer>7</sPointer>
+      <member>
+         <qnDimension xmlns:sc="http://www.abc.org/inheritanceSharedCube">sc:dim1</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:sc="http://www.abc.org/inheritanceSharedCube">sc:dim2</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

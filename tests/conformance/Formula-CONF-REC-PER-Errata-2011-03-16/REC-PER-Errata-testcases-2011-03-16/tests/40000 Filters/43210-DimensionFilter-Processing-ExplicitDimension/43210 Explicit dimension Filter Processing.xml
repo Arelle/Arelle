@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>43210</number>
+  <name>Explicit Dimension Filter Processing</name>
+  <description>
+    Test explicit dimension filter processing.  Instance based on seven highest peaks per region of world.
+  </description>
+  <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+
+  <variation id="V-01">
+    <name>A dimension's value must be reported</name>
+    <description>
+      Facts missing the required dimension are reported to the
+      resulting instance.  A complement explicitDimension filter
+      causes selection of those facts lacking the required dimension.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-missingLocation-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-missingLocation-instance.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-missingLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>A specific dimension value must be reported</name>
+    <description>
+      Facts must be reported with the value eg:Argentina specified for dimension eg:Location.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-argentinaLocation-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-argentinaLocation-instance.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-argentinaLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02a">
+    <name>Same as V-02, but instance contains non-dimensioned item, not considered for dimension filtering due to conceptName filter</name>
+    <description>
+      Same as V-02 but a dimensionless item is introduced to the instance, 
+which is always false for the dimension filter test because it has no such dimension.  (At an earlier time it was thought that a dependency on concept name filter were required to prevent causing a dimension filter suggested xpath exception, but the suggested xpath was changed to be conditional on the subject fact having the dimension, and failing otherwise.)
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-argentinaLocation-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-argentinaLocation-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-argentinaLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02b">
+    <name>Same as V-02a, but no conceptName filter, so dimension filter throws error on non-dimensioned item.</name>
+    <description>
+      Same as V-02a but without a conceptName filter, so the dimensionless item QuantumWave is also processed by the dimension filter, which (in prior spec version will throw xfie:invalidDimensionForFact) now will politely ignore the non-dimensioned fact item, when trying the dimension filter on the QuantumWave object (due to implied use of xfi:fact-explicit-dimension-value function).
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-argentinaLocation-3-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-argentinaLocation-3-instance.xml</instance>
+    </data>
+    <result>
+      <!-- this is before xpath suggested test that filtered fact can have dimension
+        <error xmlns:xfie="http://www.xbrl.org/2008/function/instance/error">xfie:invalidDimensionForFact</error>
+       -->
+      <!-- now produces same result as v-02a -->
+      <instance>43210-sevenSummits-argentinaLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02c">
+    <name>A specific dimension with default value must be reported</name>
+    <description>
+      Facts must be reported with the defaulted value eg:Antarctica specified for dimension eg:Location.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-default-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-default-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-defaultLocation-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-defaultLocation-instance.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-defaultLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>A choice of members of a dimension must be reported</name>
+    <description>
+      Facts must be reported with either eg:Argentina or eg:Indonesia as the value specified for dimension eg:Location.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-choicesLocation-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-choicesLocation-instance.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-choicesLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>A variable with location dimensions to be matched to a dimension matching another fact variable bound dimension must be reported</name>
+    <description>
+      A Place concept, with Location dimension, provides dimension-by-variable matching to select the Peak concepts to be reported.  Implicit filtering is off to prevent implicit filtering from noticing that height dimension not present on place concept.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-variableLocation-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-variableLocation-instance.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-variableLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04a">
+    <name>Variable has no-namespace no-prefix variable reference</name>
+    <description>
+      Same as V-04
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-variableLocation-formula-a.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-variableLocation-instance-a.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-variableLocation-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>A variable with location dimensions to be matched to a dimension matching another fact variable bound dimension must be reported</name>
+    <description>
+      A Place concept, with Location dimension, provides dimension-by-variable matching to select the Peak concepts to be reported.  Implicit filtering is on which prevents peak, because it has height dimension, from binding with place, which lacks height dimension, so no result occurs.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="sec-explicit-dimension-filter"/>
+    <data>
+      <schema>43210-dimension-test-concepts.xsd</schema>
+      <linkbase>43210-dimension-test-concepts-definition.xml</linkbase>
+      <linkbase>43210-variableLocation-impl-filtering-formula.xml</linkbase>
+      <instance readMeFirst="true">43210-sevenSummits-variableLocation-impl-filtering-instance.xml</instance>
+    </data>
+    <result>
+      <instance>43210-sevenSummits-variableLocation-no-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

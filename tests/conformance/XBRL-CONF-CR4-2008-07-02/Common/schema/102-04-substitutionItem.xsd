@@ -1,0 +1,26 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003, 2004 XBRL International. All Rights Reserved. -->
+<xsd:schema 
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   elementFormDefault="qualified"
+   targetNamespace="http://www.example.com/test"
+   xmlns:my="http://www.example.com/test" >
+
+	<xsd:import
+       namespace="http://www.xbrl.org/2003/instance"
+       schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+	<xsd:element name="metaOrganizationAccountingMethod"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="metaOrganizationAccountingMethod"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="organizationAccountingMethod"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="my:metaOrganizationAccountingMethod"
+                 id="organizationAccountingMethod"
+                 xbrli:periodType="instant"/>
+
+</xsd:schema>

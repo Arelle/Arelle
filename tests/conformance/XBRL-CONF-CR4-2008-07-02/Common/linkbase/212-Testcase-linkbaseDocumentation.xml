@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  name="linkbase (and extended link) documentation elements" 
+  description="3.5.2.3 and 3.5.3.5 linkbase documentation elements." 
+  outpath="out" 
+  owner="geoff@galexy.net" 
+  minimal="true"
+  xsi:noNamespaceSchemaLocation="../lib/test.xsd" >
+
+	<variation id="V-01" name="212-01 linkbase documentation element">
+		<description>
+      A valid documentation element as a child of a linkbase element.  There are no
+      attributes on the documentation element.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-01-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-01-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+<!-- Commented out, as we don't allow schema invalid variations in the conformance suite
+	<variation id="V-02" name="212-02 linkbase documentation element with an invalid attribute">
+		<description>
+      A documentation element as a child of a linkbase element but where the documentation
+      element has an invalid attribute (missing an explicit namespace).
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-02-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-02-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+-->
+
+	<variation id="V-03" name="212-03 linkbase documentation element with an xml:lang attribute">
+		<description>
+      A documentation element as a child of a linkbase element but where the documentation
+      element has a valid xml:lang attribute.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-03-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-03-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-04" name="212-04 linkbase documentation element with an valid attribute">
+		<description>
+      A documentation element as a child of a linkbase element but where the documentation
+      element has a valid attribute with an explicitly declared namespace.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-04-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-04-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	
+	<variation id="V-05" name="212-05 linkbase documentation element with no content">
+		<description>
+      A documentation element as a child of a linkbase element but where the documentation
+      element has no content.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-05-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-05-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	
+
+	<variation id="V-06" name="212-06 extended link documentation element">
+		<description>
+      A valid documentation element as a child of an extended link.  There are no
+      attributes on the documentation element.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-06-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-06-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+<!-- Commented out, as we don't allow schema invalid variations in the conformance suite
+	<variation id="V-07" name="212-07 extended link documentation element with an invalid attribute">
+		<description>
+      A documentation element as a child of an extended link but where the documentation
+      element has an invalid attribute (missing an explicit namespace).
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-07-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-07-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+-->
+
+	<variation id="V-08" name="212-08 extended link documentation element with an xml:lang attribute">
+		<description>
+      A documentation element as a child of an extended link but where the documentation
+      element has a valid xml:lang attribute.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-08-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-08-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-09" name="212-09 extended link documentation element with a valid attribute">
+		<description>
+      A documentation element as a child of an extended link but where the documentation
+      element has a valid attribute with an explicitly declared namespace.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-09-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-09-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	
+	<variation id="V-10" name="212-10 extended link documentation element with no content">
+		<description>
+      A documentation element as a child of an extended link element but where the documentation
+      element has no content.
+    </description>
+		<data>
+			<xsd readMeFirst="true">212-10-schema.xsd</xsd>
+			<linkbase readMeFirst="false">212-10-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+</testcase>

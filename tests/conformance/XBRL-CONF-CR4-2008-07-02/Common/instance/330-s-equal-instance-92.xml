@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:t="http://xbrl.org/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="330-s-equal-02.xsd"/>
+
+  <context id="c-V01">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <startDate>2008-02-01</startDate>
+      <endDate>2008-02-29</endDate>
+    </period>
+  </context>  
+
+  <context id="c-V02">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <startDate>2008-02-01</startDate>
+      <endDate>2008-03-01T00:00:00</endDate>
+    </period>
+  </context>  
+
+  <unit id="pure">
+    <measure>pure</measure>
+  </unit>
+
+  <t:P1 contextRef="c-V01" unitRef="pure" decimals="0">300003</t:P1>
+  <t:P2 contextRef="c-V02" unitRef="pure" decimals="0">100001</t:P2>
+  <t:P3 contextRef="c-V01" unitRef="pure" decimals="0">200002</t:P3>
+
+
+</xbrl>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:df="http://xbrl.org/2008/filter/dimension" 
+  xmlns:ef="http://xbrl.org/2008/filter/entity" 
+  xmlns:gf="http://xbrl.org/2008/filter/general" 
+  xmlns:pf="http://xbrl.org/2008/filter/period" 
+  xmlns:tf="http://xbrl.org/2008/filter/tuple" 
+  xmlns:uf="http://xbrl.org/2008/filter/unit" 
+  xmlns:vf="http://xbrl.org/2008/filter/value" 
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/tuple
+    ../../../core_schemas/tuple-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    22170-sequence-tests.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="concat('Hello ', string-join( $v | (), '') )" 
+      aspectModel="dimensional" implicitFiltering="false" >
+      <!-- no source because implicitFiltering is false, 
+           so all aspects explicitly specified -->
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>
+            eg:c1
+          </formula:qname>
+        </formula:concept>
+        <formula:entityIdentifier
+          scheme="'http://xbrl.org/entity/identification/scheme'"
+          value="'01'"/>
+        <formula:period>
+          <formula:instant value="xs:date('2007-12-31')"/>
+        </formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- $v picks up ALL c1's and c2's from instance (regardless of location),
+         but is not guaranteed to be in document order, so the
+         union operator $v | () can be used to assure that these
+         nodes are returned and in document order -->
+    <variable:factVariable xlink:type="resource" xlink:label="factvar1" bindAsSequence="true" matches="true" />
+
+    <!-- covering name filter -->
+    <cf:conceptName xlink:type="resource" xlink:label="namefilter1">
+      <cf:concept>
+        <cf:qname>eg:c1</cf:qname>
+      </cf:concept>
+      <cf:concept>
+        <cf:qname>eg:c2</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <!-- v -->
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="v" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="namefilter1" xlink:from="factvar1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true" />
+
+  </generic:link>
+</link:linkbase>
+
+
+
+

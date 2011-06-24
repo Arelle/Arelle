@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:gpl="http://xbrl.org/2010/preferred-label"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:test="http://xbrl.org/formula/conformance/custom-test-link"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"  
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic 
+      ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/label 
+      ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/custom-test-link
+      ../lib/custom-test-link.xsd
+  http://xbrl.org/2010/preferred-label
+      ../../../core_schemas/preferred-label.xsd
+  ">
+  
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/element-label" 
+      xlink:href="../../../core_schemas/generic-label.xsd#element-label" 
+      xlink:type="simple"/>
+
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/test-arcrole-gen" 
+      xlink:href="../lib/custom-test-link.xsd#test-arc-gen" 
+      xlink:type="simple"/>
+
+  <link:roleRef 
+      roleURI="http://xbrl.org/formula/conformance/example/prefLbl" 
+      xlink:href="70121-label-resource-concepts-v02.xsd#prefLbl" 
+      xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <test:thing xlink:type="resource" xlink:label="a" id="a">
+       Thing a.
+    </test:thing>
+    
+    <test:thing xlink:type="resource" xlink:label="b" id="b">
+       Thing b.
+    </test:thing>
+    
+    <!-- arc for preferred label -->
+    <generic:arc id="arc_a_b" xlink:type="arc"
+      xlink:from="a" xlink:to="b" order="2" priority="1"
+      xlink:arcrole="http://xbrl.org/arcrole/2008/test-arcrole-gen" 
+      gpl:preferredLabel="http://xbrl.org/formula/conformance/example/prefLbl" />
+
+    <!-- arcs for labels, resources pretty simple -->
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="a" xlink:to="thing_a_label" order="1.0"/>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="b" xlink:to="thing_b_label" order="1.0"/>
+
+    <!-- labels for the preceeding linkbase things -->
+    <label:label xlink:type="resource" xlink:label="thing_a_label" 
+      xlink:role="http://www.xbrl.org/2003/role/label" 
+      xml:lang="en">
+        Description goes here for thing a.
+    </label:label>
+
+    <label:label xlink:type="resource" xlink:label="thing_b_label" 
+      xlink:role="http://www.xbrl.org/2003/role/label" 
+      xml:lang="en">
+        Ordinary standard description goes here for thing b.
+    </label:label>
+
+    <label:label xlink:type="resource" xlink:label="thing_b_label" 
+      xlink:role="http://xbrl.org/formula/conformance/example/prefLbl" 
+      xml:lang="en">
+        Preferred label description goes here for thing b.
+    </label:label>
+
+
+  </generic:link>
+
+</link:linkbase>
+
+
+
+

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>609-03</number>
+<name>EDGAR Filer Manual v14 6.9.3 page 6-46</name>
+<description>
+<h2>A link:linkbase in a submission must have no ineffectual arcs.</h2>
+<p>Elements of the xlink:type='arc' attribute are ineffectual when there is an equivalent arc with the same or higher priority. An arc
+with use="prohibited" always takes precedence over arcs with use="optional" when their priorities are the same.</p>
+<p>Examples:</p>
+<ul>
+<li>An arc with a use attribute equal to 'prohibited' with no equivalent arc is ineffectual.</li>
+<li>An arc with a use attribute equal to 'prohibited' with the priority attribute less than the priority attribute of an effective arc
+is ineffectual.</li>
+<li>An arc in a submission may cause an arc in a standard taxonomy to become ineffective.</li>
+</ul>
+</description>
+<reference specification="11199"/>
+<variation id="_000gd">
+<name>6.9.3, Prohibition of arcs in standard (rr 2010) taxonomy (presentation), GOOD.</name>
+<description>Prohibition of arcs in standard (rr 2010) taxonomy (presentation and definition), GOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903000gd-20081231.xml</instance>
+<linkbase>e60903000gd-20081231_pre.xml</linkbase>
+<linkbase>e60903000gd-20081231_lab.xml</linkbase>
+<schema>e60903000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.9.3, two equivalent optional presentation arcs in the extension with different priorities, NOGOOD.</name>
+<description>two equivalent optional presentation arcs in the extension with different priorities, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903001ng-20081231.xml</instance>
+<linkbase>e60903001ng-20081231_pre.xml</linkbase>
+<linkbase>e60903001ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.9.3, a prohibiting presentation arc with no equivalent optional arc, NOGOOD.</name>
+<description>a prohibiting presentation arc with no equivalent optional arc, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903002ng-20081231.xml</instance>
+<linkbase>e60903002ng-20081231_pre.xml</linkbase>
+<linkbase>e60903002ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.9.3, a prohibiting presentation arc with a lower priority than the equivalent optional arc in different link, NOGOOD.</name>
+<description>a prohibiting presentation arc with a lower priority than the equivalent optional arc in different link,
+NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903003ng-20081231.xml</instance>
+<linkbase>e60903003ng-20081231_pre.xml</linkbase>
+<linkbase>e60903003ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.9.3, an optional presentation arc with a lower priority than the equivalent optional arc in standard linkbase, NOGOOD.</name>
+<description>an optional presentation arc with a lower priority than the equivalent optional arc in standard linkbase,
+NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903004ng-20081231.xml</instance>
+<linkbase>e60903004ng-20081231_pre.xml</linkbase>
+<linkbase>e60903004ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_005gd">
+<name>6.9.3, one presentation arc with two locators, makes two equivalent relationships, NOGOOD.</name>
+<description>one presentation arc with two locators, makes two equivalent relationships, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903005ng-20081231.xml</instance>
+<linkbase>e60903005ng-20081231_pre.xml</linkbase>
+<linkbase>e60903005ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903005ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_011ng">
+<name>6.9.3, two equivalent optional definition arcs in the extension with different priorities, NOGOOD.</name>
+<description>two equivalent optional definition arcs in the extension with different priorities, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903011ng-20081231.xml</instance>
+<linkbase>e60903011ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903011ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_012ng">
+<name>6.9.3, a prohibiting definition arc with no equivalent optional arc, NOGOOD.</name>
+<description>a prohibiting definition arc with no equivalent optional arc, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903012ng-20081231.xml</instance>
+<linkbase>e60903012ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903012ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_013ng">
+<name>6.9.3, a prohibiting definition arc with a lower priority than the equivalent optional arc in different link, NOGOOD.</name>
+<description>a prohibiting definition arc with a lower priority than the equivalent optional arc in different link, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903013ng-20081231.xml</instance>
+<linkbase>e60903013ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903013ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_014ng">
+<name>6.9.3, two equivalent optional definition arcs with different priorities, NOGOOD.</name>
+<description>two equivalent optional definition arcs with different priorities, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903014ng-20081231.xml</instance>
+<linkbase>e60903014ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903014ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_015ng">
+<name>6.9.3, one definition arc with two locators, makes two equivalent relationships, NOGOOD.</name>
+<description>one definition arc with two locators, makes two equivalent relationships, NOGOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903015ng-20081231.xml</instance>
+<linkbase>e60903015ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60903015ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60903" name="Relationship-Ineffectual" frd="du"/>
+</result>
+</variation>
+<variation id="_016gd">
+<name>6.9.3, Prohibition of arcs in a standard taxonomy (calculation), GOOD.</name>
+<description>Prohibition of arcs in a standard taxonomy (calculation), GOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903016gd-20081231.xml</instance>
+<linkbase>e60903016gd-20081231_cal.xml</linkbase>
+<linkbase>e60903016gd-20081231_lab.xml</linkbase>
+<schema>e60903016gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_017gd">
+<name>6.9.3, No ineffectual arcs anywhere, GOOD.</name>
+<description>No ineffectual arcs anywhere, and a role URI has an apostrophe in it, GOOD.</description>
+<reference specification="11199"/>
+<data>
+<instance readMeFirst="true">e60903017gd-20081231.xml</instance>
+<linkbase>e60903017gd-20081231_pre.xml</linkbase>
+<schema>e60903017gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

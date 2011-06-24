@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>616-09</number>
+<name>EDGAR Filer Manual v16 6.16.9 page 6-59</name>
+<description>
+<h2>If the value of attribute xbrldt:targetRole on an effective definition relationship is not empty, then it must have at least one
+effective consecutive relationship, as defined by the XBRL Dimensions specification.</h2>
+<p>The xbrldt:targetRole attribute is used to connect certain definition arcs that appear in different extended link roles. A targetRole
+attribute that points to no arcs indicates that a table is malformed.</p>
+<p>REMARK: Consecutive relationships are defined at <a href="http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1">http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1</a> and consist only of the following initial-following arc role
+pairs: all, hypercube-dimension; not-all, hypercube-dimension; hypercube-dimension, dimension-domain; dimension-domain, domain-member;
+domain-member, domain-member. Note that domain-member is never followed by all, not-all, or any arcrole other than domain-member.</p>
+</description>
+<reference specification="11152.17"/>
+<variation id="_000gd">
+<name>6.16.9, Domain-member relationship with targetRole and one consecutive relationship, GOOD.</name>
+<description> Domain-member relationship with targetRole and one consecutive relationship, GOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609000gd-20081231.xml</instance>
+<linkbase>e61609000gd-20081231_lab.xml</linkbase>
+<linkbase>e61609000gd-20081231_pre.xml</linkbase>
+<linkbase>e61609000gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.16.9, Domain-member relationship with targetRole and no consecutive arcs, NOGOOD.</name>
+<description> Domain-member relationship with targetRole and no consecutive arcs, NOGOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609001ng-20081231.xml</instance>
+<linkbase>e61609001ng-20081231_lab.xml</linkbase>
+<linkbase>e61609001ng-20081231_pre.xml</linkbase>
+<linkbase>e61609001ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61609" name="Target-Role-With-No-Consecutive-Relationships" frd="fs"/>
+</result>
+</variation>
+<variation id="_002gd">
+<name>6.16.9, Dimension-domain relationship with targetRole and a consecutive domain-member arc, GOOD.</name>
+<description> Dimension-domain relationship with targetRole and a consecutive domain-member arc, GOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609002gd-20081231.xml</instance>
+<linkbase>e61609002gd-20081231_lab.xml</linkbase>
+<linkbase>e61609002gd-20081231_pre.xml</linkbase>
+<linkbase>e61609002gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609002gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_003gd">
+<name>6.16.9, Hypercube-dimension relationship with targetRole and a consecutive dimension-domain arc, GOOD.</name>
+<description> Hypercube-dimension relationship with targetRole and a consecutive dimension-domain arc, GOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609003gd-20081231.xml</instance>
+<linkbase>e61609003gd-20081231_lab.xml</linkbase>
+<linkbase>e61609003gd-20081231_pre.xml</linkbase>
+<linkbase>e61609003gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609003gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004ng">
+<name>6.16.9, Hypercube-dimension relationship with targetRole but no consecutive dimension-domain arc, NOGOOD.</name>
+<description> Hypercube-dimension relationship with targetRole but no consecutive dimension-domain arc, NOGOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609004ng-20081231.xml</instance>
+<linkbase>e61609004ng-20081231_lab.xml</linkbase>
+<linkbase>e61609004ng-20081231_pre.xml</linkbase>
+<linkbase>e61609004ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61609" name="Target-Role-With-No-Consecutive-Relationships" frd="fs"/>
+</result>
+</variation>
+<variation id="_005gd">
+<name>6.16.9, All relationship with targetRole and a consecutive hypercube-dimension arc, GOOD.</name>
+<description> All relationship with targetRole and a consecutive hypercube-dimension arc, GOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609005gd-20081231.xml</instance>
+<linkbase>e61609005gd-20081231_lab.xml</linkbase>
+<linkbase>e61609005gd-20081231_pre.xml</linkbase>
+<linkbase>e61609005gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609005gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_006ng">
+<name>6.16.9, All relationship with targetRole but no consecutive hypercube-dimension arc, NOGOOD.</name>
+<description> All relationship with targetRole but no consecutive hypercube-dimension arc, NOGOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609006ng-20081231.xml</instance>
+<linkbase>e61609006ng-20081231_lab.xml</linkbase>
+<linkbase>e61609006ng-20081231_pre.xml</linkbase>
+<linkbase>e61609006ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609006ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61609" name="Target-Role-With-No-Consecutive-Relationships" frd="fs"/>
+</result>
+</variation>
+<variation id="_007gd">
+<name>6.16.9, NotAll relationship with targetRole and a consecutive hypercube-dimension arc, GOOD.</name>
+<description> NotAll relationship with targetRole and a consecutive hypercube-dimension arc, GOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609007gd-20081231.xml</instance>
+<linkbase>e61609007gd-20081231_lab.xml</linkbase>
+<linkbase>e61609007gd-20081231_pre.xml</linkbase>
+<linkbase>e61609007gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609007gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_008ng">
+<name>6.16.9, NotAll relationship with targetRole but no consecutive hypercube-dimension arc, NOGOOD.</name>
+<description> NotAll relationship with targetRole but no consecutive hypercube-dimension arc, NOGOOD.</description>
+<reference specification="11152.17"/>
+<data>
+<instance readMeFirst="true">e61609008ng-20081231.xml</instance>
+<linkbase>e61609008ng-20081231_lab.xml</linkbase>
+<linkbase>e61609008ng-20081231_pre.xml</linkbase>
+<linkbase>e61609008ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61609008ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61609" name="Target-Role-With-No-Consecutive-Relationships" frd="fs"/>
+</result>
+</variation>
+</testcase>

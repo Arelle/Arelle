@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-03</number>
+<name>EDGAR Filer Manual v14 6.5.3 page 6-7</name>
+<description>
+<h2>All xbrli:identifier elements in an instance must have identical content.</h2>
+<p>REMARK: this will inevitably generate two errors</p>.</description>
+<variation id="_000gd">
+<name>6.5.3, CIK in contexts are 9876543210</name>
+<description>6.5.3, All Context CIKs agree</description>
+<data>
+<instance readMeFirst="true">e60503000gd-20111231.xml</instance>
+<linkbase>e60503000gd-20111231_pre.xml</linkbase>
+<linkbase>e60503000gd-20111231_def.xml</linkbase>
+<linkbase>e60503000gd-20111231_lab.xml</linkbase>
+<schema>e60503000gd-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.3, CIK in contexts are 9999999999 and 9876543210</name>
+<description>6.5.3, Context CIKs disagree, spurious CIK on unnecessary fact dei:EntityPublicFloat</description>
+<data>
+<instance readMeFirst="true">e60503001ng-20111231.xml</instance>
+<linkbase>e60503001ng-20111231_pre.xml</linkbase>
+<linkbase>e60503001ng-20111231_def.xml</linkbase>
+<linkbase>e60503001ng-20111231_lab.xml</linkbase>
+<schema>e60503001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60503" name="Invalid-Cik" frd="cp"/>
+</result>
+</variation>
+</testcase>

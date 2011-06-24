@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+     http://www.xbrl.org/2003/linkbase 
+        http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  ">
+  <roleRef xlink:type="simple" xlink:href="70121-label-dom-mem-concepts-v01.xsd#MyLabel" 
+    roleURI="http://www.SampleCompany.com/MyLabel" />
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="70121-label-dom-mem-concepts-v01.xsd#a" xlink:label="a" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="a" xlink:to="a_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="a_lbl" xml:lang="en">A</label>
+    <loc xlink:type="locator" xlink:href="70121-label-dom-mem-concepts-v01.xsd#b" xlink:label="b" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="b" xlink:to="b_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="b_lbl" xml:lang="en">B</label>
+    <label xlink:type="resource" xlink:role="http://www.SampleCompany.com/MyLabel" xlink:label="b_lbl" xml:lang="en">B Other Label</label>
+  </labelLink>
+</linkbase>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47209</number>
+  <name>Complete Scenario matching filter test</name>
+  <description>
+    Tests of complete scenario matching filter.
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-complete-scenario-matching-filter"/>
+
+  <variation id="V-01">
+    <name>Source and target have same complete scenario, including both xdt and non-xdt elements, but treated only as sequence of elements</name>
+    <description>Source and target have same complete scenario, including both xdt and non-xdt elements, but treated only as sequence of elements</description>
+    <data>
+      <schema>completeScenMatch-concepts.xsd</schema>
+      <linkbase>completeScenMatch-definition.xml</linkbase>
+      <linkbase>completeScenMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeScenMatch-instance-v01.xml</instance>
+    </data>
+    <result>
+      <instance>completeScenMatch-result-v01.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Source and target have complex structure of elements included</name>
+    <description>Source and target have complex structure of elements included</description>
+    <data>
+      <schema>completeScenMatch-concepts.xsd</schema>
+      <linkbase>completeScenMatch-definition.xml</linkbase>
+      <linkbase>completeScenMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeScenMatch-instance-v02.xml</instance>
+    </data>
+    <result>
+      <instance>completeScenMatch-result-v02.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Source and target have element attributes in different order, numerics equal but different syntax, and text with whitespaces around match (but not xml:space=&quot;preserve&quot;).</name>
+    <description>Source and target have element attributes in different order, numerics equal but different syntax.  (Deferred by commenting out, text with whitespaces around match (but not xml:space=&quot;preserve&quot;)).</description>
+    <data>
+      <schema>completeScenMatch-concepts.xsd</schema>
+      <linkbase>completeScenMatch-definition.xml</linkbase>
+      <linkbase>completeScenMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeScenMatch-instance-v03.xml</instance>
+    </data>
+    <result>
+      <instance>completeScenMatch-result-v03.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Source and target have no scenario</name>
+    <description>Source and target have no scenario</description>
+    <data>
+      <schema>completeScenMatch-concepts.xsd</schema>
+      <linkbase>completeScenMatch-definition.xml</linkbase>
+      <linkbase>completeScenMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeScenMatch-instance-v04.xml</instance>
+    </data>
+    <result>
+      <instance>completeScenMatch-result-v04.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

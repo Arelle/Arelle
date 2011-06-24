@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.   
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/segment-scenario-filter.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2008/filter/segment-scenario"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:ssf="http://xbrl.org/2008/filter/segment-scenario" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://xbrl.org/2008/variable" 
+    schemaLocation="variable.xsd"/>
+
+  <complexType name="filter.model" mixed="true">
+    <complexContent mixed="true">
+      <extension base="variable:resource.type">
+        <attribute name="test" type="variable:expression" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <element id="xml-segment-filter"
+  name="segment" type="ssf:filter.model" substitutionGroup="variable:filter"/>
+
+  <element id="xml-scenario-filter"
+  name="scenario" type="ssf:filter.model" substitutionGroup="variable:filter"/>
+
+</schema>

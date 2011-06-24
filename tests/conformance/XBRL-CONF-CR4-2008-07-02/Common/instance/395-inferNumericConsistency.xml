@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Infer Calculated Value Consistency" description="Section 5.2.5.2 The CalculationArc Element" outpath="out" minimal="false" owner="hugh_wallis@hyperion.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd">
+	<!-- 
+Ensure that the numeric values given in an instance do not contradict the derived values in a PTVI instance (inferNumericConsistency.xml);
+	-->
+	<variation id="V-1" name="InferCalculatedValueConsistencyValid">
+		<description>395.01  Valid example of summation-item attribute.</description>
+		<data>
+			<xsd readMeFirst="false">SummationItem.xsd</xsd>
+			<linkbase readMeFirst="false">SummationItem_calculation.xml</linkbase>
+			<instance readMeFirst="true">395-01-InferCalculatedValueConsistencyValid.xml</instance>
+		</data>
+		<result expected="valid">395-01-InferCalculatedValueConsistencyValidOut.xml</result>
+	</variation>
+	<variation id="V-2" name="InferCalculatedValueConsistencyValidButDiffernetValue">
+		<description>395.02  This is a test for detecting inconsistency between value in an Instance and value calculated by calculation link..This is set to invalid but the document validity itself  is still valid.</description>
+		<data>
+			<xsd readMeFirst="false">SummationItem.xsd</xsd>
+			<linkbase readMeFirst="false">SummationItem_calculation.xml</linkbase>
+			<instance readMeFirst="true">395-02-InferCalculatedValueConsistencyDifferentValue.xml</instance>
+		</data>
+		<result expected="invalid">395-02-InferCalculatedValueConsistencyDifferentValueOut.xml</result>
+	</variation>
+</testcase>

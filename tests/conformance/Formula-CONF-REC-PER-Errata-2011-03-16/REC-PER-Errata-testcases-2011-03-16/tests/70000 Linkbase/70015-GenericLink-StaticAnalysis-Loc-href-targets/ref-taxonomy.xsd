@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<schema 
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://xbrl.org/formula/conformance/example/xyz"
+  xmlns:xyz="http://xbrl.org/formula/conformance/example/xyz"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  >
+
+  <import 
+    namespace="http://www.xbrl.org/2003/instance" 
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+  <element
+    name="notConcept"
+    id="notConcept"
+    type="xs:string" />
+  <element 
+    name="anXbrlConcept" 
+    id="aConcept" 
+    xbrli:periodType="instant"
+    type="xbrli:stringItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+  <attribute
+    name="anAttribute"
+    id="anAttribute"
+    type="xs:string" />
+
+
+</schema>
+

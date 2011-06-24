@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-05</number>
+<name>EDGAR Filer Manual v16 6.5.5 page 6-8</name>
+<description>
+<h2>If an xbrli:segment element appears in a context, then its children must be one or more xbrldi:explicitMember elements.</h2>
+<p>The xbrldi:typedMember element cannot appear in an instance, nor can the xbrli:segment element be used for anything other than for
+explicit members.</p>
+</description>
+<reference specification="10491.16.1"/>
+<variation id="_000gd">
+<name>6.5.5, ExplicitMember is in segment, GOOD.</name>
+<description>ExplicitMember is in segment, GOOD.</description>
+<reference specification="10491.16.1"/>
+<data>
+<instance readMeFirst="true">e60505000gd-20081231.xml</instance>
+<linkbase>e60505000gd-20081231_lab.xml</linkbase>
+<linkbase>e60505000gd-20081231_def.xml</linkbase>
+<linkbase>e60505000gd-20081231_pre.xml</linkbase>
+<schema>e60505000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.5, Non-dimensional element is reported in segment, NOGOOD.</name>
+<description>Non-dimensional element is reported in segment, NOGOOD.</description>
+<reference specification="10491.16.1"/>
+<data>
+<instance readMeFirst="true">e60505001ng-20081231.xml</instance>
+<linkbase>e60505001ng-20081231_lab.xml</linkbase>
+<linkbase>e60505001ng-20081231_def.xml</linkbase>
+<linkbase>e60505001ng-20081231_pre.xml</linkbase>
+<schema>e60505001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60505" name="Segment-Child-Not-Explicit-Member" frd="cp"/>
+</result>
+</variation>
+</testcase>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70017</number>
+  <name>Generic arc element label attribute static analysis</name>
+  <description>
+    Test arc label on generic arc element.
+  </description>
+  <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+
+  <variation id="V-01">
+    <name>A generic arc label is fully defined.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+    <data>
+      <schema readMeFirst="true">70017-arcLabel-concepts-v01.xsd</schema>
+      <linkbase>70017-arcLabel-testLB-v01.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+  <variation id="V-02">
+    <name>A label in another link construct is undefined.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+    <data>
+      <schema readMeFirst="true">70017-arcLabel-concepts-v02.xsd</schema>
+      <linkbase>70017-arcLabel-testLB-v02.xml</linkbase>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+  <variation id="V-03">
+    <name>A labels are reusable in different elements.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+    <data>
+      <schema readMeFirst="true">70017-arcLabel-concepts-v03.xsd</schema>
+      <linkbase>70017-arcLabel-testLB-v03.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+</testcase>
+

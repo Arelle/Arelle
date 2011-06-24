@@ -1,0 +1,10 @@
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.xbrl.org/dim/conf/389/contextExplicitDimDomainMemberNotFound" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="contextExplicitDimDomainMemberNotFound.xsd#tx_hc_AllCube" xlink:label="label_hc_CustomerCode_1124493015152_0" xlink:title="label_hc_CustomerCode"/>
+    <link:label xlink:type="resource" xlink:label="label_hc_CustomerCode_1124493015152_1" xlink:role="http://www.xbrl.org/2003/role/label" xlink:title="label_hc_CustomerCode" xml:lang="en" id="label_hc_CustomerCode_1124493015152_1">Region (Hypercube)</link:label>
+    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="label_hc_CustomerCode_1124493015152_0" xlink:to="label_hc_CustomerCode_1124493015152_1" xlink:title="label: hc_CustomerCode to label_hc_CustomerCode"/>
+    <link:loc xlink:type="locator" xlink:href="contextExplicitDimDomainMemberNotFound.xsd#tx_RegionDim" xlink:label="label_RegionDim_1124712661983_1" xlink:title="label_RegionDim"/>
+    <link:label xlink:type="resource" xlink:label="label_RegionDim_1124712661983_2" xlink:role="http://www.xbrl.org/2003/role/label" xlink:title="label_RegionDim" xml:lang="en" id="label_RegionDim_1124712661983_2">Region (Dimension)</link:label>
+    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="label_RegionDim_1124712661983_1" xlink:to="label_RegionDim_1124712661983_2" xlink:title="label: RegionDim to label_RegionDim"/>
+  </link:labelLink>
+</link:linkbase>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47206</number>
+  <name>Complete Segment matching filter test</name>
+  <description>
+    Tests of complete segment matching filter.
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-complete-segment-matching-filter"/>
+
+  <variation id="V-01">
+        <name>Source and target have same complete segment</name>
+    <description>Source and target have same complete segment, including both xdt and non-xdt elements, but treated only as sequence of elements</description>
+    <data>
+      <schema>completeSegMatch-concepts.xsd</schema>
+      <linkbase>completeSegMatch-definition.xml</linkbase>
+      <linkbase>completeSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeSegMatch-instance-v01.xml</instance>
+    </data>
+    <result>
+      <instance>completeSegMatch-result-v01.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-01a">
+        <name>Source and target have same complete segment (except for dim element order differences)</name>
+    <description>
+      Same as V-01 but a context is introduced that has the dimensional elements in reverse order.  Purpose is to show that the dimension specification is not used for comparing segments, so that the dimensional elements are only compared using s-equality, and their order differences aren't ignored.  If XDT-aware dimension element comparison were used, a second result fact would be produced.
+    </description>
+    <data>
+      <schema>completeSegMatch-concepts.xsd</schema>
+      <linkbase>completeSegMatch-definition.xml</linkbase>
+      <linkbase>completeSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeSegMatch-instance-v01a.xml</instance>
+    </data>
+    <result>
+      <instance>completeSegMatch-result-v01a.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Source and target have complex structure of elements included</name>
+    <description>Source and target have complex structure of elements included</description>
+    <data>
+      <schema>completeSegMatch-concepts.xsd</schema>
+      <linkbase>completeSegMatch-definition.xml</linkbase>
+      <linkbase>completeSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeSegMatch-instance-v02.xml</instance>
+    </data>
+    <result>
+      <instance>completeSegMatch-result-v02.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Source and target have element attributes in different order</name>
+        <description>Source and target have element attributes in different order, numerics equal but different syntax. (Deferred by commenting out, text with whitespaces around match (but not xml:space=&quot;preserve&quot;)).</description>
+    <data>
+      <schema>completeSegMatch-concepts.xsd</schema>
+      <linkbase>completeSegMatch-definition.xml</linkbase>
+      <linkbase>completeSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeSegMatch-instance-v03.xml</instance>
+    </data>
+    <result>
+      <instance>completeSegMatch-result-v03.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Source and target have no segment</name>
+        <description>Source and target have no segment</description>
+    <data>
+      <schema>completeSegMatch-concepts.xsd</schema>
+      <linkbase>completeSegMatch-definition.xml</linkbase>
+      <linkbase>completeSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">completeSegMatch-instance-v04.xml</instance>
+    </data>
+    <result>
+      <instance>completeSegMatch-result-v04.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

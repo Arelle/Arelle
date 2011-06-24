@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:footrole="http://footrole/20101231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="e6053001gd-20101231.xsd"/>
+<link:arcroleRef arcroleURI="http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
+xlink:type="simple"
+xlink:href="http://www.xbrl.org/lrr/arcrole/factExplanatory-2009-12-16.xsd#fact-explanatoryFact"/>
+<xbrli:context id="d">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2010-01-01</xbrli:startDate>
+<xbrli:endDate>2010-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="i">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2010-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="share">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="USD">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<dei:DocumentType contextRef="d">8-K</dei:DocumentType>
+<dei:AmendmentFlag contextRef="d">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="d">2010-12-31</dei:DocumentPeriodEndDate>
+<dei:EntityRegistrantName id="fact1" contextRef="d">e6053001gd</dei:EntityRegistrantName>
+<dei:EntityCentralIndexKey id="fact2" contextRef="d">9876543210</dei:EntityCentralIndexKey>
+<dei:CurrentFiscalYearEndDate contextRef="d">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:EntityCommonStockSharesOutstanding decimals="0" contextRef="i" unitRef="share">0</dei:EntityCommonStockSharesOutstanding>
+<dei:EntityPublicFloat decimals="0" contextRef="i" unitRef="USD">0</dei:EntityPublicFloat>
+<link:footnoteLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="#fact1" xlink:label="fact1"/>
+<link:loc xlink:type="locator" xlink:href="#fact2" xlink:label="fact2"/>
+<link:footnoteArc xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
+xlink:from="fact1"
+xlink:to="fact2"
+order="1.0"/>
+</link:footnoteLink>
+</xbrli:xbrl>

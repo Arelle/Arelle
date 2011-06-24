@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='607-01-no-include/607-01-no-include-testcase.xml' />
+  <testcase uri='607-03-ext-not-standard-namespace/607-03-ext-not-standard-namespace-testcase.xml' />
+  <testcase uri='607-04-valid-ext-namespace-format/607-04-valid-ext-namespace-format-testcase.xml' />
+  <testcase uri='607-07-recommended-prefix-required/607-07-recommended-prefix-required-testcase.xml' />
+  <testcase uri='607-08-no-embedded-linkbases/607-08-no-embedded-linkbases-testcase.xml' />
+  <testcase uri='607-09-role-authority-matches-namespace/607-09-role-authority-matches-namespace-testcase.xml' />
+  <testcase uri='607-10-role-types-no-duplicates/607-10-role-types-no-duplicates-testcase.xml' />
+  <testcase uri='607-11-role-types-pre-cal-def/607-11-role-types-pre-cal-def-testcase.xml' />
+  <testcase uri='607-12-role-has-definition/607-12-role-has-definition-testcase.xml' />
+  <testcase uri='607-13-arcrole-authority-matches-namespace/607-13-arcrole-authority-matches-namespace-testcase.xml' />
+  <testcase uri='607-14-arcrole-types-no-duplicates/607-14-arcrole-types-no-duplicates-testcase.xml' />
+  <testcase uri='607-15-arcrole-has-definition/607-15-arcrole-has-definition-testcase.xml' />
+  <testcase uri='607-16-no-ext-name-same-as-base/607-16-no-ext-name-same-as-base-testcase.xml' />
+  <testcase uri='607-17-valid-ext-elt-id/607-17-valid-ext-elt-id-testcase.xml' />
+  <testcase uri='607-18-nillable-true/607-18-nillable-true-testcase.xml' />
+  <testcase uri='607-19-no-ext-elt-tuples/607-19-no-ext-elt-tuples-testcase.xml' />
+  <testcase uri='607-20-no-typed-domain-ref/607-20-no-typed-domain-ref-testcase.xml' />
+  <testcase uri='607-21-abstracts-duration/607-21-abstracts-duration-testcase.xml' />
+  <testcase uri='607-23-dimensions-named-axis/607-23-dimensions-named-axis-testcase.xml' />
+  <testcase uri='607-24-hypercubes-named-table/607-24-hypercubes-named-table-testcase.xml' />
+  <testcase uri='607-25-no-custom-substitutiongroups/607-25-no-custom-substitutiongroups-testcase.xml' />
+  <testcase uri='607-26-lineitems-abstract/607-26-lineitems-abstract-testcase.xml' />
+  <testcase uri='607-27-domain-member-type/607-27-domain-member-type-testcase.xml' />
+  <testcase uri='607-28-domain-member-duration/607-28-domain-member-duration-testcase.xml' />
+</testcases>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/confirmance-suite/dimensions/v200" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:tx="http://www.xbrl.org/confirmance-suite/dimensions/v200" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:p0="http://www.fujitsu.com/xbrl/taxeditor/default" xmlns:xbrldt="http://xbrl.org/2005/xbrldt">
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:element name="hypercube" id="hypercube" type="xbrli:stringItemType" xbrldt:typedDomainRef="redefine-schema.xsd#id_newElement" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="instant"/>
+</xsd:schema>

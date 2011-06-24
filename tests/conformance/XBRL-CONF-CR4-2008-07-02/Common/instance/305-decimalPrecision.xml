@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Decimal and Precision Mutual Exclusion and prohibition on nil items" description="Section 4.4  Items" outpath="out" owner="hugh@standarddimensions.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<!-- 
+Ensure that every numeric item has either decimals or precision but not both;
+	-->
+	<variation id="V-01" name="DecimalOnlySpecified">
+		<description>305.01 item has only Decimals specified</description>
+		<data>
+			<xsd readMeFirst="false">305-decimalPrecision.xsd</xsd>
+			<instance readMeFirst="true">305-01-DecimalOnlySpecified.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-02" name="PrecisionOnlySpecified">
+		<description>305.02 item has only Precision specified</description>
+		<data>
+			<xsd readMeFirst="false">305-decimalPrecision.xsd</xsd>
+			<instance readMeFirst="true">305-02-PrecisionOnlySpecified.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-03" name="NoDecimalOrPrecisionSpecified">
+		<description>305.03 item has neither Decimals nor Precision specified</description>
+		<data>
+			<xsd readMeFirst="false">305-decimalPrecision.xsd</xsd>
+			<instance readMeFirst="true">305-03-NoDecimalOrPrecisionSpecified.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-04" name="BothDecimalAndPrecisionSpecified">
+		<description>305.04 item has both Decimals and Precision specified</description>
+		<data>
+			<xsd readMeFirst="false">305-decimalPrecision.xsd</xsd>
+			<instance readMeFirst="true">305-04-BothDecimalAndPrecisionSpecified.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-05" name="DecimalSpecifiedOnNilItem">
+		<description>305.05 nil item has Decimals specified</description>
+		<data>
+			<xsd readMeFirst="false">305-decimalPrecision.xsd</xsd>
+			<instance readMeFirst="true">305-05-DecimalSpecifiedOnNilItem.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-06" name="PrecisionSpecifiedOnNilItem">
+		<description>305.06 nil item has Precision specified</description>
+		<data>
+			<xsd readMeFirst="false">305-decimalPrecision.xsd</xsd>
+			<instance readMeFirst="true">305-06-PrecisionSpecifiedOnNilItem.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation id="V-07" name="Decimalzeroandeffectivalue">
+		<description>305.07 a genuine inconsistency due to roll up of child values</description>
+		<data>
+			<instance readMeFirst="true">305_07_invalid_instance.xbrl</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+</testcase>

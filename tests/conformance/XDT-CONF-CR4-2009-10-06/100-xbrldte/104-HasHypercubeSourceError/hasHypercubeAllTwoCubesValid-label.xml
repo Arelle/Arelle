@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2138.27365 (2005-11-08 15:11).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-11-08 15:53:37
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="hasHypercubeAllTwoCubesValid.xsd#pm_AllProductsCube" xlink:label="pm_AllProductsCube" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_AllProductsCube" xlink:to="pm_AllProductsCube_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_AllProductsCube_lbl" xml:lang="en">All Products Cube</label>
+    <loc xlink:type="locator" xlink:href="hasHypercubeAllTwoCubesValid.xsd#pm_AllProductsDim" xlink:label="pm_AllProductsDim" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_AllProductsDim" xlink:to="pm_AllProductsDim_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_AllProductsDim_lbl" xml:lang="en">All products (dim)</label>
+    <loc xlink:type="locator" xlink:href="hasHypercubeAllTwoCubesValid.xsd#pm_ExcludedSalesCube" xlink:label="pm_ExcludedSalesCube" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_ExcludedSalesCube" xlink:to="pm_ExcludedSalesCube_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_ExcludedSalesCube_lbl" xml:lang="en">Excluded Sales Cube</label>
+    <loc xlink:type="locator" xlink:href="hasHypercubeAllTwoCubesValid.xsd#pm_WineSalesDim" xlink:label="pm_WineSalesDim" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_WineSalesDim" xlink:to="pm_WineSalesDim_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_WineSalesDim_lbl" xml:lang="en">Wine sales (dim)</label>
+  </labelLink>
+</linkbase>

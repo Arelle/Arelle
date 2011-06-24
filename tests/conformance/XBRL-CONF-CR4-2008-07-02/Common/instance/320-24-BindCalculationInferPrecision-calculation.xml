@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Calculation Links linkbase based on XBRL standard Version 2.1.
+TEST
+Produced on 2007-03-14 12:20:37
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="320-24-BindCalculationInferPrecision.xsd#ns_Parent" xlink:label="ns_Parent" />
+    <loc xlink:type="locator" xlink:href="320-24-BindCalculationInferPrecision.xsd#ns_A" xlink:label="ns_A" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ns_Parent" xlink:to="ns_A" order="1" weight="1.99" use="optional" />
+    <loc xlink:type="locator" xlink:href="320-24-BindCalculationInferPrecision.xsd#ns_B" xlink:label="ns_B" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ns_Parent" xlink:to="ns_B" order="2" weight="1" use="optional" />
+  </calculationLink>
+</linkbase>

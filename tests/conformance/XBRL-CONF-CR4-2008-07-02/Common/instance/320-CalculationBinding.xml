@@ -1,0 +1,340 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Identifier Scope" description="Relevant sections for calculation binding rules 5_2_5_2 and 4_6_6" outpath="out" owner="neil.wills@ubmatrix.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+
+        <variation id="V-00" name="v00-CalculationWithPrecision3-Consistent">
+                <description>320.00 - Valid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-00-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-01" name="v01-CalculationWithPrecision2-InConsistent">
+                <description>320.01 - Valid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-01-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-02" name="v02-CalculationWithPrecision3-InConsistent">
+                <description>320.02 - InValid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-02-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-03" name="v03-CalculationWithPrecision3-InConsistent">
+                <description>320.03 - Valid</description>
+                <data>
+                        <xsd readMeFirst="false">320-03-nestedtupleBindCalc.xsd</xsd>
+                        <instance readMeFirst="true">320-03-nestedtupleBindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-04" name="320-04-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.04 - Valid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-04-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+        
+        <variation id="V-05" name="320-05-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.05 - Valid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-05-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <!--variation id="V-06" name="320-06-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.06 - inValid - inconsistent</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-06-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation-->
+
+        <variation id="V-07" name="320-07-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.07 - inValid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-07-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <!--variation id="V-08" name="320-08-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.08 - Valid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-08-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation-->
+
+        <variation id="V-09" name="320-09-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.09 - Valid</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-09-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-10" name="320-10-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.10 - Valid - precision stated as 15</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-10-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-11" name="320-11-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.11 - inValid - inconsistent</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-11-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-12" name="320-12-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.12 - Valid - Consistent - precision attribute stated as 15</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-12-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-13" name="320-13-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.13 - Valid - Consistent</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-13-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-14" name="320-14-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.14 - Valid - Consistent</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-14-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-15" name="320-15-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.15 - Valid - COnsistent - Decimal attribute zero</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-15-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-16" name="320-16-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.16 - InValid - Inconsistency contributing items 3200, summation value is 3201</description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-16-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-17" name="320-17-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.17 - InValid - Inconsistent roll up - weights stated as 1.0</description>
+                <data>
+                        <xsd readMeFirst="false">320-17-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-17-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-18" name="320-18-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.18 - InValid - 2.04 effective value generates inconsistent roll up - weight is defined as 1.01</description>
+                <data>
+                        <xsd readMeFirst="false">320-18-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-18-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-19" name="320-19-BindCalculationInferPrecision-instance.xbrl">
+                <description>320.19 - InValid - effective value 1.02 generates inconsistent roll up - weight is defined as 1.01</description>
+                <data>
+                        <xsd readMeFirst="false">320-18-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-19-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-20" name="320-20-BindCalculationInferPrecision-instance.xbrl">
+                <description>
+                        
+                                        320.20 - Valid - Consistent
+                                         Weight is applied to the value after the decimal or precision is applied to the lexical value reported in the instance 
+                                         Arc weights are defined with the value 1.01
+                                        Test ensures the sequence that we apply these rules of inferred precision and weight attribute
+                                        
+                                        Summation                                                                       
+                                        ns:A weight:                1.01
+                                        ns:A lexical value:      1.01
+                                        ns:A decimal:             2            
+                        
+                                        Contributing items
+                                        ns:B weight:                1.01                 
+                                        ns:B lexical value:      1
+                                        ns:B decimal:              0
+                        
+                                        Valid Summation:  1.01 = 1.01
+                        
+                </description>
+                <data>
+                        <xsd readMeFirst="false">320-18-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-20-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+        
+        <variation id="V-21" name="320-21-BindCalculationInferPrecision-instance.xbrl">
+                <description>
+                        
+                        320.21 - Duplicate Facts reported and thus calculation will not bind per 5.2.5.2
+                        
+                        A calculation represented by a “summation-item” relationship binds for a summation item S if and only if:
+                        1.      S has at least one contributing item.
+                        2.      S is not a duplicate item (as defined in section 4.10), and
+                        3.      None of the contributing items are duplicates.
+                        4.      S is not nil-valued (i.e. it does not have an xsi:nil attribute with value true).
+                        
+                        Test ensures that we do not bind the calculation due to a duplicated fact and do not infer precision.  
+                        
+                </description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-21-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+        
+        <variation id="V-22" name="320-22-BindCalculationInferPrecision-instance.xbrl">
+                <description>
+                        
+                        320.22 - Duplicate Facts reported and thus calculation will not bind per 5.2.5.2
+                        
+                        A calculation represented by a “summation-item” relationship binds for a summation item S if and only if:
+                        1.      S has at least one contributing item.
+                        2.      S is not a duplicate item (as defined in section 4.10), and
+                        3.      None of the contributing items are duplicates.
+                        4.      S is not nil-valued (i.e. it does not have an xsi:nil attribute with value true).
+                        
+                        Test ensures that we Do NOT bind the calculation and do not infer precision.  If it did bind then there would be an inconsistency.
+                        
+                </description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-22-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+        
+        <variation id="V-23" name="320-23-BindCalculationInferPrecision-instance.xbrl">
+                <description>
+                        320-24 - Valid - Consistent
+                        Inferred precision and Weight Attribute test
+                        
+                        Summation                                                                       
+                        ns:A weight:                1.01
+                        ns:A lexical value:      -3.03
+                        ns:A decimal:             4               
+                        
+                        Contributing items
+                        ns:B weight:                1.01                 
+                        ns:B lexical value:      -1.01
+                        ns:B decimal:              4
+                                              
+                        ns:C weight:                 1.01
+                        ns:C lexical value:        1.99
+                        ns:C decimal:               4
+                                                
+                        Effective summation of contributing items:   -3.0300 +  -1.0100 + -1.9900  =-3.0300 
+                        
+                        Valid Summation:  -3.0300 = -3.03
+                                                
+                </description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-23-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-24" name="320-24-BindCalculationInferPrecision-instance.xbrl">
+                <description>
+                        
+                        320-24 - Valid - Consistent
+                        Inferred precision and Weight Attribute test in corrcet sequence
+                        
+                        ns:A weight:                 1.99
+                        ns:A lexical value:       14.99
+                        ns:A decimal:               4
+                        Computed value:        14.9900
+                        
+                        ns:B weight:                 1
+                        ns:B lexical value:       10
+                        ns:B decimal:               4
+                        Computed value:        10.0000
+                        
+                        ns:Parent lexical value:      39.8301
+                        ns:Parent decimal:             4
+                        Computed value:                39.8301
+                        
+                        Effective summation of contributing items:   29.8301 + 10.0000 = 39.8301
+                        
+                        Valid Summation:  39.8301
+                                                                        
+                </description>
+                <data>
+                        <xsd readMeFirst="false">320-24-BindCalculationInferPrecision-instance.xsd</xsd>
+                        <instance readMeFirst="true">320-24-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+        
+        <variation id="V-25" name="320-25-BindCalculationInferPrecision-instance.xbrl">
+                <description>
+                          
+                        320-25 - Invalid
+                        Test:   Verifies that IsNill facts do not bind to calculations per 5.2.5.2 
+                        
+                        A calculation represented by a “summation-item” relationship binds for a summation item S if and only if:
+                        
+                        1.      S has at least one contributing item.
+                        2.      S is not a duplicate item (as defined in section 4.10), and
+                        3.      None of the contributing items are duplicates.
+                        4.      S is not nil-valued (i.e. it does not have an xsi:nil attribute with value true).
+                                         
+                </description>
+                <data>
+                        <xsd readMeFirst="false">320-BindCalculationInferPrecision.xsd</xsd>
+                        <instance readMeFirst="true">320-25-BindCalculationInferPrecision-instance.xbrl</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+</testcase>

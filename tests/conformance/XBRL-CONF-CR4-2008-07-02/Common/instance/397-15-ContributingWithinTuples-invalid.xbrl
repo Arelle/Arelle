@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!-- Copyright 2005 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" 
+      xmlns:link="http://www.xbrl.org/2003/linkbase" 
+      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      xmlns:abc="http://xbrl.example.com/397/ABC" 
+      xmlns:h="http://xbrl.example.com/397/Holder"
+      xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      >
+
+  <link:schemaRef xlink:href="397-ABC.xsd" xlink:type="simple"/>
+  <link:schemaRef xlink:href="397-Holder.xsd" xlink:type="simple"/>
+
+  <!-- A should have the value 2 -->
+  <abc:A contextRef="c1" unitRef="usd" precision="INF">0</abc:A>
+
+  <h:H>
+    <abc:B contextRef="c1" unitRef="usd" precision="INF">1</abc:B>
+  </h:H>
+
+  <!-- duplicate of the previous tuple, but that doesn't matter -->
+  <h:H>
+    <!-- not a duplicate of the previous B because not p-equal -->
+    <abc:B contextRef="c1" unitRef="usd" precision="INF">1</abc:B>
+  </h:H>
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="www.example.com">example</identifier>
+    </entity>
+    <period>
+      <instant>2001-01-01</instant>
+    </period>
+  </context>
+
+  <unit id="usd">
+    <measure>iso4217:USD</measure>
+  </unit>
+
+</xbrl>

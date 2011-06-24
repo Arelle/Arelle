@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="32210-existenceAssertion-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="32210-testParam-formula.xml"/>  
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">AAA001</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-01</instant>
+    </period>
+  </context>
+  
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">BBB002</identifier>
+    </entity>
+    <period>
+      <instant>2007-02-02</instant>
+    </period>
+  </context>
+  
+  <context id="c3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">CCC003</identifier>
+    </entity>
+    <period>
+      <instant>2007-03-03</instant>
+    </period>
+  </context>
+  
+  <context id="c4">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">DDD004</identifier>
+    </entity>
+    <period>
+      <instant>2007-04-04</instant>
+    </period>
+  </context>
+  
+  <context id="c5">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">EEE005</identifier>
+    </entity>
+    <period>
+      <instant>2007-05-05</instant>
+    </period>
+  </context>
+  
+  <eg:s contextRef="c2">foo2</eg:s>
+  <eg:s contextRef="c3">foo3</eg:s>
+  <eg:s contextRef="c4">foo4</eg:s>
+  <eg:s contextRef="c5">foo5</eg:s>
+
+</xbrl>
+
+

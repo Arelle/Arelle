@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e6071600="http://e6071600/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://e6071600/role/Rockn" xlink:type="simple"
+xlink:href="e60716000gd-20081231.xsd#Rockn"/>
+<link:presentationLink xlink:type="extended" xlink:role="http://e6071600/role/Rockn">
+<link:loc xlink:type="locator"
+xlink:href="e60716000gd-20081231.xsd#e6071600_SomeAbstract"
+xlink:label="SomeAbstract"/>
+<link:loc xlink:type="locator" xlink:href="e60716000gd-20081231.xsd#e6071600_SomeStuff"
+xlink:label="SomeStuff"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="SomeAbstract"
+xlink:to="SomeStuff"
+use="optional"
+order="1.0"/>
+</link:presentationLink>
+</link:linkbase>

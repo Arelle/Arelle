@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007,2008 XBRL International. All Rights Reserved. -->
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:s="http://xbrl.org/conformance/2007/specifications"
+  targetNamespace="http://xbrl.org/conformance/2007/specifications"
+  elementFormDefault="qualified" attributeFormDefault="unqualified">
+  
+  <xs:complexType name="inputFileType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="readMeFirst" type="xs:boolean"
+          use="optional" default="false" />
+        <xs:attribute name="schemavalid" type="xs:boolean"
+          use="optional" default="true" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:element name="specifications">
+    <xs:complexType>
+      <xs:sequence minOccurs="1" maxOccurs="unbounded">
+        <xs:element ref="s:specification" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="specification">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:ID"/>
+      <xs:attribute name="sid" type="xs:NCName"/>
+      <xs:attribute name="href" type="xs:anyURI"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

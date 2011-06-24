@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador</name>
+    <email>pns.atos@gmail.com</email>
+  </creator>
+  <number>11025</number>
+  <name>Conflicting Aspect rules in formulae</name>
+  <description>
+    Formula Static Analysis Test.
+    An error must be thrown if a formula 
+    has aspect rules that impose conflicting 
+    requirements on the values of output aspects.
+  </description>
+  <reference specification="FORMULA" id="error-conflicting-aspect-rule"/>
+  <variation id="V-01">
+    <name>Conflicting aspect period rule and concept aspect rule</name>
+    <description>
+      There are conflicting requirements in the processing formula
+      between the period aspect rules of the output concept (duration) 
+      and the concept aspect rule (periodType instant)
+    </description>
+    <reference specification="FORMULA" id="error-conflicting-aspect-rule"/>
+    <data>
+      <schema readMeFirst="true">11025-v01-concepts.xsd</schema>
+      <linkbase>11025-v01-conflicting-period-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:conflictingAspectRules</error>
+    </result>
+  </variation>
+  <variation id="V-02">
+    <name>Conflicting aspect unit rule and concept aspect rule</name>
+    <description>
+      There are conflicting requirements in the processing formula
+      between the unit aspect rules of the output concept  
+      and the type of the aspect rule (stringItemType)
+    </description>
+    <reference specification="FORMULA" id="error-conflicting-aspect-rule"/>
+    <data>
+      <schema readMeFirst="true">11025-v02-concepts.xsd</schema>
+      <linkbase>11025-v02-conflicting-unit-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:conflictingAspectRules</error>
+    </result>
+  </variation>
+</testcase>

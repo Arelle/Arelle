@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance  ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-01</number>
+<name>EDGAR Filer Manual v16 6.7.1 page 6-32</name>
+<description>
+<h2>The xsd:schema must not have an xsd:include element.</h2>
+<p>This rule does not apply to schemas in a standard taxonomy.</p> 
+<p>There is one namespace per xsd:schema element and therefore no "chameleon schemas", and additional XBRL 2.1 syntax restrictions apply.</p>
+<p>The elementFormDefault attribute is usually "qualified" and the attributeFormDefault attribute
+usually "unqualified", but there are no formal restrictions on the values of these
+attributes and no formal restrictions on the formDefault attribute.</p>
+<p>REMARK: Because this applies
+only to company extensions, in principle there could be a test in which a standard taxonomy 
+schema having an 'include' element would be 'GOOD', but there is no such standard taxonomy schema.</p>
+</description>
+<reference specification="10999"/>
+<variation id="_000ng">
+<name>6.7.1 Instance refers to a schema containing an include, NOGOOD</name>
+<description>There is a direct reference to edgar-20081231.xsd just to avoid other errors.
+Then there is a reference to a schema with an include, NOGOOD.</description>
+<reference specification="10999"/>
+<data>
+<instance readMeFirst="true">e60701000ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60701000ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60701" name="Schema-Include-Present" frd="du"/>
+</result>
+</variation>
+</testcase>

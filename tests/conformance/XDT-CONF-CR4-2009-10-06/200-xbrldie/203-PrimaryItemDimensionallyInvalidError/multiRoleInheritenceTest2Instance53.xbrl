@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Instance Document based on XBRL standard 2.1.
+  Created by Reporting Standard S.L. on 2008-01-30
+  Contact info@reportingstandard.com
+  For the XBRL International Consortium
+  (C) XBRL International Inc
+-->
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:tx="http://www.xbrl.org/conformance/dimensions/inheritence/test" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:t-tx="http://www.xbrl.org/conformance/dimensions/common/template" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <link:schemaRef xlink:type="simple" xlink:href="multiRoleInheritenceTest2_5.xsd" />
+  <xbrli:context id="ctx">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.xbrl.org/scheme">Sample Company</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="t-tx:d">t-tx:mc_2_3</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>0198-04-12</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="u">
+    <xbrli:measure>iso4217:USD</xbrli:measure>
+  </xbrli:unit>
+  <tx:Pc decimals="0" contextRef="ctx" unitRef="u">1000</tx:Pc>
+</xbrli:xbrl>
+

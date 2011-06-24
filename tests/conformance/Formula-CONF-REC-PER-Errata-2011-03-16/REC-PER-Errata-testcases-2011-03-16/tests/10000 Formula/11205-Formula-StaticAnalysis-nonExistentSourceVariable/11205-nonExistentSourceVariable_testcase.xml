@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>11205</number>
+  <name>Aspect rules in Formulae. Static Analysis</name>
+  <description>
+      An error must be thrown if a source in a formula contains a 
+      QName that is not the uncovered QName or the QName 
+      of any one of the formula's fact variables.  (Furthermore if
+      the source throws this error, then further aspect error
+      detection which depends on such a source should not cause
+      further errors due to absent source to raise more messages, that would confuse users where the
+      simple issue is a bad variable name in formula source.)
+  </description>
+  <reference specification="FORMULA" id="error-nonexistent-source-variable"/>           
+  <variation id="V-01">
+    <description>
+    Source variable in formula is a parameter with anonymous namespace.
+    </description>
+    <data>
+      <schema readMeFirst="true">11205-sourceVarIsParam.xsd</schema>
+      <linkbase>11205-sourceVarIsParam-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:nonexistentSourceVariable</error>
+    </result>
+  </variation>
+ 
+  <variation id="V-02">
+    <description>
+    Source variable in formula is a parameter with defined namespace.
+    </description>
+    <data>
+      <schema readMeFirst="true">11205-sourceVarIsParam2.xsd</schema>
+      <linkbase>11205-sourceVarIsParam2-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:nonexistentSourceVariable</error>
+    </result>
+  </variation>
+ 
+  <variation id="V-03">
+    <description>
+    Source variable in formula is a general variable.
+    </description>
+    <data>
+      <schema readMeFirst="true">11205-sourceVarIsGenVar.xsd</schema>
+      <linkbase>11205-sourceVarIsGenVar-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:nonexistentSourceVariable</error>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <description>
+    Source variable in formula is a concept element.
+    </description>
+    <data>
+      <schema readMeFirst="true">11205-sourceVarIsConcept.xsd</schema>
+      <linkbase>11205-sourceVarIsConcept-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:nonexistentSourceVariable</error>
+    </result>
+  </variation>
+</testcase>
+

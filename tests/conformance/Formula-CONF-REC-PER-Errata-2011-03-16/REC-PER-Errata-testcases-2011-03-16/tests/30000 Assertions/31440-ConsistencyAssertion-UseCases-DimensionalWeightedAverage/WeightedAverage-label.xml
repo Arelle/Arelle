@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-06-01 16:49).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-06-01 23:07:57
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_EV" xlink:label="wgt-avg_EV" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_EV" xlink:to="wgt-avg_EV_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_EV_lbl" xml:lang="en">EV</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_ExposuresDimension" xlink:label="wgt-avg_ExposuresDimension" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_ExposuresDimension" xlink:to="wgt-avg_ExposuresDimension_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_ExposuresDimension_lbl" xml:lang="en">Exposures Dimension</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_HyperCube" xlink:label="wgt-avg_HyperCube" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_HyperCube" xlink:to="wgt-avg_HyperCube_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_HyperCube_lbl" xml:lang="en">HyperCube</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_ObligorGrade1" xlink:label="wgt-avg_ObligorGrade1" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_ObligorGrade1" xlink:to="wgt-avg_ObligorGrade1_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_ObligorGrade1_lbl" xml:lang="en">Obligor Grade 1</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_ObligorGrade2" xlink:label="wgt-avg_ObligorGrade2" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_ObligorGrade2" xlink:to="wgt-avg_ObligorGrade2_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_ObligorGrade2_lbl" xml:lang="en">Obligor Grade 2</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_ObligorGrade3" xlink:label="wgt-avg_ObligorGrade3" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_ObligorGrade3" xlink:to="wgt-avg_ObligorGrade3_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_ObligorGrade3_lbl" xml:lang="en">Obligor Grade 3</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_ObligorGrade" xlink:label="wgt-avg_ObligorGrade" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_ObligorGrade" xlink:to="wgt-avg_ObligorGrade_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_ObligorGrade_lbl" xml:lang="en">Obligor Grade</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_PD" xlink:label="wgt-avg_PD" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_PD" xlink:to="wgt-avg_PD_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_PD_lbl" xml:lang="en">PD</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_PrimaryItems" xlink:label="wgt-avg_PrimaryItems" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_PrimaryItems" xlink:to="wgt-avg_PrimaryItems_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_PrimaryItems_lbl" xml:lang="en">Primary Items</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_Risk" xlink:label="wgt-avg_Risk" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_Risk" xlink:to="wgt-avg_Risk_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_Risk_lbl" xml:lang="en">Risk</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_RiskWeight0" xlink:label="wgt-avg_RiskWeight0" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_RiskWeight0" xlink:to="wgt-avg_RiskWeight0_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_RiskWeight0_lbl" xml:lang="en">Risk Weight 0%</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_RiskWeight10" xlink:label="wgt-avg_RiskWeight10" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_RiskWeight10" xlink:to="wgt-avg_RiskWeight10_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_RiskWeight10_lbl" xml:lang="en">Risk Weight 10%</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_RiskWeight150" xlink:label="wgt-avg_RiskWeight150" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_RiskWeight150" xlink:to="wgt-avg_RiskWeight150_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_RiskWeight150_lbl" xml:lang="en">Risk Weight 150%</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_TotalExposures" xlink:label="wgt-avg_TotalExposures" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_TotalExposures" xlink:to="wgt-avg_TotalExposures_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_TotalExposures_lbl" xml:lang="en">TotalExposures</label>
+    <loc xlink:type="locator" xlink:href="WeightedAverage.xsd#wgt-avg_ValidPD" xlink:label="wgt-avg_ValidPD" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="wgt-avg_ValidPD" xlink:to="wgt-avg_ValidPD_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="wgt-avg_ValidPD_lbl" xml:lang="en">ValidPD</label>
+  </labelLink>
+</linkbase>

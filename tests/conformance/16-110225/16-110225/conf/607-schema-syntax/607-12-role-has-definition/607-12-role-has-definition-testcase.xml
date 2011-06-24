@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-12</number>
+<name>EDGAR Filer Manual v16 6.7.12 page 6-35</name>
+<description>
+<h2> A link:roleType element must contain a link:definition child element whose content will communicate the title of the financial
+statement section, the level of facts in the instance that a presentation relationship in the base set of that role would display, and
+sort alphanumerically into the order that statements and footnotes appear in the official HTML/ASCII document.</h2>
+<p>The link:roleType link:definition text must match the following pattern:</p>
+<p style="text-align: center; font-family: Sans-Serif; font-size: smaller;">{SortCode} - {Title}</p>
+<p>The meaning of the base set appears in {Title}.</p>
+<p>{SortCode} is used only to sort base sets for display. The sort code is sorted alphanumerically, not numerically, so "10" would
+appear before "2". Filers must choose a scheme for their sort code and declare separate role types so as to achieve the following: </p>
+<ol>
+<li>Each Statement must appear in at least one base set, in the order the statement appeared in the official HTML/ASCII document.</li>
+<li>If the presentation relationships of more than one base set contains the facts of a Statement (to achieve a layout effect, such as
+a set of rows, followed by a table with a dimension axis on the vertical, followed by another set of rows) then the {SortCode} of
+that base set must sort in the order that the rows of the Statement will be displayed.</li>
+<li>A Statement that contains parenthetical disclosures on one or more rows must have a base set immediately following that of the
+Statement, where all facts in its parenthetical disclosures appear in presentation relationships.</li>
+<li>All base sets containing the contents of Footnotes must appear after base sets containing the contents of Statements.</li>
+<li>A Text Block for each Footnote must appear in at least one presentation relationship in a base set.</li>
+<li>Each base set for a "Footnote as a Text Block" presentation link must contain one presentation relationship whose target is a Text
+Block.</li>
+<li>Base sets with presentation relationships for a Footnote tagged at level (ii) must appear after all base sets tagged at level
+(i).</li>
+<li>A base set with presentation relationships for a Footnote tagged at level (iii) must appear after all base sets tagged at level
+(ii).</li>
+<li>A base set with presentation relationships for a Footnote tagged at level (iv) must appear after all base sets tagged at level
+(iii).</li>
+</ol>
+<p>The {Title} is the text that follows " - " in the link:definition. The text should distinguish to a human reader what each separate
+relationship group contains. The table below shows an example in which the filer has simply used a two-digit sequence number. </p>
+<p> The {Title} must not contain scale or units (such as "in millions of US dollars except per share data") text.</p>
+<p>Note: the link:definition MUST NOT have leading or trailing XML whitespace.</p>
+<table style="border-style: solid;">
+<tr>
+<th>Example link:definition Text</th>
+<th>Each Footnote as a Text Block</th>
+<th>Each Accounting Policy as a Text Block</th>
+<th>Each
+Table in a Footnote as a Text Block</th>
+<th>Individual Values or Narratives</th>
+</tr>
+<tr>
+<td style="white-space: nowrap;">01 - Statement - Statement of Income</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">02 - Statement - Balance Sheet</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">03 - Statement - Balance Sheet (Parenthetical)</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">04 - Statement - Cash Flows</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">05 - Statement - Changes in Equity</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">06 - Statement - Comprehensive Income</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">07 - Disclosure - Accounting Policies</td>
+<td align="center">Yes</td>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">08 - Disclosure - Inventories</td>
+<td/>
+<td align="center">Yes</td>
+<td/>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">09 - Disclosure - Earnings per Share</td>
+<td align="center">Yes</td>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">10 - Disclosure - Unearned Revenue</td>
+<td align="center">Yes</td>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">11 - Disclosure - Equity</td>
+<td align="center">Yes</td>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">12 - Disclosure - Accounting Policies, by Policy</td>
+<td/>
+<td align="center">Yes</td>
+<td/>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">13 - Disclosure - Inventories (Tables)</td>
+<td/>
+<td/>
+<td align="center">Yes</td>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">14 - Disclosure - Unearned Revenue (Tables)</td>
+<td/>
+<td/>
+<td align="center">Yes</td>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">15 - Disclosure - Equity, Share Repurchases (Table)</td>
+<td/>
+<td/>
+<td align="center">Yes</td>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">16 - Disclosure - Equity, Dividends (Table)</td>
+<td/>
+<td/>
+<td align="center">Yes</td>
+<td/>
+</tr>
+<tr>
+<td style="white-space: nowrap;">17 - Disclosure - Inventories (Detail)</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">18 - Disclosure - Unearned, by Component (Detail)</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">19 - Disclosure - Unearned, by Segment (Detail)</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">20 - Disclosure - Equity, Share Repurchases (Detail)</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">21 - Disclosure - Equity, Dividends (Detail)</td>
+<td/>
+<td/>
+<td/>
+<td align="center">Yes</td>
+</tr> 
+</table>
+<p>Defining roles is important, because the SEC Interactive Data Viewer displays all the facts in an instance if they appear in a
+presentation relationship, and displays facts only when they appear in a presentation relationshiparc in a base set of the role. Note
+that if the link:definition text matches "{SortCode} - {Type} - {Title}" then the SEC Interactive Data Viewer shows only the {Title}
+part. </p>
+<p>REMARK: This applies only to company extension schemas, so that exceptions in the us-roles-YYYY-MM-DD.xsd schemas are not invalid. </p>
+<p>REMARK: This was never meant to apply to resource roles, and that will be corrected in a future release.</p>
+<p>REMARK: Because the (incorrectly percieved) importance of instance rendering has continued to increase beyond reason, the validator
+now enforces an even more stringent criterion than documented in manual version v13. The regex is "[0-9]+ \-
+{Statement|Disclosure|Schedule|Document} \-.*[&#x5E;\s]"; this discrepancy between the text of the manual and the actual validation MUST be
+corrected in the manual ASAP.</p>
+</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<variation id="_000gd">
+<name>6.7.12 Role has definition element matching "[0-9]+ \- {Statement|Disclosure|Schedule|Document} \-.*[&#x5E;\s]", GOOD.</name>
+<description>Role has definition element matching "[0-9]+ \- {Statement|Disclosure|Schedule|Document} \-.*[&#x5E;\s]", GOOD.</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.7.12 Role has no definition element, NOGOOD.</name>
+<description>Role has no definition element, NOGOOD.</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60712" name="Role-Definition-Mismatch" frd="rq"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.7.12 Role has a definition element with empty content, NOGOOD.</name>
+<description> Role has a definition element with empty content, NOGOOD.</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60712" name="Role-Definition-Mismatch" frd="rq"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.7.12 Role definition element has leading whitespace, NOGOOD.</name>
+<description>Role definition element has leading whitespace, NOGOOD.</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712003ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60712" name="Role-Definition-Mismatch" frd="rq"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.7.12 Role definition element has trailing whitespace, NOGOOD.</name>
+<description>Role definition element has trailing whitespace, NOGOOD.</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712004ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60712" name="Role-Definition-Mismatch" frd="rq"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.7.12 Role definition element has embedded newline, NOGOOD.</name>
+<description>Role definition element has embedded newline, NOGOOD.</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712005ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712005ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60712" name="Role-Definition-Mismatch" frd="rq"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.7.12 Role definition element has misspelled {Type} token, NOGOOD.</name>
+<description>Role definition element has misspelled {Type} token, NOGOOD.</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712006ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712006ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60712" name="Role-Definition-Mismatch" frd="rq"/>
+</result>
+</variation>
+<variation id="_007ng">
+<name>6.7.12 Unused label role resource role definition element has no dashes or digits, NOGOOD (WILL BE GOOD IN A FUTURE
+RELEASE).</name>
+<description>Unused label role resource role definition element has no dashes or digits, NOGOOD (WILL BE GOOD IN A FUTURE
+RELEASE).</description>
+<reference specification="11184"/>
+<reference specification="11155"/>
+<data>
+<instance readMeFirst="true">e60712007ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60712007ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60712" name="Role-Definition-Mismatch" frd="rq"/>
+</result>
+</variation>
+</testcase>

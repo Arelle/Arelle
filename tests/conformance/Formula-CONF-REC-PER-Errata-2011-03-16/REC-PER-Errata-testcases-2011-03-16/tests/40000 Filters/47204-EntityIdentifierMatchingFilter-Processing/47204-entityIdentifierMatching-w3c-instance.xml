@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="47204-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="47204-entityIdentifierMatching-formula.xml"/>
+  
+  <!-- note, these namespace URIs come from examples of
+       http://www.w3.org/TR/REC-xml-names/#NSNameComparison -->
+  <context id="context-a1">
+    <entity>
+      <identifier scheme="http://www.example.org/~wilbur">11</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-a2">
+    <entity>
+      <identifier scheme="http://www.example.org/~wilbur">22</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-b1">
+    <entity>
+      <identifier scheme="http://www.Example.org/~wilbur">11</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-b2">
+    <entity>
+      <identifier scheme="http://www.Example.org/~wilbur">22</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-c1">
+    <entity>
+      <identifier scheme="http://www.example.org/~Wilbur">11</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-c2">
+    <entity>
+      <identifier scheme="http://www.example.org/~Wilbur">22</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-d1">
+    <entity>
+      <identifier scheme="http://www.example.org/%7ewilbur">11</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-d2">
+    <entity>
+      <identifier scheme="http://www.example.org/%7ewilbur">22</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-e1">
+    <entity>
+      <identifier scheme="http://www.example.org/%7Ewilbur">11</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-e2">
+    <entity>
+      <identifier scheme="http://www.example.org/%7Ewilbur">22</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <concept:a contextRef="context-a1">aA1</concept:a>
+  <concept:b contextRef="context-a1">bA1</concept:b>
+  <concept:c contextRef="context-a1">cA1</concept:c>
+
+  <concept:a contextRef="context-a2">aA2</concept:a>
+  <concept:b contextRef="context-a2">bA2</concept:b>
+  <concept:c contextRef="context-a2">cA2</concept:c>
+
+  <concept:a contextRef="context-b1">aB1</concept:a>
+  <concept:b contextRef="context-b1">bB1</concept:b>
+  <concept:c contextRef="context-b1">cB1</concept:c>
+
+  <concept:a contextRef="context-b2">aB2</concept:a>
+  <concept:b contextRef="context-b2">bB2</concept:b>
+  <concept:c contextRef="context-b2">cB2</concept:c>
+
+  <concept:a contextRef="context-c1">aC1</concept:a>
+  <concept:b contextRef="context-c1">bC1</concept:b>
+  <concept:c contextRef="context-c1">cC1</concept:c>
+
+  <concept:a contextRef="context-c2">aC2</concept:a>
+  <concept:b contextRef="context-c2">bC2</concept:b>
+  <concept:c contextRef="context-c2">cC2</concept:c>
+
+  <concept:a contextRef="context-d1">aD1</concept:a>
+  <concept:b contextRef="context-d1">bD1</concept:b>
+  <concept:c contextRef="context-d1">cD1</concept:c>
+
+  <concept:a contextRef="context-d2">aD2</concept:a>
+  <concept:b contextRef="context-d2">bD2</concept:b>
+  <concept:c contextRef="context-d2">cD2</concept:c>
+
+  <concept:a contextRef="context-e1">aE1</concept:a>
+  <concept:b contextRef="context-e1">bE1</concept:b>
+  <concept:c contextRef="context-e1">cE1</concept:c>
+
+  <concept:a contextRef="context-e2">aE2</concept:a>
+  <concept:b contextRef="context-e2">bE2</concept:b>
+  <concept:c contextRef="context-e2">cE2</concept:c>
+
+  
+</xbrl>

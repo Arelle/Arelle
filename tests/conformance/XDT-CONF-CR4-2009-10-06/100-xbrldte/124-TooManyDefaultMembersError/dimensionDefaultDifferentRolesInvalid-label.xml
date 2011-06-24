@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2173.19174 (2005-12-13 10:38).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-12-13 11:00:12
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_hypercubeH1" xlink:label="tpl_hypercubeH1" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tpl_hypercubeH1" xlink:to="tpl_hypercubeH1_lbl" />
+    <label id="label_H1_1130924590284_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tpl_hypercubeH1_lbl" xml:lang="en" xlink:title="label_H1">Hypercube H1</label>
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_hypercubeH2" xlink:label="tpl_hypercubeH2" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tpl_hypercubeH2" xlink:to="tpl_hypercubeH2_lbl" />
+    <label id="label_H2_1130937199965_2" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tpl_hypercubeH2_lbl" xml:lang="en" xlink:title="label_H2">Hypercube H2</label>
+    <loc xlink:type="locator" xlink:href="dimensionDefaultDifferentRolesInvalid.xsd#tpl_ProductDim" xlink:label="tpl_ProductDim" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tpl_ProductDim" xlink:to="tpl_ProductDim_lbl" />
+    <label id="label_ProductDim_1130924607198_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tpl_ProductDim_lbl" xml:lang="en" xlink:title="label_ProductDim">Products dimension</label>
+  </labelLink>
+</linkbase>

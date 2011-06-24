@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xsd:schema 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xl="http://www.xbrl.org/2003/XLink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  >
+
+  <xsd:import 
+    namespace="http://www.xbrl.org/2003/instance" 
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+  <xsd:element
+    name="a"
+    id="a"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    abstract="false"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="b"
+    id="b"
+    type="eg:new_monetaryItemType"
+    substitutionGroup="xbrli:item"
+    abstract="false"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="c"
+    id="c"
+    type="xbrli:pureItemType"
+    substitutionGroup="xbrli:item"
+    abstract="false"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="d"
+    id="d"
+    type="eg:new_pureItemType"
+    substitutionGroup="xbrli:item"
+    abstract="false"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="e"
+    id="e"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="f"
+    id="f"
+    type="eg:new_stringItemType"
+    substitutionGroup="xbrli:item"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:complexType name="new_monetaryItemType">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:monetaryItemType">
+        <xsd:minExclusive value="10"/>
+        <xsd:attributeGroup ref="xbrli:numericItemAttrs"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="new_stringItemType">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:minLength value="1"/>
+        <xsd:attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="new_pureItemType">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:pureItemType">
+        <xsd:attributeGroup ref="xbrli:numericItemAttrs"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+      
+</xsd:schema>

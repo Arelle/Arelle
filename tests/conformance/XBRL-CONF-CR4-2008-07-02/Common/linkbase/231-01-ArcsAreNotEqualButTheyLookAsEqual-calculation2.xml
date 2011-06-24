@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <link:calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="231-01-ArcsAreNotEqualButTheyLookAsEqual.xsd#tx_A" xlink:label="X" xlink:title="A"/>
+    <link:loc xlink:type="locator" xlink:href="231-01-ArcsAreNotEqualButTheyLookAsEqual.xsd#tx_D" xlink:label="A" xlink:title="A"/>
+    <link:loc xlink:type="locator" xlink:href="231-01-ArcsAreNotEqualButTheyLookAsEqual.xsd#tx_B" xlink:label="B" xlink:title="B"/>
+    <link:calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="A" xlink:to="B" xlink:title="calculation: A to B" order="1.0" weight="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="231-01-ArcsAreNotEqualButTheyLookAsEqual.xsd#tx_C" xlink:label="C" xlink:title="C"/>
+    <link:calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="X" xlink:to="C" xlink:title="calculation: A to C" order="2.0" weight="1.0" use="prohibited"/>
+  </link:calculationLink>
+</link:linkbase>

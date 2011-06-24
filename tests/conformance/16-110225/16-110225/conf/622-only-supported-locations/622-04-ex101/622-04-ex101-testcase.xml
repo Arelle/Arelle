@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:ee="http://edgar/error"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns="http://edgar/2009/conformance"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>622-04</number>
+<name>EDGAR Filer Manual v16 6.22.4 page 6-61</name>
+<description>
+<h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+<p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files that are supported by
+EDGAR, their locations, required namespaces, and where appropriate, the relevant EDGAR form types.</p>
+<p>REMARK: There is no such section 6.22.4, it is only here to make sure that ex-101's are validated even for SOI and RR taxonomies.</p>
+</description>
+<variation id="_001ng">
+<name>Precision attribute on element where filing has SOI 2008 and DEI 2008, NOGOOD</name>
+<description>Precision attribute on element where filing has SOI 2008 and DEI 2008, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e62204001ng-20080331.xml</instance>
+<linkbase>e62204001ng-20080331_def.xml</linkbase>
+<linkbase>e62204001ng-20080331_lab.xml</linkbase>
+<linkbase>e62204001ng-20080331_pre.xml</linkbase>
+<schema>e62204001ng-20080331.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60517" name="Decimals-Not-Precision" frd="fs"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>Precision attribute on element where filing has RR 2008 and DEI 2008, NOGOOD</name>
+<description>Precision attribute on element where filing has RR 2008 and DEI 2008, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e62204002ng-20080331.xml</instance>
+<linkbase>e62204002ng-20080331_def.xml</linkbase>
+<linkbase>e62204002ng-20080331_lab.xml</linkbase>
+<linkbase>e62204002ng-20080331_pre.xml</linkbase>
+<schema>e62204002ng-20080331.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60517" name="Decimals-Not-Precision" frd="fs"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>Precision attribute on element where filing has RR 2010 and DEI 2008, NOGOOD</name>
+<description>Precision attribute on element where filing has RR 2010 and DEI 2008, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e62204003ng-20091231.xml</instance>
+<schema>e62204003ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60517" name="Decimals-Not-Precision" frd="fs"/>
+</result>
+</variation>
+</testcase>

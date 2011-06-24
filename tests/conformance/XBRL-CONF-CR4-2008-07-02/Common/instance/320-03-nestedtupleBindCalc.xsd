@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-02-26 21:09).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-02-27 09:33:12
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:nestedtupleBindCalc="http://www.example.com/new" targetNamespace="http://www.example.com/new" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="320-03-nestedtupleBindCalc-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Label Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="320-03-nestedtupleBindCalc-presentation.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Presentation Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="320-03-nestedtupleBindCalc-calculation.xml" xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Calculation Links, all" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="nestedtupleBindCalc_Analysis" name="Analysis" substitutionGroup="xbrli:tuple" nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction base="anyType">
+          <sequence>
+            <element ref="nestedtupleBindCalc:Customer" minOccurs="0" maxOccurs="unbounded" />
+            <element ref="nestedtupleBindCalc:TotalGross" minOccurs="0" maxOccurs="1" />
+          </sequence>
+          <attribute name="id" type="ID" use="optional" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element id="nestedtupleBindCalc_Customer" name="Customer" substitutionGroup="xbrli:tuple" nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction base="anyType">
+          <sequence>
+            <element ref="nestedtupleBindCalc:Name" minOccurs="0" maxOccurs="1" />
+            <element ref="nestedtupleBindCalc:Gross" minOccurs="0" maxOccurs="1" />
+            <element ref="nestedtupleBindCalc:Returns" minOccurs="0" maxOccurs="1" />
+            <element ref="nestedtupleBindCalc:Net" minOccurs="0" maxOccurs="1" />
+          </sequence>
+          <attribute name="id" type="ID" use="optional" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element id="nestedtupleBindCalc_Gross" name="Gross" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true" />
+  <element id="nestedtupleBindCalc_Name" name="Name" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true" />
+  <element id="nestedtupleBindCalc_Net" name="Net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true" />
+  <element id="nestedtupleBindCalc_Returns" name="Returns" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true" />
+  <element id="nestedtupleBindCalc_TotalGross" name="TotalGross" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true" />
+</schema>

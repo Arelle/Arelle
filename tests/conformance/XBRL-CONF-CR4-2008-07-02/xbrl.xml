@@ -1,0 +1,48 @@
+<!-- XBRL 2.1 Tests   -->
+<!-- Copyright 2003 XBRL International.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="testcases.xsl"?>
+<testcases name="XBRL 2.1 Tests" date="10/23/2003">
+        <testcase uri="Common/instance/301-idScope.xml"/>
+        <testcase uri="Common/instance/302-context.xml"/>
+        <testcase uri="Common/instance/303-periodType.xml"/>
+        <testcase uri="Common/instance/304-unitOfMeasure.xml"/>
+        <testcase uri="Common/instance/305-decimalPrecision.xml"/>
+        <testcase uri="Common/instance/306-required.xml"/>
+        <testcase uri="Common/instance/307-schemaRef.xml"/>
+        <testcase uri="Common/instance/320-CalculationBinding.xml"/>
+        <testcase uri="Common/instance/321-internationalization.xml"/>
+        <testcase uri="Common/instance/331-equivalentRelationships-testcase.xml"/>
+        <testcase uri="Common/instance/330-s-equal-testcase.xml"/>
+        <testcase uri="Common/instance/391-inferDecimalPrecision.xml"/>
+        <testcase uri="Common/instance/392-inferEssenceAlias.xml"/>
+        <testcase uri="Common/instance/395-inferNumericConsistency.xml"/>
+        <testcase uri="Common/instance/397-Testcase-SummationItem.xml"/>
+        <testcase uri="Common/instance/401-datatypes.xml"/>
+        <testcase uri="Common/linkbase/201-linkref.xml"/>
+        <testcase uri="Common/linkbase/202-xlinkLocator.xml"/>
+        <testcase uri="Common/linkbase/204-arcCycles.xml"/>
+        <testcase uri="Common/linkbase/205-roleDeclared.xml"/>
+        <testcase uri="Common/linkbase/206-arcDeclared.xml"/>
+        <testcase uri="Common/linkbase/207-arcDeclaredCycles.xml"/>
+        <testcase uri="Common/linkbase/209-Arcs.xml"/>
+        <testcase uri="Common/linkbase/208-balance.xml"/>
+        <testcase uri="Common/linkbase/210-relationshipEquivalence.xml"/>
+        <testcase uri="Common/linkbase/211-Testcase-sEqualUsedOn.xml"/>
+        <testcase uri="Common/linkbase/212-Testcase-linkbaseDocumentation.xml"/>
+        <testcase uri="Common/linkbase/213-SummationItemArcEndpoints.xml"/>
+        <testcase uri="Common/linkbase/220-NonStandardArcsAndTypes.xml"/>
+        <testcase uri="Common/linkbase/230-CustomLinkbasesAndLocators.xml"/>
+        <testcase uri="Common/linkbase/231-SyntacticallyEqualArcsThatAreNotEquivalentArcs.xml"/>
+        <testcase uri="Common/linkbase/291-inferArcOverride.xml"/>
+        <testcase uri="Common/linkbase/292-Embeddedlinkbaseinthexsd.xml"/>
+        <testcase uri="Common/linkbase/293-UsedOn.xml"/>
+        <testcase uri="Common/linkbase/preferredLabel.xml"/>
+        <testcase uri="Common/schema/102-item.xml"/>
+        <testcase uri="Common/schema/103-type.xml"/>
+        <testcase uri="Common/schema/104-tuple.xml"/>
+        <testcase uri="Common/schema/105-balance.xml"/>
+        <testcase uri="Common/schema/155-TypeExtension.xml"/>
+        <testcase uri="Common/schema/106-targetNamespace.xml"/>
+        <testcase uri="Common/schema/107-DTSWithLinkbaseInSchema.xml"/>
+        <testcase uri="Common/schema/160-UsedOn.xml"/>
+</testcases>

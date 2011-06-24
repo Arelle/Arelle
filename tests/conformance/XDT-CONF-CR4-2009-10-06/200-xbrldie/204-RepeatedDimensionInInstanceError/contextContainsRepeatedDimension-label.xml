@@ -1,0 +1,10 @@
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="contextContainsRepeatedDimension.xsd#tx_hc_custCode" xlink:label="label_hc_custCode_1123671612314_0" xlink:title="label_hc_custCode"/>
+    <link:label xlink:type="resource" xlink:label="label_hc_custCode_1123671612314_1" xlink:role="http://www.xbrl.org/2003/role/label" xlink:title="label_hc_custCode" xml:lang="en" id="label_hc_custCode_1123671612314_1">Customer Code (Hypercube)</link:label>
+    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="label_hc_custCode_1123671612314_0" xlink:to="label_hc_custCode_1123671612314_1" xlink:title="label: hc_custCode to label_hc_custCode"/>
+    <link:loc xlink:type="locator" xlink:href="contextContainsRepeatedDimension.xsd#tx_hc_CustCodeDim" xlink:label="label_hc_CustCodeDim_1123671688794_0" xlink:title="label_hc_CustCodeDim"/>
+    <link:label xlink:type="resource" xlink:label="label_hc_CustCodeDim_1123671688794_1" xlink:role="http://www.xbrl.org/2003/role/label" xlink:title="label_hc_CustCodeDim" xml:lang="en" id="label_hc_CustCodeDim_1123671688794_1">Customer Code (Dimension)</link:label>
+    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="label_hc_CustCodeDim_1123671688794_0" xlink:to="label_hc_CustCodeDim_1123671688794_1" xlink:title="label: hc_CustCodeDim to label_hc_CustCodeDim"/>
+  </link:labelLink>
+</link:linkbase>

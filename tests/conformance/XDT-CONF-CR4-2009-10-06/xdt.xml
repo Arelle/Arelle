@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL Dimensional Taxonomies 1.0 Tests -->
+<!-- Copyright 2005 XBRL International.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="testcases.xsl"?>
+<testcases name="XBRL Dimensional Taxonomies 1.0 Tests" date="2005-12-10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xdt.xsd">
+        <testcase uri="000-Schema-invalid/001-Taxonomy/001-TestCase-Taxonomy.xml"/>
+        <!--
+        <testcase uri="000-Schema-invalid/002-Instance/002-TestCase-Instance.xml" />
+        <testcase uri="000-UnderInvestigation/000-TestCase-UnderInvestigation.xml"/>
+        -->
+        <testcase uri="100-xbrldte/101-HypercubeElementIsNotAbstractError/101-TestCase-HypercubeElementIsNotAbstractError.xml"/>
+        <testcase uri="100-xbrldte/102-HypercubeDimensionSourceError/102-TestCase-HypercubeDimensionSourceError.xml"/>
+        <testcase uri="100-xbrldte/103-HypercubeDimensionTargetError/103-TestCase-HypercubeDimensionTargetError.xml"/>
+        <testcase uri="100-xbrldte/104-HasHypercubeSourceError/104-TestCase-HasHypercubeSourceError.xml"/>
+        <testcase uri="100-xbrldte/105-HasHypercubeTargetError/105-TestCase-HasHypercubeTargetError.xml"/>
+        <testcase uri="100-xbrldte/106-HasHypercubeMissingContextElementAttributeError/106-TestCase-HasHypercubeMissingContextElementAttributeError.xml"/>
+        <testcase uri="100-xbrldte/107-TargetRoleNotResolvedError/107-TestCase-TargetRoleNotResolvedError.xml"/>
+        <testcase uri="100-xbrldte/108-DimensionElementIsNotAbstractError/108-TestCase-DimensionElementIsNotAbstractError.xml"/>
+        <testcase uri="100-xbrldte/109-TypedDomainRefError/109-TestCase-TypedDomainRefError.xml"/>
+        <testcase uri="100-xbrldte/110-TypedDimensionError/110-TestCase-TypedDimensionError.xml"/>
+        <testcase uri="100-xbrldte/111-TypedDimensionURIError/111-TestCase-TypedDimensionURIError.xml"/>
+        <testcase uri="100-xbrldte/112-DimensionDomainSourceError/112-TestCase-DimensionDomainSourceError.xml"/>
+        <testcase uri="100-xbrldte/113-DimensionDomainTargetError/113-TestCase-DimensionDomainTargetError.xml"/>
+        <testcase uri="100-xbrldte/115-PrimaryItemPolymorphismError/115-TestCase-PrimaryItemPolymorphismError.xml"/>
+        <testcase uri="100-xbrldte/116-DomainMemberSourceError/116-TestCase-DomainMemberSourceError.xml"/>
+        <testcase uri="100-xbrldte/117-DomainMemberTargetError/117-TestCase-DomainMemberTargetError.xml"/>
+        <testcase uri="100-xbrldte/122-DimensionDefaultSourceError/122-TestCase-DimensionDefaultSourceError.xml"/>
+        <testcase uri="100-xbrldte/123-DimensionDefaultTargetError/123-TestCase-DimensionDefaultTargetError.xml"/>
+        <testcase uri="100-xbrldte/124-TooManyDefaultMembersError/124-TestCase-TooManyDefaultMembersError.xml"/>
+        <testcase uri="100-xbrldte/125-DRSUndirectedCycleError/125-TestCase-DRSUndirectedCycleError.xml"/>
+        <testcase uri="100-xbrldte/126-DRSDirectedCycleError/126-TestCase-DRSDirectedCycleError.xml"/>
+        <testcase uri="100-xbrldte/127-OutOfDTSSchemaError/127-TestCase-OutOfDTSSchemaError.xml"/>
+        <testcase uri="200-xbrldie/202-DefaultValueUsedInInstanceError/202-TestCase-DefaultValueUsedInInstanceError.xml"/>
+        <testcase uri="200-xbrldie/203-PrimaryItemDimensionallyInvalidError/203-TestCase-PrimaryItemDimensionallyInvalidError.xml"/>
+        <testcase uri="200-xbrldie/204-RepeatedDimensionInInstanceError/204-TestCase-RepeatedDimensionInInstanceError.xml"/>
+        <testcase uri="200-xbrldie/205-TypedMemberNotTypedDimensionError/205-TestCase-TypedMemberNotTypedDimensionError.xml"/>
+        <testcase uri="200-xbrldie/206-ExplicitMemberNotExplicitDimensionError/206-TestCase-ExplicitMemberNotExplicitDimensionError.xml"/>
+        <testcase uri="200-xbrldie/207-ExplicitMemberUndefinedQNameError/207-TestCase-ExplicitMemberUndefinedQNameError.xml"/>
+        <testcase uri="200-xbrldie/208-IllegalTypedDimensionContentError/208-TestCase-IllegalTypedDimensionContentError.xml"/>
+        <testcase uri="200-xbrldie/270-DefaultValueExamples/270-DefaultValueExamples.xml"/>
+        <testcase uri="300-factlist/301-factlist/301-factlist-testcase.xml"/>
+</testcases>

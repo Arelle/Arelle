@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xbrl.org/2007/custom 160-custom-elements-valid.xsd http://xbrl.org/2007/customRoleType-hidden 160-custom-roleType-hidden-valid.xsd" xmlns:c="http://xbrl.org/2007/custom" xmlns:cc="http://xbrl.org/2007/customRoleType-hidden">
+  <c:customLink xlink:type="extended" xlink:role="http://www.xbrl.org/2007/role/custom-but-hidden">
+    <link:loc xlink:type="locator" xlink:href="160-04-roleType-non-standard-linkbase-incorrect-element-Valid.xsd#tx_foo" xlink:label="foo" xlink:title="foo"/>
+    <c:customRes xlink:type="resource" xlink:label="label_foo" xlink:role="http://www.xbrl.org/2003/role/label" xlink:title="label_foo" id="label_foo">Foo</c:customRes>
+    <cc:cArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2007/arcrole/concept-label" xlink:from="foo" xlink:to="label_foo" xlink:title="label: foo to label_foo"/>
+  </c:customLink>
+</link:linkbase>

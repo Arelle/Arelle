@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2518.2110 (2006-07-24 12:58).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-27 20:50:04
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_Analysis" xlink:label="nestedtupleBindCalc_Analysis" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="nestedtupleBindCalc_Analysis" xlink:to="nestedtupleBindCalc_Analysis_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="nestedtupleBindCalc_Analysis_lbl" xml:lang="en">Analysis</label>
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_Customer" xlink:label="nestedtupleBindCalc_Customer" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="nestedtupleBindCalc_Customer" xlink:to="nestedtupleBindCalc_Customer_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="nestedtupleBindCalc_Customer_lbl" xml:lang="en">Customer</label>
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_Gross" xlink:label="nestedtupleBindCalc_Gross" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="nestedtupleBindCalc_Gross" xlink:to="nestedtupleBindCalc_Gross_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="nestedtupleBindCalc_Gross_lbl" xml:lang="en">Gross</label>
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_Name" xlink:label="nestedtupleBindCalc_Name" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="nestedtupleBindCalc_Name" xlink:to="nestedtupleBindCalc_Name_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="nestedtupleBindCalc_Name_lbl" xml:lang="en">Name</label>
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_Net" xlink:label="nestedtupleBindCalc_Net" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="nestedtupleBindCalc_Net" xlink:to="nestedtupleBindCalc_Net_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="nestedtupleBindCalc_Net_lbl" xml:lang="en">net</label>
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_Returns" xlink:label="nestedtupleBindCalc_Returns" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="nestedtupleBindCalc_Returns" xlink:to="nestedtupleBindCalc_Returns_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="nestedtupleBindCalc_Returns_lbl" xml:lang="en">Returns</label>
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_TotalGross" xlink:label="nestedtupleBindCalc_TotalGross" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="nestedtupleBindCalc_TotalGross" xlink:to="nestedtupleBindCalc_TotalGross_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="nestedtupleBindCalc_TotalGross_lbl" xml:lang="en">Total Gross</label>
+  </labelLink>
+</linkbase>

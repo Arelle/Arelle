@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xbrl.org/2005/conformance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" name="111-TestCase-TypedDimensionURIError" description="2.5.2 - Attribute typedDomainRef." outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+<!-- spec sections updated for spec 2005-10-26 by Herm Fischer, on 2005-11-07 -->
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and not covered by XML Schema and XBRL Validation. -->
+        <!-- As of the 2005-10-26 internal working draft (with localised edits), this pertained only to the xbrldt:typedDomainRef attribute. -->
+        <!-- TESTCASE HAS NO STANDARD LABELS: 2.7.1.1 only requires standard labels on element declarations which are the targets of has-hypercube, hypercube-dimension, dimension-domain and domain-member relationships, but there are none in this testcase -->
+        <!-- 2.5.2.1.1 3. A dimensional processor MUST raise an error [Dim Err, 11] xbrldte:TypedDimensionURIError  if the xbrldt:typedDomainRef attribute does not contain a fragment identifier -->
+        <variation id="V-01" name="typedDomainRefHasNoFragment">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">Signal xbrldte:TypedDimensionURIError because the typedDomainRef attribute content, though schema valid in terms of URI format, does not contain a valid fragment identifier.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainRefHasNoFragment.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:TypedDimensionURIError</error>
+                </result>
+        </variation>
+</testcase>
+

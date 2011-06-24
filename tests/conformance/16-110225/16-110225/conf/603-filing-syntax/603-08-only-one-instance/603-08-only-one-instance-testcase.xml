@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>603-08</number>
+<name>EDGAR Filer Manual v16 6.3.8 page 6-6</name>
+<description><h2>A submission must contain exactly one EX-100.INS or EX-101.INS.</h2>
+<p>An XBRL instance submitted in the Voluntary Filing Program may be an EX-100.INS. An
+Interactive Data instance in XBRL format must be an EX-101.INS.</p>
+<p>REMARK: This cannot be tested independently of the EDGAR submission system.</p>
+</description>
+<variation id="_000ng">
+<name>6.3.8, XFD file uses two EX-100.INS, NOGOOD.</name>
+<description>6.3.8, XFD file uses two EX-101.INS, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60308000ng-20111231.xml</instance>
+<instance readMeFirst="true">e60308001ng-20111231.xml</instance>
+<linkbase>e60308000ng-20111231_pre.xml</linkbase>
+<linkbase>e60308000ng-20111231_def.xml</linkbase>
+<linkbase>e60308000ng-20111231_lab.xml</linkbase>
+<schema>e60308000ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60308" name="More-Than-One-INS" frd="tbd"/>
+</result>
+</variation>
+</testcase>

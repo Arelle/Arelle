@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:my="http://www.someCompany.com"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.someCompany.com 304-03-monetaryItemTypeUnitsRestrictions.xsd">
+
+  <link:schemaRef xlink:href="304-03-monetaryItemTypeUnitsRestrictions.xsd" xlink:type="simple"/>
+
+  <my:assets unitRef="u1" contextRef="c1" precision="1">120</my:assets>
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://www.someCompany.com">example</identifier> 
+    </entity>
+    <period>
+      <instant>2003-02-27</instant>
+    </period>		 
+  </context>
+
+  <unit id="u1">
+    <measure xmlns:x="http://www.xbrl.org/2003/iso4217">x:USD</measure>
+  </unit>
+
+</xbrl>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:validation="http://xbrl.org/2008/validation"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:rf="http://xbrl.org/2008/filter/relative"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/formula ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../../core_schemas/dimension-filter.xsd
+  http://xbrl.org/2008/filter/relative ../../../core_schemas/relative-filter.xsd
+  http://xbrl.org/2008/label ../../../core_schemas/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- equity = assets - liabilities -->
+    <formula:formula xlink:type="resource" xlink:label="formula"
+      xmlns:w="http://xbrl.org/2008/formula/conformance/variable"
+      xmlns="http://xbrl.org/formula/conformance/example"  
+      value="$assets - $w:liabilities"
+      source="assets"
+      aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>equity</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+    <!--  Fact variables. -->
+    <variable:factVariable xlink:type="resource" xlink:label="factVarAssets"  bindAsSequence="false"/>
+    <variable:factVariable xlink:type="resource" xlink:label="factVarLiabilities"  bindAsSequence="false"/>
+    
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="nameFilterAssets">
+      <cf:concept
+            xmlns="http://xbrl.org/formula/conformance/example" >
+        <cf:qname>assets</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="nameFilterLiabilities">
+      <cf:concept>
+        <cf:qname xmlns="http://xbrl.org/formula/conformance/example" >
+          liabilities
+        </cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <!-- relative filter for uncovered attributes -->
+    <rf:relativeFilter xlink:type="resource" xlink:label="relativeFilter"
+     xmlns="http://xbrl.org/2008/formula/conformance/variable"
+     variable="assets" />
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xmlns="http://xbrl.org/2008/formula/conformance/variable"
+      name="assets" xlink:from="formula" xlink:to="factVarAssets" order="1.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+      name="v:liabilities" xlink:from="formula" xlink:to="factVarLiabilities" order="2.0"/>
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarAssets" xlink:to="nameFilterAssets" order="1.0"/>
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarLiabilities" xlink:to="nameFilterLiabilities" order="2.0"/>
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarLiabilities" xlink:to="relativeFilter" order="3.0"/>
+
+  </generic:link>
+
+</link:linkbase>

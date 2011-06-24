@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:df="http://xbrl.org/2008/filter/dimension" 
+  xmlns:ef="http://xbrl.org/2008/filter/entity" 
+  xmlns:gf="http://xbrl.org/2008/filter/general" 
+  xmlns:pf="http://xbrl.org/2008/filter/period" 
+  xmlns:tf="http://xbrl.org/2008/filter/tuple" 
+  xmlns:uf="http://xbrl.org/2008/filter/unit" 
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/2008/filter/general
+    ../../../core_schemas/general-filter.xsd
+  http://xbrl.org/2008/filter/dimension
+    ../../../core_schemas/dimension-filter.xsd
+  http://xbrl.org/2008/filter/entity
+    ../../../core_schemas/entity-filter.xsd
+  http://xbrl.org/2008/filter/period
+    ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/formula/conformance/example
+    12062-dim-tests.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="$v1" 
+      source="formula:uncovered"
+      aspectModel="dimensional" implicitFiltering="true" >
+      <!-- for typed dim, only v1 was uncovered -->
+      <!-- for expl dim1 & 2 taken from dimension, not source input -->
+      <!-- for entity identifiers, only v2 is uncovered -->
+      <!-- for periods, only v3 is uncovered -->
+      <formula:aspects>
+        <formula:explicitDimension
+          dimension="eg:ExplDim1">
+          <formula:member>
+            <formula:qname>eg:ExplDim1Mbr2</formula:qname>
+          </formula:member>
+        </formula:explicitDimension>
+        <formula:explicitDimension
+          dimension="eg:ExplDim2">
+          <formula:member>
+            <formula:qname>eg:ExplDim2Mbr2</formula:qname>
+          </formula:member>
+        </formula:explicitDimension>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- simple way to tie each var to facts with right dimensions and not test unrelated or possibly significant other issues of formula processor -->
+    <gf:general xlink:type="resource" xlink:label="vf1" test=". eq 'abc'" />
+    <gf:general xlink:type="resource" xlink:label="vf2" test=". eq 'def'" />
+    <gf:general xlink:type="resource" xlink:label="vf3" test=". eq 'ghi'" />
+
+    <!-- Simple way to cover the dimensions we don't want to grab for result -->
+    <!-- vf1 (typed dim uncovered) -->
+
+    <!-- vf2 covers typed dim  -->
+    <df:typedDimension xlink:type="resource" xlink:label="vf2" >
+      <df:dimension>
+        <df:qname>eg:TypedDim1</df:qname>
+      </df:dimension>
+    </df:typedDimension>
+
+    <!-- vf3 covers typed dim  -->
+    <df:typedDimension xlink:type="resource" xlink:label="vf3" >
+      <df:dimension>
+        <df:qname>eg:TypedDim1</df:qname>
+      </df:dimension>
+    </df:typedDimension>
+
+    <!-- Simple way to cover the entity identifiers we don't want to grab for result -->
+    <!-- vf1 & 3 cover entity identifier, only vf2 leaves it uncovered -->
+    <ef:identifier xlink:type="resource" xlink:label="vf1" test="true()" />
+    <ef:identifier xlink:type="resource" xlink:label="vf3" test="true()" />
+
+    <!-- Simple way to cover the pereiods we don't want to grab for result -->
+    <!-- vf1 & 2 cover period, only vf3 leaves it uncovered -->
+    <pf:period xlink:type="resource" xlink:label="vf1" test="true()" />
+    <pf:period xlink:type="resource" xlink:label="vf2" test="true()" />
+
+
+    <variable:factVariable xlink:type="resource" xlink:label="factvar1" bindAsSequence="false"  />
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="vf1" xlink:from="factvar1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" complement="false" cover="true" />
+    <variable:factVariable xlink:type="resource" xlink:label="factvar2" bindAsSequence="false"  />
+    <variable:variableArc xlink:type="arc" xlink:to="factvar2" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="vf2" xlink:from="factvar2" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" complement="false" cover="true" />
+    <variable:factVariable xlink:type="resource" xlink:label="factvar3" bindAsSequence="false"  />
+    <variable:variableArc xlink:type="arc" xlink:to="factvar3" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v3" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="vf3" xlink:from="factvar3" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" complement="false" cover="true" />
+  </generic:link>
+</link:linkbase>
+
+
+
+
+
+

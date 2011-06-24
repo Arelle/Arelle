@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2009 XBRL International. All Rights Reserved. -->
+
+<!--
+     Instances as a formula processor first-class object.
+     
+     Implements multi-instance processing, chaining, and supports tuple generation.
+  -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:instances="http://xbrl.org/2010/variable/instance"
+  targetNamespace="http://xbrl.org/2010/variable/instance"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <!-- 
+           arc from an instance resource to a factVariable or generalVariable
+           to specify that it's source is the instance of the resource instead
+           of the default input instance of the formula processor 
+      -->
+      <link:arcroleType id="instance-variable"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2010/instance-variable">
+        <link:definition>Formula variable has an instance source</link:definition>
+        <link:usedOn>generic:arc</link:usedOn>
+      </link:arcroleType>
+
+      <!-- 
+           arc from a formula:formula to an instance resource
+           to specify that it's target is the instance of the resource instead
+           of the default output instance of the formula processor 
+      -->
+      <link:arcroleType id="formula-instance"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2010/formula-instance">
+        <link:definition>Formula facts go into specified instance target</link:definition>
+        <link:usedOn>generic:arc</link:usedOn>
+      </link:arcroleType>
+
+    </appinfo>
+  </annotation>
+
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/generic"
+    schemaLocation="http://www.xbrl.org/2008/generic-link.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/variable"
+    schemaLocation="http://www.xbrl.org/2008/variable.xsd" />
+ 
+  <!-- 
+        a resource corresponding to an instance
+
+        name allows it to be referenced by the formula processor
+        (e.g., java code) to associate with an input file (if there
+        is one) or with an output file (if the contents of the instance
+        are to be persisted)
+        
+        formula resource is a parameter allowing it to be referenced globally
+        in an assertion message or custom function implementation, or to be
+        referenced by a variable-set relationship so that it can be used as
+        a general variable parameter in functions requiring an instance argument
+  -->
+  <!-- instance now based on parameter to get parameter semantics in assertion
+        messages, custom functions, etc -->
+  <element id="instance"
+  name="instance" substitutionGroup="variable:parameter">
+     <!-- note: it would be better to change parameter to a type (in variable file) so it can
+          be extended here to have a trace element and any other extra elements needed later -->
+  </element>
+
+  <!-- original definition of instance not based on parameter (excluding it from messages and custom functions)
+  <element id="instance"
+  name="instance" substitutionGroup="variable:resource">
+    <complexType mixed="true">
+      <complexContent >
+        <extension base="variable:resource.type">
+          <attribute name="name" type="QName" use="required"/>
+          <attribute name="trace" type="string" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+  -->
+
+  <!--
+        qnames corresponding to the standard input xbrl instance
+        (of variables spec) and output xbrl instance (of formula spec)
+   -->
+  <element id="standard-input-instance"
+  name="standard-input-instance" type="string" abstract="true"/>
+
+  <element id="standard-output-instance"
+  name="standard-output-instance" type="string" abstract="true"/>
+
+</schema>
+

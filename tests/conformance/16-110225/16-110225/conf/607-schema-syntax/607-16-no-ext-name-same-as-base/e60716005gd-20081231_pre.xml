@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e6071600="http://e6071600/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://e6071600/role/Rockn" xlink:type="simple"
+xlink:href="e60716005gd-20081231.xsd#Rockn"/>
+<link:presentationLink xlink:type="extended" xlink:role="http://e6071600/role/Rockn">
+<link:loc xlink:type="locator" xlink:href="e60716005gd-20081231.xsd#e6071600_Top"
+xlink:label="Top"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityLocationTable"
+xlink:label="EntityLocationTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityByLocationAxis"
+xlink:label="EntityByLocationAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LocationDomain"
+xlink:label="LocationDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="e60716005gd-20081231.xsd#e6071600_SomeAbstract"
+xlink:label="SomeAbstract"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LocationDomain"
+xlink:label="LocationDomain_2"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/stpr/2011/stpr-2011-01-31.xsd#stpr_KY"
+xlink:label="KY"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/country/2011/country-2011-01-31.xsd#country_KY"
+xlink:label="KY_2"/>
+<link:loc xlink:type="locator" xlink:href="e60716005gd-20081231.xsd#e6071600_SomeStuff"
+xlink:label="SomeStuff"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="Top"
+xlink:to="EntityLocationTable"
+use="optional"
+order="2.0"
+xbrldt:contextElement="segment"
+xbrldt:closed="true"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityLocationTable"
+xlink:to="EntityByLocationAxis"
+use="optional"
+order="1.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityByLocationAxis"
+xlink:to="LocationDomain"
+use="optional"
+order="1.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityByLocationAxis"
+xlink:to="LocationDomain_2"
+use="optional"
+priority="1"
+order="2.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="LocationDomain"
+xlink:to="KY"
+use="optional"
+order="1.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="LocationDomain"
+xlink:to="KY_2"
+use="optional"
+order="2.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityLocationTable"
+xlink:to="SomeAbstract"
+use="optional"
+order="3.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="SomeAbstract"
+xlink:to="SomeStuff"
+use="optional"
+order="1.0"/>
+</link:presentationLink>
+</link:linkbase>

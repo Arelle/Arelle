@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mycomp="http://mycompany.com/xbrl/arcs" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="209-03-SameDefinitionArcs.xsd#mycomp_ConceptFrom" xlink:label="mycomp_ConceptFrom"/>
+		<loc xlink:type="locator" xlink:href="209-03-SameDefinitionArcs.xsd#mycomp_ConceptTo" xlink:label="mycomp_ConceptTo"/>
+		<definitionArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/general-special" xlink:from="mycomp_ConceptFrom" xlink:to="mycomp_ConceptTo" xlink:title="definitionXXX" xlink:show="none" xlink:actuate="onRequest" order="1" use="optional"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="209-03-SameDefinitionArcs.xsd#mycomp_ConceptFrom" xlink:label="mycomp_ConceptFrom"/>
+		<loc xlink:type="locator" xlink:href="209-03-SameDefinitionArcs.xsd#mycomp_ConceptTo" xlink:label="mycomp_ConceptTo"/>
+		<!--arcs are exactly identically : arcs should be idenfied as equivalent pass even if title/show/actuate is different-->
+		<definitionArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/general-special" xlink:from="mycomp_ConceptFrom" xlink:to="mycomp_ConceptTo" xlink:title="definitionYYY" xlink:show="new" xlink:actuate="onRequest" order="1" use="optional"/>
+	</definitionLink>
+</linkbase>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47203</number>
+  <name>Concept matching filter test</name>
+  <description>
+    Tests of unit matching filter.
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-unit-matching-filter"/>
+
+  <variation id="V-01">
+    <name>Unit matching filter</name>
+    <description>Three facts per each different kind of unit, some simple, others ratio-terms, units match of second &amp; third of each set fact variables, producing unique sum</description>
+    <reference specification="MATCH-FILTER" id="sec-uni-matching-filter"/>
+    <data>
+      <schema>47203-concepts.xsd</schema>
+      <linkbase>47203-unitMatching-formula.xml</linkbase>
+      <instance readMeFirst="true">47203-unitMatching-instance.xml</instance>
+    </data>
+    <result>
+      <instance>47203-unitMatching-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

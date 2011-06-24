@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://xbrl.org/dims/conformance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:tpl="http://xbrl.org/dims/conformance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+   <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+   <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+   <xsd:annotation>
+      <xsd:appinfo>
+         <link:linkbaseRef xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="dimensionDefaultDifferentDomainsInvalid-label.xml" xlink:type="simple"/>
+         <link:linkbaseRef xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="dimensionDefaultDifferentDomainsInvalid-definition.xml" xlink:type="simple"/>
+         <link:roleType id="r1" roleURI="http://xbrl.org/dims/conformance/roles/R1">
+            <definition xmlns="http://www.xbrl.org/2003/linkbase"/>
+            <link:usedOn>link:definitionLink</link:usedOn>
+         </link:roleType>
+         <link:roleType id="r2" roleURI="http://xbrl.org/dims/conformance/roles/R2">
+            <definition xmlns="http://www.xbrl.org/2003/linkbase"/>
+            <link:usedOn>link:definitionLink</link:usedOn>
+         </link:roleType>
+         <link:roleType id="r3" roleURI="http://xbrl.org/dims/conformance/roles/R3">
+            <definition xmlns="http://www.xbrl.org/2003/linkbase"/>
+            <link:usedOn>link:definitionLink</link:usedOn>
+         </link:roleType>
+      </xsd:appinfo>
+   </xsd:annotation>
+   <xsd:element abstract="true" id="tpl_Dimension" name="Dimension" nillable="true" substitutionGroup="xbrldt:dimensionItem" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_DomainMemberA" name="DomainMemberA" nillable="true" substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_DomainMemberB" name="DomainMemberB" nillable="true" substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_DomainMemberC" name="DomainMemberC" nillable="true" substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_Hypercube1" name="Hypercube1" nillable="true" substitutionGroup="xbrldt:hypercubeItem" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_DomainMemberX" name="DomainMemberX" nillable="true" substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_DomainMemberY" name="DomainMemberY" nillable="true" substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_Hypercube3" name="Hypercube3" nillable="true" substitutionGroup="xbrldt:hypercubeItem" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_Hypercube2_1736ec2" name="Hypercube2" nillable="true" substitutionGroup="xbrldt:hypercubeItem" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+   <xsd:element abstract="true" id="tpl_DomainMemberZ" name="DomainMemberZ" nillable="true" substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+</xsd:schema>

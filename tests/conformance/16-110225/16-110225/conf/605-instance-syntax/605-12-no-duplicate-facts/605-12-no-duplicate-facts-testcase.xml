@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-12</number>
+<name>EDGAR Filer Manual v16 6.5.12 page 6-10</name>
+<description>
+<h2>An instance must not have more than one fact having the same element name, equal contextRef attributes, and if they are present
+equal unitRef attributes and xml:lang attributes, respectively.</h2>
+<p>An instance must not have more than one fact having S-Equal element names, equal contextRef attributes, and if they are present
+V-Equal unitRef attributes and xml:lang attributes, respectively. A fact is an occurrence in an instance of an element with a
+contextRef attribute. The values of the id attribute and the text content of the element are not relevant to detection of duplicate
+facts. Other rules forbidding equivalent xbrli:context and xbrli:unit elements ensure that duplicate values of the contextRef and
+unitRef attributes can be detected without dereferencing.</p>
+<p>The predicate V-Equal is as defined in the XBRL 2.1 specification. The V-Equal test is sensitive to the underlying data type, so the
+decimals attribute of "-6" is V-Equal to decimals "-06.0".</p>
+<p>In unusual cases the same fact may be presented with different levels of detail, such as "123456 Shares with decimals equal to
+'INF'", and "120000 Shares with decimals equal to '-3'". Instead of including both facts in the instance, the instance should contain
+only the more precise one.</p>
+<p>Duplicate facts have no benefit to users and are easily consolidated by the filer before submission.</p>
+</description>
+<reference specification="10491.4.1"/>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<variation id="_000gd">
+<name>6.5.12 Simple instance, GOOD</name>
+<description>Simple instance with no duplicate facts.</description>
+<reference specification="10491.4.1"/>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.5.12 Two non-numeric facts, different languages, GOOD.</name>
+<description>An instance with two facts differing by xml:lang value.</description>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512001gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.5.12 Two Numeric Facts Attributes Equal, NOGOOD</name>
+<description>An instance with two numeric facts whose values are v=, decimals=INF.</description>
+<reference specification="10491.4.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60512" name="Duplicate-Facts" frd="du"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.5.12 Three Numeric Facts with Attributes Equal but different values, NOGOOD</name>
+<description>An instance with three numeric facts whose values are dfferent.</description>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512003ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60512" name="Duplicate-Facts" frd="du"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.5.12 Four Numeric Facts V=, decimals=0, 1, 2, 3 NOGOOD</name>
+<description> An instance with four numeric facts with different decimals and v= values. </description>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512004ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60512" name="Duplicate-Facts" frd="du"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.5.12 Five Text Blocks with different values, NOGOOD</name>
+<description> An instance with five text blocks, all different. </description>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512005ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60512" name="Duplicate-Facts" frd="du"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.5.12 Six Numeric Facts with varying lexical representations, NOGOOD</name>
+<description> An instance with six numeric facts, same element, unit and context but other attributes differ. Same as 2ng, but this is
+to ensure you don"t get 15 error messages (handshakes(6)=15)</description>
+<reference specification="10491.4.1"/>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512006ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60512" name="Duplicate-Facts" frd="du"/>
+</result>
+</variation>
+<variation id="_007gd">
+<name>6.5.12 Two Numeric Facts with different Units, GOOD</name>
+<description> Two Numeric Facts with different Units, GOOD</description>
+<reference specification="10491.4.1"/>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512007gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_008ng">
+<name>6.5.12 Two Numeric Facts, one nil the other not, NOGOOD (EDGAR 9.15.2 FAILS)</name>
+<description>Two Numeric Facts, one nil the other not, NOGOOD</description>
+<reference specification="10491.5.1"/>
+<reference specification="11072"/>
+<reference specification="11084"/>
+<data>
+<instance readMeFirst="true">e60512008ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60512" name="Duplicate-Facts" frd="du"/>
+</result>
+</variation>
+</testcase>

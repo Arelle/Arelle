@@ -1,0 +1,4 @@
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="testinstance_xsd_ns" xmlns:tst="testinstancexsdns">
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="xbrl-instance-2003-12-31.xsd"/>
+	<element name="root"/>
+</schema>

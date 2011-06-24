@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>616-08</number>
+<name>EDGAR Filer Manual v16 6.16.8 page 6-59</name>
+<description>
+<h2>The target of an effective relationship with an xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/notAll' must not
+be the target of an effective arc with an xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/all' in
+link:definitionLink elements having the equal values of xlink:role.</h2>
+<p>This rule ensures that a Table (hypercube) is not both positive and negative.</p>
+<p>REMARK: This rule complements 6.16.7 by ensuring that HC1 and HC2 are distinct. The combination of this constraint, 6.16.4, and XBRL
+Dimensions 1.0 constraint's prohibition of undirected cycles in HcDim relationships prevents using @targetRole to give the same HC
+element different members of the same axis.</p>
+</description>
+<reference specification="10943"/>
+<reference specification="11152.6"/>
+<variation id="_001gd">
+<name>6.16.8, All and notall arcs with distinct target hypercubes in one link role, GOOD.</name>
+<description>All and notall arcs with distinct target hypercubes in one link role, GOOD.</description>
+<reference specification="10943"/>
+<reference specification="11152.6"/>
+<data>
+<instance readMeFirst="true">e61608001gd-20081231.xml</instance>
+<linkbase>e61608001gd-20081231_lab.xml</linkbase>
+<linkbase>e61608001gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61608001gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.16.8, All and notall arcs with same target hypercubes in one link role, NOGOOD.</name>
+<description>All and notall arcs with same target hypercubes in one link role, NOGOOD.</description>
+<reference specification="10943"/>
+<reference specification="11152.6"/>
+<data>
+<instance readMeFirst="true">e61608002ng-20081231.xml</instance>
+<linkbase>e61608002ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61608002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61608" name="Table-Excludes-Itself" frd="fs"/>
+</result>
+</variation>
+</testcase>

@@ -1,0 +1,1228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by steve hord (UBmatrix) -->
+<?xml-stylesheet type="text/xsl" href="xbrl-conformance-to-excel.xsl"?>
+<cm:conformance xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/conformance/management xbrl-conformance-2003-11-10.xsd" xmlns:cm="http://www.xbrl.org/2003/conformance/management">
+	<cm:contributors>
+		<cm:contributor id="DecisionSoft" voting="true">
+			<cm:identifier>DecisionSoft</cm:identifier>
+			<cm:contact>
+				<cm:name>Paul Warren</cm:name>
+				<cm:e-mail>pdw@decisionsoft.com</cm:e-mail>
+			</cm:contact>
+		</cm:contributor>
+		<cm:contributor id="Fujitsu" voting="true">
+			<cm:identifier>Fujitsu</cm:identifier>
+			<cm:contact>
+				<cm:name>Masatomo Goto</cm:name>
+				<cm:e-mail>mg@fla.fujitsu.com</cm:e-mail>
+			</cm:contact>
+		</cm:contributor>
+		<cm:contributor id="UBmatrix" voting="true">
+			<cm:identifier>UBmatrix, LLC</cm:identifier>
+			<cm:contact>
+				<cm:name>Steve Hord</cm:name>
+				<cm:e-mail>steve.hord@ubmatrix.com</cm:e-mail>
+			</cm:contact>
+		</cm:contributor>
+		<cm:contributor id="Galexy" voting="true">
+			<cm:identifier>Galexy</cm:identifier>
+			<cm:contact>
+				<cm:name>Geoff Shuetrim</cm:name>
+				<cm:e-mail>geoff@galexy.net</cm:e-mail>
+			</cm:contact>
+		</cm:contributor>
+	</cm:contributors>
+	<cm:testcases>
+		<cm:testcase uri="Common/schema/102-item.xml">
+			<cm:manager contributorRef="DecisionSoft"/>
+			<cm:variation stable="true" locator="V-2">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-3">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-4">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/schema/103-type.xml">
+			<cm:manager contributorRef="DecisionSoft"/>
+			<cm:variation stable="true" locator="V-1">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Appears to have been fixed</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/schema/104-tuple.xml">
+			<cm:manager contributorRef="DecisionSoft"/>
+			<cm:variation locator="V-1" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-2">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-3" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-4">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-5">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-6">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-7">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-8">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-9">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft">Changed to check tuple attribute in instance as per spec clarifications</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-10">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft">Changed to check tuple attributes in instance as per spec clarification</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-11">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-12">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-13">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-14">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-15" stable="true">
+				<cm:status approved="true" contributorRef="DecisionSoft">Removed, as per Seattle discussion.</cm:status>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-16">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-17">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/schema/105-balance.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Fixed 11-19-2003</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/schema/107-DTSWithLinkbaseInSchema.xml">
+			<cm:manager contributorRef="Galexy"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="Galexy"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/201-linkref.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-03" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-04" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-05" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-06" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-07" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-08" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-09" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Fixed. Third linkbase removed. Test is now 'Valid'</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft">UBmatrix have now fixed this.</cm:status>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/202-xlinkLocator.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-03" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-04" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-05" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-06" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-07" stable="true"/>			
+			<cm:variation locator="V-08" stable="true"/>			
+			<cm:variation locator="V-09" stable="true"/>			
+			<cm:variation locator="V-10" stable="true"/>			
+			<cm:variation locator="V-11" stable="true"/>			
+			<cm:variation locator="V-12" stable="true"/>			
+			<cm:variation locator="V-13" stable="true"/>			
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/204-arcCycles.xml">
+			<cm:manager contributorRef="DecisionSoft"/>
+			<cm:variation locator="V-4" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-5" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-6" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-7" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-8" stable="true">
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">presentation arc of parent-child should allow undirected cycles</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-9" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-10" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-11" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-12" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-13" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-14" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-15" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-16" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-17" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-18" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-19" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-20" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-21" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/205-roleDeclared.xml">
+			<cm:manager contributorRef="DecisionSoft"/>
+			<cm:variation locator="V-1" stable="true">
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Test for custom linkbase ref which is not a requirement</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-2" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-3" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-4" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-5" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-6" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-7" stable="true">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Depends on custom linkbase ref. Files can test for double arcroll def using Calc or Pres linkbases</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-8" stable="true">
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Depends on custom linkbase ref. Files can test for double arcroll def using Calc or Pres linkbases</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-9" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-10" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-11" stable="true">
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Test is Valid but fails .Net Parser validation. MS does not allow duplicate ID's anywhere in Schema domain</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft">This variation has changed due to the decision that duplicate role types are allowed anywhere as long as they are identical. The previous test would have been wrong so this now tests that redefining a role with a non-identical role is invalid.</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/206-arcDeclared.xml">
+			<cm:manager contributorRef="DecisionSoft"/>
+			<cm:variation locator="V-1" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-2" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-3" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-4" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-5" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-6" stable="true">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Test is Valid but fails .Net Parser validation. MS does not allow duplicate ID's anywhere in Schema domain</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-7" stable="true">
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Test is Valid but fails .Net Parser validation. MS does not allow duplicate ID's anywhere in Schema domain</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/207-arcDeclaredCycles.xml">
+			<cm:manager contributorRef="DecisionSoft"/>
+			<cm:variation locator="V-1" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-2" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-3" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-4" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-5" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-6" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-7" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-8" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-9" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-10" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-11" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-12" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-13" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/208-balance.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="false">The measure namespace is not ISO4217 but the only defined prefix is iso4217 (lower case). Either the prefix needs to be uppercase or the use in the measure needs to be lower case but the local name needs to stay as USD.</cm:status>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">fixed 12-1-03</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-03" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-04" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+			</cm:variation>
+			<cm:variation locator="V-05" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+			</cm:variation>
+			<cm:variation locator="V-06" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+			</cm:variation>
+			<cm:variation locator="V-07" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+			</cm:variation>
+			<cm:variation locator="V-08" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+			</cm:variation>
+			<cm:variation locator="V-09" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+			</cm:variation>
+			<cm:variation locator="V-10" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">fixed 12-1-03</cm:status>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/212-linkbaseDocumentation.xml">
+			<cm:manager contributorRef="Galexy"/>
+			<cm:variation locator="V-1" stable="true">
+				<cm:status contributorRef="Galexy" xmlns:ubm="http://www.galexy.net/XBRL/2.1/conformance/2006-09-23"/>
+				<cm:status approved="false" contributorRef="DecisionSoft"/>
+				<cm:status approved="false" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/linkbase/291-inferArcOverride.xml">
+			<cm:manager contributorRef="Fujitsu"/>
+			<cm:variation locator="V-3" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-5" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-6" stable="false">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="false" contributorRef="DecisionSoft">The test runner has been changed from expected="valid" to expected="invalid" by mg.  We still contend that this test is valid.</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-8" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation locator="V-9" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-10" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-11" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation locator="V-12" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation locator="V-13" stable="false">
+				<cm:status approved="false" contributorRef="DecisionSoft">No errors occur, the prohibition simply doesn't apply since the roles used differ.  This may be an error of intent on behalf of the author, but it isn't prohibited by the specification.</cm:status>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/301-idScope.xml">
+			<cm:manager contributorRef="Fujitsu"/>
+			<cm:variation stable="true" locator="V-1">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-2">
+				<cm:status approved="true" contributorRef="Fujitsu">Comment added at 12/4/2003</cm:status>
+				<cm:status approved="false" contributorRef="DecisionSoft">Issue of embedded XBRL raised with spec group</cm:status>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-3">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-4">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-5">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-6">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-7">
+				<cm:status approved="true" contributorRef="Fujitsu">Comment added at 12/4/2003</cm:status>
+				<cm:status approved="false" contributorRef="DecisionSoft">Issue of embedded XBRL raised with spec group</cm:status>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-8">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-9">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+                        <cm:variation stable="false" locator="V-10">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+                        </cm:variation>
+                        <cm:variation stable="false" locator="V-11">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+                        </cm:variation>
+                        <cm:variation stable="false" locator="V-12">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+                        </cm:variation>
+                        <cm:variation stable="false" locator="V-13">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+                        </cm:variation>
+                        <cm:variation stable="false" locator="V-14">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+                        </cm:variation>
+                        <cm:variation stable="false" locator="V-15">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+                        </cm:variation>
+                        <cm:variation stable="false" locator="V-16">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+                        </cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/302-context.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">fixed 12-8</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-03" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-04" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">fixed 12-8</cm:status>
+				<cm:status approved="false" contributorRef="DecisionSoft">The schemaref in the instance refers to 'idScope.xsd' which is from a completely different test and not in the variation definition. It should be 'Nautilus.xsd' as per the variation.</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-05" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-06" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-07" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-08" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-09" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-10" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/303-periodType.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-03" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-04" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/304-unitOfMeasure.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-03" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-04" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-05" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-06" stable="true">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-07" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-08" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-09" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-10" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-11" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Not referenced in the template</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-12" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24">Not referenced in the template</cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-13" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-14" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-15" stable="false">
+				<cm:status approved="false" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="false" contributorRef="DecisionSoft">The instance does not meet the variation description. The instance has an item of type pure not shareItemType. The result should be invalid in any case as it is puteItem type but does not have a single xbrli:pure measure in the units. The variation needs fairly major correction to match the variation description and test the correct thing.</cm:status>
+				<cm:status approved="false" contributorRef="Fujitsu">Pure item have is referencing unit which its measure is not pure.</cm:status>
+			</cm:variation>
+			<cm:variation locator="V-16" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-17" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-18" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-19" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-20" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-21" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-22" stable="true">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/305-decimalPrecision.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-02" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-03" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-04" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/306-required.xml">
+			<cm:manager contributorRef="Fujitsu"/>
+			<cm:variation locator="V-1" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true"/>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation locator="V-2" stable="true">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24" approved="true"/>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation locator="V-3" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status contributorRef="Fujitsu" approved="true"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/307-schemaRef.xml">
+			<cm:manager contributorRef="Fujitsu"/>
+			<cm:variation locator="V-2" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-3" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation locator="V-4" stable="true">
+				<cm:status approved="true" contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/391-inferDecimalPrecision.xml">
+			<cm:manager contributorRef="UBmatrix"/>
+			<cm:variation locator="V-01">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-02">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-03">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-04">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-05">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-06">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-07">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-08">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-09">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-10">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-11">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-12">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-13">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-14">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-15">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-16">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-17">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-18">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-19">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-20">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-21">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-22">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-23">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-24">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-25">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-26">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-27">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-28">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-29">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-30">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-31">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-32">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-33">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-34">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-35">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-36">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-37">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-38">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-39">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-40">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-41">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-42">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-43">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-44">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-45">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-46">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-47">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-48">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-49">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-50">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-51">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-52">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-53">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-54">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-55">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-56">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-57">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-58">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-59">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-60">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-61">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-62">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-63">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-64">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-65">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-66">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-67">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-68">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-69">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+			<cm:variation locator="V-70">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/392-inferEssenceAlias.xml">
+			<cm:manager contributorRef="Fujitsu"/>
+			<cm:variation stable="true" locator="V-1">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-2">
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-3">
+				<cm:status contributorRef="DecisionSoft" approved="true"/>
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="Fujitsu">Fixed at 12/4/03</cm:status>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-4">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-5">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-6">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-7">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-8">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-9">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-10">
+				<cm:status approved="true" contributorRef="Fujitsu">This testset is set to invalid from the beginning. Added comments for the 392-inferEssenceAlias.xml. </cm:status>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-11">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-12">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-13">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-14">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-15">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-16">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-17">
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+			</cm:variation>
+		</cm:testcase>
+		<cm:testcase uri="Common/instance/395-inferNumericConsistency.xml">
+			<cm:manager contributorRef="Fujitsu"/>
+			<cm:variation stable="true" locator="V-1">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft"/>
+				<cm:status approved="true" contributorRef="Fujitsu"/>
+			</cm:variation>
+			<cm:variation stable="true" locator="V-2">
+				<cm:status contributorRef="UBmatrix" xmlns:ubm="http://www.ubmatrix.com/XBRL/2.1/conformance/2003-10-24"/>
+				<cm:status approved="true" contributorRef="DecisionSoft">The values do not add up at the correct precisions. 984.8 plus 582.334973 sum to 1567.1 which at precision 2 will round up to 1600 whilst the summation value 1527 will round down to 1500.</cm:status>
+				<cm:status approved="true" contributorRef="Fujitsu">Changed to invalid for expected result. comment addeed regarding document is still valid. at 12/4/03</cm:status>
+			</cm:variation>
+		</cm:testcase>
+	</cm:testcases>
+</cm:conformance>

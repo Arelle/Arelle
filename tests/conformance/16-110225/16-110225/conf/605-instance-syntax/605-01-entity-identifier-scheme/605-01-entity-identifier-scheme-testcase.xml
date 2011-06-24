@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-01</number>
+<name>EDGAR Filer Manual v16 6.5.1 page 6-8</name>
+<description><h2>The scheme attribute of the xbrli:identifier element must be http://www.sec.gov/CIK.</h2></description>
+<reference specification="10491.2.2"/>
+<variation id="_000gd">
+<name>6.5.1, Scheme in instance is http://www.sec.gov/CIK</name>
+<description>6.5.1, Good scheme</description>
+<reference specification="10491.2.2"/>
+<data>
+<instance readMeFirst="true">e60501000gd-20111231.xml</instance>
+<linkbase>e60501000gd-20111231_lab.xml</linkbase>
+<linkbase>e60501000gd-20111231_def.xml</linkbase>
+<linkbase>e60501000gd-20111231_pre.xml</linkbase>
+<schema>e60501000gd-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.1, Scheme in instance is http://www.sec.gov</name>
+<description>6.5.1, Bad Scheme</description>
+<reference specification="10491.2.2"/>
+<data>
+<instance readMeFirst="true">e60501001ng-20111231.xml</instance>
+<linkbase>e60501001ng-20111231_lab.xml</linkbase>
+<linkbase>e60501001ng-20111231_def.xml</linkbase>
+<linkbase>e60501001ng-20111231_pre.xml</linkbase>
+<schema>e60501001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60501" name="Entity-Identifier-Scheme" frd="cp"/>
+</result>
+</variation>
+</testcase>

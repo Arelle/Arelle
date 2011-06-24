@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:p0="http://www.bdi.org/inheritanceEdgeUseCase" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt">
+  <link:schemaRef xlink:type="simple" xlink:href="inheritanceEdgeUseCase.xsd"/>
+  
+  <xbrli:context id="c1">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.bdi.org">bdi</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2006-12-31</xbrli:instant>
+    </xbrli:period>
+<xbrli:scenario>
+  <xbrldi:explicitMember dimension="p0:dim1">p0:dim1_el1</xbrldi:explicitMember> 
+ </xbrli:scenario>
+
+  </xbrli:context>
+
+
+  <xbrli:context id="c_other">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.bdi.org">bdi</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2006-12-31</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+
+
+
+
+  <xbrli:context id="c2">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.bdi.org">bdi</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2006-12-31</xbrli:instant>
+    </xbrli:period>
+<xbrli:scenario>
+  <xbrldi:explicitMember dimension="p0:dim2">p0:dim2_el1</xbrldi:explicitMember> 
+ </xbrli:scenario>
+
+  </xbrli:context>
+
+  <xbrli:unit id="u1">
+    <xbrli:measure>iso4217:EUR</xbrli:measure>
+  </xbrli:unit>
+
+  <p0:p3 decimals="0" contextRef="c1" unitRef="u1">10</p0:p3> 
+
+</xbrli:xbrl>

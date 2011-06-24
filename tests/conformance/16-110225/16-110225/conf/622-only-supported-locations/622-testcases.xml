@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='622-01-all-supported-locations/622-01-all-supported-locations-testcase.xml' />
+  <testcase uri='622-02-no-unsupported-locations/622-02-no-unsupported-locations-testcase.xml' />
+  <testcase uri='622-03-consistent-locations/622-03-consistent-locations-testcase.xml' />
+  <testcase uri='622-04-ex101/622-04-ex101-testcase.xml' />
+</testcases>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityListingsLineItems"
+xlink:label="EntityListingsLineItems"/>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsLineItems"
+xlink:role="http://www.xbrl.org/2003/role/totalLabel"
+xml:lang="en-US"
+id="label_EntityListingsLineItems">Entity Listings, Redundant:</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingsLineItems"
+xlink:to="label_EntityListingsLineItems"/>
+<link:loc xlink:type="locator" xlink:href="e61004000gd-20081231.xsd#e6100400_Statistics"
+xlink:label="Lies"/>
+<link:label xlink:type="resource" xlink:label="label_Lies"
+xlink:role="http://www.xbrl.org/2003/role/terseLabel"
+xml:lang="en-US"
+id="label_Lies">Lies</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Lies"
+xlink:to="label_Lies"/>
+<link:label xlink:type="resource" xlink:label="label_Lies_2"
+xlink:role="http://www.xbrl.org/2003/role/verboseLabel"
+xml:lang="en-US"
+id="label_Lies_2">Damned Lies</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Lies"
+xlink:to="label_Lies_2"/>
+<link:label xlink:type="resource" xlink:label="label_Lies_3"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Lies_3">Statistics</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Lies"
+xlink:to="label_Lies_3"/>
+<link:loc xlink:type="locator"
+xlink:href="e61004000gd-20081231.xsd#e6100400_StatisticsMember"
+xlink:label="DamnedLiesMember"/>
+<link:label xlink:type="resource" xlink:label="label_DamnedLiesMember"
+xlink:role="http://www.xbrl.org/2003/role/verboseLabel"
+xml:lang="en-US"
+id="label_DamnedLiesMember">Damned Lies [Member]</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DamnedLiesMember"
+xlink:to="label_DamnedLiesMember"/>
+<link:label xlink:type="resource" xlink:label="label_DamnedLiesMember_2"
+xlink:role="http://www.xbrl.org/2003/role/terseLabel"
+xml:lang="en-US"
+id="label_DamnedLiesMember_2">Lies [Member]</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DamnedLiesMember"
+xlink:to="label_DamnedLiesMember_2"/>
+<link:label xlink:type="resource" xlink:label="label_DamnedLiesMember_3"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DamnedLiesMember_3">Statistics [Member]</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DamnedLiesMember"
+xlink:to="label_DamnedLiesMember_3"/>
+<link:loc xlink:type="locator" xlink:href="e61004000gd-20081231.xsd#e6100400_Lies"
+xlink:label="Lies_2"/>
+<link:label xlink:type="resource" xlink:label="label_Lies_4"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Lies_4">Lies</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Lies_2"
+xlink:to="label_Lies_4"/>
+<link:label xlink:type="resource" xlink:label="label_Lies_5"
+xlink:role="http://www.xbrl.org/2003/role/verboseLabel"
+xml:lang="en-US"
+id="label_Lies_5">Damned Lies</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Lies_2"
+xlink:to="label_Lies_5"/>
+<link:label xlink:type="resource" xlink:label="label_Lies_6"
+xlink:role="http://www.xbrl.org/2003/role/terseLabel"
+xml:lang="en-US"
+id="label_Lies_6">Statistics</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Lies_2"
+xlink:to="label_Lies_6"/>
+<link:loc xlink:type="locator" xlink:href="e61004000gd-20081231.xsd#e6100400_DamnedLies"
+xlink:label="DamnedLies"/>
+<link:label xlink:type="resource" xlink:label="label_DamnedLies"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DamnedLies">Damned Lies</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DamnedLies"
+xlink:to="label_DamnedLies"/>
+<link:label xlink:type="resource" xlink:label="label_DamnedLies_2"
+xlink:role="http://www.xbrl.org/2003/role/terseLabel"
+xml:lang="en-US"
+id="label_DamnedLies_2">Lies</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DamnedLies"
+xlink:to="label_DamnedLies_2"/>
+<link:label xlink:type="resource" xlink:label="label_DamnedLies_3"
+xlink:role="http://www.xbrl.org/2003/role/verboseLabel"
+xml:lang="en-US"
+id="label_DamnedLies_3">Statistics</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DamnedLies"
+xlink:to="label_DamnedLies_3"/>
+</link:labelLink>
+</link:linkbase>

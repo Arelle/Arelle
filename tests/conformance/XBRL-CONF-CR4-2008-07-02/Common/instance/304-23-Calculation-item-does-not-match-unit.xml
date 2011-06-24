@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:new="http://www.example.com/new" xsi:schemaLocation="http://www.example.com/new 304-23-Calculation-item-does-not-match-unit.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:schemaRef xlink:type="simple" xlink:href="304-23-Calculation-item-does-not-match-unit.xsd" />
+  <context id="context-2001">
+    <entity>
+      <identifier scheme="www.test.com">entity-1</identifier>
+    </entity>
+    <period>
+      <instant>2006-02-23</instant>
+    </period>
+  </context>
+  <unit id="unit-monetary-AUD">
+    <measure>iso4217:AUD</measure>
+  </unit>
+
+  <new:Parent contextRef="context-2001" unitRef="unit-monetary-AUD" decimals="1">1212</new:Parent>
+
+  <new:Child contextRef="context-2001" unitRef="unit-monetary-AUD" decimals="1">1212</new:Child>
+
+<!-- Note that child is of type sharesitemtype not monetaryitemtype
+
+  <element id="new_Child" name="Child" type="xbrli:sharesItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+
+  <element id="new_Parent" name="Parent" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+-->
+</xbrl>

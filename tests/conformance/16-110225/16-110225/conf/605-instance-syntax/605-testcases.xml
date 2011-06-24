@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='605-01-entity-identifier-scheme/605-01-entity-identifier-scheme-testcase.xml' />
+  <testcase uri='605-02-entity-identifier-match-cik/605-02-entity-identifier-match-cik-testcase.xml' />
+  <testcase uri='605-03-entity-identifier-all-identical/605-03-entity-identifier-all-identical-testcase.xml' />
+  <testcase uri='605-04-no-scenario-elements/605-04-no-scenario-elements-testcase.xml' />
+  <testcase uri='605-05-only-explicit-dimensions/605-05-only-explicit-dimensions-testcase.xml' />
+  <testcase uri='605-07-no-duplicate-contexts/605-07-no-duplicate-contexts-testcase.xml' />
+  <testcase uri='605-08-no-unused-contexts/605-08-no-unused-contexts-testcase.xml' />
+  <testcase uri='605-09-start-and-end-dates-distinct/605-09-start-and-end-dates-distinct-testcase.xml' />
+  <testcase uri='605-10-start-and-instant-dates-distinct/605-10-start-and-instant-dates-distinct-testcase.xml' />
+  <testcase uri='605-11-no-duplicate-units/605-11-no-duplicate-units-testcase.xml' />
+  <testcase uri='605-12-no-duplicate-facts/605-12-no-duplicate-facts-testcase.xml' />
+  <testcase uri='605-13-english-default/605-13-english-default-testcase.xml' />
+  <testcase uri='605-14-foreign-content-needs-english/605-14-foreign-content-needs-english-testcase.xml' />
+  <testcase uri='605-15-text-blocks-xml-well-formed/605-15-text-blocks-xml-well-formed-testcase.xml' />
+  <testcase uri='605-16-html-limited/605-16-html-limited-testcase.xml' />
+  <testcase uri='605-17-decimals-not-precision/605-17-decimals-not-precision-testcase.xml' />
+  <testcase uri='605-19-required-context/605-19-required-context-testcase.xml' />
+  <testcase uri='605-20-required-document-elts/605-20-required-document-elts-testcase.xml' />
+  <testcase uri='605-21-required-entity-elts/605-21-required-entity-elts-testcase.xml' />
+  <testcase uri='605-22-other-dei-elements-optional/605-22-other-dei-elements-optional-testcase.xml' />
+  <testcase uri='605-23-required-context-match-cik/605-23-required-context-match-cik-testcase.xml' />
+  <testcase uri='605-24-registrant-name-matches-dei/605-24-registrant-name-matches-dei-testcase.xml' />
+  <testcase uri='605-25-no-domain-items-as-facts/605-25-no-domain-items-as-facts-testcase.xml' />
+  <testcase uri='605-26-common-shares-outstanding/605-26-common-shares-outstanding-testcase.xml' />
+  <testcase uri='605-27-footnote-no-substitutions/605-27-footnote-no-substitutions-testcase.xml' />
+  <testcase uri='605-28-footnote-no-custom-footnote-role/605-28-footnote-no-custom-footnote-role-testcase.xml' />
+  <testcase uri='605-29-footnote-loc-role-not-custom/605-29-footnote-loc-role-not-custom-testcase.xml' />
+  <testcase uri='605-30-footnote-no-custom-arc-role/605-30-footnote-no-custom-arc-role-testcase.xml' />
+  <testcase uri='605-32-footnote-loc-fragment-portable/605-32-footnote-loc-fragment-portable-testcase.xml' />
+  <testcase uri='605-33-footnote-linked-to-facts/605-33-footnote-linked-to-facts-testcase.xml' />
+  <testcase uri='605-34-footnote-xhtml/605-34-footnote-xhtml-testcase.xml' />
+  <testcase uri='605-35-numeric-units/605-35-numeric-units-testcase.xml' />
+</testcases>

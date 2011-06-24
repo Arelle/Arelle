@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>609-06</number>
+<name>EDGAR Filer Manual v16 6.9.6 page 6-47</name>
+<description>
+<h2>The text preceding a sharp sign '#' in an xlink:href attribute of link:arcroleRef must be a standard taxonomy.</h2>
+<p>No custom arc roles.</p>
+<p>REMARK: This applies only to company extension taxonomies. The arc roles declared in <a href="http://www.xbrl.org/2005/xbrldt-2005.xsd">http://www.xbrl.org/2005/xbrldt-2005.xsd</a> are
+okay because that is a standard taxonomy location. The arc roles declared in US GAAP 2009 are not in a standard taxonomy location.</p>
+</description>
+<reference specification="11197"/>
+<variation id="_000gd">
+<name>6.9.6 Arcrole is defined, not used, GOOD.</name>
+<description> Arcrole is defined, not used, GOOD.</description>
+<reference specification="11197"/>
+<data>
+<instance readMeFirst="true">e60906000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60906000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.9.6 Arcrole is defined and used, NOGOOD.</name>
+<description> Arcrole is defined and used, NOGOOD.</description>
+<reference specification="11197"/>
+<data>
+<instance readMeFirst="true">e60906001ng-20081231.xml</instance>
+<linkbase>e60906001ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60906001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60906" name="Custom-Arcrole-Referenced" frd="fs"/>
+</result>
+</variation>
+</testcase>

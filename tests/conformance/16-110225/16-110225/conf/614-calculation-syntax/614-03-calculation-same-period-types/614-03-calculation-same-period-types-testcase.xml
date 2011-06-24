@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>614-03</number>
+<name>EDGAR Filer Manual v16 6.14.3 page 6-55</name>
+<description>
+<h2>The source and target of an effective calculation arc must have equal values of the xblri:periodType attribute.</h2>
+<p>Facts of elements with different values of the xbrli:periodType attribute must have different values of the contextRef attribute and
+therefore the calculation arc between them has no meaning. </p>
+<p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml violated
+this rule it would be included in a 'good' test variation. In fact, because there are no standard taxonomies that violate the rule,
+there is not even a variation that tests whether such a bad arc would be okay if prohibited.</p>
+</description>
+<reference specification="10933"/>
+<variation id="_001ng">
+<name>6.14.3, effective calculation arc has different period types for parent and child, NOGOOD.</name>
+<description>effective calculation arc has different period types for parent and child, NOGOOD.</description>
+<reference specification="10933"/>
+<data>
+<instance readMeFirst="true">e61403001ng-20081231.xml</instance>
+<linkbase>e61403001ng-20081231_lab.xml</linkbase>
+<linkbase>e61403001ng-20081231_pre.xml</linkbase>
+<linkbase>e61403001ng-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61403001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61403" name="Calculation-Relationship-Has-Different-Period-Types" frd="fs"/>
+</result>
+</variation>
+</testcase>

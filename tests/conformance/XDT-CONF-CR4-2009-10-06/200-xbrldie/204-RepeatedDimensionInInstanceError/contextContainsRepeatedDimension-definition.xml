@@ -1,0 +1,22 @@
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xdt="http://xbrl.org/2005/xbrldt" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_IncomeStatement" xlink:label="IncomeStatement_1123671343838_0" xlink:title="IncomeStatement"/>
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_GrossProfitPresentation" xlink:label="GrossProfitPresentation_1123671343838_1" xlink:title="GrossProfitPresentation"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="arc" xlink:from="IncomeStatement_1123671343838_0" xlink:to="GrossProfitPresentation_1123671343838_1" xlink:title="definition: IncomeStatement to GrossProfitPresentation" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_RevenueTotal" xlink:label="RevenueTotal_1123671434398_0" xlink:title="RevenueTotal"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="arc" xlink:from="GrossProfitPresentation_1123671343838_1" xlink:to="RevenueTotal_1123671434398_0" xlink:title="definition: GrossProfitPresentation to RevenueTotal" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_sales" xlink:label="Sales_1123671464321_0" xlink:title="Sales"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="arc" xlink:from="RevenueTotal_1123671434398_0" xlink:to="Sales_1123671464321_0" xlink:title="definition: RevenueTotal to Sales" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_CostOfSales" xlink:label="CostOfSales_1123671481906_0" xlink:title="CostOfSales"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="arc" xlink:from="GrossProfitPresentation_1123671343838_1" xlink:to="CostOfSales_1123671481906_0" xlink:title="definition: GrossProfitPresentation to CostOfSales" use="optional" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_GrossProfit" xlink:label="GrossProfit_1123671499742_0" xlink:title="GrossProfit"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="arc" xlink:from="GrossProfitPresentation_1123671343838_1" xlink:to="GrossProfit_1123671499742_0" xlink:title="definition: GrossProfitPresentation to GrossProfit" order="3.0"/>
+    <link:loc xlink:type="locator" xlink:href="contextContainsRepeatedDimension.xsd#tx_hc_custCode" xlink:label="hc_custCode_1123671701472_0" xlink:title="hc_custCode"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:type="arc" xlink:from="IncomeStatement_1123671343838_0" xlink:to="hc_custCode_1123671701472_0" xbrldt:contextElement="segment" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="contextContainsRepeatedDimension.xsd#tx_hc_CustCodeDim" xlink:label="hc_CustCodeDim_1123671701472_1" xlink:title="hc_CustCodeDim"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="arc" xlink:from="hc_custCode_1123671701472_0" xlink:to="hc_CustCodeDim_1123671701472_1" xlink:title="definition: hc_custCode to hc_CustCodeDim" order="1.0"/>
+  </link:definitionLink>
+</link:linkbase>

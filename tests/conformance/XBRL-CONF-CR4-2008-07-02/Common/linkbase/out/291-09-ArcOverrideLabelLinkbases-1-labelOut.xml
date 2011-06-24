@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- Edited by Suguru WASHIO (wasio@jp.fujitsu.com) -->
+<!--  Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved.  -->
+<ptvl xmlns="http://www.xbrl.org/2003/ptv" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/ptv ptv-2003-12-31.xsd">
+  <arc linkType="label" labelLang="en" order="1" extRole="http://www.xbrl.org/2003/role/link" arcRole="http://www.xbrl.org/2003/arcrole/concept-label" resRole="http://www.xbrl.org/2003/role/label" fromPath="http://mycompany.com/xbrl/taxonomy#fixedAssets">Fixed Assets</arc>
+  <arc linkType="label" labelLang="en" order="1" extRole="http://mycompany.com/xbrl/roleE/newExtendedRoleType" arcRole="http://www.xbrl.org/2003/arcrole/concept-label" resRole="http://www.xbrl.org/2003/role/label" fromPath="http://mycompany.com/xbrl/taxonomy#fixedAssets">New Fixed Assets</arc>
+</ptvl>

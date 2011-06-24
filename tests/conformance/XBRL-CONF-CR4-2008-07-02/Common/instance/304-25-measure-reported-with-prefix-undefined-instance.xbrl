@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xbrl xmlns="http://www.xbrl.org/2003/instance" 
+      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      xmlns:link="http://www.xbrl.org/2003/linkbase" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xmlns:doesnot-exist="http://www.w3.org/2001/doesnot-exist" 
+      xmlns:ci="http://www.UBmatrix.com/Patterns/BasicCalculation" 
+      xmlns:scenarios="http://www.xbrl.org/frta/scenarios" 
+      xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+      xsi:schemaLocation="http://www.UBmatrix.com/Patterns/BasicCalculation BasicCalculation.xsd">
+
+   <link:schemaRef xlink:type="simple" xlink:href="304-25-measure-reported-with-prefix-undefined.xsd" />
+
+   <context id="I-2007">
+      <entity>
+         <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+      </entity>
+      <period>
+         <instant>2007-12-31</instant>
+      </period>
+   </context>
+
+   <!-- measure shoudl have a Qname prefix that resolves to a declared namepsace -->
+   <unit id="U-Monetary-nomeasureprefix">
+      <measure>EUR</measure>
+   </unit>
+
+   <ci:Land contextRef="I-2007" unitRef="U-Monetary-nomeasureprefix" decimals="INF">5347000</ci:Land>
+   
+</xbrl>

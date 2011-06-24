@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" 
+href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance" 
+xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+
+  </creator>
+  <number>21222</number>
+  <name>Parameter Cyclic Dependencies</name>
+  <description>
+    if there are circular dependencies among the XPath expressions of @select attributes of multiple parameters
+    then this error MUST be thrown 
+  </description>
+  <reference specification="VARIABLES" id="error-parameter-cyclic-dependencies"/>
+
+  <variation id="V-01">
+<name>
+parameter dependency cycle
+</name>
+    <description>
+
+Parameter p1 depends on parameter p2, whose XPath expression in @select attribute refers to parameter p3 which depends on p1.
+There is a circular dependency among parameter p1, p2, and p3.
+
+    </description>
+    <data>
+      <schema readMeFirst="true">paramCyclicDependencies.xsd</schema>
+      <linkbase>paramCyclicDependencies-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:parameterCyclicDependencies</error>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+<name>
+parameter dependency cycle
+</name>
+    <description>
+
+Parameter p1 depends on itself.
+
+    </description>
+    <data>
+      <schema readMeFirst="true">paramCyclicDependencies2.xsd</schema>
+      <linkbase>paramCyclicDependencies-formula2.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:parameterCyclicDependencies</error>
+    </result>
+  </variation>  
+  
+</testcase>

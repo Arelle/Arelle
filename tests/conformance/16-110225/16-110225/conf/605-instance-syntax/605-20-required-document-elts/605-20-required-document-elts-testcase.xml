@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-20</number>
+<name>EDGAR Filer Manual v16 6.5.20 page 6-12</name>
+<description>
+<h2>For each required Document Information element, an instance must contain a fact with that element and a contextRef attribute
+referring to its Required Context.</h2>
+<p>Required Document Information facts may specify attribute xml:lang, but facts with xml:lang attribute absent or xml:lang equal to
+"en-US" take precedence over facts with other languages starting with "en", which in turn take precedence over facts having other
+values for xml:lang. Additional facts using the Required Document Information elements are allowed in other contexts. The Required
+Document Information elements are:</p>
+<table>
+<tr>
+<th>Required Document Element</th>
+<th>Base Type</th>
+<th>(Example)</th>
+</tr>
+<tr>
+<td>dei:DocumentType</td>
+<td>EDGAR Form Types<br/>(Corporate Finance):<br/>10, 10-K, 10-Q, 20-F, 40-F, 6-K, 8-K, F-1, F-10, F-3, F-4, F-9, S-1, S-11,
+S-3, S-4, 10/A, 10-K/A, 10-Q/A, 20-F/A, 40-F/A, 6-K/A, 8-K/A, F-1/A, F-10/A, F-3/A, F-4/A, F-9/A, S-1/A, S-11/A, S-3/A, S-4/A<br/>
+<br/>EDGAR Form Types<br/>(Investment Management):<br/>485BPOS, 497 , N-CSR, N-CSRS, N-Q, N-CSR-CSRS/A, N-Q</td>
+<td>8-K</td>
+</tr>
+<tr>
+<td>dei:DocumentPeriodEndDate</td>
+<td>CCYY-MM-DD</td>
+<td>2009-09-30</td>
+</tr>
+<tr>
+<td>dei:AmendmentFlag</td>
+<td>xsd:Boolean</td>
+<td>true</td>
+</tr>
+<tr>
+<td>dei:AmendmentDescription<br/>(present if and only if dei:AmendmentFlag equals 'true')</td>
+<td>xsd:normalizedString</td>
+<td>Correct the company HQ address</td>
+</tr>
+</table>
+<p>CCYY-MM-DD is an ISO 8601 format date. ISO 8601 is the international standard for representing dates, times, durations and periods
+issued by the International Standards Organization. Other elements in the "dei" namespace whose names start with "Document" are
+optional.</p>
+<p>REMARK: There is a mapping from submission types recognized by EDGAR, to the valid values of the dei:DocumentType element. The
+mapping (submissionType,documentType) is:</p>
+<table>
+<tr>
+<th>EDGAR<br/>Form Type:</th>
+<th>dei:DocumentType<br/>Value:</th>
+</tr>
+<tr>
+<td>10</td>
+<td>10</td>
+</tr>
+<tr>
+<td>10/A</td>
+<td>10</td>
+</tr>
+<tr>
+<td>10-K</td>
+<td>10-K</td>
+</tr>
+<tr>
+<td>10-K/A</td>
+<td>10-K</td>
+</tr>
+<tr>
+<td>10-Q</td>
+<td>10-Q</td>
+</tr>
+<tr>
+<td>10-Q/A</td>
+<td>10-Q</td>
+</tr>
+<tr>
+<td>20-F</td>
+<td>20-F</td>
+</tr>
+<tr>
+<td>20-F/A</td>
+<td>20-F</td>
+</tr>
+<tr>
+<td>40-F</td>
+<td>40-F</td>
+</tr>
+<tr>
+<td>40-F/A</td>
+<td>40-F</td>
+</tr>
+<tr>
+<td>485BPOS</td>
+<td>485BPOS</td>
+</tr>
+<tr>
+<td>6-K</td>
+<td>6-K</td>
+</tr>
+<tr>
+<td>6-K/A</td>
+<td>6-K</td>
+</tr>
+<tr>
+<td>8-K</td>
+<td>8-K</td>
+</tr>
+<tr>
+<td>F-1</td>
+<td>F-1</td>
+</tr>
+<tr>
+<td>F-1/A</td>
+<td>F-1</td>
+</tr>
+<tr>
+<td>F-10</td>
+<td>F-10</td>
+</tr>
+<tr>
+<td>F-10/A</td>
+<td>F-10</td>
+</tr>
+<tr>
+<td>F-3</td>
+<td>F-3</td>
+</tr>
+<tr>
+<td>F-3/A</td>
+<td>F-3</td>
+</tr>
+<tr>
+<td>F-4</td>
+<td>F-4</td>
+</tr>
+<tr>
+<td>F-4/A</td>
+<td>F-4</td>
+</tr>
+<tr>
+<td>F-9</td>
+<td>F-9</td>
+</tr>
+<tr>
+<td>F-9/A</td>
+<td>F-9</td>
+</tr>
+<tr>
+<td>N-1A</td>
+<td>N-1A</td>
+</tr>
+<tr>
+<td>NCSR</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>NCSR/A</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>NCSRS</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>NCSRS/A</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>N-Q</td>
+<td>N-Q</td>
+</tr>
+<tr>
+<td>N-Q/A</td>
+<td>N-Q</td>
+</tr>
+<tr>
+<td>S-1</td>
+<td>S-1</td>
+</tr>
+<tr>
+<td>S-1/A</td>
+<td>S-1</td>
+</tr>
+<tr>
+<td>S-11</td>
+<td>S-11</td>
+</tr>
+<tr>
+<td>S-11/A</td>
+<td>S-11</td>
+</tr>
+<tr>
+<td>S-3</td>
+<td>S-3</td>
+</tr>
+<tr>
+<td>S-3/A</td>
+<td>S-3</td>
+</tr>
+<tr>
+<td>S-4</td>
+<td>S-4</td>
+</tr>
+<tr>
+<td>S-4/A</td>
+<td>S-4</td>
+</tr>
+<tr>
+<td>N-CSR</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>N-CSR/A</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>N-CSRS</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>NCSRS/A</td>
+<td>NCSR</td>
+</tr>
+<tr>
+<td>497</td>
+<td>Other</td>
+</tr>
+</table>
+</description>
+<reference specification="10491.1"/>
+<reference specification="10935"/>
+<reference specification="11158"/>
+<variation id="_000ng">
+<name>6.5.20 AmendmentFlag Missing, NOGOOD</name>
+<description>AmendmentFlag Missing, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520000ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60520" name="Amendment-Flag-Existence" frd="cp"/>
+</result>
+</variation>
+<variation id="_001gd">
+<name>6.5.20 AmendmentFlag True, AmendmentDescription Present, GOOD</name>
+<description>AmendmentFlag True, AmendmentDescription Present, GOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="11158"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520001gd-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.5.20 AmendmentFlag False, AmendmentDescription Present, NOGOOD</name>
+<description>AmendmentFlag False, AmendmentDescription Present, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="11158"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520002ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60520" name="Amendment-Description-Without-Amendment-Flag" frd="fs"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.5.20 AmendmentFlag True, Amendment Description Missing, NOGOOD.</name>
+<description>AmendmentFlag True, Amendment Description Missing, NOGOOD.</description>
+<reference specification="10491.1.2"/>
+<reference specification="11158"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520003ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60520" name="Amendment-Flag-Without-Amendment-Description" frd="fs"/>
+</result>
+</variation>
+<variation id="_004gd">
+<name>6.5.20 AmendmentFlag False, AmendmentDescription Missing, GOOD</name>
+<description>AmendmentFlag False, AmendmentDescription Missing, GOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="11158"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520004gd-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005ng">
+<name>6.5.20 Missing DocumentType, NOGOOD</name>
+<description>Missing DocumentType, NOGOOD</description>
+<reference specification="10491.1.3"/>
+<reference specification="11158"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520005ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60520" name="Document-Type-Existence" frd="cp"/>
+</result>
+</variation>
+<variation id="_006gd">
+<name>6.5.20 Extra DocumentType in a Non-Required Context, GOOD</name>
+<description>Extra DocumentType in a Non-Required Context, GOOD</description>
+<reference specification="10491.1.3"/>
+<reference specification="10980"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520006gd-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_007ng">
+<name>6.5.20 DocumentType present only in a Non-Required Context, NOGOOD</name>
+<description>DocumentType present only in a Non-Required Context, NOGOOD</description>
+<reference specification="10491.1.3"/>
+<reference specification="10980"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520007ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60520" name="Document-Type-Existence" frd="cp"/>
+</result>
+</variation>
+<variation id="_008ng">
+<name>6.5.20 Required Document elements, Missing DocumentPeriodEndDate, NOGOOD</name>
+<description>Required Document elements, Missing DocumentPeriodEndDate, NOGOOD</description>
+<reference specification="10491.1.6"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520008ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60520" name="Document-Period-End-Date-Existence" frd="cp"/>
+</result>
+</variation>
+<variation id="_009ng">
+<name>6.5.20 DocumentPeriodEndDate Present only in Non-Required Context, NOGOOD</name>
+<description>DocumentPeriodEndDate Present only in Non-Required Context, NOGOOD</description>
+<reference specification="10491.1.6"/>
+<reference specification="10980"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60520009ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60520" name="Document-Period-End-Date-Existence" frd="cp"/>
+</result>
+</variation>
+<variation id="_010ng">
+<name>6.5.20 dei:DocumentType (2008) value is 10-k (lowercase), NOGOOD</name>
+<description>dei:DocumentType (2008) value is 10-k (lowercase), NOGOOD</description>
+<reference specification="10491.1.6"/>
+<reference specification="10980"/>
+<data>
+<instance readMeFirst="true">e60520010ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60520" name="Document-Type-Value" frd="cp"/>
+</result>
+</variation>
+<variation id="_011gd">
+<name>6.5.20 dei:DocumentType value is 10-K, parameter is 10-K/A, GOOD</name>
+<description>dei:DocumentType value is 10-K, parameter is 10-K/A, GOOD</description>
+<reference specification="10491.1.6"/>
+<reference specification="10980"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K/A"/>
+<instance readMeFirst="true">e60520011gd-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_012gd">
+<name>6.5.20 dei:DocumentType value is NCSR, parameter is N-CSRS, GOOD</name>
+<description>dei:DocumentType value is NCSR, parameter is N-CSRS, GOOD</description>
+<reference specification="10491.1.6"/>
+<reference specification="10980"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="N-CSRS"/>
+<instance readMeFirst="true">e60520012gd-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_013ng">
+<name>6.5.20 dei:DocumentType value is 10-K, parameter is 10-Q, NOGOOD</name>
+<description>dei:DocumentType value is 10-K, parameter is 10-Q, NOGOOD</description>
+<reference specification="10491.1.6"/>
+<reference specification="10980"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-Q"/>
+<instance readMeFirst="true">e60520013ng-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60520" name="Document-Type-Not-Matched-To-Submission-Type" frd="cp"/>
+</result>
+</variation>
+<variation id="_014ng">
+<name>6.5.20 dei:DocumentType (2008) value is 10-K/A, NOGOOD</name>
+<description>dei:DocumentType (2008) value is 10-K/A, minor variation of value "10-k", parameter unspecified, NOGOOD</description>
+<reference specification="10491.1.6"/>
+<reference specification="10980"/>
+<data>
+<instance readMeFirst="true">e60520014ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60520" name="Document-Type-Value" frd="cp"/>
+</result>
+</variation>
+<variation id="_015gd">
+<name>6.5.20 dei:DocumentType value is 8-K, parameter is 8-K/A, GOOD</name>
+<description>dei:DocumentType value is 8-K, parameter is 8-K/A, GOOD</description>
+<reference specification="10491.1.6"/>
+<reference specification="10980"/>
+<reference specification="SPR-12456"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="8-K/A"/>
+<instance readMeFirst="true">e60520015gd-20081231.xml</instance>
+<linkbase>edgar-20111231_pre.xml</linkbase>
+<linkbase>edgar-20111231_def.xml</linkbase>
+<linkbase>edgar-20111231_lab.xml</linkbase>
+<schema>edgar-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

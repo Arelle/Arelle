@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<ptvl xmlns="http://www.xbrl.org/2003/ptv" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/ptv ptv-2003-12-31.xsd">
+	<arc linkType="calculation" extRole="http://www.xbrl.org/2003/role/link" arcRole="http://www.xbrl.org/2003/arcrole/summation-item" fromPath="http://mycompany.com/xbrl/arcs#ItemCredit" toPath="http://mycompany.com/xbrl/arcs#SumCredit" order="1" weight="1"/>
+	<arc linkType="calculation" extRole="http://www.xbrl.org/2003/role/link" arcRole="http://www.xbrl.org/2003/arcrole/summation-item" fromPath="http://mycompany.com/xbrl/arcs#ItemCredit" toPath="http://mycompany.com/xbrl/arcs#SumCredit" order="1" weight="0.5"/>
+</ptvl>

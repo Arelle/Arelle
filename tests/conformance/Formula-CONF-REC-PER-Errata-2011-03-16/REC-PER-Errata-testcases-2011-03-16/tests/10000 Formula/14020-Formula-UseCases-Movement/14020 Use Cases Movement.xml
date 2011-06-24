@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>14020</number>
+  <name>Movement accounting pattern</name>
+  <description>
+    Compute an ending balance from a starting balance and changes.  Involves cross context period filtering and establishing the instant date of resulting ending balance.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-variable-sets"/>
+  <reference specification="FORMULA" id="sec-default-aspect-rules"/>
+  <reference specification="FORMULA" id="sec-processing-model"/>
+
+  <variation id="V-01">
+    <name>Movement accounting pattern</name>
+    <description>
+      This accounting pattern example demonstrates the use of
+      cross context period operations.  The starting balance
+      is an instant period.  Changes are duration, and filtering
+      matches changes start data to the beginning balance period's
+      instant date.  The resulting fact is given an instant date
+      of the changes period end date.
+      
+      Due to use of the instantDuration period, the first fact
+      to bind is the changes and then the instantDuration fiter
+      filters for the starting balance matching the beginning of the
+      duration period.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <data>
+      <schema>14020-simpleMovement-concepts.xsd</schema>
+      <linkbase>14020-simpleMovement-formula.xml</linkbase>
+      <instance readMeFirst="true">14020-simpleMovement-instance.xml</instance>
+    </data>
+    <result>
+      <instance>14020-simpleMovement-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:edgar="http://edgar/20081231"
+xmlns="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<roleRef roleURI="http://edgar/role/role1" xlink:type="simple"
+xlink:href="e60505001ng-20081231.xsd#role1"/>
+<roleRef roleURI="http://edgar/role/role2" xlink:type="simple"
+xlink:href="e60505001ng-20081231.xsd#role2"/>
+<presentationLink xlink:type="extended" xlink:role="http://edgar/role/role2">
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentInformationLineItems"
+xlink:label="DocumentInformationLineItems"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentType"
+xlink:label="DocumentType"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentPeriodEndDate"
+xlink:label="DocumentPeriodEndDate"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCommonStockSharesOutstanding"
+xlink:label="EntityCommonStockSharesOutstanding"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityRegistrantName"
+xlink:label="EntityRegistrantName"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCentralIndexKey"
+xlink:label="EntityCentralIndexKey"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityPublicFloat"
+xlink:label="EntityPublicFloat"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AmendmentFlag"
+xlink:label="AmendmentFlag"/>
+<loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_CurrentFiscalYearEndDate"
+xlink:label="CurrentFiscalYearEndDate"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="DocumentType"
+order="1.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="DocumentPeriodEndDate"
+order="3.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="EntityCommonStockSharesOutstanding"
+order="8.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="EntityRegistrantName"
+order="5.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="EntityCentralIndexKey"
+order="6.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="EntityPublicFloat"
+order="7.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="AmendmentFlag"
+order="2.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="DocumentInformationLineItems"
+xlink:to="CurrentFiscalYearEndDate"
+order="4.0"/>
+</presentationLink>
+<presentationLink xlink:type="extended" xlink:role="http://edgar/role/role1">
+<loc xlink:type="locator" xlink:href="e60505001ng-20081231.xsd#edgar_TextBlock"
+xlink:label="TextBlock"/>
+<loc xlink:type="locator"
+xlink:href="e60505001ng-20081231.xsd#edgar_CompanyOwnedRestaurantSalesDomestic"
+xlink:label="CompanyOwnedRestaurantSalesDomestic"/>
+<loc xlink:type="locator" xlink:href="e60505001ng-20081231.xsd#edgar_Axis"
+xlink:label="Axis"/>
+<loc xlink:type="locator" xlink:href="e60505001ng-20081231.xsd#edgar_Table"
+xlink:label="Table"/>
+<loc xlink:type="locator" xlink:href="e60505001ng-20081231.xsd#edgar_TotalDomain"
+xlink:label="TotalDomain"/>
+<loc xlink:type="locator"
+xlink:href="e60505001ng-20081231.xsd#edgar_PepperoniMember"
+xlink:label="PepperoniMember"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="TextBlock"
+xlink:to="CompanyOwnedRestaurantSalesDomestic"
+use="optional"
+order="1.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="CompanyOwnedRestaurantSalesDomestic"
+xlink:to="Axis"
+use="optional"
+order="1.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="Axis"
+xlink:to="Table"
+use="optional"
+order="1.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="Table"
+xlink:to="TotalDomain"
+use="optional"
+order="1.0"/>
+<presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="TotalDomain"
+xlink:to="PepperoniMember"
+use="optional"
+order="1.0"/>
+</presentationLink>
+</linkbase>
