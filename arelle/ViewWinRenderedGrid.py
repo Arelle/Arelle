@@ -117,7 +117,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             
             xAxisObj = yAxisObj = zAxisObj = None
             for tblAxisRel in tblAxisRelSet.fromModelObject(table):
-                axisType = tblAxisRel.element.getAttribute("axisType")
+                axisType = tblAxisRel.get("axisType")
                 axisObj = tblAxisRel.toModelObject
                 if axisType == "xAxis": xAxisObj = axisObj
                 elif axisType == "yAxis": yAxisObj = axisObj

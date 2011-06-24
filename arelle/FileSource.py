@@ -92,8 +92,9 @@ class FileSource:
                             pass # provide error message later
 
                         i += lenCompr + 4
-                    with open("c:\\temp\\test.xml", "wb") as fh:
-                        fh.write(ungzippedBytes)
+                    #for learning the content of xfd file, uncomment this:
+                    #with open("c:\\temp\\test.xml", "wb") as fh:
+                    #    fh.write(ungzippedBytes)
                     file = io.StringIO(initial_value=ungzippedBytes.decode("utf-8"))
                 else:
                     # position to start of file
@@ -179,31 +180,32 @@ class FileSource:
                         io.BytesIO(b), 
                         encoding=XmlUtil.encoding(b))
             elif archiveFileSource.isXfd:
-                for data in archiveFileSource.xfdDocument.getElementsByTagName("data"):
-                    outfn = XmlUtil.text(XmlUtil.descendant(data, None, "filename"))
-                    b64data = XmlUtil.text(XmlUtil.descendant(data, None, "mimedata"))
-                    if len(outfn) > 1 and len(b64data) > 1 and outfn == archiveFileName:
-                        # convert to bytes
-                        #byteData = []
-                        #for c in b64data:
-                        #    byteData.append(ord(c))
-                        b = base64.b64decode(b64data.encode("latin-1"))
-                        # remove BOM codes if present
-                        if len(b) > 3 and b[0] == 239 and b[1] == 187 and b[2] == 191:
-                            start = 3;
-                            length = len(b) - 3;
-                            b = b[start:start + length]
-                        else:
-                            start = 0;
-                            length = len(b);
-                        # pass back as ascii
-                        #str = ""
-                        #for bChar in b[start:start + length]:
-                        #    str += chr( bChar )
-                        #return str
-                        return io.TextIOWrapper(
-                            io.BytesIO(b), 
-                            encoding=XmlUtil.encoding(b))
+                for data in archiveFileSource.xfdDocument.iter(tag="data"):
+                    outfn = data.findtext("filename")
+                    if outfn == archiveFileName:
+                        b64data = data.findtext("mimedata")
+                        if b64data:
+                            # convert to bytes
+                            #byteData = []
+                            #for c in b64data:
+                            #    byteData.append(ord(c))
+                            b = base64.b64decode(b64data.encode("latin-1"))
+                            # remove BOM codes if present
+                            if len(b) > 3 and b[0] == 239 and b[1] == 187 and b[2] == 191:
+                                start = 3;
+                                length = len(b) - 3;
+                                b = b[start:start + length]
+                            else:
+                                start = 0;
+                                length = len(b);
+                            # pass back as ascii
+                            #str = ""
+                            #for bChar in b[start:start + length]:
+                            #    str += chr( bChar )
+                            #return str
+                            return io.TextIOWrapper(
+                                io.BytesIO(b), 
+                                encoding=XmlUtil.encoding(b))
                 return None
         return open(filepath, 'rt', encoding='utf-8')
     
@@ -221,9 +223,9 @@ class FileSource:
             self.filesDir = files
         elif self.isXfd:
             files = []
-            for data in XmlUtil.descendants(self.xfdDocument, None, "data"):
-                outfn = XmlUtil.text(XmlUtil.descendants(data, None, "filename")[0])
-                if len(outfn) > 1:
+            for data in self.xfdDocument.iter(tag="data"):
+                outfn = data.findtext("filename")
+                if outfn:
                     if len(outfn) > 2 and outfn[0].isalpha() and \
                         outfn[1] == ':' and outfn[2] == '\\':
                         continue

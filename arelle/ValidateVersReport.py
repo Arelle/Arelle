@@ -42,8 +42,8 @@ class ValidateVersReport():
 
         versReportElt = versReport.xmlRootElement
         # check actions
-        for assignmentRef in versReportElt.getElementsByTagNameNS(XbrlConst.ver,"assignmentRef"):
-            ref = assignmentRef.getAttribute("ref")
+        for assignmentRef in versReportElt.iterdescendants(tag="{http://xbrl.org/2010/versioning-base}assignmentRef"):
+            ref = assignmentRef.get("ref")
             if ref not in versReport.idObjects or \
                not isinstance(versReport.idObjects[ref], ModelVersObject.ModelAssignment):
                     self.modelVersReport.error(
@@ -78,8 +78,8 @@ class ValidateVersReport():
                 
         # check reportRefs
         # check actions
-        for reportRef in versReportElt.getElementsByTagNameNS(XbrlConst.ver,"reportRef"):
-            xlinkType = reportRef.getAttributeNS(XbrlConst.xlink, "type")
+        for reportRef in versReportElt.iterdescendants(tag="{http://xbrl.org/2010/versioning-base}reportRef"):
+            xlinkType = reportRef.get("{http://www.w3.org/1999/xlink}type")
             if xlinkType != "simple":
                 self.modelVersReport.error(
                     _("ReportRef xlink:type {0} must be \"simple\"").format(xlinkType), 

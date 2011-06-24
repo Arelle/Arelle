@@ -29,7 +29,7 @@ def xmlValidate(entryModelDocument):
             importedNamespaces.add(modelDocument.targetNamespace)
     if entryModelDocument.xmlRootElement.hasAttributeNS(XbrlConst.xsi, "schemaLocation"):
         ns = None
-        for entry in entryModelDocument.xmlRootElement.getAttributeNS(XbrlConst.xsi, "schemaLocation").split():
+        for entry in entryModelDocument.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation").split():
             if ns is None:
                 ns = entry
             else:

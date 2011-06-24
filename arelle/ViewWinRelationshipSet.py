@@ -147,7 +147,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.set(childnode, "usable", modelObject.usable)
         elif self.arcrole == "EU-rendering" and isRelation: # extra columns
             if relArcrole == XbrlConst.euTableAxis:
-                self.treeView.set(childnode, "axis", modelObject.element.getAttribute("axisType"))
+                self.treeView.set(childnode, "axis", modelObject.get("axisType"))
             if isinstance(concept, ModelAxisCoord):
                 self.treeView.set(childnode, "priItem", concept.primaryItemQname)
                 self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim[0],dim[1]) for dim in concept.explicitDims)))
