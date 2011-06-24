@@ -1,6 +1,6 @@
 # -*- coding: windows-1252 -*-
 
-from arelle import Formatting
+from arelle.xlwt import Formatting
 from arelle.xlwt.BIFFRecords import *
 import collections
 

@@ -1,4 +1,4 @@
-from arelle import ExcelFormulaParser, ExcelFormulaLexer
+from arelle.xlwt import ExcelFormulaParser, ExcelFormulaLexer
 import struct
 from arelle.xlwt.antlr import ANTLRException
 

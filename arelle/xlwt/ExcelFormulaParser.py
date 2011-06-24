@@ -1,11 +1,11 @@
 ### $ANTLR 2.7.7 (20060930): "xlwt/excel-formula.g" -> "ExcelFormulaParser.py"$
 ### import antlr and other modules ..
 import sys
-from arelle import antlr
+from arelle.xlwt import antlr
 
 ### header action >>>
 import struct
-from arelle import Utils
+from arelle.xlwt import Utils
 from arelle.xlwt.UnicodeUtils import upack1
 from arelle.xlwt.ExcelMagic import *
 
