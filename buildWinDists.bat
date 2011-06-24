@@ -37,6 +37,4 @@ rmdir lxml/s/q
 rem rename for build date
 call buildRenameX64.bat
 
-rem compact /c /f dist\exe.win32-3.2.exe
-
-rem rmdir build /s/q
+rmdir build /s/q
