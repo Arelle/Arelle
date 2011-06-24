@@ -1,10 +1,10 @@
 # -*- coding: windows-1252 -*-
 
-from arelle import BIFFRecords
-from arelle import Style
+from arelle.xlwt import BIFFRecords
+from arelle.xlwt import Style
 from arelle.xlwt.Cell import StrCell, BlankCell, NumberCell, FormulaCell, MulBlankCell, BooleanCell, ErrorCell, \
     _get_cells_biff_data_mul
-from arelle import ExcelFormula
+from arelle.xlwt import ExcelFormula
 import datetime as dt
 try:
     from decimal import Decimal

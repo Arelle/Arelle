@@ -33,10 +33,10 @@
             EOF
 '''
 
-from arelle import BIFFRecords
-from arelle import Bitmap
-from arelle import Formatting
-from arelle import Style
+from arelle.xlwt import BIFFRecords
+from arelle.xlwt import Bitmap
+from arelle.xlwt import Formatting
+from arelle.xlwt import Style
 import tempfile
 
 
@@ -47,10 +47,10 @@ class Worksheet(object):
     ## Constructor
     #################################################################
     def __init__(self, sheetname, parent_book, cell_overwrite_ok=False):
-        from arelle import Row
+        from arelle.xlwt import Row
         self.Row = Row #(to_py3): Row.Row -> Row
 
-        from arelle import Column
+        from arelle.xlwt import Column
         self.Column = Column #(to_py3): Column.Column -> Column
 
         self.__name = sheetname

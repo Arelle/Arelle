@@ -28,7 +28,7 @@ is not set), it repeats the attributes of its style XF record.
 
 '''
 
-from arelle import BIFFRecords
+from arelle.xlwt import BIFFRecords
 
 class Font(object):
 
