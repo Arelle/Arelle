@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>32110</number>
+  <name>Existence Assertion element static analysis</name>
+  <description>
+    Assertion testing of existence expression element, static analysis.
+  </description>
+  <reference specification="EXISTENCE-ASSERTION" id="error-variable-reference-not-allowed"/>
+
+  <variation id="V-01">
+    <name>Test references fact variable</name>
+    <description>
+      Test references fact variable.
+    </description>
+    <reference specification="EXISTENCE-ASSERTION" id="error-variable-reference-not-allowed"/>
+    <data>
+      <schema>32110-existenceAssertion-concepts.xsd</schema>
+      <linkbase>32110-factVarRef-formula.xml</linkbase>
+      <instance readMeFirst="true">32110-factVarRef-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrleae="http://xbrl.org/2008/assertion/existence/error">
+          xbrleae:variableReferenceNotAllowed
+      </error>
+    </result>
+  </variation>
+
+
+
+</testcase>
+
+
+

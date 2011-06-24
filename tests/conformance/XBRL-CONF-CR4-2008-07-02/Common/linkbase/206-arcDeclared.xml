@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Arc Declarations" description="Section 5.5.9" outpath="out" owner="phillipengel@kpmg.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+        <variation id="V-1" name="Delcared arc role">
+                <description>206.01 ArcRoleG.xsd declares a new arc role called row-cell for use on prsentationArc elements.</description>
+                <data>
+                        <xsd readMeFirst="false">ArcRoleG.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleG_presentation.xml</linkbase>
+                        <instance readMeFirst="true">ArcRoleG.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+        <variation id="V-2" name="Delcared arc role used on wrong arc">
+                <description>206.02 ArcRoleBU.xsd declares a new arc role called row-cell for use on prsentationArc elements.  In the ArcRoleBU_calculation.xml linkbase, the new arc role is used on a calculation arc.</description>
+                <data>
+                        <xsd readMeFirst="false">ArcRoleBU.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleBU_presentation.xml</linkbase>
+                        <linkbase readMeFirst="false">ArcRoleBU_calculation.xml</linkbase>
+                        <instance readMeFirst="true">ArcRoleBU.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+        <variation id="V-3" name="Arc role URI on arcroleREf does not match the URI on arcroleType">
+                <description>206.03 ArcRoleBR.xsd declares a new arc role called row-cell for use on prsentationArc elements.  In the ArcroleBR_presentation.xml linkbase, a presentationArc element uses cell-row as the arc role which is not declared.  The arcroleRef contains the URI for the cell-row arc role with an href pointing to the arcroleType for row-cell.</description>
+                <data>
+                        <xsd readMeFirst="false">ArcRoleBR.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleBR_presentation.xml</linkbase>
+                        <instance readMeFirst="true">ArcRoleBR.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+        <variation id="V-4" name="Arc role used but not delcared, no corresponding arcroleRef">
+                <description>206.04 ArcRoleBR2.xsd declares a new arc role called row-cell for use on prsentationArc elements.  In the ArcroleBR_presentation.xml linkbase, a presentationArc element uses cell-row as the arc role which is not declared.  There is no arcroleRef to resolve the cell-row arc role.</description>
+                <data>
+                        <xsd readMeFirst="false">ArcRoleBR2.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleBR2_presentation.xml</linkbase>
+                        <instance readMeFirst="true">ArcRoleBR2.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+        <variation id="V-5" name="Duplicate arc role declaration">
+                <description>206.05 ArcRoleDR.xsd declares a new arc role twice within the same taxonomy schema document called row-cell for use on prsentationArc elements.</description>
+                <data>
+                        <xsd readMeFirst="false">ArcRoleDR.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleDR_presentation.xml</linkbase>
+                        <instance readMeFirst="true">ArcRoleDR.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+        <variation id="V-6" name="Same arc role declared in separate schemas, declarations are equivalent">
+                <description>206.06 ArcRoleDR2.xsd and ArcRoleDR2a declare a new arc role called row-cell for use on prsentationArc elements.  The ArcRoleDR2_presentation.xml linkbase has locator to both of these schemas.  So that in the DTS, the arc role is declared twice.  Since the declarations are equivalent, the files are valid.</description>
+                <data>
+                        <xsd readMeFirst="false">ArcRoleDR2.xsd</xsd>
+                        <xsd validatorExclude="true" readMeFirst="false">ArcRoleDR2a.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleDR2_presentation.xml</linkbase>
+                        <instance readMeFirst="true">ArcRoleDR2.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+        <variation id="V-7" name="Same arc role declared in separate schemas, declarations are not equivalent">
+                <description>206.07 ArcRoleDR3.xsd and ArcRoleDR3a declare a new arc role called row-cell for use on prsentationArc elements.  The ArcRoleDR3_presentation.xml linkbase has locator to both of these schemas.  So that in the DTS, the arc role is declared twice.  Since the declarations are not equivalent, the files are not valid.</description>
+                <data>
+                        <xsd readMeFirst="false">ArcRoleDR3.xsd</xsd>
+                        <xsd validatorExclude="true" readMeFirst="false">ArcRoleDR3a.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleDR3_presentation.xml</linkbase>
+                        <instance readMeFirst="true">ArcRoleDR3.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+        <variation id="V-8" name="Custom arc role end points test">
+                <description>A set of custom arc roles are defined to demonstrate allowed end points differing from the usual, per Spec call July 13, 2006 (pursuant to &quot;Create Conformance Suite entry for summation-item end points?&quot; http://xbrl.org/scripts/wa.exe?A2=ind0607&amp;L=int-spec&amp;P=4022). Tests (a) that calculation arcs can be used between a string and a numeric end point (here to define a countOf-item relationship), (b) that calculation arcs can be used between an end point inside tuples and a statistic end point at root level (here an averageOf-quantity relationship), and (c) that definition arcs can be used between a tuple end point and an item end point at root level (here an isStatisticOf-tuple relationship). (Submitted by Herm Fischer, UBmatrix, herman.fischer@ubmatrix.com)</description>
+                <data>
+                        <xsd readMeFirst="true">ArcRoleCustomEndPoints.xsd</xsd>
+                        <linkbase readMeFirst="false">ArcRoleCustomEndPoints-label.xml</linkbase>
+                        <linkbase readMeFirst="false">ArcRoleCustomEndPoints-presentation.xml</linkbase>
+                        <linkbase readMeFirst="false">ArcRoleCustomEndPoints-calculation.xml</linkbase>
+                        <linkbase readMeFirst="false">ArcRoleCustomEndPoints-definition.xml</linkbase>
+                </data>
+                <result expected="valid"/>
+        </variation>
+</testcase>
+

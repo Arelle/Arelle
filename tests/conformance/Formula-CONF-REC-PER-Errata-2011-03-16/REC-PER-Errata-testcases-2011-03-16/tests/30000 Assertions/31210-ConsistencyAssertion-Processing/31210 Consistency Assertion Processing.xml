@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>31210</number>
+  <name>Consistency Assertion Processing</name>
+  <description>
+    Consistency check formula results against reported fact items.
+  </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+
+  <variation id="V-01">
+    <name>Consistency check a = b * c, strict, reported valid a, evaluated ok</name>
+    <description>
+      Consistency check valid a = b * c.  Evaluates consistently.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-strict-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-strict-abc-evaluated-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Consistency check b * c against reported inconsistent a, strict</name>
+    <description>
+      Consistency check invalid a against b * c.  Evaluates inconsistent.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-strict-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-strict-abc-inconsistent-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Consistency check a reported valid = b * c, not strict, evaluated ok</name>
+    <description>
+      Consistency check valid a = b * c.  Evaluates consistently.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-not-strict-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-not-strict-abc-evaluated-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>Consistency check b * c against unreported a, not strict, not evaluated</name>
+    <description>
+      Consistency check valid a = b * c, a not reported.  Consistency is not evaluated because no eg:a values in source instance.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-not-strict-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-not-strict-bc-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>Consistency check b * c against unreported a, strict, evaluated as inconsistent</name>
+    <description>
+      Consistency check valid a = b * c, a unreported.  Evaluation must be inconsistent due to unreported a fact item.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-strict-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-strict-bc-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-06">
+    <name>Consistency check b * c against a low and in tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using absolute acceptance radius, at low end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-abs-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-abs-low-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-07">
+    <name>Consistency check b * c against a high and in tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using absolute acceptance radius, at high end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-abs-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-abs-high-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-08">
+    <name>Consistency check b * c against a low and out of tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using absolute acceptance radius, below low end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-abs-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-abs-low-not-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-09">
+    <name>Consistency check b * c against a high and out of tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using absolute acceptance radius, above high end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-abs-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-abs-high-not-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-10">
+    <name>Consistency check b * c against a proportion to parameter low but in tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, at low end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-param-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-param-ok-low-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-11">
+    <name>Consistency check b * c against a proportion to parameter high but in tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, at high end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-param-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-param-ok-high-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-12">
+    <name>Consistency check b * c against a proportion to parameter low out of tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, below low end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-param-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-param-not-ok-low-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-13">
+    <name>Consistency check b * c against a proportion to parameter high out of tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, above high end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-param-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-param-not-ok-high-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-14">
+    <name>Consistency check b * c against a proportion low but in tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, at low end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-propor-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-propor-ok-low-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-15">
+    <name>Consistency check b * c against a proportion high but in tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, at high end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-propor-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-propor-ok-high-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-16">
+    <name>Consistency check b * c against a proportion low out of tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, below low end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-propor-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-propor-not-ok-low-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-17">
+    <name>Consistency check b * c against a proportion high out of tolerance</name>
+    <description>
+      Consistency check valid a = b * c, using proportionate acceptance radius, above high end of tolerance range.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>31210-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31210-propor-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31210-propor-not-ok-high-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31210-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+
+</testcase>
+

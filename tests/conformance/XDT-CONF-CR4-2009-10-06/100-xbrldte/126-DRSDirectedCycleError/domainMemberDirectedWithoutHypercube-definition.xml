@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linkbase xmlns='http://www.xbrl.org/2003/linkbase' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation=' http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd' xmlns:xbrldt='http://xbrl.org/2005/xbrldt' xmlns:xlink='http://www.w3.org/1999/xlink'>
+  <arcroleRef arcroleURI='http://xbrl.org/int/dim/arcrole/domain-member' xlink:href='http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member' xlink:type='simple'/>
+
+  <roleRef roleURI='http://www.xbrl.org/2003/role/link/R1' xlink:href='schema.xsd#R1' xlink:type='simple'/>
+  <roleRef roleURI='http://www.xbrl.org/2003/role/link/R2' xlink:href='schema.xsd#R2' xlink:type='simple'/>
+
+  <definitionLink xlink:role='http://www.xbrl.org/2003/role/link/R1' xlink:type='extended'>
+    <loc xlink:href='schema.xsd#domain' xlink:label='domain' xlink:type='locator'/>
+    <loc xlink:href='schema.xsd#domainMember' xlink:label='domainMember' xlink:type='locator'/>
+    <definitionArc xlink:arcrole='http://xbrl.org/int/dim/arcrole/domain-member' xlink:from='domain' xlink:to='domainMember' xbrldt:targetRole='http://www.xbrl.org/2003/role/link/R2' xlink:type="arc"/>
+  </definitionLink>
+
+  <definitionLink xlink:role='http://www.xbrl.org/2003/role/link/R2' xlink:type='extended'>
+    <loc xlink:href='schema.xsd#domain' xlink:label='domain' xlink:type='locator'/>
+    <loc xlink:href='schema.xsd#domainMember' xlink:label='domainMember' xlink:type='locator'/>
+    <definitionArc xlink:arcrole='http://xbrl.org/int/dim/arcrole/domain-member' xlink:from='domainMember' xlink:to='domain' xlink:type="arc"/>
+  </definitionLink>
+</linkbase>

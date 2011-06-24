@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-02-26 21:09).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-02-27 09:33:52
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:calcinferprecisiontestcase="http://www.example.com/calcinferprecisiontestcase" targetNamespace="http://www.example.com/calcinferprecisiontestcase" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="320-18-BindCalculationInferPrecision-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Label Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="320-18-BindCalculationInferPrecision-calculation.xml" xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Calculation Links, all" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="calcinferprecisiontestcase_A" name="A" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="calcinferprecisiontestcase_B" name="B" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="calcinferprecisiontestcase_C" name="C" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+</schema>

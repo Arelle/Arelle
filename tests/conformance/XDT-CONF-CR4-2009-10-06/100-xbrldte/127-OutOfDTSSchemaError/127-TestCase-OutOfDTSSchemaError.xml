@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xbrl.org/2005/conformance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" name="127-TestCase-OutOfDTSSchemaError" description="XML Schemas defining elements used in typed dimension MUST be included in the DTS." outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+<!-- spec sections updated for spec 2005-10-26 by Herm Fischer, on 2005-11-07 -->
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and not covered by XML Schema and XBRL Validation. -->
+        <!-- As of the 2005-10-26 internal working draft (with localised edits), this pertained only to the xbrldt:typedDomainRef attribute. -->
+        <!-- TESTCASE HAS NO STANDARD LABELS: 2.7.1.1 only requires standard labels on element declarations which are the targets of has-hypercube, hypercube-dimension, dimension-domain and domain-member relationships, but there are none in this testcase -->
+        <!-- 2.5.2.1.1   1.	A dimensional processor MUST raise an error [Dim Err, 10] xbrldte:OutOfDTSSchemaError if the xbrldt:typedDomainRef attribute points to a schema that is not included in the taxonomy DTS. -->
+        <variation id="V-01" name="typedDomainRefdoesnotlocateDeclarationInDifferentFile">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">Signal xbrldte:OutOfDTSSchemaError because typedDomainRef attribute incorrectly locates the declaration of a non-abstract element in a different file that is not part of the taxonomy DTS.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainRefdoesnotlocateDeclarationInDifferentFile.xsd</xsd>
+                        <xsd readMeFirst="false">typedDomainReflocatesDeclarationInDifferentFile_File2.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:OutOfDTSSchemaError</error>
+                </result>
+        </variation>
+        <variation id="V-02" name="typedDomainReflocatesDeclarationInDifferentFile">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">typedDomainRef attribute correctly locates the declaration of a non-abstract element in a different file that is part of the taxonomy DTS.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainReflocatesDeclarationInDifferentFile.xsd</xsd>
+                        <xsd readMeFirst="false">typedDomainReflocatesDeclarationInDifferentFile_File2.xsd</xsd>
+                </data>
+                <result />
+        </variation>
+        <variation id="V-03" name="CIQ-Integration-testcase-1">
+                <description>The instance document instance-A.xbrl refers to the Taxonomy XBRLTaxonomyA.xsd. That taxonomy do not include the schema xNL_Bridge_XBRL.xsd in the DTS so xbrldte:OutOfDTSSchemaError must be raised.</description>
+                <data>
+                    <xsd readMeFirst="true">XBRLTaxonomyA.xsd</xsd>
+                    <linkbase readMeFirst="false">XBRLTaxonomyA-definition.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:OutOfDTSSchemaError</error>
+                </result>
+        </variation>
+         <variation id="V-04" name="typed-dimension-schema-uses-redefine-3">
+                <description>The schema that defines the typed dimension element contains a xs:redefine element. The taxonomy do not contains the redefine-schema.xsd in the DTS. The xbrldt:typedDomainRef points to a new element definition which is valid.</description>
+                <data>
+                        <xsd readMeFirst="true">typed-dimension-schema-uses-redefine-no-dts-2.xsd</xsd>
+                        <xsd readMeFirst="false">original-schema.xsd</xsd>
+                        <xsd readMeFirst="false">redefine-schema.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:OutOfDTSSchemaError</error>
+                </result>
+        </variation>
+</testcase>
+

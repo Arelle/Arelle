@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:nemo="http://captain.nemo.org" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://captain.nemo.org Nautilus.xsd">
+	<link:schemaRef xlink:href="Nautilus.xsd" xlink:type="simple"/>
+	<context id="c1">
+		<entity>
+			<identifier scheme="www.dnb.com">121064880</identifier>
+			<segment>
+				<nemo:arronax>
+                                <nemo:nedland>
+                                    <context id="dummy">
+                                        <entity>
+                                            <identifier scheme="www.dnb.com">121064880</identifier>
+                                        </entity>
+                                        <period><instant>2002-12-01</instant></period>
+                                    </context>
+                                </nemo:nedland>
+				</nemo:arronax>
+			</segment>
+		</entity>
+		<period>
+			<instant>2002-12-01</instant>
+		</period>
+	</context>
+</xbrl>

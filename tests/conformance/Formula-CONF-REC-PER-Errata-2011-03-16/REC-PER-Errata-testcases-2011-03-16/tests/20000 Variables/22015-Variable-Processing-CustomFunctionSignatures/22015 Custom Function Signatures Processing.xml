@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22015</number>
+  <name>Custom function signature</name>
+  <description>
+Example of custom function.  Requires implementation of custom function for this test case per variation.  Custom function may be implemented in any programming language convenient to formula processor being tested.
+  </description>
+  <reference specification="VARIABLES" id="sec-custom-function-signature"/>
+
+  <variation id="V-01">
+    <name>Weighted Average of Dimensions (COREP Use Case 18)</name>
+    <description>
+      Use of custom function for example 0017, to replace the
+      general variable as noted in comments embedded in
+      variation's formula linkbase.  (Simplified to avoid
+      0018's consistency assertion, here just to provide
+      output result instance.)  Test suite must implement
+      the custom function my-fn:PDxEV in order to execute
+      this test case.
+    </description>
+    <data>
+      <instance readMeFirst="true">Corep18-WeightedAverage-instance.xml</instance> 
+      <schema readMeFirst="false">Corep18-WeightedAverage.xsd</schema>
+      <linkbase readMeFirst="false">Corep18-WeightedAverage-formulae.xml</linkbase>
+      <linkbase readMeFirst="false">Corep18-WeightedAverage-definition.xml</linkbase>
+    </data>
+    <result>
+      <instance>Corep18-WeightedAverage-result.xml</instance> 
+    </result>
+  </variation>
+  
+</testcase>
+
+

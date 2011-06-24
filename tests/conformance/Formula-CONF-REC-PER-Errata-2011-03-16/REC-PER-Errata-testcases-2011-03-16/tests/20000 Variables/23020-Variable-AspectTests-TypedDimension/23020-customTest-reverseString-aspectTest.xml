@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:aspectTest="http://xbrl.org/2008/variable/aspectTest"
+  xmlns:t="http://xbrl.org/formula/conformance/example" 
+
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/variable ../../../core_schemas/variable.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/equality-definition" xlink:href="../../../core_schemas/variable.xsd#equality-definition" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <link:loc xlink:type="locator"
+      xlink:label="typed-dim-domain"
+      xlink:href="23020-typedDim-aspects.xsd#dimVal" />
+
+    <variable:equalityDefinition xlink:type="resource" 
+      xlink:label="custom-dim-test" 
+      test="
+        for $dim in QName('http://xbrl.org/formula/conformance/example','typeDim1'),
+          	$dva in xfi:fact-typed-dimension-value($aspectTest:a, $dim)/t:dimVal,
+            $dvb in xfi:fact-typed-dimension-value($aspectTest:b, $dim)/t:dimVal return 
+        (: abc compares equal to cba :)
+        $dva/t:strVal eq 
+              codepoints-to-string(
+                 reverse(
+                    string-to-codepoints($dvb/t:strVal))) and
+        $dva/t:intVal eq $dvb/t:intVal and
+        $dva/t:qnameVal eq $dvb/t:qnameVal
+      "/>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/equality-definition"
+      xlink:from="typed-dim-domain" 
+      xlink:to="custom-dim-test" order="1.0"/>
+
+  </generic:link>
+
+</link:linkbase>

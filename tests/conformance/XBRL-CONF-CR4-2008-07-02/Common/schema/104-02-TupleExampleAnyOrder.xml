@@ -1,0 +1,20 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy 104-02-TupleExampleAnyOrder.xsd">
+	<link:schemaRef xlink:href="104-02-TupleExampleAnyOrder.xsd" xlink:type="simple"/>
+	<my:managementInformation>
+		<my:managementName contextRef="ci">My Name</my:managementName>
+		<my:managementTitle contextRef="ci">My Title1</my:managementTitle>
+		<my:managementAge contextRef="ci" unitRef="u1" precision="2">20</my:managementAge>
+		<!--my:managementAge contextRef="ci" unitRef="u1">36</my:managementAge-->
+	</my:managementInformation>
+	<unit id="u1">
+		<measure>my:year</measure>
+	</unit>
+	<context id="ci">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+	</context>
+</xbrl>

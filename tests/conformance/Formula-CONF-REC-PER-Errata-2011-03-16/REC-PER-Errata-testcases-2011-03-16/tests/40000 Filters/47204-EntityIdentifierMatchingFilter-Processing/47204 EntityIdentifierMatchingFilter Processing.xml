@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"   
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+ >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47204</number>
+  <name>Entity identifier matching filter test</name>
+  <description>
+    Tests of entity identifier matching filter.
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-entity-identifier-matching-filter"/>
+  <reference specification="http://www.w3.org/TR/REC-xml-names/" id="NSNameComparison"/>
+
+  <variation id="V-01">
+        <name>Entity identifier matching filter</name>
+    <description>
+Three facts, 4 contexts, each other two share scheme/value,  match of tripple of fact variables to guarantee each of scheme/value and tandem filtering considered.  The two scheme namespace URI's have no escaped or capitalization differences.
+    </description>
+    <data>
+      <schema>47204-concepts.xsd</schema>
+      <linkbase>47204-entityIdentifierMatching-formula.xml</linkbase>
+      <instance readMeFirst="true">47204-entityIdentifierMatching-instance.xml</instance>
+    </data>
+    <result>
+      <instance>47204-entityIdentifierMatching-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+        <name>Same as V-01, but using w3c spec namespace URI example focusing on letter-case and escaping sensitivity.</name>
+    <description>
+Same as V-01 but see <xhtml:a href='http://www.w3.org/TR/REC-xml-names/#NSNameComparison'>W3C instructions on comparing namespace URIs (http://www.w3.org/TR/REC-xml-names/#NSNameComparison)</xhtml:a>, examples, used here.  Tests this w3c requirement in comparing namespace URIs: &quot;the comparison is case-sensitive, and no %-escaping is done or undone&quot;. 
+   </description>
+    <data>
+      <schema>47204-concepts.xsd</schema>
+      <linkbase>47204-entityIdentifierMatching-formula.xml</linkbase>
+      <instance readMeFirst="true">47204-entityIdentifierMatching-w3c-instance.xml</instance>
+    </data>
+    <result>
+      <instance>47204-entityIdentifierMatching-w3c-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

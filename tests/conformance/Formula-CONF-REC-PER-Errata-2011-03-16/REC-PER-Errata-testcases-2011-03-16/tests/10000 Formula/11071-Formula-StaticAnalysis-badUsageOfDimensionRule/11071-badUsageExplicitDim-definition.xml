@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosedExplDim"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosedExplDimInSeg" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosedTypedDim"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosedTypedDimInSeg" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosedExplDimInScen"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosedExplDimInScen" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosedTypedDimInScen"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosedTypedDimInScen" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosed3DimsInSeg"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosed3DimsInSeg" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosed2DimsInSeg"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosed2DimsInSeg" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosed2DimsInSeg-a"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosed2DimsInSeg-a" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkClosedNoDims"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkClosedNoDims" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkOpenSeg"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkOpenSeg" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkOpenScen"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkOpenScen" />
+  <roleRef xlink:type="simple"
+    xlink:href="11071-badUsageExplicitDim.xsd#linkDimensionDefaults"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkDimensionDefaults" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosedExplDimInSeg">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Dom"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr2"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1MbrDefault"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1MbrDefault" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1MbrDefault"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToScen"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToNone"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToNone" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToNone"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClSeg"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClSeg" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClSeg"
+      order="4"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosedTypedDimInSeg">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_TypedDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_TypedDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToScen"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClSeg"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClSeg" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClSeg"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosedExplDimInScen">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="scenario"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Dom"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr2"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToScen"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClScen"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosedTypedDimInScen">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="scenario"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_TypedDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_TypedDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToScen"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClScen"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosed3DimsInSeg">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Dom"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr2"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim2"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Dom"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim2" xlink:to="eg_ExplDim2Dom"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Mbr1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Mbr2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Mbr2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr2"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_TypedDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_TypedDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToScen"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClSeg"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClSeg" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClSeg"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosed2DimsInSeg">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim2"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Dom"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim2" xlink:to="eg_ExplDim2Dom"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Mbr1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr1"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Mbr2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Mbr2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr2"
+      order="4"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_TypedDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_TypedDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToScen"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClSeg"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClSeg" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClSeg"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosed2DimsInSeg-a">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Dom"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1Mbr2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr2"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim2"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Dom"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim2" xlink:to="eg_ExplDim2Dom"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Mbr1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr1"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim2Mbr2"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim2Mbr2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr2"
+      order="4"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToScen"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClSeg"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClSeg" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClSeg"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkClosedNoDims">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClAmbiguousSegToNone"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClAmbiguousSegToNone" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClAmbiguousSegToNone"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemClNoDims"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemClNoDims" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemClNoDims"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkOpenSeg">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="false" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemOpSeg"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemOpSeg" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemOpSeg"
+      order="2"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkOpenScen">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemAbstract"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemAbstract" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="scenario"
+      xbrldt:closed="false" />
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItemOpScen"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_PriItemOpScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_PriItemAbstract" xlink:to="eg_PriItemOpScen"
+      order="2"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkDimensionDefaults">
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1MbrDefault"
+      xlink:href="11071-badUsageExplicitDim.xsd#eg_ExplDim1MbrDefault" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+      xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1MbrDefault"
+      order="1"
+      use="optional" />
+  </definitionLink>
+</linkbase>
+
+

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>23020</number>
+  <name>Variable Aspect Tests for Typed Dimensions</name>
+  <description>
+    Tests of variable aspect tests for typed dimension
+  </description>
+  <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+
+  <variation id="V-01">
+    <name>Primary items match with default aspect test on typed dimension elements</name>
+    <description>
+       Typed dimension has elements that match with default aspect tests
+    </description>
+    <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+    <data>
+      <schema>23020-typedDim-aspects.xsd</schema>
+      <linkbase>23020-typedDim-aspects-definition.xml</linkbase>
+      <linkbase>23020-defaultTest-default-formula.xml</linkbase>
+      <instance readMeFirst="true">23020-defaultTest-elts-01-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Primary items match with default aspect test on typed dimension elements</name>
+    <description>
+       Typed dimension has elements that match with default aspect tests, two matches
+    </description>
+    <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+    <data>
+      <schema>23020-typedDim-aspects.xsd</schema>
+      <linkbase>23020-typedDim-aspects-definition.xml</linkbase>
+      <linkbase>23020-defaultTest-elts-02-formula.xml</linkbase>
+      <instance readMeFirst="true">23020-defaultTest-elts-02-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Primary items don't match with typed dimension elements out of order</name>
+    <description>
+       Typed dimension has elements that match with default aspect tests but order different
+    </description>
+    <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+    <data>
+      <schema>23020-typedDim-aspects.xsd</schema>
+      <linkbase>23020-typedDim-aspects-definition.xml</linkbase>
+      <linkbase>23020-defaultTest-default-formula.xml</linkbase>
+      <instance readMeFirst="true">23020-defaultTest-elts-03-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Primary items match with typed dimension attributes out of order</name>
+    <description>
+       Typed dimension has attributes that match with default aspect tests but order different
+    </description>
+    <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+    <data>
+      <schema>23020-typedDim-aspects.xsd</schema>
+      <linkbase>23020-typedDim-aspects-definition.xml</linkbase>
+      <linkbase>23020-defaultTest-default-formula.xml</linkbase>
+      <instance readMeFirst="true">23020-defaultTest-attrs-01-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-50">
+    <name>Custom test for string value reversed comparison</name>
+    <description>
+       Typed dimension has elements that match with custom aspect tests for reversed string comparison
+    </description>
+    <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+    <data>
+      <schema>23020-typedDim-aspects.xsd</schema>
+      <linkbase>23020-typedDim-aspects-definition.xml</linkbase>
+      <linkbase>23020-customTest-reverseString-aspectTest.xml</linkbase>
+      <linkbase>23020-defaultTest-default-formula.xml</linkbase>
+      <instance readMeFirst="true">23020-customTest-reverseString-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-51">
+    <name>Custom test for date union comparison</name>
+    <description>
+       Typed dimension has elements that match with custom aspect tests for date union comparison
+    </description>
+    <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+    <data>
+      <schema>23020-typedDim-aspects.xsd</schema>
+      <linkbase>23020-typedDim-aspects-definition.xml</linkbase>
+      <linkbase>23020-customTest-dateUnion-aspectTest.xml</linkbase>
+      <linkbase>23020-defaultTest-default-formula.xml</linkbase>
+      <instance readMeFirst="true">23020-customTest-dateUnion-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-52">
+    <name>Two custom equality definitions raise error</name>
+    <description>
+       Two custom equality tests are provided for same domain
+    </description>
+    <reference specification="VARIABLES" id="sec-typed-dimension-aspect-tests"/>
+    <data>
+      <schema>23020-typedDim-aspects.xsd</schema>
+      <linkbase>23020-typedDim-aspects-definition.xml</linkbase>
+      <linkbase>23020-customTest-reverseString-aspectTest.xml</linkbase>
+      <linkbase>23020-customTest-dateUnion-aspectTest.xml</linkbase>
+      <linkbase>23020-defaultTest-default-formula.xml</linkbase>
+      <instance readMeFirst="true">23020-customTest-multiple-01-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlve:multipleTypedDimensionEqualityDefinitions</error>
+    </result>
+  </variation>  
+
+
+</testcase>
+
+
+

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>610-08</number>
+<name>EDGAR Filer Manual v16 6.10.8 page 6-49</name>
+<description>
+<h2>The text of link:label must not have leading or trailing XML whitespace.</h2>
+<p>All labels may contain the XML whitespace characters ASCII 9, 10, 13 and 32 anywhere except at their start or end. Documentation
+labels may contain sequences of extra whitespace; all other labels must be normalized; see 6.10.6. </p>
+<p>REMARK: This only applies to company extension label linkbases. If a standard taxonomy label linkbase appearing in
+edgartaxonomies.xml were to violate this rule, then it would be included in a 'good' test variation.</p>
+</description>
+<variation id="_000gd">
+<name>6.10.8, standard label trimmed, GOOD.</name>
+<description>standard label trimmed, GOOD.</description>
+<data>
+<instance readMeFirst="true">e61008000gd-20081231.xml</instance>
+<linkbase>e61008000gd-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61008000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.10.8, standard label not trimmed, NOGOOD.</name>
+<description>standard label not trimmed, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e61008001ng-20081231.xml</instance>
+<linkbase>e61008001ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61008001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61008" name="Label-Not-Trimmed" frd="du"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.10.8, a documentation label not trimmed, NOGOOD.</name>
+<description>a documentation label not trimmed, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e61008002ng-20081231.xml</instance>
+<linkbase>e61008002ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61008002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61008" name="Label-Not-Trimmed" frd="du"/>
+</result>
+</variation>
+</testcase>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:validation="http://xbrl.org/2008/validation"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:ea="http://xbrl.org/2008/assertion/existence"
+  xmlns:va="http://xbrl.org/2008/assertion/value"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic http://www.xbrl.org/2008/generic-link.xsd
+  http://xbrl.org/2008/formula http://www.xbrl.org/2008/formula.xsd
+  http://xbrl.org/2008/assertion/consistency http://www.xbrl.org/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/assertion/existence http://www.xbrl.org/2008/existence-assertion.xsd
+  http://xbrl.org/2008/assertion/value http://www.xbrl.org/2008/value-assertion.xsd
+  http://xbrl.org/2008/variable http://www.xbrl.org/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept http://www.xbrl.org/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period http://www.xbrl.org/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension http://www.xbrl.org/2008/dimension-filter.xsd
+  http://xbrl.org/2008/filter/general http://www.xbrl.org/2008/general-filter.xsd
+  http://xbrl.org/2008/label http://www.xbrl.org/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="http://www.xbrl.org/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="http://www.xbrl.org/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="http://www.xbrl.org/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="http://www.xbrl.org/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/consistency-assertion-formula" xlink:href="http://www.xbrl.org/2008/consistency-assertion.xsd#consistency-assertion-formula" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <ea:existenceAssertion xlink:type="resource"
+      xlink:label="shared_existence_value_assertion_label"
+      id="existence_assertion"
+      aspectModel="non-dimensional" implicitFiltering="true"/>
+
+    <!-- provide assertion for radius according to parameter -->
+    <va:valueAssertion xlink:type="resource"
+      id="value_assertion"
+      xlink:label="shared_existence_value_assertion_label"
+      test="abs($a - $b - $c - $d) le 0.01"
+      aspectModel="non-dimensional" implicitFiltering="true"/>
+
+    <!--  Arc from the shared labels variables both depends on -->
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="a"
+      xlink:from="shared_existence_value_assertion_label"
+      xlink:to="v_a" />
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="b"
+      xlink:from="shared_existence_value_assertion_label"
+      xlink:to="v_b" />
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c"
+      xlink:from="shared_existence_value_assertion_label"
+      xlink:to="v_c" />
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="d"
+      xlink:from="shared_existence_value_assertion_label"
+      xlink:to="v_d" />
+
+    <!--  Fact variables. -->
+
+    <variable:factVariable xlink:type="resource" bindAsSequence="false"
+      xlink:label="v_a" fallbackValue="0" />
+    <cf:conceptName xlink:type="resource" xlink:label="f_a">
+      <cf:concept>
+        <cf:qname>eg:a</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <variable:factVariable xlink:type="resource" bindAsSequence="false"
+      xlink:label="v_b" fallbackValue="0"  />
+    <cf:conceptName xlink:type="resource" xlink:label="f_b">
+      <cf:concept>
+        <cf:qname>eg:b</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <variable:factVariable xlink:type="resource" bindAsSequence="false"
+      xlink:label="v_c" fallbackValue="0"  />
+    <cf:conceptName xlink:type="resource" xlink:label="f_c">
+      <cf:concept>
+        <cf:qname>eg:c</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <variable:factVariable xlink:type="resource" bindAsSequence="false"
+      xlink:label="v_d" fallbackValue="0"  />
+    <cf:conceptName xlink:type="resource" xlink:label="f_d">
+      <cf:concept>
+        <cf:qname>eg:d</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <!-- Common filters-->
+    <!-- not nilled filter (nilled returns true if nil or () if empty sequence, so must test for false() -->
+    <gf:general xlink:type="resource" xlink:label="notNilFilter"
+      test="nilled(.) eq false()" />
+
+    <!--  Fact variable to filter arcs. -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_a"
+      xlink:to="f_a"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_a"
+      xlink:to="notNilFilter"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_b"
+      xlink:to="f_b"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_b"
+      xlink:to="notNilFilter"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_c"
+      xlink:to="f_c"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_c"
+      xlink:to="notNilFilter"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_d"
+      xlink:to="f_d"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true"
+      xlink:from="v_d"
+      xlink:to="notNilFilter"/>
+
+
+  </generic:link>
+
+</link:linkbase>
+
+

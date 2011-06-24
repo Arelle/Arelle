@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>614-04</number>
+<name>EDGAR Filer Manual v16 6.14.4 page 6-55</name>
+<description>
+<h2>There must be no directed cycles in effective relationships having arc role http://www.xbrl.org/2003/role/summation-item.</h2>
+<p>This rule prevents a fact from participating in a summation that includes itself.</p>
+<p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml violated
+this rule it would be included in a 'good' test variation. In particular, add this test: calculation arcs form a directed cycle, but
+one of the imported standard arcs is prohibited, GOOD.</p>
+</description>
+<reference specification="10931"/>
+<variation id="_000gd">
+<name>6.14.4, calculation relationships form an undirected cycle, which is allowed. GOOD. </name>
+<description> calculation relationships form an undirected cycle, which is allowed. GOOD. </description>
+<reference specification="10931"/>
+<data>
+<instance readMeFirst="true">e61404000gd-20081231.xml</instance>
+<linkbase>e61404000gd-20081231_lab.xml</linkbase>
+<linkbase>e61404000gd-20081231_pre.xml</linkbase>
+<linkbase>e61404000gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61404000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.14.4, calculation relationships form a directed cycle. NOGOOD. </name>
+<description> calculation relationships form a directed cycle. NOGOOD. </description>
+<reference specification="10931"/>
+<data>
+<instance readMeFirst="true">e61404002ng-20081231.xml</instance>
+<linkbase>e61404002ng-20081231_lab.xml</linkbase>
+<linkbase>e61404002ng-20081231_pre.xml</linkbase>
+<linkbase>e61404002ng-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61404002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61404" name="Circular-Calculation" frd="fs"/>
+</result>
+</variation>
+<variation id="_003gd">
+<name>6.14.4, calculation arcs form a directed cycle, but effective relationships do not. GOOD. </name>
+<description> calculation arcs form a directed cycle, but effective relationships do not. GOOD. </description>
+<reference specification="10931"/>
+<data>
+<instance readMeFirst="true">e61404003gd-20081231.xml</instance>
+<linkbase>e61404003gd-20081231_lab.xml</linkbase>
+<linkbase>e61404003gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61404003gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eg="http://xbrl.org/formula/conformance/example" xmlns:formula="http://xbrl.org/2008/formula" xmlns:variable="http://xbrl.org/2008/variable" xmlns:label="http://xbrl.org/2008/label" targetNamespace="http://xbrl.org/formula/conformance/example" elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+ <annotation>
+    <appinfo>
+      <link:linkbaseRef 
+        xlink:href="21231-paramTypeMismatch2-formula.xml"
+        xlink:type="simple" 
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </appinfo>
+  </annotation>
+
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="c1" name="c1" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+</schema>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2009-06-01 13:10).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2009 UBmatrix inc., All Rights Reserved
+Produced on 2009-06-10 13:58:30
+-->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <roleRef xlink:type="simple"
+    xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#allCube"
+    roleURI="http://www.example.com/role/allCube" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#notAll"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/notAll" />
+  <roleRef xlink:type="simple"
+    xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#notallCube"
+    roleURI="http://www.example.com/role/notallCube" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <roleRef xlink:type="simple"
+    xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#defaults"
+    roleURI="http://www.example.com/role/defaults" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator"
+      xlink:label="eg_P1"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_P1" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HcAll"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_HcAll" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_P1" xlink:to="eg_HcAll"
+      order="1"
+      use="optional"
+      xbrldt:targetRole="http://www.example.com/role/allCube"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HcNotAll"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_HcNotAll" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/notAll"
+      xlink:from="eg_P1" xlink:to="eg_HcNotAll"
+      order="2"
+      use="optional"
+      xbrldt:targetRole="http://www.example.com/role/notallCube"
+      xbrldt:contextElement="segment" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.example.com/role/allCube">
+    <loc xlink:type="locator"
+      xlink:label="eg_HcAll"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_HcAll" />
+    <loc xlink:type="locator"
+      xlink:label="eg_Dim1"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_Dim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HcAll" xlink:to="eg_Dim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_D1memDefault"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_D1memDefault" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_Dim1" xlink:to="eg_D1memDefault"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_D1memChild"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_D1memChild" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_D1memDefault" xlink:to="eg_D1memChild"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_Dim2"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_Dim2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HcAll" xlink:to="eg_Dim2"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_D2memDefault"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_D2memDefault" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_Dim2" xlink:to="eg_D2memDefault"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_D2memChild"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_D2memChild" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_D2memDefault" xlink:to="eg_D2memChild"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.example.com/role/notallCube">
+    <loc xlink:type="locator"
+      xlink:label="eg_HcNotAll"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_HcNotAll" />
+    <loc xlink:type="locator"
+      xlink:label="eg_Dim1"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_Dim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HcNotAll" xlink:to="eg_Dim1"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_D1memChild"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_D1memChild" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_Dim1" xlink:to="eg_D1memChild"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.example.com/role/defaults">
+    <loc xlink:type="locator"
+      xlink:label="eg_Dim1"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_Dim1" />
+    <loc xlink:type="locator"
+      xlink:label="eg_D1memDefault"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_D1memDefault" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+      xlink:from="eg_Dim1" xlink:to="eg_D1memDefault"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_Dim2"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_Dim2" />
+    <loc xlink:type="locator"
+      xlink:label="eg_D2memDefault"
+      xlink:href="closedAllOpenNotAllWithDefaults_1.xsd#eg_D2memDefault" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+      xlink:from="eg_Dim2" xlink:to="eg_D2memDefault"
+      order="1"
+      use="optional" />
+  </definitionLink>
+</linkbase>

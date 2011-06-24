@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://www.xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>33210</number>
+  <name>Value Assertion Processing</name>
+  <description>
+    Assertion testing of value expression tests based on reported fact items.
+  </description>
+  <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+
+  <variation id="V-01">
+    <name>Test must have an effective boolean result</name>
+    <description>
+      Test = 'true()' evaluates consistently.
+    </description>
+    <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+    <data>
+      <schema>33210-valueAssertion-concepts.xsd</schema>
+      <linkbase>33210-effectiveBooleanResult-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-effectiveBooleanResult-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test doesn't have an effective boolean result, assertion fails</name>
+    <description>
+      Test = 'QName' typed atomic object can't convert to boolean value, raises XPath-defined error (or otherwise assertion fails).
+    </description>
+    <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+    <data>
+      <schema>33210-valueAssertion-concepts.xsd</schema>
+      <linkbase>33210-noEffectiveBooleanResult-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-noEffectiveBooleanResult-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:err="http://www.w3.org/2005/xqt-errors">err:FORG0006</error>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Test a = b * c is within threshold of .01</name>
+    <description>
+      Test evaluates true.  Precision of fact items is not considered.
+    </description>
+    <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+    <data>
+      <schema>33210-valueAssertion-concepts.xsd</schema>
+      <linkbase>33210-a-eq-bc-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-a-eq-bc-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>Test a = b * c is outside threshold of .01, assertion fails</name>
+    <description>
+      Test evaluates false.  Precision of fact items is not considered.
+    </description>
+    <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+    <data>
+      <schema>33210-valueAssertion-concepts.xsd</schema>
+      <linkbase>33210-a-eq-bc-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-a-ne-bc-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>Test V-03 with general variable and parameter dependency</name>
+    <description>
+      Test evaluates true.  Dependency evaluation same as with formula variable-sets.
+    </description>
+    <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+    <data>
+      <schema>33210-valueAssertion-concepts.xsd</schema>
+      <linkbase>33210-a-eq-bc-gvFvParam-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-a-eq-bc-gvFvParam-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-06">
+    <name>Test V-04 with general variable and parameter dependency</name>
+    <description>
+      Test evaluates false.
+    </description>
+    <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+    <data>
+      <schema>33210-valueAssertion-concepts.xsd</schema>
+      <linkbase>33210-a-eq-bc-gvFvParam-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-a-ne-bc-gvFvParam-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+    </result>
+  </variation>
+
+  <variation id="V-07">
+    <name>Test V-04, but precondition prevents execution, so no assertion failure</name>
+    <description>
+      Test evaluates false.  Precision of fact items is not considered.
+    </description>
+    <reference specification="VALUE-ASSERTION" id="sec-syntax-va-resources"/>         
+    <data>
+      <schema>33210-valueAssertion-concepts.xsd</schema>
+      <linkbase>33210-a-eq-bc-precond-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-a-ne-bc-precond-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-08">
+    <name>Duplicates test with implicit filtering true and dimensional sub-grouping for separate evaluations</name>
+    <description>
+Inspired by a COREP test by Victor Morilla, checks that all implicitly-matching items (same uncovered aspects) are all duplicates of each other.  (Same as 22170 V-11 but here is an assertion instead of fact producing formula.)
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>33210-sequence-dim-tests.xsd</schema>
+      <linkbase>33210-seq-dupTest-1-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-seq-dupTest-1-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="dupCheck"
+         countSatisfied="1"
+         countNotSatisfied="5" />
+    </result>
+  </variation>  
+
+  <variation id="V-09">
+    <name>Duplicates test with implicit filtering false and dimensional sub-grouping for separate evaluations</name>
+    <description>
+Same as v-11 but not implicit filtering; still the sequence should be sub-grouped by uncovered aspects and have same effect as v-11.  Aspects hand-constructed because of no implicit filtering, $v can't be a source.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>33210-sequence-dim-tests.xsd</schema>
+      <linkbase>33210-seq-dupTest-2-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-seq-dupTest-2-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="dupCheck"
+         countSatisfied="1"
+         countNotSatisfied="5" />
+    </result>
+  </variation>  
+
+  <variation id="V-13">
+    <name>Duplicates test with implicit filtering true but now testing for some duplicate in sequence instead of every is duplicate</name>
+    <description>
+Same as v-11 but instead of testing that every value is duplicate, tests that there is just some duplicate value in the sequence.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>33210-sequence-dim-tests.xsd</schema>
+      <linkbase>33210-seq-dupTest-3-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-seq-dupTest-3-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="dupCheck"
+         countSatisfied="2"
+         countNotSatisfied="4" />
+    </result>
+  </variation>  
+
+  <variation id="V-14">
+    <name>Duplicates test with implicit filtering true but now set to fail assertion on all duplications regardless of item values</name>
+    <description>
+Same as prior but only evaluates assertion when there are items that are duplicates without regard to values (same concept, unit, context, dimension, etc).  Set so that assertion failures record only if duplicate.  Assertion does not fire (due to precondition) when item is not a duplicate. 
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>33210-sequence-dim-tests.xsd</schema>
+      <linkbase>33210-seq-dupTest-4-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-seq-dupTest-4-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="dupCheck"
+         countSatisfied="0"
+         countNotSatisfied="6" />
+    </result>
+  </variation>  
+
+  <variation id="V-15">
+    <name>Duplicates test with implicit filtering true but now set to pass assertion if not duplicate and fail on all duplications regardless of item values</name>
+    <description>
+Same as prior but evaluates assertion for all sequences, thus recording successes as those without duplicates, and failures as those with duplicates.  Precondition moved to assertion test.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>33210-sequence-dim-tests.xsd</schema>
+      <linkbase>33210-seq-dupTest-5-formula.xml</linkbase>
+      <instance readMeFirst="true">33210-seq-dupTest-5-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="dupCheck"
+         countSatisfied="2"
+         countNotSatisfied="6" />
+    </result>
+  </variation>  
+
+
+
+</testcase>
+
+
+
+

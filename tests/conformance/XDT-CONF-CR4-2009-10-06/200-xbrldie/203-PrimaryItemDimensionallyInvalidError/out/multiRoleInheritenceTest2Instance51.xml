@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:tx="http://www.xbrl.org/conformance/dimensions/inheritence/test">tx:Pc</qnElement>
+      <sPointer>4</sPointer>
+      <member>
+         <qnDimension xmlns:t-tx="http://www.xbrl.org/conformance/dimensions/common/template">t-tx:d</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

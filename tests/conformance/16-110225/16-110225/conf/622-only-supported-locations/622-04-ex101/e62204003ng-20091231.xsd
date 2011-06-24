@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:e62204="http://e62204/20091231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:us-types="http://xbrl.us/us-types/2009-01-31"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:rr="http://xbrl.sec.gov/rr/2010-02-28"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+targetNamespace="http://e62204/20091231"
+elementFormDefault="qualified">
+<xsd:annotation>
+<xsd:appinfo>
+<link:linkbaseRef xlink:type="simple"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-pre-2009-01-31.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-lab-2009-01-31.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+</xsd:appinfo>
+</xsd:annotation>
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:import namespace="http://xbrl.sec.gov/rr-ent/2010-02-28"
+schemaLocation="http://xbrl.sec.gov/rr/2010/rr-ent-2010-02-28.xsd"/>
+<xsd:import namespace="http://xbrl.us/dei/2009-01-31"
+schemaLocation="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd"/>
+</xsd:schema>

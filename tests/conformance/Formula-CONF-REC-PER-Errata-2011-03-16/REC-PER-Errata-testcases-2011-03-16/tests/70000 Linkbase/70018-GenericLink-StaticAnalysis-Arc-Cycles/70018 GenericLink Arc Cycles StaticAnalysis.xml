@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70018</number>
+  <name>Generic arc cycles static analysis</name>
+  <description>
+    Test arc cycles on generic arc element.
+  </description>
+  <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+
+  <variation id="V-01">
+    <name>A generic arc has cycles.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+    <data>
+      <schema readMeFirst="true">70018-arcCycles-concepts-v01.xsd</schema>
+      <linkbase>70018-arcCycles-testLB-v01.xml</linkbase>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+	<variation id="V-02">
+        <name>Base set arc element test - valid</name>
+		<description>
+        Tests that base sets are determined by arc's element name in addition to role
+        and arcrole.  This schema and linkbase creates a set of concepts (named conceptA to conceptL) and creates
+		two networks of custom arcrole1 arcroles that contains no cycles.  One network has arc elements of the
+        customArc1 element, the second network has arc elements of a customArc2 network.  If the base sets
+        processing did not separate arcs into the networks by arc element, then they would appear to have a cycle.
+        </description>
+		<data>
+			<schema>ArcCyclesCustNCcustArc.xsd</schema>
+			<linkbase>ArcCyclesCustNCcustArc_definition.xml</linkbase>
+			<instance readMeFirst="true">ArcCyclesCustNCcustArc.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-03">
+        <name>Base set link element test - valid</name>
+		<description>
+        Tests that base sets are determined by link's element name in addition to role
+        and arcrole.  Same as V-02 but all arcs are customArc1 elements, one network has link elements of the
+        customLink1 element, the second network has link customLink2 elements, a separate network.  If the base
+        sets processing did not separate arcs into the networks by link element, then they would appear to have a cycle.
+        </description>
+		<data>
+			<schema>ArcCyclesCustNCcustLink.xsd</schema>
+			<linkbase>ArcCyclesCustNCcustLink_definition.xml</linkbase>
+			<instance readMeFirst="true">ArcCyclesCustNCcustLink.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-04">
+        <name>Base set arc element test - invalid</name>
+		<description>
+        Companion to V-02, but all arc elements have the customArc1 element, in links of element customLink1, 
+        a direct cycle.  Assures that the detection of cycles is performed for custom arcrole1 role as expected
+        when the network separations of arc element or link element, of V-02 and V-03, are not used.
+        </description>
+		<data>
+			<schema>ArcCyclesCustDCcustArcLink.xsd</schema>
+			<linkbase>ArcCyclesCustDCcustArcLink_definition.xml</linkbase>
+			<instance readMeFirst="true">ArcCyclesCustDCcustArcLink.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>
+
+
+

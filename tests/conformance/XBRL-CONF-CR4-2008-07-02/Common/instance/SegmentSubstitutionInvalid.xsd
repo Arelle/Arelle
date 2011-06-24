@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<schema targetNamespace="http://www.someCompany.com/segment" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:my="http://www.someCompany.com/segment" elementFormDefault="qualified">
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="unusualItem" type="xbrli:stringItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+</schema>

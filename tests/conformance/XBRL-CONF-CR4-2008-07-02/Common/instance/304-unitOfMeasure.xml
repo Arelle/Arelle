@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Unit of Measure Consistency" description="Section 4.4&#xA;The Context Element" outpath="out" owner="geoff@galexy.net" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-01" name="monetaryItemType has monetary units (using the standard ISO namespace prefix)">
+		<description>
+		304.01 An element with a monetary item type has an ISO
+		currency code for its units (using the standard ISO
+		namespace prefix).
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-01-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-01-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-02" name="monetaryItemType has monetary units (using a non-standard ISO namespace prefix)">
+		<description>
+		304.02 An element with a monetary item type has an ISO
+		currency code for its units (using a non-standard ISO
+		namespace prefix).
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-01-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-02-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-03" name="monetaryItemType derivation has monetary units">
+		<description>
+		304.03 An element with a type derived by restriction from the
+		monetary item type has an ISO currency code for its units.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-03-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-03-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-04" name="An element with a type derived by restriction from monetaryItemType has monetary units (using a non-standard ISO namespace prefix)">
+		<description>
+		304.04 An element with a type derived by restriction from
+		monetary item type has an ISO currency code for its 
+		units (using a non-standard ISO namespace prefix).
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-03-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-04-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-05" name="non monetaryItemType has monetary units">
+		<description>
+		304.05 An element with a non-monetary item type has an ISO
+		currency code for its units (using the standard ISO
+		namespace prefix).
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-05-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-05-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-06" name="monetaryItemType does not have monetary units">
+		<description>
+		304.06 An element with a monetary item type does not have an ISO
+		currency code for its units - the namespace is wrong.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-01-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-06-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-07" name="monetaryItemType derivation does not have ISO currency code for monetary units - the local name is wrong">
+		<description>
+		304.07 An element with a monetaryItemType does not have an
+		ISO currency code for its units - the local name is wrong.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-01-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-07-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-08" name="monetaryItemType derivation does not have monetary units - the namespace is wrong">
+		<description>
+		304.08 An element with a type derived by restriction from
+		monetaryItemType does not have an
+		ISO currency code for its units - the namespace is wrong.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-03-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-08-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-09" name="monetaryItemType derivation does not have monetary units - the local name is wrong">
+		<description>
+		304.09 An element with a type derived by restriction from
+		monetaryItemType does not have an
+		ISO currency code for its units - the local name is wrong.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-03-monetaryItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-09-monetaryItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-10" name="Units for pure numbers">
+		<description>
+		304.10 An item with a pureItemType data type MUST 
+		have  a unit element and the local part of the measure
+		MUST be "pure" with a namespace prefix that resolves
+		to a namespace of "http://www.xbrl.org/2003/instance".
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-10-pureItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-10-pureItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-11" name="Units for pure numbers - counterexample - local name does not resolve">
+		<description>
+    A measure element with a namespace prefix that resolves to the "http://www.xbrl.org/2003/instance" namespace MUST have a local part of either "pure" or "shares".
+
+    The value 'impure' is not a valid measure in the XBRL instance namespace.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-12-pureItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-11-pureItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-12" name="Units for pure numbers - counterexample - the namespace string is incorrect">
+		<description>
+    Unlike for monetaryItemType and sharesItemType, there is no constraint (in
+    4.8.2 or elsewhere) requiring an item with a pureItemType data type to have
+    a particular kind of unit.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-12-pureItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-12-pureItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-13" name="Units for sharesItemType items MUST have A single measure element">
+		<description>
+		304.13 For facts that are of the sharesItemType, units MUST have
+		A single measure element. The local part of the
+		measure MUST be "shares" and the namespace prefix that
+		MUST resolve to http://www.xbrl.org/2003/instance
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-13-sharesItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-13-sharesItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-14" name="Units for sharesItemType items derived by restriction">
+		<description>
+		304.14 For facts that are DERIVED BY RESTRICTION from the
+		sharesItemType, units MUST have
+		A single measure element. The local part of the
+		measure MUST be "shares" and the namespace prefix that
+		MUST resolve to http://www.xbrl.org/2003/instance
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-14-sharesItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-14-sharesItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-15" name="Units for sharesItemType items - counter example">
+		<description>
+		304.15 For facts that are of shares item type, units MUST have
+		A single measure element. The local part of the
+		measure MUST be "shares" and the namespace prefix that
+		MUST resolve to http://www.xbrl.org/2003/instance.  In
+		this case the unit has two measure elements, both
+		of which are pure.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-10-pureItemTypeUnitsRestrictions.xsd</xsd>
+			<instance readMeFirst="true">304-15-pureItemTypeUnitsRestrictions.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-16" name="Units must be in their simplest form">
+		<description>
+		304.16 The units must not have numerator and denominator measures that cancel.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-16-unitsInSimplestForm.xsd</xsd>
+			<instance readMeFirst="true">304-16-unitsInSimplestForm.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-17" name="Units equality. valid case with orderd measure element">
+		<description>
+		304.17 The units equality test which two units have same order measures.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-multiple-unitsEquality.xsd</xsd>
+			<linkbase readMeFirst="false">304-multiple-unitsEquality-definition.xml</linkbase>
+			<instance readMeFirst="true">304-17-sameOrderMeasuresValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-18" name="Units equality. valid case with orderd divide element">
+		<description>
+		304.18 The units equality test which two units have same order divisions.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-multiple-unitsEquality.xsd</xsd>
+			<linkbase readMeFirst="false">304-multiple-unitsEquality-definition.xml</linkbase>
+			<instance readMeFirst="true">304-18-sameOrderDivisionMeasuresValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-19" name="Units equality. valid case with unorderd measure element">
+		<description>
+		304.19 The units equality test which two units have different order measures.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-multiple-unitsEquality.xsd</xsd>
+			<linkbase readMeFirst="false">304-multiple-unitsEquality-definition.xml</linkbase>
+			<instance readMeFirst="true">304-19-differentOrderMeasuresValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-20" name="Units equality. valid case with unorderd divide element">
+		<description>
+		304.20 The units equality test which two units have division elements which their order of child measures are different.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-multiple-unitsEquality.xsd</xsd>
+			<linkbase readMeFirst="false">304-multiple-unitsEquality-definition.xml</linkbase>
+			<instance readMeFirst="true">304-20-differentOrderDivisionMeasuresValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-21" name="Units equality. invalid case with measure element">
+		<description>
+		304.21 it tries to essence-alias equality of two elements with different units : where one is pure-feet and the second is pure-pounds. so the alias essence check is invalid and it should throw an error in xbrl validation
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-multiple-unitsEquality.xsd</xsd>
+			<linkbase readMeFirst="false">304-multiple-unitsEquality-definition.xml</linkbase>
+			<instance readMeFirst="true">304-21-measuresInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-22" name="Units equality. invalid case with divide element">
+		<description>
+		304.22 The test tried to essense-alias equality check of two elements with different units : where one is unit between "pure-inch / pound-feet" and other "pure-feet / pound-inch". The tests is invalid as it should throw an error during xbrl validation.
+		</description>
+		<data>
+			<xsd readMeFirst="false">304-multiple-unitsEquality.xsd</xsd>
+			<linkbase readMeFirst="false">304-multiple-unitsEquality-definition.xml</linkbase>
+			<instance readMeFirst="true">304-22-divisionMeasuresInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation id="V-23" name="Type and Fact Value unit do not match - shares and monetary type mismatched">
+		<description>Variation of 304-15 where the type of the fact value does not match that of the type of the reported element. Shares type versus Monetary unit</description>
+		<data>
+			<xsd readMeFirst="false">304-23-Calculation-item-does-not-match-unit.xsd</xsd>
+			<linkbase readMeFirst="false">304-23-Calculation-item-does-not-match-unit-calculation.xml</linkbase>
+			<instance readMeFirst="true">304-23-Calculation-item-does-not-match-unit.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation id="V-24" name="304-24-valid-ISO-unit-of-measue.xml">
+		<description>Valid ISO unit of measurement example</description>
+		<data>
+			<xsd readMeFirst="false">304-23-Calculation-item-does-not-match-unit.xsd</xsd>
+			<instance readMeFirst="true">304-24-valid-ISO-unit-of-measue.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-25" name="304-25-measure-reported-with-prefix-undefined">
+		<description>Measure reported with prefix undefined is considered XBRL invalid</description>
+		<data>
+			<xsd readMeFirst="false">304-25-measure-reported-with-prefix-undefined.xsd</xsd>
+			<instance readMeFirst="true">304-25-measure-reported-with-prefix-undefined-instance.xbrl</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+</testcase>

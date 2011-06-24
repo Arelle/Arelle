@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2187.25697 (2005-12-27 14:16).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-12-27 14:49:13
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:tx="http://www.xbrl.org/dim/conf/389/combinationOfCubesCaseInSegment" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" targetNamespace="http://www.xbrl.org/dim/conf/389/combinationOfCubesCaseInSegment" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType roleURI="http://www.example.com/link/role/allCube" id="allCube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.example.com/link/role/exclusionCube" id="exclusionCube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:linkbaseRef xlink:type="simple" xlink:href="combinationOfCubesUnusableMemberInvalid-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Definition Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="combinationOfCubesUnusableMemberInvalid-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Label Links, all" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <import namespace="http://www.xbrl.org/dim/conf/product" schemaLocation="../../lib/base/products.xsd" />
+  <import namespace="http://www.xbrl.org/dim/conf/region" schemaLocation="../../lib/base/regions.xsd" />
+  <import namespace="http://www.xbrl.org/dim/conf/primary" schemaLocation="../../lib/base/primary.xsd" />
+  <element id="tx_hc_AllCube" name="hc_AllCube" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" xbrli:periodType="duration" abstract="true" nillable="true" />
+  <element id="tx_ProductDim" name="ProductDim" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="duration" abstract="true" nillable="true" />
+  <element id="tx_RegionDim" name="RegionDim" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="instant" abstract="true" nillable="true" />
+</schema>

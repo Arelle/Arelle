@@ -1,0 +1,5451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Erxl  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="forbidden.xsd" >
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-2009-10-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Schema</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-all-2009-10-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-doc-2009-10-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-ent-all-2009-10-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-ent-std-2009-10-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-lab-2009-10-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-pre-2009-10-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-ref-2009-10-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-roles-2009-10-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Roles/Arcroles</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RATINGS</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-rocr/2009/ratings-std-2009-10-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.us/ratings/2009-10-31</Namespace>
+<Prefix>ratings</Prefix>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2008</Version>
+<Href>http://taxonomies.xbrl.us/rr/2008/rr-all-2008-12-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2008</Version>
+<Href>http://taxonomies.xbrl.us/rr/2008/rr-doc-2008-12-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2008</Version>
+<Href>http://taxonomies.xbrl.us/rr/2008/rr-ref-2008-12-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-all-2010-02-28.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rr-all/2010-02-28</Namespace>
+<Prefix>rr-all</Prefix>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-doc-2010-02-28.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-doc-2010-02-28.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rr-doc/2010-02-28</Namespace>
+<Prefix>rr-doc</Prefix>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-entire-2010-02-28.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rr-entire/2010-02-28</Namespace>
+<Prefix>rr-entire</Prefix>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-lab-2010-02-28.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-lab-2010-02-28.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rr-lab/2010-02-28</Namespace>
+<Prefix>rr-lab</Prefix>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-ref-2010-02-28.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://xbrl.sec.gov/rr/2010/rr-ref-2010-02-28.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rr-ref/2010-02-28</Namespace>
+<Prefix>rr-ref</Prefix>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-acec-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-acec-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-acec-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-acec-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ap-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ap-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ap-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ap-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-aro-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-aro-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-aro-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-bc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-bc2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-bc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-bc-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-bc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cc-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cce-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cce-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cce-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cce-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-cc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-con-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-con-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-con-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcgen-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcgen-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcgen-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcgen-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcpb-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcpb-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcpb-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcrb-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcrb-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcrb-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcrb-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcsbp-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcsbp-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcsbp-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-crcsbp-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dccpoa-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dccpoa-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dccpoa-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt5-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-debt-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-diha1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-diha-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-diha2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-diha-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-diha-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-diha-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-disops-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-disops2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-disops-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-disops-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-disops-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dr-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dr-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dr-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dr-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dse-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dse-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-dse-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-edco-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-edco-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-edco-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-edco-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ei-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ei-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ei-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ei-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-emjv-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-emjv-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-emjv-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-emjv-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eps-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eps-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eps-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eps-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-equity-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-equity-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-equity-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-equity-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ero-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ero-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ero-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ero-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eui-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eui-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eui-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-eui-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fifvd-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fifvd-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fifvd-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fifvd-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-foct-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-foct-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-foct-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-foct-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bd-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bd2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bd3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bd-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bd-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bd-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt5-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-bt-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-ins-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-ins2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-ins-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-ins-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-ins-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-interest-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-interest2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-interest3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-interest-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-interest-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-mort-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-mort-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-fs-mort-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-guarantees-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-guarantees-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-guarantees-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-hco-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-hco-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-hco-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-hco-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iago-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iago-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iago-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iago-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iaoi-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iaoi-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iaoi-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-iaoi-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ides-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-idesa-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-idesa-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-idesa-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ides-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ides-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ides-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inctax-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inctax2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inctax3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inctax-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inctax-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inctax-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inv1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inv-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inv2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inv3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inv-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-inv-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ir-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-lea-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-lea2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-lea-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-lea-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-lea-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ni-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ni-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ni-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ni-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-nt-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-nt-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-nt-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ocpfs-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ocpfs-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ocpfs-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ocpfs-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-otherexp-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-otherexp-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-otherexp-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-otherexp-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-othliab-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-othliab2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-othliab3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-othliab4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-othliab-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-othliab-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-othliab-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-pay-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-pay-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-pay-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ppe-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ppe-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ppe-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ppe-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rd-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rd-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rd-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rd-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-re-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-re-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-regop-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-regop-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-regop-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-regop-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-reorg-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-reorg-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-reorg-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-reorg-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-re-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rlnro-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rlnro2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rlnro3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rlnro-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rlnro-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rlnro-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rpd-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rpd-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rpd-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-rpd-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ru-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ru-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ru-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-scfsup-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-scfsup-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-scfsup-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-scfsup-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-fednote-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-fednote-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-fednote-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-fednote-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-hold-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-hold-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-hold-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-hold-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-iiaa-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-iiaa-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-iiaa-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-iiaa-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-oocw-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-oocw-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-oocw-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-otsh-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-otsh-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-otsh-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-otsh-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-shorthold-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-shorthold-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-shorthold-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-shorthold-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-shortsh-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-shortsh-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-shortsh-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-sumhold-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-sumhold-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-sumhold-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-schedoi-sumhold-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-se-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-cndfir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-cndfir-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-cndfir-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-cndfir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-mort-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-mort-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-mort-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-mort-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-re-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-re2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-re-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-re-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-reins-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-reins-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-reins-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-reins-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-re-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-sum-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-sum-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-sum-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-supins-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-supins-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-supins-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-suppc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-suppc-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-suppc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-vq-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-vq-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-vq-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sec-vq-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-se-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-se-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sr-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sr-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sr-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-sr-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-te-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-te-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-te-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ts-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ts2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ts-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ts-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/dis/us-gaap-dis-ts-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-arcroles-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Roles/Arcroles</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.us/us-arcroles/2009-01-31</Namespace>
+<Prefix>us-arcroles</Prefix>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-dep-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-dep-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-ref-2009-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-gaap-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/entire/us-gaap-entryPoint-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/entire/us-gaap-entryPoint-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/basi/us-gaap-basi-stm-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/basi/us-gaap-basi-stm-dis-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/basi/us-gaap-basi-stm-dis-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/basi/us-gaap-basi-stm-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/bd/us-gaap-bd-stm-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/bd/us-gaap-bd-stm-dis-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/bd/us-gaap-bd-stm-dis-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/bd/us-gaap-bd-stm-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ci/us-gaap-ci-stm-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ci/us-gaap-ci-stm-dis-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ci/us-gaap-ci-stm-dis-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ci/us-gaap-ci-stm-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ins/us-gaap-ins-stm-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ins/us-gaap-ins-stm-dis-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ins/us-gaap-ins-stm-dis-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/ins/us-gaap-ins-stm-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/re/us-gaap-re-stm-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/re/us-gaap-re-stm-dis-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/re/us-gaap-re-stm-dis-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/ind/re/us-gaap-re-stm-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-ref-2009-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/ar-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/country-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/country-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/country-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/country-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/country-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/country-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/country-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/currency-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/currency-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/currency-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/currency-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/currency-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/currency-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/currency-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.us/dei-ent-all/2009-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+<Namespace>http://xbrl.us/dei-ent-std/2009-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-ref-2009-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-ref-2009-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/exch-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-ref-2009-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/invest-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-ref-2009-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mda-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mr-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mr-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mr-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mr-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mr-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mr-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/mr-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/naics-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/naics-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/naics-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/naics-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/naics-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/naics-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/naics-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-ref-2009-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/seccert-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/sic-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/sic-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/sic-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/sic-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/sic-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/sic-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/sic-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/stpr-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/stpr-doc-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/stpr-ent-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/stpr-ent-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/stpr-lab-2009-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/stpr-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/stpr-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-dep-dei-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-dep-exch-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-dep-exch-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-ar-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-country-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-currency-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-exch-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-invest-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-mr-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-naics-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-sec-cert-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-sic-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/us-gaap-doc-stpr-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-com-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-com-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dbo-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dbo4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dbo5-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dbo-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dbo-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dir1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dir-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-scf-dir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sfp-dbo1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sfp-dbo-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sfp-dbo2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sfp-dbo-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sfp-dbo-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sheci-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sheci2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sheci3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sheci-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-sheci-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soi-int-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soi-int2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soi-int3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soi-int4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soi-int5-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soi-int-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-basi-soi-int-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-com-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-com-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-dir1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-dir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-dir-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-dir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-sbo-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-sbo4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-sbo5-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-sbo-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-scf-sbo-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sfp-sbo-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sfp-sbo3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sfp-sbo-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sfp-sbo-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sheci-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sheci2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sheci3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sheci-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-sheci-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soi-sbi-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soi-sbi3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soi-sbi4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soi-sbi-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-soi-sbi-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-spc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-spc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-spc2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-spc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-bd-spc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-com-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-com-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-dir1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-dir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-dir-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-dir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-indir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-indir5-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-indir6-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-indir-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-scf-indir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sfp-cls-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sfp-cls-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sfp-cls-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sheci-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sheci2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sheci3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sheci-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-sheci-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-egm1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-egm-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-egm3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-egm-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-egm-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-soi-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-spc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-spc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-spc2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-spc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ci-spc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-com-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-com-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-com-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-dir1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-dir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-dir-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-dir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-inv-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-inv4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-inv5-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-inv-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-scf-inv-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sfp-ibo-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sfp-ibo-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sfp-ibo-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sheci-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sheci2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sheci3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sheci-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-sheci-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soi-ins-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soi-ins2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soi-ins3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soi-ins4-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soi-ins-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-ins-soi-ins-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-com-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-com-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-dir1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-dir-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-dir-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-dir-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-re1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-re-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-re2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-re-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-scf-re-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-clreo1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-clreo1-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-clreo-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-clreo-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-clreo-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-ucreo1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-ucreo1-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-ucreo-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-ucreo-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sfp-ucreo-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sheci-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sheci2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sheci3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sheci-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-sheci-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-re-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-re2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-re3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-re-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-reit-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-reit2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-reit3-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-reit-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-reit-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-soi-re-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-spc1-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-spc-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-spc2-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-spc-cal-2009-01-31.xml</Href>
+<AttType>CAL</AttType>
+<Name>Calculation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-re-spc-pre-2009-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-scf-dbo-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-scf-dir-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-scf-indir-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-scf-inv-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-scf-re-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-scf-sbo-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-sfp-clreo-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-sfp-cls-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-sfp-dbo-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-sfp-ibo-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-sfp-sbo-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-sfp-ucreo-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-sheci-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soc-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soi-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soi-egm-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soi-ins-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soi-int-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soi-re-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soi-reit-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-soi-sbi-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/stm/us-gaap-stm-spc-def-2009-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/view/us-gaap-view-dei-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/view/us-gaap-view-dei-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/view/us-gaap-view-schedoi-all-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2009</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/view/us-gaap-view-schedoi-std-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-all-2011-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-def-2011-01-31.xml</Href>
+<AttType>DEF</AttType>
+<Name>Definition, Dimensions</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-doc-2011-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Definition</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-ent-all-2011-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-ent-std-2011-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-lab-2011-01-31.xml</Href>
+<AttType>LAB</AttType>
+<Name>Labels, Standard</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-pre-2011-01-31.xml</Href>
+<AttType>PRE</AttType>
+<Name>Presentation</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-ref-2011-01-31.xml</Href>
+<AttType>REF</AttType>
+<Name>Reference, Authoritative</Name>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/invest/2011/invest-std-2011-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<Name>Entry Point</Name>
+<Elements>0</Elements>
+</Loc>
+</Erxl>

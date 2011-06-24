@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:footrole="http://footrole/20081231"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+targetNamespace="http://footrole/20081231"
+elementFormDefault="qualified">
+<xsd:annotation>
+<xsd:appinfo>
+<link:roleType roleURI="http://footrole/role/FootnoteRole" id="FootnoteRoleDisallowed">
+<link:definition>0000 - Document - Footnote Role, Usage Disallowed</link:definition>
+<link:usedOn>link:footnote</link:usedOn>
+</link:roleType>
+</xsd:appinfo>
+</xsd:annotation>
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:import namespace="http://edgar/20081231" schemaLocation="edgar-20081231.xsd"/>
+<xsd:import namespace="http://www.xbrl.org/2003/linkbase"
+schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+</xsd:schema>

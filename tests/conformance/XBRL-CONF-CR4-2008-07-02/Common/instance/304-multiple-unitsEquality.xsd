@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<schema targetNamespace="http://www.someCompany.com" xmlns:my="http://www.someCompany.com" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" elementFormDefault="qualified">
+	<annotation>
+		<appinfo>
+			<xbrll:linkbaseRef xlink:type="simple" xlink:actuate="onRequest" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="304-multiple-unitsEquality-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"/>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="conceptA" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" id="conceptA" xbrli:periodType="instant"/>
+	<element name="conceptB" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" id="conceptB" xbrli:periodType="instant"/>
+</schema>

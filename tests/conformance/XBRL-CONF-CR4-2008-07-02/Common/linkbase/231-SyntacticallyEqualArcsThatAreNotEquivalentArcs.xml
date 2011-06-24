@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Syntactically equal arcs" description="XBRL 2.1 spec says duplicate arcs are not allowed on extended links. Two syntactically equal arcs in different extended links are not equal." outpath="out" owner="ignacio@reportingstandard.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	
+	<variation id="V-01" name="231-01-ArcsAreNotEqualButTheyLookAsEqual.xbrl">
+		<description>XBRL 2.1 spec says duplicate arcs are not allowed on extended links. Two syntactically equal arcs in different extended links are not equal. Th test case must raise a calculation mistmatch. If duplicate arcs are found then the 231-02 variation will also raise the same error and this means there is something wrong in the duplicate arc recognition. If a calculation mistmatch is not found then this could be that the processor is ignoring or not resolving appropiately the overwriten relationships.</description>
+		<data>
+			<instance readMeFirst="true">231-01-ArcsAreNotEqualButTheyLookAsEqual.xbrl</instance>
+		</data>
+		<result expected="invalid"></result>
+	</variation>
+		
+	<variation id="V-02" name="231-02-ArcsAreNotEqualButTheyLookAsEqual.xbrl">
+		<description>XBRL 2.1 spec says duplicate arcs are not allowed on extended links. Two syntactically equal arcs in different extended links are not equal. this is a valid instance document according to the taxonomy with syntactically equal arcs that are not duplicate arcs. The example must not raise duplicate arcs errors and no calculation mistmatch or warnings of this type.</description>
+		<data>
+			<instance readMeFirst="true">231-02-ArcsAreNotEqualButTheyLookAsEqual.xbrl</instance>
+		</data>
+		<result expected="valid"></result>
+	</variation>
+
+</testcase>

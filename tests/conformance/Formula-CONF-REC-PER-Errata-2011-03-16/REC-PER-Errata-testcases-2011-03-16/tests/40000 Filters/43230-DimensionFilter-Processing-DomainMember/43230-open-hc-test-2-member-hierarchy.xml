@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"  
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic 
+      ../../../core_schemas/generic-link.xsd
+  ">
+  
+  <link:roleRef xlink:type="simple"
+    xlink:href="42320-open-hc-test-2.xsd#test-role"
+    roleURI="http://xbrl.org/formula/conformance/example/role/test-role" />
+  <link:arcroleRef xlink:type="simple"
+    xlink:href="42320-open-hc-test-2.xsd#test-arcrole"
+    arcroleURI="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole" />
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/test-role">
+    <eg:loc xlink:type="locator"
+      xlink:label="eg_r1"
+      xlink:href="42320-open-hc-test-2.xsd#eg_randomXmlElement1" />
+    <eg:loc xlink:type="locator"
+      xlink:label="eg_r2"
+      xlink:href="42320-open-hc-test-2.xsd#eg_randomXmlElement2" />
+    <generic:arc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+      xlink:from="eg_r1" xlink:to="eg_r2"
+      order="1"
+      use="optional" />
+  </generic:link>
+
+</link:linkbase>
+
+
+
+

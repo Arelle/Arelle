@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:my="http://www.someCompany.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.someCompany.com 304-multiple-unitsEquality.xsd">
+	<link:schemaRef xlink:href="304-multiple-unitsEquality.xsd" xlink:type="simple"/>
+	<my:conceptA unitRef="u1" contextRef="c1" precision="4">5.6</my:conceptA>
+	<my:conceptB unitRef="u2" contextRef="c1" precision="4">5.6</my:conceptB>
+	<context id="c1">
+		<entity>
+			<identifier scheme="http://www.someCompany.com">example</identifier>
+		</entity>
+		<period>
+			<instant>2003-02-27</instant>
+		</period>
+	</context>
+	<unit id="u1">
+		<divide>
+			<unitNumerator>
+				<measure>my:pure</measure>
+				<measure>my:inch</measure>
+			</unitNumerator>
+			<unitDenominator>
+				<measure>my:pound</measure>
+				<measure>my:feet</measure>
+			</unitDenominator>
+		</divide>
+	</unit>
+	<unit id="u2">
+		<divide>
+			<unitNumerator>
+				<measure>my:pure</measure>
+				<measure>my:feet</measure>
+			</unitNumerator>
+			<unitDenominator>
+				<measure>my:inch</measure>
+				<measure>my:pound</measure>
+			</unitDenominator>
+		</divide>
+	</unit>
+</xbrl>

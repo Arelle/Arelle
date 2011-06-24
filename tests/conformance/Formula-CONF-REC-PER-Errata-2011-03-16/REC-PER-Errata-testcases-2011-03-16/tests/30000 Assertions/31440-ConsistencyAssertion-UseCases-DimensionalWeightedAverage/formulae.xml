@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:c="http://www.example.com/wgt-avg"
+
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/formula ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/assertion/consistency ../../../core_schemas/consistency-assertion.xsd
+  http://xbrl.org/2008/filter/concept ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/2008/filter/unit ../../../core_schemas/unit-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../../core_schemas/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../../core_schemas/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../../core_schemas/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../../core_schemas/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/consistency-assertion-formula" xlink:href="../../../core_schemas/consistency-assertion.xsd#consistency-assertion-formula" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/label" xlink:href="../../../core_schemas/generic-label.xsd#standard-label" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- provide assertion check -->
+    <ca:consistencyAssertion xlink:type="resource" xlink:label="assertion"
+        id="assertion"
+        strict="false" absoluteAcceptanceRadius=".005" />
+
+    <formula:formula xlink:type="resource" xlink:label="formula" 
+      value="sum($v:PDxEV) div sum($v:EVkids)"
+      source="v:PD"
+      aspectModel="dimensional" implicitFiltering="true" >
+
+      <!-- decimals is not relevant to consistencyAssertion, as that provides its own
+           acceptance radius, but for a test rig auto-comparing results files to
+           expected results, by comparing effective value, in this case we chose to
+           match the effective numeric result values on decimals 2 to the original
+           source data -->
+      <formula:decimals>2</formula:decimals>
+    </formula:formula>
+
+    <!--  Arc from the assertion to the formula -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/consistency-assertion-formula" 
+      xlink:from="assertion" xlink:to="formula" order="1.0"/>
+
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_PD"   bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_PDkids"  bindAsSequence="true" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_EVkids"  bindAsSequence="true"/>
+    <variable:generalVariable xlink:type="resource" xlink:label="variable_PDxEV"
+     bindAsSequence="true"
+     select="
+        for $pd in $v:PDkids, 
+            $ev in $v:EVkids[
+                xfi:fact-dimension-s-equal2(., $pd, 
+                    QName('http://www.example.com/wgt-avg',
+                    'ExposuresDimension')) 
+                ]     
+        return $pd * $ev
+            "/>
+
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_PD">
+      <cf:concept>
+        <cf:qname>c:PD</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_EV">
+      <cf:concept>
+        <cf:qname>c:EV</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <!--  Dimension filters for the fact variables -->
+    <df:explicitDimension xlink:type="resource" xlink:label="filter_dimension">
+      <df:dimension>
+        <df:qname>c:ExposuresDimension</df:qname>
+      </df:dimension>
+      <df:member>
+        <df:variable>v:PD</df:variable>
+        <df:linkrole>http://www.xbrl.org/2003/role/link</df:linkrole>
+        <df:arcrole>http://xbrl.org/int/dim/arcrole/domain-member</df:arcrole>
+        <df:axis>child</df:axis>
+      </df:member>
+    </df:explicitDimension>
+
+    <!--  Unit filter for fact variable EVkids (e.g., implicit filtering not wanted) -->
+    <uf:generalMeasures xlink:type="resource" xlink:label="filter_EV"
+     test="true()" />
+
+    <!--  Preconditions -->
+    <variable:precondition xlink:type="resource" xlink:label="precondition"
+        test="count($v:PDkids) eq count($v:EVkids) and sum($v:EVkids) gt 0" />
+
+    <!--  Labels for the formula and each variable -->
+    <label:label xlink:type="resource" xlink:label="formula_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Tests PD of input instance is within % of weighted average value.</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_PD_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Binds to any PD fact</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_PDkids_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Sequence of PD values for dimensional children of $PD</label:label>    
+   
+    <!-- Arcs from labels to the formula and variables being labelled -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="formula" xlink:to="formula_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_PD" xlink:to="variable_PD_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_PDkids" xlink:to="variable_PDkids_label" order="1.0"/>
+
+
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_PD" order="1.0"
+      name="v:PD" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_PDkids" order="2.0"
+      name="v:PDkids" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_EVkids" order="3.0"
+      name="v:EVkids" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_PDxEV" order="4.0"
+      name="v:PDxEV" />
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_PD" xlink:to="filter_PD" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_PDkids" xlink:to="filter_PD" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_EVkids" xlink:to="filter_EV" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_PDkids" xlink:to="filter_dimension" order="2.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_EVkids" xlink:to="filter_dimension" order="2.0"/>
+
+    <!--  Arcs from formula to its precondition -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" 
+      xlink:from="formula" xlink:to="precondition" order="1.0"/>
+  </generic:link>
+
+</link:linkbase>

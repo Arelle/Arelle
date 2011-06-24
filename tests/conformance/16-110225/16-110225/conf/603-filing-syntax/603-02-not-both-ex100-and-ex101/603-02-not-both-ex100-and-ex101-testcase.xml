@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>603-02</number>
+<name>EDGAR Filer Manual v16 6.3.2 page 6-4</name>
+<description>
+<h2>XBRL instance, schema, and linkbase documents must be attached to an EDGAR submission using the EX-100.* or EX-101.* document types.</h2>
+<p>A single submission must not contain both EX-100 and EX-101 attachments.</p>
+<p>All XBRL document types are listed in the table below.</p>
+<p>REMARK: This cannot be tested outside of the EDGAR system itself.</p>
+<p>REMARK: On variation 002, EdgarLink software already tests for this condition so it is unlikely this could ever come about; it is here in the suite for internal testing.</p>
+</description>
+<reference id="10899"/>
+<variation id="_000ng">
+<name>6.3.2, XFD file uses both EX-100 and EX-101 NOGOOD.</name>
+<description>XFD file uses both EX-100 and EX-101 NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60302000ng-20111231.xml</instance>
+<linkbase>e60302000ng-20111231_pre.xml</linkbase>
+<linkbase>e60302000ng-20111231_def.xml</linkbase>
+<linkbase>e60302000ng-20111231_lab.xml</linkbase>
+<schema>e60302000ng-20111231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60302" name="Both-EX-100-And-EX-101" severity="err"/>
+</result>
+</variation>
+<variation id="_001ng">
+<name>6.3.2, XFD file has a presentation linkbase attached as Cal; NOGOOD.</name>
+<description>XFD file has a presentation linkbase attached as Cal; NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60302001ng-20111231.xml</instance>
+<linkbase>e60302001ng-20111231_pre.xml</linkbase>
+<linkbase>e60302001ng-20111231_def.xml</linkbase>
+<linkbase>e60302001ng-20111231_lab.xml</linkbase>
+<schema>e60302001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60302" name="Unknown" severity="err"/>
+</result>
+</variation>
+</testcase>

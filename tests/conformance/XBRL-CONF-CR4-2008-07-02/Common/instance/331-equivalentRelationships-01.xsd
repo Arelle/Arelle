@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:t="http://xbrl.org/conformance/example"
+  targetNamespace="http://xbrl.org/conformance/example"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple"
+        xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef"
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="331-equivalentRelationships-01-calculation.xml"
+        xlink:title="Calculation Links, all" />
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element
+    id="t_P1"
+    name="P1"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="t_P2"
+    name="P2"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="t_P3"
+    name="P3"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <attribute
+    name="strAttr"
+    type="string" />
+  <attribute
+    name="decAttr"
+    type="decimal" />
+  <attribute
+    name="dblAttr"
+    type="double" />
+  <attribute
+    name="boolAttr"
+    type="boolean" />
+  <attribute
+    name="defaultAttr"
+    type="string"
+    default="pqr" />
+  <attribute
+    name="fixedAttr"
+    type="string"
+    fixed="xyz" />
+</schema>
+

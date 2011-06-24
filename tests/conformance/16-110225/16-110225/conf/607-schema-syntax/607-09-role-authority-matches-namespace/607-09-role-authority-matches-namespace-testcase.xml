@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-09</number>
+<name>EDGAR Filer Manual v16 6.7.9 page 6-34</name>
+<description>
+<h2>The roleURI attribute of a link:roleType element must begin with the same {scheme} and {authority} as the targetNamespace
+attribute.</h2>
+<p>For example, in an xsd:schema with a targetNamespace attribute equal to 'http://abcinc.com/2009-02-29', the string
+'http://abcinc.com/' must start the roleURI attribute value of any link:roleType.</p>
+<p>The roleURI attribute should be considered permanent, to be used in future submissions.</p>
+<p>In a link:roleType declaration the roleURI attribute should end with "/role/" and a mnemonic name in LC3 format.</p>
+<p>For example,</p>
+<p style="text-align: center; font-family: Sans-Serif; font-size: smaller;">&lt;link:roleType @roleURI="http://abcinc.com/role/StatementOfIncome"&gt; ...&lt;/link:roleType&gt;</p>
+<p>REMARK: <a href="http://www.ietf.org/rfc/rfc2396.txt">http://www.ietf.org/rfc/rfc2396.txt</a> notes that the host component of a URL
+is case insensitive, a URI in Interactive Data documents has a case-sensitive host component. The same rfc allows characters in URIs
+that are not normally thought of as legal; variation 000gd exercises that in a minimal way without wading into the complex realm of
+XML character escaping versus URI character escaping.</p>
+<p>REMARK: This applies only to company extension schemas. In principle a standard taxonomy could have a different authority part in the
+targetNamespace and a role or arcrole declaration. There being no such standard taxonomies, there are no such 'gd'
+variations.</p>
+</description>
+<reference specification="11001"/>
+<variation id="_000gd">
+<name>6.7.9 Role contains all the mark characters of RFC 2396, GOOD.</name>
+<description>Role is http://e60709/-/_/./!/~/*/'/(/)/role/Mark, GOOD.</description>
+<reference specification="11001"/>
+<data>
+<instance readMeFirst="true">e60709000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60709000gd-20081231_pre.xml</linkbase>
+<linkbase>e60709000gd-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60709000gd-20081231.xsd</schema>
+</data>
+<result> </result>
+</variation>
+<variation id="_001ng">
+<name>6.7.9 Role authority does not match targetNamespace authority, NOGOOD.</name>
+<description>Role authority 'wrong' does not match targetNamespace authority 'e60709001ng', NOGOOD.</description>
+<reference specification="11001"/>
+<data>
+<instance readMeFirst="true">e60709001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60709001ng-20081231_pre.xml</linkbase>
+<linkbase>e60709001ng-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60709001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60709" name="Role-Namespace-Mismatch" frd="du"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.7.9 Role authority does not match targetNamespace, NOGOOD.</name>
+<description>Role authority 'E60709' is not a case-sensitive match to targetNamespace authority 'e60709', NOGOOD.</description>
+<reference specification="11001"/>
+<data>
+<instance readMeFirst="true">e60709002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60709002ng-20081231_pre.xml</linkbase>
+<linkbase>e60709002ng-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60709002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60709" name="Role-Namespace-Mismatch" frd="du"/>
+</result>
+</variation>
+</testcase>

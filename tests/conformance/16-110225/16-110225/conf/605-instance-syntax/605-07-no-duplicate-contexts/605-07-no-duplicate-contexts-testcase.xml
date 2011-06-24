@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-07</number>
+<name>EDGAR Filer Manual v16 6.5.7 page 6-8</name>
+<description>
+<h2>An instance must not contain duplicate xbrli:context elements.</h2>
+<p>An instance must not contain equivalent xbrli:context elements. xbrli:segment elements are tested for equality of their children
+without regard to order. Contexts are defined to be equivalent if they have S-equal identifiers, equal dateUnion values for startDate,
+endDate and instant (respectively), and segment element children with equal QNames for each explicit dimension (the scenario element
+is disallowed by another rule).</p>
+<p>The id attribute of an xbrli:context element can be any xsd:NCName, but users will find it helpful when it is a mnemonic string that
+contains the xbrli:period (or fiscal period), and the local part of the QName contents of the dimension attribute and
+xbrldi:explicitMember. There is usually no need to repeat the registrant name in the id attribute. There is no limit on the length of
+the id attribute.</p>
+<p>The table shows examples of this usage.</p>
+<table>
+<tr>
+<th>Period</th>
+<th>xbrli:context id attribute</th>
+</tr>
+<tr>
+<td>12 months of fiscal 2007</td>
+<td>FY07d</td>
+</tr>
+<tr>
+<td>End of fiscal 2007</td>
+<td>FY07e</td>
+</tr>
+<tr>
+<td>Start of fiscal 2007 </td>
+<td>FY06e</td>
+</tr>
+<tr>
+<td>3 months of the 2nd Quarter of fiscal 2007 </td>
+<td>FY07Q2d</td>
+</tr>
+<tr>
+<td>End of the 2nd Quarter of fiscal 2007</td>
+<td>FY07Q2e</td>
+</tr>
+<tr>
+<td>9 months year to date in fiscal 2007 </td>
+<td>FY07M9d</td>
+</tr>
+<tr>
+<td>Fiscal 2006 previously reported amounts </td>
+<td>FY06d_ScenarioAxis_PreviouslyReportedMember</td>
+</tr>
+</table>
+</description>
+<reference specification="10992"/>
+<variation id="_001ng">
+<name>6.5.7, Duplicate contexts with differently ordered xbrldi:explicitMembers, NOGOOD</name>
+<description>6.5.7, An instance having two contexts with differently ordered xbrldi:explicitMember elements, they are dulicates.
+Context_Duration_BusinessContactMember_ABCFSMember versus Context_Duration_ABCFSMember_BusinessContactMember </description>
+<reference specification="10992"/>
+<data>
+<instance readMeFirst="true">e60507001ng-20081231.xml</instance>
+<linkbase>e60507001ng-20081231_pre.xml</linkbase>
+<linkbase>e60507001ng-20081231_def.xml</linkbase>
+<linkbase>e60507001ng-20081231_lab.xml</linkbase>
+<schema>e60507001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60507" name="Duplicate-Contexts" frd="du"/>
+</result>
+</variation>
+</testcase>

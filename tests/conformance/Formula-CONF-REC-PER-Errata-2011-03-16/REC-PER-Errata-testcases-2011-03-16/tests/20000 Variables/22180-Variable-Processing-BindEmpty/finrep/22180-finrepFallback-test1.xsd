@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/2dimRole"
+        id="_2dimRole">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/1dimRole"
+        id="_1dimRole">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/defaults"
+        id="defaults">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:linkbaseRef xlink:type="simple"
+        xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="22180-finrepFallback-test1-definition.xml"
+        xlink:title="Definition Links, all" />
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2005/xbrldt"
+    schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <element
+    id="dim1"
+    name="dim1"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="dim1Mem1"
+    name="dim1Mem1"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="dim1Mem2"
+    name="dim1Mem2"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="dim1Mem3"
+    name="dim1Mem3"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="dim1Total"
+    name="dim1Total"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="dim2"
+    name="dim2"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="dim2Mem1"
+    name="dim2Mem1"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="dim2Mem2"
+    name="dim2Mem2"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="dim2Mem3"
+    name="dim2Mem3"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="hc"
+    name="hc"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:hypercubeItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="_1dimPriItems"
+    name="_1dimPriItems"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="_2dimPriItems"
+    name="_2dimPriItems"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="b1"
+    name="b1"
+    type="xbrli:booleanItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="c1"
+    name="c1"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="n1"
+    name="n1"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="n2"
+    name="n2"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="n3"
+    name="n3"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="n4"
+    name="n4"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="n5"
+    name="n5"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+</schema>

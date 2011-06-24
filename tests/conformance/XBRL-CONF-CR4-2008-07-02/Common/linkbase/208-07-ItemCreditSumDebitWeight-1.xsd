@@ -1,0 +1,14 @@
+<!-- XBRL 2.1 Tests -->
+<!--Edited by Charles Hoffman (UBmatrix) -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<xsd:schema targetNamespace="http://mycompany.com/xbrl/taxonomy/ext" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<link:linkbaseRef xlink:type="simple" xlink:href="208-07-ItemCreditSumDebitWeight-1-calculation.xml" xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:element name="ItemCredit" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="ItemCredit" xbrli:balance="credit" xbrli:periodType="duration"/>
+	<xsd:element name="SumDebit" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="SumDebit" xbrli:balance="debit" xbrli:periodType="duration"/>
+	<!--This document is valid as it contains no errors, but the linkbase must be considered -->
+</xsd:schema>

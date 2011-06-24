@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://edgar/2009/conformance"
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-24</number>
+<name>EDGAR Filer Manual v16 6.5.24 page 6-15</name>
+<description>
+<h2>he official Registrant Name that corresponds to the CIK of the xbrli:identifier text content must
+be a case-insensitive prefix of the dei:EntityRegistrantName fact in the Required Context.</h2>
+<p>For example, the CIK 0005551212 has official registrant name ALPHA BETA CHI. The
+following would be valid values for dei:EntityRegistrantName: "alpha beta chi", "alpha beta
+chicago", "Alpha Beta Chicago", "aLpHa BeTa ChIcAgO". The following would not be valid:
+"alphabeta chi", "alpha beta", "alpha beta corp".</p>
+</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<variation id="_000gd">
+<name>6.5.24 (000) match to Official Registrant Name, GOOD</name>
+<description>6.5.24 (000) Alpha Beta Chi Company match to Official Registrant Name, GOOD</description>
+<reference specification="11171"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ALPHA BETA CHI"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210"/>
+<instance readMeFirst="true">e60524000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.5.24 (001) match to Official Registrant Name, GOOD</name>
+<description>6.5.24 (001) Alpha Beta Chicago match to Official Registrant Name, GOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ALPHA BETA CHI"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210"/>
+<instance readMeFirst="true">e60524001gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.5.24 (002) mismatch to Official Registrant Name, NOGOOD</name>
+<description>6.5.24 (002) AlphaBeta Chi mismatch to Official Registrant Name, NOGOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ALPHA BETA CHI"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210"/>
+<instance readMeFirst="true">e60524002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60524" name="Registrant-Name-Mismatch" frd="du"/>    
+</result>
+</variation>
+<variation id="_003gd">
+<name>6.5.24 (003) match to Official Registrant Name, GOOD</name>
+<description>6.5.24 (003) AlPhA bEtA cHi match to Official Registrant Name, GOOD</description>
+<reference specification="11171"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ALPHA BETA CHI"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210"/>
+<instance readMeFirst="true">e60524003gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_200gd">
+<name>6.5.24 (200) match to Official Registrant Name with an Ampersand, GOOD</name>
+<description>6.5.24 (200) match to Official Registrant Name with an Ampersand, GOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210"/>       
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ABC &amp; DEF LLC"/> 
+<instance readMeFirst="true">e60524200gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_300gd">
+<name>6.5.24 (300) match to Official Registrant Name with strange 7-Bit ASCII characters, GOOD</name>
+<description>6.5.24 (300) match to Official Registrant Name with strange 7-Bit ASCII characters, GOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="3333333333"/> 
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="THI!S $TR@NGE N#ME=:;."/> 
+<instance readMeFirst="true">e60524300gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_500gd">
+<name>6.5.24 (500) CIK+Name matches the primary of two Registrant Names, GOOD</name>
+<description>6.5.24 (500) CIK+Name matches the primary of two Registrant Names, GOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210,3333333333"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ABC &amp; DEF LLC|Edgar|THI!S $TR@NGE N#ME=:;."/>
+<instance readMeFirst="true">e60524500gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_501gd">
+<name>6.5.24 (501) CIK+Name matches the secondary of two Registrant Names, GOOD</name>
+<description>6.5.24 (501) CIK+Name matches the secondary of two Registrant Names, GOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210,3333333333"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ABC &amp; DEF LLC|Edgar|TH!S $TR@NGE N#M=:;."/>
+<instance readMeFirst="true">e60524501gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_502ng">
+<name>6.5.24 (502) CIK+Name in instance mismatches the primary of two Registrant Names, NOGOOD</name>
+<description>6.5.24 (502) CIK+Name in instance mismatches the primary of two Registrant Names, NOGOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210,3333333333"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ABC &amp; DEF LLC|Edgar|THI!S $TR@NGE N#ME=:;."/>
+<instance readMeFirst="true">e60524502ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60524" name="Registrant-Name-Mismatch" frd="du"/>
+</result>
+</variation>
+<variation id="_503ng">
+<name>6.5.24 (503) CIK+Name in instance mismatches the secondary of two Registrant Names, NOGOOD</name>
+<description>6.5.24 (503) CIK+Name in instance mismatches the secondary of two Registrant Names, NOGOOD</description>
+<reference specification="11171"/>
+<reference specification="11154.28.1"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikList" datatype="xs:string" value="9876543210,3333333333"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="cikNameList" datatype="xs:string" value="ABC &amp; DEF LLC|Edgar|THI!S\$TR@NGE N#ME=:;."/>
+<instance readMeFirst="true">e60524503ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60524" name="Registrant-Name-Mismatch" frd="du"/>
+</result>
+</variation>
+</testcase>

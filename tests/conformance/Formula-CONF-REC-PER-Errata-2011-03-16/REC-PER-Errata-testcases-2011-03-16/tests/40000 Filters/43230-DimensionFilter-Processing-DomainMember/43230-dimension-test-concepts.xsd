@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2008-03-31 21:18).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2008 UBmatrix inc., All Rights Reserved
+Produced on 2008-04-01 18:49:07
+-->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/primaryItems"
+        id="primaryItems">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/hypercubes"
+        id="hypercubes">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/regions"
+        id="regions">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/americas"
+        id="americas">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/oceania"
+        id="oceania">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/africa"
+        id="africa">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/asia"
+        id="asia">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/europe"
+        id="europe">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/polar"
+        id="polar">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/primaryItems2"
+        id="primaryItems2">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/hypercubes2"
+        id="hypercubes2">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:linkbaseRef xlink:type="simple"
+        xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="43230-dimension-test-concepts-definition.xml"
+        xlink:title="Definition Links, all" />
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2005/xbrldt"
+    schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <element
+    id="peakHeight"
+    name="peakHeight"
+    type="xs:integer" />
+  <element
+    id="eg_Africa"
+    name="Africa"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_America"
+    name="America"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Antarctica"
+    name="Antarctica"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Argentina"
+    name="Argentina"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Asia"
+    name="Asia"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Australasia"
+    name="Australasia"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Australia"
+    name="Australia"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Austria"
+    name="Austria"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Brazil"
+    name="Brazil"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Canada"
+    name="Canada"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Europe"
+    name="Europe"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_HeightDimension"
+    name="HeightDimension"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true"
+    xbrldt:typedDomainRef="43230-dimension-test-concepts.xsd#peakHeight" />
+  <element
+    id="eg_Indonesia"
+    name="Indonesia"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Location"
+    name="Location"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="eg_Melanesia"
+    name="Melanesia"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Mexico"
+    name="Mexico"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Nepal"
+    name="Nepal"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_NewZealand"
+    name="NewZealand"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_NorthAmerica"
+    name="NorthAmerica"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Oceania"
+    name="Oceania"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Peak"
+    name="Peak"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Peru"
+    name="Peru"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Polar"
+    name="Polar"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Regions"
+    name="Regions"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="eg_Russia"
+    name="Russia"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_SouthAmerica"
+    name="SouthAmerica"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_SouthAsia"
+    name="SouthAsia"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Spain"
+    name="Spain"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_SummitHypercube"
+    name="SummitHypercube"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:hypercubeItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="eg_Switzerland"
+    name="Switzerland"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_Tanzania"
+    name="Tanzania"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_UnitedStates"
+    name="UnitedStates"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+</schema>

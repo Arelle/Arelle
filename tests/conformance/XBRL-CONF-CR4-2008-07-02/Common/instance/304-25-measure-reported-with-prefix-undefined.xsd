@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<schema 
+   xmlns="http://www.w3.org/2001/XMLSchema" 
+   xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+   xmlns:link="http://www.xbrl.org/2003/linkbase" 
+   xmlns:xlink="http://www.w3.org/1999/xlink" 
+   xmlns:ci="http://www.UBmatrix.com/Patterns/BasicCalculation" 
+   targetNamespace="http://www.UBmatrix.com/Patterns/BasicCalculation" 
+   elementFormDefault="qualified"
+   attributeFormDefault="unqualified">
+  
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="xbrl-instance-2003-12-31.xsd" />
+
+  <element id="ci_PropertyPlantEquipment" name="PropertyPlantEquipment" substitutionGroup="xbrli:item" xbrli:periodType="instant" abstract="true" nillable="true" type="xbrli:stringItemType" />
+  <element id="ci_Building" name="Building" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:balance="debit" xbrli:periodType="instant" />
+  <element id="ci_ComputerEquipment" name="ComputerEquipment" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:balance="debit" xbrli:periodType="instant" />
+  <element id="ci_FurnitureFixtures" name="FurnitureFixtures" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:balance="debit" xbrli:periodType="instant" />
+  <element id="ci_Land" name="Land" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:balance="debit" nillable="true" xbrli:periodType="instant" />
+  <element id="ci_Other" name="Other" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:balance="debit" nillable="true" xbrli:periodType="instant" />
+  <element id="ci_TotalPropertyPlantEquipment" name="TotalPropertyPlantEquipment" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:balance="debit" xbrli:periodType="instant" />
+
+</schema>

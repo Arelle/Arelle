@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:us-types="http://xbrl.us/us-types/2009-01-31"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20091231.xsd"/>
+<xbrli:context id="FY09">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2009-01-01</xbrli:startDate>
+<xbrli:endDate>2009-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<dei:DocumentInformationTextBlock contextRef="FY09">I think that I shall never see&lt;br/&gt; A billboard
+lovely as a tree.&lt;br&gt;&lt;/br&gt; Perhaps, unless the billboards fall,&lt;br/&gt; I'll
+never see a tree at all.</dei:DocumentInformationTextBlock>
+<dei:EntityTextBlock contextRef="FY09">Like some other elements, in 2008 this was a string item. In
+&lt;i&gt;2009&lt;/i&gt; US GAAP taxonomy, it became a &lt;b&gt;Text Block&lt;/b&gt; item.</dei:EntityTextBlock>
+<dei:DocumentType contextRef="FY09">8-K</dei:DocumentType>
+<dei:EntityCentralIndexKey contextRef="FY09">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="FY09">e60515006gd</dei:EntityRegistrantName>
+<dei:CurrentFiscalYearEndDate contextRef="FY09">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:AmendmentFlag contextRef="FY09">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="FY09">2009-12-31</dei:DocumentPeriodEndDate>
+</xbrli:xbrl>

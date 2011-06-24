@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:conf="http://www.example.com/conformance/test">
+  <link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="prefLabel-incomplete-multi-languageset-invalid.xsd#conf_Asset" xlink:label="label_Asset_1126204473633_0" xlink:title="label_Asset"/>
+    <link:label xlink:type="resource" xlink:label="label_Asset_1126204473633_1" xlink:role="http://www.xbrl.org/2003/role/label" xlink:title="label_Asset" xml:lang="ja" id="label_Asset_1126204473633_1">資産</link:label>
+    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="label_Asset_1126204473633_0" xlink:to="label_Asset_1126204473633_1" xlink:title="label: Asset to label_Asset"/>
+    <link:label xlink:type="resource" xlink:label="label_Asset_1126204509855_0" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:title="label_Asset" xml:lang="ja" id="label_Asset_1126204509855_0">ドキュメンテーション</link:label>
+    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="label_Asset_1126204473633_0" xlink:to="label_Asset_1126204509855_0" xlink:title="label: Asset to label_Asset"/>
+    <link:label xlink:type="resource" xlink:label="label_Asset_1126204531837_0" xlink:role="http://www.xbrl.org/2003/role/verboseLabel" xlink:title="label_Asset" xml:lang="ja" id="label_Asset_1126204531837_0">verbose 資産</link:label>
+    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="label_Asset_1126204473633_0" xlink:to="label_Asset_1126204531837_0" xlink:title="label: Asset to label_Asset"/>
+  </link:labelLink>
+</link:linkbase>

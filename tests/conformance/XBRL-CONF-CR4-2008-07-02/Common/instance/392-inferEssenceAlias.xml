@@ -1,0 +1,158 @@
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase name="Essence-Alias Closure" description="Section 5.5.7.15 The DefinitionArc Element" outpath="out" owner="mg@fla.fujitsu.com" minimal="false" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../lib/test.xsd">
+	<variation id="V-1" name="EssenceAliasValid">
+		<description>392.01 Valid example of essence-alias attribute.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-01-EssenceAliasValid.xml</instance>
+		</data>
+		<result expected="valid">392-01-EssenceAliasValidOut.xml</result>
+	</variation>
+	<variation id="V-2" name="EssenceAliasDuplicate">
+		<description>392.02  Valid example of essence-alias attribute using duplicate.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-02-EssenceAliasDuplicate.xml</instance>
+		</data>
+		<result expected="valid">392-02-EssenceAliasDuplicateOut.xml</result>
+	</variation>
+	<variation id="V-3" name="EssenceAliasDuplicateNoEssence">
+		<description>392.03 Valid example of essence-alias attribute using duplicate. No copy happens.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-03-EssenceAliasDuplicateNoEssence.xml</instance>
+		</data>
+		<result expected="valid">392-03-EssenceAliasDuplicateNoEssenceOut.xml</result>
+	</variation>
+	<variation id="V-4" name="EssenceAliasReverse">
+		<description>392.04 Valid example of essence-alias attribute not to apply reverse direction.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-04-EssenceAliasReverse.xml</instance>
+		</data>
+		<result expected="valid">392-04-EssenceAliasReverseOut.xml</result>
+	</variation>
+	<variation id="V-5" name="EssenceAliasValidWithValue">
+		<description>392.05 Valid example of essence-alias attribute.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-05-EssenceAliasValidWithValue.xml</instance>
+		</data>
+		<result expected="valid">392-05-EssenceAliasValidWithValueOut.xml</result>
+	</variation>
+	<variation id="V-6" name="EssenceAliasInvalid">
+		<description>392.06 Invalid example of essence-alias attribute.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-06-EssenceAliasInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-7" name="EssenceAliasDifferentScopeValid">
+		<description>392.07 Valid example of essence-alias attribute. This testset has items set to essence-alias, but Essence item and alias items are located in other tuples, so even if these values are not identical but it  is still valid.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-07-EssenceAliasDifferentScopeValid.xml</instance>
+		</data>
+		<result expected="valid">392-07-EssenceAliasDifferentScopeValidOut.xml</result>
+	</variation>
+	<variation id="V-8" name="EssenceAliasDifferentScopeInValid">
+		<description>392.08 Invalid example of essence-alias attribute. This testset has items set to essence-alias, but Essence item and alias items in same tuple  are  not identical but other essence item in other tuple is identical. So scoping is wrong, it  is invalid.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-08-EssenceAliasDifferentScopeInValid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-9" name="EssenceAliasDifferentScopeValidWithValue">
+		<description>392.09 Valid example of essence-alias attribute. This testset has items set to essence-alias, One Essence item in same tuple with alias is identical and other essence items located in other tuples is no identical, By  scoping, it  is valid.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-09-EssenceAliasDifferentScopeValidWithValue.xml</instance>
+		</data>
+		<result expected="valid">392-09-EssenceAliasDifferentScopeValidWithValueOut.xml</result>
+	</variation>
+	<variation id="V-10" name="EssenceAliasDifferentUnit">
+		<description>392.10 Invalid example of essence-alias attribute. This testset has numeric items set to essence-alias, but Essence item and alias item have  different  units. so it is invalid.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-10-EssenceAliasDifferentUnit.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-11" name="EssenceAliasDifferentContext">
+		<description>392.11 Valid example of essence-alias attribute. This testset has items set to essence-alias, but Essence item and alias item are different values and units. so it is valid.</description>
+		<data>
+			<xsd>EssenceAlias.xsd</xsd>
+			<linkbase>EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-11-EssenceAliasDifferentContext.xml</instance>
+		</data>
+		<result expected="valid">392-11-EssenceAliasDifferentContextOut.xml</result>
+	</variation>
+	<variation id="V-12" name="EssenceAliasDifferentType">
+		<description>392.12 Invalid example of essence-alias attribute. This testset make an essence-alias relation between two different item type.</description>
+		<data>
+			<xsd readMeFirst="true">392-12-EssenceAliasInvalid.xsd</xsd>
+			<linkbase>392-12-EssenceAlias_definition.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-13" name="EssenceAliasDifferentPeriodType">
+		<description>392.13 Invalid example of essence-alias attribute. This testset make an essence-alias relation between two items which are different period type.</description>
+		<data>
+			<xsd>392-13-EssenceAlias.xsd</xsd>
+			<linkbase>392-13-EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-13-EssenceAliasDifferentPeriodType.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-14" name="EssenceAliasNonNumericValid">
+		<description>392.14 Valid example of essence-alias attribute regarding nonNumericContext.</description>
+		<data>
+			<xsd>392-String-EssenceAlias.xsd</xsd>
+			<linkbase>392-String-EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-14-EssenceAliasNonNumericValid.xml</instance>
+		</data>
+		<result expected="valid">392-14-EssenceAliasNonNumericValidOut.xml</result>
+	</variation>
+	<variation id="V-15" name="EssenceAliasNonNumericInValid">
+		<description>392.15 invalid example of essence-alias attribute regarding nonNumericContext.</description>
+		<data>
+			<xsd>392-String-EssenceAlias.xsd</xsd>
+			<linkbase>392-String-EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-15-EssenceAliasNonNumericInValid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-16" name="EssenceAliasNonNumericTupleValid">
+		<description>392.16 Valid example of essence-alias attribute regarding nonNumericContext.</description>
+		<data>
+			<xsd>392-String-EssenceAlias.xsd</xsd>
+			<linkbase>392-String-EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-16-EssenceAliasNonNumericTupleValid.xml</instance>
+		</data>
+		<result expected="valid">392-16-EssenceAliasNonNumericTupleValidOut.xml</result>
+	</variation>
+	<variation id="V-17" name="EssenceAliasNonNumericTupleInValid">
+		<description>392.17 invalid example of essence-alias attribute regarding nonNumericContext.</description>
+		<data>
+			<xsd>392-String-EssenceAlias.xsd</xsd>
+			<linkbase>392-String-EssenceAlias_definition.xml</linkbase>
+			<instance readMeFirst="true">392-17-EssenceAliasNonNumericTupleInValid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

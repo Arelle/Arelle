@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="12030-concept-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="12030-dynamic-concept-formula.xml"/>
+  
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">AAA001</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-01</instant>
+    </period>
+  </context>
+  
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">BBB002</identifier>
+    </entity>
+    <period>
+      <instant>2007-02-02</instant>
+    </period>
+  </context>
+  
+  <context id="c3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">CCC003</identifier>
+    </entity>
+    <period>
+      <instant>2007-03-03</instant>
+    </period>
+  </context>
+  
+  <context id="c4">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">DDD004</identifier>
+    </entity>
+    <period>
+      <instant>2007-04-04</instant>
+    </period>
+  </context>
+  
+  <unit id="u1">
+    <measure>iso4217:JPY</measure>
+  </unit>
+
+  <unit id="u2">
+    <measure>iso4217:KPW</measure>
+  </unit>
+
+  <unit id="u3">
+    <measure>iso4217:THB</measure>
+  </unit>
+
+  <unit id="u4">
+    <measure>iso4217:TOP</measure>
+  </unit>
+  
+  <!-- note that the concepts are reversed by the qname expression -->
+  <concept:m4 contextRef="c1" unitRef="u1" precision="0">11000</concept:m4>
+  <concept:m3 contextRef="c2" unitRef="u2" precision="0">2200</concept:m3>
+  <concept:m2 contextRef="c3" unitRef="u3" precision="0">330</concept:m2>
+  <concept:m1 contextRef="c4" unitRef="u4" precision="0">44</concept:m1>
+  
+</xbrl>

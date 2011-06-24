@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 2006-08-25 edited by Suguru WASHIO (Fujitsu Ltd.) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2006 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="UsedOn Element" description="5.1.3.4 The usedOn element in roleType elements / 5.1.4.5 The usedOn element on arcroleType elements" outpath="out" owner="wasio@jp.fujitsu.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-1" name="RoleTypeUsedOnValid">
+		<description>293.01 A usedOn element in a roleType element identifies which standard extended link elements and resource elements may use the role type being defined. It is valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-01-RoleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="RoleTypeUsedOnValid">
+		<description>293.02 A usedOn element in a roleType element identifies which non-standard extended link elements and resource elements may use the role type being defined. It is valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-02-RoleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-3" name="RoleTypeUsedOnValid">
+		<description>293.03 A usedOn element in a roleType element identifies which standard arc elements may use the role type being defined. It is meaningless, but it is still valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-03-RoleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-4" name="RoleTypeUsedOnValid">
+		<description>293.04 A usedOn element in a roleType element identifies which standard elements other than link elements may use the role type being defined. It is meaningless, but it is still valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-04-RoleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-5" name="ArcroleTypeUsedOnValid">
+		<description>293.05 A usedOn element in an arcroleType element identifies which standard arc elements may use the arcrole type being defined. It is valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-05-ArcroleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-6" name="ArcroleTypeUsedOnValid">
+		<description>293.06 A usedOn element in an arcroleType element identifies which non-standard arc elements may use the arcrole type being defined. It is valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-06-ArcroleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-7" name="ArcroleTypeUsedOnValid">
+		<description>293.07 A usedOn element in an arcroleType element identifies which standard extended link elements may use the arcrole type being defined. It is meaningless, but it is still valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-07-ArcroleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-8" name="ArcroleTypeUsedOnValid">
+		<description>293.08 A usedOn element in an arcroleType element identifies which standard elements other than link elements may use the arcrole type being defined. It is meaningless, but it is still valid.</description>
+		<data>
+			<xsd readMeFirst="true">293-08-ArcroleTypeUsedOnValid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>

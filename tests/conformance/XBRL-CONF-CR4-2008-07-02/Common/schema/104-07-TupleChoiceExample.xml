@@ -1,0 +1,24 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy 104-07-TupleChoiceExample.xsd">
+	<link:schemaRef xlink:href="104-07-TupleChoiceExample.xsd" xlink:type="simple"/>
+	<my:propertyDescription>
+		<my:property contextRef="ci">My Property1</my:property>
+		<my:dateAcquired contextRef="ci">2000-01-01</my:dateAcquired>
+		<my:dateDisposedOf contextRef="ci">2003-06-30</my:dateDisposedOf>
+	</my:propertyDescription>
+	<my:propertyDescription>
+		<my:property contextRef="ci">My Property2</my:property>
+		<my:dateAcquired contextRef="ci">2000-01-01</my:dateAcquired>
+		<my:fairMarketValue contextRef="ci" unitRef="u1" precision="4">2000</my:fairMarketValue >
+	</my:propertyDescription>
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+	<context id="ci">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+	</context>
+</xbrl>

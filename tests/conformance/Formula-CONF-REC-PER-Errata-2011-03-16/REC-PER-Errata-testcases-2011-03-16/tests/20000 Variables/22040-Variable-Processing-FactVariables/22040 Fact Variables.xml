@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22040</number>
+  <name>Fact variable processing examples</name>
+  <description>
+    Tests of fact variable processing, reference and expression
+  </description>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+
+  <variation id="V-01">
+    <name>Fact variable depends on fact variables in turn</name>
+    <description>Tests that a fact variable with a value dependent on a fact variable properly can access the value that it is dependent on and that processing sequences execution and dependency.  (This sort of extends the 22030 tests to fact variables.)  The order numbers on the variable arcs are absent in this test case (implying order=&quot;1&quot; for each), and in physical reverse of what is needed to properly execute dependency, to assure that the formula processor sorts out variable dependency within the XPath expressions, and not based on physical linkbase order.  The initial concept to be processed, via fact variable $c3, provides the localname for the name filter for the second fact variable, $c2, which provides the localname for the final fact variable, $c1, which has the string &quot;hello&quot; which the result concatenates to &quot; world&quot;.</description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-world-fvToFv-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-world-fvToFv-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-hello-world-fvToFv-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Fact variable allows all facts-in-instance</name>
+    <description>Tests that a fact variable has, as the candidate items to be filtered, all non-nil facts in instance irrespective of location (within nested tuples, etc).  All items are non-nil in this variation. In this case $c1 filters all facts that are name-filtered to eg:c1, which lists all planets for hello result.  @nils is not specified so nils are excluded. (Since the bindAsSequence allows random order of nodes, the expression $c1 | () passes the sequence through the union operator, which guarantees document order of the nodes, so that the final result's order can be compared dependably.)</description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-c1-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-c1-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-hello-c1-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02a">
+    <name>Fact variable allows all facts-in-instance including nil items</name>
+    <description>Same as V-02a, instance includes nil items, nils=true.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-c1-factsWithNilsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-c1-factsWithNilsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-hello-c1-factsWithNilsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02b">
+    <name>Fact variable allows all facts-in-instance excluding nil items</name>
+    <description>Same as V-02a, instance includes nil items, nils=false.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-c1-factsWithoutNilsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-c1-factsWithoutNilsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-hello-c1-factsWithoutNilsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02c">
+    <name>Fact variable allows all facts-in-instance including CData items</name>
+    <description>Same as V-02a, instance includes CDATA items.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-c1-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-c1-factsWithCdataInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-hello-c1-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02d">
+    <name>Fact variable allows all facts-in-instance including items that have no value in instance but provided by xsd default attribute instead</name>
+    <description>Same as V-02a, instance includes item with defaulted value.  Note that XPath 2 in section I.3 specifies "Schema validation augments the data model by adding default values for omitted attributes and empty elements."  
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-factsInInstWithDefault-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-factsInInstWithDefault-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-hello-factsInInstWithDefault-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Fact variable complement filtering</name>
+    <description>Same as V-02, but $c1 filters all facts that are NOT name-filtered to eg:c2 or eg:t1, which lists all planets for hello result.</description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-not-c2-or-t1-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-not-c2-or-t1-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-hello-not-c2-or-t1-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03a">
+    <name>Fact variable complement filtering</name>
+    <description>Same as V-02, but $c1 filters all items and tuples that are NOT conceptName-filtered to eg:c2, which binds to both c1's and t1's in the instance.  XPath evaluation raises error in trying to atomize $c1 sequence t1 tuples bound into the sequence, for string-join function: FOTY0012 (An attempt was made to find the typed value of a node that has no typed value. This occurs, for example, when you pass to the data function an element node whose type has element-only content. It may also be raised during atomization, which extracts the typed value of a node.  Both FOTY0012 issues occur in this variation.)
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-hello-not-c2-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-hello-not-c2-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xqt-err="http://www.w3.org/2005/xqt-errors">xqt-err:FOTY0012</error>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Filtered facts are document nodes</name>
+    <description>Tests that each filtered fact is an element node from the instance document, and that general variables which derive a value from an expression involving the document node maintain the node's type.  This would fail if any fact were instead an atomic value, or if the corresponding node type annotation were not available.  The type of the decimal node is checked for either xs:decimal, xs:float or xs:double, to allow flexibility in implmentations.  Unit aspect is covered on numeric item so one evaluation results.</description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-typeOfFactNode-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-typeOfFactNode-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-typeOfFactNode-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04a">
+    <name>Filtered facts are document nodes</name>
+    <description>Same as V-04 but here unit is not covered which prevents success of implicit matching, so no evaluations occur.
+</description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-typeOfFactNode-a-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-typeOfFactNode-a-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-typeOfFactNode-a-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>General filter over concepts of incompatible types throws error</name>
+    <description>
+       Same as V-04 but the namefilter4 is replaced with a value filter.  The expression is type sensitive, so if it is applied to a concept of a different type it will throw an XPTY0004 error.  The filter is expected to test each concept (both of the matching and of incompatible types), so the error is expected.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-typeErr-1-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-typeErr-1-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xqt-err="http://www.w3.org/2005/xqt-errors">xqt-err:XPTY0004</error>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Filters access typed node information</name>
+    <description>
+      Sort of like V-04 but instead of a conceptName filter there is a general filter on fact variables to identify the facts for each variable by data type and value.  Sets stage for V-07 which will require that general filter only match expected concept.  Here each general filter is type-safe coded with an XPath if construct.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-valueOfFactData-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-valueOfFactData-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-valueOfFactData-result.xml</instance>
+    </result>
+  </variation>  
+
+  <!-- this variation is deferred until behavior of inter-related filters
+       is worked out or agreed upon
+  <variation id="V-07">
+    <name>Filters properly interact to prevent type errors</name>
+    <description>
+      Tests that sequencing of filters properly accounts for filters having "test" expressions, such as the general filter, act as if it reduces the set of facts in instance, to those matching concept name, before attempting the general @test expression.  E.g., conceptName (or type or substitution) filter may pre-screen facts in instance for general filter, otherwise type error would occur.
+`   </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22040-factVar-tests.xsd</schema>
+      <linkbase>22040-typeSensitiveFilters-formula.xml</linkbase>
+      <instance readMeFirst="true">22040-typeSensitiveFilters-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22040-typeSensitiveFilters-result.xml</instance>
+    </result>
+  </variation>  
+  -->
+
+</testcase>
+
+

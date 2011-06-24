@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:edgar="http://edgar/20101231" xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns="http://edgar/2009/conformance">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20101231.xsd"/>
+<xbrli:context id="d">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2010-01-01</xbrli:startDate>
+<xbrli:endDate>2010-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="unit1_div_unit2">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>edgar:unit1</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>edgar:unit2</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:MassItemTypeConcept contextRef="d" unitRef="unit1_div_unit2" xsi:nil="true"/>
+<dei:DocumentType contextRef="d">8-K</dei:DocumentType>
+<dei:AmendmentFlag contextRef="d">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="d">2008-12-31</dei:DocumentPeriodEndDate>
+<dei:EntityRegistrantName contextRef="d">e60535010ng</dei:EntityRegistrantName>
+<dei:EntityCentralIndexKey contextRef="d">9876543210</dei:EntityCentralIndexKey>
+<dei:CurrentFiscalYearEndDate contextRef="d">--12-31</dei:CurrentFiscalYearEndDate>
+</xbrli:xbrl>

@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2008-02-04 15:32).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2008 UBmatrix inc., All Rights Reserved
+Produced on 2008-02-06 12:56:18
+-->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#primaryItems"
+    roleURI="http://xbrl.org/formula/conformance/example/role/primaryItems" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#hypercubes"
+    roleURI="http://xbrl.org/formula/conformance/example/role/hypercubes" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#regions"
+    roleURI="http://xbrl.org/formula/conformance/example/role/regions" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#americas"
+    roleURI="http://xbrl.org/formula/conformance/example/role/americas" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#oceania"
+    roleURI="http://xbrl.org/formula/conformance/example/role/oceania" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#africa"
+    roleURI="http://xbrl.org/formula/conformance/example/role/africa" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#asia"
+    roleURI="http://xbrl.org/formula/conformance/example/role/asia" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#europe"
+    roleURI="http://xbrl.org/formula/conformance/example/role/europe" />
+  <roleRef xlink:type="simple"
+    xlink:href="nonXdtSegMatch-concepts.xsd#polar"
+    roleURI="http://xbrl.org/formula/conformance/example/role/polar" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/primaryItems">
+    <loc xlink:type="locator"
+      xlink:label="AtmosphericPhenomenon"
+      xlink:href="nonXdtSegMatch-concepts.xsd#AtmosphericPhenomenon" />
+    <loc xlink:type="locator"
+      xlink:label="AtmosphericHypercube"
+      xlink:href="nonXdtSegMatch-concepts.xsd#AtmosphericHypercube" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="AtmosphericPhenomenon" xlink:to="AtmosphericHypercube"
+      order="1"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/hypercubes"
+      xbrldt:contextElement="segment" />
+    <loc xlink:type="locator"
+      xlink:label="Peak"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Peak" />
+    <loc xlink:type="locator"
+      xlink:label="SummitHypercube"
+      xlink:href="nonXdtSegMatch-concepts.xsd#SummitHypercube" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="Peak" xlink:to="SummitHypercube"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/hypercubes">
+    <loc xlink:type="locator"
+      xlink:label="AtmosphericHypercube"
+      xlink:href="nonXdtSegMatch-concepts.xsd#AtmosphericHypercube" />
+    <loc xlink:type="locator"
+      xlink:label="HeightDimension"
+      xlink:href="nonXdtSegMatch-concepts.xsd#HeightDimension" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="AtmosphericHypercube" xlink:to="HeightDimension"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="SummitHypercube"
+      xlink:href="nonXdtSegMatch-concepts.xsd#SummitHypercube" />
+    <loc xlink:type="locator"
+      xlink:label="Location"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Location" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="SummitHypercube" xlink:to="Location"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Regions"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Regions" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="Location" xlink:to="Regions"
+      order="1"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/regions" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="SummitHypercube" xlink:to="HeightDimension"
+      order="2"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/regions">
+    <loc xlink:type="locator"
+      xlink:label="Regions"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Regions" />
+    <loc xlink:type="locator"
+      xlink:label="America"
+      xlink:href="nonXdtSegMatch-concepts.xsd#America" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Regions" xlink:to="America"
+      order="1"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/americas" />
+    <loc xlink:type="locator"
+      xlink:label="Oceania"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Oceania" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Regions" xlink:to="Oceania"
+      order="2"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/oceania" />
+    <loc xlink:type="locator"
+      xlink:label="Africa"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Africa" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Regions" xlink:to="Africa"
+      order="3"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/africa" />
+    <loc xlink:type="locator"
+      xlink:label="Asia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Asia" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Regions" xlink:to="Asia"
+      order="4"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/asia" />
+    <loc xlink:type="locator"
+      xlink:label="Europe"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Europe" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Regions" xlink:to="Europe"
+      order="5"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/europe" />
+    <loc xlink:type="locator"
+      xlink:label="Polar"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Polar" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Regions" xlink:to="Polar"
+      order="6"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/formula/conformance/example/role/polar" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/americas">
+    <loc xlink:type="locator"
+      xlink:label="America"
+      xlink:href="nonXdtSegMatch-concepts.xsd#America" />
+    <loc xlink:type="locator"
+      xlink:label="NorthAmerica"
+      xlink:href="nonXdtSegMatch-concepts.xsd#NorthAmerica" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="America" xlink:to="NorthAmerica"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="UnitedStates"
+      xlink:href="nonXdtSegMatch-concepts.xsd#UnitedStates" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="NorthAmerica" xlink:to="UnitedStates"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Mexico"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Mexico" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="NorthAmerica" xlink:to="Mexico"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Canada"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Canada" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="NorthAmerica" xlink:to="Canada"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="SouthAmerica"
+      xlink:href="nonXdtSegMatch-concepts.xsd#SouthAmerica" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="America" xlink:to="SouthAmerica"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Argentina"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Argentina" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="SouthAmerica" xlink:to="Argentina"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Brazil"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Brazil" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="SouthAmerica" xlink:to="Brazil"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Peru"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Peru" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="SouthAmerica" xlink:to="Peru"
+      order="3"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/oceania">
+    <loc xlink:type="locator"
+      xlink:label="Oceania"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Oceania" />
+    <loc xlink:type="locator"
+      xlink:label="Australasia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Australasia" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Oceania" xlink:to="Australasia"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Australia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Australia" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Australasia" xlink:to="Australia"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="NewZealand"
+      xlink:href="nonXdtSegMatch-concepts.xsd#NewZealand" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Australasia" xlink:to="NewZealand"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Melanesia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Melanesia" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Oceania" xlink:to="Melanesia"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Indonesia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Indonesia" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Melanesia" xlink:to="Indonesia"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/africa">
+    <loc xlink:type="locator"
+      xlink:label="Africa"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Africa" />
+    <loc xlink:type="locator"
+      xlink:label="Tanzania"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Tanzania" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Africa" xlink:to="Tanzania"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/asia">
+    <loc xlink:type="locator"
+      xlink:label="Asia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Asia" />
+    <loc xlink:type="locator"
+      xlink:label="SouthAsia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#SouthAsia" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Asia" xlink:to="SouthAsia"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Nepal"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Nepal" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="SouthAsia" xlink:to="Nepal"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/europe">
+    <loc xlink:type="locator"
+      xlink:label="Europe"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Europe" />
+    <loc xlink:type="locator"
+      xlink:label="Austria"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Austria" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Europe" xlink:to="Austria"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Russia"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Russia" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Europe" xlink:to="Russia"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Spain"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Spain" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Europe" xlink:to="Spain"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="Switzerland"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Switzerland" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Europe" xlink:to="Switzerland"
+      order="4"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/polar">
+    <loc xlink:type="locator"
+      xlink:label="Polar"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Polar" />
+    <loc xlink:type="locator"
+      xlink:label="Antarctica"
+      xlink:href="nonXdtSegMatch-concepts.xsd#Antarctica" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="Polar" xlink:to="Antarctica"
+      order="1"
+      use="optional" />
+  </definitionLink>
+</linkbase>

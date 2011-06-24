@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Edited by Charles Hoffman, UBmatrix; CharlesHoffman@olywa.net -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Item-Summation Balance Constraint" description="Section 5.1.1.2 - An optional balance attribute MAY be added to the definition of an element if its type is monetaryItemType or derived from monetaryItemType. The balance attribute MUST NOT be used on items that do not have type equal to the monetaryItemType or to a type that is derived from monetaryItemType. If the idea of debit/credit balance is appropriate to the element, it MAY be indicated using this attribute." 
+outpath="out" owner="charleshoffman@olywa.net" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+
+	<!-- Detect violations of the constraints among the balance attribute and calculation summation item arcs 
+	as documented in Table 7 of section 5.4.2 (balance.xml). -->
+	<variation id="V-01" name="Item and summation have no balance attribute">
+		<description>208.01 When the item and summation have no balance attribute they are consistent</description>
+		<data>
+			<instance readMeFirst="true">208-01-ItemNoneSummationNone-instance.xml</instance>
+			<xsd readMeFirst="false">208-01-ItemNoneSummationNone.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- Table 7. Constraints amoung the balance attribute and calculation arc weights
+
+        Balance @	Balance @	CalulationArc
+        From item	To item		Illegal values
+        =========	=========	==============
+        debit		debit		Negative (&lt; 0)
+        debit		credit		Positive (&gt; 0)
+        credit		debit		Positive (&gt; 0)
+        credit		credit		Negative (&lt; 0)
+
+        -->
+	<!-- The eight cases should be generated programmatically to ensure coverage of weight, credit, and debit. -->
+	<!-- weight = either +1 or -1 -->
+	<!-- item balance = either credit or debit -->
+	<!-- item balance = either credit or debit -->
+	<!-- a single linkbase balance-calculation can be used, with simply two arcs, one weight +1 from A to B, one weight -1 from C to D -->
+	<!-- these eight cases below written by hand -->
+	<!-- Case 1 -->
+	<variation id="V-02" name="Item credit, Summation credit, weight +1">
+		<description>208.02 If an item is a credit, and the item it sums to is a credit, its weight MUST be +1 (greater than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-02-ItemCreditSumCreditWeight+1-instance.xml</instance>
+			<xsd readMeFirst="false">208-02-ItemCreditSumCreditWeight+1.xsd</xsd>
+			<linkbase readMeFirst="false">208-02-ItemCreditSumCreditWeight+1-calculation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- Case 2 -->
+	<variation id="V-03" name="Item credit, Summation credit, weight -1">
+		<description>208.03 If an item is a credit and the item it sums to is a credit, its weight MUST NOT be -1 (less than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-03-ItemCreditSumCreditWeight-1-instance.xml</instance>
+			<xsd readMeFirst="false">208-03-ItemCreditSumCreditWeight-1.xsd</xsd>
+			<linkbase readMeFirst="false">208-03-ItemCreditSumCreditWeight-1-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- Case 3 -->
+	<variation id="V-04" name="Item debit, Summation credit, weight +1">
+		<description>208.04 If an item is a debit, and the item it sums to is a credit, its weight MUST NOT be +1 (greater than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-04-ItemDebitSumCreditWeight+1-instance.xml</instance>
+			<xsd readMeFirst="false">208-04-ItemDebitSumCreditWeight+1.xsd</xsd>
+			<linkbase readMeFirst="false">208-04-ItemDebitSumCreditWeight+1-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- Case 4 -->
+	<variation id="V-05" name="Item debit, Summation credit, weight -1">
+		<description>208.05 If an item is a debit, and the item it sums to is a credit, its weight MUST be -1 (less than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-05-ItemDebitSumCreditWeight-1-instance.xml</instance>
+			<xsd readMeFirst="false">208-05-ItemDebitSumCreditWeight-1.xsd</xsd>
+			<linkbase readMeFirst="false">208-05-ItemDebitSumCreditWeight-1-calculation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- Case 5 -->
+	<variation id="V-06" name="Item credit, Summation debit, weight +1">
+		<description>208.06 If an item is a credit, and the item it sums to is a credit, its weight MUST NOT be +1 (greate than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-06-ItemCreditSumDebitWeight+1-instance.xml</instance>
+			<xsd readMeFirst="false">208-06-ItemCreditSumDebitWeight+1.xsd</xsd>
+			<linkbase readMeFirst="false">208-06-ItemCreditSumDebitWeight+1-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- Case 6 -->
+	<variation id="V-07" name="Item credit, Summation debit, weight -1">
+		<description>208.07 If an item is a credit, and the item it sums to is a debit, its weight MUST be -1 (less than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-07-ItemCreditSumDebitWeight-1-instance.xml</instance>
+			<xsd readMeFirst="false">208-07-ItemCreditSumDebitWeight-1.xsd</xsd>
+			<linkbase readMeFirst="false">208-07-ItemCreditSumDebitWeight-1-calculation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- Case 7 -->
+	<variation id="V-08" name="Item debit, Summation debit, weight +1">
+		<description>208.08 If an item is a debit, and the item it sums to is a debit, its weight MUST be +1 (greater than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-08-ItemDebitSumDebitWeight+1-instance.xml</instance>
+			<xsd readMeFirst="false">208-08-ItemDebitSumDebitWeight+1.xsd</xsd>
+			<linkbase readMeFirst="false">208-08-ItemDebitSumDebitWeight+1-calculation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- Case 8 -->
+	<variation id="V-09" name="Item debit, Summation debit, weight -1">
+		<description>208.09 If an item is a debit, and the item it sums to is a debit, its weight MUST NOT be -1 (less than 0)</description>
+		<data>
+			<instance readMeFirst="true">208-09-ItemDebitSumDebitWeight-1-instance.xml</instance>
+			<xsd readMeFirst="false">208-09-ItemDebitSumDebitWeight-1.xsd</xsd>
+			<linkbase readMeFirst="false">208-09-ItemDebitSumDebitWeight-1-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-10" name="Value of weight attribute must not be 0">
+		<description>208.10 The value of a weight attribute MUST NOT be 0 (zero)</description>
+		<data>
+			<instance readMeFirst="true">208-10-WeightNotZero-instance.xml</instance>
+			<xsd readMeFirst="false">208-10-WeightNotZero.xsd</xsd>
+			<linkbase readMeFirst="false">208-10-WeightNotZero-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

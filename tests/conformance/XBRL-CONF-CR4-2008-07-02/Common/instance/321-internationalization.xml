@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Internationalizarion of xlink:href content" description="Test the implementation of converting the xlink:href from the represented character string into the right URL for file names and the content of ID attributes" outpath="out" owner="ignacio@hernandez-ros.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+
+        <variation id="V-00" name="v00-SpanishCharactersInLocalPartOfQNames">
+                <description>321-01 the instance document refers to a taxonomy that contains item definitions using Spanish characters. The item definitions are references from the linkbases. The instance should be considered valid but inconsistent according to the relationships in the calculation linkbase</description>
+                <data>
+                        <instance readMeFirst="true">321-01-internationalization-instance-invalid.xml</instance>
+                        <xsd readMeFirst="false">321-01-internationalization.xsd</xsd>
+                        <linkbase readMeFirst="false">321-01-internationalization-calculation.xml</linkbase>
+                        <linkbase readMeFirst="false">321-01-internationalization-label.xml</linkbase>
+                        <linkbase readMeFirst="false">321-01-internationalization-presentation.xml</linkbase>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-01" name="v01-SpanishCharactersInLocalPartOfQNames">
+                <description>321-01 the instance document refers to a taxonomy that contains item definitions using Spanish characters. The item definitions are references from the linkbases. The instance should be considered valid and consistent according to the relationships in the calculation linkbase</description>
+                <data>
+                        <instance readMeFirst="true">321-01-internationalization-instance-valid.xml</instance>
+                        <xsd readMeFirst="false">321-01-internationalization.xsd</xsd>
+                        <linkbase readMeFirst="false">321-01-internationalization-calculation.xml</linkbase>
+                        <linkbase readMeFirst="false">321-01-internationalization-label.xml</linkbase>
+                        <linkbase readMeFirst="false">321-01-internationalization-presentation.xml</linkbase>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+</testcase>

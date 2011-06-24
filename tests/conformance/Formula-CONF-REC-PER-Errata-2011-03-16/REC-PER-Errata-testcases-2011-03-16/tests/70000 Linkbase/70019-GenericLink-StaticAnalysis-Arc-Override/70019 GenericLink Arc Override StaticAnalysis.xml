@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70019</number>
+  <name>Generic arc overrides static analysis</name>
+  <description>
+    Test arc override on generic arc element.
+  </description>
+  <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+
+  <variation id="V-01">
+    <name>A generic arc connects two resources, overriding arc in separate linkbase substitutes different resource for target of arc.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-arcrole"/>
+    <data>
+      <schema>70019-arcOverride-concepts-v01.xsd</schema>
+      <linkbase>70019-arcOverride-testLB-v01.xml</linkbase>
+      <linkbase readMeFirst="true">70019-arcOverride-testLB-override-v01.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+</testcase>
+
+
+

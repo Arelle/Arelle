@@ -1,0 +1,8 @@
+<!-- edited by Masatomo Goto (Fujitsu) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<schema targetNamespace="http://example.com/xbrl/taxonomy" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="changeInRetainedEarnings" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="a1" xbrli:periodType="duration"/>
+	<element name="fixedAssets" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="a2" xbrli:balance="debit" xbrli:periodType="instant"/>
+</schema>

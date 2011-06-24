@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+
+<testcase name='125-TestCase-DRSUndirectedCycleError' description='A dimensional processor MUST check the cycles in a DRS according to the value of the
+	cyclesAllowed attribute in the arc definition in the xbrldt schema as if all the arcs were
+	created in the same extended link role.' xmlns='http://xbrl.org/2005/conformance' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://xbrl.org/2005/conformance ../../lib/test.xsd' minimal='true' outpath='out' owner='ihr@xbrl.org' xmlns:xbrldte='http://xbrl.org/2005/xbrldt/errors'>
+  <variation name='hypercubeDimensionUndirected' id='V-01'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>Not a cycle as only the targetRole should be followed (when present) to build the DRS.</description>
+    <data>
+      <linkbase readMeFirst='true'>hypercubeDimensionUndirected-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation name='dimensionDomainUndirected' id='V-02'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>Not a cycle as only the targetRole should be followed (when present) to build the DRS.</description>
+    <data>
+      <linkbase readMeFirst='true'>dimensionDomainUndirected-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation name='domainMemberUndirected' id='V-03'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>domain-member allows undirected cycles.</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberUndirected-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result/>
+  </variation>
+</testcase>

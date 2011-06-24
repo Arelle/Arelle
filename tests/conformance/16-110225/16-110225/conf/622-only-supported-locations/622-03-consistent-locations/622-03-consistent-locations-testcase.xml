@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns="http://edgar/2009/conformance"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>622-03</number>
+<name>EDGAR Filer Manual v16 6.22.3 page 6-61</name>
+<description>
+<h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+<p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files
+that are supported by EDGAR, their locations, required namespaces, and where appropriate, the relevant EDGAR form
+types.</p>
+<p>REMARK: There is no such section 6.22.3, these tests are just to verify that 2008 taxonomies work together but do
+not work with the 2009 or subsequent taxonomies because of the XBRL 2.1 level conflict between roleType
+declarations (when their allowed linkbases are included in the mix). Going forward, taxonomies of different
+vintages are expected to coexist in a DTS without XBRL-level errors and this testcase will not be necessary.
+However, other filing considerations mean that some taxonomies remain incompatible as listed below.</p>
+</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11"/>
+<variation id="_004ng">
+<name>6.22.3, dei 2008 and dei 2009 (also XBRL 2.1 invalid), NOGOOD</name>
+<description> dei 2008 and dei 2009 (also XBRL 2.1 invalid), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.2"/>  
+<data>
+<instance readMeFirst="true">e62203004ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.22.3, dei 2008 and rr 2010 (with us-types 2008 and 2009 in DTS), NOGOOD</name>
+<description>dei 2008 and rr 2010 (with us-types 2008 and 2009 in DTS), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/>
+<data>
+<instance readMeFirst="true">e62203006ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203006ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_007ng">
+<name>6.22.3, dei 2008 and dei 2011, NOGOOD</name>
+<description>dei 2008 and rr 2011, NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.2"/>
+<data>
+<instance readMeFirst="true">e62203007ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203007ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_015ng">
+<name>6.22.3, us 2008 and us 2009 (us-types 2008 and 2009) (also XBRL 2.1 invalid), NOGOOD</name>
+<description>us 2008 and us 2009 (us-types 2008 and 2009) (also XBRL 2.1 invalid), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/> 
+<data>
+<instance readMeFirst="true">e62203015ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203015ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_018ng">
+<name>6.22.3, us 2008 and us 2011 (us-types 2008 and 2011), NOGOOD</name>
+<description>us 2008 and us 2011 (us-types 2008 and 2011), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/> 
+<data>
+<instance readMeFirst="true">e62203018ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203018ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_025ng">
+<name>6.22.3, soi 2008 and us 2009 (us-types 2008 and 2009) (also XBRL 2.1 invalid), NOGOOD</name>
+<description>soi 2008 and us 2009 (us-types 2008 and 2009) (also XBRL 2.1 invalid), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/> 
+<data>
+<instance readMeFirst="true">e62203025ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203025ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_026ng">
+<name>6.22.3, soi 2008 and rr 2010 (us-types 2008 and 2009), NOGOOD</name>
+<description>soi 2008 and rr 2010 (us-types 2008 and 2009), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/> 
+<data>
+<instance readMeFirst="true">e62203026ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203026ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_035ng">
+<name>6.22.3, rr 2008 and us 2009 (us-types 2008 and 2009), (also XBRL 2.1 invalid), NOGOOD</name>
+<description>rr 2008 and us 2009 (us-types 2008 and 2009), (also XBRL 2.1 invalid), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/>
+<data>
+<instance readMeFirst="true">e62203035ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203035ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_036ng">
+<name>6.22.3, rr 2008 and rr 2010 (us-types 2008 and 2009), NOGOOD</name>
+<description>rr 2008 and rr 2010 (us-types 2008 and 2009), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/>
+<data>
+<instance readMeFirst="true">e62203036ng-20081231.xml</instance>
+<linkbase>edgar-20080331_lab.xml</linkbase>
+<linkbase>edgar-20080331_pre.xml</linkbase>
+<schema>edgar-20080331.xsd</schema>
+<schema>e62203036ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_047ng">
+<name>6.22.3, dei 2009 and dei 2011, NOGOOD</name>
+<description>dei 2009 and dei 2011, NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.2"/>
+<data>
+<instance readMeFirst="true">e62203047ng-20081231.xml</instance>
+<linkbase>edgar-20090131_lab.xml</linkbase>
+<linkbase>edgar-20090131_pre.xml</linkbase>
+<schema>edgar-20090131.xsd</schema>
+<schema>e62203047ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+<variation id="_058ng">
+<name>6.22.3, us 2009 and us 2011 (us-types 2009 and 2011), NOGOOD</name>
+<description>us 2009 and us 2011 (us-types 2009 and 2011), NOGOOD</description>
+<reference specification="10872.4"/>
+<reference specification="11334.11.1"/>
+<data>
+<instance readMeFirst="true">e62203058ng-20081231.xml</instance>
+<linkbase>edgar-20090131_lab.xml</linkbase>
+<linkbase>edgar-20090131_pre.xml</linkbase>
+<schema>edgar-20090131.xsd</schema>
+<schema>e62203058ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62203" name="Inconsistent-Schemas" frd="cp"/>
+</result>
+</variation>
+</testcase>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<signals time-stamp="2009-09-12T06:00:46.421-0400" xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors">
+    <summary>
+        <information>0</information>
+        <best-practice>0</best-practice>
+        <inconsistency>0</inconsistency>
+        <warning>0</warning>
+        <error>1</error>
+        <total>1</total>
+    </summary>
+    <signal>
+        <qname xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors">xbrldie:PrimaryItemDimensionallyInvalidError</qname>
+        <severity>ERROR</severity>
+        <message>[Ins Err, 2] Section 3.1.1:  The primary item is not valid in any base set, fact = '{http://www.example.com/2009}Prime'[@contextRef='ctx'][@unitRef='pure']</message>
+        <property>
+            <property-name>fact</property-name>
+            <document-uri>file:/C:/dev/xdt/271/closed-absent-scenario-nodefault-nodefault-scenario-scenario.xbrl</document-uri>
+            <line-number>28</line-number>
+            <xpath>/xbrli:xbrl/example:Prime[1]</xpath>
+            <text-value>41</text-value>
+        </property>
+    </signal>
+</signals>

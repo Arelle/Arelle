@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Edited by Suguru WASHIO (wasio@jp.fujitsu.com) -->
+<!--  Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved.  -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ptv="http://www.xbrl.org/2003/ptv" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:my="http://mycompany.com/xbrl/taxonomy" xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy 210-03-MissingOrder.xsd http://www.xbrl.org/2003/ptv ptv-2003-12-31.xsd">
+  <link:schemaRef xlink:type="simple" xlink:href="210-03-MissingOrder.xsd"/>
+  <unit id="u1">
+    <measure>iso4217:GBP</measure>
+  </unit>
+  <context id="c1">
+    <entity>
+      <identifier scheme="www.dnb.com">121064880</identifier>
+    </entity>
+    <period>
+      <instant>2003-12-12</instant>
+    </period>
+  </context>
+  <my:fixedAssets precision="3" ptv:balance="debit" ptv:periodType="instant" contextRef="c1" unitRef="u1">5000</my:fixedAssets>
+  <my:changeInRetainedEarnings precision="3" ptv:periodType="instant" contextRef="c1" unitRef="u1">1000</my:changeInRetainedEarnings>
+</xbrl>

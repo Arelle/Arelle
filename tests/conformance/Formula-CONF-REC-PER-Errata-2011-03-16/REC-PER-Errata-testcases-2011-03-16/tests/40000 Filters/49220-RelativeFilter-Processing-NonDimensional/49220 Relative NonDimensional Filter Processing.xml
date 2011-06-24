@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>49220</number>
+  <name>Relative Filter Non-Dimensional Processing</name>
+  <description>
+    Test relative non-dimensional filter processing.
+  </description>
+  <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+
+  <variation id="V-01">
+    <name>Test relative filtering of equity computation example</name>
+    <description>
+For variable $v:assets, a covering concept-name filter requires matching facts to report values for the eg:assets concept. 
+For variable $v:liabilities, a covering concept-name filter requires matching facts to report values for the eg:liabilities concept, and a covering relative filter matches otherwise-uncovered aspects to the fact that variable $v:assets has evaluated to. 
+    </description>
+    <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+    <data>
+      <schema>49220-relNonDimFilter-concepts.xsd</schema>
+      <linkbase>49220-equity-formula.xml</linkbase>
+      <instance readMeFirst="true">49220-equity-instance.xml</instance>
+    </data>
+    <result>
+      <instance>49220-equity-result.xml</instance>
+    </result>
+  </variation>
+
+<!-- Bad test per specification
+  <variation id="V-02">
+    <name>Test with unresolvable prefix on variable attribute</name>
+    <description>
+Same as V-01.
+    </description>
+    <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+    <data>
+      <schema>49220-relNonDimFilter-concepts.xsd</schema>
+      <linkbase>49220-badVariablePrefix-formula.xml</linkbase>
+      <instance readMeFirst="true">49220-badVariablePrefix-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">
+         xbrlve:variableNameResolutionFailure
+      </error>
+    </result>
+  </variation>
+-->
+
+  <variation id="V-03">
+    <name>Test with no namespace no prefix variable name attribute</name>
+    <description>
+Same as V-01.
+    </description>
+    <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+    <data>
+      <schema>49220-relNonDimFilter-concepts.xsd</schema>
+      <linkbase>49220-noPrefixVariableName-formula.xml</linkbase>
+      <instance readMeFirst="true">49220-noPrefixVariableName-instance.xml</instance>
+    </data>
+    <result>
+      <instance>49220-equity-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

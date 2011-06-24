@@ -1,0 +1,14 @@
+<xsd:schema xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:tx="http://www.xbrl.org/dim/conf/389/contextImplicitDimNotInScenario" xmlns:xdt="http://xbrl.org/2005/xbrldt" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:pr="http://www.xbrl.org/dim/conf/primary" xmlns:cc="http://www.example.com/customer-code" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" elementFormDefault="qualified" targetNamespace="http://www.xbrl.org/dim/conf/389/contextImplicitDimNotInScenario">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="contextImplicitDimNotInScenario-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"/>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="contextImplicitDimNotInScenario-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dim/conf/primary" schemaLocation="../../lib/base/primary.xsd"/>
+  <xsd:import namespace="http://www.example.com/customer-code" schemaLocation="../../lib/base/cust-code.xsd"/>
+  <xsd:element name="CustomerCodeDim" id="tx_CustomerCodeDim" type="xbrli:stringItemType" xbrldt:typedDomainRef="../../lib/base/cust-code.xsd#cc_customer" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="hc_CustomerCode" id="tx_hc_CustomerCode" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" abstract="true" nillable="true" xbrli:periodType="duration"/>
+</xsd:schema>

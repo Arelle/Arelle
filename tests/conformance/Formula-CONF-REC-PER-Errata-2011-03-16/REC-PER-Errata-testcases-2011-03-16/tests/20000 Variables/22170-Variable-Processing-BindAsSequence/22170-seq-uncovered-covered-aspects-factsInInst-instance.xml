@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22170-seq-uncovered-covered-aspect-factsInInst-formula.xml"/>
+  
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <!-- inner planets tuple, no moons -->
+  <concept:t1>
+    <concept:c1 contextRef="context">Mercury,</concept:c1>
+    <concept:c1 contextRef="context">Venus</concept:c1>
+  </concept:t1>
+  <!-- our own planet tuple & moons -->
+  <concept:t1>
+    <concept:c1 contextRef="context">Earth:</concept:c1>
+    <concept:c2 contextRef="context">Moon</concept:c2>
+  </concept:t1>
+  <!-- planets with moons get own tuples -->
+  <concept:t1>
+    <concept:c1 contextRef="context">Mars:</concept:c1>
+    <concept:c2 contextRef="context">Phobos,</concept:c2>
+    <concept:c2 contextRef="context">Deimos</concept:c2>
+  </concept:t1>
+  <concept:t1>
+    <concept:c1 contextRef="context">Jupiter:</concept:c1>
+    <concept:c2 contextRef="context">Metis,</concept:c2>
+    <concept:c2 contextRef="context">Adrastea,</concept:c2>
+    <concept:c2 contextRef="context">Amalthea,</concept:c2>
+    <concept:c2 contextRef="context">Thebe,</concept:c2>
+    <concept:c2 contextRef="context">Io,</concept:c2>
+    <concept:c2 contextRef="context">Europa,</concept:c2>
+    <concept:c2 contextRef="context">Ganymede,</concept:c2>
+    <concept:c2 contextRef="context">Callisto,</concept:c2>
+    <concept:c2 contextRef="context">Leda,</concept:c2>
+    <concept:c2 contextRef="context">Himalia,</concept:c2>
+    <concept:c2 contextRef="context">Lysithea,</concept:c2>
+    <concept:c2 contextRef="context">Elara,</concept:c2>
+    <concept:c2 contextRef="context">Ananke,</concept:c2>
+    <concept:c2 contextRef="context">Carme,</concept:c2>
+    <concept:c2 contextRef="context">Pasiphae,</concept:c2>
+    <concept:c2 contextRef="context">Sinope</concept:c2>
+  </concept:t1>
+  <concept:t1>
+    <concept:c1 contextRef="context">Saturn:</concept:c1>
+    <concept:c2 contextRef="context">Pan,</concept:c2>
+    <concept:c2 contextRef="context">Atlas,</concept:c2>
+    <concept:c2 contextRef="context">Prometheus,</concept:c2>
+    <concept:c2 contextRef="context">Pandora,</concept:c2>
+    <concept:c2 contextRef="context">Epimetheus,</concept:c2>
+    <concept:c2 contextRef="context">Janus,</concept:c2>
+    <concept:c2 contextRef="context">Mimas,</concept:c2>
+    <concept:c2 contextRef="context">Enceladus,</concept:c2>
+    <concept:c2 contextRef="context">Tethys,</concept:c2>
+    <concept:c2 contextRef="context">Telesto,</concept:c2>
+    <concept:c2 contextRef="context">Calypso,</concept:c2>
+    <concept:c2 contextRef="context">Dione,</concept:c2>
+    <concept:c2 contextRef="context">Helene,</concept:c2>
+    <concept:c2 contextRef="context">Rhea,</concept:c2>
+    <concept:c2 contextRef="context">Titan,</concept:c2>
+    <concept:c2 contextRef="context">Hyperion,</concept:c2>
+    <concept:c2 contextRef="context">Iapetus,</concept:c2>
+    <concept:c2 contextRef="context">Phoebe</concept:c2>
+  </concept:t1>
+  <concept:t1>
+    <concept:c1 contextRef="context">Neptune:</concept:c1>
+    <concept:c2 contextRef="context">Cordelia,</concept:c2>
+    <concept:c2 contextRef="context">Ophelia,</concept:c2>
+    <concept:c2 contextRef="context">Bianca,</concept:c2>
+    <concept:c2 contextRef="context">Cressida,</concept:c2>
+    <concept:c2 contextRef="context">Desdemona,</concept:c2>
+    <concept:c2 contextRef="context">Juliet,</concept:c2>
+    <concept:c2 contextRef="context">Portia,</concept:c2>
+    <concept:c2 contextRef="context">Rosalind,</concept:c2>
+    <concept:c2 contextRef="context">2003U2,</concept:c2>
+    <concept:c2 contextRef="context">Belinda,</concept:c2>
+    <concept:c2 contextRef="context">1986U10,</concept:c2>
+    <concept:c2 contextRef="context">Puck,</concept:c2>
+    <concept:c2 contextRef="context">2003U1,</concept:c2>
+    <concept:c2 contextRef="context">Miranda,</concept:c2>
+    <concept:c2 contextRef="context">Ariel,</concept:c2>
+    <concept:c2 contextRef="context">Umbriel,</concept:c2>
+    <concept:c2 contextRef="context">Titania,</concept:c2>
+    <concept:c2 contextRef="context">Oberon,</concept:c2>
+    <concept:c2 contextRef="context">2001U3,</concept:c2>
+    <concept:c2 contextRef="context">Caliban,</concept:c2>
+    <concept:c2 contextRef="context">Stephano,</concept:c2>
+    <concept:c2 contextRef="context">Trinculo,</concept:c2>
+    <concept:c2 contextRef="context">Sycorax,</concept:c2>
+    <concept:c2 contextRef="context">2003U3,</concept:c2>
+    <concept:c2 contextRef="context">Prospero,</concept:c2>
+    <concept:c2 contextRef="context">Setebos,</concept:c2>
+    <concept:c2 contextRef="context">2002U2</concept:c2>
+        </concept:t1>
+  <concept:t1>
+    <concept:c1 contextRef="context">Uranus:</concept:c1>
+    <concept:c2 contextRef="context">Naiad,</concept:c2>
+    <concept:c2 contextRef="context">Thalassa,</concept:c2>
+    <concept:c2 contextRef="context">Despina,</concept:c2>
+    <concept:c2 contextRef="context">Galatea,</concept:c2>
+    <concept:c2 contextRef="context">Larissa,</concept:c2>
+    <concept:c2 contextRef="context">Proteus,</concept:c2>
+    <concept:c2 contextRef="context">Triton,</concept:c2>
+    <concept:c2 contextRef="context">Nereid</concept:c2>
+
+  </concept:t1>
+
+</xbrl>
+

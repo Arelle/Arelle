@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2009 XBRL International. All Rights Reserved. -->
+
+<!--
+     Instances as a formula processor first-class object.
+     
+     Implements multi-instance processing, chaining, and supports tuple generation.
+  -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:varsscope="http://xbrl.org/2010/variable/variables-scope"
+  targetNamespace="http://xbrl.org/2010/variable/variables-scope"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <!-- 
+           arc from a variable-set to another variable-set
+           to provide visibility of source's in-scope variables to target
+
+           if a formula, then name on this arc gives visibility to the
+           formula's result in the result's instance, the result behaves
+           as if it were a factVariable in the source's in-scope variable set
+
+           the to-end variable set has access to the values and aspects of the
+           from-end variables (and formula result) but does not impact covering
+           within the from-end variable set; to-end has implicit filtering
+           available to match the from-side's aspects
+      -->
+      <link:arcroleType id="variables-scope"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2010/variables-scope">
+        <link:definition>Provides visibility of source's variables to target and if
+        source is a formula and name is present, provides visibility of the
+        resulting fact produced</link:definition>
+        <link:usedOn>varsscope:variablesScopeArc</link:usedOn>
+      </link:arcroleType>
+    </appinfo>
+  </annotation>
+
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/generic"
+    schemaLocation="http://www.xbrl.org/2008/generic-link.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/variable"
+    schemaLocation="http://www.xbrl.org/2008/variable.xsd" />
+ 
+  <element id="variables-scope-arc"
+  name="variablesScopeArc" substitutionGroup="generic:arc">
+    <complexType>
+      <complexContent>
+        <extension base="generic:genericArcType">
+          <attribute name="name" type="variable:QName" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+</schema>
+

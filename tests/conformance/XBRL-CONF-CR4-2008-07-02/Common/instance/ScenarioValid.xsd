@@ -1,0 +1,11 @@
+<!-- Company specific scenario sub-element -->
+<schema targetNamespace="http://www.someCompany.com"   
+        xmlns:my="http://www.someCompany.com"
+        xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+   <simpleType name="sampleScenarioType">
+     <restriction base="string"/>
+   </simpleType>
+
+  <element name="sampleScenario" type="my:sampleScenarioType"/>
+</schema>

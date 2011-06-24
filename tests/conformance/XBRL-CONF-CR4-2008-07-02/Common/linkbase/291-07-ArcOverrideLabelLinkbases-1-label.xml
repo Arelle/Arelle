@@ -1,0 +1,7 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="291-07-ArcOverrideLabelLinkbases.xsd#fixedAssets" xlink:label="aaa" xlink:title="aaa"/>
+		<label xlink:type="resource" id="labelaaa" xlink:label="aaaLabel" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Fixed Assets</label>
+		<labelArc xlink:type="arc" xlink:from="aaa" xlink:to="aaaLabel" xlink:show="replace" xlink:actuate="onRequest" xlink:title="aaa Label" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" priority="0"/>
+	</labelLink>
+</linkbase>

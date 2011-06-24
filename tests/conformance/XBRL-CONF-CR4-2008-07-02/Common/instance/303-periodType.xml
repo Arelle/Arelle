@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Period Type Consistency" description="Section 4.3  The Item Element" outpath="out" owner="n-sanbuichi@hitachi-system.co.jp" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-01" name="PeriodInstantValid">
+		<description>303.01 instant context and item defined with PeriodType="instant"</description>
+		<data>
+			<xsd readMeFirst="false">Period.xsd</xsd>
+			<instance readMeFirst="true">303-01-PeriodInstantValid.xml</instance>
+		</data>
+		<result expected="valid">303-01-PeriodInstantValidOut.xml</result>
+	</variation>
+	<variation id="V-02" name="PeriodDurationValid">
+		<description>303.02 duration context and item defined with PeriodType="duration"</description>
+		<data>
+			<xsd readMeFirst="false">Period.xsd</xsd>
+			<instance readMeFirst="true">303-02-PeriodDurationValid.xml</instance>
+		</data>
+		<result expected="valid">303-02-PeriodDurationValidOut.xml</result>
+	</variation>
+	<variation id="V-03" name="PeriodInstantInValid">
+		<description>303.03 duration context and item defined with PeriodType="instant"</description>
+		<data>
+			<xsd readMeFirst="false">Period.xsd</xsd>
+			<instance readMeFirst="true">303-03-PeriodInstantInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-04" name="PeriodDurationInvalid">
+		<description>303.04 instant context and item defined with PeriodType="duration"</description>
+		<data>
+			<xsd readMeFirst="false">Period.xsd</xsd>
+			<instance readMeFirst="true">303-04-PeriodDurationInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation id="V-05" name="ForeverConceptwithInstantPeriodType">
+		<description>ForeverConcept with Instant Period Type is not allowed</description>
+		<data>
+			<instance readMeFirst="true">303-05-ForeverElementewithInstancePeriodTypeReportedasForever.xbrl</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>	
+
+</testcase>

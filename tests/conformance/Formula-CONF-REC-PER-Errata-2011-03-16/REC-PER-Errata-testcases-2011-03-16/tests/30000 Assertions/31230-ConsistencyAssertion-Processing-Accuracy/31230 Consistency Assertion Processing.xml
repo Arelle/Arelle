@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>31230</number>
+  <name>Consistency Assertion Accuracy Processing</name>
+  <description>
+    Consistency check accuracy considerations per spec.
+  </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+
+  <variation id="V-01">
+    <name>Consistency check foo eq foo, assertion satisfied</name>
+    <description>
+      Consistency check string, any radius is ignored per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-str-corr-str-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-str-eq-str-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <instance>31230-str-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Consistency check foo ne bar, assertion not satisfied</name>
+    <description>
+      Consistency check string, any radius is ignored per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-str-corr-str-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-str-ne-str-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <instance>31230-str-result.xml</instance>
+   </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Consistency check 315.5 inf eq 315.5 inf, assertion satisfied</name>
+    <description>
+      Consistency check inf numbers, no radius per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-inf-corr-no-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-inf-eq-inf-no-radius-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <instance>31230-inf-315-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>Consistency check 315.5 inf ne 315.50001 inf, assertion not satisfied</name>
+    <description>
+      Consistency check inf numbers, no radius per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-inf-corr-no-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-inf-ne-inf-no-radius-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <instance>31230-inf-315-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>Consistency check 315.5 defaulted precision 0 ne 1000000 inf, assertion not defined, doesn't happen, due to precision 0</name>
+    <description>
+      Consistency check derived fact defaults precision 0, no radius per example. In this case precision can be inferred from the source fact, the derived fact's precision is not explicitly specified in the formula construct, so it defaults to precision zero.  In this case the assertion set is not defined and no assertionoccurs.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-def-corr-no-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-def-p0-ne-inf-no-radius-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+      <instance>31230-def-p0-ne-inf-no-radius-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-06">
+    <name>Consistency check 315.5 specified precision 0 ne 1000000 inf, assertion not defined, doesn't happen, due to precision 0</name>
+    <description>
+      Consistency check derived fact specifies precision 0, no radius per example. In this case the derived fact's precision zero is explicitly specified in the formula construct precision expression.  In this case the assertion set is not defined and no assertionoccurs.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-p0-corr-no-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-p0-ne-inf-no-radius-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+      <instance>31230-p0-ne-inf-no-radius-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-07">
+    <name>Consistency check 10 precision 2 eq 10.4 precision 2, assertion satisfied</name>
+    <description>
+      Consistency check derived fact specifies precision 2, note that there is no inferred precision from the source fact, derived fact's precision must be explicitly specified in the formula construct precision expression, this case passes per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-p2-corr-no-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-p2-eq-p2-no-radius-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <instance>31230-p2-eq-p2-no-radius-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-08">
+    <name>Consistency check 10 precision 2 eq 10.4 precision 3, assertion satisfied</name>
+    <description>
+      Consistency check derived fact specifies precision 2, corresponding fact precision 3, passes per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-p2-corr-no-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-p2-eq-p3-no-radius-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <instance>31230-p2-eq-p3-no-radius-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-09">
+    <name>Consistency check 10 precision 2 ne 10.5 precision 3, assertion not satisfied</name>
+    <description>
+      Consistency check derived fact specifies precision 2, corresponding fact differs at precision 3, per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-p2-corr-no-radius-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-p2-ne-p3-no-radius-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <instance>31230-p2-ne-p3-no-radius-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-10">
+    <name>Consistency check 10.0000001 any precision eq 10.0000001 any precision, radius 0, assertion satisfied</name>
+    <description>
+      Consistency check identical values any precision, radius specified, per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-inf-corr-radius-0-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-inf-eq-inf-radius-0-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <instance>31230-inf-eq-inf-radius-0-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-11">
+    <name>Consistency check 10 precision 0 ne 10.0000001 any precision, radius 0, assertion not satisfied</name>
+    <description>
+      Consistency check where precision 0 is defaulted by precision absence in formula construct, but also radius specified, although if no radius they would pass, here the radius prevails over the precision zero, and they don't pass, per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-def-corr-radius-0-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-def-ne-inf-radius-0-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <instance>31230-def-ne-inf-radius-0-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-12">
+    <name>Consistency check 10 precision inf ne 10.0000001 any precision, radius 0, assertion not satisfied</name>
+    <description>
+      Consistency check where precision inf is specified in formula construct, but also radius specified, and they don't pass, per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-inf-corr-radius-0-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-inf-ne-inf-radius-0-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <instance>31230-inf-ne-inf-radius-0-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-13">
+    <name>Consistency check 25 any precision compared to 30 any precision, radius 5, assertion is satisfied</name>
+    <description>
+      Consistency check, as above, per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-def-corr-radius-5-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-high-ok-p0-radius-5-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <instance>31230-high-ok-p0-radius-5-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-14">
+    <name>Consistency check 25 any precision compared to 30.000001 any precision, radius 5, assertion not satisfied</name>
+    <description>
+      Consistency check, outside radius range, per example.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-consistent-values"/>
+    <data>
+      <schema>31230-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31230-def-corr-radius-5-formula.xml</linkbase>
+      <instance readMeFirst="true">31230-above-p0-radius-5-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <instance>31230-above-p0-radius-5-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+
+

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--  XBRL 2.1 Tests 
+  -->
+<!--  Copyright 2003 XBRL International. All Rights Reserved. 
+  -->
+<schema targetNamespace='http://mycompany.com/xbrl/arcrole' xmlns='http://www.w3.org/2001/XMLSchema' xmlns:link='http://www.xbrl.org/2003/linkbase' xmlns:nsl='http://example.com/nonStandardLinks' xmlns:xbrli='http://www.xbrl.org/2003/instance' xmlns:xl='http://www.xbrl.org/2003/XLink' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://example.com/nonStandardLinks NonStandardLinks.xsd">
+  <import namespace='http://www.xbrl.org/2003/XLink' schemaLocation='http://www.xbrl.org/2003/xl-2003-12-31.xsd' />
+  <import namespace='http://www.w3.org/1999/xlink' schemaLocation='http://www.xbrl.org/2003/xlink-2003-12-31.xsd' />
+  <annotation>
+    <appinfo>
+      <link:arcroleType id='row-cell' arcroleURI='http://mycompany.com/xbrl/arcroleDR/row-cell' cyclesAllowed='none'>
+        <link:definition>
+					A new arc role used to represent relationships between a row concept and a cell concept. Doesn't allow cycles.
+				</link:definition>
+        <link:usedOn>link:labelArc</link:usedOn>
+      </link:arcroleType>
+      <linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link" xlink:title="Labels, All">
+          <labelArc xlink:type="arc" xlink:arcrole="http://mycompany.com/xbrl/arcroleDR/row-cell" xlink:from="a" xlink:to="ci_Building_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_Building_lbl" xml:lang="en">Building</label>
+          <link:loc xlink:type="locator" xlink:href="#conceptA" xlink:label="a" />
+        </labelLink>
+      </linkbase>
+    </appinfo>
+  </annotation>
+  <import namespace='http://www.xbrl.org/2003/instance' schemaLocation='http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd' />
+  <element name='conceptA' type='xbrli:monetaryItemType' id='conceptA' abstract='false' nillable='true' substitutionGroup='xbrli:item' xbrli:balance='debit' xbrli:periodType='instant' />
+  <element name='conceptB' type='xbrli:monetaryItemType' id='conceptB' abstract='false' nillable='true' substitutionGroup='xbrli:item' xbrli:balance='debit' xbrli:periodType='instant' />
+  <element name='conceptC' type='xbrli:monetaryItemType' id='conceptC' abstract='false' nillable='true' substitutionGroup='xbrli:item' xbrli:balance='debit' xbrli:periodType='instant' />
+</schema>

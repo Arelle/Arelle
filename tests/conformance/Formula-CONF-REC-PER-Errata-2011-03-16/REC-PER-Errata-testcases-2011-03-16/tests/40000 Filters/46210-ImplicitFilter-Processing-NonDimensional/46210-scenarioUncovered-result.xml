@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:c="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="46210-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="46210-scenarioUncovered-formula.xml"/>
+  
+  <context id="c6">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">i6</identifier>
+      <segment><c:dummy/></segment>
+    </entity>
+    <period>
+      <instant>2007-12-06</instant>
+    </period>
+    <scenario><c:earmarked/></scenario>
+  </context>
+    
+  <unit id="u6"><measure>c:u6</measure></unit>
+
+  <c:f contextRef="c6" unitRef="u6" precision="0">6113</c:f>
+
+  
+</xbrl>

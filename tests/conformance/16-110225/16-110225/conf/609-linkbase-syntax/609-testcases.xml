@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='609-03-no-ineffectual-arcs/609-03-no-ineffectual-arcs-testcase.xml' />
+  <testcase uri='609-04-no-missing-default-roles/609-04-no-missing-default-roles-testcase.xml' />
+  <testcase uri='609-05-no-custom-resource-roles/609-05-no-custom-resource-roles-testcase.xml' />
+  <testcase uri='609-06-no-custom-arcroles/609-06-no-custom-arcroles-testcase.xml' />
+  <testcase uri='609-07-linkbases-distinct/609-07-linkbases-distinct-testcase.xml' />
+  <testcase uri='609-09-priority-less-than-ten/609-09-priority-less-than-ten-testcase.xml' />
+</testcases>

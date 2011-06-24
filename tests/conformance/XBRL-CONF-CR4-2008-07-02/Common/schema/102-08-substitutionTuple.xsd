@@ -1,0 +1,71 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003, 2004 XBRL International. All Rights Reserved. -->
+<xsd:schema 
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   elementFormDefault="qualified"
+   targetNamespace="http://www.example.com/test"
+   xmlns:my="http://www.example.com/test" >
+
+	<xsd:import
+       namespace="http://www.xbrl.org/2003/instance"
+       schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+	<xsd:element name="address"
+                 type="my:addressTupleType"
+                 substitutionGroup="xbrli:tuple"
+                 id="address"/>
+
+	<!-- Content Model for address-->
+	<xsd:complexType name="addressTupleType">
+		<xsd:complexContent>
+			<xsd:restriction base="xsd:anyType">
+				<xsd:sequence>
+					<xsd:element ref="my:street" minOccurs="0"/>
+					<xsd:element ref="my:city" minOccurs="0"/>
+					<xsd:element ref="my:stateOrProvince" minOccurs="0"/>
+					<xsd:element ref="my:country" minOccurs="0"/>
+					<xsd:element ref="my:zipOrPostalCode" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:restriction>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+
+	<xsd:element name="anotherAddress"
+                 type="my:addressTupleType"
+                 substitutionGroup="my:address"
+                 id="shortAddress"/>
+
+	<xsd:element name="street"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="street"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="city"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="city"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="stateOrProvince"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="stateOrProvince"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="country"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="country"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="zipOrPostalCode"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="zipOrPostalCode"
+                 xbrli:periodType="instant"/>
+
+
+</xsd:schema>

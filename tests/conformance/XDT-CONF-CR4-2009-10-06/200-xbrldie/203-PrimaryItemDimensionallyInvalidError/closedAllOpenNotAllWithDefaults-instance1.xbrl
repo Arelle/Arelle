@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2009-06-01 13:10).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2009 UBmatrix inc., All Rights Reserved
+Produced on 2009-06-10 13:33:59
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink"  xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:eg="http://www.example.com"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd">
+  <link:schemaRef xlink:href="closedAllOpenNotAllWithDefaults_1.xsd" xlink:type="simple" />
+  <context id="context-1">
+    <entity>
+      <identifier scheme="http://abc.com">entity-1</identifier>
+          <!-- this is valid, both dimensions defaulted, meets all cube, does not meet not-all cube -->
+    </entity>
+    <period>
+      <instant>2009-01-01T00:00:00</instant>
+    </period>
+  </context>
+  <eg:P1 contextRef="context-1">abc</eg:P1>
+</xbrl>

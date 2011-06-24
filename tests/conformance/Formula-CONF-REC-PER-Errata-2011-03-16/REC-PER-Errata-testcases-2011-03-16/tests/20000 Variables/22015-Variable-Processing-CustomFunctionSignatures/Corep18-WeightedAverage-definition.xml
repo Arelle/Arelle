@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-06-01 16:49).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-06-01 23:07:57
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all" arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension" arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_PrimaryItems" xlink:label="wgt-avg_PrimaryItems" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_PD" xlink:label="wgt-avg_PD" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_PrimaryItems" xlink:to="wgt-avg_PD" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_EV" xlink:label="wgt-avg_EV" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_PrimaryItems" xlink:to="wgt-avg_EV" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_HyperCube" xlink:label="wgt-avg_HyperCube" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="wgt-avg_PrimaryItems" xlink:to="wgt-avg_HyperCube" order="3" use="optional" xbrldt:contextElement="segment" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_ExposuresDimension" xlink:label="wgt-avg_ExposuresDimension" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="wgt-avg_HyperCube" xlink:to="wgt-avg_ExposuresDimension" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_TotalExposures" xlink:label="wgt-avg_TotalExposures" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="wgt-avg_ExposuresDimension" xlink:to="wgt-avg_TotalExposures" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_ObligorGrade" xlink:label="wgt-avg_ObligorGrade" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_TotalExposures" xlink:to="wgt-avg_ObligorGrade" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_ObligorGrade1" xlink:label="wgt-avg_ObligorGrade1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_ObligorGrade" xlink:to="wgt-avg_ObligorGrade1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_ObligorGrade2" xlink:label="wgt-avg_ObligorGrade2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_ObligorGrade" xlink:to="wgt-avg_ObligorGrade2" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_ObligorGrade3" xlink:label="wgt-avg_ObligorGrade3" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_ObligorGrade" xlink:to="wgt-avg_ObligorGrade3" order="3" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_Risk" xlink:label="wgt-avg_Risk" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_TotalExposures" xlink:to="wgt-avg_Risk" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_RiskWeight0" xlink:label="wgt-avg_RiskWeight0" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_Risk" xlink:to="wgt-avg_RiskWeight0" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_RiskWeight10" xlink:label="wgt-avg_RiskWeight10" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_Risk" xlink:to="wgt-avg_RiskWeight10" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="Corep18-WeightedAverage.xsd#wgt-avg_RiskWeight150" xlink:label="wgt-avg_RiskWeight150" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="wgt-avg_Risk" xlink:to="wgt-avg_RiskWeight150" order="3" use="optional" />
+  </definitionLink>
+</linkbase>

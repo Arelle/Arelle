@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:xbrlve="http://xbrl.org/2008/variable/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22180</number>
+  <name>Bind to Empty Sequence processing examples</name>
+  <description>
+    Tests of bind to empty sequence processing
+  </description>
+  <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+
+  <variation id="V-01">
+    <name>Bound empty, no fallback</name>
+    <description>Tests that variable can bind to an empty sequence.  Fallback value is () so empty sequence results when the source fails to bind.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-no-fallback-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-no-fallback-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-empty-no-fallback-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Bound empty allowed but non-empty</name>
+    <description>Tests that variable can bind to an empty sequence but a fact is bound to, so that the found sequence is the count of bound sequence which is 1.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-no-fallback-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-nonempty-no-fallback-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-nonempty-no-fallback-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Bound empty, with fallback to a scalar value</name>
+    <description>Tests that variable can bind to an empty sequence, and if so, with fallback specified, returns the fallback value.  Fallback value is just an integer here.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-with-fallback-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-with-fallback-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-empty-with-fallback-result.xml</instance>
+    </result>
+  </variation>  
+
+  <!-- Herm: this is no longer allowed, separate test cases to detect error
+  <variation id="V-04">
+    <name>Bound empty, with fallback to expression dependent on another fact variable</name>
+    <description>Tests that variable can bind to an empty sequence, and if so, with fallback specified, returns the fallback value.  Here the fallback value is an XPath expression, dependent on a previous bound fact variable.  Order of fact variables resources and order numbers of arcs is reversed to assure dependency ordering is effective.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-with-fallback-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-with-fallback-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-empty-with-fallback-2-result.xml</instance>
+    </result>
+  </variation>  
+  -->
+
+  <variation id="V-05">
+    <name>Bound empty, with fallback to a sequence value, processed one by one</name>
+    <description>Tests that variable can bind to an empty sequence, and if so, with fallback specified, returns the fallback value.  Fallback value is just a sequence of integers, (no longer processed one by one, despite bindAsSequence is false).</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-with-fallback-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-with-fallback-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-empty-with-fallback-3-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Bound empty, with fallback to a sequence value, bound as sequence</name>
+    <description>Tests that variable can bind to an empty sequence, and if so, with fallback specified, returns the fallback value.  Fallback value is just a sequence of integers, processed as a sequence (no longer dependent on bindAsSequence being true).</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-with-fallback-4-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-with-fallback-4-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-empty-with-fallback-4-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Bound empty, with fallback to a sequence value, bindAsSequence=false, does not iterate</name>
+    <description>Tests that variable can bind to an empty sequence, and if so, with fallback specified, returns the fallback value.  Fallback value is just a sequence of integers, processed as a sequence (even though bindAsSequence is false).  Reflects wiki and conf call resolution for fallback value to only produce a single result, no iteration, in this circumstance.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-with-fallback-5-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-with-fallback-5-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-empty-with-fallback-5-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Bound empty, with fallback to a sequence value, parameters in scope</name>
+    <description>Tests that variable can bind to an empty sequence, and if so, with fallback specified, returns the fallback value. Parameters are in scope for the fallback value.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-with-fallback-6-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-with-fallback-6-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-empty-with-fallback-6-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-09">
+    <name>Bound empty, with fallback to a sequence value, variables not in scope</name>
+    <description>Tests that variable can bind to an empty sequence, and if so, with fallback specified, returns the fallback value. Variables are not in scope for the fallback value.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-with-fallback-7-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-with-fallback-7-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlve:factVariableReferenceNotAllowed</error>
+    </result>
+  </variation>  
+
+  <variation id="V-10">
+    <name>Bound empty, with fallback to a numeric value, no interdependencies, dynamic binding order</name>
+    <description>Three numeric variables each can bind to number when absent, different combinations of absent missing facts show dynamic evaluation ordering of the binding process to produce results.  If only static evaluation ordering is used then there will be missing results.  There are no inter-dependencies between the fact variables.  
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-absent-facts-1-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-absent-facts-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-absent-facts-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-11">
+    <name>Bound empty, with fallback to a numeric value, with interdependencies, dynamic binding order</name>
+    <description>Same as V-10 but an interdependency is introduced by general filter, so that $n2 depends on $n1 not being fallen-back. Dynamic fact variable ordering is required respond to fallen-back-variable dependencies, and in turn to produce expected evaluations.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-absent-facts-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-absent-facts-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-absent-facts-2-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-12">
+    <name>Bound empty, with fallback to a numeric value, dynamic binding order, and variable dependency on both bound bound as well as fallen back variables</name>
+    <description>Same as V-10 but a variable (general) is introduced with a dependency on the fallen back variables, which requires dynamic ordering of evaluation so that not only is the binding order (for uncovered bound variables) dynamic, but the dependent (general) variable must evaluate after the dynamic order of preceeding bound or fallen back variables.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-absent-facts-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-absent-facts-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-absent-facts-3-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-13">
+    <name>Bound empty, with fallback to a numeric value, dynamic binding order, and tandem fact and general variables depend on both bound bound as well as fallen back variables</name>
+    <description>$n1, $n2, and $n3 each have fallback values and no dependency.  $n4 depends on one of $n1, $n2, or $n3 existing, or if none, grabs fact n4, and if none falls back. Also $n5 has a fallback and no dependency.  General variable $g1 adds up $n1, $n2, $n3, $n4, and $n5.  So it will evaluate if any of $n1 thru $n5 evaluate, but $n4 must evaluate after $n1, $n2, and $n3.  Even if $n4 binds empty, if $n5 is present $g1 evaluates.  The instance has a comment for each context of implicitly binding variables to show how the result is achieved.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-absent-facts-4-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-absent-facts-4-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-absent-facts-4-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-14">
+    <name>Bound empty, with fallback to a numeric value, context with no facts reported</name>
+    <description>Same as V-10 but a context has no fact items and that fact-less context should not result in an evaluation with all fact variables getting fallen back values.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-absent-facts-5-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-absent-facts-5-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-absent-facts-5-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-15">
+    <name>Wiki discussion case 3, target instance 1
+    </name>
+    <description> $a: filters concept A
+   (concept aspect is covered)
+  $b: filters concept B
+   (concept aspect is covered)
+   (Falls back to zero)
+  $c: filters concept C 
+   (concept and period aspects are covered)
+   (period filter matches to previous year to $b period or if $b has fallen back, matches to 2008)
+Target instance 1: 
+A 2008,
+ B 2008,
+ C 2007
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-wiki-case-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-wiki-case-3-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-wiki-case-3-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-16">
+    <name>Wiki discussion case 3, target instance 2
+    </name>
+    <description>Same as V-15 but
+Target instance 1: 
+A 2008,
+ B 2007,
+ C 2008
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-wiki-case-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-wiki-case-3-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-wiki-case-3-2-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-17">
+    <name>Wiki discussion case 3, target instance 3
+    </name>Same as V-15 but
+    <description> $a: filters concept A
+Target instance 3: 
+A 2008,
+ B 2008,
+ C 2008,
+ C 2007
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-wiki-case-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-wiki-case-3-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-wiki-case-3-3-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-18">
+    <name>Wiki discussion case 4, variation with 2 factVariables, specified source for output aspects
+    </name>
+    <description>
+$a: fallbackValue = 0
+    Concept filter: A (cover = true)
+ $b: 
+     Concept filter: B (cover = true)
+    Period filter: if $a != 0 then period = period($a) - 1 else 2008 (cover = true)
+
+Target instance 1: 
+  Concept A, year 2008
+  Concept B, year 2007
+  Concept B, year 2008
+
+Expectations discussion:
+
+"$a = A / 2008 ,  $b = B / 2007" is a valid evaluation. Clear
+"$a = 0 , $b = B / 2007 is not valid" (the fallback value must not be considered as A / 2008 is valid). Clear
+But, is "$a = 0 , $b = concept B / year 2008" to be considered a valid evaluation???
+
+08/08/08: Update on wiki page, the questionable 2nd evaluation is no longer an evaluation, and its result is commented out in the results file.
+
+Aspects for output are taken from n2, on assumption that formula:uncovered, which is used in example 3, won't be able to produce an aspect for period when n1 missing.
+
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-wiki-case-4-1-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-wiki-case-4-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-wiki-case-4-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-19">
+    <name>Wiki discussion case 4, variation with 2 factVariables, formula:uncovered for output aspects
+    </name>
+    <description>
+Same as v-18 but formula:uncovered for output aspects.  Only n1 has period uncovered, so when it is missing, then its fallback value is atomic only, with no aspects.  That forces the xbrlfe:undefinedSAV error to be raised on second evaluation, so only one output and in the case of the other, an error results.
+
+08/08/08: Update on wiki page, the questionable 2nd evaluation is no longer an evaluation, and its result is commented out in the results file.  Because the 2nd evaluation does not occur there is no error raised any longer.
+
+
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-wiki-case-4-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-wiki-case-4-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-wiki-case-4-2-result.xml</instance>
+      <!-- 08/08/08 update removes this evaluation
+      <error>xbrlfe:undefinedSAV</error>
+      -->
+    </result>
+  </variation>  
+
+  <variation id="V-20">
+    <name>Bound empty, single variable with fallbackValue</name>
+    <description>Tests that when there is just one fact variable with a fallbackValue, it can never fall back because that would violate the second bullet in the bullet-list in section 4 of variables spec (can't have an evaluation when all factVariables fall back).  Done as an assertion so there is no dependency on aspect values of the single factVariable, were it to be bound to an atomic-only non-node value.</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-empty-only-one-fallback-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-empty-only-one-fallback-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion" 
+         countSatisfied="0"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-21">
+    <name>Bound empty, tuple children with fallbackValues</name>
+    <description>
+Test case binds one-by-one to tuples that may have two child variables.  Sums the children or their fallback values.  Inspired by a real world example of address tuples where various address details are optional depending on country.  (HF: I didn't try to have both child variables fall back, as I'm not sure that case would be valid.)  Implicit filtering is disabled so there is no attempt to match the tuple's absent aspects to the item facts.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-fallback-in-tuple-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-fallback-in-tuple-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22180-fallback-in-tuple-result.xml</instance>
+    </result>
+  </variation>  
+
+
+
+
+  <variation id="V-31">
+    <name>Bind empty with implicit filtering, string values, fall back to empty string.</name>
+    <description>Tests dynamic binding order needed to assure evaluation when different fact variables are absent.  Highlights dynamic behavior of implicit filtering when some variables that are absent take their fallback values but still asure evaluation with those variables present for the evaluation.  String valued fallback to empty string. Contributed by Victor Morilla.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-implFilter-cases/schema.xsd</schema>
+      <linkbase>22180-implFilter-cases/schema-definition.xml</linkbase>
+      <linkbase>22180-implFilter-cases/for-case1.xml</linkbase>
+      <instance readMeFirst="true">22180-implFilter-cases/case1-input.xml</instance>
+    </data>
+    <result>
+      <instance>22180-implFilter-cases/case1-output.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-32">
+    <name>Bind empty with implicit filtering, string values, fall back to empty sequence.</name>
+    <description>As V-31 but fall back value is to empty sequence.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-implFilter-cases/schema.xsd</schema>
+      <linkbase>22180-implFilter-cases/schema-definition.xml</linkbase>
+      <linkbase>22180-implFilter-cases/for-case2.xml</linkbase>
+      <instance readMeFirst="true">22180-implFilter-cases/case2-input.xml</instance>
+    </data>
+    <result>
+      <instance>22180-implFilter-cases/case2-output.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-33">
+    <name>Bind empty with implicit filtering, monetary values, fall back to zero.</name>
+    <description>As V-31 but values are monetary.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-implFilter-cases/schemab.xsd</schema>
+      <linkbase>22180-implFilter-cases/schemab-definition.xml</linkbase>
+      <linkbase>22180-implFilter-cases/for-case1b.xml</linkbase>
+      <instance readMeFirst="true">22180-implFilter-cases/case1b-input.xml</instance>
+    </data>
+    <result>
+      <instance>22180-implFilter-cases/case1b-output.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-34">
+    <name>Bind empty with implicit filtering, monetary values, fall back to empty sequence.</name>
+    <description>As V-32 but values are monetary.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-implFilter-cases/schemab.xsd</schema>
+      <linkbase>22180-implFilter-cases/schemab-definition.xml</linkbase>
+      <linkbase>22180-implFilter-cases/for-case2b.xml</linkbase>
+      <instance readMeFirst="true">22180-implFilter-cases/case2b-input.xml</instance>
+    </data>
+    <result>
+      <instance>22180-implFilter-cases/case2b-output.xml</instance>
+    </result>
+  </variation>  
+
+
+  <variation id="V-41">
+    <name>Bind empty with factvar dependent on genvar dependent on factvar, no fall backs.</name>
+    <description>Test suggested by Victor, factvar3 depends on genvar2 depends on factvar1, both factvars have fallback, all facts exist, expect a binding and result.  Fv1 must bind to instance variable, or fall back, gv2 depends on fv1 but produces concept local name of fv3's filter, and assertion expects fv3 to have the result from instance and not from fall back.  This variation has all facts binding.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-fv-gv-fv-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-fv-gv-fv-instance1.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-42">
+    <name>V41, but fv1 missing, fall back should allow one evaluation.</name>
+    <description>In this variation, fv1 falls back, gv2 anyway produces name of fv3 concept, fv3 is present and binds, assertion fires and is true.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-fv-gv-fv-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-fv-gv-fv-instance2.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-43">
+    <name>V41, but fv1 and fv2 both are missing, fall back of all facts should block any evaluation.</name>
+    <description>In this variation, fv1 falls back, gv2 anyway produces name of fv3 concept, fv3 is missing there should be no evaluation because all facts falling back.  If processor incorrectly allows evaluation because the general variable can bind, then there would be an assertion not satisfied.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>22180-bindEmpty-tests.xsd</schema>
+      <linkbase>22180-fv-gv-fv-formula.xml</linkbase>
+      <instance readMeFirst="true">22180-fv-gv-fv-instance3.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+
+  <variation id="V-51">
+    <name>Finrep-like example, fallbacks with primary items in different linkroles, no absent facts
+    </name>
+    <description>
+Primary items share dimensions, but one is from a different linkrole, tests that fallback values don't leak between link roles (even when sharing hypercubes of different dimensionality).  Also an accountant would not want unreported dimensions to be assumed by phantom new fallback values.
+(Patterned after the formula for finacial liabilities associated with transferred financial assets, total carrying amount, original assets, available for sale, in one linkrole, equal to the sum of same named items with additional dimensions of equity instruments, debt instruments, and loans and advances.)
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>finrep/22180-finrepFallback-test1.xsd</schema>
+      <linkbase>finrep/22180-finrepFallback-test1-definition.xml</linkbase>
+      <linkbase>finrep/22180-finrepFallback-test1-formula.xml</linkbase>
+      <instance readMeFirst="true">finrep/22180-finrepFallback-test1-instance1.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="existence-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="value-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-52">
+    <name>Finrep-like example, fallbacks with primary items in different linkroles, one 2-dim primary items absent.
+    </name>
+    <description>
+Same as V-51, but one of the 2-dim primary items is absent.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>finrep/22180-finrepFallback-test1.xsd</schema>
+      <linkbase>finrep/22180-finrepFallback-test1-definition.xml</linkbase>
+      <linkbase>finrep/22180-finrepFallback-test1-formula.xml</linkbase>
+      <instance readMeFirst="true">finrep/22180-finrepFallback-test1-instance2.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="existence-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="value-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-53">
+    <name>Finrep-like example, fallbacks with primary items in different linkroles, the 1-dim primary items absent.
+    </name>
+    <description>
+Same as V-51, but the 1-dim primary item is absent.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>finrep/22180-finrepFallback-test1.xsd</schema>
+      <linkbase>finrep/22180-finrepFallback-test1-definition.xml</linkbase>
+      <linkbase>finrep/22180-finrepFallback-test1-formula.xml</linkbase>
+      <instance readMeFirst="true">finrep/22180-finrepFallback-test1-instance3.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="existence-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="value-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-54">
+    <name>Finrep-like example, fallbacks with primary items in different linkroles, default 1st dimension not matching filters.
+    </name>
+    <description>
+Same as V-53, but the first dimension common to all contexts is the default dimension which does not match any filter.  All variables might fall back but should not produce an evaluation.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>finrep/22180-finrepFallback-test1.xsd</schema>
+      <linkbase>finrep/22180-finrepFallback-test1-definition.xml</linkbase>
+      <linkbase>finrep/22180-finrepFallback-test1-formula.xml</linkbase>
+      <instance readMeFirst="true">finrep/22180-finrepFallback-test1-instance4.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="existence-assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <assertionTests 
+         assertionID="value-assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-55">
+    <name>V-51 but with default first dimension
+    </name>
+    <description>
+Same as V-51 but first dimension takes the default member value.  This could exist in the real world if one captured for total portfolio (vs. available for sale) finacial liabilities associated with transferred financial assets, total carrying amount, original assets.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>finrep/22180-finrepFallback-test1.xsd</schema>
+      <linkbase>finrep/22180-finrepFallback-test1-definition.xml</linkbase>
+      <linkbase>finrep/22180-finrepFallback-test2-formula.xml</linkbase>
+      <instance readMeFirst="true">finrep/22180-finrepFallback-test2-instance1.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="existence-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="value-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-56">
+    <name>V-52 with default dimension.
+    </name>
+    <description>
+Same as V-52, but with a default dimension.
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>finrep/22180-finrepFallback-test1.xsd</schema>
+      <linkbase>finrep/22180-finrepFallback-test1-definition.xml</linkbase>
+      <linkbase>finrep/22180-finrepFallback-test2-formula.xml</linkbase>
+      <instance readMeFirst="true">finrep/22180-finrepFallback-test2-instance2.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="existence-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="value-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-57">
+    <name>Same as V-53 but with a default dimension
+    </name>
+    <description>
+Same as V-53, but with a default dimension
+</description>
+    <reference specification="VARIABLES" id="sec-binding-to-empty-sequence"/>
+    <data>
+      <schema>finrep/22180-finrepFallback-test1.xsd</schema>
+      <linkbase>finrep/22180-finrepFallback-test1-definition.xml</linkbase>
+      <linkbase>finrep/22180-finrepFallback-test2-formula.xml</linkbase>
+      <instance readMeFirst="true">finrep/22180-finrepFallback-test2-instance3.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="existence-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="value-assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+
+</testcase>
+
+

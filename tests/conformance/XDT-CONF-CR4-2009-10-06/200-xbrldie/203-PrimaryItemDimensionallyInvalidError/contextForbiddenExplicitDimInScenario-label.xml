@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2151.20901 (2005-11-21 12:36).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-11-21 16:20:26
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="contextForbiddenExplicitDimInScenario.xsd#tx_hc_AllCube" xlink:label="tx_hc_AllCube" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tx_hc_AllCube" xlink:to="tx_hc_AllCube_lbl" />
+    <label id="label_hc_CustomerCode_1124493015152_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tx_hc_AllCube_lbl" xml:lang="en" xlink:title="label_hc_CustomerCode">Product X Region (Hypercube)</label>
+    <loc xlink:type="locator" xlink:href="contextForbiddenExplicitDimInScenario.xsd#tx_hc_ExcludeSome" xlink:label="tx_hc_ExcludeSome" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tx_hc_ExcludeSome" xlink:to="tx_hc_ExcludeSome_lbl" />
+    <label id="label_hc_ExcludeProducts_1124977715862_2" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tx_hc_ExcludeSome_lbl" xml:lang="en" xlink:title="label_hc_ExcludeProducts">Exclude Combination (Hypercube)</label>
+    <loc xlink:type="locator" xlink:href="contextForbiddenExplicitDimInScenario.xsd#tx_ProductDim" xlink:label="tx_ProductDim" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tx_ProductDim" xlink:to="tx_ProductDim_lbl" />
+    <label id="label_CustomerCodeDim_1124492927947_2" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tx_ProductDim_lbl" xml:lang="en" xlink:title="label_CustomerCodeDim">Product (Dimension)</label>
+    <loc xlink:type="locator" xlink:href="contextForbiddenExplicitDimInScenario.xsd#tx_RegionDim" xlink:label="tx_RegionDim" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tx_RegionDim" xlink:to="tx_RegionDim_lbl" />
+    <label id="label_RegionDim_1124712661983_2" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tx_RegionDim_lbl" xml:lang="en" xlink:title="label_RegionDim">Region (Dimension)</label>
+  </labelLink>
+</linkbase>

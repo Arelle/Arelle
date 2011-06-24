@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22090</number>
+  <name>Variable set relationship processing tests</name>
+  <description>
+    Tests of variable set relationship processing, including use of name parameter on relationship independent of shared or named situation of its source or target resources
+  </description>
+  <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+
+  <variation id="V-01">
+    <name>Variable name independent of formula and sharing</name>
+    <description>Tests that a variable's name, given by the arc, is independent of shared nature of variable.  Three formulas share variable but give it different names on each arc.</description>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22090-variableSetRelationship-tests.xsd</schema>
+      <linkbase>22090-sharedVariablesDiffNames-formula.xml</linkbase>
+      <instance readMeFirst="true">22090-sharedVariablesDiffNames-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22090-sharedVariablesDiffNames-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Parameter referencing name independent of the parameter declaration</name>
+    <description>Tests that the name given on the arc is used to access the parameter in a formula, which is independent of the name given the parameter in its resource declaration.</description>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22090-variableSetRelationship-tests.xsd</schema>
+      <linkbase>22090-paramNameIsNotVarName-formula.xml</linkbase>
+      <instance readMeFirst="true">22090-paramNameIsNotVarName-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22090-paramNameIsNotVarName-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Arc references parameter from another linkbase file of parameter resources</name>
+    <description>Based on V-02, tests that the parameter resource of the variable-set arc can be in a separate file which has just parameter resource(s).  A link:loc is used to "discover" the other linkbase file and retrieve the resource by an id.  The label on the parameter in the other file is set to "dummy" to demonstrate that its id, not its label, is used by the loc to find it.</description>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22090-variableSetRelationship-tests.xsd</schema>
+      <linkbase>22090-paramInAnotherFile-formula.xml</linkbase>
+      <linkbase>22090-paramInAnotherFile-formula-params.xml</linkbase>
+      <instance readMeFirst="true">22090-paramInAnotherFile-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22090-paramNameIsNotVarName-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Arcs and resources in separate extended links of same linkbase file</name>
+    <description>Based on V-01, tests that a variable-set arcs and resources can be separated to independent extended links, each of its own role name, all in the same linkbase file.
+    </description>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22090-variableSetRelationship-tests.xsd</schema>
+      <linkbase>22090-separateExtLinks-formula.xml</linkbase>
+      <instance readMeFirst="true">22090-separateExtLinks-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22090-sharedVariablesDiffNames-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>Arcs and resources in separate linkbase files</name>
+    <description>Based on V-04, tests that a discovering loc can get variable-set arcs from a separate linkbase file of just arcs (discovered by just a loc in the linkbaseRef'ed linkbase file), 
+and resources can be separated to another loc-discovered file of just resources.  So the discovery order is that the instance, 22090-separateLbFiles-instance.xml, linkbaseRef's to 22090-separateLbFiles-formula-loc.xml, which has only a discovery-causing loc (per XBRL 2.1 section 3.2), that discovers the linkbase file 22090-separateLbFiles-formula-arcs.xml, that has all of the arcs from V-04 above, each of which has a locs to its resources causing discovery of 22090-separateLbFiles-formula-resources.xml, which has the resources for these arcs.
+    </description>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22090-variableSetRelationship-tests.xsd</schema>
+      <linkbase>22090-separateLbFiles-formula-loc.xml</linkbase>
+      <linkbase>22090-separateLbFiles-formula-arcs.xml</linkbase>
+      <linkbase>22090-separateLbFiles-formula-resources.xml</linkbase>
+      <instance readMeFirst="true">22090-separateLbFiles-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22090-sharedVariablesDiffNames-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+
+
+

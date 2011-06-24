@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>42260</number>
+  <name>Concept Substitution-Group Filter Processing</name>
+  <description>
+    Test concept substitution-group filter processing
+  </description>
+  <reference specification="CONCEPT-FILTER" id="sec-concept-substitution-group-filter"/>
+
+  <variation id="V-01">
+    <name>Test filter on the head of XBRL item substitution group.</name>
+    <description>
+      The fact's concept must be the head of the substitution group for the &lt;xbrli:item&gt; element.
+    </description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-substitution-group-filter"/>
+    <data>
+      <schema>42260-conceptSubstitutionGroupFilter-concepts.xsd</schema>
+      <linkbase>42260-conceptSubstitutionGroupFilter-strict-true-qname-item-formula.xml</linkbase>
+      <instance readMeFirst="true">42260-conceptSubstitutionGroupFilter-strict-true-qname-item-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42260-conceptSubstitutionGroupFilter-strict-true-qname-item-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test filter on the member of XBRL item substitution group.</name>
+    <description>
+      The fact's concept must be a member of the substitution group for the XBRL item.
+    </description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-substitution-group-filter"/>
+    <data>
+      <schema>42260-conceptSubstitutionGroupFilter-concepts.xsd</schema>
+      <linkbase>42260-conceptSubstitutionGroupFilter-strict-false-qname-item-formula.xml</linkbase>
+      <instance readMeFirst="true">42260-conceptSubstitutionGroupFilter-strict-false-qname-item-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42260-conceptSubstitutionGroupFilter-strict-false-qname-item-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Test filter on the member of XBRL tuple substitution group.</name>
+    <description>
+      The fact's concept must be a member of the substitution group for the XBRL tuple.
+    </description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-substitution-group-filter"/>
+    <data>
+      <schema>42260-conceptSubstitutionGroupFilter-concepts.xsd</schema>
+      <linkbase>42260-conceptSubstitutionGroupFilter-strict-false-qname-tuple-formula.xml</linkbase>
+      <instance readMeFirst="true">42260-conceptSubstitutionGroupFilter-strict-false-qname-tuple-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42260-conceptSubstitutionGroupFilter-strict-false-qname-tuple-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>Test filter on the head of specified substitution group.</name>
+    <description>
+      The fact's concept must be the head of the substitution group for the element "eg:a".
+    </description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-substitution-group-filter"/>
+    <data>
+      <schema>42260-conceptSubstitutionGroupFilter-concepts.xsd</schema>
+      <linkbase>42260-conceptSubstitutionGroupFilter-strict-true-qnameExpression-item-formula.xml</linkbase>
+      <instance readMeFirst="true">42260-conceptSubstitutionGroupFilter-strict-true-qnameExpression-item-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42260-conceptSubstitutionGroupFilter-strict-true-qnameExpression-item-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>

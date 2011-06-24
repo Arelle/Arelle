@@ -1,0 +1,13 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:s="http://mycompany.com/xbrl/newRoleLinkbaseDR" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://mycompany.com/xbrl/newRoleLinkbaseDR RoleSDRSchema.xsd">
+	<!-- This comment to be replaced by a <link:documentation> element
+		
+		This presentation linkbase creates a tree of elements conceptA through concept L.  
+		The network of these arcs form no cycles.
+	-->
+	<arcroleRef xlink:type="simple" xlink:href="RoleSDRSchema.xsd#newRoleArc" arcroleURI="http://mycompany.com/xbrl/newRoleLinkbaseDR/newRoleArc"/>
+	<s:newRoleLinkbaseLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="RoleSDR.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="RoleSDR.xsd#conceptB" xlink:label="conceptB"/>
+		<s:newRoleLinkbaseArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptB" xlink:arcrole="http://mycompany.com/xbrl/newRoleLinkbaseDR/newRoleArc"/>
+	</s:newRoleLinkbaseLink>
+</linkbase>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Created by Neil Wills, UBmatrix -->
+<!-- Fact with Qnamed element which exists in imported schema -->
+<!-- Qname datatype http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/#QName -->
+
+<xbrli:xbrl 
+xmlns="http://www.example.com/schemaforqnamevalue"
+xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:schemawithqnamedtype="http://www.example.com/schemawithqnamedtype"
+>
+
+  <link:schemaRef xlink:href="schema_with_qname_datatype.xsd" xlink:type="simple" />
+
+ 
+  <xbrli:context id="Context-2006">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.entity.com">entity</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2006-08-18</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+ 
+    <schemawithqnamedtype:Qname_dtype contextRef="Context-2006">ExistentElement</schemawithqnamedtype:Qname_dtype>
+</xbrli:xbrl>

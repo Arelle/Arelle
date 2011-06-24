@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" xmlns="http://xbrl.org/2005/conformance" name="122-TestCase-DimensionDefaultSourceError" description="2.1 to 2.10 - Dimensional relationships except 2.5" outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and linkbases, and not covered by XML Schema and XBRL Validation. -->
+        <!-- Note that XBRL validation requires the source and target of a definitionArc to be a concept. -->
+        <!-- As of the 2005-10-26 internal working draft. (Herm) -->
+        <!-- 2.9.1 The dimension-default arc role identifies in its source a dimension element and in its target the member who plays the role of the default member. -->
+        <variation id="V-01" name="dimensionDefaultValid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.9.1">The dimension-default arc role identifies in its source a dimension element and in its target the member who plays the role of the default member.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDefaultValid.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDefaultValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">dimensionDefaultValid-label.xml</linkbase>
+                </data>
+                <result/>
+        </variation>
+        <!-- 1. A dimensional processor MUST raise an error [Dim Err, 22] xbrldte:DimensionDefaultSourceError if the source of the relationship is not an explicit dimension declaration [Def, 5] -->
+        <variation id="V-02" name="sourceDimensionDefaultNotDimensionInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.9.1">The source of a dimension-default arc is not a dimension, in this case it is a hypercube.</description>
+                <data>
+                        <xsd readMeFirst="true">sourceDimensionDefaultNotDimensionInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">sourceDimensionDefaultNotDimensionInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">sourceDimensionDefaultNotDimensionInvalid-label.xml</linkbase>
+                </data>
+                <result >
+                        <error>xbrldte:DimensionDefaultSourceError</error>
+                </result>
+        </variation>
+</testcase>
+
+
+
+

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <roleRef xlink:type="simple" xlink:href="inheritanceUsableAttr.xsd#RT_1" roleURI="http://www.bdi.org/link1" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all" arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension" arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.bdi.org/link1">
+    <loc xlink:type="locator" xlink:href="inheritanceUsableAttr.xsd#inheritanceUsableAttr_p1" xlink:label="inheritanceUsableAttr_p1" xlink:title="definition: p1 to p2" />
+    <loc xlink:type="locator" xlink:href="inheritanceUsableAttr.xsd#inheritanceUsableAttr_p2" xlink:label="inheritanceUsableAttr_p2" xlink:title="definition: p1 to p2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="inheritanceUsableAttr_p1" xlink:to="inheritanceUsableAttr_p2" xlink:title="definition: p1 to p2" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="inheritanceUsableAttr.xsd#inheritanceUsableAttr_p3" xlink:label="inheritanceUsableAttr_p3" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="inheritanceUsableAttr_p2" xlink:to="inheritanceUsableAttr_p3" order="1" use="optional" xbrldt:usable="false" />
+    <loc xlink:type="locator" xlink:href="inheritanceUsableAttr.xsd#inheritanceUsableAttr_hc1" xlink:label="inheritanceUsableAttr_hc1" xlink:title="definition: p2 to hc1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="inheritanceUsableAttr_p1" xlink:to="inheritanceUsableAttr_hc1" xlink:title="definition: p2 to hc1" order="2" use="optional" xbrldt:contextElement="scenario" xbrldt:closed="true" />
+    <loc xlink:type="locator" xlink:href="inheritanceUsableAttr.xsd#inheritanceUsableAttr_dim1" xlink:label="inheritanceUsableAttr_dim1" xlink:title="definition: hc1 to dim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="inheritanceUsableAttr_hc1" xlink:to="inheritanceUsableAttr_dim1" xlink:title="definition: hc1 to dim1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="inheritanceUsableAttr.xsd#inheritanceUsableAttr_dim1_el1" xlink:label="inheritanceUsableAttr_dim1_el1" xlink:title="definition: dim1 to dim1_el1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="inheritanceUsableAttr_dim1" xlink:to="inheritanceUsableAttr_dim1_el1" xlink:title="definition: dim1 to dim1_el1" order="1" use="optional" xbrldt:usable="false" />
+    <loc xlink:type="locator" xlink:href="inheritanceUsableAttr.xsd#inheritanceUsableAttr_Dim1_el2" xlink:label="inheritanceUsableAttr_Dim1_el2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="inheritanceUsableAttr_dim1_el1" xlink:to="inheritanceUsableAttr_Dim1_el2" order="1" use="optional" />
+  </definitionLink>
+</linkbase>

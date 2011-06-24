@@ -1,0 +1,25 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xsd:schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s="http://mycompany.com/xbrl/taxonomy" xmlns:xbrli="http://www.xbrl.org/2003/instance" elementFormDefault="qualified" attributeFormDefault="qualified">
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:element name="property" type="xbrli:tokenItemType" substitutionGroup="xbrli:item" id="s_property" xbrli:periodType="instant"/>
+	<xsd:element name="dateAcquired" type="xbrli:dateItemType" substitutionGroup="xbrli:item" id="s_dateAcquired" xbrli:periodType="instant"/>
+	<xsd:element name="dateDisposedOf" type="xbrli:dateItemType" substitutionGroup="xbrli:item" id="s_dateDisposedOf" xbrli:periodType="instant"/>
+	<xsd:element name="fairMarketValue" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="s_fairMarketValue" xbrli:periodType="instant"/>
+	<xsd:element name="propertyDescription" substitutionGroup="xbrli:tuple" id="s_propertyDescription">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="xsd:anyType">
+					<xsd:sequence>
+						<xsd:element ref="s:property"/>
+						<xsd:element ref="s:dateAcquired"/>
+						<xsd:choice>
+							<xsd:element ref="s:dateDisposedOf"/>
+							<xsd:element ref="s:fairMarketValue"/>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.401.1839.18913 (2005-01-13 11:30).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix LLC, All Rights Reserved
+Produced on 2005-01-14 08:20:51
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="105-04-DerivedElementWithBalanceTypeMonetary.xsd#ext_DerivedElement" xlink:label="ext_DerivedElement" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ext_DerivedElement" xlink:to="ext_DerivedElement_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ext_DerivedElement_lbl" xml:lang="is">DerivedElement</label>
+  </labelLink>
+</linkbase>

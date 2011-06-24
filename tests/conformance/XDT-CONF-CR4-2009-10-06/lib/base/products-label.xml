@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2166.18989 (2005-12-03 18:13).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-12-06 11:12:16
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="products.xsd#p_AllProducts" xlink:label="p_AllProducts" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_AllProducts" xlink:to="p_AllProducts_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_AllProducts_lbl" xml:lang="en">All Products</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Alvarinho" xlink:label="p_Alvarinho" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Alvarinho" xlink:to="p_Alvarinho_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Alvarinho_lbl" xml:lang="en">Alvarinho</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_CabernetSauvignon" xlink:label="p_CabernetSauvignon" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_CabernetSauvignon" xlink:to="p_CabernetSauvignon_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_CabernetSauvignon_lbl" xml:lang="en">Cabernet Sauvignon</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Carignan" xlink:label="p_Carignan" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Carignan" xlink:to="p_Carignan_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Carignan_lbl" xml:lang="en">Carignan</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Cars" xlink:label="p_Cars" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Cars" xlink:to="p_Cars_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Cars_lbl" xml:lang="en">Cars</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Chasselas" xlink:label="p_Chasselas" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Chasselas" xlink:to="p_Chasselas_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Chasselas_lbl" xml:lang="en">Chasselas</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Convertibles" xlink:label="p_Convertibles" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Convertibles" xlink:to="p_Convertibles_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Convertibles_lbl" xml:lang="en">Convertibles</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Coupe" xlink:label="p_Coupe" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Coupe" xlink:to="p_Coupe_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Coupe_lbl" xml:lang="en">Coupe</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Garnatxa" xlink:label="p_Garnatxa" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Garnatxa" xlink:to="p_Garnatxa_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Garnatxa_lbl" xml:lang="en">Garnatxa</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Malvasia" xlink:label="p_Malvasia" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Malvasia" xlink:to="p_Malvasia_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Malvasia_lbl" xml:lang="en">Malvasia</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Merlot" xlink:label="p_Merlot" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Merlot" xlink:to="p_Merlot_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Merlot_lbl" xml:lang="en">Merlot</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_PinotNoir" xlink:label="p_PinotNoir" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_PinotNoir" xlink:to="p_PinotNoir_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_PinotNoir_lbl" xml:lang="en">Pinot Noir</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_RedWine" xlink:label="p_RedWine" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_RedWine" xlink:to="p_RedWine_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_RedWine_lbl" xml:lang="en">Red Wine</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Sedan" xlink:label="p_Sedan" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Sedan" xlink:to="p_Sedan_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Sedan_lbl" xml:lang="en">Sedan</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Semillon" xlink:label="p_Semillon" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Semillon" xlink:to="p_Semillon_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Semillon_lbl" xml:lang="en">Semillon</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Sport" xlink:label="p_Sport" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Sport" xlink:to="p_Sport_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Sport_lbl" xml:lang="en">Sport</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Syrah" xlink:label="p_Syrah" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Syrah" xlink:to="p_Syrah_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Syrah_lbl" xml:lang="en">Syrah</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Wagons" xlink:label="p_Wagons" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Wagons" xlink:to="p_Wagons_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Wagons_lbl" xml:lang="en">Wagons</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_WhiteWine" xlink:label="p_WhiteWine" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_WhiteWine" xlink:to="p_WhiteWine_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_WhiteWine_lbl" xml:lang="en">White Wine</label>
+    <loc xlink:type="locator" xlink:href="products.xsd#p_Wine" xlink:label="p_Wine" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="p_Wine" xlink:to="p_Wine_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="p_Wine_lbl" xml:lang="en">Wine</label>
+  </labelLink>
+</linkbase>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors"
+        xmlns="http://xbrl.org/2005/conformance" name="208-TestCase-IllegalTypedDimensionContentError"
+        description="Rules 3.1.4.4.3 Constraints on the content of xbrldi:typedMember elements.  Required validity of typed dimension content."
+        outpath="out" owner="fischer@markv.com" minimal="true"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional syntax rules pertaining to instances and not covered by XML Schema and XBRL validation. -->
+        <!-- 3.1.4.4.3  3. The typed dimension content [Def, 15] must be an instantiation of the element pointed to by the xbrldt:typedDomainRef of the typed dimension indicated in the dimension attribute of the xbrldi:typedMember element.  A dimensional processor MUST raise an error [Ins Err, 7] xbrldie:IllegalTypedDimensionContentError if this rule is violated. -->
+        <variation id="V-01" name="typedDimSegIsValid">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.4.3"> The typed dimension content [Def, 15] must be
+                        an instantiation of the element pointed to by the xbrldt:typedDomainRef of the typed dimension
+                        indicated in the dimension attribute of the xbrldi:typedMember element. A dimensional processor
+                        MUST raise an error [Ins Err, 7] xbrldie:IllegalTypedDimensionContentError if this rule is
+                        violated. In this case the segment contains valid typed dimension content. </description>
+                <data>
+                        <xsd readMeFirst="false">typedDimContentValidity.xsd</xsd>
+                        <linkbase readMeFirst="false">typedDimContentValidity-definition.xml</linkbase>
+                        <instance readMeFirst="true">typedDimSegValid-instance.xml</instance>
+                </data>
+                <result>
+                        <file>typedDimSegValid-instance.xml</file>
+                </result>
+        </variation>
+
+        <variation id="V-02" name="typedDimScenIsValid">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.4.3"> Same as above but in this case the scenario
+                        contains valid typed dimension content. </description>
+                <data>
+                        <xsd readMeFirst="false">typedDimContentValidity.xsd</xsd>
+                        <linkbase readMeFirst="false">typedDimContentValidity-definition.xml</linkbase>
+                        <instance readMeFirst="true">typedDimScenValid-instance.xml</instance>
+                </data>
+                <result>
+                        <file>typedDimScenValid-instance.xml</file>
+                </result>
+        </variation>
+
+        <variation id="V-03" name="typedDimSegIsInvalid">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.4.3"> Same as above but in this case the segment
+                        contains bogus typed dimension content. </description>
+                <data>
+                        <xsd readMeFirst="false">typedDimContentValidity.xsd</xsd>
+                        <linkbase readMeFirst="false">typedDimContentValidity-definition.xml</linkbase>
+                        <instance readMeFirst="true">typedDimSegInvalid-instance.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:IllegalTypedDimensionContentError</error>
+                </result>
+        </variation>
+
+        <variation id="V-04" name="typedDimScenIsInvalid">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.4.3"> Same as above but in this case the scenario
+                        contains bogus typed dimension content. </description>
+                <data>
+                        <xsd readMeFirst="false">typedDimContentValidity.xsd</xsd>
+                        <linkbase readMeFirst="false">typedDimContentValidity-definition.xml</linkbase>
+                        <instance readMeFirst="true">typedDimScenInvalid-instance.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:IllegalTypedDimensionContentError</error>
+                </result>
+        </variation>
+
+        <variation id="V-05" name="unusedTypedDimSegIsInvalid">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.4.3"> Same as above but in this case the segment
+                        contains bogus typed dimension content. No primary item refers to the segment. </description>
+                <data>
+                        <xsd readMeFirst="false">typedDimContentValidity.xsd</xsd>
+                        <linkbase readMeFirst="false">typedDimContentValidity-definition.xml</linkbase>
+                        <instance readMeFirst="true">typedDimSegUnused-instance.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:IllegalTypedDimensionContentError</error>
+                </result>
+        </variation>
+
+        <variation id="V-06" name="unusedTypedDimScenIsInvalid">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.4.3"> Same as above but in this case the scenario
+                        contains bogus typed dimension content. No primary item refers to the segment. </description>
+                <data>
+                        <xsd readMeFirst="false">typedDimContentValidity.xsd</xsd>
+                        <linkbase readMeFirst="false">typedDimContentValidity-definition.xml</linkbase>
+                        <instance readMeFirst="true">typedDimScenUnused-instance.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:IllegalTypedDimensionContentError</error>
+                </result>
+        </variation>
+</testcase>

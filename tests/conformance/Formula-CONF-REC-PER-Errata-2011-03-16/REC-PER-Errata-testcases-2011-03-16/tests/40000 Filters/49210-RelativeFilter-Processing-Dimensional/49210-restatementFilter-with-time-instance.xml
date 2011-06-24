@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="49210-relDimFilter-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="49210-restatementFilter-formula.xml"/>  
+
+  <context id="context-i-2007">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-01T00:00:00</instant>
+    </period>
+    <scenario>
+      <xbrldi:typedMember dimension="eg:restatementAxis">
+        <eg:restatementDate xsi:nil="true"/>
+      </xbrldi:typedMember>
+    </scenario>
+  </context>
+  
+  <context id="context-i-2007-r-06">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-01T00:00:00</instant>
+    </period>
+    <scenario>
+      <xbrldi:typedMember dimension="eg:restatementAxis">
+        <eg:restatementDate>2007-07-01T00:00:00</eg:restatementDate>
+      </xbrldi:typedMember>
+    </scenario>
+  </context>
+  
+  <context id="context-i-2007-r-12">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-01T00:00:00</instant>
+    </period>
+    <scenario>
+      <xbrldi:typedMember dimension="eg:restatementAxis">
+        <eg:restatementDate>2008-01-01T00:00:00</eg:restatementDate>
+      </xbrldi:typedMember>
+    </scenario>
+  </context>
+  
+  <context id="context-d-2007-06">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <startDate>2007-01-01</startDate>
+      <endDate>2007-06-30</endDate>
+    </period>
+  </context>
+  
+  <context id="context-d-2007-12">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <startDate>2007-01-01</startDate>
+      <endDate>2007-12-31</endDate>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+  
+  
+  <eg:stock decimals="0" contextRef="context-i-2007" unitRef="unit">111</eg:stock>
+  <eg:stock decimals="0" contextRef="context-i-2007-r-06" unitRef="unit">114</eg:stock>
+  <eg:stock decimals="0" contextRef="context-i-2007-r-12" unitRef="unit">112</eg:stock>
+  <eg:flow decimals="0" contextRef="context-d-2007-06" unitRef="unit">31</eg:flow>
+  <eg:flow decimals="0" contextRef="context-d-2007-12" unitRef="unit">57</eg:flow>
+
+</xbrl>
+
+

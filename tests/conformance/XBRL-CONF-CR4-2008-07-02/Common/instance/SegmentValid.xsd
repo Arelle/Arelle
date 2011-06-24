@@ -1,0 +1,13 @@
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+	<simpleType name="stateProvinceType">
+		<restriction base="token">
+			<enumeration value="MI"/>
+			<enumeration value="ON"/>
+		</restriction>
+	</simpleType>
+	<!-- Company specific segment sub-element -->
+	<element name="stateProvince" type="my:stateProvinceType" />
+</schema>

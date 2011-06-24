@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (C) XBRL International inc. Editeb by Ignacio Hernández-Ros (ignacio@hernandez-ros.com) Reporting Estandar S.L. -->
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:c="http://hernandez-ros.com/custom-linkbase/schema/test" xsi:schemaLocation="http://hernandez-ros.com/custom-linkbase/schema/test 230-02-Custom-linkbase.xsd">
+	<c:customLink xlink:role="http://www.xbrl.org/2003/role/link" xlink:type="extended">
+		<c:loc xlink:type="locator" xlink:href="230-02-BadTaxonomy.xsd" xlink:label="foo"/>
+	</c:customLink>
+</link:linkbase>

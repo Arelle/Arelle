@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" targetNamespace="http://xbrl.org/2007/custom" xmlns:c="http://xbrl.org/2007/customRoleType-hidden" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+	
+	<import namespace="http://www.xbrl.org/2003/XLink" schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+	<import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.xbrl.org/2003/xlink-2003-12-31.xsd"/>
+	<import namespace="http://xbrl.org/2007/customRoleType-hidden" schemaLocation="160-custom-roleType-hidden-invalid.xsd"/>
+	
+	<element name="customLink" substitutionGroup="xl:extended">
+		<annotation>
+			<documentation>
+      formula extended link element definition
+			</documentation>
+		</annotation>
+		<complexType>
+			<complexContent>
+				<restriction base="xl:extendedType">
+					<choice minOccurs="0" maxOccurs="unbounded">
+						<element ref="xl:title"/>
+						<element ref="link:documentation"/>
+						<element ref="link:loc"/>
+						<element ref="c:cArc"/>
+						<element ref="xl:resource"/>
+					</choice>
+				    <attribute ref="xlink:type" use="required" fixed="extended"/>
+					<attribute ref="xlink:role" use="required"/>
+					<attribute ref="xlink:title" use="optional"/>
+					<attribute name="id" type="ID" use="optional"/>
+					<anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax"/>
+				</restriction>
+			</complexContent>
+		</complexType>
+	</element>
+
+
+</schema>

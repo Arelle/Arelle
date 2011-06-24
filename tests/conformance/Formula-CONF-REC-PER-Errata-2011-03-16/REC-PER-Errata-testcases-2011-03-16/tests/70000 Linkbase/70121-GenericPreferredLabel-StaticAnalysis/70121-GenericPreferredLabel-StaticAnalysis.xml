@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70121</number>
+  <name>Generic preferred label static analysis</name>
+  <description>
+    Test generic preferred label attribute.
+  </description>
+  <reference specification="GENERIC-LABEL" id="sec-generic-label"/>
+
+  <variation id="V-01">
+    <name>A standard label connects concept to a standard and generic preferred role label, referenced on a domain-member relationship.</name>
+    <description>
+    </description>
+    <data>
+      <schema readMeFirst="true">70121-label-dom-mem-concepts-v01.xsd</schema>
+      <linkbase>70121-label-dom-mem-defLB-v01.xml</linkbase>
+      <linkbase>70121-label-dom-mem-lblLB-v01.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+  <variation id="V-02">
+    <name>A generic arc connects resources, each with a generic label.  Generic arc has a generic preferred role label.</name>
+    <description>
+    </description>
+    <data>
+      <schema readMeFirst="true">70121-label-resource-concepts-v02.xsd</schema>
+      <linkbase>70121-label-resource-testLB-v02.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+  <variation id="V-03">
+    <name>A generic preferred label role has a typo, the role is not present.</name>
+    <description>
+    </description>
+    <data>
+      <schema readMeFirst="true">70121-label-dom-mem-concepts-v03.xsd</schema>
+      <linkbase>70121-label-dom-mem-defLB-v03.xml</linkbase>
+      <linkbase>70121-label-dom-mem-lblLB-v03.xml</linkbase>
+    </data>
+    <result expected="invalid">
+      <!-- <error xmlns="http://xbrl.org/2010/preferred-label/error">gple:missingPreferredLabel</error> -->
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>A generic arc connects resources, each with a generic label.  Generic arc has a generic preferred role typo.</name>
+    <description>
+    </description>
+    <data>
+      <schema readMeFirst="true">70121-label-resource-concepts-v04.xsd</schema>
+      <linkbase>70121-label-resource-testLB-v04.xml</linkbase>
+    </data>
+    <result expected="invalid">
+      <!-- <error xmlns="http://xbrl.org/2010/preferred-label/error">gple:missingPreferredLabel</error> -->
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>Several generic arcs connects same resources, two have same generic preferred role, to raise duplicate preferred label role error.</name>
+    <description>
+    </description>
+    <data>
+      <schema readMeFirst="true">70121-label-resource-concepts-v05.xsd</schema>
+      <linkbase>70121-label-resource-testLB-v05.xml</linkbase>
+    </data>
+    <result expected="invalid">
+      <!-- <error xmlns="http://xbrl.org/2010/preferred-label/error">gple:duplicatePreferredLabel</error> -->
+    </result>
+  </variation>
+
+</testcase>
+
+
+

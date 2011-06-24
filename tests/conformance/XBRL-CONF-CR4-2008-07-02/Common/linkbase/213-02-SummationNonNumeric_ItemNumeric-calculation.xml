@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!-- Edited by Walter Hamscher, Standard Advantage; walter@hamscher.com -->
+<!-- Copyright 2006 XBRL International. All Rights Reserved. -->
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="213-02-SummationNonNumeric_ItemNumeric.xsd#a_str1" xlink:label="str1"/>
+    <link:loc xlink:type="locator" xlink:href="213-02-SummationNonNumeric_ItemNumeric.xsd#a_num2" xlink:label="num2"/>
+    <link:calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="str1" xlink:to="num2" order="1.0" weight="1.0"/>
+  </link:calculationLink>
+</link:linkbase>

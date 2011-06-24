@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pr="http://www.xbrl.org/dim/conf/primary" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:tx="http://www.xbrl.org/dim/conf/389/contextContainsRepeatedDimension" xmlns:cc="http://www.example.com/customer-code" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xsi:schemaLocation="http://www.xbrl.org/dim/conf/389/contextContainsRepeatedDimension contextContainsRepeatedDimension.xsd http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/dim/conf/primary ../../lib/base/primary.xsd http://www.example.com/customer-code ../../lib/base/cust-code.xsd">
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="contextContainsRepeatedDimension.xsd"/>
+  <context id="ctx1">
+    <entity>
+      <identifier scheme="http://www.example-dims.com">Example Dimensional Company</identifier>
+    </entity>
+    <period>
+      <startDate>2005-01-01</startDate>
+      <endDate>2005-12-31</endDate>
+    </period>
+    <scenario>
+        <xbrldi:typedMember dimension="tx:hc_CustCodeDim">
+          <cc:customer>a123</cc:customer>
+        </xbrldi:typedMember>
+        <xbrldi:typedMember dimension="tx:hc_CustCodeDim">
+          <cc:customer>b123</cc:customer>
+        </xbrldi:typedMember>
+   </scenario>
+  </context>
+  <unit id="Euros">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <pr:CubelessConcept decimals="0" contextRef="ctx1" unitRef="Euros">1000000</pr:CubelessConcept>
+</xbrl>

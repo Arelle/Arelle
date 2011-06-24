@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xbrl.org/2005/conformance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" name="110-TestCase-TypedDimensionError" description="2.5.2 - Attribute typedDomainRef." outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+<!-- spec sections updated for spec 2005-10-26 by Herm Fischer, on 2005-11-07 -->
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and not covered by XML Schema and XBRL Validation. -->
+        <!-- As of the 2005-10-26 internal working draft (with localised edits), this pertained only to the xbrldt:typedDomainRef attribute. -->
+        <!-- TESTCASE HAS NO STANDARD LABELS: 2.7.1.1 only requires standard labels on element declarations which are the targets of has-hypercube, hypercube-dimension, dimension-domain and domain-member relationships, but there are none in this testcase -->
+        <!-- 2.5.2.1.1   2. A dimensional processor MUST raise an error [Dim Err, 14] xbrldte:TypedDimensionError if the xbrldt:typedDomainRef attribute locates (with xml:base and following definition in section 3.2 of [XPTR]) something that is not an XML Schema element declaration, or a declaration that is not an element declaration, or is an abstract element declaration. -->
+        <variation id="V-01" name="typedDomainReflocatesDeclarationInSameFile">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">The typedDomainRef attribute correctly locates the declaration of a non-abstract element in the same file.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainReflocatesDeclarationInSameFile.xsd</xsd>
+                </data>
+                <result/>
+        </variation>
+        <variation id="V-03" name="typedDomainReftoAbstractItemDeclaration">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">Signal xbrldte:TypedDimensionError because typedDomainRef attribute points to an XML Schema element definition that is abstract.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainReftoAbstractItemDeclaration.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:TypedDimensionError</error>
+                </result>
+        </variation>
+        <variation id="V-04" name="typedDomainReflocatesTypeDeclaration">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">Signal xbrldte:TypedDimensionError because the typedDomainRef attribute locates a ComplexType declaration.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainReflocatesTypeDeclaration.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:TypedDimensionError</error>
+                </result>
+        </variation>
+        <variation id="V-05" name="typedDomainRefLocatesNonGlobalElementDeclaration">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">something that is not a global XML Schema element declaration</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainRefLocatesNonGlobalElementDeclaration.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:TypedDimensionError</error>
+                </result>
+        </variation>
+        <variation id="V-06" name="typedDomainReflocatesDeclarationInDifferentFileWithImport">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">The typedDomainRef attribute correctly locates the declaration of a non-abstract element in a different file that is in the DTS.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainReflocatesDeclarationInDifferentFileWithImport.xsd</xsd>
+                        <xsd readMeFirst="false">typedDomainReflocatesDeclarationInDifferentFile_File2.xsd</xsd>
+                </data>
+                <result />
+        </variation>
+</testcase>
+

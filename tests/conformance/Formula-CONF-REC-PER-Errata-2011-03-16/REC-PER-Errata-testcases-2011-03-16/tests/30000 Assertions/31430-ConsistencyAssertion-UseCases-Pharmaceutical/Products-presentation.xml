@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Presentation Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2086.16077 (2005-09-17 09:21).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-09-20 06:02:10
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_AllProducts" xlink:label="products_AllProducts" xlink:title="presentation: ProductsDimension to Cars" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_PharmaceuticalsSegment" xlink:label="products_PharmaceuticalsSegment" xlink:title="presentation: ProductsDimension to Cars" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_GenericsSegment" xlink:label="products_GenericsSegment" xlink:title="presentation: ProductsDimension to Wine" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_ConsumerHealthSegment" xlink:label="products_ConsumerHealthSegment" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_OtherSegments" xlink:label="products_OtherSegments" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="products_AllProducts" xlink:to="products_PharmaceuticalsSegment" xlink:title="presentation: ProductsDimension to Cars" order="1" use="optional" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="products_AllProducts" xlink:to="products_GenericsSegment" xlink:title="presentation: ProductsDimension to Wine" order="2" use="optional" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="products_AllProducts" xlink:to="products_ConsumerHealthSegment" order="3" use="optional" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="products_AllProducts" xlink:to="products_OtherSegments" order="4" use="optional" />
+  </presentationLink>
+</linkbase>

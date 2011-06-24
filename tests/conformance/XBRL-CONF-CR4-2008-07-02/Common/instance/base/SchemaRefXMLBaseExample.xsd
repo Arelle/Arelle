@@ -1,0 +1,14 @@
+<!-- XBRL 2.1 Tests -->
+
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+
+<xsd:schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns="http://mycompany.com/xbrl/taxonomy" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+
+        <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+        <xsd:element name="changeInRetainedEarnings" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="a1" xbrli:periodType="duration"/>
+
+        <xsd:element name="fixedAssets" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="a2" xbrli:balance="debit" xbrli:instantaneous="true"/>
+
+</xsd:schema>
+

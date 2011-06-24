@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xs:schema xmlns:d="http://xbrl.org/2005/dataset"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  targetNamespace="http://xbrl.org/2005/example"
+  elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:complexType name="inputFileType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="readMeFirst" type="xs:boolean"
+          use="optional" default="false" />
+        <xs:attribute name="schemavalid" type="xs:boolean"
+          use="optional" default="true" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:element name="xsd" type="d:inputFileType" />
+  <xs:element name="linkbase" type="d:inputFileType" />
+  <xs:element name="instance" type="d:inputFileType" />
+  <xs:element name="data">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="d:xsd" />
+        <xs:element ref="d:linkbase" />
+        <xs:element ref="d:instance" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="referenceURI" type="xs:anyURI"
+            use="optional" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="variation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="d:description" />
+        <xs:element ref="d:data" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+      <xs:attribute name="name" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string" />
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="dataset">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="d:variation" minOccurs="0"
+          maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="description" type="xs:string" use="required" />
+      <xs:attribute name="outpath" type="xs:string" use="required" />
+      <xs:attribute name="owner" type="xs:string" use="required" />
+      <xs:attribute name="minimal" type="xs:boolean" use="optional"
+        default="true" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

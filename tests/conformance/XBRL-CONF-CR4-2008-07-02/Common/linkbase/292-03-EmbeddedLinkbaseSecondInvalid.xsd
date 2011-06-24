@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mutliple embedded schema/annotation/appInfo that contain linkbases - XBRL Valid -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ci="http://www.UBmatrix.com/Patterns/BasicCalculation" targetNamespace="http://www.UBmatrix.com/Patterns/BasicCalculation" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  
+  <!-- Mutliple embedded schema/annotation/appInfo -->
+ <annotation>
+  <appinfo>
+  	<!-- Embedded Presentation Linkbase -->
+        <linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+          <presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link" xlink:title="Presentation, All">
+            <loc xlink:type="locator" xlink:href="#ci_PropertyPlantEquipment" xlink:label="ci_PropertyPlantEquipment" />
+            <loc xlink:type="locator" xlink:href="#ci_Land" xlink:label="ci_Land" />
+            <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_Land" order="1" use="optional" />
+          </presentationLink>
+        </linkbase>
+    </appinfo>
+    
+    <appinfo>
+        <!-- Embedded Calculation Linkbase -->
+          <linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link" xlink:title="Calculations, All">
+              <loc xlink:type="locator" xlink:href="#ci_TotalPropertyPlantEquipment" xlink:label="ci_TotalPropertyPlantEquipment" />
+              <loc xlink:type="locator" xlink:href="#ci_Land" xlink:label="ci_Land" />
+              <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_TotalPropertyPlantEquipment" xlink:to="ci_Land" order="1" weight="1" use="optional" />
+            </calculationLink>
+          </linkbase>
+    </appinfo>
+  
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="ci_Land" name="Land" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+  <element id="ci_PropertyPlantEquipment" name="PropertyPlantEquipment" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" abstract="true" nillable="true" />
+  <element id="ci_TotalPropertyPlantEquipment" name="TotalPropertyPlantEquipment" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+</schema>

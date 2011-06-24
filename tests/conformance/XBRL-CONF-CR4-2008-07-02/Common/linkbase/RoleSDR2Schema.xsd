@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- (c) XBRL International.  See www.xbrl.org/legal -->
+<schema targetNamespace="http://mycompany.com/xbrl/newRoleLinkbaseDR" xmlns:s="http://mycompany.com/xbrl/newRoleLinkbaseDR" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<annotation>
+		<appinfo>
+			<link:roleType id="newRole" roleURI="http://mycompany.com/xbrl/newRoleLinkbaseDR/newRole">
+				<link:definition>new role for a linkbaseRef</link:definition>
+				<link:usedOn>link:linkbaseRef</link:usedOn>
+			</link:roleType>
+		</appinfo>
+		<documentation>
+	A new linkbase definition
+	</documentation>
+	</annotation>
+</schema>

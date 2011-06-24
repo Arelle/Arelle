@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="12050-period-tests.xsd"/>
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">AAA001</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-01T00:00:00</instant>
+    </period>
+  </context>
+
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">AAA001</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31T00:00:00</instant>
+    </period>
+  </context>
+  
+  <concept:ci1 contextRef="c1">First result</concept:ci1>
+  <concept:ci1 contextRef="c2">Second result</concept:ci1>
+  
+</xbrl>
+
+
+
+
+

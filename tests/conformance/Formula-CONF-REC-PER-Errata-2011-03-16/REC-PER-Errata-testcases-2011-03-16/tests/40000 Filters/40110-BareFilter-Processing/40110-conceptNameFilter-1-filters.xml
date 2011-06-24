@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/filter/concept ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/formula/conformance/example 40110-filterTests-concepts.xsd
+  ">
+  
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <!--  Bare concept filters -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter01" id="filter01">
+      <cf:concept>
+        <cf:qname>eg:a</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <!--  Bare period filters -->
+    <pf:periodInstant xlink:type="resource" xlink:label="filter02" id="filter02" 
+      date="xs:date('2007-12-31')"/>
+
+  </generic:link>
+
+</link:linkbase>

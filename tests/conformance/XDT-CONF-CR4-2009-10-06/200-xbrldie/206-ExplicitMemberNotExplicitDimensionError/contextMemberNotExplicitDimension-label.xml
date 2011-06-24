@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2157.647 (2005-11-27 00:21).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-11-27 00:35:28
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="contextMemberNotExplicitDimension.xsd#tx_hc_ProductsDim" xlink:label="tx_hc_ProductsDim" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tx_hc_ProductsDim" xlink:to="tx_hc_ProductsDim_lbl" />
+    <label id="label_hc_ProductsDim_1123710659040_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tx_hc_ProductsDim_lbl" xml:lang="en" xlink:title="label_hc_ProductsDim">Products (Dimension)</label>
+    <loc xlink:type="locator" xlink:href="contextMemberNotExplicitDimension.xsd#tx_hc_Products" xlink:label="tx_hc_Products" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="tx_hc_Products" xlink:to="tx_hc_Products_lbl" />
+    <label id="label_hc_Products_1123710580928_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="tx_hc_Products_lbl" xml:lang="en" xlink:title="label_hc_Products">Products (Hypercube)</label>
+  </labelLink>
+</linkbase>

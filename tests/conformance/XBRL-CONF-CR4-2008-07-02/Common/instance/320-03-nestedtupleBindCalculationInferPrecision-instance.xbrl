@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2518.2110 (2006-07-24 12:58).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-27 20:49:41
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:nestedtupleBindCalc="http://www.example.com/new">
+  <link:schemaRef xlink:href="320-03-nestedtupleBindCalc.xsd" xlink:type="simple" />
+  <context id="np3">
+    <entity>
+      <identifier scheme="http://www.nasdaq.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+  </context>
+  <context id="Xnnp3X">
+    <entity>
+      <identifier scheme="http://www.nasdaq.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+  </context>
+  <unit id="u3">
+    <measure>iso4217:USD</measure>
+  </unit>
+  <nestedtupleBindCalc:Analysis>
+    <nestedtupleBindCalc:Customer>
+      <nestedtupleBindCalc:Name contextRef="np3">Acme</nestedtupleBindCalc:Name>
+      <nestedtupleBindCalc:Gross contextRef="np3" unitRef="u3" precision="4">3001</nestedtupleBindCalc:Gross>
+      <nestedtupleBindCalc:Returns contextRef="np3" unitRef="u3" precision="3">100</nestedtupleBindCalc:Returns>
+      <nestedtupleBindCalc:Net contextRef="np3" unitRef="u3" precision="4">2900</nestedtupleBindCalc:Net>
+    </nestedtupleBindCalc:Customer>
+    <nestedtupleBindCalc:Customer>
+      <nestedtupleBindCalc:Name contextRef="Xnnp3X">Acme</nestedtupleBindCalc:Name>
+      <nestedtupleBindCalc:Gross contextRef="Xnnp3X" unitRef="u3" precision="4">3000</nestedtupleBindCalc:Gross>
+      <nestedtupleBindCalc:Returns contextRef="Xnnp3X" unitRef="u3" precision="3">100</nestedtupleBindCalc:Returns>
+      <nestedtupleBindCalc:Net contextRef="Xnnp3X" unitRef="u3" precision="4">2900</nestedtupleBindCalc:Net>
+    </nestedtupleBindCalc:Customer>
+    <nestedtupleBindCalc:Customer>
+      <nestedtupleBindCalc:Name contextRef="np3">Bree</nestedtupleBindCalc:Name>
+      <nestedtupleBindCalc:Gross contextRef="np3" unitRef="u3" precision="4">3000</nestedtupleBindCalc:Gross>
+      <nestedtupleBindCalc:Returns contextRef="np3" unitRef="u3" precision="3">200</nestedtupleBindCalc:Returns>
+      <nestedtupleBindCalc:Net contextRef="np3" unitRef="u3" precision="4">2800</nestedtupleBindCalc:Net>
+    </nestedtupleBindCalc:Customer>
+    <nestedtupleBindCalc:Customer>
+      <nestedtupleBindCalc:Name contextRef="np3" />
+      <nestedtupleBindCalc:Gross contextRef="np3" unitRef="u3" precision="4">3000</nestedtupleBindCalc:Gross>
+      <nestedtupleBindCalc:Returns contextRef="np3" unitRef="u3" precision="3">200</nestedtupleBindCalc:Returns>
+      <nestedtupleBindCalc:Net contextRef="np3" unitRef="u3" precision="4">2800</nestedtupleBindCalc:Net>
+    </nestedtupleBindCalc:Customer>
+    <nestedtupleBindCalc:TotalGross contextRef="np3" unitRef="u3" precision="3">12000</nestedtupleBindCalc:TotalGross>
+  </nestedtupleBindCalc:Analysis>
+</xbrl>

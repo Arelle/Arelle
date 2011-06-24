@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xs:schema xmlns:conf="http://xbrl.org/2008/conformance" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="http://xbrl.org/2008/conformance" 
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+        <xs:element name="testcase">
+                <xs:complexType>
+                        <xs:sequence>
+                                <xs:element ref="conf:creator"/>
+                                <xs:element name="number" type="xs:string"/>
+                                <xs:element name="name" type="xs:string"/>
+                                <xs:element ref="conf:description"/>
+                                <xs:element ref="conf:reference" minOccurs="0" maxOccurs="unbounded"/>
+                                <xs:element ref="conf:variation" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="creator">
+                <xs:complexType>
+                        <xs:sequence>
+                                <xs:element name="name" type="xs:string"/>
+                                <xs:element name="email" type="xs:string"/>
+                        </xs:sequence>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="description" type="xs:string"/>
+        <xs:element name="reference">
+                <xs:complexType>
+                        <xs:attribute name="specification" type="xs:string"/>
+                        <xs:attribute name="id" type="xs:string"/>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="variation">
+                <xs:complexType>
+                        <xs:sequence>
+                                <xs:element ref="conf:creator" minOccurs="0"/>
+                                <xs:element name="number" type="xs:string" minOccurs="0"/>
+                                <xs:element name="name" type="xs:string" minOccurs="0"/>
+                                <xs:element ref="conf:description"/>
+                                <xs:element ref="conf:reference" minOccurs="0" maxOccurs="unbounded"/>
+                                <xs:element ref="conf:data"/>
+                                <xs:element ref="conf:result"/>
+                        </xs:sequence>
+                        <xs:attribute name="id" type="xs:ID" use="optional"/>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="data">
+                <xs:complexType>
+                        <xs:choice maxOccurs="unbounded">
+                                <xs:element ref="conf:schema"/>
+                                <xs:element ref="conf:linkbase"/>
+                                <xs:element ref="conf:instance"/>
+                                <xs:element ref="conf:parameter"/>
+                                <xs:element ref="conf:filter"/>
+                        </xs:choice>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="schema" type="conf:inputFileType"/>
+        <xs:element name="linkbase" type="conf:inputFileType"/>
+        <xs:element name="instance" type="conf:inputInstanceFileType"/>
+        <xs:complexType name="inputFileType">
+                <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                                <xs:attribute name="id" type="xs:ID" use="optional"/>
+                                <xs:attribute name="readMeFirst" type="xs:boolean" use="optional" default="false"/>
+                        </xs:extension>
+                </xs:simpleContent>
+        </xs:complexType>
+        <xs:complexType name="inputInstanceFileType">
+                <xs:simpleContent>
+                        <xs:extension base="conf:inputFileType">
+                                <xs:attribute name="name" type="xs:QName"/>
+                        </xs:extension>
+                </xs:simpleContent>
+        </xs:complexType>
+        <xs:element name="parameter">
+                <xs:complexType>
+                        <xs:attribute name="name" type="xs:QName"/>
+                        <xs:attribute name="datatype" type="xs:QName"/>
+                        <xs:attribute name="value" type="xs:string"/>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="filter">
+                <xs:complexType>
+                        <xs:attribute name="file" type="xs:IDREF"/>
+                        <!--  This attribute references an id outside of the testcase document, so it cannot be an IDREF.-->
+                        <xs:attribute name="id" type="xs:NCName"/>
+                </xs:complexType>
+        </xs:element>
+        <xs:complexType name="resultMessageType">
+                <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                              <xs:anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax"/>
+                        </xs:extension>
+                </xs:simpleContent>
+        </xs:complexType>
+        <xs:element name="result">
+          <xs:complexType>        
+              <!--Note that content is optional for result element, as the suite has examples where the expected output is invalid XBRL so there is no content to examine. -->
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
+                  <xs:element name="assertionTests">
+                    <xs:complexType>
+                      <xs:attribute name="assertionID" type="xs:string"/>
+                      <xs:attribute name="countSatisfied" type="xs:integer"/>
+                      <xs:attribute name="countNotSatisfied" type="xs:integer"/>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="filterTest" type="xs:string" />
+                  <xs:element name="instance" type="xs:anyURI" />
+                  <xs:element name="error" type="xs:QName" />
+                  <xs:element name="messageTests">
+                      <xs:complexType>
+                        <xs:choice maxOccurs="unbounded">
+                          <xs:element name="satisfied" type="conf:resultMessageType" />
+                          <xs:element name="notSatisfied" type="conf:resultMessageType" />
+                        </xs:choice>  
+                        <xs:attribute name="assertionID" type="xs:string"/>
+                      </xs:complexType>
+                  </xs:element>
+              </xs:choice>
+      <xs:attribute name="expected" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="valid"/>
+            <xs:enumeration value="invalid"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+                </xs:complexType>
+        </xs:element>
+</xs:schema>

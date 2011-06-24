@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-dim-tests.xsd"/>
+
+  <context id="context-earth">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Earth</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-mars">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Mars</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-jupiter">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Jupiter</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-saturn">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Saturn</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-uranus">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Uranus</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-neptune">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:MoonDim">concept:Neptune</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+
+
+    <!-- Earth moon fails precondition, not tested 
+    <concept:Moon contextRef="context-earth">no evaluation here</concept:Moon>
+    -->
+    <!-- this count passes precondition and is duplicated, passes assertion -->
+    <concept:Moon contextRef="context-earth">MoonCount yes</concept:Moon>
+
+    <!-- deimos moon is duplicated here, passes precond with Phobos and fail assertion 
+         because not EVERY moon is duplicated -->
+    <concept:Moon contextRef="context-mars">Moon no</concept:Moon>
+
+    <!-- no duplicate, not evaluated
+    <concept:Moon contextRef="context-mars">no evaluation</concept:Moon>
+    -->
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-jupiter">Moon no</concept:Moon>
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-saturn">Moon no</concept:Moon>
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-neptune">Moon no</concept:Moon>
+
+    <!-- passes precondition but not duplicated -->
+    <concept:Moon contextRef="context-uranus">Moon no</concept:Moon>
+
+</xbrl>
+

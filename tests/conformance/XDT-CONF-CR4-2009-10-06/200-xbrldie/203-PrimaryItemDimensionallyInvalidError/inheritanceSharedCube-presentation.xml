@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Presentation Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-11-18 17:40).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-11-19 11:28:12
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="inheritanceSharedCube.xsd#sc_p1" xlink:label="inheritanceSharedCube_p1" xlink:title="presentation: p1 to p2" />
+    <loc xlink:type="locator" xlink:href="inheritanceSharedCube.xsd#sc_p2" xlink:label="inheritanceSharedCube_p2" xlink:title="presentation: p1 to p2" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="inheritanceSharedCube_p1" xlink:to="inheritanceSharedCube_p2" xlink:title="presentation: p1 to p2" order="1" use="optional" />
+  </presentationLink>
+</linkbase>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <roleRef xlink:type="simple" xlink:href="bi-locational-dim-concepts.xsd#linkForExplDim" roleURI="http://xbrl.org/formula/conformance/example/role/linkForExplDimInSeg" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all" arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension" arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <roleRef xlink:type="simple" xlink:href="bi-locational-dim-concepts.xsd#linkForTypedDim" roleURI="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInSeg" />
+  <roleRef xlink:type="simple" xlink:href="bi-locational-dim-concepts.xsd#linkForExplDimInScen" roleURI="http://xbrl.org/formula/conformance/example/role/linkForExplDimInScen" />
+  <roleRef xlink:type="simple" xlink:href="bi-locational-dim-concepts.xsd#linkForTypedDimInScen" roleURI="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInScen" />
+  <roleRef xlink:type="simple" xlink:href="bi-locational-dim-concepts.xsd#linkFor3DimsInSeg" roleURI="http://xbrl.org/formula/conformance/example/role/linkFor3DimsInSeg" />
+  <roleRef xlink:type="simple" xlink:href="bi-locational-dim-concepts.xsd#linkFor2DimsInSeg" roleURI="http://xbrl.org/formula/conformance/example/role/linkFor2DimsInSeg" />
+  <definitionLink xlink:type="extended" xlink:role="http://xbrl.org/formula/conformance/example/role/linkForExplDimInSeg">
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_PriItem1" xlink:label="eg_PriItem1" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_HyperCube1" xlink:label="eg_HyperCube1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1" order="1" use="optional" xbrldt:contextElement="segment" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1" xlink:label="eg_ExplDim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Dom" xlink:label="eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Mbr1" xlink:label="eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Mbr2" xlink:label="eg_ExplDim1Mbr2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr2" order="2" use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInSeg">
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_PriItem1" xlink:label="eg_PriItem1" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_HyperCube1" xlink:label="eg_HyperCube1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1" order="1" use="optional" xbrldt:contextElement="segment" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_TypedDim1" xlink:label="eg_TypedDim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1" order="1" use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://xbrl.org/formula/conformance/example/role/linkForExplDimInScen">
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_PriItem1" xlink:label="eg_PriItem1" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_HyperCube1" xlink:label="eg_HyperCube1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1" order="1" use="optional" xbrldt:contextElement="scenario" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1" xlink:label="eg_ExplDim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Dom" xlink:label="eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Mbr1" xlink:label="eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Mbr2" xlink:label="eg_ExplDim1Mbr2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr2" order="2" use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInScen">
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_PriItem1" xlink:label="eg_PriItem1" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_HyperCube1" xlink:label="eg_HyperCube1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1" order="1" use="optional" xbrldt:contextElement="scenario" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_TypedDim1" xlink:label="eg_TypedDim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1" order="1" use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://xbrl.org/formula/conformance/example/role/linkFor3DimsInSeg">
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_PriItem1" xlink:label="eg_PriItem1" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_HyperCube1" xlink:label="eg_HyperCube1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1" order="1" use="optional" xbrldt:contextElement="segment" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1" xlink:label="eg_ExplDim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Dom" xlink:label="eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Mbr1" xlink:label="eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim1Mbr2" xlink:label="eg_ExplDim1Mbr2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr2" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2" xlink:label="eg_ExplDim2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim2" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2Dom" xlink:label="eg_ExplDim2Dom" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="eg_ExplDim2" xlink:to="eg_ExplDim2Dom" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2Mbr1" xlink:label="eg_ExplDim2Mbr1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr1" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2Mbr2" xlink:label="eg_ExplDim2Mbr2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr2" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_TypedDim1" xlink:label="eg_TypedDim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1" order="3" use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://xbrl.org/formula/conformance/example/role/linkFor2DimsInSeg">
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_PriItem1" xlink:label="eg_PriItem1" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_HyperCube1" xlink:label="eg_HyperCube1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1" order="2" use="optional" xbrldt:contextElement="segment" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2" xlink:label="eg_ExplDim2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_ExplDim2" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2Dom" xlink:label="eg_ExplDim2Dom" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="eg_ExplDim2" xlink:to="eg_ExplDim2Dom" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2Mbr1" xlink:label="eg_ExplDim2Mbr1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr1" order="3" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_ExplDim2Mbr2" xlink:label="eg_ExplDim2Mbr2" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="eg_ExplDim2Dom" xlink:to="eg_ExplDim2Mbr2" order="4" use="optional" />
+    <loc xlink:type="locator" xlink:href="bi-locational-dim-concepts.xsd#eg_TypedDim1" xlink:label="eg_TypedDim1" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1" order="2" use="optional" />
+  </definitionLink>
+</linkbase>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>42230</number>
+  <name>Concept Balance Filter Processing</name>
+  <description>
+    Test concept balance filter processing
+  </description>
+  <reference specification="CONCEPT-FILTER" id="sec-concept-balance-filter"/>
+
+  <variation id="V-01">
+    <name>Test credit balance concept filter.</name>
+    <description>The fact's concept must be classified as a credit balance concept.</description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-balance-filter"/>
+    <data>
+      <schema>42230-conceptBalanceFilter-concepts.xsd</schema>
+      <linkbase>42230-conceptBalanceFilter-credit-balance-formula.xml</linkbase>
+      <instance readMeFirst="true">42230-conceptBalanceFilter-credit-balance-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42230-conceptBalanceFilter-credit-balance-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test debit balance concept filter.</name>
+    <description>The fact's concept must be classified as a debit balance concept.</description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-balance-filter"/>
+    <data>
+      <schema>42230-conceptBalanceFilter-concepts.xsd</schema>
+      <linkbase>42230-conceptBalanceFilter-debit-balance-formula.xml</linkbase>
+      <instance readMeFirst="true">42230-conceptBalanceFilter-debit-balance-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42230-conceptBalanceFilter-debit-balance-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Test neither credit nor debit balance concept filter.</name>
+    <description>The fact's concept must not be classified as a credit or debit balance concept.</description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-balance-filter"/>
+    <data>
+      <schema>42230-conceptBalanceFilter-concepts.xsd</schema>
+      <linkbase>42230-conceptBalanceFilter-none-balance-formula.xml</linkbase>
+      <instance readMeFirst="true">42230-conceptBalanceFilter-none-balance-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42230-conceptBalanceFilter-none-balance-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

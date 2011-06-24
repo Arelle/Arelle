@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlve="http://xbrl.org/2008/variable/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22020</number>
+  <name>Parameter processing examples</name>
+  <description>
+    Tests of parameter processing, reference and expression
+  </description>
+  <reference specification="VARIABLES" id="sec-parameters"/>
+
+  <variation id="V-01">
+    <name>Formula expression depends on parameter value</name>
+    <description>Tests that a formula with a value expression dependent on a parameter value properly sequences execution and dependency.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramToFormula-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-paramToFormula-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22020-paramToFormula-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-01a">
+    <name>Parameter accessed by global qname on parameter, not the name on variable-set arc</name>
+    <description>Same as V-01 but a different parameter than the one with the arc is accessed by the (global0 name on the parameter.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramToFormula-formula2.xml</linkbase>
+      <instance readMeFirst="true">22020-paramToFormula-instance2.xml</instance>
+    </data>
+    <result>
+      <instance>22020-paramToFormula-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-01b">
+    <name>Parameter accessed by name on variable-set arc overrides name on parameter</name>
+    <description>Same as V-01 but a variable-set arc name specifies different parameter than the one with the (same) global name on the parameter.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramToFormula-formula3.xml</linkbase>
+      <instance readMeFirst="true">22020-paramToFormula-instance3.xml</instance>
+    </data>
+    <result>
+      <instance>22020-paramToFormula-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-01c">
+    <name>Variable accessed by name on variable-set arc overrides name on parameter</name>
+    <description>Same as V-01 but a FactVariable's variable-set arc name specifies same name the one with the (same) global name on the parameter.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramToFormula-formula4.xml</linkbase>
+      <instance readMeFirst="true">22020-paramToFormula-instance4.xml</instance>
+    </data>
+    <result>
+      <instance>22020-paramToFormula-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Fact variable filter depends on parameter</name>
+    <description>Tests that a fact variable, with a name filter qname expression dependent on a parameter value, properly sequences execution and dependency.  The parameter provides a localname for the qname expression of the fact variable concept name filter.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramToFv-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-paramToFv-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22020-paramToFv-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Fact variable filter depends on parameter</name>
+    <description>Tests that a fact variable, with an &quot;as&quot; parameter, provides correctly typed value.  Also tests that a precondition can access parameter and check that it is an instance of the right type.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramIsQName-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-paramIsQName-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22020-paramIsQName-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Parameter not convertable to &quot;as&quot; data type</name>
+    <description>Tests that a parameter value can't be converted to an &quot;as&quot; typed value.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramNotQName-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-paramNotQName-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlve:parameterTypeMismatch</error>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>Parameter is a sequence type</name>
+    <description>Tests that a parameter value can be a sequence.  (Test originally written when it couldn't be a sequence, but now this is allowed, so please excuse the file names from before.)  The result requires a single evaluation of the parameter, for that reason the third member of the sequence is chosen, to be sure that iterative evaluation is not used for parameter sequences.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-paramNotSequence-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-paramNotSequence-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22020-paramNotSequence-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Parameter is input from external environment</name>
+    <description>Tests that a parameter value can be obtained externally.  Parameter element, attribute @name, the QName value "p1", within this testcase variation, does not have a prefix and thus inherits the xmlns default namespace of the container (which here is http://xbrl.org/2008/conformance). (In XPath 2, variable and function names have no-namespace characteristics which are unique to XPath, but that is only within XPath, and not also applying to Variable Spec unique features like parameter names.  Thus here we test that ordinary namespace handling occurs.)</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-stringToParam-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-stringToParam-instance.xml</instance>
+      <parameter name="p1" datatype="xs:string" value="hello world" />
+    </data>
+    <result>
+      <instance>22020-stringToParam-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Parameter is input with a prefixed name attribute and its namespace defined.</name>
+    <description>Same as V-06 but parameter element @name attribute prefix is declared by xmlns in the test driver &lt;parameter&gt; element.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-stringToNsParam-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-stringToNsParam-instance.xml</instance>
+      <parameter name="abc:p1" datatype="xs:string" value="hello mars"
+         xmlns:abc="http://xbrl.org/formula/conformance/paramstuff"/>
+    </data>
+    <result>
+      <instance>22020-stringToNsParam-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07a">
+    <name>Parameter name has no prefix, no namespace, as defined in formula.</name>
+    <description>Same as V-06 but parameter element @name attribute's QName value has no prefix, and thus an xmlns='' is provided for the no-namespace name parameter, which requires a prefix on the test driver &lt;parameter&gt; element.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-stringToNoNsParam-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-stringToNoNsParam-instance.xml</instance>
+      <conf:parameter name="p1" datatype="xs:string" value="hello mars"
+         xmlns:conf="http://xbrl.org/2008/conformance"
+         xmlns=''
+         />
+    </data>
+    <result>
+      <instance>22020-stringToNsParam-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Parameter strongly typed as xs:date.</name>
+    <description>Same as V-06 but parameter is expected to be casted by test driver to formula processor as an atomic or element of type xs:date.  Also note that parameter inside formula linkbase uses default xmlns namespace (no-parameter), and in testcase file uses explicit prefix.</description>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <schema>22020-parameter-tests.xsd</schema>
+      <linkbase>22020-dateToParam-formula.xml</linkbase>
+      <instance readMeFirst="true">22020-dateToParam-instance.xml</instance>
+      <parameter name="p:mydate" datatype="xs:date" value="1984-02-29"
+        xmlns:p="http://xbrl.org/2008/formula/conformance/parameter"
+        />
+    </data>
+    <result>
+      <instance>22020-dateToParam-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

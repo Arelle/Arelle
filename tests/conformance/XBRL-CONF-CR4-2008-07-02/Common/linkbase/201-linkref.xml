@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Linkbase References" description="Section 5 Taxonomies" outpath="out" owner="geoff@galexy.net" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-01" name="LinkbaseRefCounterExample">
+		<description>
+		201.01 The LinkbaseRef elements MUST hold the URI of
+		Linkbases.  In this case the URI's do not resolve to
+		XML documents.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-01-LinkbaseRefCounterExample.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-02" name="LinkbaseRef">
+		<description>
+		201.02 The LinkbaseRef elements hold the URI of
+		Linkbases.  In this case the URI's actually resolve to
+		documents that contain the right kinds of XBRL linkbases.
+		</description>
+		<!-- done: populate linkbaseRef.xsd with five pointers -->
+		<data>
+			<xsd readMeFirst="true">201-02-LinkbaseRef.xsd</xsd>
+			<linkbase readMeFirst="false">LinkbaseRef-label.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-reference.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-calculation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-presentation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-definition.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-03" name="LinkbaseRefXMLBase">
+		<description>
+		201.03 XML Base must be used to process the URI of a
+		LinkbaseRef.  In this case the schema use the xml base
+		attribute to get the linkbase to be picked up from the
+		base directory instead of the current directory.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-03-LinkbaseRefXMLBase.xsd</xsd>
+			<linkbase readMeFirst="false">base/201-03-LinkbaseRefXMLBase-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-04" name="LinkbaseRefLabelCounterExample">
+		<description>
+		201.04 The LinkbaseRef XLink role attribute value must
+		match the linkbase found at its target.  In this case
+		it does not.  The role indicates a label linkbase and
+		the actual linkbase is a reference linkbase.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-04-LinkbaseRefLabelCounterExample.xsd</xsd>
+			<linkbase readMeFirst="false">LinkbaseRef-reference.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-05" name="LinkbaseRefReferenceCounterExample">
+		<description>
+		201.05 The LinkbaseRef element role must match the
+		linkbase found at its target.  In this case
+		it does not.  The role indicates a reference linkbase and
+		the actual linkbase is a label linkbase.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-05-LinkbaseRefReferenceCounterExample.xsd</xsd>
+			<linkbase readMeFirst="false">LinkbaseRef-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-06" name="LinkbaseRefDefinitionCounterExample">
+		<description>
+		201.06 The LinkbaseRef element role must match the
+		linkbase found at its target.  In this case a
+		calculation linkbase is indicated and a definition
+		linkbase is provided.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-06-LinkbaseRefDefinitionCounterExample.xsd</xsd>
+			<linkbase readMeFirst="false">LinkbaseRef-definition.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-07" name="LinkbaseRefPresentationCounterExample">
+		<description>
+		201.07 The LinkbaseRef element role must match the
+		linkbase found at its target.  In this case a
+		definition linkbase is indicated and a presentation
+		linkbase is provided.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-07-LinkbaseRefPresentationCounterExample.xsd</xsd>
+			<linkbase readMeFirst="false">LinkbaseRef-presentation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-08" name="LinkbaseRefCalculationCounterExample">
+		<description>
+		201.08 The LinkbaseRef element role must match the
+		linkbase found at its target.  In this case a
+		presentation linkbase is indicated and a calculation
+		linkbase is provided.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-08-LinkbaseRefCalculationCounterExample.xsd</xsd>
+			<linkbase readMeFirst="false">LinkbaseRef-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-09" name="LinkbaseRefMultipleExample">
+		<description>
+		201.09 There can be any number of LinkbaseRef elements
+		having the same role but the role must always match
+		the target.
+		</description>
+		<data>
+			<xsd readMeFirst="true">201-09-LinkbaseRefMultipleExample.xsd</xsd>
+			<linkbase readMeFirst="false">LinkbaseRef-presentation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-2-presentation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-3-calculation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-10" name="InvalidRefInSecondAppinfo">
+		<description>
+		201.10 The LinkbaseRef element in the second appinfo section holds
+    the URI of a reference linkbase, but uses a role that should only
+    point to label Linkbases.
+  	</description>
+		<!-- done: populate linkbaseRef.xsd with five pointers -->
+		<data>
+			<xsd readMeFirst="true">201-10-InvalidLinbaseRefInSecondAppinfo.xsd</xsd>
+			<linkbase readMeFirst="false">201-02-LinkbaseRef.xsd</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-label.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-reference.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-calculation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-presentation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-definition.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<linkbase xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns="http://www.xbrl.org/2003/linkbase"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xbrli="http://www.xbrl.org/2003/instance"
+          xmlns:link="http://www.xbrl.org/2003/linkbase"
+          xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+          xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+          xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+          xsi:schemaLocation="         http://www.xbrl.org/2003/linkbase          http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd          http://xbrl.org/2005/xbrldt          http://www.xbrl.org/2005/xbrldt-2005.xsd">
+   <roleRef roleURI="http://www.example.com/link/role/allCube" xlink:type="simple"
+            xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#allCube"/>
+   <roleRef roleURI="http://www.example.com/link/role/defaults" xlink:type="simple"
+            xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#defaults"/>
+   <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple"
+               xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+   <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple"
+               xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+   <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+               xlink:type="simple"
+               xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+   <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain"
+               xlink:type="simple"
+               xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"/>
+   <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default"
+               xlink:type="simple"
+               xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default"/>
+   <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/allCube">
+      <link:loc xlink:type="locator" xlink:label="Prime"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Prime"/>
+      <link:loc xlink:type="locator" xlink:label="Segments"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Segments"/>
+      <link:definitionArc xlink:type="arc" xlink:from="Prime" xlink:to="Segments"
+                          xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+                          xbrldt:closed="true"
+                          xbrldt:contextElement="segment"/>
+   </link:definitionLink>
+   <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/allCube">
+      <link:loc xlink:type="locator" xlink:label="Prime"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Prime"/>
+      <link:loc xlink:type="locator" xlink:label="Scenarios"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Scenarios"/>
+      <link:definitionArc xlink:type="arc" xlink:from="Prime" xlink:to="Scenarios"
+                          xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+                          xbrldt:closed="true"
+                          xbrldt:contextElement="scenario"/>
+   </link:definitionLink>
+   <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/allCube">
+      <link:loc xlink:type="locator" xlink:label="Axis1"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Axis1"/>
+      <link:loc xlink:type="locator" xlink:label="Member1"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Member1"/>
+      <link:definitionArc xlink:type="arc" xlink:from="Axis1" xlink:to="Member1"
+                          xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+                          order="2"/>
+   </link:definitionLink>
+   <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/allCube">
+      <link:loc xlink:type="locator" xlink:label="Axis2"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Axis2"/>
+      <link:loc xlink:type="locator" xlink:label="Member2"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Member2"/>
+      <link:definitionArc xlink:type="arc" xlink:from="Axis2" xlink:to="Member2"
+                          xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+                          order="2"/>
+   </link:definitionLink>
+   <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/allCube">
+      <link:loc xlink:type="locator" xlink:label="Axis1"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Axis1"/>
+      <link:loc xlink:type="locator" xlink:label="Domain1"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Domain1"/>
+      <link:definitionArc xlink:type="arc" xlink:from="Axis1" xlink:to="Domain1"
+                          xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"/>
+   </link:definitionLink>
+   <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/allCube">
+      <link:loc xlink:type="locator" xlink:label="Axis2"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Axis2"/>
+      <link:loc xlink:type="locator" xlink:label="Domain2"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Domain2"/>
+      <link:definitionArc xlink:type="arc" xlink:from="Axis2" xlink:to="Domain2"
+                          xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"/>
+   </link:definitionLink>
+   <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/defaults">
+      <link:loc xlink:type="locator" xlink:label="Axis2"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Axis2"/>
+      <link:loc xlink:type="locator" xlink:label="Domain2"
+                xlink:href="closed-absent-absent-nodefault-default-scenario-scenario.xsd#example_Domain2"/>
+      <link:definitionArc xlink:type="arc" xlink:from="Axis2" xlink:to="Domain2"
+                          xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"/>
+   </link:definitionLink>
+</linkbase>

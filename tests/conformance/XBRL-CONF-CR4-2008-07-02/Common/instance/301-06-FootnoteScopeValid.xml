@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!-- Edited by Masatomo Goto (Fujitsu Ltd.) -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:example="http://example.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://example.com/xbrl/taxonomy IdScope.xsd">
+	<link:schemaRef xlink:href="IdScope.xsd" xlink:type="simple"/>
+	<example:fixedAssets id="f1" precision="4" contextRef="ci1" unitRef="u1">5000</example:fixedAssets>
+	<example:changeInRetainedEarnings precision="4" contextRef="cd1" unitRef="u1">3000</example:changeInRetainedEarnings>
+	<link:footnoteLink xlink:type="extended" xlink:title="1" xlink:role="http://www.xbrl.org/2003/role/link">
+		<link:footnote xlink:type="resource" xlink:label="footnote1" xlink:title="1" xml:lang="en">Including the effects of the merger.</link:footnote>
+		<link:loc xlink:type="locator" xlink:label="fact1" xlink:href="#f1"/>
+		<link:footnoteArc xlink:type="arc" xlink:from="fact1" xlink:to="footnote1" xlink:title="fact1-footnote1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/fact-footnote" xlink:show="replace" xlink:actuate="onRequest"/>
+	</link:footnoteLink>
+	<context id="ci1">
+		<entity>
+			<identifier scheme="www.example.com">example</identifier>
+		</entity>
+		<period>
+			<instant>2003-03-31</instant>
+		</period>
+	</context>
+	<context id="cd1">
+		<entity>
+			<identifier scheme="www.example.com">example</identifier>
+		</entity>
+		<period>
+			<startDate>2002-04-01</startDate>
+			<endDate>2003-03-31</endDate>
+		</period>
+	</context>
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+</xbrl>

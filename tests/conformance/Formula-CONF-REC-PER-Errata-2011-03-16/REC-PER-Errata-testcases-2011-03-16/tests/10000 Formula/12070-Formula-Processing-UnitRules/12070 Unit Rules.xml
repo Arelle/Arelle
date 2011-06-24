@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>12070</number>
+  <name>Unit rules processing examples</name>
+  <description>
+    Tests of formula unit rules processing
+  </description>
+  <reference specification="FORMULA" id="sec-unit-rules"/>
+  <reference specification="FORMULA" id="sec-default-aspect-rules"/>
+
+  <variation id="V-01">
+    <name>Output of source unit measures</name>
+    <description>Tests that the output unit is that of the input.  In this case a custom kilometers/hours unit construct is used.</description>
+    <reference specification="FORMULA" id="example-unit-rules"/>
+    <data>
+      <schema>12070-unit-tests.xsd</schema>
+      <linkbase>12070-source-measures-formula.xml</linkbase>
+      <instance readMeFirst="true">12070-source-measures-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12070-source-measures-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Output of dynamic multiply by measure</name>
+    <description>Tests that the output unit reflects that of the unit aspect rule, which replaces that of the source referenced fact item unit, because it has augment=false.</description>
+    <reference specification="FORMULA" id="example-period-rules"/>
+    <reference specification="FORMULA" id="sec-unit-multiplication-rules"/>
+     <data>
+      <schema>12070-unit-tests.xsd</schema>
+      <linkbase>12070-dynamic-multBy-formula.xml</linkbase>
+      <instance readMeFirst="true">12070-dynamic-multBy-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12070-dynamic-multBy-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Output of complex unit from source fact item and unit rules</name>
+    <description>Tests that the output unit can be assembled from a referenced monetary item (in iso4217:USD measure) divided by a price-per-share (in shares/USD unit).  The nearest referenced fact is iso4217:USD (investment amount), and the unit rules multiply by xbrli:shares and divide by iso4217:USD (reflecting dividing a dollars amount by a price per share), which results in a generated output fact item unit in xbrli:shares.  QName expressions are used for the measures manipulation.  Augment is left off (implying true).</description>
+    <reference specification="FORMULA" id="example-period-rules"/>
+    <reference specification="FORMULA" id="sec-unit-multiplication-rules"/>
+    <reference specification="FORMULA" id="sec-unit-division-rules"/>
+    <data>
+      <schema>12070-unit-tests.xsd</schema>
+      <linkbase>12070-dynamic-multDivToShares-formula.xml</linkbase>
+      <instance readMeFirst="true">12070-dynamic-multDivToShares-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12070-dynamic-multDivToShares-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Same as V-03, but the dividing-out of dollars is done by a SAV reference instead of by a QName expression.  Augment=true is explicity specified.</name>
+    <description>Tests that the output unit can be assembled from a referenced monetary item (in iso4217:USD measure) divided by a price-per-share (in shares/USD unit).  The nearest referenced fact is iso4217:USD (investment amount), and the unit rules multiply by xbrli:shares and divide by iso4217:USD (reflecting dividing a dollars amount by a price per share), which results in a generated output fact item unit in xbrli:shares.  QName expressions are used for the measures manipulation.  Augment is left off (implying true).</description>
+    <reference specification="FORMULA" id="example-period-rules"/>
+    <reference specification="FORMULA" id="sec-unit-multiplication-rules"/>
+    <reference specification="FORMULA" id="sec-unit-division-rules"/>
+    <data>
+      <schema>12070-unit-tests.xsd</schema>
+      <linkbase>12070-dynamic-multDivToShares2-formula.xml</linkbase>
+      <instance readMeFirst="true">12070-dynamic-multDivToShares2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12070-dynamic-multDivToShares-result.xml</instance>
+    </result>
+  </variation>  
+
+
+</testcase>
+
+

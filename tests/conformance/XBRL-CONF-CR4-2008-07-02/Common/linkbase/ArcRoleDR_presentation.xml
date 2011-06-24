@@ -1,0 +1,14 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<arcroleRef xlink:type="simple" xlink:href="ArcRoleDR.xsd#row-cell" arcroleURI="http://mycompany.com/xbrl/arcroleDR/row-cell"/>
+	<arcroleRef xlink:type="simple" xlink:href="ArcRoleDR.xsd#column-cell" arcroleURI="http://mycompany.com/xbrl/arcroleDR/column-cell"/>
+	<presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcRoleDR.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="ArcRoleDR.xsd#conceptB" xlink:label="conceptB"/>
+		<presentationArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptB" xlink:arcrole="http://mycompany.com/xbrl/arcroleDR/row-cell" order="1"/>
+	</presentationLink>
+	<presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcRoleDR.xsd#conceptC" xlink:label="conceptC"/>
+		<loc xlink:type="locator" xlink:href="ArcRoleDR.xsd#conceptB" xlink:label="conceptB"/>
+		<presentationArc xlink:type="arc" xlink:from="conceptC" xlink:to="conceptB" xlink:arcrole="http://mycompany.com/xbrl/arcroleDR/column-cell" order="1"/>
+	</presentationLink>
+</linkbase>

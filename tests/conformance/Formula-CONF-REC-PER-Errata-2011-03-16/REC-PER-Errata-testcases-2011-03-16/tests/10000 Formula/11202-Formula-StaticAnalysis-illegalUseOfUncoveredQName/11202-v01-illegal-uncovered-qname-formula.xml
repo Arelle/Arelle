@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:uf="http://xbrl.org/2008/filter/unit" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:c="http://xbrl.org/formula/conformance/example"  
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/unit
+    ../../../core_schemas/unit-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    11202-concepts.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" 
+      xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!--  Fact variables used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_assets"
+         bindAsSequence="false"/>
+    <variable:parameter xlink:type="resource" xlink:label="parameter_changeRate"
+        name="v:changeRate" required="true" as="xs:decimal" select="1.4"/>
+  
+    <!--  conformance test formula 11202. Process the currency conversion of the assets value but illegal use of uncovered qname due to implicitFiltering false -->
+    <formula:formula xlink:type="resource" xlink:label="formula_ct11202"
+        aspectModel="non-dimensional" implicitFiltering="false" 
+        value="($v:assets * $v:changeRate)" source="formula:uncovered">
+        <formula:decimals>0</formula:decimals>
+        <formula:aspects>
+           <formula:concept>
+             <formula:qname>c:assets</formula:qname>
+           </formula:concept>
+           <formula:entityIdentifier 
+               scheme="'http://xbrl.org/entity/identification/scheme'" 
+               value="'01'" />
+           <formula:period>
+              <formula:instant value="xs:date('2007-12-31')"/>
+           </formula:period>
+
+        </formula:aspects>
+    </formula:formula>
+    
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="cf_assets">
+      <cf:concept>
+        <cf:qname>c:assets</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+    <uf:singleMeasure xlink:type="resource" xlink:label="uf_usd">
+      <uf:measure>
+        <uf:qname>iso4217:USD</uf:qname>
+      </uf:measure>
+    </uf:singleMeasure>
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:assets" xlink:from="formula_ct11202" xlink:to="variable_assets" order="1.0" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:changeRate" xlink:from="formula_ct11202" xlink:to="parameter_changeRate" order="2.0"/>
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_assets" xlink:to="cf_assets" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_assets" xlink:to="uf_usd" order="2.0"/>
+
+    
+  </generic:link>
+
+</link:linkbase>

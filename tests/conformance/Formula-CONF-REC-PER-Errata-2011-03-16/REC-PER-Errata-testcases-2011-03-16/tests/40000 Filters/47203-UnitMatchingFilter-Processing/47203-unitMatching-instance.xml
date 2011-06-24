@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="47203-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="47203-unitMatching-formula.xml"/>
+  
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit-squareMiles">
+    <measure>eg:squareMiles</measure>
+  </unit>
+  
+  <unit id="unit-acres">
+    <measure>eg:acres</measure>
+  </unit>
+  
+  <unit id="unit-hectares">
+    <measure>eg:hectares</measure>
+  </unit>
+  
+  <unit id="unit-speedMPH">
+    <divide>
+       <unitNumerator>
+         <measure>eg:miles</measure>
+       </unitNumerator>
+       <unitDenominator>
+         <measure>eg:hours</measure>
+       </unitDenominator>
+    </divide>
+  </unit>
+
+  <unit id="unit-speedKMH">
+    <divide>
+       <unitNumerator>
+         <measure>eg:kilometers</measure>
+       </unitNumerator>
+       <unitDenominator>
+         <measure>eg:hours</measure>
+       </unitDenominator>
+    </divide>
+  </unit>
+
+  <unit id="unit-acceleration">
+    <divide>
+       <unitNumerator>
+         <measure>eg:meters</measure>
+       </unitNumerator>
+       <unitDenominator>
+         <measure>eg:seconds</measure>
+         <measure>eg:seconds</measure>
+       </unitDenominator>
+    </divide>
+  </unit>
+
+  <!-- nicely organized so pattern of data for test is evident -->
+
+  <eg:a decimals="0" contextRef="context" unitRef="unit-squareMiles">1001</eg:a>
+  <eg:b decimals="0" contextRef="context" unitRef="unit-squareMiles">2001</eg:b>
+  <eg:c decimals="0" contextRef="context" unitRef="unit-squareMiles">3001</eg:c>
+
+  <eg:a decimals="0" contextRef="context" unitRef="unit-acres">1002</eg:a>
+  <eg:b decimals="0" contextRef="context" unitRef="unit-acres">2002</eg:b>
+  <eg:c decimals="0" contextRef="context" unitRef="unit-acres">3002</eg:c>
+
+  <!-- physical order randomized to ensure it doesn't impact filtering -->
+
+  <eg:c decimals="0" contextRef="context" unitRef="unit-speedMPH">3004</eg:c>
+  <eg:a decimals="0" contextRef="context" unitRef="unit-hectares">1003</eg:a>
+  <eg:c decimals="0" contextRef="context" unitRef="unit-speedKMH">3005</eg:c>
+  <eg:c decimals="0" contextRef="context" unitRef="unit-hectares">3003</eg:c>
+  <eg:a decimals="0" contextRef="context" unitRef="unit-speedMPH">1004</eg:a>
+  <eg:c decimals="0" contextRef="context" unitRef="unit-acceleration">3006</eg:c>
+  <eg:b decimals="0" contextRef="context" unitRef="unit-speedMPH">2004</eg:b>
+  <eg:b decimals="0" contextRef="context" unitRef="unit-hectares">2003</eg:b>
+  <eg:b decimals="0" contextRef="context" unitRef="unit-speedKMH">2005</eg:b>
+  <eg:b decimals="0" contextRef="context" unitRef="unit-acceleration">2006</eg:b>
+  <eg:a decimals="0" contextRef="context" unitRef="unit-speedKMH">1005</eg:a>
+  <eg:a decimals="0" contextRef="context" unitRef="unit-acceleration">1006</eg:a>
+
+</xbrl>

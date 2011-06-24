@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Role Declarations" description="Section 5.5.8" outpath="out" owner="phillipengel@kpmg.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-1" name="Taxonomy defined linkbaseRef role">
+		<description>205.01 A new role for use on a linkbaseRef is defined in RoleSSchema.xsd.  A new extended link element and arc type element are also defined in this schema.  The RoleS.xsd taxonomy schema uses the new role on the linkbaseRef element pointing to RoleS_linkbase.xml</description>
+		<data>
+			<xsd readMeFirst="false">RoleS.xsd</xsd>
+			<xsd readMeFirst="false">RoleSSchema.xsd</xsd>
+			<linkbase readMeFirst="false">RoleS_linkbase.xml</linkbase>
+			<instance readMeFirst="true">RoleS.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="Taxonomy defined extended-type role">
+		<description>205.02 A new role for used on the extended-type presentationLink element is defined in RoleE.xsd.  RoleE_presentation.xml uses the new role.</description>
+		<data>
+			<xsd readMeFirst="false">RoleE.xsd</xsd>
+			<linkbase readMeFirst="false">RoleE_presentation.xml</linkbase>
+			<instance readMeFirst="true">RoleE.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-3" name="Taxonomy defined label role">
+		<description>205.03 A new role for used on a label resource element is defined in RoleL.xsd.  RoleL_label.xml uses the new role.</description>
+		<data>
+			<xsd readMeFirst="false">RoleL.xsd</xsd>
+			<linkbase readMeFirst="false">RoleL_label.xml</linkbase>
+			<instance readMeFirst="true">RoleL.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-4" name="Taxonomy defined reference role">
+		<description>205.04 A new role for used on a reference resource element is defined in RoleR.xsd.  RoleR_reference.xml uses the new role.</description>
+		<data>
+			<xsd readMeFirst="false">RoleR.xsd</xsd>
+			<linkbase readMeFirst="false">RoleR_reference.xml</linkbase>
+			<instance readMeFirst="true">RoleR.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-5" name="Taxonomy defined linkbaseRef role used on the wrong element">
+		<description>205.05 A new role for use on a presentationLink elment is defined in RoleSBUSchema.xsd.  A new extended link element and arc type element are also defined in this schema.  The RoleSBU.xsd taxonomy schema uses the new role on the linkbaseRef element pointing to RoleSBU_linkbase.xml.  The role is defined to be used on a presentationLink element, but this does not matter since this is not checked for custom links.</description>
+		<data>
+			<xsd readMeFirst="false">RoleSBU.xsd</xsd>
+			<xsd readMeFirst="false">RoleSBUSchema.xsd</xsd>
+			<linkbase readMeFirst="false">RoleSBU_linkbase.xml</linkbase>
+			<instance readMeFirst="true">RoleSBU.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-6" name="Undefined role used on a linkbaseRef element">
+		<description>205.06 A new role for use on a linkbaseRef elment is defined in RoleSBRSchema.xsd.  A new extended link element and arc type element are also defined in this schema.  The RoleSBR.xsd taxonomy schema attempts to use the new role on the linkbaseRef element pointing to RoleSBR_linkbase.xml.  On the linkbaseRef element, the fragment identifier of the role does not match the name defined on the roleType element.  This does not matter because this is not checked for linkbaseRefs.</description>
+		<data>
+			<xsd readMeFirst="false">RoleSBR.xsd</xsd>
+			<xsd readMeFirst="false">RoleSBRSchema.xsd</xsd>
+			<linkbase readMeFirst="false">RoleSBR_linkbase.xml</linkbase>
+			<instance readMeFirst="true">RoleSBR.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-7" name="A role defined twice for linkbaseRef - valid,  role is schema equal">
+		<description>205.07 A new role for use on a linkbaseRef elment is defined in RoleSBRSchema.xsd.  The same role is also defined in RoleSDR2Schema.xsd.  RoleSDRschema.xsd imports RoleSDR2Schema.xsd. Since both schemas are part of the DTS (via the import) the role is defined twice,however, this doesn't matter because they are equivalent, and, more importantly, this is not checked for linkbaseRefs anyway.  The RoleSDR.xsd uses the new role on a linkbaseRef pointing to RoleSDR_linkbase.xml.</description>
+		<data>
+			<xsd readMeFirst="false">RoleSDR.xsd</xsd>
+			<xsd readMeFirst="false">RoleSDRSchema.xsd</xsd>
+			<xsd validatorExclude="true" readMeFirst="false">RoleSDR2Schema.xsd</xsd>
+			<linkbase readMeFirst="false">RoleSDR_linkbase.xml</linkbase>
+			<instance readMeFirst="true">RoleSDR.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-8" name="A role defined twice for linkbaseRef - invalid,  role not schema equal">
+		<description>205.08 A new role for use on a linkbaseRef elment is defined in RoleSBRISchema.xsd.  The same role is also defined in RoleSDRI2Schema.xsd with a different usedOn list.  RoleSDRIschema.xsd imports RoleSDRI2Schema.xsd. Since both schemas are part of the DTS (via the import) the role is defined twice.  Because role definitions for the same role are defined separately, the DTS is invalid.  The RoleSDRI.xsd uses the new role on a linkbaseRef pointing to RoleSDRI_linkbase.xml.</description>
+		<data>
+			<xsd readMeFirst="false">RoleSDRI.xsd</xsd>
+			<xsd readMeFirst="false">RoleSDRISchema.xsd</xsd>
+			<xsd validatorExclude="true" readMeFirst="false">RoleSDRI2Schema.xsd</xsd>
+			<linkbase readMeFirst="false">RoleSDRI_linkbase.xml</linkbase>
+			<instance readMeFirst="true">RoleSDRI.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-9" name="Role defined for use on the wrong element">
+		<description>205.09 A new role intended for used on the extended-type presentationLink element is defined in RoleE.xsd, however the usedOn attribute indicates the definitionLink.  RoleE_presentation.xml uses the new role.  The element that the role is used on does not match the usedOn attribute on the roleType.</description>
+		<data>
+			<xsd readMeFirst="false">RoleEBR.xsd</xsd>
+			<linkbase readMeFirst="false">RoleEBR_presentation.xml</linkbase>
+			<instance readMeFirst="true">RoleEBR.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-10" name="Same role defined for different uses">
+		<description>205.10 A role is defined in RoleE2.xsd, once for use on a presentationLink element and once for use on a defintionLink element.  RoleE2.xsd points to RoleE2_presentation.xml (a presentation linkbase) and RoleE2_definition.xml (a definition linkbase) via linkbaseRef elements.  The presentation linkbases uses the role on the presentationLink element.  The definition linkbase uses the role on the definitionLink element.  These uses are valid.</description>
+		<data>
+			<xsd readMeFirst="false">RoleE2.xsd</xsd>
+			<linkbase readMeFirst="false">RoleE2_presentation.xml</linkbase>
+			<linkbase readMeFirst="false">RoleE2_definition.xml</linkbase>
+			<instance readMeFirst="true">RoleE2.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-11" name="A role defined twice but they are not identical">
+		<description>205.11 Two roles with the same URI are defined in RoleLDR.xsd with one for use on a label and one for reference resources. The two definitions are not equivalent so this should be an error.</description>
+		<data>
+			<xsd readMeFirst="false">RoleLDR.xsd</xsd>
+			<linkbase readMeFirst="false">RoleLDR_label.xml</linkbase>
+			<instance readMeFirst="true">RoleLDR.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

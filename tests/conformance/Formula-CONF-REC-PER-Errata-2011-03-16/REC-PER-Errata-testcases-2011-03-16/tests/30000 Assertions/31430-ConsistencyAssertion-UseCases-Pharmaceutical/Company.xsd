@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 3.0.2760.2310 (2007-05-15 03:15).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-05-31 21:51:24
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:company="http://www.SampleCompany.com/Company" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:variable="http://xbrl.org/2008/variable" xmlns:concept="http://xbrl.org/2008/filter/concept" xmlns:label="http://xbrl.org/2008/label" xmlns:pf="http://xbrl.org/2008/filter/period" xmlns:formula="http://xbrl.org/2008/formula" targetNamespace="http://www.SampleCompany.com/Company" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType roleURI="http://www.SampleCompany.com/Hypercube" id="Hypercube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.SampleCompany.com/PrimaryConcepts" id="PrimaryConcepts">
+        <link:definition>Primary concepts which have hypercubes</link:definition>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+<!-- load from linkbaseRef in instance
+      <link:linkbaseRef 
+        xlink:href="formulae.xml"
+        xlink:type="simple" 
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+-->
+      <link:linkbaseRef xlink:type="simple" xlink:href="Company-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Label Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="Company-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Definition Links, all" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <import namespace="http://www.SampleCompany.com/Products" schemaLocation="Products.xsd" />
+  <import namespace="http://www.UBmatrix.com/Patterns/Sales" schemaLocation="Sales.xsd" />
+  <import namespace="http://www.SampleCompany.com/Regions" schemaLocation="Regions.xsd" />
+  <import namespace="http://xbrl.org/2008/generic" schemaLocation="../../../core_schemas/generic-link.xsd" />
+  <element id="company_ByProductPlaceholder" name="ByProductPlaceholder" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="duration" abstract="true" nillable="true" />
+  <element id="company_ByRegionPlaceholder" name="ByRegionPlaceholder" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="duration" abstract="true" nillable="true" />
+  <element id="company_CompanyHypercube" name="CompanyHypercube" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" xbrli:periodType="duration" abstract="true" nillable="true" />
+  <element id="company_ValidByProduct" name="ValidByProduct" type="xbrli:booleanItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true" />
+</schema>

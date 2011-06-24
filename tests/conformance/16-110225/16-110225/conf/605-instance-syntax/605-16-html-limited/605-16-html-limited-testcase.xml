@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-16</number>
+<name>EDGAR Filer Manual v16 6.5.16 page 6-12</name>
+<description>
+<h2>Facts of type "text block" or a type (or derived by restriction from) the type 'escapedItemType' in a standard taxonomy schema namespace
+whose un-escaped content contains markup must satisfy the content model of the BODY tag as defined in 5.2.2.</h2>
+<p>This specifies the circumstances under which content containing escaped markup will be interpreted as HTML. HTML as accepted by EDGAR
+is detailed in section 5.2.2 and is based on HTML 3.2 elements and entities, with extensions (such as allowing the "style" attribute)
+and restrictions (such as disallowing the "SPAN" element). </p>
+<p>Except for exceptions specified in 6.10, there is no prohibition on escaped markup appearing in other XBRL elements in schemas (such
+as link:definition) or linkbases (such as link:label), and the SEC Rendering does not unescape that content.</p>
+<p>REMARK: Restrictions on the content of href are documented in EFM 5.2.2.1. There is a <a href="../../../lib/edbody.dtd">DTD</a> used
+for validation of unescaped content, but a change to Schema (and therefore disallowing named entities) may occur at some time in the
+future.</p>
+<p>REMARK: For reference only, here are tags forbidden, keeping in mind that all permitted tags are lower case: &lt;acronym/&gt; &lt;applet/&gt;
+&lt;area/&gt; &lt;base/&gt; &lt;basefont/&gt; &lt;bdo/&gt; &lt;button/&gt; &lt;col/&gt; &lt;colgroup/&gt; &lt;del/&gt;
+&lt;fieldset/&gt; &lt;font/&gt; &lt;form/&gt; &lt;frame/&gt; &lt;frameset/&gt; &lt;iframe/&gt; &lt;input/&gt; &lt;ins/&gt;
+&lt;label/&gt; &lt;legend/&gt; &lt;map/&gt; &lt;meta http-equiv='name' content='content'/&gt; &lt;noframes/&gt; &lt;noscript/&gt;
+&lt;object/&gt; &lt;option/&gt; &lt;param/&gt; &lt;q/&gt; &lt;s/&gt; &lt;S/&gt; &lt;script/&gt; &lt;select/&gt; &lt;span/&gt;
+&lt;style/&gt; &lt;tbody/&gt; &lt;textarea/&gt; &lt;tfoot/&gt; &lt;thead/&gt; </p>
+<p>REMARK: Variations 018 through 022 require http://www.xbrl.org/dtr/type/nonNumeric-2010-12-16.xsd in edgartaxonomies.xml</p>
+</description>
+<variation id="_001ng">
+<name>6.5.16 Instance with TextBlock containing head and body tags, NOGOOD.</name>
+<description>Instance with TextBlock containing head and body tags, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.5.16 Instance with TextBlock containing several disallowed HTML elements, NOGOOD.</name>
+<description>Instance with TextBlock containing several disallowed HTML elements, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.5.16 Instance has TextBlock with one completely bogus character entity and three character entities that would be allowed in
+EDGAR pg. 5-19/5-20 but are not defined in XHTML and therefore - NOGOOD.</name>
+<description>Instance has TextBlock with one completely bogus character entity and three character entities that would be allowed in
+EDGAR pg. 5-19/5-20 but are not defined in XHTML and therefore - NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516003ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.5.16 Instance has TextBlock with uppercase HTML tags, NOGOOD.</name>
+<description>Instance has TextBlock with uppercase HTML tags, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516004ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.5.16 An instance with TextBlock containing a NONSENSE tag, NOGOOD.</name>
+<description>An instance with TextBlock containing a NONSENSE tag, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516005ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.5.16 An instance with a TextBlock whose prohibited HTML happens to be in a head tag, NOGOOD.</name>
+<description>An instance with a TextBlock whose prohibited HTML happens to be in a head tag, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516006ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_007gd">
+<name>6.5.16 An instance with a TextBlock using all of the allowed character entities, GOOD.</name>
+<description>An instance with a TextBlock using all of the allowed character entities, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60516007gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result> </result>
+</variation>
+<variation id="_008ng">
+<name>6.5.16 An instance with a TextBlock containing an illegal href containing javascript, NOGOOD.</name>
+<description>An instance with a TextBlock containing an illegal href containing javascript, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516008ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_009gd">
+<name>6.5.16 An instance with a TextBlock containing an href containing a www.sec.gov reference, GOOD.</name>
+<description>An instance with a TextBlock containing an href containing a www.sec.gov reference, GOOD</description>
+<data>
+<instance readMeFirst="true">e60516009gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_010ng">
+<name>6.5.16 An instance with a TextBlock containing an href containing non-SEC reference, NOGOOD.</name>
+<description>An instance with a TextBlock containing an href containing non-SEC reference, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516010ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_011gd">
+<name>6.5.16 An instance with a TextBlock containing an img containing local src reference, GOOD.</name>
+<description>An instance with a TextBlock containing an img containing local src reference, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60516011gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_012ng">
+<name>6.5.16 An instance with a TextBlock containing an img containing nonlocal src reference, NOGOOD.</name>
+<description>An instance with a TextBlock containing an img containing nonlocal src reference, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516012ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_013ng">
+<name>6.5.16 Instance with TextBlock using CDATA encoding containing several disallowed HTML elements, NOGOOD.</name>
+<description>Instance with TextBlock using CDATA encoding containing several disallowed HTML elements, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516013ng-20081231.xml</instance>
+<linkbase>e60516013ng-20081231_pre.xml</linkbase>
+<linkbase>e60516013ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60516013ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_014ng">
+<name>6.5.16 Instance with TextBlock containing several disallowed HTML elements, NOGOOD.</name>
+<description>Instance with TextBlock containing several disallowed HTML elements, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516014ng-20081231.xml</instance>
+<linkbase>e60516014ng-20081231_pre.xml</linkbase>
+<linkbase>e60516014ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60516014ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_015ng">
+<name>6.5.16 Instance with TextBlock containing some disallowed HTML attributes / element combinations, NOGOOD.</name>
+<description>Instance with TextBlock containing some disallowed HTML attributes / element combinations, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60516015ng-20081231.xml</instance>
+<linkbase>e60516015ng-20081231_pre.xml</linkbase>
+<linkbase>e60516015ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60516015ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_016gd">
+<name>6.5.16 Instance with TextBlock containing several allowed HTML attributes / element combinations, GOOD.</name>
+<description>Instance with TextBlock containing several allowed HTML attributes / element combinations, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60516016gd-20081231.xml</instance>
+<linkbase>e60516016gd-20081231_pre.xml</linkbase>
+<linkbase>e60516016gd-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60516016gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_017gd">
+<name>6.5.16 Instance with a string containing several disallowed HTML attributes / element combinations, GOOD.</name>
+<description>Instance with a string containing several disallowed HTML attributes / element combinations, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60516017gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_018ng">
+<name>6.5.16 An instance with an Escaped Item containing an illegal href containing javascript, NOGOOD.</name>
+<description>An instance with an Escaped Item containing an illegal href containing javascript, NOGOOD.</description>
+<reference specification="11971"/>
+<data>
+<instance readMeFirst="true">e60516018ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_019ng">
+<name>6.5.16 An instance with a Derived Escaped Item containing an illegal href containing javascript, NOGOOD.</name>
+<description>An instance with a Derived Escaped Item containing an illegal href containing javascript, NOGOOD.</description>
+<reference specification="11971"/>
+<data>
+<instance readMeFirst="true">e60516019ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_020gd">
+<name>6.5.16 An instance with a String containing an illegal href containing javascript, GOOD.</name>
+<description>An instance with a String containing an illegal href containing javascript, GOOD.</description>
+<reference specification="11971"/>
+<data>
+<instance readMeFirst="true">e60516020gd-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_021ng">
+<name>6.5.16 An instance with a Derived Escaped Item containing an href containing non-SEC reference, NOGOOD.</name>
+<description>An instance wwith a Derived Escaped Item containing an href containing non-SEC reference, NOGOOD.</description>
+<reference specification="11971"/>
+<data>
+<instance readMeFirst="true">e60516021ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_022ng">
+<name>6.5.16 An instance with a derived Escaped Item Type containing a NONSENSE tag, NOGOOD.</name>
+<description>An instance with a derived Escaped Item Type containing a NONSENSE tag, NOGOOD.</description>
+<reference specification="11971"/>
+<data>
+<instance readMeFirst="true">e60516022ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+<variation id="_023ng">
+<name>6.5.16 An instance with a Text Block Item Type containing an xmlns prefix binding, NOGOOD.</name>
+<description>An instance with a Text Block Item Type containing an xmlns prefix binding, NOGOOD.</description>
+<reference specification="11971"/>
+<data>
+<instance readMeFirst="true">e60516023ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60516" name="Prohibited-Html-Body" frd="cp"/>
+</result>
+</variation>
+</testcase>

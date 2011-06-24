@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2509.2110 (2006-07-17 13:10).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-17 23:55:41
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Buildings" xlink:label="decimals_Buildings" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_Buildings" xlink:to="decimals_Buildings_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_Buildings_lbl" xml:lang="en">Buildings</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_ComputerEquipment" xlink:label="decimals_ComputerEquipment" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_ComputerEquipment" xlink:to="decimals_ComputerEquipment_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_ComputerEquipment_lbl" xml:lang="en">Computer Equipment</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Depreciable" xlink:label="decimals_Depreciable" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_Depreciable" xlink:to="decimals_Depreciable_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_Depreciable_lbl" xml:lang="en">Depreciable</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_FurnitureFixtures" xlink:label="decimals_FurnitureFixtures" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_FurnitureFixtures" xlink:to="decimals_FurnitureFixtures_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_FurnitureFixtures_lbl" xml:lang="en">Furniture and Fixtures</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Land" xlink:label="decimals_Land" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_Land" xlink:to="decimals_Land_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_Land_lbl" xml:lang="en">Land</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_NonDepreciable" xlink:label="decimals_NonDepreciable" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_NonDepreciable" xlink:to="decimals_NonDepreciable_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_NonDepreciable_lbl" xml:lang="en">Non Depreciable</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Other" xlink:label="decimals_Other" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_Other" xlink:to="decimals_Other_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_Other_lbl" xml:lang="en">Other</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_PropertyPlanEquipment" xlink:label="decimals_PropertyPlanEquipment" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_PropertyPlanEquipment" xlink:to="decimals_PropertyPlanEquipment_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_PropertyPlanEquipment_lbl" xml:lang="en">Property, Plan and Equipment</label>
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_TotalPropertyPlantEquipment" xlink:label="decimals_TotalPropertyPlantEquipment" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="decimals_TotalPropertyPlantEquipment" xlink:to="decimals_TotalPropertyPlantEquipment_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="decimals_TotalPropertyPlantEquipment_lbl" xml:lang="en">Total Property, Plant and Equipment</label>
+  </labelLink>
+</linkbase>

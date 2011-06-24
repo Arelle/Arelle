@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-09</number>
+<name>EDGAR Filer Manual v16 6.5.9 page 6-9</name>
+<description><h2>If the original HTML/ASCII document represents a reporting period of one quarter or longer, then the same date must not
+appear as the content of both an xbrli:startDate and an xbrli:endDate in an instance.</h2>
+<p>This rule applies if the document type is one of 20-F, 40-F, 10-Q, 10-K, 10, N-CSR, N-Q, or N-CSRS.</p>
+<p>Note that XBRL 2.1 interprets a date used as a context start date as "midnight at the beginning of" that day.</p>
+<p>A date used as an instant or endDate in a context means "midnight at the end of" that day. For example, a company reporting at a May
+31st, 2009 fiscal year end will have contexts whose end date time is midnight at the end of 2008-05-31 (the prior fiscal year) and
+contexts whose start date-times are midnight at the beginning of 2008-06-01 (the current fiscal year). It will not have any contexts
+with start date time of midnight at the beginning of 2008-05-31, and no contexts with end date-time of midnight at the end of
+2008-06-01. </p><p>REMARK: 6.5.9 applies to all context start dates compared against all context end dates, irrespective of
+segments.</p></description>
+<reference specification="11192"/>
+<variation id="_000gd">
+<name>6.5.9 A 10-K with no endDates within any startDate + (0,24h], GOOD</name>
+<description>A 10-K with no endDates within any startDate + (0,24h], GOOD</description>
+<reference specification="11192"/>
+<data>
+<conf:parameter xmlns="" xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60509000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.5.9 Form 485BPOS (Prospectus) with endDates within any startDate + (0,24h], GOOD.</name>
+<description>Form 485BPOS (Prospectus) with endDates within any startDate + (0,24h], GOOD.</description>
+<reference specification="11192"/>
+<data>
+<conf:parameter xmlns="" xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="485BPOS"/>
+<instance readMeFirst="true">e60509001gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002gd">
+<name>6.5.9 Form type Other (stand in for '497', which is the EDGAR form type parameter) with an endDate within some startDate +
+(0,24h], GOOD.</name>
+<description>Form type Other (stand in for '497', which is the EDGAR form type parameter) with an endDate within some startDate +
+(0,24h], GOOD.</description>
+<reference specification="11192"/>
+<data>
+<conf:parameter xmlns="" xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="497"/>
+<instance readMeFirst="true">e60509002gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_003gd">
+<name>6.5.9 Form type Other (stand in for '497', which is the EDGAR form type parameter) with an endDate within some startDate +
+(0,24h], unusual but GOOD</name>
+<description>Form type Other (stand in for '497', which is the EDGAR form type parameter) with an endDate within some startDate +
+(0,24h], unusual but GOOD</description>
+<reference specification="11192"/>
+<data>
+<conf:parameter xmlns="" xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="497"/>
+<instance readMeFirst="true">e60509003gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004ng">
+<name>6.5.9 A Form 10-K (Annual Report) with an endDate equal to a startDate + 24h, NOGOOD</name>
+<description>A Form 10-K (Annual Report) with an endDate equal to a startDate + 24h, NOGOOD</description>
+<reference specification="11192"/>
+<data>
+<instance readMeFirst="true">e60509004ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60509" name="Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type" frd="fs"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.5.9 A Form 10-K (Annual Report) with an endDate equal to a startDate + 24h, NOGOOD</name>
+<description>A Form 10-K (Annual Report) with an endDate equal to a startDate + 24h, NOGOOD</description>
+<reference specification="11192"/>
+<data>
+<instance readMeFirst="true">e60509005ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60509" name="Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type" frd="fs"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.5.9 A Form 10-K (Annual Report) with an endDate equal to a startDate + 1 minute, NOGOOD</name>
+<description>A Form 10-K (Annual Report) with an endDate equal to a startDate + 1 minute, NOGOOD</description>
+<reference specification="11192"/>
+<data>
+<instance readMeFirst="true">e60509006ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60509" name="Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type" frd="fs"/>
+</result>
+</variation>
+<variation id="_007gd">
+<name>6.5.9 A Form 10-K (Annual Report) with an endDate equal to a startDate + 24 hours 1 minute, GOOD</name>
+<description>A Form 10-K (Annual Report) with an endDate equal to a startDate + 24 hours 1 minute, GOOD</description>
+<reference specification="11192"/>
+<data>
+<instance readMeFirst="true">e60509007gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

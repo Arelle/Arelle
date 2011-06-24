@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Edited by Walter Hamscher, Standard Advantage; walter@hamscher.com -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2006 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Calculation Arc Endpoint Constraints" description="Section 5.2.5.2 - Summation-item arcs MUST represent relationships only between concepts that are in the item substitution group and whose type is numeric." outpath="out" owner="walter@hamscher.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<!-- Case 1 -->
+	<variation id="V-01" name="Summation and Item numeric">
+		<description>213.01 When the Summation and Item are numeric it is consistent.</description>
+		<data>
+			<xsd readMeFirst="true">213-01-SummationNumeric_ItemNumeric.xsd</xsd>
+			<linkbase readMeFirst="false">213-01-SummationNumeric_ItemNumeric-calculation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- Case 2 -->
+	<variation id="V-02" name="Summation side of arc not numeric">
+		<description>213.02  The </description>
+		<data>
+			<xsd readMeFirst="true">213-02-SummationNonNumeric_ItemNumeric.xsd</xsd>
+			<linkbase readMeFirst="false">213-02-SummationNonNumeric_ItemNumeric-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- Case 3 -->
+	<variation id="V-03" name="Item side of arc not numeric">
+		<description>213.03</description>
+		<data>
+			<xsd readMeFirst="true">213-03-SummationNumeric_ItemNonNumeric.xsd</xsd>
+			<linkbase readMeFirst="false">213-03-SummationNumeric_ItemNonNumeric-calculation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

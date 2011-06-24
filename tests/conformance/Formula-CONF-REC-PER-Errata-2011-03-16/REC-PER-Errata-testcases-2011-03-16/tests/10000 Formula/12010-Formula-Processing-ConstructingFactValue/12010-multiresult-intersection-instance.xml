@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="12010-value-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="12010-intersection-formula.xml"/>
+  
+  <context id="context1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2005-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2006-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+
+  <!-- fake fact  for variable to grab context until id added to context constructor -->
+  <concept:n3 contextRef="context3" unitRef="unit" precision="0">12345</concept:n3>
+
+  <!-- sequence 1 -->
+  <concept:n1 contextRef="context1" unitRef="unit" precision="0">11</concept:n1>
+  <concept:n1 contextRef="context2" unitRef="unit" precision="0">12</concept:n1>
+  <concept:n1 contextRef="context3" unitRef="unit" precision="0">13</concept:n1>
+  <!-- sequence 2 -->
+  <concept:n2 contextRef="context1" unitRef="unit" precision="0">21</concept:n2>
+  <concept:n2 contextRef="context2" unitRef="unit" precision="0">12</concept:n2>
+  <concept:n2 contextRef="context3" unitRef="unit" precision="0">13</concept:n2>
+
+</xbrl>
+
+

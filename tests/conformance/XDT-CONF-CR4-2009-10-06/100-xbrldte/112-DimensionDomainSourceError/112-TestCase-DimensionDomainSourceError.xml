@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" xmlns="http://xbrl.org/2005/conformance" name="112-TestCase-DimensionDomainSourceError" description="2.1 to 2.10 - Dimensional relationships except 2.5" outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and linkbases, and not covered by XML Schema and XBRL Validation. -->
+        <!-- Note that XBRL validation requires the source and target of a definitionArc to be a concept. -->
+        <!-- As of the 2005-10-26 internal working draft. (Herm) -->
+        <!-- 2.5.3.1 A dimension domain relationship has an explicit dimension declaration [Def, 5] as its source and any domain member declaration [Def, 6] as its target. It binds a dimension to a domain -->
+        <variation id="V-01" name="dimensionDomainValid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.3">A valid dimension-domain arc</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDomainValid.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDomainValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">dimensionDomainValid-label.xml</linkbase>
+                </data>
+                <result/>
+        </variation>
+        <variation id="V-02" name="dimensionDomainSubsValid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.3">A valid dimension-domain arc, primary items substitute for xbrl item</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDomainSubsValid.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDomainSubsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">dimensionDomainSubsValid-label.xml</linkbase>
+                </data>
+                <result/>
+        </variation>
+        <!-- 2.5.3.1.1 1.       A dimensional processor MUST raise an error [Dim Err, 16] xbrldte:DimensionDomainSourceError if the source of the relationship is not a explicit dimension declaration [Def, 5]. -->
+        <variation id="V-03" name="sourceDimensionDomainIsItemInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.3.1.1">The source of a dimension-domain relationship is a primary item declaration, not a dimension item.</description>
+                <data>
+                        <xsd readMeFirst="true">sourceDimensionDomainIsItemInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">sourceDimensionDomainIsItemInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">sourceDimensionDomainIsItemInvalid-label.xml</linkbase>
+                </data>
+                <result >
+                        <error>xbrldte:DimensionDomainSourceError</error>
+                </result>
+        </variation>
+        <!-- 2.5.3.1.1 1.       A dimensional processor MUST raise an error [Dim Err, 16] xbrldte:DimensionDomainSourceError if the source of the relationship is not a explicit dimension declaration [Def, 5]. -->
+        <variation id="V-04" name="sourceDimensionDomainIsHypercubeInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.3.1.1">The source of a dimension-domain relationship is a hypercube item declaration, not a dimension item.</description>
+                <data>
+                        <xsd readMeFirst="true">sourceDimensionDomainIsHypercubeInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">sourceDimensionDomainIsHypercubeInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">sourceDimensionDomainIsHypercubeInvalid-label.xml</linkbase>
+                </data>
+                <result >
+                        <error>xbrldte:DimensionDomainSourceError</error>
+                </result>
+        </variation>
+        <variation id="V-05" name="sourceExplicitDimensionIsTypedDomainInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.3.1.1">The source of a dimension-domain relationship is a typed dimension.</description>
+                <data>
+                        <xsd readMeFirst="true">sourceExplicitDimensionIsTypedDomainInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">sourceExplicitDimensionIsTypedDomainInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">sourceExplicitDimensionIsTypedDomainInvalid-label.xml</linkbase>
+                </data>
+                <result >
+                        <error>xbrldte:DimensionDomainSourceError</error>
+                </result>
+        </variation>
+</testcase>

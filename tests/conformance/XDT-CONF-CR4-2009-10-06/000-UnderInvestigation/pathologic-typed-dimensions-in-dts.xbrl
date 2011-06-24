@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:tx="http://www.xbrl.org/2006/confirmance-suite/dimensions/v05" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2006/confirmance-suite/dimensions/v05 pathologic-typed-dimensions-in-dts.xsd http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd" xmlns:pato="http://www.xbrl.org/2006/conformance-suite/dimensions/pato1">
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="pathologic-typed-dimensions-in-dts.xsd"/>
+  <xbrli:context id="ctx0">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.xbrl.org/sample-company/registry">Sample company</xbrli:identifier>
+      <xbrli:segment>
+		  <xbrldi:typedMember dimension="tx:Dim1">
+			  <pato:typed>1</pato:typed>
+		  </xbrldi:typedMember>
+		  <xbrldi:typedMember dimension="tx:Dim2">
+			  <pato:typed>2</pato:typed>
+		  </xbrldi:typedMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>1967-01-04</xbrli:startDate>
+      <xbrli:endDate>2006-05-26</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="Dollar">
+    <xbrli:measure>iso4217:USD</xbrli:measure>
+  </xbrli:unit>
+  <tx:Sales decimals="0" contextRef="ctx0" unitRef="Dollar">1000</tx:Sales>
+</xbrli:xbrl>

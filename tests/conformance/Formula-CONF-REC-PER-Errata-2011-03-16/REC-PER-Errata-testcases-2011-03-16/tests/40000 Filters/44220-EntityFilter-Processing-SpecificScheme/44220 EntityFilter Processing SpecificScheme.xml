@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://www.xml.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>44220</number>
+  <name>Specific Entity-Scheme Filter Processing</name>
+  <description>
+    Test specific entity-scheme filter processing
+  </description>
+  <reference specification="ENTITY-FILTER" id="sec-specific-entity-scheme-filter"/>
+
+  <variation id="V-01">
+    <name>Test filter by comparing the entity identifier scheme.</name>
+    <description>The fact's entity identification scheme must be "http://xbrl.org/entity/identification/scheme".</description>
+    <reference specification="ENTITY-FILTER" id="example-specific-entity-scheme-filters"/>
+    <data>
+      <schema>44220-specificScheme-concepts.xsd</schema>
+      <linkbase>44220-specificScheme-specified-value-formula.xml</linkbase>
+      <instance readMeFirst="true">44220-specificScheme-specified-value-instance.xml</instance>
+    </data>
+    <result>
+      <instance>44220-specificScheme-specified-value-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test filter by comparing the entity identifier scheme with the entity identifier scheme of another fact.</name>
+    <description>The fact's entity identification scheme must be equal to the entity identification scheme of the fact that the variable "v:vo" has evaluated to.</description>
+    <reference specification="ENTITY-FILTER" id="example-specific-entity-scheme-filters"/>
+    <data>
+      <schema>44220-specificScheme-concepts.xsd</schema>
+      <linkbase>44220-specificScheme-specified-variable-formula.xml</linkbase>
+      <instance readMeFirst="true">44220-specificScheme-specified-variable-instance.xml</instance>
+    </data>
+    <result>
+      <instance>44220-specificScheme-specified-variable-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e60728="http://e60728/20101231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="e60728002ng-20101231.xsd#e60728_Top"
+xlink:label="Top"/>
+<link:loc xlink:type="locator" xlink:href="e60728002ng-20101231.xsd#e60728_DomainMember"
+xlink:label="DomainMember"/>
+<link:label xlink:type="resource" xlink:label="label_Top"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Top">Top</link:label>
+<link:label xlink:type="resource" xlink:label="label_DomainMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DomainMember">Domain Member</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Top"
+xlink:to="label_Top"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DomainMember"
+xlink:to="label_DomainMember"/>
+</link:labelLink>
+</link:linkbase>

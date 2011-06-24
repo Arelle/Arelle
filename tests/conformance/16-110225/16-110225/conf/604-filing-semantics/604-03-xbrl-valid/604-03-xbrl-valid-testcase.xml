@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>604-03</number>
+<name>EDGAR Filer Manual v16 6.4.3 page 6-7</name>
+<description>
+<h2>The XBRL instance documents in a submission must be XBRL 2.1 valid.</h2>
+<p>Each instance document in
+the filing is tested separately for XBRL 2.1 validity. In order to increase the likelihood that XBRL documents
+within an EDGAR submission pass validation, filers are encouraged to validate their XBRL documents for compliance
+with the XBRL 2.1 Specification prior to submission.</p>
+<p>REMARK: XBRL 1.0 Dimensional validity is required also.</p>
+<p>REMARK: This obviously does not test all XBRL 2.1, only those areas that have been known to cause problems.</p>
+<p>REMARK: At this time, only one instance is allowed per submission.</p>
+<p>REMARK: Variation 009gd assumes there is no units registry yet implemented.</p>
+</description>
+<reference specification="10898"/>
+<variation id="_001ng">
+<name>6.4.3, Invalid id attribute value inside appinfo element, NOGOOD.</name>
+<description>Invalid id attribute value inside appinfo appinfo element, NOGOOD.</description>
+<reference specification="10898"/>
+<reference specification="SPR-11097"/>
+<data>
+<instance readMeFirst="true">e60403001ng-20111231.xml</instance>
+<linkbase>e60403001ng-20111231_lab.xml</linkbase>
+<linkbase>e60403001ng-20111231_pre.xml</linkbase>
+<linkbase>e60403001ng-20111231_def.xml</linkbase>      
+<schema>e60403001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.4.3, Invalid unit (USD/Shares) for monetary item, NOGOOD.</name>
+<description>Invalid unit (USD/Shares) for monetary item, NOGOOD.</description>
+<reference specification="10898"/>
+<data>
+<instance readMeFirst="true">e60403002ng-20111231.xml</instance>
+<linkbase>e60403002ng-20111231_lab.xml</linkbase>
+<linkbase>e60403002ng-20111231_pre.xml</linkbase>    
+<linkbase>e60403002ng-20111231_def.xml</linkbase>   
+<schema>e60403002ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>  
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.4.3, Use of a custom label role without a roleRef, NOGOOD.</name>
+<description>Use of a custom label role without a roleRef, NOGOOD.</description>
+<reference specification="10898"/>
+<data>
+<instance readMeFirst="true">e60403003ng-20111231.xml</instance>
+<linkbase>e60403003ng-20111231_lab.xml</linkbase>
+<linkbase>e60403003ng-20111231_pre.xml</linkbase>
+<linkbase>e60403003ng-20111231_def.xml</linkbase>
+<schema>e60403003ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>  
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.4.3, Violation of period start strictly-less-than period end constraint in XBRL 2.1, NOGOOD.</name>
+<description>Violation of period start strictly-less-than period end constraint in XBRL 2.1, NOGOOD.</description>
+<reference specification="10898"/>
+<data>
+<instance readMeFirst="true">e60403004ng-20111231.xml</instance>
+<linkbase>e60403004ng-20111231_lab.xml</linkbase>
+<linkbase>e60403004ng-20111231_pre.xml</linkbase>
+<linkbase>e60403004ng-20111231_def.xml</linkbase>
+<schema>e60403004ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>  
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.4.3, Violation duplicate roleRef in linkbase constraint in XBRL 2.1, NOGOOD.</name>
+<description>Violation duplicate roleRef in linkbase constraint in XBRL 2.1, NOGOOD.</description>
+<reference specification="10898"/>
+<data>
+<instance readMeFirst="true">e60403005ng-20111231.xml</instance>
+<linkbase>e60403005ng-20111231_lab.xml</linkbase>
+<linkbase>e60403005ng-20111231_def.xml</linkbase>
+<linkbase>e60403005ng-20111231_pre.xml</linkbase>
+<schema>e60403005ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>  
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.4.3, Violation duplicate roleRef in instance constraint in XBRL 2.1, NOGOOD.</name>
+<description>Violation duplicate roleRef in instance constraint in XBRL 2.1, NOGOOD.</description>
+<reference specification="10898"/>
+<data>
+<instance readMeFirst="true">e60403006ng-20111231.xml</instance>
+<linkbase>e60403006ng-20111231_lab.xml</linkbase>
+<linkbase>e60403006ng-20111231_def.xml</linkbase>
+<linkbase>e60403006ng-20111231_pre.xml</linkbase>
+<schema>e60403006ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>  
+</result>
+</variation>
+<variation id="_007gd">
+<name>6.4.3, Two axes with the same domain, GOOD.</name>
+<description>Two axes with the same domain, GOOD.</description>
+<reference specification="10898"/>
+<data>
+<instance readMeFirst="true">e60403007gd-20111231.xml</instance>
+<linkbase>e60403007gd-20111231_def.xml</linkbase>
+<linkbase>e60403007gd-20111231_lab.xml</linkbase>
+<linkbase>e60403007gd-20111231_pre.xml</linkbase>
+<schema>e60403007gd-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_008ng">
+<name>6.4.3, A custom role unused in presentation linkbase but the roleRef points nowhere, NOGOOD.</name>
+<description>A custom role unused in presentation linkbase but the roleRef points nowhere, NOGOOD.</description>
+<reference specification="10898"/>
+<data>
+<instance readMeFirst="true">e60403008ng-20111231.xml</instance>
+<linkbase>e60403008ng-20111231_lab.xml</linkbase>
+<linkbase>e60403008ng-20111231_pre.xml</linkbase>
+<linkbase>e60403008ng-20111231_def.xml</linkbase>
+<schema>e60403008ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>  
+</result>
+</variation>
+<variation id="_009gd">
+<name>6.4.3, An iso4217 QName not representing a currency code, GOOD.</name>
+<description>An iso4217 QName not representing a currency code, GOOD (because no units registry; else NOGOOD under 6.5.35).</description>
+<reference specification="10898"/>
+<reference specification="SPR-12259"/>
+<data>
+<instance readMeFirst="true">e60403009gd-20101231.xml</instance>
+<linkbase>e60403009gd-20101231_lab.xml</linkbase>
+<linkbase>e60403009gd-20101231_pre.xml</linkbase>
+<linkbase>e60403009gd-20101231_def.xml</linkbase>
+<schema>e60403009gd-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_010ng">
+<name>6.4.3, A calculation weight violation, NOGOOD.</name>
+<description>A calculation weight violation, NOGOOD.</description>
+<reference specification="10898"/>
+<reference specification="SPR-12337"/>
+<data>
+<instance readMeFirst="true">e60403010ng-20111231.xml</instance>
+<linkbase>e60403010ng-20111231_lab.xml</linkbase>
+<linkbase>e60403010ng-20111231_pre.xml</linkbase>
+<linkbase>e60403010ng-20111231_def.xml</linkbase>
+<linkbase>e60403010ng-20111231_cal.xml</linkbase>
+<schema>e60403010ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>  
+</result>
+</variation>
+<variation id="_011ng">
+<name>6.4.3, Duplicate arcs in presentation, NOGOOD.</name>
+<description>Duplicate arcs in presentation (called out in 6.9.1), NOGOOD.</description>
+<reference specification="10898"/>
+<reference specification="SPR-12337"/>
+<data>
+<instance readMeFirst="true">e60403011ng-20081231.xml</instance>
+<linkbase>e60403011ng-20081231_lab.xml</linkbase>
+<linkbase>e60403011ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60403011ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60403" name="Xbrl21-Invalid" frd="cp"/>
+</result>
+</variation>
+</testcase>

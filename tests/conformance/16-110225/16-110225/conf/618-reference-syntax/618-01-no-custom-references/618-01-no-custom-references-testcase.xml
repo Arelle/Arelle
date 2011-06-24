@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>618-01</number>
+<name>EDGAR Filer Manual v16 6.18.1 page 6-60</name>
+<description>
+<h2>An element that has a company specific namespace must not have a reference.</h2>
+<p>The elements defined in a company extension schema must not have any authoritative references.</p>
+<p>An xsd:element "has a reference" if the DTS of the instance contains an effective reference arc whose source is that xsd:element. A
+reference linkbase should only be attached to a submission when it is a copy of a linkbase published along with a schema for early
+adopters. In that situation the schema would have a targetNamespace attribute of some authority other than the registrant itself.</p>
+<p>REMARK: A company extension also cannot remove or change references in standard taxonomies (this is a technical consequence of the
+rule prohibiting URI fragments other than shorthand xpointers).</p>
+<p>REMARK: This only applies to company extension linkbases. If there were a reference linkbase in edgartaxonomies.xml, then it would be
+included in a 'good' test variation.</p>
+</description>
+<reference specification="nroce"/>
+<variation id="_000ng">
+<name>6.18.1, reference linkbase exists but it is empty of arcs, GOOD. </name>
+<description> reference linkbase exists but it is empty of arcs, GOOD. </description>
+<reference specification="10491"/>
+<data>
+<instance readMeFirst="true">e61801000gd-20081231.xml</instance>
+<linkbase>e61801000gd-20081231_ref.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61801000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.18.1, arc to (local, not standard) reference for custom element exists, NOGOOD. </name>
+<description> arc to (local, not standard) reference for custom element exists, NOGOOD. </description>
+<reference specification="10491"/>
+<data>
+<instance readMeFirst="true">e61801001ng-20081231.xml</instance>
+<linkbase>e61801001ng-20081231_ref.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61801001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61801" name="Custom-Element-Has-Reference" frd="cp"/>
+</result>
+</variation>
+</testcase>

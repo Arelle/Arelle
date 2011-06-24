@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2005 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" 
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          >
+
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+
+		<loc xlink:type="locator" xlink:href="397-ABC.xsd#A" xlink:label="summationItem" />
+		<loc xlink:type="locator" xlink:href="397-ABC.xsd#B" xlink:label="contributingItem" />
+		<loc xlink:type="locator" xlink:href="397-ABC.xsd#C" xlink:label="contributingItem" />
+
+    <!-- A = B + C -->
+		<calculationArc xlink:type="arc" 
+                    xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" 
+                    xlink:from="summationItem" 
+                    xlink:to="contributingItem" 
+                    weight="1"/>
+
+  </calculationLink>
+
+</linkbase>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://edgar/2009/conformance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-25</number>
+<name>EDGAR Filer Manual v16 6.5.25 page 6-15</name>
+<description>
+<h2>Elements with a type attribute having the local name 'domainItemType' in a standard taxonomy schema namespace, 
+or a type derived by restriction from it, must not appear as facts in an instance.</h2>
+<p>Elements of this type are for use only in the xbrldi:explicitMember element.</p>
+</description>
+<variation id="_000gd">
+<name>6.5.25 DementedDomain concept is nonnum:domainItemType but not used as fact, GOOD.</name>
+<description>DementedDomain concept is nonnum:domainItemType but not used as fact, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60525000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60525000gd-20081231_lab.xml</linkbase>
+<linkbase>e60525000gd-20081231_def.xml</linkbase>
+<linkbase>e60525000gd-20081231_pre.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60525000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.25 AbcMember, a non-abstract nonnum:domainItemType, used as empty valued fact, NOGOOD.</name>
+<description>AbcMember, a non-abstract nonnum:domainItemType, used as empty valued fact, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60525001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60525001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60525" name="Domain-As-Fact" frd="du"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.5.25 Concept DoesNotLookLikeButIsDomainMember with type derived from nonnum:domainItemType used in a fact, NOGOOD.</name>
+<description>Concept DoesNotLookLikeButIsDomainMember with type derived from nonnum:domainItemType used in a fact, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60525002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60525002ng-20081231_lab.xml</linkbase>
+<linkbase>e60525002ng-20081231_def.xml</linkbase>
+<linkbase>e60525002ng-20081231_pre.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60525002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60525" name="Domain-As-Fact" frd="du"/>  
+</result>
+</variation>
+<variation id="_003gd">
+<name>6.5.25 edgar:LooksLikeButIsNotDomainMemberHaHa concept derived from string, used as fact, GOOD.</name>
+<description>edgar:LooksLikeButIsNotDomainMemberHaHa concept derived from string, used as fact, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60525003gd-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.5.25 edgar:LooksLikeButIsNotDomainMemberHaHa concept derived from string, used as fact, GOOD.</name>
+<description>edgar:LooksLikeButIsNotDomainMemberHaHa concept derived from string, used as fact, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60525004gd-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005ng">
+<name>6.5.25 edgar:DomainMember non-abstract concept (type us-types:domainItemType) used as fact, NOGOOD.</name>
+<description>edgar:DomainMember non-abstract concept (type us-types:domainItemType) used as fact, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60525005ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60525" name="Domain-As-Fact" frd="du"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.5.25 edgar:DerivedDomainMember non-abstract concept (type us-types:domainItemType) used as fact, NOGOOD.</name>
+<description>edgar:DerivedDomainMember concept (type us-types:domainItemType) used as fact, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60525006ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60525" name="Domain-As-Fact" frd="du"/>
+</result>
+</variation>
+</testcase>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>12020</number>
+  <name>Aspect rules processing examples</name>
+  <description>
+    Tests of formula aspect rules processing
+  </description>
+  <reference specification="FORMULA" id="sec-aspect-rules"/>
+  <reference specification="FORMULA" id="sec-default-aspect-rules"/>
+
+  <variation id="V-01">
+    <name>Nearest sources using named source variables</name>
+    <description>Tests that the nearest source is used for aspect components.  Entity scheme obtained from formula default source, identifier value provided.  Period taken from aspects source.  Unit from multiplyBy source.</description>
+    <reference specification="FORMULA" id="example-nearest-source"/>
+    <data>
+      <schema>12020-aspect-tests.xsd</schema>
+      <linkbase>12020-nearest-source-formula.xml</linkbase>
+      <instance readMeFirst="true">12020-nearest-source-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12020-nearest-source-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Nearest sources, using named variables, alternative combinations</name>
+    <description>Tests that the nearest source is used for aspect components.  As V-01 but Entity scheme from entityIdentifier source, and unit from unit source.</description>
+    <reference specification="FORMULA" id="example-nearest-source"/>
+    <data>
+      <schema>12020-aspect-tests.xsd</schema>
+      <linkbase>12020-nearest-source-V02-formula.xml</linkbase>
+      <instance readMeFirst="true">12020-nearest-source-V02-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12020-nearest-source-V02-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Nearest sources using uncovered QName with specific uncoverings for same effect as V-02</name>
+    <description>Tests that the nearest source is used for aspect components.  As V-01 but Entity scheme from specifically uncovered entityIdentifier source, and unit from specifically uncovered unit source. (See comments in formula filter arcs.)</description>
+    <reference specification="FORMULA" id="example-nearest-source"/>
+    <data>
+      <schema>12020-aspect-tests.xsd</schema>
+      <linkbase>12020-nearest-source-V03-formula.xml</linkbase>
+      <instance readMeFirst="true">12020-nearest-source-V03-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12020-nearest-source-V03-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Derived risk capital, uncovered qname is source for aspects except for concept</name>
+    <description>
+        The example checks the consistency of the derived RiskedCapital given a
+        proportionalRadius determined by a parameter. The RiskedCapital is
+        calculated as: RiskedCapital = InvestedCapital * RiskFactor.
+        The concept aspect is covered in both factVariables, but an
+        explicit qname is provided, so there is no need for uncovered
+        qname to find a factVariable with concept uncovered, and formula
+        executes properly.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>         
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+    <data>
+      <schema>12020-riskedCapital-concepts.xsd</schema>
+      <linkbase>12020-riskedCapital-formula.xml</linkbase>
+      <instance readMeFirst="true">12020-riskedCapital-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12020-riskedCapital-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+
+

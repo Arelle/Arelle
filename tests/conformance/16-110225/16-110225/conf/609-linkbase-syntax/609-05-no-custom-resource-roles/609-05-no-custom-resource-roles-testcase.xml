@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>609-05</number>
+<name>EDGAR Filer Manual v16 6.9.5 page 6-47</name>
+<description>
+<h2>The xlink:role attribute of an element with an xlink:type attribute of 'resource' must be present and must be defined in XBRL 2.1 or
+a standard taxonomy.</h2>
+<p>REMARK: type='extended' is handled by XBRL 2.1 so this really only applies to type='resource', moreover, footnote and reference would
+be handled by other rules so this is only for labels.</p>
+<p>REMARK: This only applies to a company extension linkbase. There is no standard taxonomy linkbase that violates this rule, but if
+there were, it would be included in a 'good' test variation.</p>
+<p>REMARK: the roles declared in these tests have link:definition text that conforms to 6.7.12 even though 6.7.12 was only meant to
+apply to roles that are used on link:presentation.</p>
+</description>
+<reference specification="11198"/>
+<variation id="_000gd">
+<name>6.9.5, a label resource for PublicFloat with a 2008 'negated label' role attribute, and custom role http://e6090500/role/Rockn
+declared but not used, GOOD.</name>
+<description>a label resource for PublicFloat with a 2008 'negated label' role attribute, and custom role http://e6090500/role/Rockn
+declared but not used, GOOD.</description>
+<reference specification="11198"/>
+<data>
+<instance readMeFirst="true">e60905000gd-20081231.xml</instance>
+<linkbase>e60905000gd-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60905000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.9.5, A label resource for PublicFloat using a custom xlink:role attribute http://e6090500/role/Rockn, even though not used on any
+preferredLabel, NOGOOD. </name>
+<description>A label resource for PublicFloat using a custom xlink:role attribute http://e6090500/role/Rockn, even though not used on any
+preferredLabel, NOGOOD. </description>
+<reference specification="11198"/>
+<data>
+<instance readMeFirst="true">e60905001ng-20081231.xml</instance>
+<linkbase>e60905001ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60905001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60905" name="Custom-Resource-Role-Used" frd="fs"/>
+</result>
+</variation>
+<variation id="_002gd">
+<name>6.9.5, a label resource for PublicFloat with the 2009 'negated label' role attribute, and custom role
+http://e6090500/role/Rockn declared but not used, GOOD.</name>
+<description>a label resource for PublicFloat with the 2009 'negated label' role attribute, and custom role
+http://e6090500/role/Rockn declared but not used, GOOD.</description>
+<reference specification="11198"/>
+<data>
+<instance readMeFirst="true">e60905002gd-20091231.xml</instance>
+<linkbase>e60905002gd-20091231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60905002gd-20091231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

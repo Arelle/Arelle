@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>11202</number>
+  <name>Aspect rules in Formulae. Static Analysis</name>
+  <description>
+    An error must be thrown if a source contains
+    the uncovered QName but its formula 
+    does not use implicit filtering.
+  </description>
+  <reference specification="FORMULA" id="error-illegal-use-of-uncovered-qname"/>        
+  <variation id="V-01">
+    <description>
+       The source aspect value contains a QName whose value is 
+       "formula:uncovered", which is referred to as the uncovered QName
+       and there is not defined an implicit filter for this aspect rule 
+       indicated by implicitFiltering false.
+    </description>
+    <reference specification="FORMULA" id="error-illegal-use-of-uncovered-qname"/>      
+    <data>
+     <schema readMeFirst="true">11202-concepts.xsd</schema>
+      <linkbase>11202-v01-illegal-uncovered-qname-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:illegalUseOfUncoveredQName</error>
+    </result>
+  </variation>
+ 
+</testcase>

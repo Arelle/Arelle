@@ -1,0 +1,9 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="291-05-ArcOverrideDisjointLinkbases.xsd#assets" xlink:label="labelA" xlink:title="aaa"/>
+		<loc xlink:type="locator" xlink:href="291-05-ArcOverrideDisjointLinkbases.xsd#fixedAssets" xlink:label="labelFA" xlink:title="aaa"/>
+		<loc xlink:type="locator" xlink:href="291-05-ArcOverrideDisjointLinkbases.xsd#currentAssets" xlink:label="labelCA" xlink:title="aaa"/>
+		<definitionArc xlink:type="arc" xlink:from="labelA" xlink:to="labelFA" xlink:show="replace" xlink:actuate="onRequest" xlink:title="asset fixedAsset" xlink:arcrole="http://www.xbrl.org/2003/arcrole/requires-element"/>
+		<definitionArc xlink:type="arc" xlink:from="labelA" xlink:to="labelCA" xlink:show="replace" xlink:actuate="onRequest" xlink:title="asset currentAsset" xlink:arcrole="http://www.xbrl.org/2003/arcrole/requires-element"/>
+	</definitionLink>
+</linkbase>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<schema targetNamespace="http://xbrl.example.com/397/Holder"
+  xmlns:h="http://xbrl.example.com/397/Holder"
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  elementFormDefault="qualified">
+
+	<import namespace="http://www.xbrl.org/2003/instance" 
+          schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+  <!-- A holder for concepts -->
+	<element  name="H" 
+            id="H"
+            type="h:tupleType"
+            substitutionGroup="xbrli:tuple"/>
+
+  <complexType name="tupleType">
+    <choice maxOccurs="unbounded">
+      <element ref="xbrli:tuple"/>
+      <element ref="xbrli:item"/>
+    </choice>
+    <attribute name="id" type="ID"/>
+  </complexType>
+                
+
+</schema>

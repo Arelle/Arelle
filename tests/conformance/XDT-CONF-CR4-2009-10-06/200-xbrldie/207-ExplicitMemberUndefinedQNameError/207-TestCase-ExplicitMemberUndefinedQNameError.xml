@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" xmlns="http://xbrl.org/2005/conformance"
+	name="207-TestCase-ExplicitMemberUndefinedQNameError"
+	description="Rules 2.4.2.1, 2.8.3.1 and section 2.9." outpath="out" owner="ihr@xbrl.org"
+	minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+	<!-- Dimensional syntax rules pertaining to instances and not covered by XML Schema and XBRL validation. -->
+	<!-- As of the 2005-12-10 internal working draft (by HF).  -->
+	<!-- 3.1.4.5.3 1. The value of the xbrldi:explicitMember element must be a QName those global element definition can be found in the taxonomy schema referenced by the namespace of the QName. A dimensional processor MUST raise en error [Ins Err, 7] xbrldie:ExplicitMemberUndefinedQNameError if this rule is violated -->
+	<variation id="V-01" name="contextExplicitDimDomainMemberNotFound">
+		<description reference="XDT-IWD-2005-12-10.doc#3.1.4.5.3">The explicit dimension has a qName
+			which doesn't correspond to an element declaration in the DTS of the
+			instance.</description>
+		<data>
+			<xsd readMeFirst="false">contextExplicitDimDomainMemberNotFound.xsd</xsd>
+			<linkbase readMeFirst="false"
+				>contextExplicitDimDomainMemberNotFound-label.xml</linkbase>
+			<instance readMeFirst="true">contextExplicitDimDomainMemberNotFound.xbrl</instance>
+		</data>
+		<result>
+			<error>xbrldie:ExplicitMemberUndefinedQNameError</error>
+		</result>
+	</variation>
+	<variation id="V-02" name="emptyDimensionAndNotAllHypercube-1">
+		<description>Test the content of an empty dimension. The dimension content is a QName. There
+			is no schema defining a global element with the corresponding QName. The QName is
+			iso4217:EUR.</description>
+		<data>
+			<instance readMeFirst="true">EmptyDimensionAndNotAllHypercube-1.xbrl</instance>
+		</data>
+		<result>
+			<error>xbrldie:ExplicitMemberUndefinedQNameError</error>
+		</result>
+	</variation>
+	<variation id="V-03" name="emptyDimensionAndNotAllHypercube-4">
+		<description>Test the content of an empty dimension. The dimension content is a QName. There
+			is no schema defining a global element with the corresponding QName. The QName is
+			foo:foo.</description>
+		<data>
+			<instance readMeFirst="true">EmptyDimensionAndNotAllHypercube-4.xbrl</instance>
+		</data>
+		<result>
+			<error>xbrldie:ExplicitMemberUndefinedQNameError</error>
+		</result>
+	</variation>
+	<variation id="V-04" name="emptyDimensionAndNotAllHypercube-5">
+		<description>Test the content of an empty dimension. The dimension content is a QName. There
+			*is* a schema defining a global element with the corresponding QName, but the QName is
+			not a domain member anywhere.</description>
+		<data>
+			<instance readMeFirst="true">EmptyDimensionAndNotAllHypercube-5.xbrl</instance>
+		</data>
+		<result>
+			<file>EmptyDimensionAndNotAllHypercube-5.xml</file>
+		</result>
+	</variation>
+</testcase>

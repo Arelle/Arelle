@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-26</number>
+<name>EDGAR Filer Manual v16 6.5.26 page 6-16</name>
+<description>
+<h2 xmlns="">An instance with dei:DocumentType of 10-K, 10-Q, 20-F, or 40-F must have at least one dei:EntityCommonStockSharesOutstanding fact
+for each class of stock outstanding.</h2>
+<p xmlns="">If an entity represented in the Required Context has only one class of common stock outstanding, then no matter what the share class
+is named, the instance requires only one dei:EntityCommonStockSharesOutstanding fact, and the context of that fact will have an
+xbrli:instant equal to the measurement date, and that context will have no xbrli:segment element. </p>
+<p xmlns="">If the entity represented in the Required Context has multiple classes of common shares outstanding, then the instance must not have
+any dei:EntityCommonStockSharesOutstanding fact in any context without an xbrli:segment. Instead, the instance must have a distinct
+context for each class of common stock outstanding, and each context will have xbrli:instant equal to the measurement date, an
+xbrli:segment with an explicit member of the us gaap:StatementClassOfStockAxis for each class of stock, and a
+dei:EntityCommonStockSharesOutstanding fact in each such context. This is a specific case of the more general requirement in 6.6.10
+below.</p>
+<p xmlns="">REMARK: This test substitutes for 6.5.21's requirement for CommonStockSharesOutstanding but is not yet implemented as of EDGAR 10.4 (December 2010).</p>
+<table>
+<tr>
+<th>[Variant]</th>
+<th>[Form Type]</th>
+<th>[Facts in Req Context]</th>
+<th>[Facts with Share Class]</th>
+<th>[Extra Facts]</th>
+<th>[Result]</th>
+</tr>
+<tr>
+<td>000</td>
+<td>10-K</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>001</td>
+<td>10-K</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>002</td>
+<td>10-K</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>003</td>
+<td>10-K</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>004</td>
+<td>10-K</td>
+<td>0</td>
+<td>2</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>005</td>
+<td>10-K</td>
+<td>0</td>
+<td>2</td>
+<td>1</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>006</td>
+<td>10-K</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>007</td>
+<td>10-K</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>008</td>
+<td>10-K</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>009</td>
+<td>10-K</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>010</td>
+<td>10-K</td>
+<td>1</td>
+<td>2</td>
+<td>0</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>011</td>
+<td>10-K</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>012</td>
+<td>10-Q</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>013</td>
+<td>20-F</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>014</td>
+<td>40-F</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>ng</td>
+</tr>
+<tr>
+<td>015</td>
+<td>N-Q</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>016</td>
+<td>8-K</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>017</td>
+<td>6-K</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>018</td>
+<td>NCSR</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>019</td>
+<td>485BPOS</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+<tr>
+<td>020</td>
+<td>Other</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>gd</td>
+</tr>
+</table>
+</description>
+<variation id="_000">
+<name>6.5.26 Form 10-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526000ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_001">
+<name>6.5.26 Form 10-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526001ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_002">
+<name>6.5.26 Form 10-K with 0 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 0 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526002ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_003">
+<name>6.5.26 Form 10-K with 0 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 0 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526003ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_004">
+<name>6.5.26 Form 10-K with 0 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form 10-K with 0 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526004gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005">
+<name>6.5.26 Form 10-K with 0 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 1 in other contexts, GOOD.</name>
+<description>Form 10-K with 0 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 1 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526005gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_006">
+<name>6.5.26 Form 10-K with 1 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form 10-K with 1 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526006gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_007">
+<name>6.5.26 Form 10-K with 1 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 1 in other contexts, GOOD.</name>
+<description>Form 10-K with 1 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 1 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526007gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_008">
+<name>6.5.26 Form 10-K with 1 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 1 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526008ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_009">
+<name>6.5.26 Form 10-K with 1 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 1 Common Shares facts in the Required Context, 1 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526009ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_010">
+<name>6.5.26 Form 10-K with 1 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 1 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526010ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_011">
+<name>6.5.26 Form 10-K with 1 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</name>
+<description>Form 10-K with 1 Common Shares facts in the Required Context, 2 facts in contexts with the Share Class Axis, and 1 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526011ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_012">
+<name>6.5.26 Form 10-Q with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</name>
+<description>Form 10-Q with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526012ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_013">
+<name>6.5.26 Form 20-F with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</name>
+<description>Form 20-F with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526013ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_014">
+<name>6.5.26 Form 40-F with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</name>
+<description>Form 40-F with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60526014ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="wrn" num="60526" name="Common-Shares-Inconsistent-With-Document-Type" frd="du"/>
+</result>
+</variation>
+<variation id="_015">
+<name>6.5.26 Form N-Q with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form N-Q with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526015gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_016">
+<name>6.5.26 Form 8-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form 8-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526016gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_017">
+<name>6.5.26 Form 6-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form 6-K with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526017gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_018">
+<name>6.5.26 Form NCSR with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form NCSR with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526018gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_019">
+<name>6.5.26 Form 485BPOS with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form 485BPOS with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526019gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_020">
+<name>6.5.26 Form Other with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</name>
+<description>Form Other with 0 Common Shares facts in the Required Context, 0 facts in contexts with the Share Class Axis, and 0 in other contexts, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60526020gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

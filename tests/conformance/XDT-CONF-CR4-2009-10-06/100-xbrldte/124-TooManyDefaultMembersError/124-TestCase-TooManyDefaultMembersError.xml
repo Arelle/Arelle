@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" xmlns="http://xbrl.org/2005/conformance" name="124-TestCase-TooManyDefaultMembersError" description="2.1 to 2.10 - Dimensional relationships except 2.5" outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and linkbases, and not covered by XML Schema and XBRL Validation. -->
+        <!-- Note that XBRL validation requires the source and target of a definitionArc to be a concept. -->
+        <variation id="V-01" name="dimensionDefaultSameRoleValid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.9.1">Two dimension-default relationships in same role but from different dimensions.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDefaultSameRoleValid.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDefaultSameRoleValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">dimensionDefaultSameRoleValid-label.xml</linkbase>
+                </data>
+                <result>
+                </result>
+        </variation>
+        <variation id="V-02" name="dimensionDefaultSameRoleInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.9.1">Two dimension-default relationships in same role.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDefaultSameRoleInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDefaultSameRoleInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">dimensionDefaultSameRoleInvalid-label.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:TooManyDefaultMembersError</error>
+                </result>
+        </variation>
+        <variation id="V-03" name="dimensionDefaultDifferentRolesInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.9.1">Two dimension-default relationships in different roles.  dimension-default relationships are not scoped, so this is still an error.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDefaultDifferentRolesInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDefaultDifferentRolesInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">dimensionDefaultDifferentRolesInvalid-label.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:TooManyDefaultMembersError</error>
+                </result>
+        </variation>
+        <variation id="V-04" name="dimensionDefaultOneArcWithTwoLocators">
+                <description reference="XDT-IWD-2006-09-18.doc#2.7.1.1.3">There are two dimension-default relationships represented with one arc and two locators sharing the same value in the xlink:label attribute. The two dimension members belongs to the dimension domain so there is an error.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDefaultOneArcWithTwoLocators.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDefaultOneArcWithTwoLocators-definition.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:TooManyDefaultMembersError</error>
+                </result>
+        </variation>
+        <variation id="V-05" name="multipleArcsResolveToSameDefault">
+                <description reference="XDT-IWD-2006-09-18.doc#2.7.1.1.3">There are two dimension-default arcs in different extended links pointing to the same default member this represents just one relationship. This is not an error.</description>
+                <data>
+                        <xsd readMeFirst="true">multipleArcsResolveToSameDefault.xsd</xsd>
+                        <linkbase readMeFirst="false">multipleArcsResolveToSameDefault-definition.xml</linkbase>
+                </data>
+                <result/>
+        </variation>
+        <!--
+        <variation id="V-06" name="ThereAreTwoDimensionDefaultArcsButOneGoesToANonDimensionMember">
+                <description reference="XDT-IWD-2006-09-18.doc#2.7.1.1.3">Two dimension-default relationships represented with one arc and two locators sharing the same value in the xlink:label attribute. The two members belongs to the dimension domain so there is an error.</description>
+                <data>
+                        <xsd readMeFirst="true">ThereAreTwoDimensionDefaultArcsButOneGoesToANonDimensionMember.xsd</xsd>
+                        <linkbase readMeFirst="false">ThereAreTwoDimensionDefaultArcsButOneGoesToANonDimensionMember-definition.xml</linkbase>
+                </data>
+                <result/>
+        </variation>
+        -->
+        <variation id="V-07" name="dimensionDefaultDifferentDomainsInvalid">
+                <description reference="XDT-IWD-2006-09-18.doc#2.7.1.1.3">Two dimension-default relationships with targets in distinct domains.  The spec is currently unclear on whether this is valid http://bugzilla.xbrl.org/show_bug.cgi?id=342, but it should probably be an error.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionDefaultDifferentDomainsInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">dimensionDefaultDifferentDomainsInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">dimensionDefaultDifferentDomainsInvalid-label.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:TooManyDefaultMembersError</error>
+                </result>
+        </variation>
+</testcase>

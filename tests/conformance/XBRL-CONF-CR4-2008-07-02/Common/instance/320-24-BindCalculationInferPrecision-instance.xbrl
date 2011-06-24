@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+TEST
+Produced on 2007-03-14 12:30:48
+-->
+<xbrl 
+	xmlns="http://www.xbrl.org/2003/instance" 
+	xmlns:link="http://www.xbrl.org/2003/linkbase" 
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+	xmlns:ns="http://www.example.com/ns">
+
+  <link:schemaRef xlink:href="320-24-BindCalculationInferPrecision.xsd" xlink:type="simple" />
+  <context id="context-2007">
+    <entity>
+      <identifier scheme="http:www.test.com">MyEntity</identifier>
+    </entity>
+    <period>
+      <instant>2007-03-14</instant>
+    </period>
+  </context>
+  <unit id="unit-EUR">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <ns:Parent contextRef="context-2007" unitRef="unit-EUR" decimals="4">39.8301</ns:Parent>
+  <ns:A contextRef="context-2007" unitRef="unit-EUR" decimals="4">14.99</ns:A>
+  <ns:B contextRef="context-2007" unitRef="unit-EUR" decimals="4">10</ns:B>
+</xbrl>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inheritanceUsableAttr="http://www.abc.org/inheritanceUsableAttr" xmlns:sc="http://www.abc.org/inheritanceSharedCubes" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" targetNamespace="http://www.abc.org/inheritanceUsableAttr" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType roleURI="http://www.bdi.org/link1" id="RT_1">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:linkbaseRef xlink:type="simple" xlink:href="inheritanceUsableAttr-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Definition Links, all" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <element id="inheritanceUsableAttr_Dim1_el2" name="Dim1_el2" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="inheritanceUsableAttr_dim1" name="dim1" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="instant" abstract="true" nillable="true" />
+  <element id="inheritanceUsableAttr_dim1_el1" name="dim1_el1" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="inheritanceUsableAttr_hc1" name="hc1" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" xbrli:periodType="instant" abstract="true" nillable="true" />
+  <element id="inheritanceUsableAttr_p1" name="p1" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="inheritanceUsableAttr_p2" name="p2" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="inheritanceUsableAttr_p3" name="p3" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+</schema>

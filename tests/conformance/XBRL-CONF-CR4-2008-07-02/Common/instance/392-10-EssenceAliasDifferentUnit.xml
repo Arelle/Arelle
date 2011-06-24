@@ -1,0 +1,20 @@
+<!-- edited with XMLSPY v5 rel. 3 U (http://www.xmlspy.com) by Masatomo Goto (Fujitsu Laboratories of America) -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:example="http://example.com/xbrl/taxonomy/EssenceAlias" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://example.com/xbrl/taxonomy/EssenceAlias EssenceAlias.xsd">
+	<link:schemaRef xlink:href="EssenceAlias.xsd" xlink:type="simple"/>
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+	<unit id="u2">
+		<measure>iso4217:EUR</measure>
+	</unit>
+	<context id="c1">
+		<entity>
+			<identifier scheme="www.example.com">example</identifier>
+		</entity>
+		<period>
+			<instant>2003-03-31</instant>
+		</period>
+	</context>
+	<example:ForeignDomesticIncomeTaxExpense contextRef="c1" unitRef="u1" precision="3">100</example:ForeignDomesticIncomeTaxExpense>
+	<example:TaxExpense contextRef="c1" unitRef="u2" precision="3">100</example:TaxExpense>
+</xbrl>

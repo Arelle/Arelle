@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" 
+href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance" 
+xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>21201</number>
+  <name>Custom function Signatures</name>
+  <description>
+    If a custom function is used in an XPath expression but 
+    does not have a custom function signature within the 
+    discoverable taxonomy set that is being processed
+    then the error MUST be thrown.
+  </description>
+  <reference specification="VARIABLES" id="error-custom-function-without-signature"/>
+  <variation id="V-01">
+    <name>Custom function to compute result value</name>
+    <description>
+      The custom function in a value expression 
+      does not have a custom function signature within the DTS.
+    </description>
+    <data>
+      <schema readMeFirst="true">21201-movement-valueFn-concepts.xsd</schema>
+      <linkbase>21201-movement-valueFn-formulae.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:noCustomFunctionSignature</error>
+    </result>
+  </variation>  
+  
+  <variation id="V-03">
+    <name>Custom function to compute filter qnameexpression</name>
+    <description>
+      The custom function in a filter qnameExpression
+      does not have a custom function signature within the DTS.
+    </description>
+    <data>
+      <schema readMeFirst="true">21201-movement-filterFn-concepts.xsd</schema>
+      <linkbase>21201-movement-filterFn-formulae.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:noCustomFunctionSignature</error>
+    </result>
+  </variation>  
+  
+  <variation id="V-02">
+    <name>Custom function to compute resulting decimals</name>
+    <description>
+      The custom function in a decimals expression 
+      does not have a custom function signature within the DTS.
+    </description>
+    <data>
+      <schema readMeFirst="true">21201-movement-decimalsFn-concepts.xsd</schema>
+      <linkbase>21201-movement-decimalsFn-formulae.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:noCustomFunctionSignature</error>
+    </result>
+  </variation>  
+  
+</testcase>

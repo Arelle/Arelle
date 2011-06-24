@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Presentation Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2006-07-25 17:18).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-26 17:27:25
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_Widget" xlink:label="test_Widget" />
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_Name" xlink:label="test_Name" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="test_Widget" xlink:to="test_Name" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_Description" xlink:label="test_Description" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="test_Widget" xlink:to="test_Description" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_UnitsSold" xlink:label="test_UnitsSold" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="test_Widget" xlink:to="test_UnitsSold" order="3" use="optional" />
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_GrossRevenue" xlink:label="test_GrossRevenue" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="test_Widget" xlink:to="test_GrossRevenue" order="4" use="optional" />
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_NetCosts" xlink:label="test_NetCosts" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="test_Widget" xlink:to="test_NetCosts" order="5" use="optional" />
+  </presentationLink>
+</linkbase>
