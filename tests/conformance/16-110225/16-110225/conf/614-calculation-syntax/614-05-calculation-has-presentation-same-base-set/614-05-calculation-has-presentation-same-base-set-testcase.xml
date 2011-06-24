@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>614-05</number>
+<name>EDGAR Filer Manual v16 6.14.5 page 6-55</name>
+<description>
+<h2>If an instance contains non-empty facts for the source and target of an effective calculation relationship, then at least one
+effective presentation relationship that the source and target appear in (because of 6.12.3) must be either (a) a relationship with
+each other or (b) two relationships with any other elements that share a single extended link role.</h2>
+<p>When facts participate in a calculation together, they must be shown with presentation relationships in the same relationship group,
+although not necessarily adjacent to each other.</p>
+<p>REMARK: The clarifying word "...single extended link <i>role</i>" shown here will appear in a future EFM version.</p>
+</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<variation id="_003gd">
+<name>6.14.5, Five facts in two tax calculations in different relationship groups, in matching presentation groups, GOOD.</name>
+<description>Five facts in two tax calculations in different relationship groups, in matching presentation groups, GOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405003gd-20081231.xml</instance>
+<linkbase>e61405003gd-20081231_lab.xml</linkbase>
+<linkbase>e61405003gd-20081231_pre.xml</linkbase>
+<linkbase>e61405003gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405003gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.14.5, Five facts in two tax calculations in different relationship groups, with swapped presentation groups, GOOD.</name>
+<description>Five facts in two tax calculations in different relationship groups, with swapped presentation groups, GOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405004gd-20081231.xml</instance>
+<linkbase>e61405004gd-20081231_lab.xml</linkbase>
+<linkbase>e61405004gd-20081231_pre.xml</linkbase>
+<linkbase>e61405004gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405004gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005gd">
+<name>6.14.5, Five facts in two tax calculations in different relationship groups, with all in one presentation group, GOOD.</name>
+<description>Five facts in two tax calculations in different relationship groups, with all in one presentation group,
+GOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405005gd-20081231.xml</instance>
+<linkbase>e61405005gd-20081231_lab.xml</linkbase>
+<linkbase>e61405005gd-20081231_pre.xml</linkbase>
+<linkbase>e61405005gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405005gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_006ng">
+<name>6.14.5, Five facts in two tax calculations in different relationship groups, missing the common sum in one of the presentation
+groups, NOGOOD.</name>
+<description>Five facts in two tax calculations in different relationship groups, missing the common sum in one of the presentation
+groups, NOGOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405006ng-20081231.xml</instance>
+<linkbase>e61405006ng-20081231_lab.xml</linkbase>
+<linkbase>e61405006ng-20081231_pre.xml</linkbase>
+<linkbase>e61405006ng-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405006ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61405" name="Facts-In-Calculations-Presentation-Missing" frd="du"/>
+</result>
+</variation>
+<variation id="_007ng">
+<name>6.14.5, Five facts in two tax calculations in different relationship groups, four facts in one presentation group, one in a
+parenthetical, NOGOOD.</name>
+<description>Five facts in two tax calculations in different relationship groups, four facts in one presentation group, one in a
+parenthetical, NOGOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405007ng-20081231.xml</instance>
+<linkbase>e61405007ng-20081231_lab.xml</linkbase>
+<linkbase>e61405007ng-20081231_pre.xml</linkbase>
+<linkbase>e61405007ng-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405007ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61405" name="Facts-In-Calculations-Presentation-Missing" frd="du"/>
+</result>
+</variation>
+<variation id="_008gd">
+<name>6.14.5, Three facts in one tax calculation, all three in a non-matching presentation group, fourth fact in a parenthetical,
+GOOD.</name>
+<description>Three facts in one tax calculation, all three in a non-matching presentation group, fourth fact in a parenthetical,
+GOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405008gd-20081231.xml</instance>
+<linkbase>e61405008gd-20081231_lab.xml</linkbase>
+<linkbase>e61405008gd-20081231_pre.xml</linkbase>
+<linkbase>e61405008gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405008gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_009gd">
+<name>6.14.5, Three facts in a tax calculation, calculation and presentation linkbases have an unpresented intermediate node,
+GOOD.</name>
+<description>Three facts in a tax calculation, calculation and presentation linkbases have an unpresented intermediate node,
+GOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405009gd-20081231.xml</instance>
+<linkbase>e61405009gd-20081231_lab.xml</linkbase>
+<linkbase>e61405009gd-20081231_pre.xml</linkbase>
+<linkbase>e61405009gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405009gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_010gd">
+<name>6.14.5, Four facts in a tax calculation, calculation and presentation linkbases have an unpresented intermediate node,
+GOOD.</name>
+<description>Four facts in a tax calculation, calculation and presentation linkbases have an unpresented intermediate node,
+GOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405010gd-20081231.xml</instance>
+<linkbase>e61405010gd-20081231_lab.xml</linkbase>
+<linkbase>e61405010gd-20081231_pre.xml</linkbase>
+<linkbase>e61405010gd-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405010gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_011ng">
+<name>6.14.5, Three facts in one calculation group not matched with presentation groups, used in instance in different contexts,
+NOGOOD.</name>
+<description>6.14.5, Three facts in one calculation group not matched with presentation groups, used in instance in different contexts,
+NOGOOD.</description>
+<reference specification="11168"/>
+<reference specification="11154.12"/>
+<data>
+<instance readMeFirst="true">e61405011ng-20081231.xml</instance>
+<linkbase>e61405011ng-20081231_lab.xml</linkbase>
+<linkbase>e61405011ng-20081231_pre.xml</linkbase>
+<linkbase>e61405011ng-20081231_cal.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61405011ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61405" name="Facts-In-Calculations-Presentation-Missing" frd="du"/>
+</result>
+</variation>
+</testcase>

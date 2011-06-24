@@ -1,0 +1,12 @@
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="202-07-ShorthandPointerExample.xsd#aaa" xlink:label="aaa1" xlink:title="aaa1"/>
+		<loc xlink:type="locator" xlink:href="202-07-ShorthandPointerExample.xsd#aaa" xlink:label="aaa2" xlink:title="aaa2"/>
+		<label xlink:type="resource" xlink:label="aaaLabel" xlink:title="aaa Title" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Assets Always Accounted for</label>
+		<labelArc xlink:type="arc" xlink:from="aaa1" xlink:to="aaaLabel" xlink:show="replace" xlink:actuate="onRequest" xlink:title="aaa1 Label" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+		<labelArc xlink:type="arc" xlink:from="aaa2" xlink:to="aaaLabel" xlink:show="replace" xlink:actuate="onRequest" xlink:title="aaa2 Label" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" priority="1"/>
+	</labelLink>
+</linkbase>

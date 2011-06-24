@@ -1,0 +1,11 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://mycompany.com/xbrl/roleR RoleR.xsd" xmlns:mycomp="http://mycompany.com/xbrl/roleR">
+	<roleRef xlink:type="simple" roleURI="http://mycompany.com/xbrl/roleR/newReferenceRole" xlink:href="RoleR.xsd#newReferenceRole"/>
+	<referenceLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="RoleR.xsd#conceptA" xlink:label="conceptA"/>
+		<reference xlink:type="resource" xlink:label="conceptA_reference" xlink:role="http://mycompany.com/xbrl/roleR/newReferenceRole">
+			<mycomp:Page>10</mycomp:Page>
+			<mycomp:Paragraph>2</mycomp:Paragraph>
+		</reference>
+		<referenceArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptA_reference" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-reference"/>
+	</referenceLink>
+</linkbase>

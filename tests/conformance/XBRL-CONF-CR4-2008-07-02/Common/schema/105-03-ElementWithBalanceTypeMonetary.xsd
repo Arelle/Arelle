@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Test 105.03 -->
+<!-- XBRL Valid -->
+<!-- Description: An optional balance attribute MAY be added to the definition of an element if its type is monetaryItemType or derived from monetaryItemType. The balance attribute MUST NOT be used on items that do not have type equal to the monetaryItemType or to a type that is derived from monetaryItemType.-->
+
+<xsd:schema
+
+   targetNamespace="http://mycompany.com/xbrl/taxonomy/ext"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+   <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+
+   <xsd:element name="ItemWithBalance" type="xbrli:monetaryItemType" xbrli:balance="debit" substitutionGroup="xbrli:item" id="e1" xbrli:periodType="duration"/>
+
+   <!--Element has balance attribute, type is monetaryItemType, result is VALID -->
+
+</xsd:schema>

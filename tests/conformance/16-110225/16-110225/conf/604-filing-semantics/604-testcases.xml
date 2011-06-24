@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='604-03-xbrl-valid/604-03-xbrl-valid-testcase.xml' />
+</testcases>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="XLink Label" description="Section 5.5.7.8 Arc equivalence 5.5.7.8" outpath="out" owner="dvunkannon@kpmg.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<!-- 
+Ensure that all locator elements resolve their href attributes to an XML Schema element element or an element that is a resource-type
+
+Ensure that xpointer syntax in linkbase href attributes is properly flagged as an error.
+
+Ensure the processor processes occurrences of the xml:base attribute correctly when resolving href attributes in locators 
+
+Ensure that no two arcs in an extended-type link have the same “from” and “to” XLink label values even if their arcrole values differ (this is an XLink syntax constraint).  Note that the “from” and “to” concepts may be the same as long as they are denoted by locator elements having different xlink labels 
+	-->
+	<variation id="V-01" name="Arc-type element href resolution">
+		<description>202.01 A URI reference appearing in an href attribute must resolve to an XML Schema element element or an xlink resource-type element</description>
+		<data>
+			<xsd readMeFirst="false">202-01-HrefResolution.xsd</xsd>
+			<linkbase readMeFirst="true">202-01-HrefResolution-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-02" name="Arc-type element href resolution counterexample">
+		<description>202.02 A URI reference appearing in an href attribute must resolve to an XML Schema element element or an xlink resource-type element</description>
+		<data>
+			<xsd readMeFirst="false">202-02-HrefResolutionCounterExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-02-HrefResolutionCounterExample-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- XML Base -->
+	<variation id="V-03" name="XML Base Processing">
+		<description>202.03 A URI reference appearing in an href attribute must be computed using the method described in XML Base [XMLBase]</description>
+		<data>
+			<xsd readMeFirst="false">202-03-HrefResolutionXMLBase.xsd</xsd>
+			<linkbase readMeFirst="true">base/202-03-HrefResolutionXMLBase-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- XLink Labels -->
+	<variation id="V-04" name="XLink Label Counterexample">
+		<description>202.04  Arc-type elements connecting the same "from" and "to" labels MUST appear in different extended-type link elements even if the arcrole attributes are equal.  This is an XLink constraint.</description>
+		<data>
+			<xsd readMeFirst="false">202-04-XLinkLabelCounterExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-04-XLinkLabelCounterExample-definition.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-05" name="element scheme locators">
+		<description>202.05 element() scheme pointers are legal (Spec 3.5.4)</description>
+		<data>
+			<!-- two locators to the same element is legal and element() Scheme is legal)-->
+			<xsd readMeFirst="false">202-05-ElementLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-05-ElementLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-06" name="duplicate locators">
+		<description>202.06 Locators with different xlink labels pointing to the same taxonomy element.</description>
+		<data>
+			<!-- two locators to the same element and two arcs to a common element - is that legal? -->
+			<xsd readMeFirst="false">202-06-DuplicateLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-06-DuplicateLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-07" name="shorthand pointer locators">
+		<description>202.07 shorthand pointers are legal (Spec 3.5.4)</description>
+		<data>
+			<!-- two locators to the same element is legal and shorthand pointer is legal)-->
+			<xsd readMeFirst="false">202-07-ShorthandPointerExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-07-ShorthandPointerExample-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-08" name="xpointer scheme locators">
+		<description>202.08 xpointer() Scheme pointers are illegal (Spec 3.5.4)</description>
+		<data>
+			<!-- two locators to the same element is legal and xpointer() Scheme is illegal)-->
+			<xsd readMeFirst="false">202-08-XPointerLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-08-XPointerLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-09" name="valid element scheme locators">
+		<description>202.09 element() Scheme pointers are legal (Spec 3.5.4)</description>
+		<data>
+			<xsd readMeFirst="false">202-09-ElementSchemeXPointerLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-09-ElementSchemeXPointerLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-10" name="several valid element scheme locators">
+		<description>202.10 A sequence of element() Schemes in an X pointer is legal (Spec 3.5.4).  The first of the element schemes does not resolve but the second does.</description>
+		<data>
+			<xsd readMeFirst="false">202-10-ElementSchemeXPointerLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-10-ElementSchemeXPointerLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-11" name="invalid xmlns scheme after a valid element scheme in a locator XPointer">
+		<description>202.11 An xmlns() scheme in an X pointer is illegal in XBRL 2.1 (Spec 3.5.4) even if resolution of that scheme is not attempted because an early scheme resolves.</description>
+		<data>
+			<xsd readMeFirst="false">202-11-ElementSchemeXPointerLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-11-ElementSchemeXPointerLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-12" name="element scheme resolving to an invalid XML resource for a locator">
+		<description>202.12 An element scheme in an X pointer in a label linkbase locator that does not resolve to a concept is illegal. See 5.2.2.1 in the XBRL 2.1 specification.</description>
+		<data>
+			<xsd readMeFirst="false">202-12-ElementSchemeXPointerLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-12-ElementSchemeXPointerLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-13" name="valid element scheme simple link to a linkbase">
+		<description>202.13 An element scheme in an X pointer in a linkbaseRef. See 3.5.1.2 in the XBRL 2.1 specification.</description>
+		<data>
+			<xsd readMeFirst="false">202-13-ElementSchemeXPointerLocatorExample.xsd</xsd>
+			<linkbase readMeFirst="true">202-13-ElementSchemeXPointerLocatorExample-label.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>
+

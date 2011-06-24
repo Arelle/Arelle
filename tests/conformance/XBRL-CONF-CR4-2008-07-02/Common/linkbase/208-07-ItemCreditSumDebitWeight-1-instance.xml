@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!-- Edited by Charles Hoffman (UBmatrix) -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl 
+   xmlns="http://www.xbrl.org/2003/instance" 
+   xmlns:link="http://www.xbrl.org/2003/linkbase" 
+   xmlns:xlink="http://www.w3.org/1999/xlink" 
+   xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+   xmlns:example="http://mycompany.com/xbrl/taxonomy/ext" 
+   xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy/ext 208-07-ItemCreditSumDebitWeight-1.xsd">
+   
+   <link:schemaRef xlink:href="208-07-ItemCreditSumDebitWeight-1.xsd" xlink:type="simple"/>
+
+   <context id="CD1">
+      <entity>
+         <identifier scheme="www.example.com">example</identifier>
+      </entity>
+      <period>
+         <startDate>2002-04-01</startDate>
+         <endDate>2003-03-31</endDate>
+      </period>
+   </context>
+   <unit id="U1">
+      <measure>iso4217:USD</measure>
+   </unit>
+
+   <example:ItemCredit contextRef="CD1" unitRef="U1" decimals="0">-5000</example:ItemCredit>
+   <example:SumDebit contextRef="CD1" unitRef="U1" decimals="0">5000</example:SumDebit>
+
+</xbrl>

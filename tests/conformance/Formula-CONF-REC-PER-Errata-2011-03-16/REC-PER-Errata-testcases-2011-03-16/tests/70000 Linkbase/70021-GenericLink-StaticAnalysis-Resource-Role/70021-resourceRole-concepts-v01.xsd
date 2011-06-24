@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<schema 
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:test="http://xbrl.org/formula/conformance/custom-test-link"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  >
+
+  <annotation>
+    <appinfo>
+
+      <link:roleType id="role1"
+            roleURI="http://xbrl.org/formula/conformance/example/role1">
+        <link:usedOn>test:thing</link:usedOn>
+      </link:roleType>
+
+      <link:linkbaseRef 
+        xlink:href="70021-resourceRole-testLB-v01.xml"
+        xlink:type="simple" 
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+    </appinfo>
+  </annotation>
+
+  <import 
+    namespace="http://www.xbrl.org/2003/instance" 
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+
+</schema>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:doctest="http://xbrl.org/formula/conformance/example/doctest" 
+  targetNamespace="http://xbrl.org/formula/conformance/example/doctest" 
+  elementFormDefault="qualified" 
+  attributeFormDefault="unqualified">
+  
+  <element name="table" >
+    <complexType>
+      <complexContent>
+        <restriction base="anyType">
+          <sequence>
+            <element ref="doctest:rate" minOccurs="0" maxOccurs="unbounded"/> 
+            <element ref="doctest:category" minOccurs="0" maxOccurs="unbounded"/> 
+          </sequence>
+          <attribute name="id" type="ID" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element name="rate" >
+    <complexType>
+      <simpleContent>
+        <extension base="decimal">
+          <attribute name="from" type="decimal" />
+          <attribute name="to" type="decimal" />
+        </extension>
+      </simpleContent>
+    </complexType>
+  </element>
+  <element name="category" >
+    <complexType>
+      <simpleContent>
+        <extension base="QName">
+          <attribute name="from" type="decimal" />
+          <attribute name="to" type="decimal" />
+        </extension>
+      </simpleContent>
+    </complexType>
+  </element>
+</schema>
+

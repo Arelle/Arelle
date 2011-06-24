@@ -1,0 +1,62 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>v16</title>
+</head>
+<body><table style="border:0; empty-cells:show;"><tbody>
+<tr>
+<td colspan="3">v16</td>
+<td colspan="3">2011-02-26</td>
+</tr>
+<tr><td colspan="2"></td></tr>
+<tr>
+<th>Name</th>
+<th>Variations</th>
+<th>Error Codes</th>
+<th>Remarks</th>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="603-02-not-both-ex100-and-ex101/603-02-not-both-ex100-and-ex101-testcase.xml">EDGAR Filer Manual v16 6.3.2 page 6-4</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Both-EX-100-And-EX-101<br>Unknown</td>
+<td valign="top">
+<p>REMARK: This cannot be tested outside of the EDGAR system itself.</p>
+<p>REMARK: On variation 002, EdgarLink software already tests for this condition so it is unlikely this could ever come about; it is here in the suite for internal testing.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="603-04-no-html-character-entities/603-04-no-html-character-entities-testcase.xml">EDGAR Filer Manual v16 6.3.4 page 6-5</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Invalid-Html-In-Footnote<br>Invalid-Html-In-Linkbase</td>
+<td valign="top"><p>REMARK: This test suite does NOT test to see that only the subset of ASCII allowed by 5.2.1.1 are used.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="603-05-only-xml-or-numeric-character-refs/603-05-only-xml-or-numeric-character-refs-testcase.xml">EDGAR Filer Manual v16 6.3.5 page 6-5</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Invalid-Characters</td>
+<td valign="top"><p>REMARK: the files e60305001ng-20111231.xml and e60305002ng-20111231_lab.xml are not even good XML, so don't try to process them as
+such.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="603-06-uri-recognized/603-06-uri-recognized-testcase.xml">EDGAR Filer Manual v16 6.3.6 page 6-6</a></td>
+<td align="center" valign="top">10</td>
+<td nowrap valign="top">Fragment-Not-Shorthand-Xpointer</td>
+<td valign="top">
+<p>REMARK: xml:base is forbidden.</p>
+<p>REMARK: <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> defines URI syntax</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="603-08-only-one-instance/603-08-only-one-instance-testcase.xml">EDGAR Filer Manual v16 6.3.8 page 6-6</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">More-Than-One-INS</td>
+<td valign="top"><p>REMARK: This cannot be tested independently of the EDGAR submission system.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="603-11-no-xml-base/603-11-no-xml-base-testcase.xml">EDGAR Filer Manual v16 6.3.11 page 6-7</a></td>
+<td align="center" valign="top">12</td>
+<td nowrap valign="top">Use-Of-Xml-Base-Attribute-Illegal</td>
+<td valign="top"></td>
+</tr>
+</tbody></table></body>
+</html>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-typedDim-tests.xsd"/>
+
+  <context id="context-earth-moons">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim">
+           <concept:dimVal><concept:planetVal>concept:Earth</concept:planetVal></concept:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-mars-moons">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim">
+           <concept:dimVal><concept:planetVal>concept:Mars</concept:planetVal></concept:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-outer-planets-moons">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim">
+           <concept:dimVal><concept:planetVal>concept:OuterPlanets</concept:planetVal></concept:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-earth-satellites">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim">
+           <concept:dimVal><concept:planetNumVal>3</concept:planetNumVal></concept:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-mars-satellites">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim">
+           <concept:dimVal><concept:planetNumVal>4</concept:planetNumVal></concept:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <unit id="u-moon-count">
+    <measure>pure</measure>
+  </unit>
+  
+
+    <concept:MoonCount contextRef="context-earth-moons" unitRef="u-moon-count" decimals="0">1</concept:MoonCount>
+    <concept:MoonCount contextRef="context-mars-moons" unitRef="u-moon-count" decimals="0">2</concept:MoonCount>
+    <concept:MoonCount contextRef="context-outer-planets-moons" unitRef="u-moon-count" decimals="0">69</concept:MoonCount>
+
+    <concept:SatelliteCount contextRef="context-earth-satellites" unitRef="u-moon-count" decimals="0">8000</concept:SatelliteCount>
+    <concept:SatelliteCount contextRef="context-mars-satellites" unitRef="u-moon-count" decimals="0">4</concept:SatelliteCount>
+
+
+</xbrl>
+

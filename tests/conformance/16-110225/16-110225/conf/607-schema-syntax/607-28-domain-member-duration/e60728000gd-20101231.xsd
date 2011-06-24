@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:e60728="http://e60728/20101231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:us-gaap-att="http://xbrl.us/us-gaap/attributes"
+xmlns:us-gaap="http://xbrl.us/us-gaap/2009-01-31"
+xmlns:us-types="http://xbrl.us/us-types/2009-01-31"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xl="http://www.xbrl.org/2003/XLink"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+targetNamespace="http://e60728/20101231"
+elementFormDefault="qualified">
+<xs:annotation>
+<xs:appinfo>
+<link:linkbaseRef xlink:type="simple" xlink:href="e60728000gd-20101231_pre.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e60728000gd-20101231_def.xml"
+xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e60728000gd-20101231_lab.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-lab-2009-01-31.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:roleType roleURI="http://e60728/role/EntityInformation" id="EntityInformation">
+<link:definition>991 - Document - Entity Information</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://e60728/role/DocumentInformation" id="DocumentInformation">
+<link:definition>992 - Document - Document Information</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://e60728/role/OtherInformation" id="OtherInformation">
+<link:definition>990 - Document - Other Information</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://e60728/role/Defaults" id="Defaults">
+<link:definition>999 - Document - Defaults</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+</xs:appinfo>
+</xs:annotation>
+<xs:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xs:import namespace="http://xbrl.us/us-types/2009-01-31"
+schemaLocation="http://taxonomies.xbrl.us/us-gaap/2009/elts/us-types-2009-01-31.xsd"/>
+<xs:import namespace="http://xbrl.org/2005/xbrldt"
+schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+<xs:import namespace="http://xbrl.us/dei/2009-01-31"
+schemaLocation="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd"/>
+<xs:import namespace="http://www.xbrl.org/dtr/type/non-numeric"
+schemaLocation="http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"/>
+<xs:element name="Top" id="e60728_Top" type="xbrli:stringItemType"
+substitutionGroup="xbrli:item"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="LooksLikeButIsNotDomainMembre" id="e60728_LooksLikeButIsNotDomainMembre"
+type="e60728:domainItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="instant"/>
+<xs:complexType name="escapedItemType">
+<xs:simpleContent>
+<xs:restriction base="xbrli:stringItemType">
+<xs:attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+</xs:restriction>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="domainItemType">
+<xs:simpleContent>
+<xs:restriction base="xbrli:stringItemType">
+<xs:attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+</xs:restriction>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="derivedEscapedItemType">
+<xs:simpleContent>
+<xs:restriction base="nonnum:xmlNodesItemType">
+<xs:attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+</xs:restriction>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="derivedDomainItemType">
+<xs:simpleContent>
+<xs:restriction base="nonnum:domainItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+</xs:schema>

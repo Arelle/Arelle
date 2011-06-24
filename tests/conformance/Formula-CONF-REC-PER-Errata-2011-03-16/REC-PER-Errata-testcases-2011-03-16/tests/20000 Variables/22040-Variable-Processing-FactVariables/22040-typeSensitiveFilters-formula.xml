@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:df="http://xbrl.org/2008/filter/dimension" 
+  xmlns:ef="http://xbrl.org/2008/filter/entity" 
+  xmlns:gf="http://xbrl.org/2008/filter/general" 
+  xmlns:pf="http://xbrl.org/2008/filter/period" 
+  xmlns:tf="http://xbrl.org/2008/filter/tuple" 
+  xmlns:uf="http://xbrl.org/2008/filter/unit" 
+  xmlns:vf="http://xbrl.org/2008/filter/value" 
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/general 
+    ../../../core_schemas/general-filter.xsd
+  http://xbrl.org/2008/filter/unit 
+    ../../../core_schemas/unit-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    22040-factVar-tests.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="concat(
+          if ($c1 instance of element(eg:c1,xs:string))
+             then 'c1 is a string node, '
+             else 'c1 not expected type, ',
+          if (($n1 instance of element(eg:n1,xs:decimal)) or
+              ($n1 instance of element(eg:n1,xs:float)) or
+              ($n1 instance of element(eg:n1,xs:double)))
+             then 'n1 is a numeric decimal node, '
+             else 'n1 not expected type, ',
+          if (($q1 instance of element(eg:q1,xs:QName)))
+             then 'q1 is a QName node, '
+             else 'q1 not expected type, ',
+          if ($b1 instance of element(eg:b1,xs:boolean))
+             then 'b1 is a boolean node, '
+             else 'b1 not expected type, ',
+          if ($g1 instance of xs:string)
+             then 'g1 is a string value, '
+             else 'g1 not expected type, ',
+          if (($g2 instance of xs:decimal) or
+              ($g2 instance of xs:float) or
+              ($g2 instance of xs:double))
+             then 'g2 is a numeric value'
+             else 'g2 not expected type')"
+      source="c1"
+      aspectModel="dimensional" implicitFiltering="true" />
+
+    <!-- $c1 is expected to pick up a stringItemType node -->
+    <variable:factVariable xlink:type="resource" xlink:label="factvar1" bindAsSequence="false"  />
+    <!-- general filter for value checking testing -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter1">
+      <cf:concept>
+        <cf:qname>eg:c1</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <gf:general xlink:type="resource" xlink:label="filter1"
+     test=". eq 'abcdef'" />
+
+    <!-- $n1 is expected to pick up a decimalItemType node -->
+    <variable:factVariable xlink:type="resource" xlink:label="factvar2" bindAsSequence="false"  />
+    <cf:conceptName xlink:type="resource" xlink:label="filter2">
+      <cf:concept>
+        <cf:qname>eg:n1</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <!--  Unit filter for covering unit aspect to prevent implicit filtering by unit -->
+    <uf:generalMeasures xlink:type="resource" xlink:label="filter2"
+     test="true()" />
+    <gf:general xlink:type="resource" xlink:label="filter2"
+     test=". eq 123.456" />
+
+    <!-- $b1 is expected to pick up a booleanItemType node -->
+    <variable:factVariable xlink:type="resource" xlink:label="factvar3" bindAsSequence="false"  />
+    <cf:conceptName xlink:type="resource" xlink:label="filter3">
+      <cf:concept>
+        <cf:qname>eg:b1</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <gf:general xlink:type="resource" xlink:label="filter3"
+     test=". eq true()" />
+
+    <!-- $q1 is expected to pick up a QNameItemType node -->
+    <variable:factVariable xlink:type="resource" xlink:label="factvar4" bindAsSequence="false"  />
+    <cf:conceptName xlink:type="resource" xlink:label="filter4">
+      <cf:concept>
+        <cf:qname>eg:q1</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <gf:general xlink:type="resource" xlink:label="filter4"
+     test=". eq QName('http://xbrl.org/formula/conformance/example','b1')" />
+
+
+    <!-- $g1 produces an atomic numeric-valued object, not a node -->
+    <variable:generalVariable xlink:type="resource" xlink:label="genvar1" 
+     select="concat($c1,'zyx')" bindAsSequence="false"/>
+
+    <!-- $g2 produces an atomic string-valued object, not a node -->
+    <variable:generalVariable xlink:type="resource" xlink:label="genvar2" 
+     select="$n1 * 1.05" bindAsSequence="false"/>
+
+    <!-- variable arcs -->
+    <!-- c1 -->
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="filter1" xlink:from="factvar1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true" />
+
+    <!-- n1 -->
+    <variable:variableArc xlink:type="arc" xlink:to="factvar2" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="n1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="filter2" xlink:from="factvar2" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true" />
+
+    <!-- b1 -->
+    <variable:variableArc xlink:type="arc" xlink:to="factvar3" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="b1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="filter3" xlink:from="factvar3" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true" />
+
+    <!-- q1 -->
+    <variable:variableArc xlink:type="arc" xlink:to="factvar4" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="q1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="filter4" xlink:from="factvar4" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true" />
+
+    <!-- g1 -->
+    <variable:variableArc xlink:type="arc" xlink:to="genvar1" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="g1" />
+
+    <!-- g2 -->
+    <variable:variableArc xlink:type="arc" xlink:to="genvar2" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="g2" />
+
+  </generic:link>
+</link:linkbase>
+
+
+

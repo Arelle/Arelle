@@ -1,0 +1,31 @@
+<specifications
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/conformance/2007/specifications"
+  xsi:schemaLocation="
+  http://xbrl.org/conformance/2007/specifications ../infrastructure/specifications.xsd"
+>
+  <specification id="BOOLEAN-FILTER" sid="booleanFilters" href="http://www.xbrl.org/Specification/booleanFilters/PR-2009-03-31/booleanFilters-PR-2009-03-31.html"/>
+  <specification id="CONCEPT-FILTER" sid="conceptFilters" href="http://www.xbrl.org/Specification/conceptFilters/PR-2009-03-31/conceptFilters-PR-2009-03-31.html"/>
+  <specification id="CONSISTENCY-ASSERTION" sid="consistencyAssertions" href="http://www.xbrl.org/Specification/consistencyAssertions/PR-2009-03-31/consistencyAssertions-PR-2009-03-31.html"/>
+  <specification id="DIMENSION-FILTER" sid="dimensionFilters" href="http://www.xbrl.org/Specification/dimensionFilters/PR-2009-03-31/dimensionFilters-PR-2009-03-31.html"/>
+  <specification id="ENTITY-FILTER" sid="entityFilters" href="http://www.xbrl.org/Specification/entityFilters/PR-2009-03-31/entityFilters-PR-2009-03-31.html"/>
+  <specification id="EXISTENCE-ASSERTION" sid="existenceAssertions" href="http://www.xbrl.org/Specification/existenceAssertions/PR-2009-03-31/existenceAssertions-PR-2009-03-31.html"/>
+  <specification id="FORMULA" sid="formula" href="http://www.xbrl.org/Specification/formula/PR-2009-03-31/formula-PR-2009-03-31.html"/>
+  <specification id="GENERAL-FILTER" sid="generalFilters" href="http://www.xbrl.org/Specification/generalFilters/PR-2009-03-31/generalFilters-PR-2009-03-31.html"/>
+  <specification id="GENERIC-LABEL" sid="genericLabels" href="http://www.xbrl.org/Specification/genericLabels/PR-2009-03-31/genericLabels-PR-2009-03-31.html"/>
+  <specification id="GENERIC-REFERENCE" sid="genericReferences" href="http://www.xbrl.org/Specification/genericReferences/PR-2009-03-31/genericReferences-PR-2009-03-31.html"/>
+  <specification id="IMPLICIT-FILTER" sid="implicitFilters" href="http://www.xbrl.org/Specification/implicitFilters/PR-2009-03-31/implicitFilters-PR-2009-03-31.html"/>
+  <specification id="MATCH-FILTER" sid="matchFilters" href="http://www.xbrl.org/Specification/matchFilters/PR-2009-03-31/matchFilters-PR-2009-03-31.html"/>
+  <specification id="PERIOD-FILTER" sid="periodFilters" href="http://www.xbrl.org/Specification/periodFilters/PR-2009-03-31/periodFilters-PR-2009-03-31.html"/>
+  <specification id="RELATIVE-FILTER" sid="relativeFilters" href="http://www.xbrl.org/Specification/relativeFilters/PR-2009-03-31/relativeFilters-PR-2009-03-31.html"/>
+  <specification id="SEGMENT-SCENARIO-FILTER" sid="segmentScenarioFilters" href="http://www.xbrl.org/Specification/segmentScenarioFilters/PR-2009-03-31/segmentScenarioFilters-PR-2009-03-31.html"/>
+  <specification id="TUPLE-FILTER" sid="valueFilters" href="http://www.xbrl.org/Specification/tupleFilters/PR-2009-03-31/tupleFilters-PR-2009-03-31.html"/>
+  <specification id="UNIT-FILTER" sid="unitFilters" href="http://www.xbrl.org/Specification/unitFilters/PR-2009-03-31/unitFilters-PR-2009-03-31.html"/>
+  <specification id="VALIDATION" sid="validation" href="http://www.xbrl.org/Specification/validation/PR-2009-03-31/validation-PR-2009-03-31.html"/>
+  <specification id="VALUE-ASSERTION" sid="valueAssertions" href="http://www.xbrl.org/Specification/valueAssertions/PR-2009-03-31/valueAssertions-PR-2009-03-31.html"/>
+  <specification id="VALUE-FILTER" sid="valueFilters" href="http://www.xbrl.org/Specification/valueFilters/PR-2009-03-31/valueFilters-PR-2009-03-31.html"/>
+  <specification id="VARIABLES" sid="variables" href="http://www.xbrl.org/Specification/variables/PR-2009-03-31/variables-PR-2009-03-31.html"/>
+
+  <specification id="GENERIC-LINK" sid="gnl" href="http://www.xbrl.org/Specification/gnl/PWD-2008-03-07/gnl-PWD-2008-03-07.html"/>
+  
+</specifications>

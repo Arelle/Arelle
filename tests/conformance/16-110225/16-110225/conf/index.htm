@@ -1,0 +1,1559 @@
+<html xmlns:conf="http://edgar/2009/conformance">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title>v16</title>
+   </head>
+   <body>
+      <table style="border:0; empty-cells:show;">
+         <tbody>
+            <tr>
+               <td colspan="3">v16</td>
+               <td colspan="3">2011-02-02</td>
+            </tr>
+            <tr>
+               <td colspan="2"></td>
+            </tr>
+            <tr>
+               <th>Name</th>
+               <th>Variations</th>
+               <th>Error Codes</th>
+               <th>Remarks</th>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="603-filing-syntax/603-02-not-both-ex100-and-ex101/603-02-not-both-ex100-and-ex101-testcase.xml">EDGAR Filer Manual v16 6.3.2 page 6-4</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Both-EX-100-And-EX-101-->Both-EX-100-And-EX-101<br>
+                  <!--2Unknown-->Unknown
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This cannot be tested outside of the EDGAR system itself.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: On variation 002, EdgarLink software already tests for this condition so it is unlikely this could ever come about;
+                     it is here in the suite for internal testing.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="603-filing-syntax/603-04-no-html-character-entities/603-04-no-html-character-entities-testcase.xml">EDGAR Filer Manual v16 6.3.4 page 6-5</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Invalid-Html-In-Footnote-->Invalid-Html-In-Footnote<br>
+                  <!--2Invalid-Html-In-Linkbase-->Invalid-Html-In-Linkbase
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This test suite does NOT test to see that only the subset of ASCII allowed by 5.2.1.1 are used.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="603-filing-syntax/603-05-only-xml-or-numeric-character-refs/603-05-only-xml-or-numeric-character-refs-testcase.xml">EDGAR Filer Manual v16 6.3.5 page 6-5</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Invalid-Characters-->
+                  <!--2Invalid-Characters-->Invalid-Characters
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: the files e60305001ng-20111231.xml and e60305002ng-20111231_lab.xml are not even good XML, so don't try to process
+                     them as
+                     such.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="603-filing-syntax/603-06-uri-recognized/603-06-uri-recognized-testcase.xml">EDGAR Filer Manual v16 6.3.6 page 6-6</a></td>
+               <td align="center" valign="top">10</td>
+               <td nowrap valign="top">
+                  <!--1Fragment-Not-Shorthand-Xpointer-->
+                  <!--2Fragment-Not-Shorthand-Xpointer-->
+                  <!--3Fragment-Not-Shorthand-Xpointer-->
+                  <!--4Fragment-Not-Shorthand-Xpointer-->
+                  <!--5Fragment-Not-Shorthand-Xpointer-->
+                  <!--6Fragment-Not-Shorthand-Xpointer-->
+                  <!--7Fragment-Not-Shorthand-Xpointer-->
+                  <!--8Fragment-Not-Shorthand-Xpointer-->
+                  <!--9Fragment-Not-Shorthand-Xpointer-->
+                  <!--10Fragment-Not-Shorthand-Xpointer-->Fragment-Not-Shorthand-Xpointer
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: xml:base is forbidden.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> defines URI syntax
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="603-filing-syntax/603-08-only-one-instance/603-08-only-one-instance-testcase.xml">EDGAR Filer Manual v16 6.3.8 page 6-6</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1More-Than-One-INS-->More-Than-One-INS
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This cannot be tested independently of the EDGAR submission system.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="603-filing-syntax/603-11-no-xml-base/603-11-no-xml-base-testcase.xml">EDGAR Filer Manual v16 6.3.11 page 6-7</a></td>
+               <td align="center" valign="top">12</td>
+               <td nowrap valign="top">
+                  <!--1Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--2Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--3Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--4Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--5Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--6Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--7Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--8Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--9Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--10Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--11Use-Of-Xml-Base-Attribute-Illegal-->
+                  <!--12Use-Of-Xml-Base-Attribute-Illegal-->Use-Of-Xml-Base-Attribute-Illegal
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="604-filing-semantics/604-03-xbrl-valid/604-03-xbrl-valid-testcase.xml">EDGAR Filer Manual v16 6.4.3 page 6-7</a></td>
+               <td align="center" valign="top">11</td>
+               <td nowrap valign="top">
+                  <!--1Xbrl21-Invalid-->
+                  <!--2Xbrl21-Invalid-->
+                  <!--3Xbrl21-Invalid-->
+                  <!--4Xbrl21-Invalid-->
+                  <!--5Xbrl21-Invalid-->
+                  <!--6Xbrl21-Invalid-->
+                  <!--7Xbrl21-Invalid-->
+                  <!--8Xbrl21-Invalid-->
+                  <!--9Xbrl21-Invalid-->Xbrl21-Invalid
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: XBRL 1.0 Dimensional validity is required also.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This obviously does not test all XBRL 2.1, only those areas that have been known to cause problems.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: At this time, only one instance is allowed per submission.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Variation 009gd assumes there is no units registry yet implemented.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-01-entity-identifier-scheme/605-01-entity-identifier-scheme-testcase.xml">EDGAR Filer Manual v16 6.5.1 page 6-8</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Entity-Identifier-Scheme-->Entity-Identifier-Scheme
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-02-entity-identifier-match-cik/605-02-entity-identifier-match-cik-testcase.xml">EDGAR Filer Manual v16 6.5.2 page 6-8</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Cik-Element-Context-Mismatch-->
+                  <!--2Cik-Element-Context-Mismatch-->Cik-Element-Context-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Variations 001ng and 002ng may produce error 60523 depending on implementation.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-03-entity-identifier-all-identical/605-03-entity-identifier-all-identical-testcase.xml">EDGAR Filer Manual v14 6.5.3 page 6-7</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Invalid-Cik-->Invalid-Cik
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this will inevitably generate two errors</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-04-no-scenario-elements/605-04-no-scenario-elements-testcase.xml">EDGAR Filer Manual v16 6.5.4 page 6-8</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1No-Scenario-->
+                  <!--2No-Scenario-->No-Scenario
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-05-only-explicit-dimensions/605-05-only-explicit-dimensions-testcase.xml">EDGAR Filer Manual v16 6.5.5 page 6-8</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Segment-Child-Not-Explicit-Member-->Segment-Child-Not-Explicit-Member
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-07-no-duplicate-contexts/605-07-no-duplicate-contexts-testcase.xml">EDGAR Filer Manual v16 6.5.7 page 6-8</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Duplicate-Contexts-->Duplicate-Contexts
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-08-no-unused-contexts/605-08-no-unused-contexts-testcase.xml">EDGAR Filer Manual v16 6.5.8 page 6-9</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Unused-Context-->Unused-Context
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-09-start-and-end-dates-distinct/605-09-start-and-end-dates-distinct-testcase.xml">EDGAR Filer Manual v16 6.5.9 page 6-9</a></td>
+               <td align="center" valign="top">8</td>
+               <td nowrap valign="top">
+                  <!--1Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type-->
+                  <!--2Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type-->
+                  <!--3Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type-->Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: 6.5.9 applies to all context start dates compared against all context end dates, irrespective of
+                     segments.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-10-start-and-instant-dates-distinct/605-10-start-and-instant-dates-distinct-testcase.xml">EDGAR Filer Manual v16 6.5.10 page 6-9</a></td>
+               <td align="center" valign="top">7</td>
+               <td nowrap valign="top">
+                  <!--1Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type-->
+                  <!--2Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type-->
+                  <!--3Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type-->Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema">REMARK: this applies to all pairs of duration and instant contexts. It is not necessary to test a context's start and end
+                     dates
+                     against itself because XBR2.1 section 4.7.2 requires that startDate is strictly less than end date.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-11-no-duplicate-units/605-11-no-duplicate-units-testcase.xml">EDGAR Filer Manual v16 6.5.11 page 6-10</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1Duplicate-Units-->
+                  <!--2Duplicate-Units-->
+                  <!--3Duplicate-Units-->Duplicate-Units
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Some of these variations will be disallowed under 6.6.35 after a UTR is implemented.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Abbreviations are from <a href="http://en.wikipedia.org/wiki/SI_base_unit">Base Units</a>
+                     
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-12-no-duplicate-facts/605-12-no-duplicate-facts-testcase.xml">EDGAR Filer Manual v16 6.5.12 page 6-10</a></td>
+               <td align="center" valign="top">9</td>
+               <td nowrap valign="top">
+                  <!--1Duplicate-Facts-->
+                  <!--2Duplicate-Facts-->
+                  <!--3Duplicate-Facts-->
+                  <!--4Duplicate-Facts-->
+                  <!--5Duplicate-Facts-->
+                  <!--6Duplicate-Facts-->Duplicate-Facts
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-13-english-default/605-13-english-default-testcase.xml">EDGAR Filer Manual v16 6.5.13 page 6-10</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Duplicate-Facts-->Duplicate-Facts
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This rule establishes what the default value of xml:lang is and therefore can only be indirectly violated by the violation
+                     of
+                     some other rule. Therefore the only error code that appears here is du-60512-Duplicate-Facts which normally would appear in
+                     6.5.12.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-14-foreign-content-needs-english/605-14-foreign-content-needs-english-testcase.xml">EDGAR Filer Manual v16 6.5.14 page 6-10</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1English-Text-Missing-->English-Text-Missing
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-15-text-blocks-xml-well-formed/605-15-text-blocks-xml-well-formed-testcase.xml">EDGAR Filer Manual v16 6.5.15 page 6-11</a></td>
+               <td align="center" valign="top">12</td>
+               <td nowrap valign="top">
+                  <!--1Text-Block-Not-Well-Formed-XML-->
+                  <!--2Text-Block-Not-Well-Formed-XML-->
+                  <!--3Text-Block-Not-Well-Formed-XML-->Text-Block-Not-Well-Formed-XML
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: In XML it is vital to distinguish the DOM from its various serializations. For a text block, the DOM node
+                     starts as an element with one child text node; exactly one. It is that child text node that you now treat as a
+                     string, wrap lt;body&gt; and &lt;/body&gt; around it, then re-parse and validate. See edbody.dtd; the
+                     grammar for the % Flow entity is clear.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: By contrast, the content of a footnote according to XBRL 2.1 is any alternating sequence of text nodes
+                     and element nodes drawn with names in the xhtml namespace. The serialization does not (and cannot) matter. The
+                     additional constraint on footnotes imposed by EDGAR is that a footnote cannot just contain any old sequence of
+                     text and element DOM nodes. It has to be a sequence of DOM nodes that would be valid if they were the children of
+                     a body node instead. You do not read the footnote as a text node (that might have ampersands and angle brackets),
+                     as if it were itself a serialization. You take that sequence of DOM nodes, make them the children of a
+                     &lt;body&gt; node and validate.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-16-html-limited/605-16-html-limited-testcase.xml">EDGAR Filer Manual v16 6.5.16 page 6-12</a></td>
+               <td align="center" valign="top">23</td>
+               <td nowrap valign="top">
+                  <!--1Prohibited-Html-Body-->
+                  <!--2Prohibited-Html-Body-->
+                  <!--3Prohibited-Html-Body-->
+                  <!--4Prohibited-Html-Body-->
+                  <!--5Prohibited-Html-Body-->
+                  <!--6Prohibited-Html-Body-->
+                  <!--7Prohibited-Html-Body-->
+                  <!--8Prohibited-Html-Body-->
+                  <!--9Prohibited-Html-Body-->
+                  <!--10Prohibited-Html-Body-->
+                  <!--11Prohibited-Html-Body-->
+                  <!--12Prohibited-Html-Body-->
+                  <!--13Prohibited-Html-Body-->
+                  <!--14Prohibited-Html-Body-->
+                  <!--15Prohibited-Html-Body-->
+                  <!--16Prohibited-Html-Body-->
+                  <!--17Prohibited-Html-Body-->Prohibited-Html-Body
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Restrictions on the content of href are documented in EFM 5.2.2.1. There is a <a href="../../../lib/edbody.dtd">DTD</a> used
+                     for validation of unescaped content, but a change to Schema (and therefore disallowing named entities) may occur at some time
+                     in the
+                     future.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: For reference only, here are tags forbidden, keeping in mind that all permitted tags are lower case: &lt;acronym/&gt; &lt;applet/&gt;
+                     &lt;area/&gt; &lt;base/&gt; &lt;basefont/&gt; &lt;bdo/&gt; &lt;button/&gt; &lt;col/&gt; &lt;colgroup/&gt; &lt;del/&gt;
+                     &lt;fieldset/&gt; &lt;font/&gt; &lt;form/&gt; &lt;frame/&gt; &lt;frameset/&gt; &lt;iframe/&gt; &lt;input/&gt; &lt;ins/&gt;
+                     &lt;label/&gt; &lt;legend/&gt; &lt;map/&gt; &lt;meta http-equiv='name' content='content'/&gt; &lt;noframes/&gt; &lt;noscript/&gt;
+                     &lt;object/&gt; &lt;option/&gt; &lt;param/&gt; &lt;q/&gt; &lt;s/&gt; &lt;S/&gt; &lt;script/&gt; &lt;select/&gt; &lt;span/&gt;
+                     &lt;style/&gt; &lt;tbody/&gt; &lt;textarea/&gt; &lt;tfoot/&gt; &lt;thead/&gt; 
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Variations 018 through 022 require http://www.xbrl.org/dtr/type/nonNumeric-2010-12-16.xsd in edgartaxonomies.xml</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-17-decimals-not-precision/605-17-decimals-not-precision-testcase.xml">EDGAR Filer Manual v16 6.5.17 page 6-12</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Decimals-Not-Precision-->Decimals-Not-Precision
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-19-required-context/605-19-required-context-testcase.xml">EDGAR Filer Manual v16 6.5.19 page 6-12</a></td>
+               <td align="center" valign="top">5</td>
+               <td nowrap valign="top">
+                  <!--1Required-Context-Missing-->Required-Context-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: The absence of required context will cause several other errors in section 6.5, this has a separate error code to
+                     help 
+                     users identify the root error of the cascade.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: At this point there is only one distinction, between 485BPOS and 497 which require a one day duration, and all other
+                     filings
+                     having any duration. At some point in the future the ERXL table will be extended to include columns that indicate the allowable
+                     range
+                     of durations, for example:
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-20-required-document-elts/605-20-required-document-elts-testcase.xml">EDGAR Filer Manual v14 6.5.20 page 6-12</a></td>
+               <td align="center" valign="top">16</td>
+               <td nowrap valign="top">
+                  <!--1Amendment-Flag-Existence-->Amendment-Flag-Existence<br>
+                  <!--2Amendment-Description-Without-Amendment-Flag-->Amendment-Description-Without-Amendment-Flag<br>
+                  <!--3Amendment-Flag-Without-Amendment-Description-->Amendment-Flag-Without-Amendment-Description<br>
+                  <!--4Document-Type-Existence-->
+                  <!--5Document-Type-Existence-->Document-Type-Existence<br>
+                  <!--6Document-Period-End-Date-Existence-->
+                  <!--7Document-Period-End-Date-Existence-->Document-Period-End-Date-Existence<br>
+                  <!--8Document-Type-Value-->Document-Type-Value<br>
+                  <!--9Document-Type-Not-Matched-To-Submission-Type-->Document-Type-Not-Matched-To-Submission-Type<br>
+                  <!--10Document-Type-Value-->Document-Type-Value
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: There is a mapping from submission types recognized by EDGAR, to the valid values of the dei:DocumentType element.
+                     The
+                     mapping (submissionType,documentType) is:
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-21-required-entity-elts/605-21-required-entity-elts-testcase.xml">EDGAR Filer Manual v16 6.5.21 page 6-13</a></td>
+               <td align="center" valign="top">204</td>
+               <td nowrap valign="top">
+                  <!--1Entity-Registrant-Name-->
+                  <!--2Entity-Registrant-Name-->
+                  <!--3Entity-Registrant-Name-->
+                  <!--4Entity-Registrant-Name-->
+                  <!--5Entity-Registrant-Name-->
+                  <!--6Entity-Registrant-Name-->
+                  <!--7Entity-Registrant-Name-->
+                  <!--8Entity-Registrant-Name-->
+                  <!--9Entity-Registrant-Name-->
+                  <!--10Entity-Registrant-Name-->
+                  <!--11Entity-Registrant-Name-->
+                  <!--12Entity-Registrant-Name-->
+                  <!--13Entity-Registrant-Name-->
+                  <!--14Entity-Registrant-Name-->
+                  <!--15Entity-Registrant-Name-->
+                  <!--16Entity-Registrant-Name-->
+                  <!--17Entity-Registrant-Name-->Entity-Registrant-Name<br>
+                  <!--18Central-Index-Key-->
+                  <!--19Central-Index-Key-->
+                  <!--20Central-Index-Key-->
+                  <!--21Central-Index-Key-->
+                  <!--22Central-Index-Key-->
+                  <!--23Central-Index-Key-->
+                  <!--24Central-Index-Key-->
+                  <!--25Central-Index-Key-->
+                  <!--26Central-Index-Key-->
+                  <!--27Central-Index-Key-->
+                  <!--28Central-Index-Key-->
+                  <!--29Central-Index-Key-->
+                  <!--30Central-Index-Key-->
+                  <!--31Central-Index-Key-->
+                  <!--32Central-Index-Key-->
+                  <!--33Central-Index-Key-->
+                  <!--34Central-Index-Key-->Central-Index-Key<br>
+                  <!--35Current-Fiscal-Year-End-Date-->
+                  <!--36Current-Fiscal-Year-End-Date-->
+                  <!--37Current-Fiscal-Year-End-Date-->
+                  <!--38Current-Fiscal-Year-End-Date-->
+                  <!--39Current-Fiscal-Year-End-Date-->
+                  <!--40Current-Fiscal-Year-End-Date-->
+                  <!--41Current-Fiscal-Year-End-Date-->Current-Fiscal-Year-End-Date<br>
+                  <!--42Well-Known-Seasoned-Issuer-->
+                  <!--43Well-Known-Seasoned-Issuer-->Well-Known-Seasoned-Issuer<br>
+                  <!--44Entity-Voluntary-Filers-->Entity-Voluntary-Filers<br>
+                  <!--45Entity-Current-Reporting-Status-->
+                  <!--46Entity-Current-Reporting-Status-->
+                  <!--47Entity-Current-Reporting-Status-->Entity-Current-Reporting-Status<br>
+                  <!--48Entity-Filer-Category-->
+                  <!--49Entity-Filer-Category-->
+                  <!--50Entity-Filer-Category-->
+                  <!--51Entity-Filer-Category-->
+                  <!--52Entity-Filer-Category-->
+                  <!--53Entity-Filer-Category-->
+                  <!--54Entity-Filer-Category-->Entity-Filer-Category<br>
+                  <!--55Entity-Common-Shares-Outstanding-->
+                  <!--56Entity-Common-Shares-Outstanding-->
+                  <!--57Entity-Common-Shares-Outstanding-->
+                  <!--58Entity-Common-Shares-Outstanding-->Entity-Common-Shares-Outstanding<br>
+                  <!--59Entity-Public-Float-->Entity-Public-Float<br>
+                  <!--60Document-Fiscal-Year-Focus-->
+                  <!--61Document-Fiscal-Year-Focus-->
+                  <!--62Document-Fiscal-Year-Focus-->
+                  <!--63Document-Fiscal-Year-Focus-->
+                  <!--64Document-Fiscal-Year-Focus-->
+                  <!--65Document-Fiscal-Year-Focus-->
+                  <!--66Document-Fiscal-Year-Focus-->Document-Fiscal-Year-Focus<br>
+                  <!--67Document-Fiscal-Period-Focus-->
+                  <!--68Document-Fiscal-Period-Focus-->
+                  <!--69Document-Fiscal-Period-Focus-->
+                  <!--70Document-Fiscal-Period-Focus-->
+                  <!--71Document-Fiscal-Period-Focus-->
+                  <!--72Document-Fiscal-Period-Focus-->
+                  <!--73Document-Fiscal-Period-Focus-->Document-Fiscal-Period-Focus
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This set of test cases reflects the variations for the forms 20-F, 40-F, 6-K, 8-K, 10-Q, 10-K, 10, S-1, S-3, S-4,
+                     S-11, F-1,
+                     F-3, F-10, 485BPOS, N-CSR, N-Q, NCSRS as well as, implicitly 20-F/A, 40-F/A, 10-K/A, S-1/A, S-3/A, S-4/A, S-11/A, F-1/A, F-3/A,
+                     F-10/A, N-CSR/A, N-Q/A, NCSRS/A, 485BPOS and 497. Here is what form requires what element:
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-23-required-context-match-cik/605-23-required-context-match-cik-testcase.xml">EDGAR Filer Manual v16 6.5.23 page 6-15</a></td>
+               <td align="center" valign="top">5</td>
+               <td nowrap valign="top">
+                  <!--1Non-Matching-Cik-->
+                  <!--2Non-Matching-Cik-->
+                  <!--3Non-Matching-Cik-->Non-Matching-Cik
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-24-registrant-name-matches-dei/605-24-registrant-name-matches-dei-testcase.xml">EDGAR Filer Manual v16 6.5.24 page 6-15</a></td>
+               <td align="center" valign="top">10</td>
+               <td nowrap valign="top">
+                  <!--1Registrant-Name-Mismatch-->
+                  <!--2Registrant-Name-Mismatch-->
+                  <!--3Registrant-Name-Mismatch-->Registrant-Name-Mismatch
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-25-no-domain-items-as-facts/605-25-no-domain-items-as-facts-testcase.xml">EDGAR Filer Manual v16 6.5.25 page 6-15</a></td>
+               <td align="center" valign="top">7</td>
+               <td nowrap valign="top">
+                  <!--1Domain-As-Fact-->
+                  <!--2Domain-As-Fact-->
+                  <!--3Domain-As-Fact-->
+                  <!--4Domain-As-Fact-->Domain-As-Fact
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-26-common-shares-outstanding/605-26-common-shares-outstanding-testcase.xml">EDGAR Filer Manual v16 6.5.26 page 6-16</a></td>
+               <td align="center" valign="top">21</td>
+               <td nowrap valign="top">
+                  <!--1Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--2Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--3Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--4Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--5Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--6Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--7Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--8Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--9Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--10Common-Shares-Inconsistent-With-Document-Type-->
+                  <!--11Common-Shares-Inconsistent-With-Document-Type-->Common-Shares-Inconsistent-With-Document-Type
+               </td>
+               <td valign="top">
+                  <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This test substitutes for 6.5.21's requirement for CommonStockSharesOutstanding but is not yet implemented as of EDGAR
+                     10.4 (December 2010).
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-27-footnote-no-substitutions/605-27-footnote-no-substitutions-testcase.xml">EDGAR Filer Manual v16 6.5.27 page 6-16</a></td>
+               <td align="center" valign="top">5</td>
+               <td nowrap valign="top">
+                  <!--1Footnote-Substitution-Group-->
+                  <!--2Footnote-Substitution-Group-->
+                  <!--3Footnote-Substitution-Group-->
+                  <!--4Footnote-Substitution-Group-->
+                  <!--5Footnote-Substitution-Group-->Footnote-Substitution-Group
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Although these variations each show only one error code, depending
+                     on a vendors' implementation, validation errors may occur prior to the error listed, or other errors may cascade
+                     after Footnote-Substitution-Group. In particular, the schema fales of the ng variations should throw error 6.7.27 because
+                     they use a substitutionGroup disallowed by that rule; the point being that 6.7.27 would not apply to a standard taxonomy but
+                     6.5.27 would still be an error. As long as all variations marked NOGOOD are rejected because of the disallowed
+                     substitutionGroup, a validator may be considered as legitimately passing this testcase.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-28-footnote-no-custom-footnote-role/605-28-footnote-no-custom-footnote-role-testcase.xml">EDGAR Filer Manual v16 6.5.28 page 6-16</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Footnote-Custom-Footnote-Role-->Footnote-Custom-Footnote-Role<br>
+                  <!--2Footnote-Role-Missing-->Footnote-Role-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: The content of the link:definition element is irrelevant because the entire declaration is forbidden.
+                     These variations may also signal errors 6.9.4 and 6.9.5 for the schemas, but the point is that this test is still
+                     meaningful even if the schemas with offending role declarations happened to be in standard taxonomies.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-29-footnote-loc-role-not-custom/605-29-footnote-loc-role-not-custom-testcase.xml">EDGAR Filer Manual v16 6.5.29 page 6-16</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Footnote-Custom-Loc-Role-->Footnote-Custom-Loc-Role
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-30-footnote-no-custom-arc-role/605-30-footnote-no-custom-arc-role-testcase.xml">EDGAR Filer Manual v16 6.5.30 page 6-16</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Footnote-Custom-Arcrole-->Footnote-Custom-Arcrole
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-32-footnote-loc-fragment-portable/605-32-footnote-loc-fragment-portable-testcase.xml">EDGAR Filer Manual v16 6.5.32 page 6-16</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Footnote-Locator-Portable-->Footnote-Locator-Portable
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-33-footnote-linked-to-facts/605-33-footnote-linked-to-facts-testcase.xml">EDGAR Filer Manual v16 6.5.33 page 6-16</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Dangling-Footnote-->Dangling-Footnote
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: It would have been better instead of referring to "link:footnote element" to refer to
+                     "link:footnoteLink child element with @xlink:type of 'resource'". Likewise instead of "link:footnoteArc element"
+                     refer to "link:footnoteLink child element with @xlink:type of 'arc'". Then you will never get spurious errors if
+                     element substitutionGroups were to be allowed.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-34-footnote-xhtml/605-34-footnote-xhtml-testcase.xml">EDGAR Filer Manual v16 6.5.34 page 6-17</a></td>
+               <td align="center" valign="top">5</td>
+               <td nowrap valign="top">
+                  <!--1Prohibited-Html-Footnote-Body-->
+                  <!--2Prohibited-Html-Footnote-Body-->
+                  <!--3Prohibited-Html-Footnote-Body-->Prohibited-Html-Footnote-Body
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="605-instance-syntax/605-35-numeric-units/605-35-numeric-units-testcase.xml">EDGAR Filer Manual v16 6.5.35 page 6-17</a></td>
+               <td align="center" valign="top">40</td>
+               <td nowrap valign="top">
+                  <!--1Incompatible-Numeric-Type-And-Unit-->
+                  <!--2Incompatible-Numeric-Type-And-Unit-->
+                  <!--3Incompatible-Numeric-Type-And-Unit-->
+                  <!--4Incompatible-Numeric-Type-And-Unit-->
+                  <!--5Incompatible-Numeric-Type-And-Unit-->
+                  <!--6Incompatible-Numeric-Type-And-Unit-->
+                  <!--7Incompatible-Numeric-Type-And-Unit-->
+                  <!--8Incompatible-Numeric-Type-And-Unit-->
+                  <!--9Incompatible-Numeric-Type-And-Unit-->
+                  <!--10Incompatible-Numeric-Type-And-Unit-->
+                  <!--11Incompatible-Numeric-Type-And-Unit-->
+                  <!--12Incompatible-Numeric-Type-And-Unit-->
+                  <!--13Incompatible-Numeric-Type-And-Unit-->
+                  <!--14Incompatible-Numeric-Type-And-Unit-->
+                  <!--15Incompatible-Numeric-Type-And-Unit-->
+                  <!--16Incompatible-Numeric-Type-And-Unit-->
+                  <!--17Incompatible-Numeric-Type-And-Unit-->
+                  <!--18Incompatible-Numeric-Type-And-Unit-->
+                  <!--19Incompatible-Numeric-Type-And-Unit-->
+                  <!--20Incompatible-Numeric-Type-And-Unit-->
+                  <!--21Incompatible-Numeric-Type-And-Unit-->
+                  <!--22Incompatible-Numeric-Type-And-Unit-->
+                  <!--23Incompatible-Numeric-Type-And-Unit-->
+                  <!--24Incompatible-Numeric-Type-And-Unit-->
+                  <!--25Incompatible-Numeric-Type-And-Unit-->
+                  <!--26Incompatible-Numeric-Type-And-Unit-->
+                  <!--27Incompatible-Numeric-Type-And-Unit-->
+                  <!--28Incompatible-Numeric-Type-And-Unit-->
+                  <!--29Incompatible-Numeric-Type-And-Unit-->
+                  <!--30Incompatible-Numeric-Type-And-Unit-->
+                  <!--31Incompatible-Numeric-Type-And-Unit-->
+                  <!--32Incompatible-Numeric-Type-And-Unit-->
+                  <!--33Incompatible-Numeric-Type-And-Unit-->
+                  <!--34Incompatible-Numeric-Type-And-Unit-->
+                  <!--35Incompatible-Numeric-Type-And-Unit-->
+                  <!--36Incompatible-Numeric-Type-And-Unit-->
+                  <!--37Incompatible-Numeric-Type-And-Unit-->
+                  <!--38Incompatible-Numeric-Type-And-Unit-->Incompatible-Numeric-Type-And-Unit
+               </td>
+               <td valign="top">
+                  <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://edgar/2009/conformance">REMARK: International types declared at www.xbrl.org can appear in the same DTS with US data types.</p>
+                  <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://edgar/2009/conformance">REMARK: As of EDGAR 10.4 this test had not been implemented.  The values in the table above are not completely consistent
+                     with the forthcoming Unit Types Registry.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-01-no-include/607-01-no-include-testcase.xml">EDGAR Filer Manual v16 6.7.1 page 6-32</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Schema-Include-Present-->Schema-Include-Present
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Because this applies
+                     only to company extensions, in principle there could be a test in which a standard taxonomy 
+                     schema having an 'include' element would be 'GOOD', but there is no such standard taxonomy schema.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-03-ext-not-standard-namespace/607-03-ext-not-standard-namespace-testcase.xml">EDGAR Filer Manual v16 6.7.3 page 6-33</a></td>
+               <td align="center" valign="top">8</td>
+               <td nowrap valign="top">
+                  <!--1Extension-Has-Standard-Namespace-Authority-->
+                  <!--2Extension-Has-Standard-Namespace-Authority-->
+                  <!--3Extension-Has-Standard-Namespace-Authority-->
+                  <!--4Extension-Has-Standard-Namespace-Authority-->
+                  <!--5Extension-Has-Standard-Namespace-Authority-->
+                  <!--6Extension-Has-Standard-Namespace-Authority-->
+                  <!--7Extension-Has-Standard-Namespace-Authority-->
+                  <!--8Extension-Has-Standard-Namespace-Authority-->Extension-Has-Standard-Namespace-Authority
+               </td>
+               <td valign="top">
+                  <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK:
+                     <a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">edgartaxonomies.xml</a> is the 
+                     ONLY authoritative source of "standard taxonomies".
+                     
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-04-valid-ext-namespace-format/607-04-valid-ext-namespace-format-testcase.xml">EDGAR Filer Manual v16 6.7.4 page 6-33</a></td>
+               <td align="center" valign="top">8</td>
+               <td nowrap valign="top">
+                  <!--1Taxonomy-Valid-Target-Namespace-->
+                  <!--2Taxonomy-Valid-Target-Namespace-->
+                  <!--3Taxonomy-Valid-Target-Namespace-->
+                  <!--4Taxonomy-Valid-Target-Namespace-->
+                  <!--5Taxonomy-Valid-Target-Namespace-->
+                  <!--6Taxonomy-Valid-Target-Namespace-->Taxonomy-Valid-Target-Namespace
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: There is a mismatch between the date formats currently accepted by EDGAR, and the possible ISO8601 formats.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-07-recommended-prefix-required/607-07-recommended-prefix-required-testcase.xml">EDGAR Filer Manual v16 6.7.7 page 6-34</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Recommended-Prefix-Disallowed-->Recommended-Prefix-Disallowed
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to a company extension schema. A standard taxonomy could
+                     in principle have an underscore in their namespace prefix, but there is no such
+                     standard taxonomy and therefore no such test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-08-no-embedded-linkbases/607-08-no-embedded-linkbases-testcase.xml">EDGAR Filer Manual v16 6.7.8 page 6-34</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1No-Embedded-Linkbases-->No-Embedded-Linkbases
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This applies only to company extension schemas. In principle a standard taxonomy is allowed to have an embedded linkbase.
+                     But
+                     there is no such standard taxonomy and therefore no such test variation.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: there are no variations for linkbases other than link:labelLink, but the rule does apply to all of them.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-09-role-authority-matches-namespace/607-09-role-authority-matches-namespace-testcase.xml">EDGAR Filer Manual v16 6.7.9 page 6-34</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Role-Namespace-Mismatch-->
+                  <!--2Role-Namespace-Mismatch-->Role-Namespace-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: <a href="http://www.ietf.org/rfc/rfc2396.txt">http://www.ietf.org/rfc/rfc2396.txt</a> notes that the host component of a URL
+                     is case insensitive, a URI in Interactive Data documents has a case-sensitive host component. The same rfc allows characters
+                     in URIs
+                     that are not normally thought of as legal; variation 000gd exercises that in a minimal way without wading into the complex
+                     realm of
+                     XML character escaping versus URI character escaping.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This applies only to company extension schemas. In principle a standard taxonomy could have a different authority
+                     part in the
+                     targetNamespace and a role or arcrole declaration. There being no such standard taxonomies, there are no such 'gd'
+                     variations.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-10-role-types-no-duplicates/607-10-role-types-no-duplicates-testcase.xml">EDGAR Filer Manual v14 6.7.10 page 6-33</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Role-Type-Duplicates-->Role-Type-Duplicates
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this applies to the entire DTS, not just the company schema which is what the
+                     similar XBRL 2.1 constraint applies to.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-11-role-types-pre-cal-def/607-11-role-types-pre-cal-def-testcase.xml">EDGAR Filer Manual v14 6.7.11 page 6-33</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1Role-Type-Declaration-Incomplete-->
+                  <!--2Role-Type-Declaration-Incomplete-->
+                  <!--3Role-Type-Declaration-Incomplete-->Role-Type-Declaration-Incomplete
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this applies only to company extension schemas, so that exceptions in the us-roles-YYYY-MM-DD.xsd schemas are not
+                     invalid.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-12-role-has-definition/607-12-role-has-definition-testcase.xml">EDGAR Filer Manual v16 6.7.12 page 6-35</a></td>
+               <td align="center" valign="top">8</td>
+               <td nowrap valign="top">
+                  <!--1Role-Definition-Mismatch-->
+                  <!--2Role-Definition-Mismatch-->
+                  <!--3Role-Definition-Mismatch-->
+                  <!--4Role-Definition-Mismatch-->
+                  <!--5Role-Definition-Mismatch-->
+                  <!--6Role-Definition-Mismatch-->
+                  <!--7Role-Definition-Mismatch-->Role-Definition-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This applies only to company extension schemas, so that exceptions in the us-roles-YYYY-MM-DD.xsd schemas are not
+                     invalid. 
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This was never meant to apply to resource roles, and that will be corrected in a future release.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Because the (incorrectly percieved) importance of instance rendering has continued to increase beyond reason, the
+                     validator
+                     now enforces an even more stringent criterion than documented in manual version v13. The regex is "[0-9]+ \-
+                     {Statement|Disclosure|Schedule|Document} \-.*[^\s]"; this discrepancy between the text of the manual and the actual validation
+                     MUST be
+                     corrected in the manual ASAP.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-13-arcrole-authority-matches-namespace/607-13-arcrole-authority-matches-namespace-testcase.xml">EDGAR Filer Manual v16 6.7.13 page 6-37</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Arcrole-Namespace-Mismatch-->Arcrole-Namespace-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This applies only to company extension schemas. In principle a standard taxonomy schema could violate this, but there
+                     are no
+                     such taxonomy schemas and so no 'good' variation. 
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: An arcrole definition should not have to match the same pattern as presentation definitions, but we do so in this
+                     testcase to
+                     avoid spurious errors.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-14-arcrole-types-no-duplicates/607-14-arcrole-types-no-duplicates-testcase.xml">EDGAR Filer Manual v16 6.7.14 page 6-37</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Arcrole-Type-Duplicates-->Arcrole-Type-Duplicates
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this applies to the entire DTS not just company extension schemas.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-15-arcrole-has-definition/607-15-arcrole-has-definition-testcase.xml">EDGAR Filer Manual v16 6.7.15 page 6-37</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Arcrole-Definition-Missing-->
+                  <!--2Arcrole-Definition-Missing-->Arcrole-Definition-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: The test for emptiness is done after trimming.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this applies only to company extension schemas, so if there were any exceptions standard schemas those would not be
+                     invalid.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-16-no-ext-name-same-as-base/607-16-no-ext-name-same-as-base-testcase.xml">EDGAR Filer Manual v16 6.7.16 page 6-37</a></td>
+               <td align="center" valign="top">6</td>
+               <td nowrap valign="top">
+                  <!--1Element-Name-Same-As-Base-->
+                  <!--2Element-Name-Same-As-Base-->Element-Name-Same-As-Base
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: only <a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">http://www.sec.gov/info/edgar/edgartaxonomies.xml</a>
+                     defines "standard taxonomy".
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-17-valid-ext-elt-id/607-17-valid-ext-elt-id-testcase.xml">EDGAR Filer Manual v16 6.7.17 page 6-37</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Element-Id-->Element-Id
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to the company extension schemas. If there were a standard taxonomy schema that violated this, it
+                     would
+                     nevertheless be good. There being no such standard taxonomy, there is no such test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-18-nillable-true/607-18-nillable-true-testcase.xml">EDGAR Filer Manual v14 6.7.18 page 6-36</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Nillable-Not-True-->Nillable-Not-True
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to the company extension schemas. If there were a standard taxonomy schema that violated this, it
+                     would
+                     nevertheless be good. There being no such standard taxonomy, there is no such test variation.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This was only meant to apply to element declarations in an xbrli substitution group. In the current EDGAR release,
+                     non-XBRL
+                     element declarations are effectively useless and if that were ever to change this rule should be changed and some new variations
+                     included.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-19-no-ext-elt-tuples/607-19-no-ext-elt-tuples-testcase.xml">EDGAR Filer Manual v16 6.7.19 page 6-37</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1No-Tuple-Element-->
+                  <!--2No-Tuple-Element-->No-Tuple-Element
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                     2006
+                     taxonomy. Hence the inclusion of a 'good' case 003gd that imports the ICI 2006 taxonomy.  It is 'GOOD' with respect to this
+                     rule, but has dozens of violations of other EFM rules.  ICI 2006 can only be used with EX-100 attachments that are not subject
+                     to Chapter 6 validations.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-20-no-typed-domain-ref/607-20-no-typed-domain-ref-testcase.xml">EDGAR Filer Manual v16 6.7.20 page 6-37</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Typed-Domain-Ref-Disallowed-->Typed-Domain-Ref-Disallowed
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it also holds for all standard taxonomies. If there were
+                     a standard
+                     taxonomy that used xbrldt:typedDomainRef then there would be 'good' test variation covering it.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-21-abstracts-duration/607-21-abstracts-duration-testcase.xml">EDGAR Filer Manual v16 6.7.21 page 6-37</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Abstract-Is-Instant-->Abstract-Is-Instant
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                     2006
+                     taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-23-dimensions-named-axis/607-23-dimensions-named-axis-testcase.xml">EDGAR Filer Manual v16 6.7.23 page 6-38</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Axis-Dimension-Name-Mismatch-->
+                  <!--2Axis-Dimension-Name-Mismatch-->Axis-Dimension-Name-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                     2006
+                     taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-24-hypercubes-named-table/607-24-hypercubes-named-table-testcase.xml">EDGAR Filer Manual v16 6.7.24 page 6-38</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Table-Hypercube-Name-Mismatch-->
+                  <!--2Table-Hypercube-Name-Mismatch-->Table-Hypercube-Name-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                     2006
+                     taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-25-no-custom-substitutiongroups/607-25-no-custom-substitutiongroups-testcase.xml">EDGAR Filer Manual v16 6.7.25 page 6-38</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Substitution-Group-Custom-->Substitution-Group-Custom
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies. If there were any
+                     such
+                     standard taxonomy it would be included in a 'good' test variation.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This does allow @substitutionGroup to be absent, so it would allow non-XBRL elements and that may have some use in
+                     some
+                     future EDGAR release.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-26-lineitems-abstract/607-26-lineitems-abstract-testcase.xml">EDGAR Filer Manual v16 6.7.26 page 6-38</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1LineItems-Abstract-Name-Mismatch-->LineItems-Abstract-Name-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies. If there were any
+                     such
+                     standard taxonomy it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-27-domain-member-type/607-27-domain-member-type-testcase.xml">EDGAR Filer Manual v16 6.7.27 page 6-38</a></td>
+               <td align="center" valign="top">10</td>
+               <td nowrap valign="top">
+                  <!--1Domain-Type-Name-Mismatch-->
+                  <!--2Domain-Type-Name-Mismatch-->
+                  <!--3Domain-Type-Name-Mismatch-->
+                  <!--4Domain-Type-Name-Mismatch-->
+                  <!--5Domain-Type-Name-Mismatch-->
+                  <!--6Domain-Type-Name-Mismatch-->
+                  <!--7Domain-Type-Name-Mismatch-->
+                  <!--8Domain-Type-Name-Mismatch-->Domain-Type-Name-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies.</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: The original wording required a specific US type, not a type derived from it.
+                     Now, types in any standard namespace can trigger this rule. 006gd flips to 006ng as a consequence.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="607-schema-syntax/607-28-domain-member-duration/607-28-domain-member-duration-testcase.xml">EDGAR Filer Manual v16 6.7.28 page 6-38</a></td>
+               <td align="center" valign="top">5</td>
+               <td nowrap valign="top">
+                  <!--1Domain-Member-Is-Instant-->
+                  <!--2Domain-Member-Is-Instant-->
+                  <!--3Domain-Member-Is-Instant-->
+                  <!--4Domain-Member-Is-Instant-->Domain-Member-Is-Instant
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this only applies to company extension schemas, although it holds for all standard taxonomies. If there were a standard
+                     taxonomy that violated the rule, it would appear in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="609-linkbase-syntax/609-03-no-ineffectual-arcs/609-03-no-ineffectual-arcs-testcase.xml">EDGAR Filer Manual v14 6.9.3 page 6-46</a></td>
+               <td align="center" valign="top">13</td>
+               <td nowrap valign="top">
+                  <!--1Relationship-Ineffectual-->
+                  <!--2Relationship-Ineffectual-->
+                  <!--3Relationship-Ineffectual-->
+                  <!--4Relationship-Ineffectual-->
+                  <!--5Relationship-Ineffectual-->
+                  <!--6Relationship-Ineffectual-->
+                  <!--7Relationship-Ineffectual-->
+                  <!--8Relationship-Ineffectual-->
+                  <!--9Relationship-Ineffectual-->
+                  <!--10Relationship-Ineffectual-->Relationship-Ineffectual
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="609-linkbase-syntax/609-04-no-missing-default-roles/609-04-no-missing-default-roles-testcase.xml">EDGAR Filer Manual v16 6.9.4 page 6-47</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Resource-Role-Missing-->Resource-Role-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Note that type='extended' is handled by XBRL 2.1 so this really only applies to type='resource', and there are other
+                     rules
+                     for reference and footnote that would trigger errors if the xlink:role were missing. Therefore just one variation for the
+                     label
+                     resource, for now.  Also note that this only applies to a company extension linkbase.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="609-linkbase-syntax/609-05-no-custom-resource-roles/609-05-no-custom-resource-roles-testcase.xml">EDGAR Filer Manual v16 6.9.5 page 6-47</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Custom-Resource-Role-Used-->Custom-Resource-Role-Used
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: type='extended' is handled by XBRL 2.1 so this really only applies to type='resource', moreover, footnote and reference
+                     would
+                     be handled by other rules so this is only for labels.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to a company extension linkbase. There is no standard taxonomy linkbase that violates this rule,
+                     but if
+                     there were, it would be included in a 'good' test variation.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: the roles declared in these tests have link:definition text that conforms to 6.7.12 even though 6.7.12 was only meant
+                     to
+                     apply to roles that are used on link:presentation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="609-linkbase-syntax/609-06-no-custom-arcroles/609-06-no-custom-arcroles-testcase.xml">EDGAR Filer Manual v16 6.9.6 page 6-47</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Custom-Arcrole-Referenced-->Custom-Arcrole-Referenced
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This applies only to company extension taxonomies. The arc roles declared in <a href="http://www.xbrl.org/2005/xbrldt-2005.xsd">http://www.xbrl.org/2005/xbrldt-2005.xsd</a> are
+                     okay because that is a standard taxonomy location. The arc roles declared in US GAAP 2009 are not in a standard taxonomy location.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="609-linkbase-syntax/609-07-linkbases-distinct/609-07-linkbases-distinct-testcase.xml">EDGAR Filer Manual v16 6.9.7 page 6-47</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Linkbases-Distinct-->Linkbases-Distinct
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Although this error is caught at the EDGARLink submission (transport) level it is easy to verify before attempted
+                     submission.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to a company extension linkbase. There is no standard taxonomy linkbase that violates this rule,
+                     but if
+                     there were, it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="609-linkbase-syntax/609-09-priority-less-than-ten/609-09-priority-less-than-ten-testcase.xml">EDGAR Filer Manual v16 6.9.9 page 6-48</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Relationship-Priority-Not-Less-Than-Ten-->Relationship-Priority-Not-Less-Than-Ten
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to a company extension linkbase. The RR 2010 standard taxonomy linkbase contains
+                     links with priority attributes of 10, and is therefore a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="610-label-syntax/610-01-element-used-has-label/610-01-element-used-has-label-testcase.xml">EDGAR Filer Manual v16 6.10.1 page 6-48</a></td>
+               <td align="center" valign="top">8</td>
+               <td nowrap valign="top">
+                  <!--1Element-Used-Standard-Label-->
+                  <!--2Element-Used-Standard-Label-->
+                  <!--3Element-Used-Standard-Label-->
+                  <!--4Element-Used-Standard-Label-->
+                  <!--5Element-Used-Standard-Label-->
+                  <!--6Element-Used-Standard-Label-->Element-Used-Standard-Label
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="610-label-syntax/610-02-element-used-one-label-per-role/610-02-element-used-one-label-per-role-testcase.xml">EDGAR Filer Manual v16 6.10.2 page 6-48</a></td>
+               <td align="center" valign="top">5</td>
+               <td nowrap valign="top">
+                  <!--1Element-Used-Has-Duplicate-Label-->
+                  <!--2Element-Used-Has-Duplicate-Label-->
+                  <!--3Element-Used-Has-Duplicate-Label-->Element-Used-Has-Duplicate-Label
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="610-label-syntax/610-03-foreign-label-requires-english/610-03-foreign-label-requires-english-testcase.xml">EDGAR Filer Manual v16 6.10.3 page 6-48</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1Element-Used-Standard-English-Label-->
+                  <!--2Element-Used-Standard-English-Label-->Element-Used-Standard-English-Label
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="610-label-syntax/610-04-distinct-standard-labels/610-04-distinct-standard-labels-testcase.xml">EDGAR Filer Manual v16 6.10.4 page 6-48</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1English-Standard-Labels-Duplicated-->
+                  <!--2English-Standard-Labels-Duplicated-->English-Standard-Labels-Duplicated
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this restriction applies to all elements, not just those used in the instance.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="610-label-syntax/610-05-no-documentation-replacement/610-05-no-documentation-replacement-testcase.xml">EDGAR Filer Manual v16 6.10.5 page 6-49</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Custom-Documentation-Standard-Element-->Custom-Documentation-Standard-Element
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If edgartaxonomies.xml were to list a standard taxonomy linkbase
+                     containing
+                     'documentation' label roles, then that standard taxonomy linkbase would be included in a 'good' testcase variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="610-label-syntax/610-06-no-special-chars-unless-documentation/610-06-no-special-chars-unless-documentation-testcase.xml">EDGAR Filer Manual v16 6.10.6 page 6-49</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1Label-Disallowed-->
+                  <!--2Label-Disallowed-->Label-Disallowed
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension label linkbases. If a standard taxonomy label linkbase appearing in
+                     edgartaxonomies.xml violated this rule it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="610-label-syntax/610-08-label-is-trimmed/610-08-label-is-trimmed-testcase.xml">EDGAR Filer Manual v16 6.10.8 page 6-49</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Label-Not-Trimmed-->
+                  <!--2Label-Not-Trimmed-->Label-Not-Trimmed
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension label linkbases. If a standard taxonomy label linkbase appearing in
+                     edgartaxonomies.xml were to violate this rule, then it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="612-presentation-syntax/612-01-presentation-order-required/612-01-presentation-order-required-testcase.xml">EDGAR Filer Manual v16 6.12.1 page 6-53</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Presentation-Order-Missing-->Presentation-Order-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                     violated
+                     this rule it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="612-presentation-syntax/612-02-presentation-order-distinct/612-02-presentation-order-distinct-testcase.xml">EDGAR Filer Manual v14 6.12.2 page 6-52</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Presentation-Order-Duplicates-->Presentation-Order-Duplicates
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: this rule applies whether either of the elements in the presentation arcs used in an instance or not</p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                     violated
+                     this rule it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="612-presentation-syntax/612-03-element-used-is-presented/612-03-element-used-is-presented-testcase.xml">EDGAR Filer Manual v16 6.12.3 page 6-53</a></td>
+               <td align="center" valign="top">7</td>
+               <td nowrap valign="top">
+                  <!--1Element-Used-Not-Presented-->
+                  <!--2Element-Used-Not-Presented-->
+                  <!--3Element-Used-Not-Presented-->
+                  <!--4Element-Used-Not-Presented-->Element-Used-Not-Presented
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="612-presentation-syntax/612-05-distinct-preferred-labels/612-05-distinct-preferred-labels-testcase.xml">EDGAR Filer Manual v16 6.12.5 page 6-54</a></td>
+               <td align="center" valign="top">5</td>
+               <td nowrap valign="top">
+                  <!--1Preferred-Label-Duplicates-->
+                  <!--2Preferred-Label-Duplicates-->Preferred-Label-Duplicates
+               </td>
+               <td valign="top"></td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="614-calculation-syntax/614-01-calculation-order-required/614-01-calculation-order-required-testcase.xml">EDGAR Filer Manual v16 6.14.1 page 6-55</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Calculation-Relationship-Order-Missing-->Calculation-Relationship-Order-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension
+                     linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml violated this rule it would be included
+                     in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="614-calculation-syntax/614-02-calculation-is-unitary/614-02-calculation-is-unitary-testcase.xml">EDGAR Filer Manual v16 6.14.2 page 6-55</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Calculation-Relationship-Weight-Not-Unitary-->Calculation-Relationship-Weight-Not-Unitary
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                     violated
+                     this rule it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="614-calculation-syntax/614-03-calculation-same-period-types/614-03-calculation-same-period-types-testcase.xml">EDGAR Filer Manual v16 6.14.3 page 6-55</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Calculation-Relationship-Has-Different-Period-Types-->Calculation-Relationship-Has-Different-Period-Types
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                     violated
+                     this rule it would be included in a 'good' test variation. In fact, because there are no standard taxonomies that violate
+                     the rule,
+                     there is not even a variation that tests whether such a bad arc would be okay if prohibited.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="614-calculation-syntax/614-04-summation-item-undirected/614-04-summation-item-undirected-testcase.xml">EDGAR Filer Manual v16 6.14.4 page 6-55</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Circular-Calculation-->Circular-Calculation
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                     violated
+                     this rule it would be included in a 'good' test variation. In particular, add this test: calculation arcs form a directed
+                     cycle, but
+                     one of the imported standard arcs is prohibited, GOOD.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="614-calculation-syntax/614-05-calculation-has-presentation-same-base-set/614-05-calculation-has-presentation-same-base-set-testcase.xml">EDGAR Filer Manual v16 6.14.5 page 6-55</a></td>
+               <td align="center" valign="top">9</td>
+               <td nowrap valign="top">
+                  <!--1Facts-In-Calculations-Presentation-Missing-->
+                  <!--2Facts-In-Calculations-Presentation-Missing-->
+                  <!--3Facts-In-Calculations-Presentation-Missing-->Facts-In-Calculations-Presentation-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Should be "...single extended link <i>role</i>".
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-01-definition-relationship-has-order/616-01-definition-relationship-has-order-testcase.xml">EDGAR Filer Manual v16 6.16.1 page 6-57</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Definition-Relationship-Order-Missing-->Definition-Relationship-Order-Missing
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing
+                     in edgartaxonomies.xml violated this rule it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-03-dimension-domain-is-domain/616-03-dimension-domain-is-domain-testcase.xml">EDGAR Filer Manual v16 6.16.3 page 6-58</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1Dimension-Domain-Target-Mismatch-->
+                  <!--2Dimension-Domain-Target-Mismatch-->Dimension-Domain-Target-Mismatch
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Note that it is not necessary for the target element to be used in the instance, for this to be a violation.</p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-04-domain-member-no-cycles/616-04-domain-member-no-cycles-testcase.xml">EDGAR Filer Manual v16 6.16.4 page 6-58</a></td>
+               <td align="center" valign="top">10</td>
+               <td nowrap valign="top">
+                  <!--1Domain-Is-Tangled-->
+                  <!--2Domain-Is-Tangled-->
+                  <!--3Domain-Is-Tangled-->
+                  <!--4Domain-Is-Tangled-->
+                  <!--5Domain-Is-Tangled-->Domain-Is-Tangled
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: DRS discovery begins at dimension-domain relationships. Whether the domain member appears in instance facts is not
+                     relevant.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-05-one-all-per-base-set/616-05-one-all-per-base-set-testcase.xml">EDGAR Filer Manual v16 6.16.5 page 6-58</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Primary-Element-Has-Redundant-Tables-->Primary-Element-Has-Redundant-Tables
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This constraint does not take primary item inheritance into account, and therefore rules out the simplest uses of
+                     unions of
+                     'all' hypercubes. A future release may take primary item inheritance into account and therefore implementors may wish to issue
+                     a
+                     warning in situations like that shown in variation 002gd.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-06-notall-must-have-closed-false/616-06-notall-must-have-closed-false-testcase.xml">EDGAR Filer Manual v16 6.16.6 page 6-58</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Not-All-Relationship-Is-Closed-->Not-All-Relationship-Is-Closed
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                     violated
+                     this rule it would be included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-07-notall-axis-requires-all/616-07-notall-axis-requires-all-testcase.xml">EDGAR Filer Manual v16 6.16.7 page 6-59</a></td>
+               <td align="center" valign="top">4</td>
+               <td nowrap valign="top">
+                  <!--1Axis-Excluded-Not-In-Table-->
+                  <!--2Axis-Excluded-Not-In-Table-->Axis-Excluded-Not-In-Table
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Ordinarily there would be a test here which would have a prohibited notAll arc somewhere; can't do that in this test
+                     because
+                     no standard taxonomy has a notAll, and the prohibition on ineffectual arcs prevents me from putting one in here. So those
+                     were
+                     variations 001 and 003 and they are not in here.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This rule is intended to ensure that the notAll arc does not forbid members of a dimension that is not even relevant
+                     to a
+                     hypercube. domain-member relationships between P1 and P2 are not relevant, since neither all nor notAll are ever consecutive
+                     from
+                     domain-member. Note that the rule assumes, but does not require, that the target roles on HcDim1 and HcDim2 are different,
+                     so that the
+                     members of Dim1 are different in HC1 and HC2.
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: The rule, as written, fails to make explicit that the condition can only be evaluated with respect to some primary
+                     item;
+                     without some primary item as a common ancestor, dimensions are irrelevant to each other. In variation 003ng,
+                     the element EntityTaxIdentificationNumber has a notAll, but no all (and neither does any ancestor in that role).
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-08-notall-all-are-distinct/616-08-notall-all-are-distinct-testcase.xml">EDGAR Filer Manual v16 6.16.8 page 6-59</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Table-Excludes-Itself-->Table-Excludes-Itself
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This rule complements 6.16.7 by ensuring that HC1 and HC2 are distinct. The combination of this constraint, 6.16.4,
+                     and XBRL
+                     Dimensions 1.0 constraint's prohibition of undirected cycles in HcDim relationships prevents using @targetRole to give the
+                     same HC
+                     element different members of the same axis.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="616-definition-syntax/616-09-consecutive-relationship-required/616-09-consecutive-relationship-required-testcase.xml">EDGAR Filer Manual v16 6.16.9 page 6-59</a></td>
+               <td align="center" valign="top">9</td>
+               <td nowrap valign="top">
+                  <!--1Target-Role-With-No-Consecutive-Relationships-->
+                  <!--2Target-Role-With-No-Consecutive-Relationships-->
+                  <!--3Target-Role-With-No-Consecutive-Relationships-->
+                  <!--4Target-Role-With-No-Consecutive-Relationships-->Target-Role-With-No-Consecutive-Relationships
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: Consecutive relationships are defined at <a href="http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1">http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1</a> and consist only of the following initial-following arc role
+                     pairs: all, hypercube-dimension; not-all, hypercube-dimension; hypercube-dimension, dimension-domain; dimension-domain, domain-member;
+                     domain-member, domain-member. Note that domain-member is never followed by all, not-all, or any arcrole other than domain-member.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="618-reference-syntax/618-01-no-custom-references/618-01-no-custom-references-testcase.xml">EDGAR Filer Manual v16 6.18.1 page 6-60</a></td>
+               <td align="center" valign="top">2</td>
+               <td nowrap valign="top">
+                  <!--1Custom-Element-Has-Reference-->Custom-Element-Has-Reference
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: A company extension also cannot remove or change references in standard taxonomies (this is a technical consequence
+                     of the
+                     rule prohibiting URI fragments other than shorthand xpointers).
+                  </p>
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: This only applies to company extension linkbases. If there were a reference linkbase in edgartaxonomies.xml, then
+                     it would be
+                     included in a 'good' test variation.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="618-reference-syntax/618-02-no-added-references/618-02-no-added-references-testcase.xml">EDGAR Filer Manual v16 6.18.2 page 6-60</a></td>
+               <td align="center" valign="top">1</td>
+               <td nowrap valign="top">
+                  <!--1Standard-Element-Has-Reference-->Standard-Element-Has-Reference
+               </td>
+               <td valign="top">
+                  <p xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">REMARK: 6.19 reads "A company extension also cannot remove or change references in
+                     standard taxonomies (this is a technical consequence of the rule prohibiting URI fragments other than shorthand
+                     xpointers)." but this does not explicitly say the obvious point that you can't ADD authoritative references,
+                     either.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="622-only-supported-locations/622-02-no-unsupported-locations/622-02-no-unsupported-locations-testcase.xml">EDGAR Filer Manual v16 6.22.2 page 6-61</a></td>
+               <td align="center" valign="top">32</td>
+               <td nowrap valign="top">
+                  <!--1Prohibited-Href-Or-Schema-Location-->
+                  <!--2Prohibited-Href-Or-Schema-Location-->
+                  <!--3Prohibited-Href-Or-Schema-Location-->
+                  <!--4Prohibited-Href-Or-Schema-Location-->
+                  <!--5Prohibited-Href-Or-Schema-Location-->
+                  <!--6Prohibited-Href-Or-Schema-Location-->
+                  <!--7Prohibited-Href-Or-Schema-Location-->
+                  <!--8Prohibited-Href-Or-Schema-Location-->
+                  <!--9Prohibited-Href-Or-Schema-Location-->
+                  <!--10Prohibited-Href-Or-Schema-Location-->
+                  <!--11Prohibited-Href-Or-Schema-Location-->
+                  <!--12Prohibited-Href-Or-Schema-Location-->
+                  <!--13Prohibited-Href-Or-Schema-Location-->
+                  <!--14Prohibited-Href-Or-Schema-Location-->
+                  <!--15Prohibited-Href-Or-Schema-Location-->
+                  <!--16Prohibited-Href-Or-Schema-Location-->
+                  <!--17Prohibited-Href-Or-Schema-Location-->
+                  <!--18Prohibited-Href-Or-Schema-Location-->
+                  <!--19Prohibited-Href-Or-Schema-Location-->
+                  <!--20Prohibited-Href-Or-Schema-Location-->
+                  <!--21Prohibited-Href-Or-Schema-Location-->
+                  <!--22Prohibited-Href-Or-Schema-Location-->
+                  <!--23Prohibited-Href-Or-Schema-Location-->
+                  <!--24Prohibited-Href-Or-Schema-Location-->
+                  <!--25Prohibited-Href-Or-Schema-Location-->
+                  <!--26Prohibited-Href-Or-Schema-Location-->
+                  <!--27Prohibited-Href-Or-Schema-Location-->
+                  <!--28Prohibited-Href-Or-Schema-Location-->
+                  <!--29Prohibited-Href-Or-Schema-Location-->
+                  <!--30Prohibited-Href-Or-Schema-Location-->
+                  <!--31Prohibited-Href-Or-Schema-Location-->
+                  <!--32Prohibited-Href-Or-Schema-Location-->Prohibited-Href-Or-Schema-Location
+               </td>
+               <td valign="top">
+                  <p xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns="http://edgar/2009/conformance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:ee="http://edgar/error">REMARK: There is no such section 6.22.2, it is meant to refer to 'files that are likely to be referenced but that
+                     actually we do not allow.'. Keep in mind that
+                     <a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">http://www.sec.gov/info/edgar/edgartaxonomies.xml</a> is the ONLY authoritative source of "standard
+                     taxonomies". In this test suite we test a subset of the disallowed files, one at a time.
+                     
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml">EDGAR Filer Manual v16 6.22.3 page 6-61</a></td>
+               <td align="center" valign="top">11</td>
+               <td nowrap valign="top">
+                  <!--1Inconsistent-Schemas-->
+                  <!--2Inconsistent-Schemas-->
+                  <!--3Inconsistent-Schemas-->
+                  <!--4Inconsistent-Schemas-->
+                  <!--5Inconsistent-Schemas-->
+                  <!--6Inconsistent-Schemas-->
+                  <!--7Inconsistent-Schemas-->
+                  <!--8Inconsistent-Schemas-->
+                  <!--9Inconsistent-Schemas-->
+                  <!--10Inconsistent-Schemas-->
+                  <!--11Inconsistent-Schemas-->Inconsistent-Schemas
+               </td>
+               <td valign="top">
+                  <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns="http://edgar/2009/conformance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink">REMARK: There is no such section 6.22.3, these tests are just to verify that 2008 taxonomies work together but do
+                     not work with the 2009 or subsequent taxonomies because of the XBRL 2.1 level conflict between roleType
+                     declarations (when their allowed linkbases are included in the mix). Going forward, taxonomies of different
+                     vintages are expected to coexist in a DTS without XBRL-level errors and this testcase will not be necessary.
+                  </p>
+               </td>
+            </tr>
+            <tr>
+               <td nowrap valign="top"><a href="622-only-supported-locations/622-04-ex101/622-04-ex101-testcase.xml">EDGAR Filer Manual v16 6.22.4 page 6-61</a></td>
+               <td align="center" valign="top">3</td>
+               <td nowrap valign="top">
+                  <!--1Decimals-Not-Precision-->
+                  <!--2Decimals-Not-Precision-->
+                  <!--3Decimals-Not-Precision-->Decimals-Not-Precision
+               </td>
+               <td valign="top">
+                  <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:ee="http://edgar/error" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns="http://edgar/2009/conformance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink">REMARK: There is no such section 6.22.4, it is only here to make sure that ex-101's are validated even for SOI and RR taxonomies.</p>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+   </body>
+</html>

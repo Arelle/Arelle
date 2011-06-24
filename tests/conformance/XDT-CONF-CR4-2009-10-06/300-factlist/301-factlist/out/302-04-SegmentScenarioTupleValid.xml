@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:my="http://mycompany.com/xbrl/taxonomy">my:unemploymentRate</qnElement>
+      <sPointer>4</sPointer>
+   </item>
+   <item>
+      <qnElement xmlns:my="http://mycompany.com/xbrl/taxonomy">my:unemploymentRate</qnElement>
+      <sPointer>5/1</sPointer>
+   </item>
+   <item>
+      <qnElement xmlns:my="http://mycompany.com/xbrl/taxonomy">my:unemploymentRate</qnElement>
+      <sPointer>5/2</sPointer>
+   </item>
+</facts>

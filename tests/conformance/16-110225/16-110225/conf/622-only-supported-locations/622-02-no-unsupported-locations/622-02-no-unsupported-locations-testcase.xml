@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:ee="http://edgar/error"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns="http://edgar/2009/conformance"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>622-02</number>
+<name>EDGAR Filer Manual v16 6.22.2 page 6-61</name>
+<description>
+<h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+<p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files
+that are supported by EDGAR, their locations, required namespaces, and where appropriate, the relevant EDGAR form
+types.</p>
+<p>REMARK: There is no such section 6.22.2, it is meant to refer to 'files that are likely to be referenced but that
+actually we do not allow.'. Keep in mind that <a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">http://www.sec.gov/info/edgar/edgartaxonomies.xml</a> is the ONLY authoritative source of "standard
+taxonomies". In this test suite we test a subset of the disallowed files, one at a time.</p>
+</description>
+<reference specification="11172"/>
+<variation id="_000ng">
+<name>6.22.2 Hrefs (us-rocr/2009/ratings-doc-2009-10-31.xml) in schema of http://e62202000ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-rocr/2009/ratings-doc-2009-10-31.xml) in schema of http://e62202000ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202000ng-20081231.xml</instance>
+<schema>e62202000ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_001ng">
+<name>6.22.2 Hrefs (us-rocr/2009/ratings-lab-2009-10-31.xml) in schema of http://e62202001ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-rocr/2009/ratings-lab-2009-10-31.xml) in schema of http://e62202001ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202001ng-20081231.xml</instance>
+<schema>e62202001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.22.2 Hrefs (rr/2008/rr-doc-2008-12-31.xml) in schema of http://e62202002ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (rr/2008/rr-doc-2008-12-31.xml) in schema of http://e62202002ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202002ng-20081231.xml</instance>
+<schema>e62202002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.22.2 Hrefs () in schema of http://e62202003ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs () in schema of http://e62202003ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202003ng-20081231.xml</instance>
+<schema>e62202003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.22.2 Hrefs () in schema of http://e62202004ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs () in schema of http://e62202004ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202004ng-20081231.xml</instance>
+<schema>e62202004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.22.2 Hrefs (us-gaap/2009/elts/us-arcroles-2009-01-31.xsd) in schema of http://e62202005ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/elts/us-arcroles-2009-01-31.xsd) in schema of http://e62202005ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202005ng-20081231.xml</instance>
+<schema>e62202005ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.22.2 Hrefs (us-gaap/2009/elts/us-gaap-doc-2009-01-31.xml) in schema of http://e62202006ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/elts/us-gaap-doc-2009-01-31.xml) in schema of http://e62202006ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202006ng-20081231.xml</instance>
+<schema>e62202006ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_007ng">
+<name>6.22.2 Hrefs (us-gaap/2009/elts/us-gaap-lab-2009-01-31.xml) in schema of http://e62202007ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/elts/us-gaap-lab-2009-01-31.xml) in schema of http://e62202007ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202007ng-20081231.xml</instance>
+<schema>e62202007ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_008ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/ar-doc-2009-01-31.xml) in schema of http://e62202008ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/ar-doc-2009-01-31.xml) in schema of http://e62202008ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202008ng-20081231.xml</instance>
+<schema>e62202008ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_009ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/ar-lab-2009-01-31.xml) in schema of http://e62202009ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/ar-lab-2009-01-31.xml) in schema of http://e62202009ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202009ng-20081231.xml</instance>
+<schema>e62202009ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_010ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/country-doc-2009-01-31.xml) in schema of http://e62202010ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/country-doc-2009-01-31.xml) in schema of http://e62202010ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202010ng-20081231.xml</instance>
+<schema>e62202010ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_011ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/country-lab-2009-01-31.xml) in schema of http://e62202011ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/country-lab-2009-01-31.xml) in schema of http://e62202011ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202011ng-20081231.xml</instance>
+<schema>e62202011ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_012ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/currency-doc-2009-01-31.xml) in schema of http://e62202012ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/currency-doc-2009-01-31.xml) in schema of http://e62202012ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202012ng-20081231.xml</instance>
+<schema>e62202012ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_013ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/currency-lab-2009-01-31.xml) in schema of http://e62202013ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/currency-lab-2009-01-31.xml) in schema of http://e62202013ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202013ng-20081231.xml</instance>
+<schema>e62202013ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_014ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/dei-doc-2009-01-31.xml) in schema of http://e62202014ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/dei-doc-2009-01-31.xml) in schema of http://e62202014ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202014ng-20081231.xml</instance>
+<schema>e62202014ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_015ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/dei-ent-std-2009-01-31.xsd) in schema of http://e62202015ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/dei-ent-std-2009-01-31.xsd) in schema of http://e62202015ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202015ng-20081231.xml</instance>
+<schema>e62202015ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_016ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/exch-doc-2009-01-31.xml) in schema of http://e62202016ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/exch-doc-2009-01-31.xml) in schema of http://e62202016ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202016ng-20081231.xml</instance>
+<schema>e62202016ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_017ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/exch-lab-2009-01-31.xml) in schema of http://e62202017ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/exch-lab-2009-01-31.xml) in schema of http://e62202017ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202017ng-20081231.xml</instance>
+<schema>e62202017ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_018ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/invest-doc-2009-01-31.xml) in schema of http://e62202018ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/invest-doc-2009-01-31.xml) in schema of http://e62202018ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202018ng-20081231.xml</instance>
+<schema>e62202018ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_019ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/invest-lab-2009-01-31.xml) in schema of http://e62202019ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/invest-lab-2009-01-31.xml) in schema of http://e62202019ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202019ng-20081231.xml</instance>
+<schema>e62202019ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_020ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/mda-doc-2009-01-31.xml) in schema of http://e62202020ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/mda-doc-2009-01-31.xml) in schema of http://e62202020ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202020ng-20081231.xml</instance>
+<schema>e62202020ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_021ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/mda-lab-2009-01-31.xml) in schema of http://e62202021ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/mda-lab-2009-01-31.xml) in schema of http://e62202021ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202021ng-20081231.xml</instance>
+<schema>e62202021ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_022ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/mr-doc-2009-01-31.xml) in schema of http://e62202022ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/mr-doc-2009-01-31.xml) in schema of http://e62202022ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202022ng-20081231.xml</instance>
+<schema>e62202022ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_023ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/mr-lab-2009-01-31.xml) in schema of http://e62202023ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/mr-lab-2009-01-31.xml) in schema of http://e62202023ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202023ng-20081231.xml</instance>
+<schema>e62202023ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_024ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/naics-doc-2009-01-31.xml) in schema of http://e62202024ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/naics-doc-2009-01-31.xml) in schema of http://e62202024ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202024ng-20081231.xml</instance>
+<schema>e62202024ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_025ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/naics-lab-2009-01-31.xml) in schema of http://e62202025ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/naics-lab-2009-01-31.xml) in schema of http://e62202025ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202025ng-20081231.xml</instance>
+<schema>e62202025ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_026ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/seccert-doc-2009-01-31.xml) in schema of http://e62202026ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/seccert-doc-2009-01-31.xml) in schema of http://e62202026ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202026ng-20081231.xml</instance>
+<schema>e62202026ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_027ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/seccert-lab-2009-01-31.xml) in schema of http://e62202027ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/seccert-lab-2009-01-31.xml) in schema of http://e62202027ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202027ng-20081231.xml</instance>
+<schema>e62202027ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_028ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/sic-doc-2009-01-31.xml) in schema of http://e62202028ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/sic-doc-2009-01-31.xml) in schema of http://e62202028ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202028ng-20081231.xml</instance>
+<schema>e62202028ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_029ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/sic-lab-2009-01-31.xml) in schema of http://e62202029ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/sic-lab-2009-01-31.xml) in schema of http://e62202029ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202029ng-20081231.xml</instance>
+<schema>e62202029ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_030ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/stpr-doc-2009-01-31.xml) in schema of http://e62202030ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/stpr-doc-2009-01-31.xml) in schema of http://e62202030ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202030ng-20081231.xml</instance>
+<schema>e62202030ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_031ng">
+<name>6.22.2 Hrefs (us-gaap/2009/non-gaap/stpr-lab-2009-01-31.xml) in schema of http://e62202031ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs (us-gaap/2009/non-gaap/stpr-lab-2009-01-31.xml) in schema of http://e62202031ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202031ng-20081231.xml</instance>
+<schema>e62202031ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_032ng">
+<name>6.22.2 Hrefs () in schema of http://e62202032ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs () in schema of http://e62202032ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202032ng-20081231.xml</instance>
+<linkbase>edgar-20110131_lab.xml</linkbase>
+<linkbase>edgar-20110131_pre.xml</linkbase>
+<schema>edgar-20110131.xsd</schema>
+<schema>e62202032ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+<variation id="_033ng">
+<name>6.22.2 Hrefs () in schema of http://e62202033ng/20081231, NOGOOD</name>
+<description>6.22.2 Hrefs () in schema of http://e62202033ng/20081231, NOGOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62202033ng-20081231.xml</instance>
+<linkbase>edgar-20110131_lab.xml</linkbase>
+<linkbase>edgar-20110131_pre.xml</linkbase>
+<schema>edgar-20110131.xsd</schema>
+<schema>e62202033ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="62202" name="Prohibited-Href-Or-Schema-Location" frd="cp"/>
+</result>
+</variation>
+</testcase>

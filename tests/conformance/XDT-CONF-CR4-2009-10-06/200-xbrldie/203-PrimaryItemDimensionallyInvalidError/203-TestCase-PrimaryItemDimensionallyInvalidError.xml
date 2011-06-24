@@ -1,0 +1,3101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" xmlns="http://xbrl.org/2005/conformance"
+        name="203-TestCase-PrimaryItemDimensionallyInvalidError"
+        description="Rules 2.4.2.1, 2.8.3.1 and section 2.9." outpath="out" owner="ihr@xbrl.org"
+        minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional syntax rules pertaining to instances and not covered by XML Schema and XBRL validation. -->
+        <!-- As of the 2005-10-26 internal working draft (by HF).  -->
+        <!-- 3.1.1  1.  A primary item is dimensionally valid in the hypercubes found in at least one base set are mutually valid. See 3.1.2 below, "Mutual validity of hypercubes in a base set". A dimensional processor MUST raise an error [Ins Err, 3] xbrldie:PrimaryItemDimensionallyInvalidError if the hypercube combinations found in all base sets are invalid. -->
+        <variation id="V-01" name="combinationOfCubesCase1Segment">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (line 1) One cube,
+                        all-valid: result-true.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase1Segment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase1Segment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase1Segment-label.xml</linkbase>
+                        <instance readMeFirst="true">combinationOfCubesCase1Segment.xbrl</instance>
+                </data>
+                <result>
+                        <file>combinationOfCubesCase1Segment.xml</file>
+                </result>
+        </variation>
+        <variation id="V-02" name="combinationOfCubesCase6Segment">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (line 4) One cube,
+                        all-invalid: result-false.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase6Segment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase6Segment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase6Segment-label.xml</linkbase>
+                        <instance readMeFirst="true">combinationOfCubesCase6Segment.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-03" name="combinationOfCubesCase2Segment">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (line 5) One cube,
+                        notAll-valid: result-false.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase2Segment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase2Segment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase2Segment-label.xml</linkbase>
+                        <instance readMeFirst="true">combinationOfCubesCase2Segment.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-04" name="combinationOfCubesCase3Segment">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (line 3) Two cubes,
+                        all-valid, notAll-invalid: result-true.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase3Segment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase3Segment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase3Segment-label.xml</linkbase>
+                        <instance readMeFirst="true">combinationOfCubesCase3Segment.xbrl</instance>
+                </data>
+                <result>
+                        <file>combinationOfCubesCase3Segment.xml</file>
+                </result>
+        </variation>
+        <variation id="V-05" name="combinationOfCubesCase4Segment">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (line 2) One cube,
+                        notAll-invalid: result-true.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase4Segment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase4Segment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase4Segment-label.xml</linkbase>
+                        <instance readMeFirst="true">combinationOfCubesCase4Segment.xbrl</instance>
+                </data>
+                <result>
+                        <file>combinationOfCubesCase4Segment.xml</file>
+                </result>
+        </variation>
+        <variation id="V-06" name="combinationOfCubesCase5Segment">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (line 6) Two cubes,
+                        all-valid, notAll-valid: result-false: cubes are equivalent so are both
+                        satisfied.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase5Segment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase5Segment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase5Segment-label.xml</linkbase>
+                        <instance readMeFirst="true">combinationOfCubesCase5Segment.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-07" name="contextForbiddenExplicitDimInSegment">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (6) Two cubes,
+                        all-valid, notAll-valid: result-false: Two fact values have separate
+                        contexts with segment dimensions, one (merlot/Japan) meets all hypercube and
+                        fails notAll and thus is ok, the second (sedan/UnitedKingdom) meets the
+                        condition of the notAll hypercube and thus is a forbidden
+                        dimension.</description>
+                <data>
+                        <xsd readMeFirst="false">contextForbiddenExplicitDimInSegment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextForbiddenExplicitDimInSegment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextForbiddenExplicitDimInSegment-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >contextForbiddenExplicitDimInSegment.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-08" name="contextForbiddenExplicitDimMemberInScenario">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Fig. 3 (6) Two cubes,
+                        all-valid, notAll-valid: result-false: Two fact values have separate
+                        contexts with scenario dimensions, one (merlot/Japan) meets all hypercube
+                        and fails notAll and thus is ok, the second (sedan/UnitedKingdom) meets the
+                        condition of the notAll hypercube and thus is a forbidden
+                        dimension.</description>
+                <data>
+                        <xsd readMeFirst="false">contextForbiddenExplicitDimInScenario.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextForbiddenExplicitDimInScenario-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextForbiddenExplicitDimInScenario-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >contextForbiddenExplicitDimInScenario.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <!-- 3.1.1:1. A primary item is dimensionally valid in the hypercubes found in at least one base set are mutually valid. See 3.1.2 below, "Mutual validity of hypercubes in a base set". A dimensional processor MUST raise an error [Ins Err, 3] xbrldie:PrimaryItemDimensionallyInvalidError ; 3.1.3.1  2. There must be a dimension value in the container indicated in If the value of the xbrldt:contextElement attribute in the has-hypercube arc. If  is segment and there is no value in the segment for the dimension in the indicated container the hypercube is invalid. -->
+        <variation id="V-09" name="contextImplicitDimNotInSegment">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.1">A typed dimension which should
+                        be in the segment is instead in the scenario, and the hypercube is not
+                        closed, by 3.1.3.1 #2 making the hypercube invalid, thus raising
+                        error.</description>
+                <data>
+                        <xsd readMeFirst="false">contextImplicitDimNotInSegment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextImplicitDimNotInSegment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextImplicitDimNotInSegment-label.xml</linkbase>
+                        <instance readMeFirst="true">contextImplicitDimNotInSegment.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-10" name="contextImplicitDimNotInScenario">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.1">A typed dimension which should
+                        be in the scenario is instead in the segment, and the hypercube is not
+                        closed.</description>
+                <data>
+                        <xsd readMeFirst="false">contextImplicitDimNotInScenario.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextImplicitDimNotInScenario-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextImplicitDimNotInScenario-label.xml</linkbase>
+                        <instance readMeFirst="true">contextImplicitDimNotInScenario.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-11" name="contextExplicitDimNotInSegment">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.1">An explicit dimension which
+                        should be in the segment is instead in the scenario, and the hypercube is
+                        not closed.</description>
+                <data>
+                        <xsd readMeFirst="false">contextExplicitDimNotInSegment.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextExplicitDimNotInSegment-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextExplicitDimNotInSegment-label.xml</linkbase>
+                        <instance readMeFirst="true">contextExplicitDimNotInSegment.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-12" name="contextExplicitDimNotInScenario">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.1">An explicit dimension which
+                        should be in the scenario is instead in the segment, and the hypercube is
+                        not closed.</description>
+                <data>
+                        <xsd readMeFirst="false">contextExplicitDimNotInScenario.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextExplicitDimNotInScenario-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextExplicitDimNotInScenario-label.xml</linkbase>
+                        <instance readMeFirst="true">contextExplicitDimNotInScenario.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-13" name="combinationOfCubesUnusableMemberInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Two dimensions, one member
+                        (Merlot)'s dimension-domain was prohibited and replaced with an unusable
+                        dimension-domain.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesUnusableMemberInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesUnusableMemberInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesUnusableMemberInvalid-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >combinationOfCubesUnusableMemberInvalid.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-14" name="combinationOfCubesUnusableDomainInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.1.1">Two dimensions, products
+                        domain is unusable.</description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesUnusableDomainInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesUnusableDomainInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesUnusableDomainInvalid-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >combinationOfCubesUnusableDomainInvalid.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-15" name="closedEmptyHypercubeIsValid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row
+                        1</description>
+                <data>
+                        <xsd readMeFirst="false">closedEmptyHypercubeIsValid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedEmptyHypercubeIsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >closedEmptyHypercubeIsValid-label.xml</linkbase>
+                        <instance readMeFirst="true">closedEmptyHypercubeIsValid.xbrl</instance>
+                </data>
+                <result>
+                        <file>closedEmptyHypercubeIsValid.xml</file>
+                </result>
+        </variation>
+        <variation id="V-16" name="openEmptyHypercubeIsValid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row
+                        2</description>
+                <data>
+                        <xsd readMeFirst="false">openEmptyHypercubeIsValid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >openEmptyHypercubeIsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">openEmptyHypercubeIsValid-label.xml</linkbase>
+                        <instance readMeFirst="true">openEmptyHypercubeIsValid.xbrl</instance>
+                </data>
+                <result>
+                        <file>openEmptyHypercubeIsValid.xml</file>
+                </result>
+        </variation>
+        <variation id="V-17" name="closedEmptyHypercubeIsInvalid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row 3. It is
+                        invalid because the hypercube is closed and contains non expected
+                        information</description>
+                <data>
+                        <xsd readMeFirst="false">closedEmptyHypercubeIsInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedEmptyHypercubeIsInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >closedEmptyHypercubeIsInvalid-label.xml</linkbase>
+                        <instance readMeFirst="true">closedEmptyHypercubeIsInvalid.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-18" name="closedNotEmptyHypercubeIsValid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row 4. No extra
+                        information is found</description>
+                <data>
+                        <xsd readMeFirst="false">closedNotEmptyHypercubeIsValid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedNotEmptyHypercubeIsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >closedNotEmptyHypercubeIsValid-label.xml</linkbase>
+                        <instance readMeFirst="true">closedNotEmptyHypercubeIsValid.xbrl</instance>
+                </data>
+                <result>
+                        <file>closedNotEmptyHypercubeIsValid.xml</file>
+                </result>
+        </variation>
+        <variation id="V-19" name="closedNotEmptyHypercubeIsInvalid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row 5. It is
+                        invalid because the hypercube is closed and contains non expected
+                        information</description>
+                <data>
+                        <xsd readMeFirst="false">closedNotEmptyHypercubeIsValid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedNotEmptyHypercubeIsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >closedNotEmptyHypercubeIsValid-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >closedNotEmptyHypercubeIsInvalid.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-20" name="openNotEmptyHypercubeIsValid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row 6. It is
+                        valid because the hypercube is open</description>
+                <data>
+                        <xsd readMeFirst="false">openNotEmptyHypercubeIsValid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >openNotEmptyHypercubeIsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >openNotEmptyHypercubeIsValid-label.xml</linkbase>
+                        <instance readMeFirst="true">openNotEmptyHypercubeIsValid.xbrl</instance>
+                </data>
+                <result>
+                        <file>openNotEmptyHypercubeIsValid.xml</file>
+                </result>
+        </variation>
+        <variation id="V-21" name="InstanceValidAccordingToTwoDimensionalTaxonomies">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">The instance is valid because
+                        hypercubes are open</description>
+                <data>
+                        <xsd readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1-label.xml</linkbase>
+                        <xsd readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2-label.xml</linkbase>
+                        <xsd readMeFirst="false">PrimaryItemTaxonomy.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesExtra-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomies.xbrl</instance>
+                </data>
+                <result>
+                        <file>InstanceValidAccordingToTwoDimensionalTaxonomies.xml</file>
+                </result>
+        </variation>
+        <variation id="V-22" name="InstanceInvalidAccordingToTwoDimensionalTaxonomies">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">The instance is invalid because
+                        hypercubes are closed</description>
+                <data>
+                        <xsd readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1-label.xml</linkbase>
+                        <xsd readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2-label.xml</linkbase>
+                        <xsd readMeFirst="false">PrimaryItemTaxonomy.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceInvalidAccordingToTwoDimensionalTaxonomiesExtra-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >InstanceInvalidAccordingToTwoDimensionalTaxonomies.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-23" name="InstanceInvalidTheValueIsNotADomainMember">
+                <description reference="XDT-IWD-2005-12-31#2.4">The paragraph above Figure 2 in the
+                        XDT spec excludes the member element that has been used in the
+                        instance</description>
+                <data>
+                        <xsd readMeFirst="false">InstanceInvalidTheValueIsNotADomainMember.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceInvalidTheValueIsNotADomainMember-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >InstanceInvalidTheValueIsNotADomainMember-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >InstanceInvalidTheValueIsNotADomainMember.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-24" name="InstanceInvalidTheValueIsNotADomainMemberCase2">
+                <description reference="XDT-IWD-2005-12-31#2.4">The paragraph above Figure 2 in the
+                        XDT spec excludes the member element that has been used in the
+                        instance</description>
+                <data>
+                        <xsd readMeFirst="false"
+                                >InstanceInvalidTheValueIsNotADomainMemberCase2.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >InstanceInvalidTheValueIsNotADomainMemberCase2-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >InstanceInvalidTheValueIsNotADomainMemberCase2-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >InstanceInvalidTheValueIsNotADomainMemberCase2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-25" name="ComplexHypercubeInheritance">
+                <description reference="XDT-IWD-2005-12-31#2.6.1">Example 11 of the spec shows how
+                        inheritance should work. The instance is valid according to hypercubes in
+                        link1 (Default link)</description>
+                <data>
+                        <xsd readMeFirst="false">ComplexHypercubeInheritance.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >ComplexHypercubeInheritance-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >ComplexHypercubeInheritance-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >complexHypercubeInheritance_ValidLink1.xbrl</instance>
+                </data>
+                <result>
+                        <file>complexHypercubeInheritance_ValidLink1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-26" name="ComplexHypercubeInheritance2">
+                <description reference="XDT-IWD-2005-12-31#2.6.1">Example 11 of the spec shows how
+                        inheritance should work, The instance is valid according to hypercubes in
+                        link2 extended link role</description>
+                <data>
+                        <xsd readMeFirst="false">ComplexHypercubeInheritance.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >ComplexHypercubeInheritance-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >ComplexHypercubeInheritance-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >complexHypercubeInheritance_ValidLink2.xbrl</instance>
+                </data>
+                <result>
+                        <file>complexHypercubeInheritance_ValidLink2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-27" name="ComplexHypercubeInheritance3">
+                <description reference="XDT-IWD-2005-12-31#2.6.1">Example 11 of the spec shows how
+                        inheritance should work. The validation log should be something like this:
+                        PrimaryParent: under the extended link http://www.xbrl.org/2003/role/link
+                        contains one hypercube with one dimension. That hypercube is invalid. under
+                        the extended link
+                        http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance/role/link2 it
+                        contains no hypercubes so no dimensional validation should be performed. The
+                        PrimaryParent element is dimensionally invalid. FirstChild (incorrectly
+                        called FirstChildren) under the extended link
+                        http://www.xbrl.org/2003/role/link contains two hypercubes: Cube1 contains
+                        just one dimension DimensionOne and Cube2 contains just one dimension
+                        DimensionTwo. Both hypercubes are invalid so. The element is dimensionally
+                        invalid. under the extended link
+                        http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance/role/link2 it
+                        contains no hypercubes so no dimensional validation should be performed. The
+                        FirstChild element is dimensionally invalid. SecondChild (incorrectly called
+                        SecondChildren) under the extended link http://www.xbrl.org/2003/role/link
+                        contains two hypercubes: Cube1 contains just one dimension DimensionOne and
+                        Cube2 contains just one dimension DimensionTwo. Both hypercubes are invalid
+                        so. The element is dimensionally invalid. The SecondChild element is
+                        dimensionally invalid. ThirdChild (incorrectly called ThirdChildren) under
+                        the extended link http://www.xbrl.org/2003/role/link contains two
+                        hypercubes: Cube1 contains just one dimension DimensionOne and Cube2
+                        contains just one dimension DimensionTwo. Both hypercubes are invalid so.
+                        The element is dimensionally invalid. under the extended link
+                        http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance/role/link2 it
+                        contains just one hypercube Cube3 with one dimension DimensionThree. The
+                        cube is dimensionally invalid. The ThirdChild element is dimensionally
+                        invalid. There are 4 errors represented because none of the primary items to
+                        validate are dimensionally valid. IMHO you are considering the elements
+                        "PrimaryParent" and "FirstChild" dimensionally valid because they contain no
+                        hypercubes in the extended link
+                        http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance/role/link2 and
+                        according to the spec a primary item with no hypercubes is dimensionally
+                        valid. The issue here is whether or not "PrimaryParent" and "FirstChild"
+                        contains hypercubes in the extended link
+                        http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance/role/link2. I'm
+                        considering that those two elements do not contain hypercubes in the second
+                        extended link because the hypercube inheritance goes from top to bottom
+                        only. Therefore, ThirdChild do inherit the hypercubes from PrimaryParent
+                        because PrimaryParent is the head of the hierarchy. </description>
+                <data>
+                        <xsd readMeFirst="false">ComplexHypercubeInheritance.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >ComplexHypercubeInheritance-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >ComplexHypercubeInheritance-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >complexHypercubeInheritance_Invalid3.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-28" name="memberExcludedFromValidDomain1">
+                <description reference="XDT-CR4-2006-05-10#2.5.3.3">The effective domain contains
+                        the same element twice. That element must be excluded from the domain
+                        because it has xbrldt:usable=false in one of the domains.</description>
+                <data>
+                        <xsd readMeFirst="false">memberExcludedFromValidDomain1.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >memberExcludedFromValidDomain1-definition.xml</linkbase>
+                        <instance readMeFirst="true">memberExcludedFromValidDomain1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-29" name="memberExcludedFromValidDomain2">
+                <description reference="XDT-CR4-2006-05-10#2.5.3.3">The effective domain contains
+                        the same element twice. That element must be excluded from the domain
+                        because it has xbrldt:usable=false in one of the domains.</description>
+                <data>
+                        <xsd readMeFirst="false">memberExcludedFromValidDomain2.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >memberExcludedFromValidDomain2-definition.xml</linkbase>
+                        <instance readMeFirst="true">memberExcludedFromValidDomain2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-30" name="primaryItemValidContainsNoHypercubes">
+                <description reference="XDT-CR4-2006-07-20#3.1">As per section 3.1 paragraph 4, the
+                        primary items in this example are not the source of any dimensional
+                        relationship set so they are dimensionally valid</description>
+                <data>
+                        <xsd readMeFirst="false">primaryItemValidContainsNoHypercubes.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >primaryItemValidContainsNoHypercubes-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >primaryItemValidContainsNoHypercubes.xbrl</instance>
+                </data>
+                <result>
+                        <file>primaryItemValidContainsNoHypercubes.xml</file>
+                </result>
+        </variation>
+        <variation id="V-31" name="combinationOfCubesCase7BothOpen">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.2">The primary item contains two
+                        hypercubes, both have closed=false. The instance document uses the one
+                        dimension value element from the 'notAll' hypercube and an additional one to
+                        satisfy the 'all' hypercube. Since the 'notAll' hypercube is open it is thus
+                        considered hypercube valid, which means that the negated result (as this is
+                        a 'notAll' hypercube) is invalid. </description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase7BothOpen.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase7BothOpen-definition.xml</linkbase>
+                        <instance readMeFirst="true">combinationOfCubesCase7BothOpen.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-32" name="combinationOfCubesCase8NotAllClosed">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.2">The primary item contains two
+                        hypercubes, the 'all' cube with closed=false, the 'notAll' with closed=true.
+                        The 'all' hypercube is correctly satisfied. The instance document uses the
+                        dimension value element prohibited by the 'notAll' hypercube but this
+                        hypercube does not include one of the dimensions declared in the 'all'
+                        hypercube; because it is considered closed=true the 'notAll' hypercube is
+                        thus considered hypercube invalid, which means that the negated result (as
+                        this is a 'notAll' hypercube) is valid. </description>
+                <data>
+                        <xsd readMeFirst="false">combinationOfCubesCase8NotAllClosed.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >combinationOfCubesCase8NotAllClosed-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >combinationOfCubesCase8NotAllClosed.xbrl</instance>
+                </data>
+                <result>
+                        <file>combinationOfCubesCase8NotAllClosed.xml</file>
+                </result>
+        </variation>
+        <variation id="V-33" name="closedHypercubeAndDefaultMembers">
+                <description reference="XDT-REC-2006-09-18#3.1">The taxonomy has a primary item A
+                        with one closed empty hypercube. There is also a primary item B with a
+                        different hypercube with one dimension that has a default member. The item A
+                        appears in the instance with nothing in its context. The default member
+                        should not be considered when checking that item A satisfies the closedness
+                        of its hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">closedHypercubeAndDefaultMembers.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedHypercubeAndDefaultMembers-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >closedHypercubeAndDefaultMembers.xbrl</instance>
+                </data>
+                <result>
+                        <file>closedHypercubeAndDefaultMembers.xml</file>
+                </result>
+        </variation>
+        <variation id="V-34" name="inheritanceEdgeUseCase-p1-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 scenario is
+                        invalid because closed hypercube has extra dimension dim1-elt1 and because
+                        it is missing dim2.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p1-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-35" name="inheritanceEdgeUseCase-p1-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 scenario is
+                        valid because closed hypercube has dimension dim2-elt1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p1-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p1-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-36" name="inheritanceEdgeUseCase-p2-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 scenario is
+                        invalid, p2 inherits hc2 from parent p1, and has hc1 as direct relationship,
+                        thus having two hypercubes: hc1 is valid for dim1-elt, hc2 fails due to
+                        missing dim2 and extra dimension dim1 in closed hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p2-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-37" name="inheritanceEdgeUseCase-p2-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 scenario is
+                        invalid, having two hypercubes: hc2 is valid for dim2-elt, hc1 fails due to
+                        missing dim1 and extra dimension dim2 in closed hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p2-c2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-38" name="inheritanceEdgeUseCase-p3-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 is inherited
+                        from P2 in link1, via targetRole on P2 to default link, wherein there are no
+                        hypercubes, thus P3 is invalid for link1 base set, having just one scenario
+                        hypercube, hc2, which fails due to missing dim2. Note that link1's hc1 can't
+                        be seen under p2 due to the targetRole to Default link.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p3-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-39" name="inheritanceEdgeUseCase-p3-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 is inherited
+                        from P2 in link1, via targetRole on P2 to default link, wherein there are no
+                        hypercubes, thus P3 is valid for link1 base set, having just one scenario
+                        hypercube, hc2 which is valid for dim2-elt. Note that link1's hc1 can't be
+                        seen under p2 due to the targetRole to Default link.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p3-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p3-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-40" name="inheritanceEdgeUseCase-p5-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 scenario is
+                        valid because p5 inherits hc1 with dimension dim1-elt1 from its immediate
+                        parent p2, but when looking further up the ancestors, hc2 isn't seen because
+                        p2 has a targetRole that blocks off p1 (with its hc2) from passing
+                        inheritance through p2 to p3 in link 1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p5-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p5-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-41" name="inheritanceEdgeUseCase-p5-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link1 scenario is
+                        invalid because p5 inherits hc1, whose dim1 is missing, from its immediate
+                        parent p2, but when looking further up the ancestors, hc2 (whose dim2 is
+                        present) isn't seen because p2 has a targetRole that blocks off p1 (with its
+                        hc2) from passing inheritance through p2 to p3 in link 1. Thus dim2 is also
+                        an extra dimension to the closed hc1. Hc1 has two errors here, missing dim1
+                        and extra dim2.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p5-c2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-42" name="inheritanceEdgeUseCase-p9-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link4 scenario is
+                        invalid because closed hypercube has extra dimension dim1-elt1 and because
+                        it is missing dim2.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p9-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-43" name="inheritanceEdgeUseCase-p9-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link4 scenario is
+                        valid because closed hypercube has dimension dim2-elt1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p9-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p9-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-44" name="inheritanceEdgeUseCase-p10-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link4 scenario is
+                        invalid because p10 inherits from p9, closed hypercube hc2, which has extra
+                        dimension dim1-elt1 and because it is missing dim2.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p10-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-45" name="inheritanceEdgeUseCase-p10-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link4 scenario is
+                        valid because p10 inherits hc2 from p9, a closed hypercube which has
+                        dimension dim2-elt1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p10-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p10-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-46" name="inheritanceEdgeUseCase-p11-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. p11 has no hypercubes, it
+                        doesn't inherit from p10 because p10's inheritance (hc2) is passed off by
+                        targetRole to link5. Thus p11 doesn't care about the dimension in c1 because
+                        there is no closed hypercube to complain about it, and is dimensionally
+                        valid.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p11-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p11-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-47" name="inheritanceEdgeUseCase-p11-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. p11 has no hypercubes, it
+                        doesn't inherit from p10 because p10's inheritance (hc2) is passed off by
+                        targetRole to link5. Thus p11 doesn't care about the dimension in c2 because
+                        there is no closed hypercube to complain about it, and is dimensionally
+                        valid.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p11-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p11-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-48" name="inheritanceEdgeUseCase-p13-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link4 scenario is
+                        invalid because p13 inherits via targetRole from p10, from p9, closed
+                        hypercube hc2, which has extra dimension dim1-elt1 and because it is missing
+                        dim2.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p13-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-49" name="inheritanceEdgeUseCase-p13-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link4 scenario is
+                        valid because p13 inherits hc2 via targetRole from p10, which inherits from
+                        p9, a closed hypercube which has dimension dim2-elt1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p13-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p13-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-50" name="inheritanceEdgeUseCase-p15-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. p15 has no hypercubes, it
+                        doesn't care about the dimension in c1 because there is no closed hypercube
+                        to complain about it, and is dimensionally valid.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p15-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p15-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-51" name="inheritanceEdgeUseCase-p15-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. p15 has no hypercubes, it
+                        doesn't care about the dimension in c2 because there is no closed hypercube
+                        to complain about it, and is dimensionally valid.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p15-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p15-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-52" name="inheritanceEdgeUseCase-p16-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link6 hc1 dim1 is
+                        valid as a direct descendant of p16.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p16-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p16-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-53" name="inheritanceEdgeUseCase-p16-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link6 hc1 dim1 is
+                        invalid as a direct descendant of p16 because dim1 is missing and dim2-elt1
+                        is an extra dimension to a closed hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p16-c2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-54" name="inheritanceEdgeUseCase-p17-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link6 hc1 dim1 is
+                        valid as a direct descendant of p17's immediate parent, p16. Note that p16
+                        couldn't inherit from p15 but there is no hypercube on p15 to worry
+                        about.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p17-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p17-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-55" name="inheritanceEdgeUseCase-p17-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link6 hc1 dim1 is
+                        invalid as a direct descendant of of p17's immediate parent, p16 because
+                        dim1 is missing and dim2-elt1 is an extra dimension to a closed hypercube.
+                        Note that p16 couldn't inherit from p15 but there is no hypercube on p15 to
+                        worry about.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p17-c2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-56" name="inheritanceEdgeUseCase-p19-cOther">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link6 contributes
+                        no hypercubes to inheritance for p19, because the hc1 under p16 is blocked
+                        by a targetRole to link7. Also there is no hypercube on p15 to worry about.
+                        Context c_other is chosen so that regardless of hypercube inheritance cause
+                        for thinking it might use hc1, if so then the dimensionless context will
+                        fail this test.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >inheritanceEdgeUseCase-p19-cOther.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p19-cOther.xml</file>
+                </result>
+        </variation>
+        <variation id="V-57" name="inheritanceEdgeUseCase-p21-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        valid because p21 has closed hypercube which has dimension
+                        dim1-elt1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p21-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p21-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-58" name="inheritanceEdgeUseCase-p21-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        invalid, p21 has hc1 which fails due to missing dim1 and extra dimension
+                        dim2 in closed hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p21-c2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-59" name="inheritanceEdgeUseCase-p22-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        invalid because p22 inherits from both p21 and p23, hc1 from p21 and hc2
+                        from p23: hc1 is valid for dim1-elt, hc2 fails due to missing dim2 and extra
+                        dimension dim1 in closed hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p22-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-60" name="inheritanceEdgeUseCase-p22-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        invalid because p22 inherits from both p21 and p23, hc1 from p21 and hc2
+                        from p23: hc2 is valid for dim2-elt, hc1 fails due to missing dim1 and extra
+                        dimension dim2 in closed hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p22-c2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-61" name="inheritanceEdgeUseCase-p23-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        invalid, p23 has hc2 which fails due to missing dim2 and extra dimension
+                        dim1 in closed hypercube.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p23-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-62" name="inheritanceEdgeUseCase-p23-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        valid because p23 has closed hypercube hc2 which has dimension
+                        dim2-elt1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p23-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p23-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-63" name="inheritanceEdgeUseCase-p24-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        valid because p24 inherits by p22 targetRole from p21, which has hc1, which
+                        is valid for dim1-elt1. Note that although p22 appears twice in link8, where
+                        a descendant of p23 (with hc2), that is not seen as the p22 targetRole arc
+                        that gives inheritance to p24 is parented by p21.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p24-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p24-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-64" name="inheritanceEdgeUseCase-p24-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        invalid because p24 inherits by p22 targetRole from p21, which has hc1,
+                        which is closed and invalid for dim2-elt1. Note that although p22 appears
+                        twice in link8, where a descendant of p23 (with hc2), that is not seen as
+                        the p22 targetRole arc that gives inheritance to p24 is parented by p21
+                        (thus the dim2-elt1 has no way of being valid here).</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p24-c2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-65" name="inheritanceEdgeUseCase-p26-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        invalid because p24 inherits by p22 targetRole from p23, which has hc2,
+                        which is closed and invalid for dim1-elt1. Note that although p22 appears
+                        twice in link8, where a descendant of p21 (with hc1), that is not seen as
+                        the p22 targetRole arc that gives inheritance to p26 is parented by p23
+                        (thus the dim1-elt1 has no way of being valid here).</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p26-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-66" name="inheritanceEdgeUseCase-26-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Bank of Italy contributed
+                        inheritance edge use case, tests primary item inheritance and target role
+                        navigability in presence of extended link relationships of same nodes as
+                        target roles. Contributed by Michele Romanelli. Base set link8 scenario is
+                        valid because p24 inherits by p22 targetRole from p23, which has hc2, which
+                        is valid for dim2-elt1. Note that although p22 appears twice in link8, where
+                        a descendant of p21 (with hc1), that is not seen as the p22 targetRole arc
+                        that gives inheritance to p23 is parented by p23.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceEdgeUseCase.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceEdgeUseCase-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceEdgeUseCase-p26-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceEdgeUseCase-p26-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-67" name="inheritanceSharedCube-p3-c1">
+                <description reference="XDT-REC-2006-09-18#3.1">Test of Spec Example 11, to
+                        determine whether hypercubes are being &quot;shared&quot; across
+                        base set networks. Valid in Example 11 strict sense because p3 inherits from
+                        both base sets link1 and link2, and here in base set link1 there a single
+                        hybercube hc1 with dim1_elt1 its only member, which matches context c1. If
+                        dimensional processor were to &quot;share&quot; the hypercubes
+                        across all, then hc2 might be processed when inheriting from
+                        link1.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceSharedCube.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceSharedCube-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceSharedCube-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceSharedCube-p3-c1.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceSharedCube-p3-c1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-68" name="inheritanceSharedCube-p3-c2">
+                <description reference="XDT-REC-2006-09-18#3.1">Test of Spec Example 11, to
+                        determine whether hypercubes are being &quot;shared&quot; across
+                        base set networks. Valid in Example 11 strict sense because base set link2
+                        has a two hybercubes hc1 with dim1_elt2 its only member and hc2 with
+                        dim2_elt1, that matches context c1. In a sharing situation a processor may
+                        attempt to assure that link1's hc1 entry were valid here too, and fail this
+                        case.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceSharedCube.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceSharedCube-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >inheritanceSharedCube-presentation.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceSharedCube-p3-c2.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceSharedCube-p3-c2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-72" name="inheritanceOfClosedAttr-p3-c2closed">
+                <description reference="XDT-REC-2006-09-18#3.1">Test that closed attribute is
+                        inherited by primary item inheritance of hypercubes (not explicity in XDT
+                        yet). A processor inheriting hc1 &amp; hc2 in link2closed, and flipping
+                        the closed attribute, thinking it open, would not complain that two mutually
+                        exclusive hypercubes are invalid here, each with other's dim being
+                        extraneous.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceOfClosedAttr.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceOfClosedAttr-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >inheritanceOfClosedAttr-p3-c2closed.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-73" name="inheritanceOfClosedAttr-p3-c2open">
+                <description reference="XDT-REC-2006-09-18#3.1">Test that closed attribute is
+                        inherited by primary item inheritance of hypercubes (not explicity in XDT
+                        yet). A processor inheriting hc1 &amp; hc2 in link2open, and flipping
+                        the closed attribute, thinking it closed, would complain that each cube then
+                        being mutually exclusive, has invalid extra content here.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceOfClosedAttr.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceOfClosedAttr-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >inheritanceOfClosedAttr-p3-c2open.xbrl</instance>
+                </data>
+                <result>
+                        <file>inheritanceOfClosedAttr-p3-c2open.xml</file>
+                </result>
+        </variation>
+        <variation id="V-74" name="inheritanceUsableAttr-p1-c1">
+                <description reference="XDT-REC-2006-09-18#2.5.3.3">Test that usable=false attribute
+                        is not processed when determining primary item inheritance. This attribute
+                        is specified for purposes of exclusion of members from effective domains,
+                        and although it may appear on a domain-member arc which somehow gets into a
+                        primary item inheritance DRS, such as by targetRole sharing in different
+                        base set from where it may participate in specifying hypercube domain
+                        members, it isn't to be processed when traversed for purposes of primary
+                        item inheritance. In this case the hypercube hc1 would be unseen if some
+                        processor utilized the usable=false on primary item inheritance, when
+                        evaluating the primary item ancestors in base set for p3 in link1, in which
+                        case p1-c1 would be valid, but if hc1 is seen as it should be in the link1
+                        base set, dim1_elt1 is unusable and should generate the error.</description>
+                <data>
+                        <xsd readMeFirst="false">inheritanceUsableAttr.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >inheritanceUsableAttr-definition.xml</linkbase>
+                        <instance readMeFirst="true">inheritanceUsableAttr-p1-c1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-100" name="muliRoleInheritance_pa_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I21"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I21 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance1.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-101" name="muliRoleInheritance_pa_m1_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I22"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I22 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-102" name="muliRoleInheritance_pa_m1_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I23"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I23 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance3.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance3.xml</file>
+                </result>
+        </variation>
+        <variation id="V-103" name="muliRoleInheritance_pa_m1_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I24"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I24 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance4.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-104" name="muliRoleInheritance_pa_m2_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I25"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I25 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance5.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-105" name="muliRoleInheritance_pa_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I26"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I26 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance6.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance6.xml</file>
+                </result>
+        </variation>
+        <variation id="V-106" name="muliRoleInheritance_pa_m2_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I27"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I27 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance7.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-107" name="muliRoleInheritance_pa_m2_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I28"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I28 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance8.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance8.xml</file>
+                </result>
+        </variation>
+        <variation id="V-108" name="muliRoleInheritance_pa_m3_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I29"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I29 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance9.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-109" name="muliRoleInheritance_pa_m3_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I30"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I30 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance10.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance10.xml</file>
+                </result>
+        </variation>
+        <variation id="V-110" name="muliRoleInheritance_pa_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I31"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I31 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance11.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-111" name="muliRoleInheritance_pa_m3_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I32"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I32 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance12.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance12.xml</file>
+                </result>
+        </variation>
+        <variation id="V-112" name="muliRoleInheritance_pa_mc_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I33"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I33 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance13.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance13.xml</file>
+                </result>
+        </variation>
+        <variation id="V-113" name="muliRoleInheritance_pa_mc_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I34"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I34 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance14.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-114" name="muliRoleInheritance_pa_mc_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I35"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I35 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance15.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance15.xml</file>
+                </result>
+        </variation>
+        <variation id="V-115" name="muliRoleInheritance_pa_mc_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I36"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I36 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance16.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-116" name="muliRoleInheritance_pb_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I37"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I37 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance17.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance17.xml</file>
+                </result>
+        </variation>
+        <variation id="V-117" name="muliRoleInheritance_pb_m1_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I38"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I38 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance18.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-118" name="muliRoleInheritance_pb_m1_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I39"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I39 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance19.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance19.xml</file>
+                </result>
+        </variation>
+        <variation id="V-119" name="muliRoleInheritance_pb_m1_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I40"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I40 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance20.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance20.xml</file>
+                </result>
+        </variation>
+        <variation id="V-120" name="muliRoleInheritance_pb_m2_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I41"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I41 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance21.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance21.xml</file>
+                </result>
+        </variation>
+        <variation id="V-121" name="muliRoleInheritance_pb_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I42"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I42 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance22.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance22.xml</file>
+                </result>
+        </variation>
+        <variation id="V-122" name="muliRoleInheritance_pb_m2_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I43"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I43 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance23.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-123" name="muliRoleInheritance_pb_m2_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I44"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I44 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance24.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance24.xml</file>
+                </result>
+        </variation>
+        <variation id="V-124" name="muliRoleInheritance_pb_m3_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I45"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I45 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance25.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-125" name="muliRoleInheritance_pb_m3_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I46"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I46 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance26.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance26.xml</file>
+                </result>
+        </variation>
+        <variation id="V-126" name="muliRoleInheritance_pb_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I47"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I47 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance27.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance27.xml</file>
+                </result>
+        </variation>
+        <variation id="V-127" name="muliRoleInheritance_pb_m3_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I48"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I48 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance28.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance28.xml</file>
+                </result>
+        </variation>
+        <variation id="V-128" name="muliRoleInheritance_pb_mc_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I49"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I49 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance29.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance29.xml</file>
+                </result>
+        </variation>
+        <variation id="V-129" name="muliRoleInheritance_pb_mc_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I50"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I50 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance30.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance30.xml</file>
+                </result>
+        </variation>
+        <variation id="V-130" name="muliRoleInheritance_pb_mc_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I51"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I51 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance31.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest1Instance31.xml</file>
+                </result>
+        </variation>
+        <variation id="V-131" name="muliRoleInheritance_pb_mc_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%201%20-%20Variations%20V100%20to%20V131).xls#Hoja1!I52"
+                        >See XDT Inheritance (Test 1 - Variations V100 to V131).xls#Hoja1!I52 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest1Instance32.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-132" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I21"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I21 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-133" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I22"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I22 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance2.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-134" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I23"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I23 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance3.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance3.xml</file>
+                </result>
+        </variation>
+        <variation id="V-135" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I24"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I24 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance4.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance4.xml</file>
+                </result>
+        </variation>
+        <variation id="V-136" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I25"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I25 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance5.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-137" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I26"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I26 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance6.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance6.xml</file>
+                </result>
+        </variation>
+        <variation id="V-138" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I27"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I27 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance7.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-139" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I28"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I28 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance8.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance8.xml</file>
+                </result>
+        </variation>
+        <variation id="V-140" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I29"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I29 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance9.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance9.xml</file>
+                </result>
+        </variation>
+        <variation id="V-141" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I30"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I30 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance10.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-142" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I31"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I31 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance11.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance11.xml</file>
+                </result>
+        </variation>
+        <variation id="V-143" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I32"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I32 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance12.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-144" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I33"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I33 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance13.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance13.xml</file>
+                </result>
+        </variation>
+        <variation id="V-145" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I34"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I34 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance14.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-146" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I35"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I35 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance15.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance15.xml</file>
+                </result>
+        </variation>
+        <variation id="V-147" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I36"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I36 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance16.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance16.xml</file>
+                </result>
+        </variation>
+        <variation id="V-148" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I37"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I37 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance17.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-149" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I38"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I38 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance18.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance18.xml</file>
+                </result>
+        </variation>
+        <variation id="V-150" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I39"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I39 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance19.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-151" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I40"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I40 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance20.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance20.xml</file>
+                </result>
+        </variation>
+        <variation id="V-152" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I41"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I41 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance21.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance21.xml</file>
+                </result>
+        </variation>
+        <variation id="V-153" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I42"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I42 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance22.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance22.xml</file>
+                </result>
+        </variation>
+        <variation id="V-154" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I43"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I43 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance23.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-155" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I44"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I44 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance24.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance24.xml</file>
+                </result>
+        </variation>
+        <variation id="V-156" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I45"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I45 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance25.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-157" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I46"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I46 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance26.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance26.xml</file>
+                </result>
+        </variation>
+        <variation id="V-158" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I47"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I47 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance27.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-159" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I48"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I48 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance28.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance28.xml</file>
+                </result>
+        </variation>
+        <variation id="V-160" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I49"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I49 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance29.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-161" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I50"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I50 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance30.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance30.xml</file>
+                </result>
+        </variation>
+        <variation id="V-162" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I51"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I51 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance31.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance31.xml</file>
+                </result>
+        </variation>
+        <variation id="V-163" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I52"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I52 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance32.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance32.xml</file>
+                </result>
+        </variation>
+        <variation id="V-164" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I53"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I53 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance33.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance33.xml</file>
+                </result>
+        </variation>
+        <variation id="V-165" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I54"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I54 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance34.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-166" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I55"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I55 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance35.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance35.xml</file>
+                </result>
+        </variation>
+        <variation id="V-167" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I56"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I56 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance36.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance36.xml</file>
+                </result>
+        </variation>
+        <variation id="V-168" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I57"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I57 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance37.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance37.xml</file>
+                </result>
+        </variation>
+        <variation id="V-169" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I58"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I58 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance38.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-170" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I59"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I59 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance39.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance39.xml</file>
+                </result>
+        </variation>
+        <variation id="V-171" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I60"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I60 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance40.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-172" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I61"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I61 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance41.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance41.xml</file>
+                </result>
+        </variation>
+        <variation id="V-173" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I62"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I62 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance42.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance42.xml</file>
+                </result>
+        </variation>
+        <variation id="V-174" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I63"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I63 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance43.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-175" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I64"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I64 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance44.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance44.xml</file>
+                </result>
+        </variation>
+        <variation id="V-176" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I65"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I65 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance45.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-177" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I66"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I66 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance46.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance46.xml</file>
+                </result>
+        </variation>
+        <variation id="V-178" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I67"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I67 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance47.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-179" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I68"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I68 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance48.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance48.xml</file>
+                </result>
+        </variation>
+        <variation id="V-180" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I69"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I69 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance49.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance49.xml</file>
+                </result>
+        </variation>
+        <variation id="V-181" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I70"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I70 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance50.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-182" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I71"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I71 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance51.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance51.xml</file>
+                </result>
+        </variation>
+        <variation id="V-183" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I72"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I72 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance52.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-184" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I73"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I73 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance53.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance53.xml</file>
+                </result>
+        </variation>
+        <variation id="V-185" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I74"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I74 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance54.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance54.xml</file>
+                </result>
+        </variation>
+        <variation id="V-186" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I75"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I75 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance55.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance55.xml</file>
+                </result>
+        </variation>
+        <variation id="V-187" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I76"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I76 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance56.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-188" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I77"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I77 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance57.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance57.xml</file>
+                </result>
+        </variation>
+        <variation id="V-189" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I78"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I78 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance58.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance58.xml</file>
+                </result>
+        </variation>
+        <variation id="V-190" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I79"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I79 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance59.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance59.xml</file>
+                </result>
+        </variation>
+        <variation id="V-191" name="muliRoleInheritance_pc_m4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I80"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I80 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance60.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-192" name="muliRoleInheritance_pc_mc_1_2_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I81"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I81 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance61.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance61.xml</file>
+                </result>
+        </variation>
+        <variation id="V-193" name="muliRoleInheritance_pc_mc_1_3_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I82"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I82 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance62.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-194" name="muliRoleInheritance_pc_mc_2_3_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I83"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I83 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance63.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest2Instance63.xml</file>
+                </result>
+        </variation>
+        <variation id="V-195" name="muliRoleInheritance_pc_mc_1_2_3_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%202%20-%20Variations%20V133%20to%20V195).xls#Hoja1!I84"
+                        >See XDT Inheritance (Test 2 - Variations V133 to V195).xls#Hoja1!I84 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest2Instance64.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-196" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I17"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I17 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance1.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-197" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I18"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I18 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-198" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I19"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I19 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance3.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance3.xml</file>
+                </result>
+        </variation>
+        <variation id="V-199" name="muliRoleInheritance_pc_mc_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I20"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I20 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance4.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance4.xml</file>
+                </result>
+        </variation>
+        <variation id="V-200" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I21"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I21 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance5.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance5.xml</file>
+                </result>
+        </variation>
+        <variation id="V-201" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I22"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I22 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance6.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance6.xml</file>
+                </result>
+        </variation>
+        <variation id="V-202" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I23"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I23 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance7.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-203" name="muliRoleInheritance_pc_mc_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I24"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I24 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance8.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance8.xml</file>
+                </result>
+        </variation>
+        <variation id="V-204" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I25"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I25 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance9.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-205" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I26"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I26 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance10.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance10.xml</file>
+                </result>
+        </variation>
+        <variation id="V-206" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I27"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I27 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance11.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance11.xml</file>
+                </result>
+        </variation>
+        <variation id="V-207" name="muliRoleInheritance_pc_mc_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I28"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I28 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance12.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance12.xml</file>
+                </result>
+        </variation>
+        <variation id="V-208" name="muliRoleInheritance_pc_m1_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I29"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I29 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance13.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance13.xml</file>
+                </result>
+        </variation>
+        <variation id="V-209" name="muliRoleInheritance_pc_m2_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I30"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I30 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance14.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance14.xml</file>
+                </result>
+        </variation>
+        <variation id="V-210" name="muliRoleInheritance_pc_m3_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I31"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I31 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance15.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest3Instance15.xml</file>
+                </result>
+        </variation>
+        <variation id="V-211" name="muliRoleInheritance_pc_mc_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%203%20-%20Variations%20V197%20to%20V211).xls#Hoja1!I32"
+                        >See XDT Inheritance (Test 3 - Variations V197 to V211).xls#Hoja1!I32 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest3Instance16.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-212" name="muliRoleInheritance_Test4_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%204%20-%20Variations%20V212%20to%20V216).xls#Hoja1!I17"
+                        >See XDT Inheritance (Test 4 - Variations V212 to V216).xls#Hoja1!I17 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest4Instance1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-213" name="muliRoleInheritance_Test4_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%204%20-%20Variations%20V212%20to%20V216).xls#Hoja1!I18"
+                        >See XDT Inheritance (Test 4 - Variations V212 to V216).xls#Hoja1!I18 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest4Instance2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-214" name="muliRoleInheritance_Test4_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%204%20-%20Variations%20V212%20to%20V216).xls#Hoja1!I19"
+                        >See XDT Inheritance (Test 4 - Variations V212 to V216).xls#Hoja1!I19 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest4Instance3.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-215" name="muliRoleInheritance_Test4_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%204%20-%20Variations%20V212%20to%20V216).xls#Hoja1!I20"
+                        >See XDT Inheritance (Test 4 - Variations V212 to V216).xls#Hoja1!I20 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest4Instance4.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest4Instance4.xml</file>
+                </result>
+        </variation>
+        <variation id="V-216" name="muliRoleInheritance_Test4_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%204%20-%20Variations%20V212%20to%20V216).xls#Hoja1!I21"
+                        >See XDT Inheritance (Test 4 - Variations V212 to V216).xls#Hoja1!I21 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest4Instance5.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest4Instance5.xml</file>
+                </result>
+        </variation>
+        <variation id="V-217" name="muliRoleInheritance_Test5_1">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V221).xls#Hoja1!I17"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V221).xls#Hoja1!I17 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance1.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-218" name="muliRoleInheritance_Test5_2">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V221).xls#Hoja1!I18"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V221).xls#Hoja1!I18 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-219" name="muliRoleInheritance_Test5_3">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V221).xls#Hoja1!I19"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V221).xls#Hoja1!I19 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance3.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-220" name="muliRoleInheritance_Test5_4">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V224).xls#Hoja1!I20"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V224).xls#Hoja1!I20 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance4.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-221" name="muliRoleInheritance_Test5_5">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V224).xls#Hoja1!I21"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V224).xls#Hoja1!I21 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance5.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-222" name="muliRoleInheritance_Test5_6">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V224).xls#Hoja1!I22"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V224).xls#Hoja1!I22 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance6.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest5Instance6.xml</file>
+                </result>
+        </variation>
+        <variation id="V-223" name="muliRoleInheritance_Test5_7">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V224).xls#Hoja1!I23"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V224).xls#Hoja1!I23 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance7.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest5Instance7.xml</file>
+                </result>
+        </variation>
+        <variation id="V-224" name="muliRoleInheritance_Test5_8">
+                <description
+                        referenceURI="XDT%20Inheritance%20(Test%205%20-%20Variations%20V217%20to%20V224).xls#Hoja1!I24"
+                        >See XDT Inheritance (Test 5 - Variations V217 to V224).xls#Hoja1!I24 for a
+                        complete description</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >multiRoleInheritenceTest5Instance8.xbrl</instance>
+                </data>
+                <result>
+                        <file>multiRoleInheritenceTest5Instance8.xml</file>
+                </result>
+        </variation>
+        <variation id="V-225" name="EmptyDimensionAndNotAllHypercube-2">
+                <description>Test the content of an empty dimension. The instance is valid because
+                        the hypercube is invalid and linked with a notAll relationship to the
+                        primary item. The dimension content is a QName corresponding to a global
+                        element defined in a schema. The schema is in the DTS. The QName is the
+                        hypercube definition.</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >EmptyDimensionAndNotAllHypercube-2.xbrl</instance>
+                </data>
+                <result>
+                        <file>EmptyDimensionAndNotAllHypercube-2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-226" name="EmptyDimensionAndNotAllHypercube-3">
+                <description>Test the content of an empty dimension. The instance is valid because
+                        the hypercube is invalid and linked with a notAll relationship to the
+                        primary item. The dimension content is a QName corresponding to a global
+                        element defined in a schema. The schema is in the DTS. The QName is the
+                        primary item definition.</description>
+                <data>
+                        <instance readMeFirst="true"
+                                >EmptyDimensionAndNotAllHypercube-3.xbrl</instance>
+                </data>
+                <result>
+                        <file>EmptyDimensionAndNotAllHypercube-3.xml</file>
+                </result>
+        </variation>
+        <variation id="V-227" name="closedNotEmptyHypercubeIsInvalid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row 5. It is
+                        invalid because the hypercube is closed and contains non expected
+                        information</description>
+                <data>
+                        <xsd readMeFirst="false">closedNotEmptyHypercubeIsValid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedNotEmptyHypercubeIsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >closedNotEmptyHypercubeIsValid-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >closedNotEmptyHypercubeIsInvalid2.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+        <variation id="V-228" name="openNotEmptyHypercubeIsValid">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">Point 3.1.3 Fig 4 row 6. It is
+                        valid because the hypercube is open</description>
+                <data>
+                        <xsd readMeFirst="false">openNotEmptyHypercubeIsValid.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >openNotEmptyHypercubeIsValid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >openNotEmptyHypercubeIsValid-label.xml</linkbase>
+                        <instance readMeFirst="true">openNotEmptyHypercubeIsValid2.xbrl</instance>
+                </data>
+                <result>
+                        <file>openNotEmptyHypercubeIsValid2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-301" name="closedAllOpenNotallWithDefaultsValid1">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">
+                   From discussion betw. Bernard, Herm and Michele at CEBS Madrid 2009-04.
+                   Two dimensions, each with default total member, and child member, in closed hypercube.
+                   First dimension also an open notAll hypercube to exclude first dimensions child member.
+                   This test case has both dimensions defaulted, dim1 does not match the notAll cube member, 
+                   dim2 slips through the notAll's openness, so it is valid.
+                </description>
+                <data>
+                        <xsd readMeFirst="false">closedAllOpenNotAllWithDefaults_1.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedAllOpenNotAllWithDefaults_1-definition.xml</linkbase>
+                        <instance readMeFirst="true">closedAllOpenNotAllWithDefaults-instance1.xbrl</instance>
+                </data>
+                <result>
+                        <file>closedAllOpenNotAllWithDefaults-instance1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-302" name="closedAllOpenNotallWithDefaultsValid2">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">
+                   Same as V-301 but this test case has only dim1 default, dim2 child, the notAll cube
+                   doesn't match dim1 and dim2 slips through the notAll's openness, so it is valid.
+                </description>
+                <data>
+                        <xsd readMeFirst="false">closedAllOpenNotAllWithDefaults_1.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedAllOpenNotAllWithDefaults_1-definition.xml</linkbase>
+                        <instance readMeFirst="true">closedAllOpenNotAllWithDefaults-instance2.xbrl</instance>
+                </data>
+                <result>
+                        <file>closedAllOpenNotAllWithDefaults-instance2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-303" name="closedAllOpenNotallWithDefaultsInvalid3">
+                <description reference="XDT-IWD-2005-12-31#3.1.3">
+                   Same as V-301 but this test case has no default, dim1 child excluded, invalid.
+                </description>
+                <data>
+                        <xsd readMeFirst="false">closedAllOpenNotAllWithDefaults_1.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >closedAllOpenNotAllWithDefaults_1-definition.xml</linkbase>
+                        <instance readMeFirst="true">closedAllOpenNotAllWithDefaults-instance3.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                </result>
+        </variation>
+</testcase>

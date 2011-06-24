@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2008 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+name="s-equal tests" 
+description="Test equvalent relationships processing" 
+owner="fischer@markv.com" 
+minimal="true">
+
+        <variation id="V-01" name="v01-base-case-no-prohibition">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  The contributing items have a calculation inconsistency.  Following tests will use relationship equivalence to prohibit (or not be successful at prohibiting) P3 so the sum is clean (or inconsistent if unsuccessful at prohibiting), and thus the test case determines if equivalency matches the spec (by prohibition successfulness in subsequent tests).
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-01.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-02" name="v02-base-case-simple-equivalence">
+                <description>
+                    Same as V-01 but t:P3 calculation arc is with an arc prohibited with nothing tricky, thus avoiding the calculation inconsistency.  The prohibiting arc has the same arcrole, from, to, order, weight, t: attributes and use=prohibited.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-02.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-03" name="v03-different-weights-nonequivalency">
+                <description>
+                    Same as V-02 but prohibiting arc has different weight causing nonequivalency and thus the prohibit is ineffective and calculation is inconsistent.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-03.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-04" name="v04-extra-xmlns-but-equivalent">
+                <description>
+                    Same as V-02 but prohibiting arc has has an xmlns not on the original arc, which is exempt.  Also the xmlns provides different lexical prefixes for the home-made attributes on the arc.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-04.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-05" name="v05-extra-xlink-attr-but-equivalent">
+                <description>
+                    Same as V-02 but prohibiting arc has has an xlink:title not on the original arc, which is exempt.  
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-05.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-06" name="v06-extra-default-attr-but-nonequivalence">
+                <description>
+                    Same as V-02 but prohibiting arc has has an default attribute matching the default value (the original arc has the default valued attribute missing).  Because the arc allows this attribute with an any wildcard attribute definition, it is not considered an explicit attribute use in the schema declared attributes, and thus it the validator has no way of knowing this default attribute might be put into the PSVI by the validator, and is simply absent on the original arc in the PSVI.  Thus the equivalency test fails here.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-06.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-07" name="v07-extra-default-attr-but-nonequivalence">
+                <description>
+                    Same as V-02 but prohibiting arc has has an defaulted attribute whose value does not match the default value (of the original arc, where the default valued attribute was missing, and per V-06 didn't enter the post-schema-validation infoset of attributes of the original arc).
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-07.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-08" name="v08-extra-fixed-attr-nonequivalence">
+                <description>
+                    Same as V-02 but prohibiting arc has an fixed attribute of the correct fixed value (the original arc has the fixed valued attribute missing). Per testing by several vendors, the fixed is determined to behave like default, and thus this attribute is not present on the original arc and causes nonequivalence.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-08.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-09" name="v09-string-attr-nonequivalence">
+                <description>
+                    Same as V-02 but prohibiting arc has the stringAttr differently valued.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-09.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-10" name="v10-decimal-attr-equivalence">
+                <description>
+                    Same as V-02 but prohibiting arc has the decimalAttr lexically different but same value.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-10.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-11" name="v11-double-attr-equivalence">
+                <description>
+                    Same as V-02 but prohibiting arc has the doubleAttr lexically different and scaled differently but same value.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-11.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-12" name="v12-double-attr-nonequivalency">
+                <description>
+                    Same as V-02 but prohibiting arc has the doubleAttr lexically different and scaled differently to produce a different value.
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-12.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-13" name="v13-bool-attr-equivalence">
+                <description>
+                    Same as V-02 but prohibiting arc has the boolAttr lexically different but same value (e.g., 1 == true, 0 == false).
+                </description>
+                <data>
+                        <instance readMeFirst="true">331-equivalentRelationships-instance-13.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+</testcase>

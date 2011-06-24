@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2086.16077 (2005-09-17 09:21).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-09-20 06:02:28
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_AllRegions" xlink:label="regions_AllRegions" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_AsiaRegion" xlink:label="regions_AsiaRegion" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_EuropeRegion" xlink:label="regions_EuropeRegion" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_OtherRegions" xlink:label="regions_OtherRegions" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_USAndCanadaRegion" xlink:label="regions_USAndCanadaRegion" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="regions_AllRegions" xlink:to="regions_AllRegions_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="regions_AsiaRegion" xlink:to="regions_AsiaRegion_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="regions_EuropeRegion" xlink:to="regions_EuropeRegion_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="regions_OtherRegions" xlink:to="regions_OtherRegions_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="regions_USAndCanadaRegion" xlink:to="regions_USAndCanadaRegion_lbl" />
+    <label id="label_GeoDimension_1116853064812_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="regions_AllRegions_lbl" xml:lang="en">All Regions</label>
+    <label id="label_UK_1116853093437_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="regions_AsiaRegion_lbl" xml:lang="en">Asia Region</label>
+    <label id="label_USA_1116853085546_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="regions_EuropeRegion_lbl" xml:lang="en">Europe Region</label>
+    <label id="label_Australia_1116853100937_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="regions_OtherRegions_lbl" xml:lang="en">Other Regions</label>
+    <label id="label_Spain_1116853076515_1" xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="regions_USAndCanadaRegion_lbl" xml:lang="en">US and Canada Region</label>
+  </labelLink>
+</linkbase>

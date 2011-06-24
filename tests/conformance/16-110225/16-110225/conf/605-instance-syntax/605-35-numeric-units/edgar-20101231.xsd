@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:edgar="http://edgar/20101231"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+targetNamespace="http://edgar/20101231"
+elementFormDefault="qualified">
+<xs:annotation>
+<xs:appinfo>
+<link:linkbaseRef xlink:type="simple" xlink:href="edgar-20101231_pre.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="edgar-20101231_def.xml"
+xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="edgar-20101231_lab.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:roleType roleURI="http://edgar/role/EntityInformation" id="EntityInformation">
+<link:definition>991 - Document - Entity Information</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://edgar/role/DocumentInformation" id="DocumentInformation">
+<link:definition>992 - Document - Document Information</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://edgar/role/OtherInformation" id="OtherInformation">
+<link:definition>990 - Document - Other Information</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://edgar/role/Defaults" id="Defaults">
+<link:definition>999 - Document - Defaults</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+</xs:appinfo>
+</xs:annotation>
+<xs:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xs:import namespace="http://xbrl.org/2005/xbrldt"
+schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+<xs:import namespace="http://xbrl.sec.gov/dei/2011-01-31"
+schemaLocation="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd"/>
+<xs:import namespace="http://www.xbrl.org/dtr/type/numeric"
+schemaLocation="http://www.xbrl.org/dtr/type/numeric-2009-12-16.xsd"/>
+<xs:element name="Top" id="edgar_Top" type="xbrli:stringItemType"
+substitutionGroup="xbrli:item"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="PercentItemTypeConcept" id="edgar_PercentItemTypeConcept"
+type="num:percentItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="PercentItemTypeDerivedConcept" id="edgar_PercentItemTypeDerivedConcept"
+type="edgar:percentItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="PerShareItemTypeConcept" id="edgar_PerShareItemTypeConcept"
+type="num:perShareItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="PerShareItemTypeDerivedConcept" id="edgar_PerShareItemTypeDerivedConcept"
+type="edgar:perShareItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="AreaItemTypeConcept" id="edgar_AreaItemTypeConcept"
+type="num:areaItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="AreaItemTypeDerivedConcept" id="edgar_AreaItemTypeDerivedConcept"
+type="edgar:areaItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="VolumeItemTypeConcept" id="edgar_VolumeItemTypeConcept"
+type="num:volumeItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="VolumeItemTypeDerivedConcept" id="edgar_VolumeItemTypeDerivedConcept"
+type="edgar:volumeItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="MassItemTypeConcept" id="edgar_MassItemTypeConcept"
+type="num:massItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="MassItemTypeDerivedConcept" id="edgar_MassItemTypeDerivedConcept"
+type="edgar:massItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="EnergyItemTypeConcept" id="edgar_EnergyItemTypeConcept"
+type="num:energyItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="EnergyItemTypeDerivedConcept" id="edgar_EnergyItemTypeDerivedConcept"
+type="edgar:energyItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="PowerItemTypeConcept" id="edgar_PowerItemTypeConcept"
+type="num:powerItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="PowerItemTypeDerivedConcept" id="edgar_PowerItemTypeDerivedConcept"
+type="edgar:powerItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="LengthItemTypeConcept" id="edgar_LengthItemTypeConcept"
+type="num:lengthItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="LengthItemTypeDerivedConcept" id="edgar_LengthItemTypeDerivedConcept"
+type="edgar:lengthItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="MemoryItemTypeConcept" id="edgar_MemoryItemTypeConcept"
+type="num:memoryItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:element name="MemoryItemTypeDerivedConcept" id="edgar_MemoryItemTypeDerivedConcept"
+type="edgar:memoryItemTypeDerived"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xs:complexType name="percentItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:percentItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="perShareItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:perShareItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="areaItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:areaItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="volumeItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:volumeItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="massItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:massItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="energyItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:energyItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="powerItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:powerItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="lengthItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:lengthItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+<xs:complexType name="memoryItemTypeDerived">
+<xs:simpleContent>
+<xs:restriction base="num:memoryItemType"/>
+</xs:simpleContent>
+</xs:complexType>
+</xs:schema>

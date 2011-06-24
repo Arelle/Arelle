@@ -1,0 +1,13 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<arcroleRef xlink:type="simple" xlink:href="ArcRoleBU.xsd#row-cell" arcroleURI="http://mycompany.com/xbrl/arcroleBU/row-cell"/>
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcRoleBU.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="ArcRoleBU.xsd#conceptB" xlink:label="conceptB"/>
+		<calculationArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptB" xlink:arcrole="http://mycompany.com/xbrl/arcroleBU/row-cell" weight="1"/>
+	</calculationLink>
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcRoleBU.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="ArcRoleBU.xsd#conceptB" xlink:label="conceptB"/>
+		<calculationArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptB" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" weight="1"/>
+	</calculationLink>
+</linkbase>

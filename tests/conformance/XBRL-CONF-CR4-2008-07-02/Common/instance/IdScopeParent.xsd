@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Edited by Masatomo Goto (Fujitsu Ltd.) -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<schema targetNamespace="http://example.com/xbrl/taxonomy/IdScopeParent" xmlns="http://www.w3.org/2001/XMLSchema">
+	<element name="instances" id="instance"/>
+</schema>

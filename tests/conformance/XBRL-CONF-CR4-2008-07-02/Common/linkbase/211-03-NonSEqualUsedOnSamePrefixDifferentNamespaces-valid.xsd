@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!-- (c) XBRL International.  See www.xbrl.org/legal -->
+<schema targetNamespace="http://xbrl.example.com/test"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  elementFormDefault="qualified">
+
+	<annotation>
+		<appinfo>
+			<link:roleType roleURI="http://xbrl.example.com/testRole">
+				<link:definition>
+          Role defined for use on {http://xbrl.example.com/foo}:foo and 
+          {http://xbrl.example.com/differentFoo}:foo.
+        </link:definition>
+				<link:usedOn xmlns:foo="http://xbrl.example.com/foo">foo:foo</link:usedOn>
+				<link:usedOn xmlns:foo="http://xbrl.example.com/differentFoo">foo:foo</link:usedOn>
+			</link:roleType>
+		</appinfo>
+	</annotation>
+
+</schema>

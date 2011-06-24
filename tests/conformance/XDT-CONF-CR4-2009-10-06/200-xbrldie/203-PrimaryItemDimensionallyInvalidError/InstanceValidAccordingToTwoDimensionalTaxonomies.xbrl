@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Generated Manually --><xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:tx="http://www.xbrl.org/dim/conf/203/PrimaryItemTaxonomy" xmlns:tx1="http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx1" xmlns:tx2="http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx2" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/dim/conf/203/PrimaryItemTaxonomy PrimaryItemTaxonomy.xsd http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx1 InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1.xsd http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx2 InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2.xsd">
+	
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="PrimaryItemTaxonomy.xsd"/>
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1.xsd"/>
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2.xsd"/>
+  <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="InstanceValidAccordingToTwoDimensionalTaxonomiesExtra-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"/>
+  
+	<xbrli:context id="ctx1">
+		<xbrli:entity>
+			<xbrli:identifier scheme="http://www.sample.com">Sample Dimensions Company</xbrli:identifier>
+			<xbrli:segment>
+				<xbrldi:explicitMember dimension="tx1:Dim1">tx1:Member1</xbrldi:explicitMember>
+				<xbrldi:explicitMember dimension="tx2:Dim2">tx2:Member2</xbrldi:explicitMember>
+			</xbrli:segment>
+		</xbrli:entity>
+		<xbrli:period>
+			<xbrli:instant>2005-12-31</xbrli:instant>
+		</xbrli:period>
+	</xbrli:context>
+	<xbrli:unit id="Euros">
+		<xbrli:measure>iso4217:EUR</xbrli:measure>
+	</xbrli:unit>
+	<tx:Sales contextRef="ctx1" unitRef="Euros" precision="INF">1000000</tx:Sales>
+	
+</xbrli:xbrl>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Syntactically equal arcs" description="S-Equal attributes must have X-equal values.  Attributes with schema types of decimal might not have the same lexical representation, yet still be X-equal." outpath="out" owner="walter@hamscher.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	
+	<variation id="V-01" name="232-01-ArcsUsingNonCanonicalDecimalOrderInconsistent">
+		<description>S-Equal attributes must have X-equal values.  Attributes with schema types of decimal might not have the same lexical representation and still be X-equal.  This test case must raise a calculation inconsistency. If a calculation inconsistency is NOT found then the processor has failed because decimal "1.0" is x-equal to decimal "+1"; it has failed to prohibit an arc that should be prohibited.</description>
+		<data>
+			<instance readMeFirst="true">232-01-ArcsUsingNonCanonicalDecimalOrderInconsistent.xbrl</instance>
+		</data>
+		<result expected="invalid"></result>
+	</variation>
+		
+	<variation id="V-02" name="232-02-ArcsUsingNonCanonicalDecimalOrderConsistent">
+		<description>S-Equal attributes must have X-equal values.  Attributes with schema types of decimal might not have the same lexical representation and still be X-equal.  This test case must NOT raise a calculation inconsistency. If a calculation inconsistency is found then the processor has failed because decimal "1.0" is x-equal to decimal "+1"; it has failed to prohibit an arc that should be prohibited.</description>
+		<data>
+			<instance readMeFirst="true">232-02-ArcsUsingNonCanonicalDecimalOrderConsistent.xbrl</instance>
+		</data>
+		<result expected="valid"></result>
+	</variation>
+	
+		<variation id="V-03" name="232-03-ArcsUsingNonCanonicalDecimalWeightInconsistent">
+		<description>S-Equal attributes must have X-equal values.  Attributes with schema types of decimal might not have the same lexical representation and still be X-equal.  This test case must raise a calculation inconsistency. If a calculation inconsistency is NOT found then the processor has failed because decimal "1.0" is x-equal to decimal "+1"; it has failed to prohibit an arc that should be prohibited.</description>
+		<data>
+			<instance readMeFirst="true">232-03-ArcsUsingNonCanonicalDecimalWeightInconsistent.xbrl</instance>
+		</data>
+		<result expected="invalid"></result>
+	</variation>
+		
+	<variation id="V-04" name="232-04-ArcsUsingNonCanonicalDecimalWeightConsistent">
+		<description>S-Equal attributes must have X-equal values.  Attributes with schema types of decimal might not have the same lexical representation and still be X-equal.  This test case must NOT raise a calculation inconsistency. If a calculation inconsistency is found then the processor has failed because decimal "1.0" is x-equal to decimal "+000001.0000000"; it has failed to prohibit an arc that should be prohibited.</description>
+		<data>
+			<instance readMeFirst="true">232-04-ArcsUsingNonCanonicalDecimalWeightConsistent.xbrl</instance>
+		</data>
+		<result expected="valid"></result>
+	</variation>
+
+</testcase>

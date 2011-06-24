@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:df="http://xbrl.org/2008/filter/dimension" 
+  xmlns:ef="http://xbrl.org/2008/filter/entity" 
+  xmlns:gf="http://xbrl.org/2008/filter/general" 
+  xmlns:pf="http://xbrl.org/2008/filter/period" 
+  xmlns:tf="http://xbrl.org/2008/filter/tuple" 
+  xmlns:uf="http://xbrl.org/2008/filter/unit" 
+  xmlns:vf="http://xbrl.org/2008/filter/value" 
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    22090-variableSetRelationship-tests.xsd"
+  >
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../../core_schemas/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink1" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink1" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink2" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink2" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink3" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink3" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink4" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink4" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink5" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink5" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink6" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink6" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink7" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink7" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink8" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink8" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink9" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink9" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink10" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink10" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink11" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink11" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink12" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink12" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink13" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink13" />
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink14" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink14" />
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink1">
+
+    <formula:formula xlink:type="resource" xlink:label="dummy" id="formulaInnerPlanetId" 
+      value="concat('hello ', $c1i, ' from inner planet formula')" 
+      source="c1i"
+      aspectModel="dimensional" implicitFiltering="true" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink2">
+
+    <formula:formula xlink:type="resource" xlink:label="dummy" id="formulaHomePlanetId" 
+      value="concat('hello ', $c1h, ' from home planet formula')" 
+      source="c1h"
+      aspectModel="dimensional" implicitFiltering="true" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink3">
+
+    <formula:formula xlink:type="resource" xlink:label="dummy" id="formulaOuterPlanetId" 
+      value="concat('hello ', $c1o, ' from outer planet formula')" 
+      source="c1o"
+      aspectModel="dimensional" implicitFiltering="true" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink4">
+
+    <!-- binds to each c1 in instance -->
+    <variable:factVariable xlink:type="resource" xlink:label="dummy" id="factvarId" bindAsSequence="false"  />
+    <cf:conceptName xlink:type="resource" xlink:label="dummy" id="namefilterId">
+      <cf:concept>
+        <cf:qname>eg:c1</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink5">
+
+    <!-- c1 -->
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formulaInnerPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c1i" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#formulaInnerPlanetId" 
+      xlink:label="formulaInnerPlanet" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#factvarId" 
+      xlink:label="factvar1" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink6">
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formulaHomePlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c1h" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#formulaHomePlanetId" 
+      xlink:label="formulaHomePlanet" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#factvarId" 
+      xlink:label="factvar1" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink7">
+
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formulaOuterPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c1o" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#formulaOuterPlanetId" 
+      xlink:label="formulaOuterPlanet" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#factvarId" 
+      xlink:label="factvar1" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink8">
+
+    <variable:variableFilterArc xlink:type="arc" xlink:to="namefilter1" xlink:from="factvar1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#namefilterId" 
+      xlink:label="namefilter1" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#factvarId" 
+      xlink:label="factvar1" />
+
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink9">
+
+    <!-- precondition, only venus fires formulaInnerPlanet -->
+    <variable:precondition xlink:type="resource" xlink:label="dummy" id="preconditionIdI" 
+     test="$c1i eq 'venus'" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink10">
+
+    <generic:arc xlink:type="arc" xlink:to="preconditionI" xlink:from="formulaInnerPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#formulaInnerPlanetId" 
+      xlink:label="formulaInnerPlanet" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#preconditionIdI" 
+      xlink:label="preconditionI" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink11">
+
+    <!-- precondition, only earth fires formulaHomePlanet -->
+    <variable:precondition xlink:type="resource" xlink:label="dummy" id="preconditionIdH" 
+     test="$c1h eq 'earth'" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink12">
+
+    <generic:arc xlink:type="arc" xlink:to="preconditionH" xlink:from="formulaHomePlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" />
+
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#formulaHomePlanetId" 
+      xlink:label="formulaHomePlanet" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#preconditionIdH" 
+      xlink:label="preconditionH" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink13">
+
+    <!-- precondition, only venus fires formulaInnerPlanet -->
+    <variable:precondition xlink:type="resource" xlink:label="dummy" id="preconditionIdO" 
+     test="$c1o eq 'mars'" />
+
+  </generic:link>
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink14">
+
+    <generic:arc xlink:type="arc" xlink:to="preconditionO" xlink:from="formulaOuterPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" />
+
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#formulaOuterPlanetId" 
+      xlink:label="formulaOuterPlanet" />
+
+    <link:loc xlink:type="locator" 
+      xlink:href="#preconditionIdO" 
+      xlink:label="preconditionO" />
+
+  </generic:link>
+
+</link:linkbase>
+
+
+
+
+
+
+
+
+
+
+

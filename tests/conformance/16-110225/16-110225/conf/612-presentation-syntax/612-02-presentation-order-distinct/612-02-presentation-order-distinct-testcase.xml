@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>612-02</number>
+<name>EDGAR Filer Manual v14 6.12.2 page 6-52</name>
+<description>
+<h2>All effective presentation relatonships in the same base set with the same source element must have distinct values of the order
+attribute.</h2>
+<p>This rule ensures an intentional ordering of facts when displayed.</p>
+<p>REMARK: this rule applies whether either of the elements in the presentation arcs used in an instance or not</p>
+<p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml violated
+this rule it would be included in a 'good' test variation.</p>
+</description>
+<reference specification="11201"/>
+<variation id="_000gd">
+<name>6.12.2, Order not distinct but in different base sets, and prohibited arc with same order, GOOD.</name>
+<description>Order not distinct but in different base sets, and prohibited arc with same order, GOOD.</description>
+<reference specification="11201"/>
+<data>
+<instance readMeFirst="true">e61202000gd-20081231.xml</instance>
+<linkbase>e61202000gd-20081231_lab.xml</linkbase>
+<linkbase>e61202000gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61202000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.12.2, Order not distinct in effective arc in same base set, NOGOOD.</name>
+<description>Order not distinct in effective arc in same base set, NOGOOD.</description>
+<reference specification="11201"/>
+<data>
+<instance readMeFirst="true">e61202001ng-20081231.xml</instance>
+<linkbase>e61202001ng-20081231_lab.xml</linkbase>
+<linkbase>e61202001ng-20081231_pre.xml</linkbase>
+<linkbase>e61202001ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61202001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61202" name="Presentation-Order-Duplicates" frd="rq"/>
+</result>
+</variation>
+</testcase>

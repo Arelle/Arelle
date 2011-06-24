@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>603-06</number>
+<name>EDGAR Filer Manual v16 6.3.6 page 6-6</name>
+<description>
+<h2>The URI content of the xlink:href attribute, the xsi:schemaLocation attribute and the
+schemaLocation attribute, must be relative and contain no forward slashes, or a
+recognized external location of a standard taxonomy schema file, or a "#" followed by a shorthand xpointer.</h2>
+<p>The
+xlink:href attribute must appear on the link:loc element; the schemaLocation attribute must appear on the xsd:import
+element, and the xsi:schemaLocation attribute must appear on the link:linkbase element and may appear on the
+xbrli:xbrl element.</p>
+<p>Valid entries for the xlink:href attribute, the xsi:schemaLocation attribute and the
+schemaLocation attribute are document locations. If they are relative URIs, they are subject to EDGARLink attachment
+naming conventions. Therefore, all documents attached to the submission will be at the same level of folder
+hierarchy. By restricting the content of these attributes, all documents in the DTS of an instance will be either a
+standard taxonomy or present in the submission.</p>
+<p>Examples:</p>
+<ul>
+<li>xlink:href="abccorp-20100123.xsd"</li>
+<li>&lt;xsd:import schemaLocation="http://xbrl.org/2006/xbrldi-2006.xsd" namespace="..."/&gt;</li>
+</ul>
+<p>Counterexamples:</p>
+<ul>
+<li>xlink:href="http://www.example.com/2007/example.xsd"</li>
+<li>xlink:href="#element(1/4)" (Comment: this is a scheme-based xpointer, not shorthand)</li>
+</ul> 
+<p>
+The XHTML namespace is intentionally omitted, since an XHTML declaration could not be a
+valid target for any XBRL element's xlink:href or schemaLocation attribute, and its presence in the
+xsi:schemaLocation attribute would not impact XBRL validation.</p>
+<p>
+There are dozens of other XBRL US GAAP Taxonomies
+documents to be used as templates to copy from during the preparation process, but their inclusion in an EDGAR
+filing tends to load unused linkbases and therefore introduces unwarranted complications such as unused extended
+links and a need for many prohibiting arcs. Reducing the amount of content in the DTS of the instance to its
+essentials frees users to more easily link the submitted documents to the linkbases of their particular interest for
+analysis.</p>
+<p>REMARK: xml:base is forbidden.</p>
+<p>REMARK: <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> defines URI syntax</p>
+</description>
+<variation id="_304ng">
+<name>6.3.6, linkbase/roleRef/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>linkbase/roleRef/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306304ng-20111231.xml</instance>
+<linkbase>e60306304ng-20111231_lab.xml</linkbase>
+<linkbase>e60306304ng-20111231_def.xml</linkbase>
+<linkbase>e60306304ng-20111231_pre.xml</linkbase>
+<schema>e60306304ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_305ng">
+<name>6.3.6, linkbase/arcroleRef/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>linkbase/arcroleRef/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306305ng-20111231.xml</instance>
+<linkbase>e60306305ng-20111231_lab.xml</linkbase>
+<linkbase>e60306305ng-20111231_def.xml</linkbase>
+<linkbase>e60306305ng-20111231_pre.xml</linkbase>
+<schema>e60306305ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_306ng">
+<name>6.3.6, presentationLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>presentationLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306306ng-20111231.xml</instance>
+<linkbase>e60306306ng-20111231_lab.xml</linkbase>
+<linkbase>e60306306ng-20111231_def.xml</linkbase>
+<linkbase>e60306306ng-20111231_pre.xml</linkbase>
+<schema>e60306306ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_307ng">
+<name>6.3.6, definitionLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>definitionLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306307ng-20111231.xml</instance>
+<linkbase>e60306307ng-20111231_lab.xml</linkbase>
+<linkbase>e60306307ng-20111231_def.xml</linkbase>
+<linkbase>e60306307ng-20111231_pre.xml</linkbase>
+<schema>e60306307ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_308ng">
+<name>6.3.6, calculationLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>calculationLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306308ng-20111231.xml</instance>
+<linkbase>e60306308ng-20111231_lab.xml</linkbase>
+<linkbase>e60306308ng-20111231_cal.xml</linkbase>
+<linkbase>e60306308ng-20111231_def.xml</linkbase>
+<linkbase>e60306308ng-20111231_pre.xml</linkbase>
+<schema>e60306308ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_309ng">
+<name>6.3.6, referenceLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>referenceLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306309ng-20111231.xml</instance>
+<linkbase>e60306309ng-20111231_lab.xml</linkbase>
+<linkbase>e60306309ng-20111231_def.xml</linkbase>
+<linkbase>e60306309ng-20111231_pre.xml</linkbase>
+<linkbase>e60306309ng-20111231_ref.xml</linkbase>
+<schema>e60306309ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_310ng">
+<name>6.3.6, labelLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>labelLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306310ng-20111231.xml</instance>
+<linkbase>e60306310ng-20111231_lab.xml</linkbase>
+<linkbase>e60306310ng-20111231_def.xml</linkbase>
+<linkbase>e60306310ng-20111231_pre.xml</linkbase>
+<schema>e60306310ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+
+
+
+
+<variation id="_609ng">
+<name>6.3.6, referenceLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>referenceLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306609ng-20111231.xml</instance>
+<linkbase>e60306609ng-20111231_lab.xml</linkbase>
+<linkbase>e60306609ng-20111231_def.xml</linkbase>
+<linkbase>e60306609ng-20111231_pre.xml</linkbase>
+<linkbase>e60306609ng-20111231_ref.xml</linkbase>
+<schema>e60306609ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_610ng">
+<name>6.3.6, labelLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>labelLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306610ng-20111231.xml</instance>
+<linkbase>e60306610ng-20111231_lab.xml</linkbase>
+<linkbase>e60306610ng-20111231_def.xml</linkbase>
+<linkbase>e60306610ng-20111231_pre.xml</linkbase>
+<schema>e60306610ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+<variation id="_713ng">
+<name>6.3.6, xbrl/footnoteLink/loc/@xlink:href contains fragment #element(). NOGOOD.</name>
+<description>xbrl/footnoteLink/loc/@xlink:href contains fragment #element(). NOGOOD.</description>
+<data>
+<instance readMeFirst="true">e60306713ng-20111231.xml</instance>
+<linkbase>e60306713ng-20111231_lab.xml</linkbase>
+<linkbase>e60306713ng-20111231_def.xml</linkbase>
+<linkbase>e60306713ng-20111231_pre.xml</linkbase>
+<schema>e60306713ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60306" name="Fragment-Not-Shorthand-Xpointer" frd="cp"/>
+</result>
+</variation>
+</testcase>

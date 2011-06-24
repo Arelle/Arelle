@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22170-sameUncoveredAspects-formula.xml"/>
+  
+  <context id="context-1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">inner-planets</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">home</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">outer-planets</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <concept:c2 contextRef="context-1">this sequence has 2 planets</concept:c2>
+  <concept:c2 contextRef="context-2">this sequence has 1 planets</concept:c2>
+  <concept:c2 contextRef="context-3">this sequence has 5 planets</concept:c2>
+
+</xbrl>
+

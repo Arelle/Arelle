@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--Edited by Charles Hoffman (UBmatrix) -->
+<linkbase 
+     xmlns="http://www.xbrl.org/2003/linkbase" 
+     xmlns:xbrll="http://www.xbrl.org/2003/linkbase" 
+     xmlns:xlink="http://www.w3.org/1999/xlink" 
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+     xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+   <calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    
+      <loc xlink:type="locator" xlink:href="208-04-ItemDebitSumCreditWeight+1.xsd#ItemDebit" xlink:label="ItemDebit" />
+      <loc xlink:type="locator" xlink:href="208-04-ItemDebitSumCreditWeight+1.xsd#SumCredit" xlink:label="SumCredit" />
+    
+      <calculationArc xlink:type="arc" xlink:from="ItemDebit" xlink:to="SumCredit" weight="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" priority="0" />
+
+      <!--Item is credit, Sum is credit, weight is 1 (table says Positive is illegal therefore 1 is illegal), document is INVALID -->
+       
+   </calculationLink>
+</linkbase>

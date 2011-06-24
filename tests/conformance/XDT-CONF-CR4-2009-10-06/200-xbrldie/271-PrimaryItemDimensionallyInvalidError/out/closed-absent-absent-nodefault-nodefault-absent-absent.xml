@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="file:/c:/svn/conformance-dimensions/conf/lib/facts.xsd">
+   <item>
+      <qnElement xmlns:example="http://www.example.com/2009">example:Prime</qnElement>
+      <sPointer>4</sPointer>
+   </item>
+</facts>

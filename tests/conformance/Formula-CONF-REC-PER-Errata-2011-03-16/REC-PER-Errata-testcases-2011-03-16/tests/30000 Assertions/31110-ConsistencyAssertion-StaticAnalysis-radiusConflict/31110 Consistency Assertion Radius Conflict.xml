@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>31110</number>
+  <name>Consistency Assertion Acceptance Radius Conflict</name>
+  <description>
+    Consistency check static analysis for acceptanceradius conflicts.
+  </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="error-acceptance-radius-conflict"/>         
+
+  <variation id="V-01">
+    <name>Acceptance radius conflict example</name>
+    <description>
+      Acceptance radius conflict example.  (Valid cases in 32210 test cases directory.)
+    </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="error-acceptance-radius-conflict"/>         
+    <data>
+      <schema>31110-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31110-radiusConflict-formula.xml</linkbase>
+      <instance readMeFirst="true">31110-radiusConflict-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlcae="http://xbrl.org/2008/assertion/consistency/error">
+          xbrlcae:acceptanceRadiusConflict 
+      </error>
+    </result>
+  </variation>
+
+
+</testcase>
+

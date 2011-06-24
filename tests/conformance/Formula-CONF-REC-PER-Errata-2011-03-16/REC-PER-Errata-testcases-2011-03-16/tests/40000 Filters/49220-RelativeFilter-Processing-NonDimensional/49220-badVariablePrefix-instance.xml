@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="49220-relNonDimFilter-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="49220-badVariablePrefix-formula.xml"/>  
+
+  <context id="context-2006">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2006-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-2007">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  
+  
+  <eg:assets decimals="0" contextRef="context-2006" unitRef="unit">1122000</eg:assets>
+  <eg:liabilities decimals="0" contextRef="context-2006" unitRef="unit">1010000</eg:liabilities>
+  <eg:assets decimals="0" contextRef="context-2007" unitRef="unit">1222000</eg:assets>
+  <eg:liabilities decimals="0" contextRef="context-2007" unitRef="unit">1110000</eg:liabilities>
+
+
+</xbrl>
+
+

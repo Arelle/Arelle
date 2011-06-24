@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    ">
+  <calculationLink xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator"
+      xlink:label="t_P1"
+      xlink:href="330-s-equal-02.xsd#t_P1" />
+    <loc xlink:type="locator"
+      xlink:label="t_P2"
+      xlink:href="330-s-equal-02.xsd#t_P2" />
+    <loc xlink:type="locator"
+      xlink:label="t_P3"
+      xlink:href="330-s-equal-02.xsd#t_P3" />
+    <calculationArc xlink:type="arc"
+      xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+      xlink:from="t_P1" xlink:to="t_P2"
+      order="1"
+      weight="1"
+      use="optional" />
+    <calculationArc xlink:type="arc"
+      xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+      xlink:from="t_P1" xlink:to="t_P3"
+      order="1"
+      weight="1"
+      use="optional" />
+  </calculationLink>
+</linkbase>

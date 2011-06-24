@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xs:schema xmlns:conf="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://edgar/2009/conformance" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="testcase">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="conf:creator"/>
+        <xs:element name="number" type="xs:string"/>
+        <xs:element name="name">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="EDGAR Filer Manual v1[23456] 6.[0-9]+.[0-9]+ page 6-[0-9]*"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element ref="conf:description"/>
+        <xs:element ref="conf:reference" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="conf:variation" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="creator">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="name" type="xs:string" fixed="Ask OID"/>
+        <xs:element name="email" type="xs:string" fixed="Ask-OID@sec.gov"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:sequence>
+        <xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="reference">
+    <xs:complexType>
+      <xs:attribute name="specification" type="xs:string"/>
+      <xs:attribute name="id" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="variation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="conf:creator" minOccurs="0"/>
+        <xs:element name="number" type="xs:string" minOccurs="0"/>
+        <xs:element name="name" type="xs:string" minOccurs="0"/>
+        <xs:element ref="conf:description"/>
+        <xs:element ref="conf:reference" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="conf:data"/>
+        <xs:element ref="conf:result"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="data">
+    <!-- It seems strange to care about order of files, but it makes it easier to review by eye -->
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="conf:parameter" minOccurs="0" maxOccurs="unbounded"/>          
+        <xs:element ref="conf:instance" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="conf:linkbase" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="conf:schema" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="schema">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="conf:inputFileType">
+          <xs:pattern value=".*-[0-9]{8}.xsd"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="linkbase">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="conf:inputFileType">
+          <xs:pattern value=".*-[0-9]{8}_....xml"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="instance">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="conf:inputFileType">
+          <xs:pattern value=".*-[0-9]{8}.xml"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="inputFileType">
+    <xs:simpleContent>
+      <xs:extension base="conf:edgarFileType">
+        <xs:attribute name="id" type="xs:ID" use="optional"/>
+        <xs:attribute name="readMeFirst" type="xs:boolean" use="optional" default="false"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="edgarFileType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="32"/>
+      <!-- More restrictive than EDGAR 5.1.1 "All document file names must be lower case and no longer than 32 characters in length. The
+           names must start with a letter (a-z) and may contain numbers (0-9) with no spaces. File names
+           may contain one period (.), one hyphen (-), and one underscore (_) character and must end with
+           *.htm, *.txt, *.pdf, *.fil, *.jpg, *.gif, *.xsd, or *.xml extensions." -->
+      <!-- But less restrictive than EFM ch. 6 -->
+      <xs:pattern value="[a-z][a-z0-9]*\-?[0-9]*_?[a-z]*\.(xml|xsd)"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="parameter">
+    <xs:complexType>
+      <xs:attribute name="name" type="xs:QName"/>
+      <xs:attribute name="datatype" type="xs:QName"/>
+      <xs:attribute name="value" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="filter">
+    <xs:complexType>
+      <xs:attribute name="file" type="xs:IDREF"/>
+      <xs:attribute name="id" type="xs:IDREF"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="result">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="assert">
+          <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="num" use="required">
+              <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                  <xs:totalDigits value="5"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="severity" use="optional" default="err">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="err"/>
+                  <xs:enumeration value="wrn"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="countSatisfied" type="xs:integer" use="optional" default="0"/>
+            <xs:attribute name="countNotSatisfied" type="xs:integer" use="optional" default="1"/>
+            <xs:attribute name="frd" use="optional">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="cp"/>
+                  <xs:enumeration value="du"/>
+                  <xs:enumeration value="fs"/>
+                  <xs:enumeration value="im"/>
+                  <xs:enumeration value="rq"/>
+                  <xs:enumeration value="dq"/>
+                  <xs:enumeration value="pvc"/>
+                  <xs:enumeration value="tbd"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:anyAttribute processContents="lax"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="filterTest" type="xs:string"/>
+        <xs:element name="instance" type="xs:anyURI"/>
+        <!--<xs:element name="error" type="xs:QName"/>-->
+      </xs:choice>
+      <xs:attribute name="expected" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="valid"/>
+            <xs:enumeration value="invalid"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

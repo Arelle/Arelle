@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>14010</number>
+  <name>Basic Calculation accounting pattern</name>
+  <description>
+    Compute assets = liabilities + equity.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>         
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+  <reference specification="VARIABLES" id="sec-variable-sets"/>
+  <reference specification="FORMULA" id="sec-default-aspect-rules"/>
+  <reference specification="FORMULA" id="sec-processing-model"/>
+
+  <variation id="V-01">
+    <name>Compute assets from liabilities plus equity</name>
+    <description>
+      Compute assets based on liabilities plus equity, with the result
+      having the same context as the addends.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>         
+    <data>
+      <instance readMeFirst="true">14010-computeAssets-instance.xml</instance>
+      <schema>14010-computeAssets-concepts.xsd</schema>
+      <linkbase>14010-computeAssets-formula.xml</linkbase>
+    </data>
+    <result>
+      <instance>14010-computeAssets-result.xml</instance>
+    </result>
+  </variation>
+
+
+</testcase>
+

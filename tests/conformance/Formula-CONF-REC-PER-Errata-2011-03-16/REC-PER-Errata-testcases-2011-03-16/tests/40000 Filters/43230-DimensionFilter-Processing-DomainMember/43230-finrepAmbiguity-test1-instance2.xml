@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="43230-finrepAmbiguity-test1.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="43230-finrepAmbiguity-test1-formula2.xml"/>
+  
+  <context id="c-2008">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:dim2">eg:dim2Mem1</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  
+  <context id="c-2008-d2-m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:dim1">eg:dim1Mem1</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:dim2">eg:dim2Mem1</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  
+  <context id="c-2008-d2-m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:dim1">eg:dim1Mem1</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:dim2">eg:dim2Mem2</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  
+  <context id="c-2008-d2-m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:dim1">eg:dim1Mem1</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:dim2">eg:dim2Mem3</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+
+  <!-- these items all have dim1 with the same non-default member -->  
+  <!-- n1 is primary item in both 2dimRole and 1dimRole ext link -->
+  <eg:n1 contextRef="c-2008" unitRef="unit" decimals="0">1113</eg:n1>
+
+  <!-- these n1's are not intended to bind to v1, and represent
+       the finrep situation -->
+  <eg:n1 contextRef="c-2008-d2-m1" unitRef="unit" decimals="0">71113</eg:n1>
+  <eg:n1 contextRef="c-2008-d2-m1" unitRef="unit" decimals="0">81113</eg:n1>
+  <eg:n1 contextRef="c-2008-d2-m1" unitRef="unit" decimals="0">91113</eg:n1>
+
+  <!-- n2 to n4 are pri items in 2dimRole ext link -->
+  <eg:n2 contextRef="c-2008-d2-m1" unitRef="unit" decimals="0">0011</eg:n2>
+  <eg:n3 contextRef="c-2008-d2-m2" unitRef="unit" decimals="0">0101</eg:n3>
+  <eg:n4 contextRef="c-2008-d2-m3" unitRef="unit" decimals="0">1001</eg:n4>
+    
+</xbrl>
+
+
+

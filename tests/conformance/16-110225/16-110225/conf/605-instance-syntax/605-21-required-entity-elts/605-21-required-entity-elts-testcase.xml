@@ -1,0 +1,3187 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-21</number>
+<name>EDGAR Filer Manual v16 6.5.21 page 6-13</name>
+<description>
+<h2>An instance must contain one non-empty fact for each required Entity Information element, each with a contextRef attribute referring
+to a Required Context. The value of an EntityPublicFloat fact in an instance will be 0 for an entity that has only public debt.</h2>
+<p>Required Entity Information facts may specify attribute xml:lang, but facts with xml:lang attribute absent or xml:lang equal to
+"en-US" take precedence over facts with other languages starting with "en", which in turn take precedence over facts having other
+values for xml:lang. Required Entity Information facts having period type "instant" use a context containing an xbrli:instant value
+that is the measurement date (for public float and common shares outstanding), otherwise identical to the Required Context.</p>
+<p> Additional facts using the Required Entity Information elements are allowed in other contexts.</p>
+<table>
+<tr>
+<th>Element</th>
+<th>Base Type</th>
+<th>(Example)</th>
+</tr>
+<tr>
+<td>EntityRegistrantName</td>
+<td>xsd:normalizedString</td>
+<td>General Example Company</td>
+</tr>
+<tr>
+<td>EntityCentralIndexKey</td>
+<td>us-types:centralIndexKey</td>
+<td>0005551212</td>
+</tr>
+<tr>
+<td>EntityCurrentReportingStatus</td>
+<td>us-types:yesNo</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>EntityVoluntaryFilers</td>
+<td>us-types:yesNo</td>
+<td>No</td>
+</tr>
+<tr>
+<td>CurrentFiscalYearEndDate</td>
+<td>xbrli:gMonthDayItemType</td>
+<td>--12-31
+<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td>EntityFilerCategory</td>
+<td>us-types:filerCategory</td>
+<td>Large Accelerated Filer</td>
+</tr>
+<tr>
+<td>EntityWellKnownSeasonedIssuer</td>
+<td>us-types:yesNo</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>EntityPublicFloat</td>
+<td>xsd:decimal</td>
+<td>987654321</td>
+</tr>
+<tr>
+<td>DocumentFiscalYearFocus</td>
+<td>xbrli:gYearItemType</td>
+<td>2009
+<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td>DocumentFiscalPeriodFocus</td>
+<td>us-types:fiscalPeriodItemType</td>
+<td>FY, Q1, Q2, Q3, Q4, H1, H2, M9, T1, T2, T3, M8, CY</td>
+</tr>
+</table>
+<p>
+<sup>*</sup>Note: The value space of xbrli:gMonthDayItemType is in the format --MM-DD.
+
+
+
+
+</p>
+<p>
+<sup>**</sup>Note: The value space of xsd:gYearItemType is a year in the form CCYY.
+
+
+
+
+</p>
+<p>
+<sup>***</sup>Note: 10-Q&#8223;s for the 1st, 2nd and 3rd quarters should have a fiscal period focus of Q1, Q2, and Q3 respectively, and a 10-K should have fiscal period focus of FY.
+
+
+
+
+</p>
+<p>The following table shows which elements will be validated for each form type. Please note, however, that omitting the Registrant
+Name or Central Index Key leads to other errors, but otherwise, omission of data within the XBRL tags for these elements will not
+result in the suspension of the filing nor will the XBRL data be removed. Instead, a warning message will be added to the filer's
+acceptance message if the data is not included or does not match the base type as specified in the table above. All other Entity
+Information elements are optional (see 6.5.22).</p>
+<table>
+<tr>
+<th>Element</th>
+<th>10-K</th>
+<th>10-Q</th>
+<th>20-F</th>
+<th>40-F</th>
+<th>6-K,
+<br/>N-CSR,
+<br/>N-Q,
+<br/>NCSRS
+
+
+
+
+</th>
+<th>10, S-1,
+<br/>S-3, S-4,
+<br/>S-11
+
+
+
+
+</th>
+<th>8-K, F-1,
+<br/>F-3, F-10,
+<br/>497,
+<br/>485BPOS
+
+
+
+
+</th>
+</tr>
+<tr>
+<td>EntityRegistrantName</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+</tr>
+<tr>
+<td>EntityCentralIndexKey</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+</tr>
+<tr>
+<td>EntityCurrentReportingStatus</td>
+<td>X</td>
+<td/>
+<td>X</td>
+<td>X</td>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td>EntityVoluntaryFilers</td>
+<td>X</td>
+<td/>
+<td/>
+<td/>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td>CurrentFiscalYearEndDate</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td/>
+<td/>
+</tr>
+<tr>
+<td>EntityFilerCategory</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td/>
+<td/>
+<td>X</td>
+<td/>
+</tr>
+<tr>
+<td>EntityWellKnownSeasonedIssuer</td>
+<td>X</td>
+<td/>
+<td>X</td>
+<td/>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td>EntityPublicFloat</td>
+<td>X</td>
+<td/>
+<td/>
+<td/>
+<td/>
+<td/>
+<td/>
+</tr>
+<tr>
+<td>DocumentFiscalYearFocus</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td/>
+<td/>
+</tr>
+<tr>
+<td>DocumentFiscalPeriodFocus</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td/>
+<td/>
+</tr>
+</table>
+<p>REMARK: This set of test cases reflects the variations for the forms 20-F, 40-F, 6-K, 8-K, 10-Q, 10-K, 10, S-1, S-3, S-4, S-11, F-1,
+F-3, F-10, 485BPOS, N-CSR, N-Q, NCSRS as well as, implicitly 20-F/A, 40-F/A, 10-K/A, S-1/A, S-3/A, S-4/A, S-11/A, F-1/A, F-3/A,
+F-10/A, N-CSR/A, N-Q/A, NCSRS/A, 485BPOS and 497. Here is what form requires what element:</p>
+<p>10-K: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityWellKnownSeasonedIssuer, EntityVoluntaryFilers,
+EntityCurrentReportingStatus, EntityFilerCategory, EntityPublicFloat, DocumentFiscalYearFocus, DocumentFiscalPeriodFocus;</p>
+<p>10-Q: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityFilerCategory, DocumentFiscalYearFocus,
+DocumentFiscalPeriodFocus;</p>
+<p>20-F: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityWellKnownSeasonedIssuer,
+EntityCurrentReportingStatus, EntityFilerCategory, DocumentFiscalYearFocus, DocumentFiscalPeriodFocus;</p>
+<p>40-F: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityCurrentReportingStatus, DocumentFiscalYearFocus,
+DocumentFiscalPeriodFocus;</p>
+<p>6-K, N-CSR, N-Q, NCSRS: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, DocumentFiscalYearFocus,
+DocumentFiscalPeriodFocus;</p>
+<p>10, S-1, S-3, S-4, S-11: EntityRegistrantName, EntityCentralIndexKey, EntityFilerCategory;</p>
+<p>8-K, F-1, F-3, F-10, 497, 485BPOS: EntityRegistrantName, EntityCentralIndexKey;</p>
+</description>
+<reference specification="PCR 10491.1.[1-11]"/>
+<reference specification="10935"/>
+<reference specification="10890"/>
+<variation id="_000gd">
+<name>6.5.21 Missing Nothing, submissionType: 10-K, GOOD</name>
+<description>Missing Nothing, submissionType: 10-K, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.5.21 Missing Nothing, submissionType: 10-Q, GOOD</name>
+<description>Missing Nothing, submissionType: 10-Q, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521001gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002gd">
+<name>6.5.21 Missing Nothing, submissionType: 20-F, GOOD</name>
+<description>Missing Nothing, submissionType: 20-F, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521002gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_003gd">
+<name>6.5.21 Missing Nothing, submissionType: 40-F, GOOD</name>
+<description>Missing Nothing, submissionType: 40-F, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521003gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.5.21 Missing Nothing, submissionType: 6-K, GOOD</name>
+<description>Missing Nothing, submissionType: 6-K, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521004gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005gd">
+<name>6.5.21 Missing Nothing, submissionType: NCSR, GOOD</name>
+<description>Missing Nothing, submissionType: NCSR, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521005gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_006gd">
+<name>6.5.21 Missing Nothing, submissionType: N-Q, GOOD</name>
+<description>Missing Nothing, submissionType: N-Q, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521006gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_007gd">
+<name>6.5.21 Missing Nothing, submissionType: S-1, GOOD</name>
+<description>Missing Nothing, submissionType: S-1, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521007gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_008gd">
+<name>6.5.21 Missing Nothing, submissionType: S-3, GOOD</name>
+<description>Missing Nothing, submissionType: S-3, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521008gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_009gd">
+<name>6.5.21 Missing Nothing, submissionType: S-4, GOOD</name>
+<description>Missing Nothing, submissionType: S-4, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521009gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_010gd">
+<name>6.5.21 Missing Nothing, submissionType: S-11, GOOD</name>
+<description>Missing Nothing, submissionType: S-11, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521010gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_011gd">
+<name>6.5.21 Missing Nothing, submissionType: 8-K, GOOD</name>
+<description>Missing Nothing, submissionType: 8-K, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521011gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_012gd">
+<name>6.5.21 Missing Nothing, submissionType: F-1, GOOD</name>
+<description>Missing Nothing, submissionType: F-1, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521012gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_013gd">
+<name>6.5.21 Missing Nothing, submissionType: F-3, GOOD</name>
+<description>Missing Nothing, submissionType: F-3, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521013gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_014gd">
+<name>6.5.21 Missing Nothing, submissionType: F-10, GOOD</name>
+<description>Missing Nothing, submissionType: F-10, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521014gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_015gd">
+<name>6.5.21 Missing Nothing, submissionType: 497, GOOD</name>
+<description>Missing Nothing, submissionType: 497, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521015gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_016gd">
+<name>6.5.21 Missing Nothing, submissionType: 485BPOS, GOOD</name>
+<description>Missing Nothing, submissionType: 485BPOS, GOOD</description>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521016gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_030ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 10-K, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 10-K, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521030ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_031ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 10-Q, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 10-Q, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521031ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_032ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 20-F, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 20-F, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521032ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_033ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 40-F, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 40-F, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521033ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_034ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 6-K, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 6-K, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521034ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_035ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: NCSR, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: NCSR, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521035ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_036ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: N-Q, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: N-Q, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521036ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_037ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: S-1, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: S-1, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521037ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_038ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: S-3, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: S-3, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521038ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_039ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: S-4, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: S-4, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521039ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_040ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: S-11, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: S-11, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521040ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_041ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 8-K, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 8-K, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521041ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_042ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: F-1, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: F-1, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521042ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_043ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: F-3, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: F-3, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521043ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_044ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: F-10, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: F-10, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521044ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_045ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 497, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 497, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521045ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_046ng">
+<name>6.5.21 Missing EntityRegistrantName, submissionType: 485BPOS, NOGOOD</name>
+<description>Missing EntityRegistrantName, submissionType: 485BPOS, NOGOOD</description>
+<reference specification="10491.1.1"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521046ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Entity-Registrant-Name" severity="err"/>
+</result>
+</variation>
+<variation id="_060ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 10-K, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 10-K, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521060ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_061ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 10-Q, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 10-Q, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521061ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_062ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 20-F, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 20-F, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521062ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_063ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 40-F, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 40-F, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521063ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_064ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 6-K, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 6-K, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521064ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_065ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: NCSR, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: NCSR, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521065ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_066ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: N-Q, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: N-Q, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521066ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_067ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: S-1, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: S-1, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521067ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_068ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: S-3, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: S-3, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521068ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_069ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: S-4, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: S-4, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521069ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_070ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: S-11, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: S-11, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521070ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_071ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 8-K, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 8-K, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521071ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_072ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: F-1, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: F-1, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521072ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_073ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: F-3, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: F-3, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521073ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_074ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: F-10, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: F-10, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521074ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_075ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 497, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 497, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521075ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_076ng">
+<name>6.5.21 Missing EntityCentralIndexKey, submissionType: 485BPOS, NOGOOD</name>
+<description>Missing EntityCentralIndexKey, submissionType: 485BPOS, NOGOOD</description>
+<reference specification="10491.1.2"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521076ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="cp" num="60521" name="Central-Index-Key" severity="err"/>
+</result>
+</variation>
+<variation id="_090ng">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 10-K, NOGOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 10-K, NOGOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521090ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Current-Fiscal-Year-End-Date" severity="wrn"/>
+</result>
+</variation>
+<variation id="_091ng">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 10-Q, NOGOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 10-Q, NOGOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521091ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Current-Fiscal-Year-End-Date" severity="wrn"/>
+</result>
+</variation>
+<variation id="_092ng">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 20-F, NOGOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 20-F, NOGOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521092ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Current-Fiscal-Year-End-Date" severity="wrn"/>
+</result>
+</variation>
+<variation id="_093ng">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 40-F, NOGOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 40-F, NOGOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521093ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Current-Fiscal-Year-End-Date" severity="wrn"/>
+</result>
+</variation>
+<variation id="_094ng">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 6-K, NOGOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 6-K, NOGOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521094ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Current-Fiscal-Year-End-Date" severity="wrn"/>
+</result>
+</variation>
+<variation id="_095ng">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: NCSR, NOGOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: NCSR, NOGOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521095ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Current-Fiscal-Year-End-Date" severity="wrn"/>
+</result>
+</variation>
+<variation id="_096ng">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: N-Q, NOGOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: N-Q, NOGOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521096ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Current-Fiscal-Year-End-Date" severity="wrn"/>
+</result>
+</variation>
+<variation id="_097gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: S-1, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: S-1, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521097gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_098gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: S-3, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: S-3, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521098gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_099gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: S-4, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: S-4, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521099gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_100gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: S-11, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: S-11, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521100gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_101gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 8-K, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 8-K, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521101gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_102gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: F-1, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: F-1, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521102gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_103gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: F-3, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: F-3, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521103gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_104gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: F-10, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: F-10, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521104gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_105gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 497, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 497, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521105gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_106gd">
+<name>6.5.21 Missing CurrentFiscalYearEndDate, submissionType: 485BPOS, GOOD</name>
+<description>Missing CurrentFiscalYearEndDate, submissionType: 485BPOS, GOOD</description>
+<reference specification="10491.1.7, 11161"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521106gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_120ng">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 10-K, NOGOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 10-K, NOGOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521120ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Well-Known-Seasoned-Issuer" severity="wrn"/>
+</result>
+</variation>
+<variation id="_121gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 10-Q, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 10-Q, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521121gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_122ng">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 20-F, NOGOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 20-F, NOGOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521122ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Well-Known-Seasoned-Issuer" severity="wrn"/>
+</result>
+</variation>
+<variation id="_123gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 40-F, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 40-F, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521123gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_124gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 6-K, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 6-K, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521124gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_125gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: NCSR, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: NCSR, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521125gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_126gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: N-Q, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: N-Q, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521126gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_127gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: S-1, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: S-1, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521127gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_128gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: S-3, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: S-3, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521128gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_129gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: S-4, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: S-4, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521129gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_130gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: S-11, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: S-11, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521130gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_131gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 8-K, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 8-K, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521131gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_132gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: F-1, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: F-1, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521132gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_133gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: F-3, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: F-3, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521133gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_134gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: F-10, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: F-10, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521134gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_135gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 497, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 497, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521135gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_136gd">
+<name>6.5.21 Missing EntityWellKnownSeasonedIssuer, submissionType: 485BPOS, GOOD</name>
+<description>Missing EntityWellKnownSeasonedIssuer, submissionType: 485BPOS, GOOD</description>
+<reference specification="10491.1.8, 11162"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521136gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_150ng">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 10-K, NOGOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 10-K, NOGOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521150ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Voluntary-Filers" severity="wrn"/>
+</result>
+</variation>
+<variation id="_151gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 10-Q, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 10-Q, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521151gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_152gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 20-F, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 20-F, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521152gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_153gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 40-F, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 40-F, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521153gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_154gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 6-K, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 6-K, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521154gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_155gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: NCSR, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: NCSR, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521155gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_156gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: N-Q, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: N-Q, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521156gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_157gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: S-1, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: S-1, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521157gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_158gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: S-3, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: S-3, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521158gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_159gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: S-4, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: S-4, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521159gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_160gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: S-11, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: S-11, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521160gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_161gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 8-K, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 8-K, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521161gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_162gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: F-1, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: F-1, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521162gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_163gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: F-3, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: F-3, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521163gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_164gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: F-10, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: F-10, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521164gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_165gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 497, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 497, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521165gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_166gd">
+<name>6.5.21 Missing EntityVoluntaryFilers, submissionType: 485BPOS, GOOD</name>
+<description>Missing EntityVoluntaryFilers, submissionType: 485BPOS, GOOD</description>
+<reference specification="10491.1.9, 11163"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521166gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_180ng">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 10-K, NOGOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 10-K, NOGOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521180ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Current-Reporting-Status" severity="wrn"/>
+</result>
+</variation>
+<variation id="_181gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 10-Q, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 10-Q, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521181gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_182ng">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 20-F, NOGOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 20-F, NOGOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521182ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Current-Reporting-Status" severity="wrn"/>
+</result>
+</variation>
+<variation id="_183ng">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 40-F, NOGOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 40-F, NOGOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521183ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Current-Reporting-Status" severity="wrn"/>
+</result>
+</variation>
+<variation id="_184gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 6-K, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 6-K, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521184gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_185gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: NCSR, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: NCSR, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521185gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_186gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: N-Q, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: N-Q, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521186gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_187gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: S-1, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: S-1, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521187gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_188gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: S-3, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: S-3, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521188gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_189gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: S-4, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: S-4, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521189gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_190gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: S-11, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: S-11, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521190gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_191gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 8-K, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 8-K, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521191gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_192gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: F-1, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: F-1, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521192gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_193gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: F-3, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: F-3, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521193gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_194gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: F-10, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: F-10, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521194gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_195gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 497, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 497, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521195gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_196gd">
+<name>6.5.21 Missing EntityCurrentReportingStatus, submissionType: 485BPOS, GOOD</name>
+<description>Missing EntityCurrentReportingStatus, submissionType: 485BPOS, GOOD</description>
+<reference specification="10491.1.10"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521196gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_210ng">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 10-K, NOGOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 10-K, NOGOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521210ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Filer-Category" severity="wrn"/>
+</result>
+</variation>
+<variation id="_211ng">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 10-Q, NOGOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 10-Q, NOGOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521211ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Filer-Category" severity="wrn"/>
+</result>
+</variation>
+<variation id="_212ng">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 20-F, NOGOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 20-F, NOGOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521212ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Filer-Category" severity="wrn"/>
+</result>
+</variation>
+<variation id="_213gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 40-F, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 40-F, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521213gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_214gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 6-K, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 6-K, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521214gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_215gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: NCSR, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: NCSR, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521215gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_216gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: N-Q, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: N-Q, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521216gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_217ng">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: S-1, NOGOOD</name>
+<description>Missing EntityFilerCategory, submissionType: S-1, NOGOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521217ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Filer-Category" severity="wrn"/>
+</result>
+</variation>
+<variation id="_218ng">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: S-3, NOGOOD</name>
+<description>Missing EntityFilerCategory, submissionType: S-3, NOGOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521218ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Filer-Category" severity="wrn"/>
+</result>
+</variation>
+<variation id="_219ng">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: S-4, NOGOOD</name>
+<description>Missing EntityFilerCategory, submissionType: S-4, NOGOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521219ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Filer-Category" severity="wrn"/>
+</result>
+</variation>
+<variation id="_220ng">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: S-11, NOGOOD</name>
+<description>Missing EntityFilerCategory, submissionType: S-11, NOGOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521220ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Filer-Category" severity="wrn"/>
+</result>
+</variation>
+<variation id="_221gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 8-K, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 8-K, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521221gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_222gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: F-1, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: F-1, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521222gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_223gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: F-3, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: F-3, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521223gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_224gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: F-10, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: F-10, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521224gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_225gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 497, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 497, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521225gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_226gd">
+<name>6.5.21 Missing EntityFilerCategory, submissionType: 485BPOS, GOOD</name>
+<description>Missing EntityFilerCategory, submissionType: 485BPOS, GOOD</description>
+<reference specification="10491.1.11"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521226gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_270ng">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 10-K, NOGOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 10-K, NOGOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521270ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="im" num="60521" name="Entity-Public-Float" severity="wrn"/>
+</result>
+</variation>
+<variation id="_271gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 10-Q, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 10-Q, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521271gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_272gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 20-F, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 20-F, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521272gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_273gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 40-F, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 40-F, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521273gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_274gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 6-K, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 6-K, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521274gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_275gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: NCSR, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: NCSR, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521275gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_276gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: N-Q, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: N-Q, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521276gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_277gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: S-1, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: S-1, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521277gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_278gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: S-3, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: S-3, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521278gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_279gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: S-4, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: S-4, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521279gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_280gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: S-11, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: S-11, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521280gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_281gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 8-K, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 8-K, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521281gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_282gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: F-1, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: F-1, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521282gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_283gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: F-3, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: F-3, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521283gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_284gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: F-10, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: F-10, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521284gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_285gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 497, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 497, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521285gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_286gd">
+<name>6.5.21 Missing EntityPublicFloat, submissionType: 485BPOS, GOOD</name>
+<description>Missing EntityPublicFloat, submissionType: 485BPOS, GOOD</description>
+<reference specification="11160"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521286gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_300ng">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 10-K, NOGOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 10-K, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521300ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Year-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_301ng">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 10-Q, NOGOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 10-Q, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521301ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Year-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_302ng">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 20-F, NOGOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 20-F, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521302ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Year-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_303ng">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 40-F, NOGOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 40-F, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521303ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Year-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_304ng">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 6-K, NOGOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 6-K, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521304ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Year-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_305ng">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: NCSR, NOGOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: NCSR, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521305ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Year-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_306ng">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: N-Q, NOGOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: N-Q, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521306ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Year-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_307gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: S-1, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: S-1, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521307gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_308gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: S-3, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: S-3, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521308gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_309gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: S-4, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: S-4, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521309gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_310gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: S-11, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: S-11, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521310gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_311gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 8-K, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 8-K, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521311gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_312gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: F-1, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: F-1, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521312gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_313gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: F-3, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: F-3, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521313gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_314gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: F-10, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: F-10, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521314gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_315gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 497, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 497, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521315gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_316gd">
+<name>6.5.21 Missing DocumentFiscalYearFocus, submissionType: 485BPOS, GOOD</name>
+<description>Missing DocumentFiscalYearFocus, submissionType: 485BPOS, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521316gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_330ng">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 10-K, NOGOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 10-K, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521330ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Period-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_331ng">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 10-Q, NOGOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 10-Q, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="10-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521331ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Period-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_332ng">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 20-F, NOGOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 20-F, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="20-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521332ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Period-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_333ng">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 40-F, NOGOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 40-F, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="40-F" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521333ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Period-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_334ng">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 6-K, NOGOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 6-K, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="6-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521334ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Period-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_335ng">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: NCSR, NOGOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: NCSR, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="NCSR" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521335ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Period-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_336ng">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: N-Q, NOGOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: N-Q, NOGOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="N-Q" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521336ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert frd="dq" num="60521" name="Document-Fiscal-Period-Focus" severity="wrn"/>
+</result>
+</variation>
+<variation id="_337gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: S-1, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: S-1, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521337gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_338gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: S-3, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: S-3, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521338gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_339gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: S-4, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: S-4, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-4" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521339gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_340gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: S-11, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: S-11, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="S-11" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521340gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_341gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 8-K, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 8-K, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="8-K" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521341gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_342gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: F-1, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: F-1, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-1" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521342gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_343gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: F-3, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: F-3, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-3" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521343gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_344gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: F-10, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: F-10, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="F-10" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521344gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_345gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 497, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 497, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="497" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521345gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_346gd">
+<name>6.5.21 Missing DocumentFiscalPeriodFocus, submissionType: 485BPOS, GOOD</name>
+<description>Missing DocumentFiscalPeriodFocus, submissionType: 485BPOS, GOOD</description>
+<reference specification="11490"/>
+<reference specification="10935"/>
+<data>
+<parameter value="485BPOS" name="submissionType" datatype="xs:string"/>
+<instance readMeFirst="true">e60521346gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

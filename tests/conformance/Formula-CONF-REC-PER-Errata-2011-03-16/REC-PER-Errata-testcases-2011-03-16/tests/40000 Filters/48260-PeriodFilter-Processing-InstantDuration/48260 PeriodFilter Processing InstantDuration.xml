@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://www.xml.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>48260</number>
+  <name>Instant-Duration Filter Processing</name>
+  <description>
+    Test instant-duration filter processing
+  </description>
+  <reference specification="PERIOD-FILTER" id="sec-instant-duration-filter"/>
+
+  <variation id="V-01">
+    <name>Test filter by comparing the instant period with the start period of another fact.</name>
+    <description>The fact must be reported for instant that is equal to the start of the duration of the fact that the variable "v:vo" has evaluated to.</description>
+    <reference specification="PERIOD-FILTER" id="eg-instant-duration-filters"/>
+    <data>
+      <schema>48260-InstantDurationFilter-concepts.xsd</schema>
+      <linkbase>48260-InstantDurationFilter-boundary-start-formula.xml</linkbase>
+      <instance readMeFirst="true">48260-InstantDurationFilter-boundary-start-instance.xml</instance>
+    </data>
+    <result>
+      <instance>48260-InstantDurationFilter-boundary-start-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test filter by comparing the instant period with the end period of another fact.</name>
+    <description>The fact must be reported for instant that is equal to the end of the duration of the fact that the variable "v:vo" has evaluated to.</description>
+    <reference specification="PERIOD-FILTER" id="eg-instant-duration-filters"/>
+    <data>
+      <schema>48260-InstantDurationFilter-concepts.xsd</schema>
+      <linkbase>48260-InstantDurationFilter-boundary-end-formula.xml</linkbase>
+      <instance readMeFirst="true">48260-InstantDurationFilter-boundary-end-instance.xml</instance>
+    </data>
+    <result>
+      <instance>48260-InstantDurationFilter-boundary-end-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

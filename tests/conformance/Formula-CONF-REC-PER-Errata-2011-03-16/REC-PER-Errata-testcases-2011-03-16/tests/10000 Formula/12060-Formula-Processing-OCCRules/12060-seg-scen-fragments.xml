@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<potpourri
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://xbrl.org/formula/conformance/example 12060-OCC-tests.xsd
+  "
+>
+  <eg:groovy/>
+  <eg:yucky/>
+  <eg:budgeted/>
+  <eg:actual/>
+</potpourri>

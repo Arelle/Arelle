@@ -1,0 +1,7 @@
+<xsd:schema xmlns:duriv="http://www.xbrl.org/dim/conf/190/dimensionURIvalid" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/dim/conf/190/dimensionURIvalid" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:import namespace="http://www.xbrl.org/dim/conf/190/dimensionURIvalid_File2" schemaLocation="typedDomainReflocatesDeclarationInDifferentFile_File2.xsd"/>
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+	<xsd:element name="headPhone" abstract="true" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="instant" id="duriv_headPhone" type="xbrli:stringItemType"/>
+	<xsd:element name="dPhone" type="xbrli:stringItemType" abstract="true" substitutionGroup="duriv:headPhone" nillable="true" id="duriv_dPhone" xbrldt:typedDomainRef="typedDomainReflocatesDeclarationInDifferentFile_File2.xsd#duriv_phone" xbrli:periodType="instant"/>
+</xsd:schema>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 16-07-2004 edit by Ron van Ardenne (www.batavia-xbrl.com / J2R BV) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Type" description="Section 5.3 Other Data Types" outpath="out" owner="n-sanbuichi@hitachi-system.co.jp" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-1" name="ComplexContentCounterExample">
+		<description>103.01 An item type in a taxonomy can never have complex content unless it is derived by restriction from fractionItemType.</description>
+		<data>
+			<xsd readMeFirst="true">103-01-ComplexContentCounterExample.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

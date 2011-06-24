@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Created: Neil Wills, UBmatrix -->
+<!-- Qnamed fact value, but no namespace declared to validate the qualified name -->
+<!-- Qname datatype http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/#QName -->
+
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:schemawithqnamedtype="http://www.example.com/schemawithqnamedtype">
+
+  <!-- No schema namespace declaration for schemaforqnamevalue: -->
+
+  <link:schemaRef xlink:href="schema_with_qname_datatype.xsd" xlink:type="simple" />
+
+  <context id="Context-2006">
+    <entity>
+      <identifier scheme="http://www.entity.com">entity</identifier>
+    </entity>
+    <period>
+      <instant>2006-08-18</instant>
+    </period>
+  </context>
+
+  <schemawithqnamedtype:Qname_dtype contextRef="Context-2006">schemaforqnamevalue:nonexistentelement</schemawithqnamedtype:Qname_dtype>
+</xbrl>

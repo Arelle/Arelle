@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-11-18 17:40).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-11-19 11:18:52
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:sc="http://www.abc.org/inheritanceSharedCube">
+  <link:schemaRef xlink:href="inheritanceSharedCube.xsd" xlink:type="simple" />
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://www.bdi.org">bdi</identifier>
+    </entity>
+    <period>
+      <instant>2006-12-31</instant>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="sc:dim1">sc:dim1_el1</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://www.bdi.org">bdi</identifier>
+    </entity>
+    <period>
+      <instant>2006-12-31</instant>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="sc:dim1">sc:dim1_el2</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="sc:dim2">sc:dim2_el1</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="c3">
+    <entity>
+      <identifier scheme="http://www.bdi.org">bdi</identifier>
+    </entity>
+    <period>
+      <instant>2006-12-31</instant>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="sc:dim1">sc:dim1_el1</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="sc:dim2">sc:dim2_el1</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <unit id="u1">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <sc:p3 contextRef="c2" unitRef="u1" decimals="0">80</sc:p3>
+</xbrl>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!-- Copyright 2005 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:h="http://xbrl.example.com/397/Holder" xmlns:abc="http://xbrl.example.com/397/ABC" xmlns:iso4217="http://www.xbrl.org/2003/iso4217">
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="397-ABC.xsd"/>
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="397-Holder.xsd"/>
+  <context id="c1">
+    <entity>
+      <identifier scheme="www.example.com">example</identifier>
+    </entity>
+    <period>
+      <instant>2001-01-01</instant>
+    </period>
+  </context>
+  <unit id="usd">
+    <measure>iso4217:USD</measure>
+  </unit>
+  <abc:A precision="INF" contextRef="c1" unitRef="usd">22</abc:A>
+  <abc:B precision="INF" contextRef="c1" unitRef="usd">2</abc:B>
+  <h:H>
+    <abc:A precision="INF" contextRef="c1" unitRef="usd">20</abc:A>
+    <abc:B precision="INF" contextRef="c1" unitRef="usd">20</abc:B>
+  </h:H>
+</xbrl>

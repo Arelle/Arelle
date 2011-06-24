@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Presentation Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2509.2110 (2006-07-17 13:10).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-17 23:55:41
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_PropertyPlanEquipment" xlink:label="decimals_PropertyPlanEquipment" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Land" xlink:label="decimals_Land" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="decimals_PropertyPlanEquipment" xlink:to="decimals_Land" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Buildings" xlink:label="decimals_Buildings" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="decimals_PropertyPlanEquipment" xlink:to="decimals_Buildings" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_FurnitureFixtures" xlink:label="decimals_FurnitureFixtures" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="decimals_PropertyPlanEquipment" xlink:to="decimals_FurnitureFixtures" order="3" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_ComputerEquipment" xlink:label="decimals_ComputerEquipment" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="decimals_PropertyPlanEquipment" xlink:to="decimals_ComputerEquipment" order="4" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Other" xlink:label="decimals_Other" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="decimals_PropertyPlanEquipment" xlink:to="decimals_Other" order="5" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_TotalPropertyPlantEquipment" xlink:label="decimals_TotalPropertyPlantEquipment" />
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="decimals_PropertyPlanEquipment" xlink:to="decimals_TotalPropertyPlantEquipment" order="6" use="optional" />
+  </presentationLink>
+</linkbase>

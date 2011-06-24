@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- Edited by Masatomo Goto (Fujitsu Ltd.) -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:example="http://example.com/xbrl/taxonomy/SummationItem" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://example.com/xbrl/taxonomy/SummationItem SummationItem.xsd">
+	<link:schemaRef xlink:href="SummationItem.xsd" xlink:type="simple"/>
+	<example:Asset contextRef="c1" unitRef="u1" precision="2">1559</example:Asset>
+	<example:FixedAsset contextRef="c1" unitRef="u1" precision="3">984.8</example:FixedAsset>
+	<example:CurrentAsset contextRef="c1" unitRef="u1" decimals="1">582.334973</example:CurrentAsset>
+	<context id="c1">
+		<entity>
+			<identifier scheme="www.example.com">example</identifier>
+		</entity>
+		<period>
+			<instant>2003-03-31</instant>
+		</period>
+	</context>
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+</xbrl>

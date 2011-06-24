@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>612-05</number>
+<name>EDGAR Filer Manual v16 6.12.5 page 6-54</name>
+<description>
+<h2>If an element used in an instance is the target in the instance DTS of more than one effective presentation relationship in a base
+set with the same source element, then the presentation relationships must have distinct values of the preferredLabel attribute.</h2>
+<p>This rule prevents the same fact from appearing twice in a set of line items, except when it is, for example, shown as both the
+beginning and ending value of a roll forward.</p>
+</description>
+<reference specification="11194"/>
+<variation id="_000gd">
+<name>6.12.5 Instance has a fact whose primary element is presented twice, once with a preferred label, GOOD.</name>
+<description>Instance has a fact whose primary element is presented twice, once with a preferred label, GOOD</description>
+<reference specification="11194"/>
+<data>
+<instance readMeFirst="true">e61205000gd-20081231.xml</instance>
+<linkbase>e61205000gd-20081231_lab.xml</linkbase>
+<linkbase>e61205000gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61205000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.12.5 Instance has a fact whose primary element is presented twice with distinct preferred labels, GOOD.</name>
+<description>Instance has a fact whose primary element is presented twice with distinct preferred labels, GOOD</description>
+<reference specification="11194"/>
+<data>
+<instance readMeFirst="true">e61205001gd-20081231.xml</instance>
+<linkbase>e61205001gd-20081231_lab.xml</linkbase>
+<linkbase>e61205001gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61205001gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.12.5 Instance has a fact whose primary element is presented twice without any preferred label, NOGOOD.</name>
+<description>Instance has a fact whose primary element is presented twice without any preferred label, NOGOOD.</description>
+<reference specification="11194"/>
+<data>
+<instance readMeFirst="true">e61205002ng-20081231.xml</instance>
+<linkbase>e61205002ng-20081231_lab.xml</linkbase>
+<linkbase>e61205002ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61205002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61205" name="Preferred-Label-Duplicates" frd="rq"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.12.5 Instance has a fact whose primary element is presented twice with the same preferred label, NOGOOD.</name>
+<description>Instance has a fact whose primary element is presented twice with the same preferred label, NOGOOD.</description>
+<reference specification="11194"/>
+<data>
+<instance readMeFirst="true">e61205003ng-20081231.xml</instance>
+<linkbase>e61205003ng-20081231_lab.xml</linkbase>
+<linkbase>e61205003ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61205003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61205" name="Preferred-Label-Duplicates" frd="rq"/>
+</result>
+</variation>
+<variation id="_004gd">
+<name>6.12.5 Primary element is presented twice with the same preferred label, not used in instance, GOOD.</name>
+<description>Primary element is presented twice with the same preferred label, not used in instance, GOOD.</description>
+<reference specification="11194"/>
+<data>
+<instance readMeFirst="true">e61205004gd-20081231.xml</instance>
+<linkbase>e61205004gd-20081231_lab.xml</linkbase>
+<linkbase>e61205004gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61205004gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

@@ -1,0 +1,13 @@
+<!-- Company specific scenario sub-element -->
+<schema targetNamespace="http://www.someCompany.com"   
+        xmlns:my="http://www.someCompany.com"
+        xmlns:xbrli="http://www.xbrl.org/2003/instance"
+        xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+
+   <simpleType name="sampleScenarioType">
+     <restriction base="string"/>
+   </simpleType>
+
+  <element name="sampleScenario" type="xbrli:stringItemType" nillable="true" substitutionGroup="xbrli:item" xbrli:periodType="instant"/>
+</schema>

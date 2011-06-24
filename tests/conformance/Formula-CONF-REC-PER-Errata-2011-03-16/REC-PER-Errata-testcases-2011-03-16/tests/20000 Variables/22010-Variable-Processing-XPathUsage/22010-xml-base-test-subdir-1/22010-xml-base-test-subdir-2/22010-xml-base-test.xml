@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<table
+  xmlns="http://xbrl.org/formula/conformance/example/basetest"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="
+  http://xbrl.org/formula/conformance/example/basetest  ../../22010-xml-base-test.xsd
+  "
+>
+  <entry>ghi</entry>
+  
+</table>
+
+
+
+
+

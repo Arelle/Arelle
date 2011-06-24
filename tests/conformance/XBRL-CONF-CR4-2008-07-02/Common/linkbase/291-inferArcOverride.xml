@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- 16-07-2004 edit by Ron van Ardenne (www.batavia-xbrl.com / J2R BV) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Arc Overrides" description="Section 5.5.7.10 Overriding arcs" outpath="out" owner="dvunkannon@kpmg.com" minimal="false" xsi:noNamespaceSchemaLocation="../lib/test.xsd">
+	<!-- Overrides must also inherit the role of the extended-type link -->
+	<!-- Concept-to-Resource Arcs -->
+	<variation id="V-1" name="291.01 Two label linkbases with no overrides combine">
+		<description>291.01 The two disjoint label linkbases of a schema together combine into a single PTVL.</description>
+		<data>
+			<xsd readMeFirst="true">ArcOverrideDisjointLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-01-ArcOverrideDisjointLinkbases-1-label.xml</linkbase>
+			<linkbase readMeFirst="false">291-01-ArcOverrideDisjointLinkbases-2-label.xml</linkbase>
+		</data>
+		<result expected="valid">291-01-ArcOverrideDisjointLinkbasesOut.xml</result>
+	</variation>
+	<!-- rest of these are to-do.  can these cases be enumerated programattically? -->
+	<variation id="V-2" name="A label linkbase arc overrides another">
+		<description>291.02One label linkbase overrides another label linkbase.</description>
+		<data>
+			<xsd readMeFirst="true">291-02-ArcOverrideLabelLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-02-ArcOverrideLabelLinkbases-1-label.xml</linkbase>
+			<linkbase readMeFirst="false">291-02-ArcOverrideLabelLinkbases-2-label.xml</linkbase>
+		</data>
+		<result expected="valid">291-02-Out.xml</result>
+	</variation>
+	<variation id="V-3" name="A label linkbase arc overrides another and inserts a substitute arc between the same concept and label">
+		<description>291.03 One label linkbase prohibits a link in another linkbase and link again. But use attribute must be prohibited so the second override must not be permitted.</description>
+		<data>
+			<xsd readMeFirst="true">291-03-ArcOverrideLabelLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-03-ArcOverrideLabelLinkbases-1-label.xml</linkbase>
+			<linkbase readMeFirst="false">291-03-ArcOverrideLabelLinkbases-2-label.xml</linkbase>
+			<linkbase readMeFirst="false">291-03-ArcOverrideLabelLinkbases-3-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- Concept-to-Concept Arcs -->
+	<variation id="V-4" name="Two definition linkbases with no overrides combine">
+		<description>291.04 The two disjoint definition linkbases of a schema together combine into a single PTVL.</description>
+		<data>
+			<xsd readMeFirst="true">291-04-ArcOverrideDisjointLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-04-ArcOverrideLinkbases-1-def.xml</linkbase>
+			<linkbase readMeFirst="false">291-04-ArcOverrideLinkbases-2-def.xml</linkbase>
+		</data>
+		<result expected="valid">291-04-Out.xml</result>
+	</variation>
+	<variation id="V-5" name="A definition linkbase arc overrides another">
+		<description>291.05 One Linkbase prohibits one link in another linkbase.</description>
+		<data>
+			<xsd readMeFirst="true">291-05-ArcOverrideDisjointLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-05-ArcOverrideLinkbases-1-def.xml</linkbase>
+			<linkbase readMeFirst="false">291-05-ArcOverrideLinkbases-2-def.xml</linkbase>
+		</data>
+		<result expected="valid">291-05-Out.xml</result>
+	</variation>
+	<variation id="V-6" name="A definition linkbase arc overrides another and inserts a substitute arc between the same two concepts">
+		<description>291.06 One Linkbase prohibits and another Linkbase links againt the link in other linkbase.</description>
+		<data>
+			<xsd readMeFirst="true">291-06-ArcOverrideDisjointLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-06-ArcOverrideLinkbases-1-def.xml</linkbase>
+			<linkbase readMeFirst="false">291-06-ArcOverrideLinkbases-2-def.xml</linkbase>
+			<linkbase readMeFirst="false">291-06-ArcOverrideLinkbases-3-def.xml</linkbase>
+		</data>
+		<result expected="valid">291-06-Out.xml</result>
+	</variation>
+	<variation id="V-7" name="A label linkbase arc overrides with no prohibited value.">
+		<description>291.07 One label linkbase overrides another label linkbase. But overriding labelArc element's use attribute value is "optional". That's why  this must be invalid.</description>
+		<data>
+			<xsd readMeFirst="true">291-07-ArcOverrideLabelLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-07-ArcOverrideLabelLinkbases-1-label.xml</linkbase>
+			<linkbase readMeFirst="false">291-07-ArcOverrideLabelLinkbases-2-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-08" name="A label linkbase arc overrides from an item to another item">
+		<description>291.08 One label linkbase overrides another label linkbase. But overriding labelArc element have from and to attribute which both points to item in a schema.That's why  this must be invalid.</description>
+		<data>
+			<xsd readMeFirst="true">291-08-ArcOverrideLabelLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-08-ArcOverrideLabelLinkbases-1-label.xml</linkbase>
+			<linkbase readMeFirst="false">291-08-ArcOverrideLabelLinkbases-2-label.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-09" name="A label linkbase arc overrides but different role labelLink">
+		<description>291.09 One label linkbase overrides another label linkbase. But overriding labelLink has different role.
+		There seems to have no special usecase for this. But it is no problem from the Specificaiton point of
+		view.  That's why  this must be valid and ignored or warned.</description>
+		<data>
+			<xsd readMeFirst="true">291-09-ArcOverrideLabelLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-09-ArcOverrideLabelLinkbases-1-label.xml</linkbase>
+			<linkbase readMeFirst="false">291-09-ArcOverrideLabelLinkbases-2-label.xml</linkbase>
+		</data>
+		<result expected="valid">291-09-ArcOverrideLabelLinkbases-1-labelOut.xml</result>
+	</variation>
+	<variation id="V-10" name="Two reference linkbases with no overrides combine">
+		<description>291.10 The two disjoint reference linkbases of a schema together combine into a single PTVL.</description>
+		<data>
+			<xsd readMeFirst="true">291-10-ArcOverrideDisjointLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-10-ArcOverrideDisjointLinkbases-1-reference.xml</linkbase>
+			<linkbase readMeFirst="false">291-10-ArcOverrideDisjointLinkbases-2-reference.xml</linkbase>
+		</data>
+		<result expected="valid">291-10-Out.xml</result>
+	</variation>
+	<!-- rest of these are to-do.  can these cases be enumerated programattically? -->
+	<variation id="V-11" name="A reference linkbase arc overrides another">
+		<description>291.11 One reference linkbase overrides another reference linkbase.</description>
+		<data>
+			<xsd readMeFirst="true">291-11-ArcOverrideReferenceLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-11-ArcOverrideReferenceLinkbases-1-reference.xml</linkbase>
+			<linkbase readMeFirst="false">291-11-ArcOverrideReferenceLinkbases-2-reference.xml</linkbase>
+		</data>
+		<result expected="valid">291-11-Out.xml</result>
+	</variation>
+	<variation id="V-12" name="A reference linkbase arc overrides another and inserts a substitute arc between the same concept and reference">
+		<description>291.12 One reference linkbase prohibits a link in another linkbase and link again. But use attribute must be prohibited so the second override must not be permitted.</description>
+		<data>
+			<xsd readMeFirst="true">291-12-ArcOverrideReferenceLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-12-ArcOverrideReferenceLinkbases-1-reference.xml</linkbase>
+			<linkbase readMeFirst="false">291-12-ArcOverrideReferenceLinkbases-2-reference.xml</linkbase>
+			<linkbase readMeFirst="false">291-12-ArcOverrideReferenceLinkbases-3-reference.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-13" name="A reference linkbase arc overrides with no prohibited value.">
+		<description>291.13 One reference linkbase overrides another reference linkbase. But overriding referenceArc element's use attribute value is "optional". That's why  this must be invalid.</description>
+		<data>
+			<xsd readMeFirst="true">291-13-ArcOverrideReferenceLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-13-ArcOverrideReferenceLinkbases-1-reference.xml</linkbase>
+			<linkbase readMeFirst="false">291-13-ArcOverrideReferenceLinkbases-2-reference.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-14" name="A reference linkbase arc overrides from an item to another item">
+		<description>291.14 One reference linkbase overrides another reference linkbase. But overriding referenceArc element have from and to attribute which both points to item in a schema.That's why  this must be invalid.</description>
+		<data>
+			<xsd readMeFirst="true">291-14-ArcOverrideReferenceLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-14-ArcOverrideReferenceLinkbases-1-reference.xml</linkbase>
+			<linkbase readMeFirst="false">291-14-ArcOverrideReferenceLinkbases-2-reference.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-15" name="A reference linkbase arc overrides but different role referenceLink">
+		<description>291.15 One reference linkbase overrides another reference linkbase. But overriding referenceLink has different role.
+		There seems to have no special usecase for this. But it is no problem from the Specificaiton point of
+		view.  That's why  this must be valid and ignored or warned.</description>
+		<data>
+			<xsd readMeFirst="true">291-15-ArcOverrideReferenceLinkbases.xsd</xsd>
+			<linkbase readMeFirst="false">291-15-ArcOverrideReferenceLinkbases-1-reference.xml</linkbase>
+			<linkbase readMeFirst="false">291-15-ArcOverrideReferenceLinkbases-2-reference.xml</linkbase>
+		</data>
+		<result expected="valid">291-15-ArcOverrideReferenceLinkbases-1-referenceOut.xml</result>
+
+	</variation>
+
+</testcase>

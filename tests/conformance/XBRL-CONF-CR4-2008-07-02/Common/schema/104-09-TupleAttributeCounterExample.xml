@@ -1,0 +1,20 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy 104-09-TupleAttributeCounterExample.xsd">
+	<link:schemaRef xlink:href="104-09-TupleAttributeCounterExample.xsd" xlink:type="simple"/>
+  <!-- Tuples should not have attributes in the default namespace other than id -->
+  <my:managementInformation myAttribute="Bad">
+    <my:managementName contextRef="ci">Manager</my:managementName>
+  </my:managementInformation>
+	
+
+<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+	<context id="ci">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+	</context>
+</xbrl>

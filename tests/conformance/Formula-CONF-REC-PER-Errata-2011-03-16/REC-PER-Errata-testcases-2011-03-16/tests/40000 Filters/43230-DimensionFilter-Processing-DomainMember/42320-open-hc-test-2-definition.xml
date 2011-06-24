@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItem"
+      xlink:href="42320-open-hc-test-2.xsd#eg_PriItem" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HC"
+      xlink:href="42320-open-hc-test-2.xsd#eg_HC" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItem" xlink:to="eg_HC"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment" />
+  </definitionLink>
+</linkbase>

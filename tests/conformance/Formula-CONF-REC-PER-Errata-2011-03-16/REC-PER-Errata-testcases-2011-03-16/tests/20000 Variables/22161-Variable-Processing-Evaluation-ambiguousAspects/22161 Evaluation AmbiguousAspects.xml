@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22161</number>
+  <name>Evaluation processing ambiguous aspects examples</name>
+  <description>
+    Tests of evaluation processing for ambiguous aspects, as they were for CR-1. 
+    Removed for CR-2 but preserved for by not being deleted.
+    Future aspects (or changes in dimensions technology) may have a future
+    use for the ambiguous aspects error.
+  </description>
+  <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+  <reference specification="VARIABLES" id="error-ambiguousAspects"/>
+
+<!--
+  <variation id="V-01">
+    <name>Output of source explicit dimension, segment, not ambiguous</name>
+    <description>Tests that the output segment is that of the input.</description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <reference specification="VARIABLES" id="error-ambiguousAspects"/>
+    <data>
+      <schema>22161-dim-tests.xsd</schema>
+      <linkbase>22161-dim-tests-definition.xml</linkbase>
+      <linkbase>22161-copy-source-formula.xml</linkbase>
+      <instance readMeFirst="true">22161-no-ambiguity-seg-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22161-no-ambiguity-seg-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Output of source explicit dimension, segment, ambiguous between seg and scen</name>
+    <description>Tests that the output segment is that of the input, but it not possible to determine whether the dimension aspect pertains to segment or scenario from the primary item definition, because it is ambiguous to both segment or scenario extended link roles.</description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <reference specification="VARIABLES" id="error-ambiguousAspects"/>
+    <data>
+      <schema>22161-dim-tests.xsd</schema>
+      <linkbase>22161-dim-tests-definition.xml</linkbase>
+      <linkbase>22161-copy-source-formula.xml</linkbase>
+      <instance readMeFirst="true">22161-ambiguity-seg-to-scen-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22161-ambiguity-seg-to-scen-instance.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02a">
+    <name>No dimensional evaluation, but segment, ambiguous between seg and scen</name>
+    <description>Same input instance document as V-02 which has the fact that is ambiguous in the dimension aspect, but the evaluation for the formula does not have any fact variables and assembles the output fact from scratch, so there is no dimensional aspect evaluation taking place.  Contrives to show that the instance document is checked for this error on load, not when the offending fact is utilized.
+    </description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <reference specification="VARIABLES" id="error-ambiguousAspects"/>
+    <data>
+      <schema>22161-dim-tests.xsd</schema>
+      <linkbase>22161-dim-tests-definition.xml</linkbase>
+      <linkbase>22161-no-vars-formula.xml</linkbase>
+      <instance readMeFirst="true">22161-ambiguity-seg-to-scen-no-vars-formula-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22161-ambiguity-seg-to-scen-no-vars-formula-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Output of source no dimensions segment hypercube, not ambiguous</name>
+    <description>Tests that the output segment is that of the input, the hypercube of the primary item has no dimensions.</description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <reference specification="VARIABLES" id="error-ambiguousAspects"/>
+    <data>
+      <schema>22161-dim-tests.xsd</schema>
+      <linkbase>22161-dim-tests-definition.xml</linkbase>
+      <linkbase>22161-copy-source-formula.xml</linkbase>
+      <instance readMeFirst="true">22161-no-dim-seg-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22161-no-dim-seg-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Output of source explicit dimension, default, ambiguous between seg and no-dimension hypercube</name>
+    <description>Tests that the output segment is that of the input, but not possible to determine whether the default dimension is an aspect in the segment or whether the primary item had no dimensions, in the no-dimensions hypercube extended link role.</description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <reference specification="VARIABLES" id="error-ambiguousAspects"/>
+    <data>
+      <schema>22161-dim-tests.xsd</schema>
+      <linkbase>22161-dim-tests-definition.xml</linkbase>
+      <linkbase>22161-copy-source-formula.xml</linkbase>
+      <instance readMeFirst="true">22161-ambiguity-seg-to-none-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlve:ambiguousAspects</error>
+    </result>
+  </variation>  
+-->
+
+</testcase>
+
+
+
+

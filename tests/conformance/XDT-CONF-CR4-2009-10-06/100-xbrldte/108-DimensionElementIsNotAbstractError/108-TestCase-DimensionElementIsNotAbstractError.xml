@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xbrl.org/2005/conformance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" name="108-TestCase-DimensionElementIsNotAbstractError" description="2.5.1 - Dimension Declarations." outpath="out" owner="fischer@markv.com" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and not covered by XML Schema and XBRL Validation. -->
+        <!-- As of the 2005-10-26 internal working draft -->
+        <!-- TESTCASE HAS NO STANDARD LABELS: 2.7.1.1 only requires standard labels on element declarations which are the targets of has-hypercube, hypercube-dimension, dimension-domain and domain-member relationships, but there are none in this testcase -->
+        <!-- 2.5.1  1.  A dimensional processor MUST raise an error [Dim Err, 12] xbrldte:DimensionElementIsNotAbstract if an element that is in the substitution group of xbrldt:dimensionItem is not abstract. -->
+        <variation id="V-01" name="dimension declaration valid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.1">The dimension declaration is abstract.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionValid.xsd</xsd>
+                </data>
+                <result/>
+        </variation>
+        <variation id="V-02" name="dimension declaration not abstract">
+                <description reference="XDT-IWD-2005-10-26.doc#2.2.1">Signal xbrldte:DimensionElementIsNotAbstract  because dimension declaration is not abstract.</description>
+                <data>
+                        <xsd readMeFirst="true">dimensionNotAbstract.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:DimensionElementIsNotAbstractError</error>
+                </result>
+        </variation>
+</testcase>
+

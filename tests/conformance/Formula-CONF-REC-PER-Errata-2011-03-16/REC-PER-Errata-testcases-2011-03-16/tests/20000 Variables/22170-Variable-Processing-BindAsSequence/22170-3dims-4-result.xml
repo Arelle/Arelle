@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-3dim-tests.xsd"/>
+
+  <context id="c-d1m1d2m1d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m1d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m1d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m1d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m1d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m1d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m2d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m2d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m2d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m2d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m2d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m2d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m3d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m3d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m3d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m3d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m3d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m3d3m1</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m1d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m1d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m1d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m1d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m1d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m1d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m2d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m2d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m2d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m2d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m2d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m2d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m3d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m3d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m3d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m3d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m3d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m3d3m2</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m1d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m1d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m1d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m1d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m1d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m1d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m2d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m2d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m2d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m2d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m2d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m2d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m3d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m1d2m3d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m3d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m2d2m3d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m3d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">c-d1m3d2m3d3m3</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <concept:R1 contextRef="c-d1m1d2m1d3m1">c1-d1m1d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m1">c1-d1m2d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m1">c1-d1m3d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m1">c1a-d1m1d2m2d3m1,c1b-d1m1d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m1">c1-d1m2d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m1">c1a-d1m3d2m2d3m1,c1b-d1m3d2m2d3m1,c1c-d1m3d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m1">c1-d1m1d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m1">c1-d1m2d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m1">c1-d1m3d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m2">c1-d1m1d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m2">c1-d1m2d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m2">c1-d1m3d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m2">c1-d1m1d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m2">c1-d1m2d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m2">c1-d1m3d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m2">c1-d1m1d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m2">c1-d1m2d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m2">c1-d1m3d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m3">c1-d1m1d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m3">c1-d1m2d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m3">c1-d1m3d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m3">c1-d1m1d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m3">c1-d1m2d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m3">c1-d1m3d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m3">c1-d1m1d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m3">c1-d1m2d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m3">c1-d1m3d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m1">c2-d1m1d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m1">c2-d1m2d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m1">c2-d1m3d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m1">c2-d1m1d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m1">c2-d1m2d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m1">c2-d1m3d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m1">c2-d1m1d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m1">c2-d1m2d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m1">c2-d1m3d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m2">c2-d1m1d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m2">c2-d1m2d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m2">c2-d1m3d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m2">c2-d1m1d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m2">c2-d1m2d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m2">c2-d1m3d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m2">c2-d1m1d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m2">c2-d1m2d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m2">c2-d1m3d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m3">c2-d1m1d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m3">c2-d1m2d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m3">c2-d1m3d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m3">c2-d1m1d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m3">c2-d1m2d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m3">c2-d1m3d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m3">c2-d1m1d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m3">c2-d1m2d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m3">c2-d1m3d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m1">c3-d1m1d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m1">c3-d1m2d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m1">c3-d1m3d2m1d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m1">c3-d1m1d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m1">c3-d1m2d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m1">c3-d1m3d2m2d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m1">c3-d1m1d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m1">c3-d1m2d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m1">c3-d1m3d2m3d3m1</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m2">c3-d1m1d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m2">c3-d1m2d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m2">c3-d1m3d2m1d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m2">c3-d1m1d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m2">c3-d1m2d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m2">c3-d1m3d2m2d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m2">c3-d1m1d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m2">c3-d1m2d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m2">c3-d1m3d2m3d3m2</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m1d3m3">c3-d1m1d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m1d3m3">c3-d1m2d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m1d3m3">c3-d1m3d2m1d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m2d3m3">c3-d1m1d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m2d3m3">c3-d1m2d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m2d3m3">c3-d1m3d2m2d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m1d2m3d3m3">c3-d1m1d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m2d2m3d3m3">c3-d1m2d2m3d3m3</concept:R1>
+  <concept:R1 contextRef="c-d1m3d2m3d3m3">c3-d1m3d2m3d3m3</concept:R1>
+
+</xbrl>
+

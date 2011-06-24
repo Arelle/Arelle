@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:us-gaap="http://fasb.org/us-gaap/2011-01-31">
+<link:schemaRef xlink:href="e60302001ng-20111231.xsd" xlink:type="simple"/>
+<xbrli:context id="D2009Q2">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2011-04-01</xbrli:startDate>
+<xbrli:endDate>2011-06-30</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<dei:EntityCentralIndexKey contextRef="D2009Q2">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="D2009Q2">e60302000ng</dei:EntityRegistrantName>
+<dei:DocumentType contextRef="D2009Q2">8-K</dei:DocumentType>
+<dei:DocumentPeriodEndDate contextRef="D2009Q2">2011-06-30</dei:DocumentPeriodEndDate>
+<dei:AmendmentFlag contextRef="D2009Q2">false</dei:AmendmentFlag>
+<dei:CurrentFiscalYearEndDate contextRef="D2009Q2">--12-31</dei:CurrentFiscalYearEndDate>
+</xbrli:xbrl>

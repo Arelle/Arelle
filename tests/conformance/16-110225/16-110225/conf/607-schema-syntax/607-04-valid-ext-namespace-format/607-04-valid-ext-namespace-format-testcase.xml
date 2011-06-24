@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://edgar/2009/conformance"
+xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-04</number>
+<name>EDGAR Filer Manual v16 6.7.4 page 6-33</name>
+<description>
+<h2> The targetNamespace attribute must match http://{authority}/{versionDate}. </h2>
+<p>The company-specific schema has a unique targetNamespace attribute name for each schema. Namespaces are not to be confused with
+external references even though they may appear to have very similar formats. An external reference describes the location of a
+particular file with the intent of accessing the contents of that file. A namespace, on the other hand, is a name that identifies
+elements that belong to a particular markup vocabulary. However, since they function very differently, restrictions that are placed on
+external references do not apply to namespaces. Since a particular instance document is expected to reference multiple vocabularies,
+namespaces provide a convention by which each vocabulary is uniquely identified. This avoids problems of recognition and collision of
+similarly named elements from different vocabularies appearing in XBRL documents.</p>
+<p>REMARK: There is a mismatch between the date formats currently accepted by EDGAR, and the possible ISO8601 formats.</p>
+</description>
+<reference specification="10491.14.1"/>
+<reference specification="10491.14.2"/>
+<reference specification="10939"/>
+<reference specification="11077"/>
+<variation id="_001gd">
+<name>6.7.4 targetNamespace = http://mym0th3rth3car/20080229, GOOD</name>
+<description>targetNamespace = http://mym0th3rth3car/20080229, GOOD</description>
+<reference specification="10491.14.1"/>
+<reference specification="10491.14.2"/>
+<data>
+<instance readMeFirst="true">e60704001gd-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704001gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.7.4 targetNamespace = http://mym0th3r/th3car/20080229, NOGOOD</name>
+<description>targetNamespace = http://mym0th3r/th3car/20080229, NOGOOD</description>
+<reference specification="10491.14.1"/>
+<data>
+<instance readMeFirst="true">e60704002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60704" name="Taxonomy-Valid-Target-Namespace" frd="cp"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.7.4 targetNamespace = https://mym0th3rth3car/20080229, NOGOOD</name>
+<description>targetNamespace = https://mym0th3rth3car/20080229, NOGOOD</description>
+<reference specification="10491.14.1"/>
+<data>
+<instance readMeFirst="true">e60704003ng-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60704" name="Taxonomy-Valid-Target-Namespace" frd="cp"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.7.4 targetNamespace = http://mym0th3r/th3car/2007-02-29, NOGOOD</name>
+<description>targetNamespace = http://mym0th3r/th3car/2007-02-29, NOGOOD</description>
+<reference specification="10491.14.1"/>
+<reference specification="10491.14.2"/>
+<data>
+<instance readMeFirst="true">e60704004ng-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60704" name="Taxonomy-Valid-Target-Namespace" frd="cp"/>
+</result>
+</variation>
+<variation id="_005gd">
+<name>6.7.4 targetNamespace = http://mym0th3rth3car/2008-02-29, GOOD</name>
+<description>targetNamespace = http://mym0th3rth3car/2008-02-29, GOOD</description>
+<reference specification="10939"/>
+<reference specification="11077"/>
+<data>
+<instance readMeFirst="true">e60704005gd-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704005gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_006ng">
+<name>6.7.4 targetNamespace = , NOGOOD</name>
+<description>targetNamespace = , NOGOOD</description>
+<reference specification="10939"/>
+<reference specification="11077"/>
+<data>
+<instance readMeFirst="true">e60704006ng-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704006ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60704" name="Taxonomy-Valid-Target-Namespace" frd="cp"/>
+</result>
+</variation>
+<variation id="_007ng">
+<name>6.7.4 targetNamespace = http://mym0th3rth3car/2009-9-12, NOGOOD</name>
+<description>targetNamespace = http://mym0th3rth3car/2009-9-12, NOGOOD</description>
+<reference specification="10939"/>
+<reference specification="11077"/>
+<data>
+<instance readMeFirst="true">e60704007ng-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704007ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60704" name="Taxonomy-Valid-Target-Namespace" frd="cp"/>
+</result>
+</variation>
+<variation id="_008ng">
+<name>6.7.4 targetNamespace = http://mym0th3rth3car/20090229, NOGOOD</name>
+<description>targetNamespace = http://mym0th3rth3car/20090229, NOGOOD</description>
+<reference specification="10939"/>
+<reference specification="11077"/>
+<data>
+<instance readMeFirst="true">e60704008ng-20081231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60704008ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60704" name="Taxonomy-Valid-Target-Namespace" frd="cp"/>
+</result>
+</variation>
+</testcase>

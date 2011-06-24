@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22040-factVar-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22040-hello-not-c2-factsInInst-formula.xml"/>
+  
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <concept:c1 contextRef="context">mercury,</concept:c1>
+  <concept:t1>
+    <concept:c1 contextRef="context">venus,</concept:c1>
+    <concept:c2 contextRef="context">alderon</concept:c2>
+  </concept:t1>
+  <concept:t1>
+    <concept:c1 contextRef="context">earth,</concept:c1>
+  </concept:t1>
+  <concept:t1>
+    <concept:t1>
+      <concept:c1 contextRef="context">mars,</concept:c1>
+      <concept:t1>
+        <concept:c1 contextRef="context">jupiter,</concept:c1>
+        <concept:t1>
+          <concept:c1 contextRef="context">saturn,</concept:c1>
+        </concept:t1>
+      </concept:t1>
+    </concept:t1>
+    <concept:c1 contextRef="context">neptune,</concept:c1>
+    <concept:t1>
+      <concept:c1 contextRef="context">uranus</concept:c1>
+    </concept:t1>
+  </concept:t1>
+
+</xbrl>
+

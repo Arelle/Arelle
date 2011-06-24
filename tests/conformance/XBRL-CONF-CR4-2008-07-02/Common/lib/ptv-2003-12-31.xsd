@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<xs:schema targetNamespace="http://www.xbrl.org/2003/ptv" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ptv="http://www.xbrl.org/2003/ptv" xmlns:xbrl="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" elementFormDefault="qualified">
+	<xs:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xs:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+	<xs:attribute name="periodType">
+		<xs:simpleType>
+			<xs:restriction base="xs:NMTOKEN">
+				<xs:enumeration value="instant"/>
+				<xs:enumeration value="duration"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:attribute>
+	<xs:attribute name="balance">
+		<xs:simpleType>
+			<xs:restriction base="xs:NMTOKEN">
+				<xs:enumeration value="debit"/>
+				<xs:enumeration value="credit"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:attribute>
+	<xs:complexType name="arcType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="linkType" use="required">
+					<xs:simpleType>
+						<xs:restriction base="xs:NMTOKEN">
+							<xs:enumeration value="label"/>
+							<xs:enumeration value="reference"/>
+							<xs:enumeration value="definition"/>
+							<xs:enumeration value="presentation"/>
+							<xs:enumeration value="calculation"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+				<xs:attribute name="arcRole" type="xs:anyURI" use="required"/>
+				<xs:attribute name="extRole" type="xs:anyURI" use="required"/>
+				<xs:attribute name="fromPath" type="xs:anyURI" use="required"/>
+				<xs:attribute name="labelLang" type="xs:language" use="optional"/>
+				<xs:attribute name="resRole" type="xs:anyURI" use="optional"/>
+				<xs:attribute name="weight" type="xs:decimal" use="optional"/>
+				<xs:attribute name="order" type="xs:decimal" use="optional"/>
+				<xs:attribute name="toPath" type="xs:anyURI" use="optional"/>
+				<xs:attribute name="preferredLabel" type="xs:anyURI" use="optional"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:element name="ptvl">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="arc" type="ptv:arcType" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

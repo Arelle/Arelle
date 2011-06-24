@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--  XBRL 2.1 Tests 
+
+  -->
+
+<!--  Copyright 2003 XBRL International. All Rights Reserved. 
+
+  -->
+
+<schema targetNamespace="http://mycompany.com/xbrl/arcs" xmlns:mycomp="http://mycompany.com/xbrl/arcs" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns="http://www.w3.org/2001/XMLSchema">
+
+	<annotation>
+
+		<appinfo>
+
+			<link:linkbaseRef xlink:type="simple" xlink:href="209-02-DifferentPreferredLabels-presentation.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+			<link:linkbaseRef xlink:type="simple" xlink:href="209-02-DifferentPreferredLabels-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+		</appinfo>
+
+	</annotation>
+
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+	<element name="conceptZ" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptZ" xbrli:periodType="instant" xbrli:balance="debit"/>
+
+	<element name="conceptG" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptG" xbrli:periodType="instant" xbrli:balance="debit"/>
+
+</schema>
+

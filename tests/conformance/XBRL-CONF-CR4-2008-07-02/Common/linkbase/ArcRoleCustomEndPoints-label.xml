@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2006-07-25 17:18).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-26 17:27:25
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_AverageRevenue" xlink:label="test_AverageRevenue" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_AverageRevenue" xlink:to="test_AverageRevenue_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_AverageRevenue_lbl" xml:lang="en">Average revenue</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_CountWidgetsReported" xlink:label="test_CountWidgetsReported" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_CountWidgetsReported" xlink:to="test_CountWidgetsReported_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_CountWidgetsReported_lbl" xml:lang="en">Count of widgets reported</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_Description" xlink:label="test_Description" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_Description" xlink:to="test_Description_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_Description_lbl" xml:lang="en">Description</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_GrossRevenue" xlink:label="test_GrossRevenue" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_GrossRevenue" xlink:to="test_GrossRevenue_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_GrossRevenue_lbl" xml:lang="en">Gross Revenue</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_Name" xlink:label="test_Name" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_Name" xlink:to="test_Name_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_Name_lbl" xml:lang="en">Name</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_NetCosts" xlink:label="test_NetCosts" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_NetCosts" xlink:to="test_NetCosts_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_NetCosts_lbl" xml:lang="en">Net Costs</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_TotalUnitsSold" xlink:label="test_TotalUnitsSold" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_TotalUnitsSold" xlink:to="test_TotalUnitsSold_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_TotalUnitsSold_lbl" xml:lang="en">Total units sold</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_UnitsSold" xlink:label="test_UnitsSold" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_UnitsSold" xlink:to="test_UnitsSold_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_UnitsSold_lbl" xml:lang="en">Units Sold</label>
+    <loc xlink:type="locator" xlink:href="ArcRoleCustomEndPoints.xsd#test_Widget" xlink:label="test_Widget" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="test_Widget" xlink:to="test_Widget_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="test_Widget_lbl" xml:lang="en">Widget</label>
+  </labelLink>
+</linkbase>

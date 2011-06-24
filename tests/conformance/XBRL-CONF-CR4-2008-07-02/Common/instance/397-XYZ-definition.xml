@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2005 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" 
+          xmlns:xlink="http://www.w3.org/1999/xlink" >
+
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <!-- Z is an alias for A -->
+		<loc xlink:type="locator" xlink:href="397-XYZ.xsd#Z" xlink:label="alias" />
+		<loc xlink:type="locator" xlink:href="397-ABC.xsd#A" xlink:label="essence" />
+
+		<definitionArc  xlink:type="arc" 
+                    xlink:arcrole="http://www.xbrl.org/2003/arcrole/essence-alias" 
+                    xlink:from="essence" 
+                    xlink:to="alias"/>
+
+  </definitionLink>
+
+</linkbase>

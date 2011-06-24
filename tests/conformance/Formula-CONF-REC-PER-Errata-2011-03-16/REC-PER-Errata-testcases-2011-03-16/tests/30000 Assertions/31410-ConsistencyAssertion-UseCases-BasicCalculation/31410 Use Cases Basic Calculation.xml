@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlcae="http://xbrl.org/2008/assertion/consistency/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>31410</number>
+  <name>Basic Calculation accounting pattern</name>
+  <description>
+    Consistency check reported assets = liabilities + equity.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>         
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+
+  <variation id="V-01">
+    <name>Consistency check assets against reported valid assets</name>
+    <description>
+      Consistency check valid assets against liabilities plus equity.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>         
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+    <data>
+      <schema>31410-consistentAssets-concepts.xsd</schema>
+      <linkbase>31410-consistentAssets-formula.xml</linkbase>
+      <instance readMeFirst="true">31410-consistentAssets-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <instance>31410-assets-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Consistency check assets against reported invalid assets</name>
+    <description>
+      Consistency check invalid assets against liabilities plus equity.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>         
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+    <data>
+      <schema>31410-consistentAssets-concepts.xsd</schema>
+      <linkbase>31410-consistentAssets-formula.xml</linkbase>
+      <instance readMeFirst="true">31410-inconsistentAssets-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+      <instance>31410-assets-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

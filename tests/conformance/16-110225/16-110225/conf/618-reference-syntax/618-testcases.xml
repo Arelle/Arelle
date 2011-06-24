@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='618-01-no-custom-references/618-01-no-custom-references-testcase.xml' />
+  <testcase uri='618-02-no-added-references/618-02-no-added-references-testcase.xml' />
+</testcases>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xbrl
+  xmlns="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <link:schemaRef xlink:href="12010-value-tests.xsd" xlink:type="simple"/>
+    <context id="c-01">
+        <entity>
+            <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+            <period>
+                <instant>2007-12-31</instant>
+            </period>
+        </entity>
+    </context>
+    <c1 contextRef="c-01" xsi:nil="true"/>
+</xbrl>

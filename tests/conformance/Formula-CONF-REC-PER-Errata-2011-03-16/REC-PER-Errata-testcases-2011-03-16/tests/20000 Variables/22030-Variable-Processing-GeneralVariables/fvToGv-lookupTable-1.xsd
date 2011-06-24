@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  targetNamespace="http://xbrl.org/formula/conformance/example/lookUpTable" 
+  elementFormDefault="qualified" 
+  attributeFormDefault="unqualified">
+
+  
+  <element name="planetsTable" >
+    <complexType>
+      <complexContent>
+        <restriction base="anyType">
+          <sequence maxOccurs="unbounded">
+             <element name="planet" >
+               <complexType>
+                 <complexContent>
+                   <restriction base="anyType">
+                     <sequence>
+                       <element name="name" type="string" minOccurs="0" maxOccurs="unbounded"/> 
+                       <element name="moonCount" type="integer" minOccurs="0" maxOccurs="unbounded"/> 
+                       <element name="people" type="string" minOccurs="0" maxOccurs="unbounded"/> 
+                       <element name="temperature" type="token" minOccurs="0" maxOccurs="unbounded"/> 
+                     </sequence>
+                   </restriction>
+                 </complexContent>
+               </complexType>
+             </element>
+          </sequence>
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+</schema>
+

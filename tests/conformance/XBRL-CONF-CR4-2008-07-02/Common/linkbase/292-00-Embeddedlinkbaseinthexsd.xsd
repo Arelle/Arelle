@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Embedded Linkbases - schema/annotation/appInfo that contains linkbases - XBRL Valid -->
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ci="http://www.UBmatrix.com/Patterns/BasicCalculation" targetNamespace="http://www.UBmatrix.com/Patterns/BasicCalculation" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+        <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link" xlink:title="Labels, All">
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Building" xlink:label="ci_Building" />
+          <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ci_Building" xlink:to="ci_Building_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:label="ci_Building_lbl" xml:lang="en">Documentation for Building</label>
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_Building_lbl" xml:lang="en">Building</label>
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_ComputerEquipment" xlink:label="ci_ComputerEquipment" />
+          <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ci_ComputerEquipment" xlink:to="ci_ComputerEquipment_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:label="ci_ComputerEquipment_lbl" xml:lang="en">Documentation for Computer Equipment</label>
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_ComputerEquipment_lbl" xml:lang="en">Computer Equipment</label>
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_FurnitureFixtures" xlink:label="ci_FurnitureFixtures" />
+          <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ci_FurnitureFixtures" xlink:to="ci_FurnitureFixtures_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:label="ci_FurnitureFixtures_lbl" xml:lang="en">Documentation for Furniture and Fixtures</label>
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_FurnitureFixtures_lbl" xml:lang="en">Furniture and Fixtures</label>
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Land" xlink:label="ci_Land" />
+          <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ci_Land" xlink:to="ci_Land_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:label="ci_Land_lbl" xml:lang="en">Documentation for Land</label>
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_Land_lbl" xml:lang="en">Land</label>
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Other" xlink:label="ci_Other" />
+          <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ci_Other" xlink:to="ci_Other_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:label="ci_Other_lbl" xml:lang="en">Documentation for Other</label>
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_Other_lbl" xml:lang="en">Other</label>
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_PropertyPlantEquipment" xlink:label="ci_PropertyPlantEquipment" />
+          <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_PropertyPlantEquipment_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:label="ci_PropertyPlantEquipment_lbl" xml:lang="en">Documentation for Property, Plant and Equipment</label>
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_PropertyPlantEquipment_lbl" xml:lang="en">Property, Plant and Equipment</label>
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_TotalPropertyPlantEquipment" xlink:label="ci_TotalPropertyPlantEquipment" />
+          <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ci_TotalPropertyPlantEquipment" xlink:to="ci_TotalPropertyPlantEquipment_lbl" />
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:label="ci_TotalPropertyPlantEquipment_lbl" xml:lang="en">Documentation for Total Property, Plant and Equipment</label>
+          <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="ci_TotalPropertyPlantEquipment_lbl" xml:lang="en">Total Property, Plant and Equipment</label>
+        </labelLink>
+        <presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link" xlink:title="Presentation, All">
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_PropertyPlantEquipment" xlink:label="ci_PropertyPlantEquipment" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Land" xlink:label="ci_Land" />
+          <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_Land" order="1" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Building" xlink:label="ci_Building" />
+          <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_Building" order="2" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_FurnitureFixtures" xlink:label="ci_FurnitureFixtures" />
+          <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_FurnitureFixtures" order="3" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_ComputerEquipment" xlink:label="ci_ComputerEquipment" />
+          <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_ComputerEquipment" order="4" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Other" xlink:label="ci_Other" />
+          <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_Other" order="5" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_TotalPropertyPlantEquipment" xlink:label="ci_TotalPropertyPlantEquipment" />
+          <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ci_PropertyPlantEquipment" xlink:to="ci_TotalPropertyPlantEquipment" order="6" use="optional" />
+        </presentationLink>
+        <calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link" xlink:title="Calculations, All">
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_TotalPropertyPlantEquipment" xlink:label="ci_TotalPropertyPlantEquipment" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Land" xlink:label="ci_Land" />
+          <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ci_TotalPropertyPlantEquipment" xlink:to="ci_Land" order="1" weight="1" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Building" xlink:label="ci_Building" />
+          <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ci_TotalPropertyPlantEquipment" xlink:to="ci_Building" order="2" weight="1" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_FurnitureFixtures" xlink:label="ci_FurnitureFixtures" />
+          <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ci_TotalPropertyPlantEquipment" xlink:to="ci_FurnitureFixtures" order="3" weight="1" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_ComputerEquipment" xlink:label="ci_ComputerEquipment" />
+          <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ci_TotalPropertyPlantEquipment" xlink:to="ci_ComputerEquipment" order="4" weight="1" use="optional" />
+          <loc xlink:type="locator" xlink:href="292-00-Embeddedlinkbaseinthexsd.xsd#ci_Other" xlink:label="ci_Other" />
+          <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ci_TotalPropertyPlantEquipment" xlink:to="ci_Other" order="5" weight="1" use="optional" />
+        </calculationLink>
+      </linkbase>
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="ci_Building" name="Building" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+  <element id="ci_ComputerEquipment" name="ComputerEquipment" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+  <element id="ci_FurnitureFixtures" name="FurnitureFixtures" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+  <element id="ci_Land" name="Land" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+  <element id="ci_Other" name="Other" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+  <element id="ci_PropertyPlantEquipment" name="PropertyPlantEquipment" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" abstract="true" nillable="true" />
+  <element id="ci_TotalPropertyPlantEquipment" name="TotalPropertyPlantEquipment" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" xbrli:balance="debit" nillable="true" />
+</schema>

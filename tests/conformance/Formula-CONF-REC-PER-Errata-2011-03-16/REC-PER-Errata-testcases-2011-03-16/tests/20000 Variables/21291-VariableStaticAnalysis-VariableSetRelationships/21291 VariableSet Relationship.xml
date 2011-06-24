@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlve="http://xbrl.org/2008/variable/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>21291</number>
+  <name>Variable-Set relationship static analysis</name>
+  <description>
+    Tests of variable-set relationship static analysis
+  </description>
+  <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+
+  <variation id="V-01">
+    <name>Variable-set is not from variable-set to a variable</name>
+    <description>
+There is no general mechanism to test these arc roles with ends differing from that specified to be effective.  In this test a variable-set relationship arc is from a formula (variable-set) to a filter, so it is not deemed to define a fact variable, and thus the formula should have no fact variables, and produce only one evaluation (as noted in the expected result instance).  If the arc were incorrectly recognized as defining a variable, then there would be two factVariable bindings, resulting in two formula evaluations and two output fact items, which conflicts with the expected instance result file.
+    </description>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>21291-relationship-tests.xsd</schema>
+      <linkbase>21291-variableSetRelationship-formula.xml</linkbase>
+      <instance readMeFirst="true">21291-variableSetRelationship-instance.xml</instance>
+    </data>
+    <result>
+      <instance>21291-variableSetRelationship-result.xml</instance>
+    </result>
+  </variation>  
+
+ </testcase>
+
+
+
+
+

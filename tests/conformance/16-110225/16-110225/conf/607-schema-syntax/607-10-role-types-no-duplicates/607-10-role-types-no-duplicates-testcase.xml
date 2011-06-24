@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-10</number>
+<name>EDGAR Filer Manual v14 6.7.10 page 6-33</name>
+<description>
+<h2>A DTS must not contain more than one link:roleType element with equal values of the roleURI attribute.</h2> 
+<p>REMARK: this applies to the entire DTS, not just the company schema which is what the
+similar XBRL 2.1 constraint applies to.</p>
+</description>
+<reference specification="11002"/>
+<variation id="_000gd">
+<name>6.7.10 Role is uniquely defined, GOOD.</name>
+<description>Role is uniquely defined, GOOD.</description>
+<reference specification="11002"/>
+<data>
+<instance readMeFirst="true">e60710000gd-20081231.xml</instance>
+<linkbase>e60710000gd-20081231_pre.xml</linkbase>
+<linkbase>e60710000gd-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60710000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.7.10 Role is doubly defined in separate schemas, NOGOOD.</name>
+<description>Role is doubly defined in separate schemas, NOGOOD.</description>
+<reference specification="11002"/>
+<data>
+<instance readMeFirst="true">e60710001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60710000gd-20081231_pre.xml</linkbase>
+<linkbase>e60710000gd-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60710000gd-20081231.xsd</schema>
+<schema>e60710001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60710" name="Role-Type-Duplicates" frd="du"/>
+</result>
+</variation>
+</testcase>

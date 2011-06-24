@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:dim="http://xbrl.org/formula/conformance/example/dimensions" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd
+http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd
+http://xbrl.org/formula/conformance/example concepts.xsd
+">  
+
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="concepts.xsd"/>
+
+  <unit id="unit-usd">
+    <measure>iso4217:USD</measure>
+  </unit>
+
+  <unit id="unit-pure">
+    <measure>pure</measure>
+  </unit>
+  
+  <context id="instant-2007">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+    	<instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="instant-2006">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+    	<instant>2006-12-31</instant>
+    </period>
+  </context>
+
+  <context id="instant-2005">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+    	<instant>2005-12-31</instant>
+    </period>
+  </context>
+  
+  <!-- Consistency assertion satisfied for tolerance factor 0.5 -->
+  <concept:CapitalInvested decimals="0" contextRef="instant-2007" unitRef="unit-usd">500</concept:CapitalInvested>
+  <concept:RiskFactor decimals="0" contextRef="instant-2007" unitRef="unit-pure">0.2</concept:RiskFactor>
+  <concept:RiskedCapital decimals="0" contextRef="instant-2007" unitRef="unit-usd">100</concept:RiskedCapital>
+
+	<!-- Consistency assertion satisfied for tolerance factor 0.5 -->
+  <concept:CapitalInvested decimals="0" contextRef="instant-2006" unitRef="unit-usd">400</concept:CapitalInvested>
+  <concept:RiskFactor decimals="0" contextRef="instant-2006" unitRef="unit-pure">0.3</concept:RiskFactor>
+  <concept:RiskedCapital decimals="0" contextRef="instant-2006" unitRef="unit-usd">125</concept:RiskedCapital>
+
+	<!-- Consistency assertion NOT satisfied for tolerance factor 0.5 -->
+  <concept:CapitalInvested decimals="0" contextRef="instant-2005" unitRef="unit-usd">300</concept:CapitalInvested>
+  <concept:RiskFactor decimals="0" contextRef="instant-2005" unitRef="unit-pure">0.4</concept:RiskFactor>
+  <concept:RiskedCapital decimals="0" contextRef="instant-2005" unitRef="unit-usd">130</concept:RiskedCapital>
+
+</xbrl>

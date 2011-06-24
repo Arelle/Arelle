@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:PrimaryParent</qnElement>
+      <sPointer>6</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:DimensionOne</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:FirstChildren</qnElement>
+      <sPointer>7</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:DimensionOne</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:DimensionTwo</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:SecondChildren</qnElement>
+      <sPointer>8</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:DimensionThree</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:ThirdChildren</qnElement>
+      <sPointer>9</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance">tx:DimensionThree</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

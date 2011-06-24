@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22180-bindEmpty-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22180-fallback-in-tuple-formula.xml"/>  
+
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+  
+  
+  <concept:t>
+    <concept:n2 decimals="0" contextRef="context" unitRef="unit">111</concept:n2>
+    <!--concept:n3 decimals="0" contextRef="context" unitRef="unit">7</concept:n3-->
+  </concept:t>
+  
+  <concept:t>
+    <!--concept:n2 decimals="0" contextRef="context" unitRef="unit">2469</concept:n2-->
+    <concept:n3 decimals="0" contextRef="context" unitRef="unit">5</concept:n3>
+  </concept:t>
+
+</xbrl>
+
+

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:tx="http://www.xbrl.org/dim/conf/203/openNotEmptyHypercubeIsValid">tx:Taxes</qnElement>
+      <sPointer>4</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/203/openNotEmptyHypercubeIsValid">tx:Dim1</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/203/openNotEmptyHypercubeIsValid">tx:Dim2</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-28</number>
+<name>EDGAR Filer Manual v16 6.5.28 page 6-16</name>
+<description>
+<h2>The xlink:role attribute of a link:footnote element must be defined in the XBRL Specification 2.1.</h2>
+<p>REMARK: The content of the link:definition element is irrelevant because the entire declaration is forbidden.
+These variations may also signal errors 6.9.4 and 6.9.5 for the schemas, but the point is that this test is still
+meaningful even if the schemas with offending role declarations happened to be in standard taxonomies.</p>
+</description>
+<reference specification="10994"/>
+<variation id="_000ng">
+<name>6.5.28 Instance footnote contains a custom footnote role, NOGOOD</name>
+<description>Instance footnote contains a custom footnote role, NOGOOD</description>
+<reference specification="10994"/>
+<data>
+<instance readMeFirst="true">e60528000ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60528000ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60528" name="Footnote-Custom-Footnote-Role" frd="du"/>
+</result>
+</variation>
+<variation id="_001ng">
+<name>6.5.28 Instance footnote contains footnote with no role, NOGOOD</name>
+<description>Instance footnote contains footnote with no role, NOGOOD.</description>
+<reference specification="10994"/>
+<reference specification="11152.11"/>
+<data>
+<instance readMeFirst="true">e60528001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60528" name="Footnote-Role-Missing" frd="fs"/>
+</result>
+</variation>
+</testcase>

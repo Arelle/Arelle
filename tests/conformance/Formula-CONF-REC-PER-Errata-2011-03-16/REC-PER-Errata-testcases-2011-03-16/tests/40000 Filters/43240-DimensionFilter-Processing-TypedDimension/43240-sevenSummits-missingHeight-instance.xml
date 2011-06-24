@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="43240-dimension-test-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="43240-missingHeight-formula.xml"/>  
+
+  <context id="c-everest">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:Location">eg:Nepal</xbrldi:explicitMember>
+        <xbrldi:typedMember dimension="eg:HeightDimension">
+          <eg:peakHeight>8850</eg:peakHeight>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <context id="c-aconcagua">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:Location">eg:Argentina</xbrldi:explicitMember>
+<!--  height dimension missing 
+        <xbrldi:typedMember dimension="eg:HeightDimension">
+          <eg:peakHeight>6962</eg:peakHeight>
+        </xbrldi:typedMember>
+-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <context id="c-mckinley">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:Location">eg:UnitedStates</xbrldi:explicitMember>
+        <xbrldi:typedMember dimension="eg:HeightDimension">
+          <eg:peakHeight>6194</eg:peakHeight>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <context id="c-kilimanjaro">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:Location">eg:Tanzania</xbrldi:explicitMember>
+        <xbrldi:typedMember dimension="eg:HeightDimension">
+          <eg:peakHeight>5963</eg:peakHeight>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <context id="c-elbrus">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:Location">eg:Russia</xbrldi:explicitMember>
+        <xbrldi:typedMember dimension="eg:HeightDimension">
+          <eg:peakHeight>5642</eg:peakHeight>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <context id="c-puncakjaya">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:Location">eg:Indonesia</xbrldi:explicitMember>
+        <xbrldi:typedMember dimension="eg:HeightDimension">
+          <eg:peakHeight>4884</eg:peakHeight>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <context id="c-vinson">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:Location">eg:Antarctica</xbrldi:explicitMember>
+        <xbrldi:typedMember dimension="eg:HeightDimension">
+          <eg:peakHeight>4897</eg:peakHeight>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  
+  <eg:Peak contextRef="c-everest">Mount Everest</eg:Peak>
+  <eg:Peak contextRef="c-aconcagua">Aconcagua</eg:Peak>
+  <eg:Peak contextRef="c-mckinley">Mount McKinley</eg:Peak>
+  <eg:Peak contextRef="c-kilimanjaro">Mount Kilimanjaro</eg:Peak>
+  <eg:Peak contextRef="c-elbrus">Mount Elbrus</eg:Peak>
+  <eg:Peak contextRef="c-puncakjaya">Puncak Jaya</eg:Peak>
+  <eg:Peak contextRef="c-vinson">Vinson Massif</eg:Peak>
+
+</xbrl>
+
+

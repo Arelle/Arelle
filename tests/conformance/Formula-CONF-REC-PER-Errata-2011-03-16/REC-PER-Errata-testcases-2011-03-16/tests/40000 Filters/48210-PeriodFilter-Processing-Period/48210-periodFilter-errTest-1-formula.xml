@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance"
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/formula ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/period ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/2008/filter/concept ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/label ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example 48210-periodFilter-concepts.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../../core_schemas/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+    <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/label" xlink:href="../../../core_schemas/generic-label.xsd#standard-label" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <formula:formula xlink:type="resource" xlink:label="formula"
+      aspectModel="non-dimensional" implicitFiltering="false" 
+      value="$v:v"
+      source="v:v" >
+      <formula:decimals>0</formula:decimals>
+    </formula:formula>
+
+    <!--  Fact variables -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable" 
+     bindAsSequence="false"/>
+    <variable:factVariable xlink:type="resource" xlink:label="variable_other" 
+     bindAsSequence="false"/>
+
+    <!--  Period filter for fact variable -->
+    <pf:period xlink:type="resource" xlink:label="period_filter" 
+      test="
+         if (xfi:is-start-end-period(.))
+            then 
+              (xfi:period-start(.) eq xfi:period-end(xfi:period($v:vo))) 
+            else 
+              false() 
+          "/>
+
+    <!--  Concept filter for fact variable -->
+    <!--
+    <cf:conceptName xlink:type="resource" xlink:label="concept_filter">
+      <cf:concept>
+        <cf:qname>eg:a</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    -->
+
+    <!--  Labels for formula, variables and filters -->
+    <label:label xlink:type="resource" xlink:label="formula_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Returns the fact matched by the filter.</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Binds to the fact of which the start period is equal to the end period of the fact that the variable "v:vo" has evaluated to.</label:label>
+    <label:label xlink:type="resource" xlink:label="period_filter_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Filters the start period by comparing with the end period of another fact.</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_other_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Binds to the fact "eg:a".</label:label>
+    <label:label xlink:type="resource" xlink:label="concept_filter_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Filters the concept name by QName.</label:label>
+
+    <!-- Arcs from labels to the formula, variable and filter being labelled -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="formula" xlink:to="formula_label" order="1.0"/>    
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable" xlink:to="variable_label" order="1.0"/>    
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="period_filter" xlink:to="period_filter_label" order="1.0"/>    
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_other" xlink:to="variable_other_label" order="1.0"/>    
+<!--
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="concept_filter" xlink:to="concept_filter_label" order="1.0"/>-->    
+ 
+    <!--  Arcs from formula to variable it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="v:vo" xlink:from="formula" xlink:to="variable_other" order="1.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="v:v" xlink:from="formula" xlink:to="variable" order="2.0"/>
+
+    <!--  Arcs from variable to filter -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable" xlink:to="period_filter" order="1.0"/>
+    <!--
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_other" xlink:to="concept_filter" order="1.0"/>
+    -->
+
+  </generic:link>
+
+</link:linkbase>

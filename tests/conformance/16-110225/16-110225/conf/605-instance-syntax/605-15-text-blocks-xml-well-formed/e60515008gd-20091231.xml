@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20091231.xsd"/>
+<xbrli:context id="FY09">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2009-01-01</xbrli:startDate>
+<xbrli:endDate>2009-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<dei:DocumentType contextRef="FY09">8-K</dei:DocumentType>
+<dei:EntityCentralIndexKey contextRef="FY09">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="FY09">e60515008gd</dei:EntityRegistrantName>
+<dei:CurrentFiscalYearEndDate contextRef="FY09">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:AmendmentFlag contextRef="FY09">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="FY09">2009-12-31</dei:DocumentPeriodEndDate>
+<dei:EntityAccountingStandard contextRef="FY09">Because this is only a string type,  it &lt;I&gt;doesn't matter that this is not well formed XML.</dei:EntityAccountingStandard>
+</xbrli:xbrl>

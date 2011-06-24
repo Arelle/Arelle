@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eg="http://xbrl.org/formula/conformance/example" xmlns:formula="http://xbrl.org/2008/formula" xmlns:variable="http://xbrl.org/2008/variable" xmlns:label="http://xbrl.org/2008/label" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://xbrl.org/formula/conformance/example" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="a" name="a" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="b" name="b" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="c" name="c" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+
+  <!-- measures for units -->
+  <element 
+    name="squareMiles" 
+    id="squareMiles" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="acres" 
+    id="acres" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="hectares" 
+    id="hectares" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="miles" 
+    id="miles" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="feet" 
+    id="feet" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="kilometers" 
+    id="kilometers" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="meters" 
+    id="meters" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="hours" 
+    id="hours" 
+    type="xs:string" 
+    abstract="true"/>
+  <element 
+    name="seconds" 
+    id="seconds" 
+    type="xs:string" 
+    abstract="true"/>
+</schema>
+
+

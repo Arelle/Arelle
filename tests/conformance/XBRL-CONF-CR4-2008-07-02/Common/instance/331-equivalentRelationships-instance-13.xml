@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:t="http://xbrl.org/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="331-equivalentRelationships-01.xsd"/>
+
+ <link:linkbaseRef 
+    xlink:type="simple"
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+    xlink:href="331-equivalentRelationships-13-calculation.xml" />
+
+  <context id="c-V01">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+
+  <unit id="pure">
+    <measure>pure</measure>
+  </unit>
+
+  <t:P1 contextRef="c-V01" unitRef="pure" decimals="0">111</t:P1>
+  <t:P2 contextRef="c-V01" unitRef="pure" decimals="0">111</t:P2>
+  <t:P3 contextRef="c-V01" unitRef="pure" decimals="0">999</t:P3>
+
+
+</xbrl>

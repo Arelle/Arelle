@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>612-03</number>
+<name>EDGAR Filer Manual v16 6.12.3 page 6-53</name>
+<description>
+<h2>An element used in an instance must participate in at least one effective presentation relationship in the DTS of that
+instance.</h2>
+<p>An element "participates in" a presentation arc in a DTS if it is a source or target of a presentation relationship in that DTS.</p>
+<p>An element is "a source of a presentation relationship" in a DTS if there is an effective arc with the defining xsd:element source
+and an xlink:arcrole attribute equal to 'http://www.xbrl.org/2003/role/parent-child' in a document of that DTS.</p>
+<p>An element is "a target of a presentation relationship" in a DTS if there is an effective arc with the defining xsd:element target
+and an xlink:arcrole attribute equal to 'http://www.xbrl.org/2003/role/parent-child' in a document of that DTS.</p>
+<p>Every fact must be displayable in some way using presentation relationships. This rule is relevant to all elements but particularly
+so to elements declared in the company schema, because a linkbase that could contain a link:loc element for a company-specific element
+would never appear in a standard taxonomy, and therefore has to be in a linkbase in the same submission.</p>
+<p>Elements used in an instance only as QNames in xbrldi:explicitMember must nevertheless have a presentation relationship in the DTS of
+that instance.</p>
+<p>It is not necessary for the DTS to have a presentation relationship for all elements declared in the DTS.</p>
+</description>
+<reference specification="10491.12.3"/>
+<reference specification="10936"/>
+<variation id="_000gd">
+<name>6.12.3 Instance has a fact whose primary element and dimensional member are presented, GOOD.</name>
+<description>Instance has a fact whose primary element and dimensional member are presented, GOOD.</description>
+<reference specification="10491.12.3"/>
+<reference specification="10936"/>
+<data>
+<instance readMeFirst="true">e61203000gd-20081231.xml</instance>
+<linkbase>e61203000gd-20081231_def.xml</linkbase>
+<linkbase>e61203000gd-20081231_lab.xml</linkbase>
+<linkbase>e61203000gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61203000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.12.3 Instance has a fact whose primary element is in a domain-member arc but not in presentation arc, NOGOOD.</name>
+<description>Instance has a fact whose primary element is in a domain-member arc but not in presentation arc, NOGOOD.</description>
+<reference specification="10936"/>
+<data>
+<instance readMeFirst="true">e61203001ng-20081231.xml</instance>
+<linkbase>e61203001ng-20081231_lab.xml</linkbase>
+<linkbase>e61203001ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61203001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61203" name="Element-Used-Not-Presented" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.12.3 Instance has a fact whose dimensional element is in a domain-member arc but not in presentation arc, NOGOOD.</name>
+<description>Instance has a fact whose dimensional element is in a domain-member arc but not in presentation arc, NOGOOD.</description>
+<reference specification="10936"/>
+<data>
+<instance readMeFirst="true">e61203002ng-20081231.xml</instance>
+<linkbase>e61203002ng-20081231_lab.xml</linkbase>
+<linkbase>e61203002ng-20081231_def.xml</linkbase>
+<linkbase>e61203002ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61203002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61203" name="Element-Used-Not-Presented" frd="cp"/>
+</result>
+</variation>
+<variation id="_003gd">
+<name>6.12.3 Instance has unused element whose primary element is in a domain-member arc but not in presentation arc, GOOD.</name>
+<description>Instance has unused element whose primary element is in a domain-member arc but not in presentation arc,
+GOOD.</description>
+<reference specification="10936"/>
+<data>
+<instance readMeFirst="true">e61203003gd-20081231.xml</instance>
+<linkbase>e61203003gd-20081231_lab.xml</linkbase>
+<linkbase>e61203003gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61203003gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.12.3 Instance has unused element whose dimensional element is in a domain-member arc but not in presentation arc, GOOD.</name>
+<description>Instance has unused element whose dimensional element is in a domain-member arc but not in presentation arc,
+GOOD.</description>
+<reference specification="10936"/>
+<data>
+<instance readMeFirst="true">e61203004gd-20081231.xml</instance>
+<linkbase>e61203004gd-20081231_lab.xml</linkbase>
+<linkbase>e61203004gd-20081231_def.xml</linkbase>
+<linkbase>e61203004gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61203004gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_011ng">
+<name>6.12.3 Instance has a fact whose context uses AbcMember, it is in a domain-member arc but not in a presentation arc, NOGOOD.</name>
+<description>Instance has a fact whose context uses AbcMember, it is in a domain-member arc but not in a presentation arc, NOGOOD.</description>
+<reference specification="10936"/>
+<data>
+<instance readMeFirst="true">e61203011ng-20081231.xml</instance>
+<linkbase>e61203011ng-20081231_lab.xml</linkbase>
+<linkbase>e61203011ng-20081231_def.xml</linkbase>
+<linkbase>e61203011ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61203011ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61203" name="Element-Used-Not-Presented" frd="cp"/>
+</result>
+</variation>
+<variation id="_012ng">
+<name>6.12.3 Instance has a fact whose dimensional element is a INVEST element in a domain-member arc but not in presentation arc,
+NOGOOD.</name>
+<description>Instance has a fact whose dimensional element is a INVEST element element in a domain-member arc but not in presentation arc,
+NOGOOD.</description>
+<reference specification="10936"/>
+<data>
+<instance readMeFirst="true">e61203012ng-20081231.xml</instance>
+<linkbase>e61203012ng-20081231_lab.xml</linkbase>
+<linkbase>e61203012ng-20081231_def.xml</linkbase>
+<linkbase>e61203012ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61203012ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61203" name="Element-Used-Not-Presented" frd="cp"/>
+</result>
+</variation>
+</testcase>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2086.16077 (2005-09-17 09:21).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-09-20 06:02:28
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_AllRegions" xlink:label="regions_AllRegions" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_USAndCanadaRegion" xlink:label="regions_USAndCanadaRegion" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_EuropeRegion" xlink:label="regions_EuropeRegion" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_AsiaRegion" xlink:label="regions_AsiaRegion" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_OtherRegions" xlink:label="regions_OtherRegions" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="regions_AllRegions" xlink:to="regions_USAndCanadaRegion" order="1" use="optional" xbrldt:usable="true" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="regions_AllRegions" xlink:to="regions_EuropeRegion" order="2" use="optional" xbrldt:usable="true" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="regions_AllRegions" xlink:to="regions_AsiaRegion" order="3" use="optional" xbrldt:usable="true" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="regions_AllRegions" xlink:to="regions_OtherRegions" order="4" use="optional" xbrldt:usable="true" />
+  </definitionLink>
+</linkbase>

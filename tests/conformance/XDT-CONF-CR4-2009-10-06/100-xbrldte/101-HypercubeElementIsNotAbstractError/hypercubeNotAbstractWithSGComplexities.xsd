@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Contributed by Geoff Shuetrim -->
+<xsd:schema 
+  xmlns:hctest="http://www.xbrl.org/dim/conf/100/hypercubeNotAbstract" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="http://www.xbrl.org/dim/conf/100/hypercubeNotAbstract" 
+  elementFormDefault="qualified" 
+  attributeFormDefault="unqualified">
+        <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+        <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+        <xsd:element name="MyHypercube" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" id="hctest_myHypercube" xbrli:periodType="instant" abstract="true"/>
+        <xsd:element name="MyOtherHypercube" type="xbrli:stringItemType" substitutionGroup="hctest:MyHypercube" id="hctest_myOtherHypercube" xbrli:periodType="instant"/>
+</xsd:schema>

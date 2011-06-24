@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:xbrli="http://www.xbrl.org/2003/instance"
+        xmlns:link="http://www.xbrl.org/2003/linkbase"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns:my="http://xbrl.org/conformance/155"
+        targetNamespace="http://xbrl.org/conformance/155"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified">
+
+    <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+    
+    <element name="ExtendedDepreciationStuff"
+                 id="my_ExtendedDepreciationStuff"
+                 type="my:ExtendedComplexType"
+                 substitutionGroup="my:NormalDepreciationStuff" />
+    
+    <element name="DepreciationMethod"
+             id="my_DepreciationMethod"
+             type="xbrli:stringItemType"
+             substitutionGroup="xbrli:item"
+             nillable="true"
+             xbrli:periodType="instant" />
+
+    <element name="ProFormaNetAtCost"
+             id="my_ProFormaNetAtCost"
+             type="xbrli:monetaryItemType"
+             substitutionGroup="xbrli:item"
+             nillable="true"
+             xbrli:periodType="instant" />
+
+    <element name="AmountUnderFinanceLease"
+             id="my_AmountUnderFinanceLease"
+             type="xbrli:monetaryItemType"
+             substitutionGroup="xbrli:item"
+             nillable="true"
+             xbrli:periodType="instant" />
+
+    <element name="TestElement"
+             id="my_TestElement"
+             type="xbrli:monetaryItemType"
+             substitutionGroup="xbrli:item"
+             nillable="true"
+             xbrli:periodType="instant" />
+
+    <element name="NormalDepreciationStuff"
+             id="my_NormalDepreciationStuff"
+             type="my:BaseComplexType"
+             substitutionGroup="xbrli:tuple" />
+
+    <complexType name="ExtendedComplexType">
+        <complexContent>
+            <extension base="my:BaseComplexType">
+                <sequence>
+                    <element ref="my:TestElement" />
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
+             
+    <complexType name="BaseComplexType">
+	 <sequence>
+	    <element ref="my:DepreciationMethod" />
+	    <element ref="my:ProFormaNetAtCost" />
+	    <element ref="my:AmountUnderFinanceLease" />
+	 </sequence>
+	 <attribute name="id" type="ID" use="optional" />
+    </complexType>
+
+</schema>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" 
+href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance" 
+xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>21322</number>
+  <name>Unknown Aspect Model</name>
+  <description>
+     Fact variable contains filter covering aspect not in the aspect model
+     then the error MUST be thrown
+   </description>
+  <reference specification="VARIABLES" id="error-filter-aspect-model-mismatch"/>
+
+  <variation id="V-01">
+    <name>Covered dimension aspect not in non-dimensional aspect-model</name>
+    <description>
+       Dimensional aspect covered is not in the model
+    </description>
+    <data>
+      <schema readMeFirst="true">21322-aspectModelMismatch-v01.xsd</schema>
+      <linkbase>21322-coveredDim-nonDimModel-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:filterAspectModelMismatch</error>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Covered segment aspect not in dimensional aspect-model</name>
+    <description>
+       Segment aspect covered is not in the model
+    </description>
+    <data>
+      <schema readMeFirst="true">21322-aspectModelMismatch-v02.xsd</schema>
+      <linkbase>21322-coveredSeg-dimModel-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:filterAspectModelMismatch</error>
+    </result>
+  </variation>  
+  
+</testcase>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="12061-dim-test-2open.xsd#linkClosedNoDims"
+    roleURI="http://xbrl.org/formula/conformance/example/role/dimensions" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <roleRef xlink:type="simple"
+    xlink:href="12061-dim-test-2open.xsd#linkOpenSeg"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkOpenSegOpenScen" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/dimensions">
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1"
+      xlink:href="12061-dim-test-2open.xsd#eg_ExplDim1" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Dom"
+      xlink:href="12061-dim-test-2open.xsd#eg_ExplDim1Dom" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_ExplDim1" xlink:to="eg_ExplDim1Dom"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_ExplDim1Mbr1"
+      xlink:href="12061-dim-test-2open.xsd#eg_ExplDim1Mbr1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_ExplDim1Dom" xlink:to="eg_ExplDim1Mbr1"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkOpenSegOpenScen">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItem"
+      xlink:href="12061-dim-test-2open.xsd#eg_PriItem" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCubeSeg"
+      xlink:href="12061-dim-test-2open.xsd#eg_HyperCubeSeg" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItem" xlink:to="eg_HyperCubeSeg"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCubeScen"
+      xlink:href="12061-dim-test-2open.xsd#eg_HyperCubeScen" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItem" xlink:to="eg_HyperCubeScen"
+      order="2"
+      use="optional"
+      xbrldt:contextElement="scenario" />
+  </definitionLink>
+</linkbase>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22180-bindEmpty-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22180-absent-facts-2-formula.xml"/>
+  
+  <context id="context-1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">02</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">03</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-4">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">04</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-5">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">05</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-6">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">06</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context-7">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">07</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+  
+  <concept:n1 contextRef="context-1" unitRef="unit" decimals="0">1001</concept:n1>
+  <concept:n2 contextRef="context-1" unitRef="unit" decimals="0">1010</concept:n2>
+  <concept:n3 contextRef="context-1" unitRef="unit" decimals="0">1100</concept:n3>
+  <!-- $n1 + $n2 + $n3 = 1001 + 1010 + 1100 = 3111 -->
+  
+  <concept:n2 contextRef="context-2" unitRef="unit" decimals="0">2010</concept:n2>
+  <concept:n3 contextRef="context-2" unitRef="unit" decimals="0">2100</concept:n3>
+  <!-- fb1 + fb2 + $n3 = 0007 + 0070 + 2100 = 2177 -->
+
+  <concept:n1 contextRef="context-3" unitRef="unit" decimals="0">3001</concept:n1>
+  <concept:n3 contextRef="context-3" unitRef="unit" decimals="0">3100</concept:n3>
+  <!-- $n1 + fb2 + $n3 = 3001 + 0070 + 3100 = 6171 -->
+
+  <concept:n1 contextRef="context-4" unitRef="unit" decimals="0">4001</concept:n1>
+  <concept:n2 contextRef="context-4" unitRef="unit" decimals="0">4010</concept:n2>
+  <!-- $n1 + $n2 + fb3 = 4001 + 4010 + 0700 = 8711 -->
+
+  <concept:n1 contextRef="context-5" unitRef="unit" decimals="0">5001</concept:n1>
+  <!-- $n1 + fb2 + fb3 = 5001 + 0070 + 0700 = 5771 -->
+
+  <concept:n2 contextRef="context-6" unitRef="unit" decimals="0">6010</concept:n2>
+  <!-- fb1 + fb2(due to gen filter & fb1) + fb3 = no evaluation -->
+
+  <concept:n3 contextRef="context-7" unitRef="unit" decimals="0">7100</concept:n3>
+  <!-- fb1 + fb2 + $n3 = 0007 + 0070 + 7100 = 7177 -->
+
+  
+</xbrl>

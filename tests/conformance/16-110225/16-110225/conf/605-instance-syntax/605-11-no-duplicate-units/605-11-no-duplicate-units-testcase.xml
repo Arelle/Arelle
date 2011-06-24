@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-11</number>
+<name>EDGAR Filer Manual v16 6.5.11 page 6-10</name>
+<description>
+<h2>Element xbrli:xbrl must not have duplicate child xbrli:unit elements.</h2>
+<p>Element xbrli:xbrl must not have equivalent child xbrli:unit elements. Units are equivalent if they have equivalent measures or
+equivalent numerator and denominator. Measures are equivalent if their contents are equivalent QNames. Numerators and Denominators are
+equivalent if they have a set of equivalent measures.</p>
+<p>REMARK: Some of these variations will be disallowed under 6.6.35 after a UTR is implemented.</p>
+<p>REMARK: Abbreviations are from <a href="http://en.wikipedia.org/wiki/SI_base_unit">Base Units</a>
+</p>
+</description>
+<reference specification="10991"/>
+<variation id="_000gd">
+<name>6.5.12 No units the same - GOOD</name>
+<description> An instance having no duplicate units - GOOD</description>
+<reference specification="10991"/>
+<data>
+<instance readMeFirst="true">e60511000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.12 Same except Namespace Prefix - NOGOOD</name>
+<description>An instance having two units (kg) differing only in the namespace prefix on the measure QName (si: versus nist:).</description>
+<reference specification="10991"/>
+<data>
+<instance readMeFirst="true">e60511001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60511" name="Duplicate-Units" frd="du"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.5.12 Same except Order of Denominator - NOGOOD</name>
+<description>An instance having two units (Pascals) differing only in the order of their denominator elements (m*sec*sec vs sec*sec*m).</description>
+<reference specification="10991"/>
+<data>
+<instance readMeFirst="true">e60511002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60511" name="Duplicate-Units" frd="du"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.5.12 Same except Order of Numerator - NOGOOD</name>
+<description>An instance having two units (Newtons) differing only in the order of their numerator elements (m*kg vs kg*m).</description>
+<reference specification="10991"/>
+<data>
+<instance readMeFirst="true">e60511003ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60511" name="Duplicate-Units" frd="du"/>
+</result>
+</variation>
+</testcase>

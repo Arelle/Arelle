@@ -1,0 +1,13 @@
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xml:base="../">
+        <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+                <loc xlink:type="locator" 
+                xlink:href="202-03-HrefResolutionXMLBase.xsd#a1" xlink:label="aaa" xlink:title="aaa"/>
+                <loc xlink:type="locator" 
+                xlink:href="202-03-HrefResolutionXMLBase.xsd#a2" xlink:label="ccc" xlink:title="aaa"/>
+                <label xlink:type="resource" xlink:label="aaaLabel" xlink:title="aaa Title" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Fixed Assets</label>
+                <label xlink:type="resource" xlink:label="cccLabel" xlink:title="aaa Title" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Change in Retained Earnings</label>
+                <labelArc xlink:type="arc" xlink:from="aaa" xlink:to="aaaLabel" xlink:show="replace" xlink:actuate="onRequest" xlink:title="aaa Label" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+                <labelArc xlink:type="arc" xlink:from="ccc" xlink:to="cccLabel" xlink:show="replace" xlink:actuate="onRequest" xlink:title="aaa Label" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+        </labelLink>
+</linkbase>

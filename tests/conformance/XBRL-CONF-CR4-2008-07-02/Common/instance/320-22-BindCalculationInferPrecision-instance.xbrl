@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2518.2110 (2006-07-24 12:58).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-28 10:26:26
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:calcinferprecisiontestcase="http://www.example.com/calcinferprecisiontestcase">
+  <link:schemaRef xlink:href="320-BindCalculationInferPrecision.xsd" xlink:type="simple" />
+  <context id="context">
+    <entity>
+      <identifier scheme="http://www.entity.com">entity</identifier>
+    </entity>
+    <period>
+      <instant>2006-07-28</instant>
+    </period>
+  </context>
+  <unit id="unit">
+    <measure>iso4217:USD</measure>
+  </unit>
+  <calcinferprecisiontestcase:A contextRef="context" unitRef="unit" precision="1">1</calcinferprecisiontestcase:A>
+        
+<!-- Duplicate fact reported -->
+  <calcinferprecisiontestcase:B contextRef="context" unitRef="unit" precision="1">1</calcinferprecisiontestcase:B>
+  <calcinferprecisiontestcase:B contextRef="context" unitRef="unit" precision="1">10</calcinferprecisiontestcase:B>
+  <calcinferprecisiontestcase:C contextRef="context" unitRef="unit" precision="1">1</calcinferprecisiontestcase:C>
+</xbrl>

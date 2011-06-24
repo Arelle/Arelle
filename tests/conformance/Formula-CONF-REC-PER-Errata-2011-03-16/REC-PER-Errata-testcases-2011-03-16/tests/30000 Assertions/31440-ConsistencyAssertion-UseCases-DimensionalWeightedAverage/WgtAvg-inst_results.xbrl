@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by  1.0.0.0 (2008-02-03 20:31).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2008 UBmatrix inc., All Rights Reserved
+Produced on 2008-02-13 07:46:50
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217"  xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:wgt-avg="http://www.example.com/wgt-avg" 
+xsi:schemaLocation="
+http://www.example.com/wgt-avg WeightedAverage.xsd 
+http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd 
+http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd
+">
+  <link:schemaRef xlink:href="WeightedAverage.xsd" xlink:type="simple" />
+  <context id="I-2005-TotalExposures">
+    <entity>
+      <identifier scheme="http://sample.com">sampCo</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="wgt-avg:ExposuresDimension" xmlns="http://xbrl.org/2006/xbrldi">wgt-avg:TotalExposures</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="I-2005-ObligorGrade">
+    <entity>
+      <identifier scheme="http://sample.com">sampCo</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="wgt-avg:ExposuresDimension" xmlns="http://xbrl.org/2006/xbrldi">wgt-avg:ObligorGrade</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="I-2005-Risk">
+    <entity>
+      <identifier scheme="http://sample.com">sampCo</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="wgt-avg:ExposuresDimension" xmlns="http://xbrl.org/2006/xbrldi">wgt-avg:Risk</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <unit id="U-Pure">
+    <measure>pure</measure>
+  </unit>
+  <wgt-avg:PD contextRef="I-2005-TotalExposures" unitRef="U-Pure" decimals="2">0.60</wgt-avg:PD>
+  <wgt-avg:PD contextRef="I-2005-ObligorGrade" unitRef="U-Pure" decimals="2">0.27</wgt-avg:PD>
+  <wgt-avg:PD contextRef="I-2005-Risk" unitRef="U-Pure" decimals="2">0.62</wgt-avg:PD>
+</xbrl>

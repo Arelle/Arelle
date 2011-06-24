@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_Statistics"
+xlink:label="Statistics"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_M1Member"
+xlink:label="M1"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_M2Member"
+xlink:label="M2"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_M3Member"
+xlink:label="M3"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_Dim1Axis"
+xlink:label="Dim1"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_H1Table"
+xlink:label="H1"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_M4Member"
+xlink:label="M4Member"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_M5Member"
+xlink:label="M5Member"/>
+<link:loc xlink:type="locator" xlink:href="e61604015ng-20081231.xsd#e6160400_M6Member"
+xlink:label="M6"/>
+<link:label xlink:type="resource" xlink:label="label_Statistics"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Statistics">Statistics</link:label>
+<link:label xlink:type="resource" xlink:label="label_M1"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_M1">M1</link:label>
+<link:label xlink:type="resource" xlink:label="label_M2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_M2">M2</link:label>
+<link:label xlink:type="resource" xlink:label="label_M3"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_M3">M3</link:label>
+<link:label xlink:type="resource" xlink:label="label_Dim1"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Dim1">Dim 1</link:label>
+<link:label xlink:type="resource" xlink:label="label_H1"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_H1">H1</link:label>
+<link:label xlink:type="resource" xlink:label="label_M4Member"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_M4Member">M4</link:label>
+<link:label xlink:type="resource" xlink:label="label_M5Member"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_M5Member">M5</link:label>
+<link:label xlink:type="resource" xlink:label="label_M6"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_M6">M6</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Statistics"
+xlink:to="label_Statistics"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="M1"
+xlink:to="label_M1"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="M2"
+xlink:to="label_M2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="M3"
+xlink:to="label_M3"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Dim1"
+xlink:to="label_Dim1"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="H1"
+xlink:to="label_H1"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="M4Member"
+xlink:to="label_M4Member"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="M5Member"
+xlink:to="label_M5Member"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="M6"
+xlink:to="label_M6"/>
+</link:labelLink>
+</link:linkbase>

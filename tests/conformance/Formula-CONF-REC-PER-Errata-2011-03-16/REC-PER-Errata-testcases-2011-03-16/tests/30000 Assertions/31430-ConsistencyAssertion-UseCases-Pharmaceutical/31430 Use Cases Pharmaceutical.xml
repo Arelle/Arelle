@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>31430</number>
+
+  <name>Dimensional Aggregation Example (Pharmaceutical Company)</name>
+  <description>
+    Charlie Hoffman's Pharmaceutical example of dimensional aggregation (two dimensions).  
+    Shows aggregating by use of dimensional member tree.  See enclosed PharmaceuticalExample.ppt.  
+    Because there are two dimensions (by product and by region), with breakdowns separately for each, 
+    there are formulas and filtering to check each of the breakdowns.  The first formula, its variables, 
+    and filters, checks the product breakdown, the second the region breakdown.  A single 
+    consistency assertion does both formulas.  (If general variables had an option to iterate through a 
+    sequence, then there could have been one formula with a general variable to iterate the dimensions being 
+    summed.)
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>
+
+  <variation id="V-01">
+    <name>Dimensional aggregation</name>
+    <description>
+      The example shows aggregation over the product dimension by
+      use of the product dimension members tree.  For each product
+      dimension, the child members are aggregated.  
+      See powerpoint enclosed for further details.
+      This evaluation determines a dimension filter member by the function
+      xfi:fact-explicit-dimension-value of the aggregate
+      variable.
+      
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>
+    <data>
+      <instance readMeFirst="true">Sales-instance.xml</instance> 
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+      <schema readMeFirst="false">Company.xsd</schema>
+      <linkbase readMeFirst="false">Company-definition.xml</linkbase>
+      <linkbase readMeFirst="false">Company-label.xml</linkbase>
+      <schema readMeFirst="false">Products.xsd</schema>
+      <linkbase readMeFirst="false">Products-definition.xml</linkbase>
+      <linkbase readMeFirst="false">Products-label.xml</linkbase>
+      <linkbase readMeFirst="false">Products-presentation.xml</linkbase>
+      <schema readMeFirst="false">Sales.xsd</schema>
+      <linkbase readMeFirst="false">Sales-label.xml</linkbase>
+      <schema readMeFirst="false">Regions.xsd</schema>
+      <linkbase readMeFirst="false">Regions-definition.xml</linkbase>
+      <linkbase readMeFirst="false">Regions-label.xml</linkbase>
+      <linkbase readMeFirst="false">Regions-presentation.xml</linkbase>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="6"
+         countNotSatisfied="0" />
+      <instance>Sales-instance_results.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Dimensional aggregation, using alternate dimension filter construct</name>
+    <description>
+      The example shows aggregation over the product dimension by
+      use of the product dimension members tree.  For each product
+      dimension, the child members are aggregated.  
+      See powerpoint enclosed for further details.
+      This evaluation determines a dimension filter member by the 
+      df:variable reference to the aggregate variable's dimension
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>
+    <data>
+      <instance readMeFirst="true">Sales-instance-v02.xml</instance> 
+      <linkbase readMeFirst="false">formulae-v02.xml</linkbase>
+      <schema readMeFirst="false">Company.xsd</schema>
+      <linkbase readMeFirst="false">Company-definition.xml</linkbase>
+      <linkbase readMeFirst="false">Company-label.xml</linkbase>
+      <schema readMeFirst="false">Products.xsd</schema>
+      <linkbase readMeFirst="false">Products-definition.xml</linkbase>
+      <linkbase readMeFirst="false">Products-label.xml</linkbase>
+      <linkbase readMeFirst="false">Products-presentation.xml</linkbase>
+      <schema readMeFirst="false">Sales.xsd</schema>
+      <linkbase readMeFirst="false">Sales-label.xml</linkbase>
+      <schema readMeFirst="false">Regions.xsd</schema>
+      <linkbase readMeFirst="false">Regions-definition.xml</linkbase>
+      <linkbase readMeFirst="false">Regions-label.xml</linkbase>
+      <linkbase readMeFirst="false">Regions-presentation.xml</linkbase>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="6"
+         countNotSatisfied="0" />
+      <instance>Sales-instance_results.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

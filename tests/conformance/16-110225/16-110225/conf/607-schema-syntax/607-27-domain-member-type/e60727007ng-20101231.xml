@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns="http://www.w3.org/1999/xhtml" xmlns:e60727="http://e60727/20101231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:us-types="http://xbrl.us/us-types/2009-01-31"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="e60727007ng-20101231.xsd"/>
+<xbrli:context id="current">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2010-01-01</xbrli:startDate>
+<xbrli:endDate>2010-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<dei:DocumentType contextRef="current">8-K</dei:DocumentType>
+<dei:EntityCentralIndexKey contextRef="current">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="current">e60727007ng</dei:EntityRegistrantName>
+<dei:CurrentFiscalYearEndDate contextRef="current">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:DocumentPeriodEndDate contextRef="current">2010-12-31</dei:DocumentPeriodEndDate>
+<dei:AmendmentFlag contextRef="current">false</dei:AmendmentFlag>
+</xbrli:xbrl>

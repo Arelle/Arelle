@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>42220</number>
+  <name>Concept Period-Type Filter Processing</name>
+  <description>
+    Test concept period-type filter processing
+  </description>
+  <reference specification="CONCEPT-FILTER" id="sec-concept-period-type-filter"/>
+
+  <variation id="V-01">
+    <name>Test instant period filter.</name>
+    <description>The fact must be reported with an instant period.</description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-period-type-filter"/>
+    <data>
+      <schema>42220-conceptPeriodTypeFilter-concepts.xsd</schema>
+      <linkbase>42220-conceptPeriodTypeFilter-instant-period-formula.xml</linkbase>
+      <instance readMeFirst="true">42220-conceptPeriodTypeFilter-instant-period-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42220-conceptPeriodTypeFilter-instant-period-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test duration period filter.</name>
+    <description>The fact must be reported with a duration period.</description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-period-type-filter"/>
+    <data>
+      <schema>42220-conceptPeriodTypeFilter-concepts.xsd</schema>
+      <linkbase>42220-conceptPeriodTypeFilter-duration-period-formula.xml</linkbase>
+      <instance readMeFirst="true">42220-conceptPeriodTypeFilter-duration-period-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42220-conceptPeriodTypeFilter-duration-period-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

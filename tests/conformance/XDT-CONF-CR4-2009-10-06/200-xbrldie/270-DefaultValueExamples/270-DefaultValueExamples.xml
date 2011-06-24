@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" xmlns="http://xbrl.org/2005/conformance"
+        name="270-DefaultValueExamples"
+        description="Examples from wiki page discussions" outpath="out" owner="fischer@markv.com"
+        minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <variation id="V-01" name="Example 01, all items, all cubes">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1; this is the complete example 1 of the wiki page, all items in one instance with all hypercubes and all dimensions
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-02.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-all.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-all.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-a" name="Example 01, primary item a">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, primary item a, all hypercubes and dimensions
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-02.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-a.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-a.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-b" name="Example 01, primary item b">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, primary item b, all hypercubes and dimensions
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-02.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-b.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-b.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-c" name="Example 01, primary item c">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, primary item c, all hypercubes and dimensions
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-02.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-c.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-c.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-d" name="Example 01, primary item d">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, primary item d, all hypercubes and dimensions
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-02.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-d.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-d.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-e" name="Example 01, primary item e">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, primary item e, all hypercubes and dimensions
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-02.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-e.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-e.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-hc1-d1" name="Example 01, hc1 dim1">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, all primary items, hypercube 1 and dimension 1
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-concepts-hc1-d1.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition-hc1-d1.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-hc1-d1.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-hc1-d1.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-hc2-d2" name="Example 01, hc2 dim2">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, all primary items, hypercube 2 and dimension 2
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-concepts-hc2-d2.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition-hc2-d2.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-hc2-d2.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-hc2-d2.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-hc3-d3" name="Example 01, hc3 dim3">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, all primary items, hypercube 3 and dimension 3
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-concepts-hc3-d3.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition-hc3-d3.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-hc3-d3.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-hc3-d3.xml</file>
+                </result>
+        </variation>
+        <variation id="V-01-d4" name="Example 01, no hc dim4">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                See wiki page issue: http://wiki.xbrl.org/wiki/Dimensions:Feedback_On_The_Dimensions_Specification_1.0#Example_1, all primary items, no hypercube and dimension 4 (which does have a default)
+                </description>
+                <data>
+                        <xsd readMeFirst="false">example01-concepts-d4.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >example01-definition-d4.xml</linkbase>
+                        <instance readMeFirst="true">example01-instance01-d4.xml</instance>
+                </data>
+                <result>
+                        <file>example01-instance01-d4.xml</file>
+                </result>
+        </variation>
+        <variation id="V-02" name="Dimension default is illegal">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                Bugzilla 343, e-mail references discussion of default that is illegal, here because for primary item d, closed hypercube 1 does not include the illegal member.  Adapted from V-01-hc1-d1 by adding an illegal default member and only using primary item d.  (Editorial note by Herm: although this situation should be illegal, careful reading of the spec convinces me it is clearly legal in the taxonomy and very fuzzy and multiply-interpretable for the instance, so I did not indicate that any error should be raised.  Whether error or not, the point of the dimensional infoset experience by the item in the processor is the objective.) 
+                </description>
+                <data>
+                        <xsd readMeFirst="false">illegal-default-concepts.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >illegal-default-definition.xml</linkbase>
+                        <instance readMeFirst="true">illegal-default-instance01.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:PrimaryItemDimensionallyInvalidError</error>
+                        <file>illegal-default-instance01.xml</file>
+                </result>
+        </variation>
+        
+        <variation id="V-03" name="Dimension default is fact item">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">
+                Bugzilla 343, dimension default member is not abstract and is used as a fact item, there are no hypercubes.  Base spec meeeting of 2009-06-24 discussed that this is not currently an error (but maybe should have been).  Philosophically it is a kind of primary item to default member polymorphism issue.  However today this variation is valid.
+                </description>
+                <data>
+                        <xsd readMeFirst="false">default-is-fact-item-concepts.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >default-is-fact-item-definition.xml</linkbase>
+                        <instance readMeFirst="true">default-is-fact-item-instance.xml</instance>
+                </data>
+                <result>
+                        <file>default-is-fact-item-instance.xml</file>
+                </result>
+        </variation>
+</testcase>

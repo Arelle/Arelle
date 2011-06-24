@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:e6100300="http://e6100300/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:edgar="http://edgar/20081231"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+targetNamespace="http://e6100300/20081231"
+elementFormDefault="qualified">
+<xsd:annotation>
+<xsd:appinfo>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61003003ng-20081231_pre.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61003003ng-20081231_def.xml"
+xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61003003ng-20081231_lab.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+</xsd:appinfo>
+</xsd:annotation>
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:import namespace="http://edgar/20081231" schemaLocation="edgar-20081231.xsd"/>
+<xsd:import namespace="http://www.xbrl.org/dtr/type/non-numeric"
+schemaLocation="http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"/>
+<xsd:import namespace="http://xbrl.org/2005/xbrldt"
+schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+<xsd:element name="DefMember" id="e6100300_DefMember" type="nonnum:domainItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="Promises" id="e6100300_Promises" type="xbrli:monetaryItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:balance="debit"
+xbrli:periodType="instant"/>
+</xsd:schema>

@@ -1,0 +1,22 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<xsd:schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:s="http://mycompany.com/xbrl/taxonomy" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:element name="managementName" type="xbrli:tokenItemType" substitutionGroup="xbrli:item"  xbrli:periodType="instant"/>
+	<xsd:element name="managementTitle" type="xbrli:tokenItemType" substitutionGroup="xbrli:item"  xbrli:periodType="instant"/>
+	<xsd:element name="managementAge" type="xbrli:nonNegativeIntegerItemType" substitutionGroup="xbrli:item"  xbrli:periodType="instant"/>
+	<xsd:element name="managementInformation" substitutionGroup="xbrli:tuple">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="xsd:anyType">
+					<xsd:sequence>
+						<xsd:element ref="s:managementName"/>
+						<xsd:element ref="s:managementTitle"/>
+						<xsd:element ref="s:managementAge"/>
+						<xsd:any/>
+					</xsd:sequence>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

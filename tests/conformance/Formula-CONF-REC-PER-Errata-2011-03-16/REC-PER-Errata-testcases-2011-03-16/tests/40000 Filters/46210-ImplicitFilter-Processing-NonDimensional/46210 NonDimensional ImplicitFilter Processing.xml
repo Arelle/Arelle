@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  xmlns:xqt-err="http://www.w3.org/2005/xqt-errors"
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>46210</number>
+  <name>Non-dimensional implicit filter test</name>
+  <description>
+    Tests of non-dimensional implict filter processing.  The strategy is to
+    provide a match source variable, designated by id, and conditions to
+    test each matchable aspect by separate variation.  In each case the
+    match variable has a dependent interloper which is covered in the
+    matchable aspect (to ensure that non-preceding variables are sought
+    for uncovered aspects), and a set of potential match target suiters.
+    Each test has only one uncovered aspect for implicit match selection.
+    The result has the single match target.
+  </description>
+  <reference specification="IMPLICIT-FILTER" id="sec-implicit-filters"/>
+  <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+  <reference specification="VARIABLES" id="sec-aspect-model"/>
+  <reference specification="VARIABLES" id="sec-implicit-filters"/>
+
+  <variation id="V-01">
+    <name>Match uncovered concept aspect</name>
+    <description>
+       Match source is the first c:f of instance document, only concept
+       aspect is uncovered, 3rd fact var must seek uncovered concept of
+       first fact variable.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-conceptUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-conceptUncovered-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-conceptUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Match uncovered tuple aspect</name>
+    <description>
+       Match source is the c:z of instance document, only tuple
+       aspect is uncovered, 3rd fact var must seek uncovered tuple aspect of
+       first (c:z) fact variable.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-tupleUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-tupleUncovered-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-tupleUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02a">
+    <name>Match uncovered tuple aspect with original authoring error</name>
+    <description>
+       This represents a prior attempt to bind fv3 to c:f (6001) as well as c:t, which was re-authored
+       as V-02b below.  However the concept period filter as originally authored would find a mismatch
+       of period type for the tuple, because the tuple does have a concept aspect, and thus the period
+       filter is attempted.  The period attribute does not match the test as described in the concept
+       filtering spec, so the tuple is omitted from the sequence, and same result as v-02.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-tupleUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-tupleUncovered-instance2.xml</instance>
+    </data>
+    <result>
+      <instance>46210-tupleUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02b">
+    <name>Match uncovered tuple aspect with original authoring error</name>
+    <description>
+       Same as V-03 but as originally authored, fv3 binds to c:f (6001) as well as c:t, causing FOTY0012 error in
+       atomization of node values in preparation for arithmetic expression processing, 
+       when c:t is bound to fv3, because c:t is a tuple, which not a numeric,
+       because id is left off sibling c:t, causing it to be bound to fv3 in addition to desired c:f (6001).
+       FOTY0012 is the error code because XPath 2, during atomization (para 2.4.2) returns FOTY0012 if the node
+       does not have a typed value (tuples can't have a typed value).
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-tupleUncovered-formula3.xml</linkbase>
+      <instance readMeFirst="true">46210-tupleUncovered-instance3.xml</instance>
+    </data>
+    <result>
+      <error>xqt-err:FOTY0012</error>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Match uncovered entity identifier aspect</name>
+    <description>
+       Match source is the c:z of instance document, only entity
+       aspect is uncovered, 3rd fact var must seek uncovered entity of
+       first (c:z) fact variable.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-entityUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-entityUncovered-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-entityUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Match uncovered period aspect</name>
+    <description>
+       Match source is the c:z of instance document, only period
+       aspect is uncovered, 3rd fact var must seek uncovered period of
+       first (c:z) fact variable.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-periodUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-periodUncovered-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-periodUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>Match uncovered segment aspect</name>
+    <description>
+       Match source is the c:z of instance document, only segment
+       aspect is uncovered, 3rd fact var must seek uncovered segment of
+       first (c:z) fact variable.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-segmentUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-segmentUncovered-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-segmentUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Match uncovered scenario aspect</name>
+    <description>
+       Match source is the c:z of instance document, only scenario
+       aspect is uncovered, 3rd fact var must seek uncovered scenario of
+       first (c:z) fact variable.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-scenarioUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-scenarioUncovered-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-scenarioUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Match uncovered unit aspect</name>
+    <description>
+       Match source is the c:z of instance document, only unit
+       aspect is uncovered, 3rd fact var must seek uncovered unit of
+       first (c:z) fact variable.
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-unitUncovered-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-unitUncovered-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-unitUncovered-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Match with complemented covered unit aspect</name>
+    <description>
+       Match source is the c:f of instance document, only concept
+       aspect is uncovered, 3rd fact var must seek uncovered concept of
+       first (c:f) fact variable (as in V-01).  Here the 3rd fact variable has a unit
+       aspect with a covered complemented filter, which in earlier spec
+       drafts did not cover, but now is to be covering.  
+    </description>
+    <reference specification="IMPLICIT-FILTER" id="sec-non-dimensional-implicit-filters"/>
+    <data>
+      <schema>46210-concepts.xsd</schema>
+      <linkbase>46210-unitCovered-complement-formula.xml</linkbase>
+      <instance readMeFirst="true">46210-unitCovered-complement-instance.xml</instance>
+    </data>
+    <result>
+      <instance>46210-unitCovered-complement-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+
+
+
+
+

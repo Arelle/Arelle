@@ -1,0 +1,17 @@
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy Period.xsd">
+	<link:schemaRef xlink:href="Period.xsd" xlink:type="simple"/>
+	<my:changeInRetainedEarnings unitRef="u1" contextRef="cd"  precision="18">7</my:changeInRetainedEarnings>
+	<xbrli:unit id="u1">
+		<xbrli:measure>iso4217:USD</xbrli:measure>
+	</xbrli:unit>
+	<xbrli:context id="cd">
+		<xbrli:entity>
+			<xbrli:identifier scheme="http://www.un.org/">Cannon plc</xbrli:identifier>
+		</xbrli:entity>
+		<xbrli:period>
+			<xbrli:startDate>2001-08-01</xbrli:startDate>
+			<xbrli:endDate>2001-08-31</xbrli:endDate>
+		</xbrli:period>
+		<!--scenario/ -->
+	</xbrli:context>
+</xbrli:xbrl>

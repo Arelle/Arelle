@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<schema 
+    xmlns="http://www.w3.org/2001/XMLSchema" 
+    elementFormDefault="qualified" 
+    targetNamespace="http://xbrl.org/formula/conformance/example" 
+    xmlns:eg="http://xbrl.org/formula/conformance/example" 
+    xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+    xmlns:link="http://www.xbrl.org/2003/linkbase" 
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+ <annotation>
+    <appinfo>
+      <link:linkbaseRef 
+        xlink:href="12021-v01-undefinedSAV-entity-formula.xml"
+        xlink:type="simple" 
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </appinfo>
+  </annotation>
+  
+  <import namespace="http://www.xbrl.org/2003/instance" 
+      schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+
+
+  <element name="assets" id="eg_assets" 
+      xbrli:periodType="instant" substitutionGroup="xbrli:item" 
+      type="xbrli:monetaryItemType" 
+      abstract="false" nillable="true" />
+
+  <element name="equity" id="eg_equity" 
+    xbrli:periodType="instant" substitutionGroup="xbrli:item" 
+    type="xbrli:monetaryItemType" abstract="false" 
+    nillable="true" />
+
+  <element name="liabilities" id="eg_liabilities" 
+    xbrli:periodType="instant" substitutionGroup="xbrli:item" 
+    type="xbrli:monetaryItemType" abstract="false" 
+    nillable="true" />
+
+  <element name="auditExpensesPurpose" id="eg_auditExpensesPurpose" 
+     xbrli:periodType="instant" substitutionGroup="xbrli:item" 
+     type="xbrli:stringItemType" 
+     abstract="false" nillable="true" />
+  
+</schema>

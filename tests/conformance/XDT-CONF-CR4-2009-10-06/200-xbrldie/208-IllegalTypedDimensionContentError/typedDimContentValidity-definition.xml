@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="typedDimContentValidity.xsd#linkForTypedDim"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInSeg" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <roleRef xlink:type="simple"
+    xlink:href="typedDimContentValidity.xsd#linkForTypedDimInScen"
+    roleURI="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInScen" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInSeg">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItem1"
+      xlink:href="typedDimContentValidity.xsd#eg_PriItem1" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="typedDimContentValidity.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment" />
+    <loc xlink:type="locator"
+      xlink:label="eg_TypedDim1"
+      xlink:href="typedDimContentValidity.xsd#eg_TypedDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/linkForTypedDimInScen">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItem1"
+      xlink:href="typedDimContentValidity.xsd#eg_PriItem1" />
+    <loc xlink:type="locator"
+      xlink:label="eg_HyperCube1"
+      xlink:href="typedDimContentValidity.xsd#eg_HyperCube1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItem1" xlink:to="eg_HyperCube1"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="scenario" />
+    <loc xlink:type="locator"
+      xlink:label="eg_TypedDim1"
+      xlink:href="typedDimContentValidity.xsd#eg_TypedDim1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_HyperCube1" xlink:to="eg_TypedDim1"
+      order="1"
+      use="optional" />
+  </definitionLink>
+</linkbase>

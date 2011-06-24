@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mycomp="http://mycompany.com/xbrl/arcroleBU" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://mycompany.com/xbrl/arcroleBU ArcRoleBU.xsd">
+	<link:schemaRef xlink:href="ArcRoleBU.xsd" xlink:type="simple"/>
+	<mycomp:conceptA contextRef="c1" unitRef="u1" precision="1">0</mycomp:conceptA>
+	<context id="c1">
+		<entity>
+			<identifier scheme="www.example.com">example</identifier>
+		</entity>
+		<period>
+			<instant>2003-03-31</instant>
+		</period>
+	</context>
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+</xbrl>

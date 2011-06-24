@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--Business Reporting - Advisory Group Sp. z o.o.-->
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <link:roleRef roleURI="http://www.test.com/role/Classes" xlink:type="simple" xlink:href="polymorphismErrorDifferentSubgraph.xsd#Classes"/>
+  <link:roleRef roleURI="http://www.test.com/role/MovementsAnalysis" xlink:type="simple" xlink:href="polymorphismErrorDifferentSubgraph.xsd#MovementsAnalysis"/>
+  <link:roleRef roleURI="http://www.test.com/role/Valuation" xlink:type="simple" xlink:href="polymorphismErrorDifferentSubgraph.xsd#Valuation"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.test.com/role/MovementsAnalysis">
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_MovementsAnalysisAbstract" xlink:label="MovementsAnalysisAbstract"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_NetValue" xlink:label="NetValue"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="MovementsAnalysisAbstract" xlink:to="NetValue" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_Changes" xlink:label="Changes"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="MovementsAnalysisAbstract" xlink:to="Changes" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_Increases" xlink:label="Increases"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="Changes" xlink:to="Increases" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_Decreases" xlink:label="Decreases"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="Changes" xlink:to="Decreases" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_ClassesHypercube" xlink:label="ClassesHypercube"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="MovementsAnalysisAbstract" xlink:to="ClassesHypercube" use="optional" order="3.0" xbrldt:contextElement="segment"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_ClassesDimension" xlink:label="ClassesDimension"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="ClassesHypercube" xlink:to="ClassesDimension" order="1.0" xbrldt:targetRole="http://www.test.com/role/Classes"/>
+  </link:definitionLink>
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.test.com/role/Classes">
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_ClassesDimension" xlink:label="ClassesDimension"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_Assets" xlink:label="Assets"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="ClassesDimension" xlink:to="Assets" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_PPE" xlink:label="PPE"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="Assets" xlink:to="PPE" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_BiologicalAssets" xlink:label="BiologicalAssets"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="Assets" xlink:to="BiologicalAssets" order="2.0"/>
+  </link:definitionLink>
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.test.com/role/Valuation">
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_Assets" xlink:label="Assets"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_PPE" xlink:label="PPE"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="Assets" xlink:to="PPE" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_BiologicalAssets" xlink:label="BiologicalAssets"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="Assets" xlink:to="BiologicalAssets" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_ValuationHypercube" xlink:label="ValuationHypercube"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="Assets" xlink:to="ValuationHypercube" order="3.0" xbrldt:contextElement="segment"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_ValuationDimension" xlink:label="ValuationDimension"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="ValuationHypercube" xlink:to="ValuationDimension" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_AtCost" xlink:label="AtCost"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="ValuationDimension" xlink:to="AtCost" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_FairValue" xlink:label="FairValue"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="ValuationDimension" xlink:to="FairValue" order="2.0"/>
+  </link:definitionLink>
+</link:linkbase>

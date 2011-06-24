@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:Sales</qnElement>
+      <sPointer>4</sPointer>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/389/combinationOfCubesCase1InSegment">tx:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:tx="http://www.xbrl.org/dim/conf/389/combinationOfCubesCase1InSegment">tx:RegionDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

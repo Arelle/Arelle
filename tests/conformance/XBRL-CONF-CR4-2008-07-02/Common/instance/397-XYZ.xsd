@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<schema targetNamespace="http://xbrl.example.com/397/XYZ"
+  xmlns:xyz="http://xbrl.example.com/397/XYZ"
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  elementFormDefault="qualified">
+
+	<import namespace="http://www.xbrl.org/2003/instance" 
+          schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+  <!-- summation concept -->
+	<element  name="X" 
+            id="X"
+            type="xbrli:monetaryItemType"
+            substitutionGroup="xbrli:item" 
+            nillable="true"
+            xbrli:periodType="instant"/>
+
+  <!-- contributing concept for X ( X = Y + A ) -->
+	<element  name="Y" 
+            id="Y"
+            type="xbrli:monetaryItemType"
+            substitutionGroup="xbrli:item" 
+            nillable="true"
+            xbrli:periodType="instant"/>
+
+  <!-- Z alias for A -->
+	<element  name="Z" 
+            id="Z"
+            type="xbrli:monetaryItemType"
+            substitutionGroup="xbrli:item" 
+            nillable="true"
+            xbrli:periodType="instant"/>
+
+
+</schema>

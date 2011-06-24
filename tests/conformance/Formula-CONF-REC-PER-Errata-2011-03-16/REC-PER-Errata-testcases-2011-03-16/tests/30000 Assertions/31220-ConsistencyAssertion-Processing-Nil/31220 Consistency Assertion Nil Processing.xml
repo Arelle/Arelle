@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>31220</number>
+  <name>Consistency Assertion Nil Processing</name>
+  <description>
+    Consistency check formula results for Nil-related issues.
+  </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+
+  <variation id="V-01">
+    <name>Consistency check a nil, not strict, not reported eg:a, not evaulated</name>
+    <description>
+       Per name.  Consistence-assertion spec Example 5 row 1, derived fact a does not exist in the input instance.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-not-strict-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-not-strict-nil-not-evaluated-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+      <instance>31220-nil-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Consistency check a nil, not strict, reported eg:a is nil, evaulated ok</name>
+    <description>
+       Per name.  The reported facts eg:a with nil values are not in the "assertion data set", so
+       therefore this example behaves as if there were no aspect-matched input facts (in the assertion
+       data set), and thus also corresponds to Example 5 row 1.  (This is a revision, because in the 
+       original version of this variation the nuance, that the reported nil eg:a's are not considered
+       to be in the assertion data set, was missed and the original version's count satisfied was wrong.)
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-not-strict-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-not-strict-nil-evaluated-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+      <instance>31220-nil-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Consistency check a nil, not strict, reported a not nil, evaulated inconsistent</name>
+    <description>
+       Per name.   Consistence-assertion spec Example 5 row 3.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-not-strict-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-not-strict-nil-evaluated-not-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31220-nil-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>Consistency check a not nil, not strict, reported a nil, evaulated inconsistent</name>
+    <description>
+       Similar to V-02.  The reported facts eg:a with nil values are not in the "assertion data set", so
+       therefore this example behaves as if there were no aspect-matched input facts (in the assertion
+       data set), and thus also corresponds to Example 5 row 2.  (This is a revision, for the same reason
+       as V-02.)
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-not-strict-not-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-not-strict-not-nil-evaluated-not-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+      <instance>31220-not-nil-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>Consistency check a nil, strict, reported a nil, evaulated ok</name>
+    <description>
+       Per name.  The reported facts eg:a with nil values are not in the "assertion data set", so
+       therefore this example behaves as if there were no aspect-matched input facts (in the assertion
+       data set), and thus corresponds to Example 5 row 4.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-strict-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-strict-nil-evaluated-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31220-nil-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-06">
+    <name>Consistency check a nil, strict, not reported, evaulated ok</name>
+    <description>
+       Per name.  Consistence-assertion spec Example 5 row 4, similar to V-05, but in this case the
+       eg:a facts are absent from the input instance (whereas in V-05 the eg:a's were present but had
+       nil values).
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-strict-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-strict-nil-nonnil-evaluated-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>31220-nil-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-07">
+    <name>Consistency check a not nil, strict, reported nil, evaulated inconsistent</name>
+    <description>
+       Per name.  (Not in table 5 or spec, assumes facts to be x-unequal if one is nil and the other is not nil.)
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-strict-not-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-strict-nil-evaluated-not-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31220-not-nil-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-08">
+    <name>Consistency check a not nil, strict, not reported, evaulated inconsistent</name>
+    <description>
+       Per name.  Consistence-assertion spec Example 5 row 5.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="example-nil-values"/>
+    <data>
+      <schema>31220-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31220-strict-not-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">31220-strict-nil-missing-evaluated-not-ok-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="0"
+         countNotSatisfied="2" />
+      <instance>31220-not-nil-result.xml</instance>
+    </result>
+  </variation>
+
+
+</testcase>
+

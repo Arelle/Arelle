@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>603-11</number>
+<name>EDGAR Filer Manual v16 6.3.11 page 6-7</name>
+<description>
+<h2>Attribute xml:base must not appear in any Interactive Data document.</h2>
+<p>XML processors interpret this attribute differently, so it must not be used.</p>
+</description>
+<reference specification="111856"/>
+<variation id="_204ng">
+<name>6.3.11, Presentation linkbase/roleRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>Presentation linkbase/roleRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311204ng-20111231.xml</instance>
+<linkbase>e60311204ng-20111231_lab.xml</linkbase>
+<linkbase>e60311204ng-20111231_def.xml</linkbase>
+<linkbase>e60311204ng-20111231_pre.xml</linkbase>
+<schema>e60311204ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_205ng">
+<name>6.3.11, definition linkbase/arcroleRef contains xml:base="http://www.xbrl.org/". NOGOOD.</name>
+<description>definition linkbase/arcroleRef contains xml:base="http://www.xbrl.org/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311205ng-20111231.xml</instance>
+<linkbase>e60311205ng-20111231_lab.xml</linkbase>
+<linkbase>e60311205ng-20111231_def.xml</linkbase>
+<linkbase>e60311205ng-20111231_pre.xml</linkbase>
+<schema>e60311205ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_206ng">
+<name>6.3.11, presentationLink/loc contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>presentationLink/loc/ contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311206ng-20111231.xml</instance>
+<linkbase>e60311206ng-20111231_lab.xml</linkbase>
+<linkbase>e60311206ng-20111231_def.xml</linkbase>
+<linkbase>e60311206ng-20111231_pre.xml</linkbase>
+<schema>e60311206ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_207ng">
+<name>6.3.11, definitionLink contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>definitionLink contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD..</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311207ng-20111231.xml</instance>
+<linkbase>e60311207ng-20111231_lab.xml</linkbase>
+<linkbase>e60311207ng-20111231_def.xml</linkbase>
+<linkbase>e60311207ng-20111231_pre.xml</linkbase>
+<schema>e60311207ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_208ng">
+<name>6.3.11, calculationLink/loc contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>calculationLink/loc contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311208ng-20111231.xml</instance>
+<linkbase>e60311208ng-20111231_cal.xml</linkbase>
+<linkbase>e60311208ng-20111231_lab.xml</linkbase>
+<linkbase>e60311208ng-20111231_def.xml</linkbase>
+<linkbase>e60311208ng-20111231_pre.xml</linkbase>
+<schema>e60311208ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_209ng">
+<name>6.3.11, referenceLink/loc contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>referenceLink/loc contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311209ng-20111231.xml</instance>
+<linkbase>e60311209ng-20111231_lab.xml</linkbase>
+<linkbase>e60311209ng-20111231_def.xml</linkbase>
+<linkbase>e60311209ng-20111231_pre.xml</linkbase>
+<linkbase>e60311209ng-20111231_ref.xml</linkbase>
+<schema>e60311209ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_210ng">
+<name>6.3.11, labelLink/loc contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>labelLink/loc contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311210ng-20111231.xml</instance>
+<linkbase>e60311210ng-20111231_lab.xml</linkbase>
+<linkbase>e60311210ng-20111231_def.xml</linkbase>
+<linkbase>e60311210ng-20111231_pre.xml</linkbase>
+<schema>e60311210ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_211ng">
+<name>6.3.11, xbrl/schemaRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>xbrl/schemaRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311211ng-20111231.xml</instance>
+<linkbase>e60311211ng-20111231_lab.xml</linkbase>
+<linkbase>e60311211ng-20111231_def.xml</linkbase>
+<linkbase>e60311211ng-20111231_pre.xml</linkbase>
+<schema>e60311211ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_502ng">
+<name>6.3.11, schema/linkbaseRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>schema/linkbaseRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311502ng-20111231.xml</instance>
+<linkbase>e60311502ng-20111231_lab.xml</linkbase>
+<linkbase>e60311502ng-20111231_def.xml</linkbase>
+<linkbase>e60311502ng-20111231_pre.xml</linkbase>
+<schema>e60311502ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_509ng">
+<name>6.3.11, linkbase/referenceLink/loc to a link:reference element contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>linkbase/referenceLink/loc to a link:reference element contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311509ng-20111231.xml</instance>
+<linkbase>e60311509ng-20111231_lab.xml</linkbase>
+<linkbase>e60311509ng-20111231_def.xml</linkbase>
+<linkbase>e60311509ng-20111231_pre.xml</linkbase>
+<linkbase>e60311509ng-20111231_ref.xml</linkbase>
+<schema>e60311509ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_510ng">
+<name>6.3.11, linkbase/labelLink/loc to a link:label element contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>linkbase/labelLink/loc to a link:label element contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311510ng-20111231.xml</instance>
+<linkbase>e60311510ng-20111231_lab.xml</linkbase>
+<linkbase>e60311510ng-20111231_def.xml</linkbase>
+<linkbase>e60311510ng-20111231_pre.xml</linkbase>
+<schema>e60311510ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+<variation id="_512ng">
+<name>6.3.11, xbrl/linkbaseRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</name>
+<description>xbrl/linkbaseRef contains xml:base="http://xbrl.sec.gov/dei/2011/". NOGOOD.</description>
+<reference specification="111856"/>
+<data>
+<instance readMeFirst="true">e60311512ng-20111231.xml</instance>
+<linkbase>e60311512ng-20111231_pre.xml</linkbase>
+<schema>e60311512ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60311" name="Use-Of-Xml-Base-Attribute-Illegal" frd="du"/>
+</result>
+</variation>
+</testcase>

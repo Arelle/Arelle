@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="tagetNamespace" description="Section 5.1 Taxonomy schemas" outpath="out" owner="mg@fla.fujitsu.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-1" name="106-01-Non Empty TargetNamespace">
+		<description>106.01 Taxonomy schema has non-empty targetNamespace attribute value.</description>
+		<data>
+			<xsd readMeFirst="true">106-01-NonEmptyTargetNamespace.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="106-02-Empty TargetNamespace">
+		<description>106.02 Taxonomy schema has empty targetNamespace attribute value. Empty targetNamespace attribute is prohibited by Section 5.1.</description>
+		<data>
+			<xsd readMeFirst="true">106-02-EmptyTargetNamespace.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation id="V-3" name="106-03-TargetNamespace with xsd:include">
+		<description>106.03 Both including and included Taxonomy schemas have identical targetNamespace attribute values. Valid and XBRL specification 5.1 recommended approach.</description>
+		<data>
+			<xsd readMeFirst="false">106-03-TargetNamespace.xsd</xsd>
+			<xsd readMeFirst="true">106-03-ExtTargetNamespace.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-4" name="106-04-NoTargetNamespace with xsd:include">
+		<description>106.04 Included taxonomy schema has no targetNamespace attribute but including taxonomy schema has targetNamespace attribute which it is valid. Even though this usage does not recommended by XBRL Specification section 5.1, this is valid.</description>
+		<data>
+			<xsd readMeFirst="false">106-04-NoTargetNamespace.xsd</xsd>
+			<xsd readMeFirst="true">106-04-ExtTargetNamespace.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://edgar/role/OtherInformation" xlink:type="simple"
+xlink:href="edgar-20081231.xsd#OtherInformation"/>
+<link:presentationLink xlink:type="extended" xlink:role="http://edgar/role/OtherInformation">
+<link:loc xlink:type="locator" xlink:href="edgar-20081231.xsd#edgar_Top"
+xlink:label="Top"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntitiesTable"
+xlink:label="EntitiesTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalEntityAxis"
+xlink:label="LegalEntityAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityDomain"
+xlink:label="EntityDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityListingsLineItems"
+xlink:label="EntityListingsLineItems"/>
+<link:loc xlink:type="locator" xlink:href="e61003003ng-20081231.xsd#e6100300_DefMember"
+xlink:label="DefMember"/>
+<link:loc xlink:type="locator" xlink:href="e61003003ng-20081231.xsd#e6100300_Promises"
+xlink:label="Promises"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="Top"
+xlink:to="EntitiesTable"
+use="optional"
+order="0.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntitiesTable"
+xlink:to="LegalEntityAxis"
+use="optional"
+order="1.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="LegalEntityAxis"
+xlink:to="EntityDomain"
+use="optional"
+order="1.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityDomain"
+xlink:to="DefMember"
+order="1.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="Top"
+xlink:to="EntityListingsLineItems"
+use="optional"
+priority="0"
+order="1.0"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityListingsLineItems"
+xlink:to="Promises"
+order="4.0"/>
+</link:presentationLink>
+</link:linkbase>

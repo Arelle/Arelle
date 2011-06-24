@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>12021</number>
+  <name>Source for aspect rules in Formulae. Processing to select an uncovered aspect from an evaluated fact varaible.</name>
+  <description>
+      An error must be thrown if a source does not imply 
+      a source aspect value (SAV) 
+      for an aspect rule that depends on it. (Note this was
+      originally classified a static analysis test but is now
+      a dynamic processing test, as this error can now only be caught
+      when determining a source based on bound fact variables.) 
+  </description>
+  <reference specification="FORMULA" id="error-undefinedSAV"/>          
+  <variation id="V-01">
+    <name>Undefined SAV for entity identifier Aspect rule</name>
+    <description>
+       The source for the aspect entity identifier rule of the formula 
+       does not imply a Source Aspect Value.  This situation is contrived
+       by having entityIdentifer source be formula:uncovered, without
+       any child elements, and having the entityIdentifier be covered for
+       both of the fact variables in this formula.
+       In that way no fact can be selected that has this aspect uncovered,
+       and the error situation is raised.
+    </description>
+    <reference specification="FORMULA" id="error-undefinedSAV"/>        
+    <data>
+      <instance readMeFirst="true">12021-v01-undefinedSAV-entity-input.xml</instance>
+      <schema>12021-concepts.xsd</schema>
+      <linkbase>12021-v01-undefinedSAV-entity-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:undefinedSAV</error>
+    </result>
+  </variation>
+ 
+</testcase>

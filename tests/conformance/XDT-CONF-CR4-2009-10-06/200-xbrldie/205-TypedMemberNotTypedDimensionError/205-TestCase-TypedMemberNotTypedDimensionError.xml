@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" xmlns="http://xbrl.org/2005/conformance" name="205-TestCase-TypedMemberNotTypedDimensionError" description="Rules 2.4.2.1, 2.8.3.1 and section 2.9." outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional syntax rules pertaining to instances and not covered by XML Schema and XBRL validation. -->
+        <!-- As of the 2005-12-10 internal working draft (by HF).  -->
+        <!-- 3.1.4.4.2  1. The content of the xlink:href attribute of a xbrldi:typedMember element MUST resolve to an typed dimension within the DTS of the instance document. A dimensional processor MUST raise an error [Ins Err, 8] xbrldie:TypedMemberNotTypedDimension if the content of the xlink:href attribute of xbrldi:explicitMember resolves (with xml:base) to anything other than a typed dimension declaration -->
+        <variation id="V-01" name="typedMemberIsExplicitInvalid">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.4.4.2">The content of the xlink:href attribute of a xbrldi:typedMember element MUST resolve to an typed dimension within the DTS of the instance document. A dimensional processor MUST raise an error [Ins Err, 8] xbrldie:TypedMemberNotTypedDimension if the content of the xlink:href attribute of xbrldi:explicitMember resolves (with xml:base) to anything other than a typed dimension declaration.  In this case it resolves to an explicit dimension.</description>
+                <data>
+                        <xsd readMeFirst="false">typedMemberIsExplicitInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">typedMemberIsExplicitInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">typedMemberIsExplicitInvalid-label.xml</linkbase>
+                        <instance readMeFirst="true">typedMemberIsExplicitInvalid.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:TypedMemberNotTypedDimensionError</error>
+                </result>
+        </variation>
+</testcase>
+

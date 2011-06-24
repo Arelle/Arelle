@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>41210</number>
+  <name>Boolean And Filter Processing</name>
+  <description>
+    Test boolean and filter processing.
+  </description>
+  <reference specification="BOOLEAN-FILTER" id="sec-and-filter"/>
+
+  <variation id="V-01">
+    <name>Test and of concept name filter and entity scheme filter</name>
+    <description>
+      Facts matching the and-filter must be named &lt;eg:assets&gt; and
+      have a context with an entity identifier that is in the
+      http://www.example.com/entity/identification scheme
+    </description>
+    <reference specification="BOOLEAN-FILTER" id="sec-and-filter"/>
+    <data>
+      <schema>41210-andFilter-concepts.xsd</schema>
+      <linkbase>41210-nameAndIdent-formula.xml</linkbase>
+      <instance readMeFirst="true">41210-nameAndIdent-instance.xml</instance>
+    </data>
+    <result>
+      <instance>41210-nameAndIdent-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test and of parent filter for root item and forever period filter</name>
+    <description>
+        Facts must not be contained by a tuple and they must be reported with a period of "forever". 
+    </description>
+    <reference specification="BOOLEAN-FILTER" id="sec-and-filter"/>
+    <data>
+      <schema>41210-andFilter-concepts.xsd</schema>
+      <linkbase>41210-parentAndPeriod-formula.xml</linkbase>
+      <instance readMeFirst="true">41210-parentAndPeriod-instance.xml</instance>
+    </data>
+    <result>
+      <instance>41210-parentAndPeriod-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

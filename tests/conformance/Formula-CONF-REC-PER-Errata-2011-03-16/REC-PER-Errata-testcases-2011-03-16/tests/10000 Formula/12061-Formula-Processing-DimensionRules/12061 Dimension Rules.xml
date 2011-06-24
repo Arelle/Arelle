@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>12061</number>
+  <name>dimension rules processing examples</name>
+  <description>
+    Tests of formula dimension rules processing
+  </description>
+  <reference specification="FORMULA" id="sec-occ-rules"/>
+  <reference specification="FORMULA" id="sec-dimension-rules"/>
+  <reference specification="FORMULA" id="sec-default-aspect-rules"/>
+
+  <variation id="V-01">
+    <name>Output of source explicit dimension segment closed HC</name>
+    <description>Tests that the output segment dimension is that of the input, closed hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-seg-explicit-closedHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-seg-explicit-closedHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Output of source explicit dimension segment open HC</name>
+    <description>Tests that the output segment dimension is that of the input, open hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-seg-explicit-openHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-seg-explicit-openHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Output of source typed dimension segment closed HC</name>
+    <description>Tests that the output segment dimension is that of the input, closed hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-seg-typed-closedHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-seg-typed-closedHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Output of source typed dimension segment open HC</name>
+    <description>Tests that the output segment dimension is that of the input, open hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-seg-typed-openHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-seg-typed-openHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>Output of source explicit dimension scenario closed HC</name>
+    <description>Tests that the output scenario dimension is that of the input, closed hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-scen-explicit-closedHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-scen-explicit-closedHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Output of source explicit dimension scenario open HC</name>
+    <description>Tests that the output scenario dimension is that of the input, open hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-scen-explicit-openHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-scen-explicit-openHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Output of source typed dimension scenario closed HC</name>
+    <description>Tests that the output scenario dimension is that of the input, closed hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-scen-typed-closedHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-scen-typed-closedHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Output of source typed dimension scenario open HC</name>
+    <description>Tests that the output scenario dimension is that of the input, open hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-source-dim-copy-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-scen-typed-openHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-scen-typed-openHc-result.xml</instance>
+    </result>
+  </variation>  
+
+<!-- xbrlfe:cannotOmitDimensionValue is no longer a valid error code
+  <variation id="V-09">
+    <name>Dropping source explicit dimension aspect from output concept that requires it closed HC</name>
+    <description>
+      Tests that the output segment drops dimension of a closed hypercube of the input by an omit.
+      Raises an error because the primary item requres a dimension.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-no-source-seg-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-no-seg-explicit-closedHc-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlfe:cannotOmitDimensionValue</error>
+    </result>
+  </variation>  
+-->
+
+  <variation id="V-10">
+    <name>Dropping source explicit dimension aspect from output concept open HC</name>
+    <description>
+      Tests that the output segment drops dimension of a open hypercube of the input by an omit.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-no-source-seg-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-no-seg-explicit-openHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-no-seg-explicit-openHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-11">
+    <name>Dropping source explicit dimension of closed HC to result in primary item that is dimensionless</name>
+    <description>
+      Tests that the output segment drops dimension of the closed hypercube input by an omit.
+      Result concept has a closed dimensionless hypercube.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-no-seg-empty-hypercube-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-no-seg-closed-empty-hypercube-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-no-seg-closed-empty-hypercube-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-12">
+    <name>Dropping source explicit dimension of open HC from result primary item that is dimensionless</name>
+    <description>
+      Tests that the output segment drops dimension of the open hypercube input by an omit.
+      Result concept has a closed dimensionless hypercube.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-no-seg-empty-hypercube-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-no-seg-open-empty-hypercube-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-no-seg-open-empty-hypercube-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-13">
+    <name>Not dropping source explicit dimension from result primary item that is dimensionless closed HC</name>
+    <description>
+      Tests that the output segment doesn't drop dimension of the input without an omit.
+      Result concept has closed dimensionless hypercube and isn't supposed to have a dimension.
+      Result fails ordinary xbrl dimensional validation.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-nonempty-empty-hypercube-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-nonempty-empty-hypercube-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-nonempty-empty-hypercube-result.xml</instance>
+      <!-- not sure what should really happen here ??? -->
+      <error xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" >
+         xbrldie:PrimaryItemDimensionallyInvalidError
+      </error>
+    </result>
+  </variation>  
+
+  <variation id="V-14">
+    <name>Source typed dimension aspect was from segment of closed HC, output concept is to scenario of closed HC</name>
+    <description>
+      Tests that the dimension aspect, coming from source segment, goes into the scenario per the DTS definition of the output concept, closed hypercube.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-seg-typed-dim-to-scen-closedHc-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-seg-typed-dim-to-scen-closedHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-seg-typed-dim-to-scen-closedHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-15">
+    <name>Source typed dimension aspect was from segment of open HC, output concept is to scenario of open HC</name>
+    <description>
+      Tests that the dimension aspect, coming from source segment, goes into the scenario per the DTS definition of the output concept, open hypercube.  (Segment has empty closed hypercube to block it going there.)
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-seg-typed-dim-to-scen-openHc-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-seg-typed-dim-to-scen-openHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-seg-typed-dim-to-scen-openHc-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-16">
+    <name>Omitting an explicit of three dimensions in segment</name>
+    <description>
+      Tests that the output segment omits one of the explicit
+      dimensions of the input and leaves two other dimensions
+      undisturbed. Omits only eg:ExplDim1.  Closed hypercube.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-omit-source-seg-explicit-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-omit-1st-of-3-seg-dims-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-omit-1st-of-3-seg-dims-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-17">
+    <name>Omitting a typed of three dimensions in segment</name>
+    <description>Tests that the output segment omits one of the typed dimensions of the input and leaves two other dimensions undisturbed.  Omits only eg:TypedDim1. Closed hypercube.
+</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-omit-source-seg-typed-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-omit-1st-of-3-seg-dims-typed-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-omit-1st-of-3-seg-dims-typed-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-18">
+    <name>Change an explicit dimension with static member QName</name>
+    <description>Tests that the output segment changes just one of the explicit dimensions of the input and leaves two other dimensions undisturbed.  A static qname is provided for the replacement member.  Closed hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-static-seg-explicit-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-static-seg-explicit-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-alter-static-seg-explicit-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-19">
+    <name>Change an explicit dimension using occ xpath rule</name>
+    <description>Tests that the output OCC xpath rule thows an error trying to affect the dimension aspect. 
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-xpath-seg-explicit-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-xpath-seg-explicit-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlfe:badSubsequentOCCValue</error>
+      <!-- <instance>12061-alter-static-seg-explicit-result.xml</instance> -->
+    </result>
+  </variation>  
+
+  <variation id="V-20">
+    <name>Change an explicit dimension using fragment rule</name>
+    <description>Tests that the output OCC segment fragment rule throws an error if trying to set a dimension aspect
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-fragment-seg-explicit-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-fragment-seg-explicit-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlfe:badSubsequentOCCValue</error>
+    </result>
+  </variation>  
+
+  <variation id="V-21">
+    <name>Change explicit dimensions with dynamic member expressions closed HC</name>
+    <description>Tests that the output segment changes just each of the explicit dimensions of the input and leaves other typed dimension undisturbed.  A dynamic qname expression is provided for each of two altered members.  Two dimension rules in tandem are provided.  Closed hypercube</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-dynamic-seg-explicit-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-dynamic-seg-explicit-closedHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-alter-dynamic-seg-explicit-closedHc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-22">
+    <name>Change explicit dimensions with dynamic member expressions open HC</name>
+    <description>Tests that the output segment changes just each of the explicit dimensions of the input and leaves other typed dimension undisturbed.  A dynamic qname expression is provided for each of two altered members.  Two dimension rules in tandem are provided.  Open hypercube</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-dynamic-seg-explicit-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-dynamic-seg-explicit-openHc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-alter-dynamic-seg-explicit-openHc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-23">
+    <name>Assembling dimensions from multiple variables closed HC</name>
+    <description>Tests that the output segment assembles dimension from three separate input fact items, showing that specific dimensions can be taken from different combinations contexts of bound variables.  v1 has 3 dimensions, explDim1, explDim2, and typedDim1, but only typedDim1 is taken, v2 has 2 dimensions, explDim2 and typedDim1 but only explDim2 is taken, and v3 has just explDim1 which is taken for the output.  Closed hypercube.</description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-assemble-seg-dims-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-assemble-seg-dims-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-assemble-seg-dims-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-24">
+    <name>Rule created dimension aspect for open HCs, both segment and scenario</name>
+    <description>The output result has a rule-created dimension aspect for open hypercubes in both segment and scenario.  The aspect can go into either segment or scenario hypercube (there is no way to direct where to put it and the semantic effect and validity is the same regardless of where it gets put).  Thus the result file is marked with comments on the two possibilities that either segment or scenario may be the resulting location.
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-test-2open.xsd</schema>
+      <linkbase>12061-dim-test-2open-definition.xml</linkbase>
+      <linkbase>12061-create-dim-to-either-seg-or-scen-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-create-dim-to-either-seg-or-scen-instance.xml</instance>
+    </data>
+    <result>
+      <!-- see description above and comment in result.xml that either
+           segment or scenario may be the resulting location for the
+           rule-created dimension -->
+      <instance>12061-create-dim-to-either-seg-or-scen-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-25">
+    <name>Change a typed dimension using formula:xpath rule</name>
+    <description>Tests that the output xpath rule produces the typed dimension aspect. 
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-xpath-seg-typed-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-xpath-seg-typed-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-alter-xpath-seg-typed-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-26">
+    <name>Change a typed dimension using formula:xpath rule that is a multi-node sequence</name>
+    <description>Tests that the output xpath rule detects error on multi-node sequence. 
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-xpath-seg-typed-formula2.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-xpath-seg-typed-instance2.xml</instance>
+    </data>
+    <result>
+      <error>xbrlfe:wrongXpathResultForTypedDimensionRule</error>
+    </result>
+  </variation>  
+
+  <variation id="V-27">
+    <name>Change a typed dimension using formula:value rule</name>
+    <description>Tests that the output value rule produces the typed dimension value
+    </description>
+    <reference specification="FORMULA" id="sec-occ-rules"/>
+    <data>
+      <schema>12061-dim-tests.xsd</schema>
+      <linkbase>12061-dim-tests-definition.xml</linkbase>
+      <linkbase>12061-alter-value-seg-typed-formula.xml</linkbase>
+      <instance readMeFirst="true">12061-alter-value-seg-typed-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12061-alter-value-seg-typed-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+
+
+

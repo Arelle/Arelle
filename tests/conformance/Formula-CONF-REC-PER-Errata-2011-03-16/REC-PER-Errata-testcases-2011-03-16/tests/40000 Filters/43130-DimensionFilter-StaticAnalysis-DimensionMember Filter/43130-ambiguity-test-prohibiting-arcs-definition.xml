@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="43130-ambiguity-test-concepts.xsd#test-role"
+    roleURI="http://xbrl.org/formula/conformance/example/role/test-role" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="43130-ambiguity-test-concepts.xsd#test-arcrole"
+    arcroleURI="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/test-role">
+    <loc xlink:type="locator"
+      xlink:label="eg_Dimension"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_Dimension" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemA"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemA" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+      xlink:from="eg_Dimension" xlink:to="eg_MemA"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemB"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemB" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemC"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemC" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+      xlink:from="eg_MemA" xlink:to="eg_MemB"
+      order="1"
+      use="prohibited" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+      xlink:from="eg_MemB" xlink:to="eg_MemC"
+      order="1"
+      use="prohibited" />
+  </definitionLink>
+</linkbase>

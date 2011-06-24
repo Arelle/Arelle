@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<!-- Editeb by Ignacio Hernández-Ros (ignacio@hernandez-ros.com) Reporting Estandar S.L. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Linkbase References" description="3.5.3.7.2 Locators may point to XML documents" outpath="out" owner="ignacio@hernandez-ros.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-01" name="LocatorToADocumentWithoutFragment">
+		<description>
+		230.01 Section 3.5.3.7.2 allows locators to point to an XML document. If a link:loc points to a document, that document MUST be discovered and loaded into the DTS. In this case there is an instance document that contains facts from two taxonomies the first taxonomy is referenced in a schemaRef element. The second taxonomy is discovered through a link:loc in a custom linkbase of the first taxonomy.
+		</description>
+		<data>
+			<instance readMeFirst="true">230-01-LocatorToADocumentWithoutFragment.xbrl</instance>
+			<xsd readMeFirst="false">230-01-LocatorToADocumentWithoutFragment-T1.xsd</xsd>
+			<linkbase readMeFirst="false">230-01-Custom-linkbase.xml</linkbase>
+			<xsd readMeFirst="false">230-01-LocatorToADocumentWithoutFragment-T2.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-02" name="ElementInLinkLocSubGroup">
+		<description>
+		230.02 only link:loc elements can be used to fire DTS discovery, in this case the custom linkbase contains an element in the link:loc substitution group but the file pointed to by that loc should not be included in the DTS. The file is an invalid taxonomy that will fire an error if included in the DTS.
+		</description>
+		<data>
+			<xsd readMeFirst="true">230-02-ElementInLinkLocSubGroup.xsd</xsd>
+			<linkbase readMeFirst="false">230-02-Custom-linkbase.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>

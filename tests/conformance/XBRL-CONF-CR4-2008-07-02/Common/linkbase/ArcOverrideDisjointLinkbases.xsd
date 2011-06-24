@@ -1,0 +1,14 @@
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ci="http://www.xbrl.org/us/gaap/ci/2003/us-gaap-ci-2001" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/2001/XMLSchema">
+	<annotation>
+		<appinfo>
+			<link:linkbaseRef xlink:type="simple" xlink:href="291-01-ArcOverrideDisjointLinkbases-1-label.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+			<link:linkbaseRef xlink:type="simple" xlink:href="291-01-ArcOverrideDisjointLinkbases-2-label.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="changeInRetainedEarnings" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="changeInRetainedEarnings" xbrli:periodType="duration"/>
+	<element name="fixedAssets" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="fixedAssets" xbrli:balance="debit" xbrli:periodType="instant"/>
+</schema>

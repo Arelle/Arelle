@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2166.18989 (2005-12-03 18:13).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-12-06 10:48:49
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Worldwide" xlink:label="r_Worldwide" xlink:title="definition: Worldwide to Europe" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Europe" xlink:label="r_Europe" xlink:title="definition: Worldwide to Europe" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_Worldwide" xlink:to="r_Europe" xlink:title="definition: Worldwide to Europe" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_UnitedKingdom" xlink:label="r_UnitedKingdom" xlink:title="definition: Europe to UnitedKingdom" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_Europe" xlink:to="r_UnitedKingdom" xlink:title="definition: Europe to UnitedKingdom" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Spain" xlink:label="r_Spain" xlink:title="definition: Europe to Spain" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_Europe" xlink:to="r_Spain" xlink:title="definition: Europe to Spain" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_AsiaPacific" xlink:label="r_AsiaPacific" xlink:title="definition: Worldwide to AsiaPacific" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_Worldwide" xlink:to="r_AsiaPacific" xlink:title="definition: Worldwide to AsiaPacific" order="2" use="optional" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Japan" xlink:label="r_Japan" xlink:title="definition: AsiaPacific to Japan" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_AsiaPacific" xlink:to="r_Japan" xlink:title="definition: AsiaPacific to Japan" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Americas" xlink:label="r_Americas" xlink:title="definition: Worldwide to Americas" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_Worldwide" xlink:to="r_Americas" xlink:title="definition: Worldwide to Americas" order="3" use="optional" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_USA" xlink:label="r_USA" xlink:title="definition: Americas to USA" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_Americas" xlink:to="r_USA" xlink:title="definition: Americas to USA" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_SouthAmerica" xlink:label="r_SouthAmerica" xlink:title="definition: Americas to SouthAmerica" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="r_Americas" xlink:to="r_SouthAmerica" xlink:title="definition: Americas to SouthAmerica" order="2" use="optional" />
+  </definitionLink>
+</linkbase>

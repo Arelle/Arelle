@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  xmlns:xqt-err="http://www.w3.org/2005/xqt-errors"
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22060</number>
+  <name>Variable Names Tests</name>
+  <description>
+    Tests of variable names, focus on variable QName distinct from xml ordinary QName in prefix resolution.
+  </description>
+  <reference specification="VARIABLES" id="sec-xpath-usage"/>
+  <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+
+  <variation id="V-01">
+    <name>
+There is a default namespace declaration on the
+document root element but no namespace prefix is used for the variable
+name.
+    </name>
+    <description>
+       Tests that XPath variable names with no prefix are treated
+       by syntax as "no namespace" variables and do not take the default xmlns
+       namespace.  The default xmlns namespace is only to be
+       used in XPath for QName expansion, which is tested by giving
+       xmlns default to the schema file namespace for concepts, so the
+       qname for the concept, c1, has no prefix.  If the XPath variable
+       $c2, which has no prefix, is instead treated as having the
+       default xmlns, the output would be "hello Earth, Venus, and Venus",
+       instead of the correct output hello "Earth, Venus, and Mars".
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-default-xmlns-on-root-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-default-xmlns-on-root-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22060-default-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>
+There is a default namespace declaration on the
+extended link element but no namespace prefix is used for the variable
+name.
+    </name>
+    <description>
+       Same as V-01 except for location of default namespace declaration.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-default-xmlns-on-extended-link-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-default-xmlns-on-extended-link-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22060-default-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>
+There is a default namespace declaration on the
+variable arc element but no namespace prefix is used for the variable
+name, nor is a default namespace declaration on the element containing the XPath expression.
+    </name>
+    <description>
+       Same as V-01 except for location of default namespace declaration.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-default-xmlns-on-arc-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-default-xmlns-on-arc-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22060-default-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>
+There is a default namespace declaration on the element containing the XPath expression but none on (or above) the arc defining the variable name.
+    </name>
+    <description>
+       Same as V-01 except for location of default namespace declaration.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-default-xmlns-on-expression-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-default-xmlns-on-expression-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22060-default-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>
+There is a default namespace declaration on the element containing the XPath expression and source but it does not interfere with the no-prefix source reference to a variable name.
+    </name>
+    <description>
+       Same as V-01 except for no default namespace declaration.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-default-xmlns-on-source-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-default-xmlns-on-source-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22060-default-result.xml</instance>
+    </result>
+  </variation>  
+
+<!-- Bad paths; please fix.
+  <variation id="V-06">
+    <name>
+There are no xmlns default declarations (to either arc defining the name, nor to the element containing the referencing xpath expression)
+    </name>
+    <description>
+       Same as V-01 except for no default namespace declaration.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-no-default-xmlns-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-no-default-xmlns-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22060-default-result.xml</instance>
+    </result>
+  </variation>  
+-->
+
+  <variation id="V-07">
+    <name>
+There is an unresolvable prefix on the name declaration on an arc.
+    </name>
+    <description>
+       Same as V-01, except no default xmlns'es.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-missing-xmlns-for-arc-name-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-missing-xmlns-for-arc-name-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">
+         xbrlve:variableNameResolutionFailure
+      </error>
+    </result>
+  </variation>  
+
+<!-- Not valid per specification of error code. 
+  <variation id="V-08">
+    <name>
+There is an unresolvable prefix on the formula:source variable reference.
+    </name>
+    <description>
+       Same as V-01, except no default xmlns'es.
+       (Note: there are other variations similar to this, in the respective testcases for the dimension, location, match, relative, and tuple filter, each of which have variable attributes that can raise the same error as this variation does for the formula:source attribute.)
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-missing-xmlns-for-source-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-missing-xmlns-for-source-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">
+         xbrlve:variableNameResolutionFailure
+      </error>
+    </result>
+  </variation>  
+-->
+
+  <variation id="V-09">
+    <name>
+There is an unresolvable prefix on the XPath $variable reference.
+    </name>
+    <description>
+       Same as V-01, except no default xmlns'es.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-missing-xmlns-for-xpath-variable-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-missing-xmlns-for-xpath-variable-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xqt-err="http://www.w3.org/2005/xqt-errors">
+         xqt-err:XPST0081
+      </error>
+    </result>
+  </variation>  
+
+  <variation id="V-10">
+    <name>
+Every variable reference has containing-element xmlns declarations.
+    </name>
+    <description>
+       Same as V-01, except no default xmlns'es.
+    </description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-variable-set-relationships"/>
+    <data>
+      <schema>22060-variableName-tests.xsd</schema>
+      <linkbase>22060-local-xmlns-for-each-variable-formula.xml</linkbase>
+      <instance readMeFirst="true">22060-local-xmlns-for-each-variable-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22060-default-result.xml</instance>
+    </result>
+  </variation>  
+
+
+
+</testcase>

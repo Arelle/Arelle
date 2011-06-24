@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Preferred Label" description="Section 5.2.4.2.1 The preferredLabel attribute (optional)" owner="mg@us.fujitsu.com" minimal="true" xsi:noNamespaceSchemaLocation="../lib/test.xsd" outpath="out">
+	<variation id="V-1" name="pref01">
+		<description>The presentationArc's 'to' concept has label resource with a role value which is equal to the value of the preferredLabel attribute.</description>
+		<data>
+			<xsd readMeFirst="true">prefLabel-single-language-valid.xsd</xsd>
+			<linkbase readMeFirst="false">prefLabel-single-language-valid-label.xml</linkbase>
+			<linkbase readMeFirst="false">prefLabel-single-language-valid-presentation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="pref02">
+		<description>The presentationArc's 'to' concept does not have label resource with a role value which is equal to the value of the preferredLabel attribute.</description>
+		<data>
+			<xsd readMeFirst="true">prefLabel-single-language-invalid.xsd</xsd>
+			<linkbase readMeFirst="false">prefLabel-single-language-invalid-label.xml</linkbase>
+			<linkbase readMeFirst="false">prefLabel-single-language-invalid-presentation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-3" name="pref03">
+		<description>The presentationArc's 'from' concept has label resource with a role value which is equal to the value of the preferredLabel attribute. But the presentationArc's 'to' concept does not have label resource with a role value which is equal to the value of the preferredLabel attribute. </description>
+		<data>
+			<xsd readMeFirst="true">prefLabel-single-language-invalid2.xsd</xsd>
+			<linkbase readMeFirst="false">prefLabel-single-language-invalid2-label.xml</linkbase>
+			<linkbase readMeFirst="false">prefLabel-single-language-invalid2-presentation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-4" name="pref04">
+		<description>The presentationArc's 'to' concept does not have 'en' label resource with a role value which is equal to the value of the preferredLabel attribute, but has 'ja' label resource with a role value which is equal to the value of the preferredLabel attribute. </description>
+		<data>
+			<xsd readMeFirst="true">prefLabel-incomplete-multi-languageset.xsd</xsd>
+			<linkbase readMeFirst="false">prefLabel-incomplete-multi-languageset-label.xml</linkbase>
+			<linkbase readMeFirst="false">prefLabel-incomplete-multi-languageset-label-ja.xml</linkbase>
+			<linkbase readMeFirst="false">prefLabel-incomplete-multi-languageset-presentation.xml</linkbase>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-5" name="pref05">
+		<description> The presentationArc's 'to' concept does not have label resource with a role value which is equal to the value of the preferredLabel attribute, but the presentationArc's 'from' concept has 'ja' label resource with a role value which is equal to the value of the preferredLabel attribute.</description>
+		<data>
+			<xsd readMeFirst="true">prefLabel-incomplete-multi-languageset-invalid.xsd</xsd>
+			<linkbase readMeFirst="false">prefLabel-incomplete-multi-languageset-invalid-label.xml</linkbase>
+			<linkbase readMeFirst="false">prefLabel-incomplete-multi-languageset-invalid-label-ja.xml</linkbase>
+			<linkbase readMeFirst="false">prefLabel-incomplete-multi-languageset-invalid-presentation.xml</linkbase>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+</testcase>

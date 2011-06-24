@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:edgar="http://edgar/20081231"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:link="http://www.xbrl.org/2003/linkbase">
+<link:schemaRef xlink:type="simple" xlink:href="e60703006ng-20091231.xsd"/>
+<xbrli:context id="FY09">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2009-01-01</xbrli:startDate>
+<xbrli:endDate>2009-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="FY09e">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2009-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="USD">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="shares">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<dei:DocumentType contextRef="FY09">8-K</dei:DocumentType>
+<dei:EntityCentralIndexKey contextRef="FY09">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="FY09">e60703006ng</dei:EntityRegistrantName>
+<dei:CurrentFiscalYearEndDate contextRef="FY09">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:EntityWellKnownSeasonedIssuer contextRef="FY09">No</dei:EntityWellKnownSeasonedIssuer>
+<dei:EntityVoluntaryFilers contextRef="FY09">No</dei:EntityVoluntaryFilers>
+<dei:EntityCurrentReportingStatus contextRef="FY09">Yes</dei:EntityCurrentReportingStatus>
+<dei:EntityFilerCategory contextRef="FY09">Non-accelerated Filer</dei:EntityFilerCategory>
+<dei:EntityPublicFloat decimals="0" contextRef="FY09e" unitRef="USD">0</dei:EntityPublicFloat>
+<dei:EntityCommonStockSharesOutstanding decimals="INF" contextRef="FY09e" unitRef="shares">0</dei:EntityCommonStockSharesOutstanding>
+<dei:DocumentPeriodEndDate contextRef="FY09">2009-12-31</dei:DocumentPeriodEndDate>
+<dei:AmendmentFlag contextRef="FY09">false</dei:AmendmentFlag>
+</xbrli:xbrl>
