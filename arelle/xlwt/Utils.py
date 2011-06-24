@@ -165,7 +165,7 @@ def cellrange_to_rowcol_pair(cellrange):
     if res:
         row1, col1 = cell_to_rowcol2(res.group(1))
         return row1, col1, row1, col1
-    raise Exception("Unknown cell reference %s" % (cell))
+    raise Exception("Unknown cell reference %s" % cell)
 
 
 def cell_to_packed_rowcol(cell):

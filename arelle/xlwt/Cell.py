@@ -1,5 +1,5 @@
 from struct import unpack, pack
-from arelle import BIFFRecords
+from arelle.xlwt import BIFFRecords
 
 class StrCell(object):
     __slots__ = ["rowx", "colx", "xf_idx", "sst_idx"]
