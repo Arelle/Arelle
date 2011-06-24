@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>43130</number>
+  <name>Dimension member filter static analysis</name>
+  <description>
+    Tests of dimension-member filter static analysis
+  </description>
+  <reference specification="DIMENSION-FILTER" id="error-invalid-domain-member"/>
+
+  <variation id="V-01">
+    <name>Domain member is not a member of dimension being filtered but hypercube is open</name>
+    <description>
+        Domain member is an irrelevant concept, not a member of dimension being filtered.
+        (With Errratum 1 this is no longer an error.)
+    </description>
+    <reference specification="DIMENSION-FILTER" id="error-invalid-domain-member"/>
+    <data>
+      <schema>43130-dimension-test-concepts.xsd</schema>
+      <linkbase>43130-choicesLocation-formula.xml</linkbase>
+      <instance readMeFirst="true">43130-sevenSummits-choicesLocation-instance.xml</instance>
+    </data>
+    <result>
+      <!-- not an error with erratum 1
+      <error xmlns:xbrldfe="http://xbrl.org/2008/filter/dimension/error">
+          xbrldfe:invalidDomainMember
+      </error>
+      -->
+      <instance>43130-sevenSummits-choicesLocation-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-01a">
+    <name>Dimension is not an explicit dimension</name>
+    <description>
+        Dimension is not an explicit dimension concept, implied XPath suggests that the 
+        xfi:fact-has-explicit-dimension function is called, which will raise the
+        xfie:invalidExplicitDimensionQName error.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="error-invalid-domain-member"/>
+    <data>
+      <schema>43130-dimension-test-concepts.xsd</schema>
+      <linkbase>43130-choicesLocation-formula2.xml</linkbase>
+      <instance readMeFirst="true">43130-sevenSummits-choicesLocation-instance2.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xfie="http://www.xbrl.org/2008/function/instance/error">
+          xfie:invalidExplicitDimensionQName
+      </error>
+    </result>
+  </variation>  
+
+  <variation id="V-01b">
+    <name>No domain members in the specified filter member network</name>
+    <description>
+        There are no domain members in the specified filter member network (descendants of indonesia)
+        which prior to Erratum 1 would raise the xbrldfe:invalidDomainMember error.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="error-invalid-domain-member"/>
+    <data>
+      <schema>43130-dimension-test-concepts.xsd</schema>
+      <linkbase>43130-choicesLocation-formula3.xml</linkbase>
+      <instance readMeFirst="true">43130-sevenSummits-choicesLocation-instance3.xml</instance>
+    </data>
+    <result>
+      <!-- not an error with erratum 1
+      <error xmlns:xbrldfe="http://xbrl.org/2008/filter/dimension/error">
+          xbrldfe:invalidDomainMember
+      </error>
+      -->
+      <instance>43130-sevenSummits-choicesLocation-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Filter-member network is ambiguous but not referenced</name>
+    <description>
+        Filter-member network has an ambiguity but dimension filter is not referencing its link role in this variation.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="error-ambiguous-filter-member-network"/>
+    <data>
+      <schema>43130-ambiguity-test-concepts.xsd</schema>
+      <linkbase>43130-unreferenced-ambiguity-formula.xml</linkbase>
+      <instance readMeFirst="true">43130-unreferenced-ambiguity-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Filter-member network is ambiguous and is referenced</name>
+    <description>
+        Filter-member network has an ambiguity which is referenced in a member descendants axis filter.  The ambiguity is introduced because there are two extended links (of role test-role) that each define the same arcs (of arcrole test-arcrole) and the hierarchy of children is reversed in the second extended link.  The first link has MemA-&gt;MemB-&gt;MemC, and the second has MemA-&gt;MemC-&gt;MemB.
+        (As of erratum 1 this is no longer an error.)
+    </description>
+    <reference specification="DIMENSION-FILTER" id="error-ambiguous-filter-member-network"/>
+    <data>
+      <schema>43130-ambiguity-test-concepts.xsd</schema>
+      <linkbase>43130-referenced-ambiguity-formula.xml</linkbase>
+      <instance readMeFirst="true">43130-referenced-ambiguity-instance.xml</instance>
+    </data>
+    <result>
+      <!-- error removed with erratum 1
+      <error xmlns:xbrldfe="http://xbrl.org/2008/filter/dimension/error">
+          xbrldfe:ambiguousFilterMemberNetwork
+      </error>
+      -->
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Filter-member network ambiguities that are referenced are prohibited by extension linkbase</name>
+    <description>
+        Filter-member network ambiguity arcs are prohibited by an extension linkbase, to verify that ambiguous arcs prohibition works in the formula processor.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="error-ambiguous-filter-member-network"/>
+    <data>
+      <schema>43130-ambiguity-test-concepts.xsd</schema>
+      <linkbase>43130-referenced-ambiguity-formula.xml</linkbase>
+      <instance readMeFirst="true">43130-referenced-prohibited-ambiguity-instance.xml</instance>
+    </data>
+    <result>
+      <!-- error is averted by prohibiting ambiguous arcs 
+      <error xmlns:xbrldfe="http://xbrl.org/2008/filter/dimension/error">
+          xbrldfe:ambiguousFilterMemberNetwork
+      </error>
+      -->
+
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+
+    </result>
+  </variation>  
+
+<!-- Bad test case per specification. The xbrlve:variableNameResolutionFailure should not be signalled here.
+  <variation id="V-05">
+    <name>Domain member variable name has undefined prefix</name>
+    <description>
+        Domain member has unresolvable prefix.
+    </description>
+    <reference specification="DIMENSION-FILTER" id="error-invalid-domain-member"/>
+    <data>
+      <schema>43130-dimension-test-concepts.xsd</schema>
+      <linkbase>43130-bad-variable-name-prefix-formula.xml</linkbase>
+      <instance readMeFirst="true">43130-bad-variable-name-prefix-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">
+         xbrlve:variableNameResolutionFailure
+      </error>
+    </result>
+  </variation>  
+-->
+
+ </testcase>
+
+
+
+
+

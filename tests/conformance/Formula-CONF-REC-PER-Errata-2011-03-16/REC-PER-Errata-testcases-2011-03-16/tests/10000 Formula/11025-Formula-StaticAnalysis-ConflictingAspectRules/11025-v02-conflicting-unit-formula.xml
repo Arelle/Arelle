@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    11025-v02-concepts.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" 
+      xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!--  Fact variables used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_auditExpensesPurpose"
+         bindAsSequence="false"/>
+  
+    <!--  conformance test formula 111025. Process the assets value missing the aspect concept. -->
+    <formula:formula xlink:type="resource" xlink:label="formula_ct11025"
+        aspectModel="non-dimensional" implicitFiltering="false" 
+        value="concat('Ammount excluded from report due to:',$v:auditExpensesPurpose)" source="v:auditExpensesPurpose">
+        <formula:aspects>
+           <formula:concept>
+               <formula:qname>eg:auditExpensesPurpose</formula:qname>
+           </formula:concept>
+           <formula:entityIdentifier 
+               scheme="'http://xbrl.org/entity/identification/scheme'" 
+               value="01" />
+           <formula:period>
+              <formula:instant value="xs:date('2007-12-31')"/>
+           </formula:period>
+           <!-- There is a conflict in the unit aspect rule related to the concept aspect rule type not valid: error -->
+           <formula:unit augment="false">
+              <formula:multiplyBy
+                 measure="QName('http://www.xbrl.org/2003/iso4217','iso4217:EUR')" /> 
+           </formula:unit>
+        </formula:aspects>
+    </formula:formula>
+    
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="cf_auditExpensesPurpose">
+      <cf:concept>
+        <cf:qname>eg:auditExpensesPurpose</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:auditExpensesPurpose" xlink:from="formula_ct11025" xlink:to="variable_auditExpensesPurpose" order="1.0" />
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_auditExpensesPurpose" xlink:to="cf_auditExpensesPurpose" order="1.0"/>
+
+    
+  </generic:link>
+
+</link:linkbase>

@@ -1,0 +1,25 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003, 2004 XBRL International. All Rights Reserved. -->
+<xsd:schema targetNamespace="http://www.example.com/test"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xbrli="http://www.xbrl.org/2003/instance"
+            xmlns:my="http://www.example.com/test"
+            elementFormDefault="qualified">
+
+  <xsd:import namespace="http://www.xbrl.org/2003/instance"/>
+
+	<xsd:redefine schemaLocation="104-18-base.xsd" id="redefineOfBaseTuple">
+		<xsd:complexType name="addressTupleType">
+			<xsd:complexContent>
+				<xsd:restriction base="my:addressTupleType">
+					<xsd:sequence>
+						<xsd:element ref="my:street" minOccurs="0"/>
+						<xsd:element ref="my:city" minOccurs="0"/>
+						<xsd:element ref="my:stateOrProvince" minOccurs="0"/>
+						<xsd:element ref="my:zipOrPostalCode" minOccurs="0"/>
+					</xsd:sequence>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:redefine>
+</xsd:schema>

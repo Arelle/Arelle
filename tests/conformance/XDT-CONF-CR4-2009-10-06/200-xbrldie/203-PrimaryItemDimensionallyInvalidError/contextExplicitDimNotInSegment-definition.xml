@@ -1,0 +1,22 @@
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xdt="http://xbrl.org/2005/xbrldt" xmlns:tx="http://www.xbrl.org/dim/conf/389/contextExplicitDimNotInSegment" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation="http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:roleRef roleURI="http://www.example.com/link/role/allCube" xlink:type="simple" xlink:href="contextExplicitDimNotInSegment.xsd#RT_1"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_sales" xlink:label="Sales_1124492937581_0" xlink:title="Sales"/>
+    <link:loc xlink:type="locator" xlink:href="contextExplicitDimNotInSegment.xsd#tx_hc_AllCube" xlink:label="hc_CustomerCode_1124493026078_0" xlink:title="hc_CustomerCode"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:type="arc" xlink:from="Sales_1124492937581_0" xlink:to="hc_CustomerCode_1124493026078_0" xbrldt:targetRole="http://www.example.com/link/role/allCube" order="2.0" xbrldt:contextElement="segment"/>
+  </link:definitionLink>
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.example.com/link/role/allCube">
+    <link:loc xlink:type="locator" xlink:href="contextExplicitDimNotInSegment.xsd#tx_hc_AllCube" xlink:label="hc_AllCube_1124712976556_0" xlink:title="hc_AllCube"/>
+    <link:loc xlink:type="locator" xlink:href="contextExplicitDimNotInSegment.xsd#tx_ProductDim" xlink:label="ProductDim_1124712976556_1" xlink:title="ProductDim"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="arc" xlink:from="hc_AllCube_1124712976556_0" xlink:to="ProductDim_1124712976556_1" xlink:title="definition: hc_AllCube to ProductDim" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/products.xsd#p_AllProducts" xlink:label="AllProducts_1124713026007_0" xlink:title="AllProducts"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:type="arc" xlink:from="ProductDim_1124712976556_1" xlink:to="AllProducts_1124713026007_0" xbrldt:targetRole="http://www.xbrl.org/2003/role/link" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="contextExplicitDimNotInSegment.xsd#tx_RegionDim" xlink:label="RegionDim_1124712979660_0" xlink:title="RegionDim"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="arc" xlink:from="hc_AllCube_1124712976556_0" xlink:to="RegionDim_1124712979660_0" xlink:title="definition: hc_AllCube to RegionDim" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/regions.xsd#r_Worldwide" xlink:label="Worldwide_1124713047398_0" xlink:title="Worldwide"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:type="arc" xlink:from="RegionDim_1124712979660_0" xlink:to="Worldwide_1124713047398_0" xbrldt:targetRole="http://www.xbrl.org/2003/role/link" order="1.0"/>
+  </link:definitionLink>
+</link:linkbase>

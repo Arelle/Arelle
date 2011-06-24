@@ -1,0 +1,21 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+	">
+	<!-- This comment to be replaced by a <link:documentation> element
+		
+		This calculation linkbase extends ArcCylcesSINC_calculation.xml. 
+		 It connects	concept conceptZ in ArcCyclesSIWCExtension.xsd to 
+		 conceptG and conceptL in ArcCyclesSINC.xsd.  
+		The network of these arcs form an undirected cycle between concepts A, B, E, I, L, Z, G and C.
+	-->
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINC.xsd#conceptG" xlink:label="conceptG"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesSIWCExtension.xsd#conceptZ" xlink:label="conceptZ"/>
+		<calculationArc xlink:type="arc" xlink:from="conceptG" xlink:to="conceptZ" weight="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"/>
+	</calculationLink>
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcCyclesSINC.xsd#conceptL" xlink:label="conceptL"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesSIWCExtension.xsd#conceptZ" xlink:label="conceptZ"/>
+		<calculationArc xlink:type="arc" xlink:from="conceptL" xlink:to="conceptZ" weight="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"/>
+	</calculationLink>
+</linkbase>

@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.401.1839.18913 (2005-01-13 11:30).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix LLC, All Rights Reserved
+Produced on 2005-01-14 08:20:25
+-->
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ext="http://mycompany.com/xbrl/taxonomy/ext" targetNamespace="http://mycompany.com/xbrl/taxonomy/ext" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="105-05-DerivedElementWithBalanceTypeString-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Label Links, all" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  
+  <!-- Neil Wills, UBmatrix, Invalid Test Case, Derived non-monetary type with balance type of debit -->
+  <element id="ext_DerivedElement" name="DerivedElement" type="xbrli:stringItemType" substitutionGroup="ext:ItemWithBalance" xbrli:periodType="duration" nillable="true" />
+  <element id="ext_ItemWithBalance" name="ItemWithBalance" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration"  xbrli:balance="debit" />
+  
+  
+</schema>

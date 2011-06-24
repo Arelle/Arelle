@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:import namespace="http://edgar/20081231" schemaLocation="edgar-20081231.xsd"/>
+</xs:schema>

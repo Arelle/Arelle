@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd"
+  >
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <variable:parameter xlink:type="resource" xlink:label="dummy" id="paramId1"
+     name="surferGreeting" select="'hey, dude'"/>
+
+  </generic:link>
+</link:linkbase>
+
+
+
+
+
+
+
+
+
+
+

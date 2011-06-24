@@ -1,0 +1,19 @@
+<xsd:schema xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xdt="http://xbrl.org/2005/xbrldt" xmlns:p="http://www.xbrl.org/dim/conf/product" xmlns:tx="http://www.xbrl.org/dim/conf/389/contextExplicitDimNotInScenario" xmlns:r="http://www.xbrl.org/dim/conf/region" xmlns:pr="http://www.xbrl.org/dim/conf/primary" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" elementFormDefault="qualified" targetNamespace="http://www.xbrl.org/dim/conf/389/contextExplicitDimNotInScenario">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="contextExplicitDimNotInScenario-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"/>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="contextExplicitDimNotInScenario-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+      <link:roleType roleURI="http://www.example.com/link/role/allCube" id="RT_1">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dim/conf/primary" schemaLocation="../../lib/base/primary.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dim/conf/product" schemaLocation="../../lib/base/products.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dim/conf/region" schemaLocation="../../lib/base/regions.xsd"/>
+  <xsd:element name="ProductDim" id="tx_ProductDim" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="RegionDim" id="tx_RegionDim" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="hc_AllCube" id="tx_hc_AllCube" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" abstract="true" nillable="true" xbrli:periodType="duration"/>
+</xsd:schema>

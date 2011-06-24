@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>12010</number>
+  <name>Constructing fact value processing examples</name>
+  <description>
+    Tests of formula value expression
+  </description>
+  <reference specification="FORMULA" id="sec-value-rules"/>
+  <reference specification="FORMULA" id="sec-processing-model"/>
+  <reference specification="VARIABLES" id="sec-variable-sets"/>
+
+  <variation id="V-01">
+    <name>A number 1.2 is a singleton decimal expression</name>
+    <description>Tests that a formula with a value that is a singleton XPath expression which is valid.  Context &amp; unit are copied from the input instance bound variable.</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-just-a-number-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-just-a-number-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-just-a-number-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>A number 1.2 is a singleton sequence of one decimal expression</name>
+    <description>Tests that a formula with a value that is a singleton XPath expression in a sequence which is valid.  Context &amp; unit are copied from the input instance bound variable.</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-number-in-seq-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-number-in-seq-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-number-in-seq-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Hello world, value is a singleton string expression</name>
+    <description>
+      Tests that a formula with a value that is a singleton XPath
+      expression is valid.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-hello-world-str-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-hello-world-str-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-hello-world-str-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>Hello world, value is a singleton string in sequence expression</name>
+    <description>Tests that a formula with a value that is a singleton string in sequence expression which is valid.</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-hello-world-seq-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-hello-world-seq-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-hello-world-seq-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>Sequence of hello to multiple planets, value is not a singleton expression</name>
+    <description>Tests that a formula with a value that is an XPath expression which is not a singleton and thus is invalid</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <reference specification="FORMULA" id="error-non-singleton-output-value"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-hello-planets-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-hello-planets-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlfe:nonSingletonOutputValue</error>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Decimal typed atomic objects greater-than test</name>
+    <description>Result of variable &gt; another variable is true when variables are compared in xdt-validated decimal type, but would fail if numbers were compared in xs:untyped (un-validated) mode, or by an XPath 2 implementation which didn't validate objects</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-num-gt-num-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-num-gt-num-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-num-gt-num-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Result of an empty sequence is a nil fact</name>
+    <description>Tests that a formula with a value that an empty sequence produces a nil result fact item.</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-just-a-nil-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-just-a-nil-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-just-a-nil-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Result of an empty intersection sequence is a nil fact</name>
+    <description>The intersection of two sequences with no common facts produces an empty sequence result, which produces a fact value that is a nil fact.  The n1 sequence covers period, so all 3 n1's can occupy the same sequence because the uncovered aspects are the same (period is covered, so it doesn't cause partitioning of the n1 sequence).  Consideration of @matches=false also does not split up the sequence because each n1 item has a different period than the other n1 items (even though period is covered, period does get considered as a matching aspect by the @matches processing).</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-intersection-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-empty-intersection-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-empty-intersection-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-09">
+    <name>Result of an intersection with one numeric fact</name>
+    <description>The intersection of two sequences with one common decimal atomic item results in an output sequence of a singleton that successfully produces a fact item.</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-intersection-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-an-intersection-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-an-intersection-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-10">
+    <name>Result of an intersection with multiple results is a non-singleton error</name>
+    <description>The intersection of two sequences with multiple common decimal atomic item results in an output sequence that is not a singleton and raises the corresponding error.</description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-intersection-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-multiresult-intersection-instance.xml</instance>
+    </data>
+    <result>
+      <error>xbrlfe:nonSingletonOutputValue</error>
+    </result>
+  </variation>  
+
+  <variation id="V-11">
+    <name>A fact value that is the number 12.3</name>
+    <description>
+      Tests that a formula with a value that is a singleton fact
+      variable bound variable.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-just-a-fact-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-just-a-fact-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-just-a-fact-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-12">
+    <name>Result of a sum of a sequence of numeric facts</name>
+    <description>
+      The sum of a sequence of facts produces a numeric fact item.
+    </description>
+    <reference specification="FORMULA" id="example-value-expressions"/>
+    <data>
+      <schema>12010-value-tests.xsd</schema>
+      <linkbase>12010-sum-formula.xml</linkbase>
+      <instance readMeFirst="true">12010-sum-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12010-sum-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

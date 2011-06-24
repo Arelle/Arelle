@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22170-noFvNils-uncoveredAspect-formula.xml"/>
+  
+  <context id="c-inner">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">inner</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-middle">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">middle</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-outer">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">outer</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <concept:t1><concept:c1 contextRef="c-inner">mercury</concept:c1></concept:t1>
+  <concept:t1><concept:c1 contextRef="c-inner">venus</concept:c1></concept:t1>
+  <concept:t1><concept:c1 contextRef="c-middle">earth</concept:c1></concept:t1>
+
+  <!-- asteroid belt inserted as a nil -->
+  <concept:t1><concept:c1 contextRef="c-middle" xsi:nil="true"/></concept:t1>
+
+  <concept:t1><concept:c1 contextRef="c-outer">mars</concept:c1></concept:t1>
+  <concept:t1><concept:c1 contextRef="c-outer">jupiter</concept:c1></concept:t1>
+  <concept:t1><concept:c1 contextRef="c-outer">saturn</concept:c1></concept:t1>
+  <concept:t1><concept:c1 contextRef="c-outer">neptune</concept:c1></concept:t1>
+  <concept:t1><concept:c1 contextRef="c-outer">uranus</concept:c1></concept:t1>
+
+  <!-- pluto demoted from planet to a nil -->
+  <concept:t1><concept:c1 contextRef="c-outer" xsi:nil="true"/></concept:t1>
+
+</xbrl>
+

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" xmlns="http://xbrl.org/2005/conformance" name="103-TestCase-HypercubeDimensionTargetError" description="2.1 to 2.10 - Dimensional relationships except 2.5" outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and linkbases, and not covered by XML Schema and XBRL Validation. -->
+        <!-- Note that XBRL validation requires the source and target of a definitionArc to be a concept. -->
+        <!-- As of the 2005-10-26 internal working draft. (Herm) -->
+        <!-- 2.2.2.1 2. The target of a hypercube-dimension relationship MUST be a dimension declaration [Def, 3]. A dimensional processor MUST raise an error [Dim Err, 3] xbrldte:HypercubeDimensionTargetError if this rule is violated -->
+        <variation id="V-01" name="targetHypercubeDimensionIsItemInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.2.2.1">The target of a hypercube-dimension arc MUST be a dimension declaration but is an item</description>
+                <data>
+                        <xsd readMeFirst="true">targetHypercubeDimensionIsItemInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">targetHypercubeDimensionIsItemInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">targetHypercubeDimensionIsItemInvalid-label.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:HypercubeDimensionTargetError</error>
+                </result>
+        </variation>
+        <variation id="V-02" name="targetHypercubeDimensionIsTupleInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.2.2.1">The target of a hypercube-dimension arc MUST be a dimension declaration but is a tuple</description>
+                <data>
+                        <xsd readMeFirst="true">targetHypercubeDimensionIsTupleInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">targetHypercubeDimensionIsTupleInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">targetHypercubeDimensionIsTupleInvalid-label.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:HypercubeDimensionTargetError</error>
+                </result>
+        </variation>
+        <variation id="V-03" name="targetHypercubeDimensionIsHypercubeInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.2.2.1">The target of a hypercube-dimension arc MUST be a dimension declaration but is a hypercube</description>
+                <data>
+                        <xsd readMeFirst="true">targetHypercubeDimensionIsHypercubeInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">targetHypercubeDimensionIsHypercubeInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">targetHypercubeDimensionIsHypercubeInvalid-label.xml</linkbase>
+                </data>
+                <result>
+                        <error>xbrldte:HypercubeDimensionTargetError</error>
+                </result>
+        </variation>
+</testcase>
+

@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>616-04</number>
+<name>EDGAR Filer Manual v16 6.16.4 page 6-58</name>
+<description>
+<h2>The xlink:arcrole attributes 'http://xbrl.org/int/dim/arcrole/domain-member' and 'http://xbrl.org/int/dim/arcrole/dimension-domain' must have no undirected cycles in any Directed
+Relationship Set as defined in XBRL Dimensions 1.0.</h2>
+<p>For example, company ABC defines, in us-gaap:SegmentGeographicalDomain, the regions abc:MidwestMember and abc:SoutheastMember, but
+stpr:KY (Kentucky) cannot be in both regions.</p>
+<p>This rule also impacts line items, so that the balance at the start and end a roll forward cannot appear twice under a single axis.
+The same rendering effect is achieved by including only the ending balance in the domain-member relationships, so that the beginning
+balance will appear simply as the ending balance of the previous period.</p>
+<p>Tables define the rows and columns (the axes) that cells (the facts) may have. The domain-member arc role defines relationships
+within each row or column, such as those between a parent entity and its reportable segments, among sets of classes of equity, and or
+among geographical regions. Tables become difficult to consistently populate with facts and ambiguous to display when elements can
+appear in more than one Domain (or Member). This rule ensures that any given element does not appear in more than one place along an
+Axis, and will not have any overlapping domain subsets or members. In general, almost every situation that at first appears to call
+for an Axis with tangled and overlapping subsets of Member elements actually turns out to be a case more clearly modeled using two
+distinct axes.</p>
+<p>REMARK: DRS discovery begins at dimension-domain relationships. Whether the domain member appears in instance facts is not relevant.</p>
+</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<variation id="_000gd">
+<name>6.16.4, From dimension rr:PerformanceMeasureAxis, domain-member relationships would form a tangled domain, but one
+relationship (from standard taxonomy definition linkbase rr-def) is prohibited. GOOD.</name>
+<description>From dimension rr:PerformanceMeasureAxis, domain-member relationships would form a tangled domain, but one
+relationship (from standard taxonomy definition linkbase rr-def) is prohibited. GOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604000gd-20081231.xml</instance>
+<linkbase>e61604000gd-20081231_lab.xml</linkbase>
+<linkbase>e61604000gd-20081231_def.xml</linkbase>
+<linkbase>e61604000gd-20081231_pre.xml</linkbase>
+<schema>e61604000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.16.4, A dimension-domain relationship has a DRS with a tangled domain within a single role, with M3Member in overlapping sets, NOGOOD.</name>
+<description>Element e6160400:M3Member appears in overlapping sets of members in a Directed Relationship Set in role 0001 - Document -
+R1; NOGOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604001ng-20081231.xml</instance>
+<linkbase>e61604001ng-20081231_lab.xml</linkbase>
+<linkbase>e61604001ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61604" name="Domain-Is-Tangled" frd="fs"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.16.4, A dimension-domain relationship has a DRS with a tangled domain hopping one role, NOGOOD.</name>
+<description>Element e6160400:M3Member appears in overlapping sets of members in a Directed Relationship Set in role 0001 - Document - R1; NOGOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604002ng-20081231.xml</instance>
+<linkbase>e61604002ng-20081231_lab.xml</linkbase>
+<linkbase>e61604002ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61604" name="Domain-Is-Tangled" frd="fs"/>
+</result>
+</variation>
+<variation id="_003gd">
+<name>6.16.4, Separate DRS of domain-member relationships crossing target roles contain member M3, no tangled domain, GOOD.</name>
+<description>Separate DRS of domain-member relationships crossing target roles contain member M3, no tangled domain, GOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604003gd-20081231.xml</instance>
+<linkbase>e61604003gd-20081231_lab.xml</linkbase>
+<linkbase>e61604003gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604003gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.16.4, Separate DRS of domain-member relationships contain member M3,no tangled domain, GOOD.</name>
+<description>6.16.4, Separate DRS of domain-member relationships contain member M3, no tangled domain, GOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604004gd-20081231.xml</instance>
+<linkbase>e61604004gd-20081231_lab.xml</linkbase>
+<linkbase>e61604004gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604004gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005gd">
+<name>6.16.4, A simple tangled domain of domain-member relationships, but not in any dimension, GOOD</name>
+<description>A simple tangled domain of domain-member relationships, but not in any dimension, GOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604005gd-20081231.xml</instance>
+<linkbase>e61604005gd-20081231_lab.xml</linkbase>
+<linkbase>e61604005gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604005gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_011ng">
+<name>6.16.4, Common case in which a roll forward in a presentation linkbase is copied over into the definition linkbase resulting in an undirected cycle of domain-member arcs, but among primary items, not among the members of a dimension, (GOOD in a previous release) NOGOOD.</name>
+<description>6.16.4, Common case in which a roll forward in a presentation linkbase is copied over into the definition linkbase resulting in an undirected cycle of domain-member arcs, but among primary items, not among the members of a dimension, (GOOD in a previous release) NOGOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<reference specification="11283"/>
+<data>
+<instance readMeFirst="true">e61604011ng-20081231.xml</instance>
+<linkbase>e61604011ng-20081231_lab.xml</linkbase>
+<linkbase>e61604011ng-20081231_pre.xml</linkbase>
+<linkbase>e61604011ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604011ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61604" name="Domain-Is-Tangled" frd="fs"/>
+</result>
+</variation>
+<variation id="_013ng">
+<name>6.16.4, An axis has two different dimension-domain relationships, and those two domains have members in common (GOOD in a previous release), NOGOOD.</name>
+<description>An axis has two different dimension-domain relationships, and those two domains have members in common (GOOD in a previous release), NOGOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<reference specification="11283"/>
+<data>
+<instance readMeFirst="true">e61604013ng-20081231.xml</instance>
+<linkbase>e61604013ng-20081231_lab.xml</linkbase>
+<linkbase>e61604013ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604013ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61604" name="Domain-Is-Tangled" frd="fs"/>
+</result>
+</variation>
+<variation id="_014gd">
+<name>6.16.4, Strange case in which there are two separate hypercubes sharing members, but neither cube's axis has a tangled domain, GOOD.</name>
+<description>Strange case in which there are two separate hypercubes sharing members, but neither cube's axis has a tangled domain, GOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<reference specification="11283"/>
+<data>
+<instance readMeFirst="true">e61604014gd-20081231.xml</instance>
+<linkbase>e61604014gd-20081231_lab.xml</linkbase>
+<linkbase>e61604014gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604014gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_015ng">
+<name>6.16.4, A dimension-domain relationship has a DRS with a tangled domain hopping multiple roles, NOGOOD.</name>
+<description>Element e6160400:M5Member appears in overlapping sets of members in a Directed Relationship Set in role 0001 - Document - R1; NOGOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604015ng-20081231.xml</instance>
+<linkbase>e61604015ng-20081231_lab.xml</linkbase>
+<linkbase>e61604015ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604015ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61604" name="Domain-Is-Tangled" frd="fs"/>
+</result>
+</variation>
+<variation id="_016ng">
+<name>6.16.4, A dimension-domain relationship has a DRS with M5 appearing in two paths from dimension-domain, NOGOOD.</name>
+<description>A dimension-domain relationship has a DRS with M5 appearing in two paths from dimension-domain, NOGOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604016ng-20081231.xml</instance>
+<linkbase>e61604016ng-20081231_lab.xml</linkbase>
+<linkbase>e61604016ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604016ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61604" name="Domain-Is-Tangled" frd="fs"/>
+</result>
+</variation>
+<variation id="_017gd">
+<name>6.16.4, Same domain and members in different dimensions of a single hypercube, GOOD.</name>
+<description>Same domain and members in different dimensions of a single hypercube, GOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604017gd-20081231.xml</instance>
+<linkbase>e61604017gd-20081231_lab.xml</linkbase>
+<linkbase>e61604017gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604017gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_018gd">
+<name>6.16.4, Two identical non-tangled relationship networks in distinct roles, GOOD.</name>
+<description>Two identical non-tangled relationship networks in distinct roles, GOOD.</description>
+<reference specification="10940"/>
+<reference specification="11009"/>
+<data>
+<instance readMeFirst="true">e61604018gd-20081231.xml</instance>
+<linkbase>e61604018gd-20081231_lab.xml</linkbase>
+<linkbase>e61604018gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61604018gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

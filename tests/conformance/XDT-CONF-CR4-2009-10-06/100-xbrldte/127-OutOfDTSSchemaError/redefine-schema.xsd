@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+	xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+	elementFormDefault="qualified" 
+	attributeFormDefault="unqualified" 
+	targetNamespace="http://www.xbrl.org/confirmance-suite/dimensions" 
+	xmlns:local="http://www.xbrl.org/confirmance-suite/dimensions">
+	<xs:redefine schemaLocation="original-schema.xsd">
+	
+		<xs:complexType name="theType">
+			<xs:complexContent>
+				<xs:extension base="local:theType">
+					<xs:sequence>
+						<xs:element name="newContent" type="xs:string"/>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	
+	</xs:redefine>
+
+	<xs:element name="newElement" type="xs:string" id="id_newElement">
+		<xs:annotation>
+			<xs:documentation>This element will be redefined in redefine-schema.xsd</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	
+</xs:schema>

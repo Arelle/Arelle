@@ -1,0 +1,10 @@
+<!-- 16-07-2004 edit by Ron van Ardenne (www.batavia-xbrl.com / J2R BV) -->
+<ptvl xmlns="http://www.xbrl.org/2003/ptv"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.xbrl.org/2003/ptv ptv-2003-12-31.xsd">
+  <arc linkType="label" extRole="http://www.xbrl.org/2003/role/link"
+       arcRole="http://www.xbrl.org/2003/arcrole/concept-label" labelLang="en"
+       resRole="http://www.xbrl.org/2003/role/label" 
+       fromPath="http://mycompany.com/xbrl/taxonomy#fixedAssets"
+       order="1">New Fixed Assets</arc>
+</ptvl>

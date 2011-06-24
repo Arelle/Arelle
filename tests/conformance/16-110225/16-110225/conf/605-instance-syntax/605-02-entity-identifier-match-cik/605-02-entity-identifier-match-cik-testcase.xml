@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-02</number>
+<name>EDGAR Filer Manual v16 6.5.2 page 6-8</name>
+<description><h2>An xbrli:identifier element must have the CIK of the registrant as its content.</h2>
+<p>The CIK is an xsd:normalizedString of exactly ten digits from 0 to 9.</p>
+<p>The xbrli:identifier contains the CIK of the registrant (issuer), not the filer. Fund Series and Class identifiers, which are nine
+digits following an S or C, are not allowed in the xbrli:identifier element.</p>
+<p>Each instance might have a different CIK for the value in the xbrli:identifier element. By contrast,
+if all subsidiaries are reported in the same instance, then the CIK of the holding company is the only CIK that will appear in the
+xbrli:identifier element of that one instance. Section 6.6 below contains rules that apply to the xbrli:context elements in an
+instance containing a combined submission.</p>
+<p>REMARK: Variations 001ng and 002ng may produce error 60523 depending on implementation.</p></description>
+<reference specification="10491.2.1"/>
+<reference specification="11076"/>
+<variation id="_000gd">
+<name>6.5.2 match to CIK, GOOD</name>
+<description>6.5.2 match to CIK, GOOD</description>
+<reference specification="10491.2.1"/>
+<reference specification="11076"/>
+<data>
+<instance readMeFirst="true">e60502000gd-20111231.xml</instance>
+<linkbase>e60502000gd-20111231_pre.xml</linkbase>
+<linkbase>e60502000gd-20111231_def.xml</linkbase>
+<linkbase>e60502000gd-20111231_lab.xml</linkbase>
+<schema>e60502000gd-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.2 CIK starts with C, is not a CIK, NOGOOD</name>
+<description>6.5.2 CIK starts with C, is not a CIK, NOGOOD</description>
+<reference specification="10491.2.1"/>
+<reference specification="11076"/>
+<data>
+<instance readMeFirst="true">e60502001ng-20111231.xml</instance>
+<linkbase>e60502001ng-20111231_pre.xml</linkbase>
+<linkbase>e60502001ng-20111231_def.xml</linkbase>
+<linkbase>e60502001ng-20111231_lab.xml</linkbase>
+<schema>e60502001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60502" name="Cik-Element-Context-Mismatch" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.5.2 CIK starts with S, is not a CIK, NOGOOD</name>
+<description>6.5.2 CIK starts with S, is not a CIK, NOGOOD</description>
+<reference specification="10491.2.1"/>
+<reference specification="11076"/>
+<data>
+<instance readMeFirst="true">e60502002ng-20111231.xml</instance>
+<linkbase>e60502002ng-20111231_pre.xml</linkbase>
+<linkbase>e60502002ng-20111231_def.xml</linkbase>
+<linkbase>e60502002ng-20111231_lab.xml</linkbase>
+<schema>e60502002ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60502" name="Cik-Element-Context-Mismatch" frd="cp"/>
+</result>
+</variation>
+</testcase>

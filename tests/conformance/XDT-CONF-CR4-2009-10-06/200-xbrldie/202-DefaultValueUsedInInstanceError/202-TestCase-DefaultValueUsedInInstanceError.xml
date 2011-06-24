@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" xmlns="http://xbrl.org/2005/conformance"
+        name="202-TestCase-DefaultValueUsedInInstanceError"
+        description="Rules 2.4.2.1, 2.8.3.1 and section 2.9." outpath="out" owner="ihr@xbrl.org"
+        minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional syntax rules pertaining to instances and not covered by XML Schema and XBRL validation. -->
+        <!-- As of the 2005-10-26 internal working draft (by HF).  -->
+        <!-- 3.1.3.2 2. According to 2.9.1.2 above the default values cannot appear in the instance document and an error [Ins Err, 2] xbrldie:DefaultValueUsedInInstanceError must be raised if the default value is found -->
+        <variation id="V-17" name="defaultValueInInstance">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">Default values are present
+                        in the instance context, to raise
+                        xbrldie:DefaultValueUsedInInstanceError.</description>
+                <data>
+                        <xsd readMeFirst="false">defaultValueInInstance.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >defaultValueInInstance-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">defaultValueInInstance-label.xml</linkbase>
+                        <instance readMeFirst="true">defaultValueInInstance.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:DefaultValueUsedInInstanceError</error>
+                </result>
+        </variation>
+        <variation id="V-18" name="defaultValueInInstanceOK">
+                <description reference="XDT-IWD-2005-10-26.doc#3.1.3.2">Default values aren't
+                        present in the instance context.</description>
+                <data>
+                        <xsd readMeFirst="false">defaultValueInInstance.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >defaultValueInInstance-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">defaultValueInInstance-label.xml</linkbase>
+                        <instance readMeFirst="true">defaultValueInInstanceOK.xbrl</instance>
+                </data>
+                <result>
+                        <file>defaultValueInInstanceOK.xml</file>
+                </result>
+        </variation>
+</testcase>

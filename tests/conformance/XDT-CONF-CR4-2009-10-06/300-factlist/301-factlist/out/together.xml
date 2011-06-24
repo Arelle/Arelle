@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:together="http://xbrl.org/together">together:Primary01</qnElement>
+      <sPointer>7</sPointer>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension01</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension02</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:together="http://xbrl.org/together">together:Primary01</qnElement>
+      <sPointer>8</sPointer>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension01</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension02</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:together="http://xbrl.org/together">together:Primary01</qnElement>
+      <sPointer>9</sPointer>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension01</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension02</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:together="http://xbrl.org/together">together:Primary01</qnElement>
+      <sPointer>10</sPointer>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension01</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:together="http://xbrl.org/together">together:Dimension02</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+   </item>
+</facts>

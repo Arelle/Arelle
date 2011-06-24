@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:t="http://xbrl.org/formula/conformance/example"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/primaryItems1"
+        id="primaryItems1">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/hypercubes"
+        id="hypercubes">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:linkbaseRef xlink:type="simple"
+        xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="23020-typedDim-aspects-definition.xml"
+        xlink:title="Definition Links, all" />
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2005/xbrldt"
+    schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <element
+    name="dimVal"
+    id="dimVal">
+    <complexType>
+        <complexContent>
+            <restriction
+                 base="anyType">
+                <choice
+                 minOccurs="0"
+                 maxOccurs="unbounded">
+                    <any />
+                </choice>
+                <attribute
+                name="id"
+                type="ID"
+                use="optional" />
+                <attribute
+                name="aStr"
+                type="string"
+                use="optional" />
+                <attribute
+                name="aDec" type="decimal"
+                use="optional" />
+                <attribute
+                name="aDbl" type="double"
+                use="optional" />
+                <attribute
+                name="aInt" type="integer"
+                use="optional" />
+                <attribute
+                name="aQName" type="QName"
+                use="optional" />
+                </restriction>
+          </complexContent>
+        </complexType>
+  </element>
+  <element
+    name="strVal"
+    type="string" />
+  <element
+    name="decVal"
+    type="decimal" />
+  <element
+    name="dblVal"
+    type="double" />
+  <element
+    name="intVal"
+    type="integer" />
+  <element
+    name="qnameVal"
+    type="QName" />
+  <element
+    name="xbrlInstantDate"
+    type="xbrli:dateUnion" />
+  <element
+    id="t_P1"
+    name="P1"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="t_P2"
+    name="P2"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="t_P3"
+    name="P3"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="t_Hc1"
+    name="hc1"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:hypercubeItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="t_TypeDim1"
+    name="typeDim1"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true"
+    xbrldt:typedDomainRef="#dimVal" />
+  <element
+    id="eltQN1"
+    name="eltQN1"
+    type="token"
+    abstract="true" />
+  <element
+    id="eltQN2"
+    name="eltQN2"
+    type="token"
+    abstract="true" />
+  <element
+    id="eltQN3"
+    name="eltQN3"
+    type="token"
+    abstract="true" />
+</schema>

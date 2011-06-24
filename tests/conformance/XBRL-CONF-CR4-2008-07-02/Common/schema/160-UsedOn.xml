@@ -1,0 +1,39 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International.   See www.xbrl.org/legal.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+
+<testcase name="UsedOn" description="Section 5.1.3.4 and Section 5.1.4.5 - The element where the role/arcrole is used MUST correspont to an instance of the QName defined in the roleType/arcroleType declaration but ONLY if it is used inside a standard extended link or in a custom extended link with a roleRef/arcroleRef pointing to the roleType/arcroleType declaration" outpath="out" owner="ignacio@hernandez-ros.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../lib/test.xsd">
+
+	<variation name="160-01-roleType-standard-linkbase-incorrect-element-Invalid">
+		<description>A new roleType definition contains a usedOn element pointing to a valid QName but a standard linkbase uses it in a different element (a label resource)- Invalid</description>
+		<data>
+			<xsd readMeFirst="true">160-01-roleType-standard-linkbase-incorrect-element-Invalid.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	
+	<variation name="160-02-roleType-standard-linkbase-incorrect-element-Invalid">
+		<description>A new roleType definition contains a usedOn element pointing to a valid QName but a standard linkbase uses it in a different element (a labelLink element)- Invalid</description>
+		<data>
+			<xsd readMeFirst="true">160-02-roleType-standard-linkbase-incorrect-element-Invalid.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation name="160-04-roleType-non-standard-linkbase-incorrect-element-Valid">
+		<description>A new roleType definition contains a usedOn element pointing to a valid QName a custom linkbase uses it in a different element but there is no a roleRef pointing to the roleType declaration - Valid</description>
+		<data>
+			<xsd readMeFirst="true">160-04-roleType-non-standard-linkbase-incorrect-element-Valid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation name="160-05-roleType-non-standard-linkbase-incorrect-element-invalid">
+		<description>This is the same 160-04 test case but the hidden schema imports a new taxonomy in the DTS. That imported schema is not a valid taxonomy and it should be ignored because it is not in the DTS. - valid</description>
+		<data>
+			<xsd readMeFirst="true">160-05-roleType-non-standard-linkbase-incorrect-element-invalid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+</testcase>

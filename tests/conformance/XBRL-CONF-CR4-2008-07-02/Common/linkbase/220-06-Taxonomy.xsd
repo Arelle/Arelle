@@ -1,0 +1,8 @@
+<schema targetNamespace='http://mycompany.com/xbrl/220-06-Taxonomy' xmlns='http://www.w3.org/2001/XMLSchema' xmlns:link='http://www.xbrl.org/2003/linkbase' xmlns:nsl='http://example.com/nonStandardLinks' xmlns:xbrli='http://www.xbrl.org/2003/instance' xmlns:xl='http://www.xbrl.org/2003/XLink' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://example.com/nonStandardLinks NonStandardLinks.xsd">
+  <annotation>
+    <appinfo>
+       <link:linkbaseRef xlink:type="simple" xlink:href="220-06-Linkbase1.xml" xlink:role="Linkbase with cycle but no reference" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+       <link:linkbaseRef xlink:type="simple" xlink:href="220-06-Linkbase2.xml" xlink:role="Linkbase with reference but no cycle" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </appinfo>
+  </annotation>
+</schema>

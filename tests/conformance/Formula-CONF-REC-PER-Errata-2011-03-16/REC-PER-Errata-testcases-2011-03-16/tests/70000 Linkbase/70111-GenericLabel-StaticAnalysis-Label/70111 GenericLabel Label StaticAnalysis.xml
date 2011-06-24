@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70111</number>
+  <name>Generic label static analysis</name>
+  <description>
+    Test generic label element.
+  </description>
+  <reference specification="GENERIC-LABEL" id="sec-generic-label"/>
+
+  <variation id="V-01">
+    <name>A generic label connects elements to a generic label.  Source elements include two resources, a generic arc, and an xsd schema attribute.</name>
+    <description>
+    </description>
+    <data>
+      <schema readMeFirst="true">70111-label-resource-concepts-v01.xsd</schema>
+      <linkbase>70111-label-resource-testLB-v01.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+  <variation id="V-02">
+    <name>A generic label connects two resource elements of the linkbase to a shared generic label.  As of erratum 1 this is allowed and does not cause an undirected cycle error.</name>
+    <description>
+    </description>
+    <data>
+      <schema readMeFirst="true">70111-label-resource-concepts-v02.xsd</schema>
+      <linkbase>70111-label-resource-testLB-v02.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+</testcase>
+
+
+

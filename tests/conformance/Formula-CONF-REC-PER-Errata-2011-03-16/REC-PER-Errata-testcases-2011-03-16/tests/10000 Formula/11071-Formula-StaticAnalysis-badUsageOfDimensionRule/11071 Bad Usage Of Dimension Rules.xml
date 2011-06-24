@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>11071</number>
+  <name>dimension rules - bad usage of dimension - examples</name>
+  <description>
+    Tests of formula dimension rules bad usage static analysis
+  </description>
+  <reference specification="FORMULA" id="sec-dimension-rules"/>
+  <reference specification="FORMULA" id="sec-default-aspect-rules"/>
+
+  <variation id="V-01">
+    <name>Bad usage of explicit dimension</name>
+    <description>Tests detection of bad usage of explicit dimension error.</description>
+    <reference specification="FORMULA" id="error-bad-usage-of-explicit-dimension-rule"/>
+    <data>
+      <schema readMeFirst="true">11071-badUsageExplicitDim.xsd</schema>
+      <linkbase>11071-badUsageExplicitDim-definition.xml</linkbase>
+      <linkbase>11071-badUsageExplicitDim-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:badUsageOfExplicitDimensionRule</error>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Bad usage of typed dimension</name>
+    <description>Tests detection of bad usage of typed dimension error.</description>
+    <reference specification="FORMULA" id="error-bad-usage-of-typed-dimension-rule"/>
+    <data>
+      <schema readMeFirst="true">11071-badUsageTypedDim.xsd</schema>
+      <linkbase>11071-badUsageTypedDim-definition.xml</linkbase>
+      <linkbase>11071-badUsageTypedDim-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:badUsageOfTypedDimensionRule</error>
+    </result>
+  </variation>  
+
+</testcase>
+
+
+
+

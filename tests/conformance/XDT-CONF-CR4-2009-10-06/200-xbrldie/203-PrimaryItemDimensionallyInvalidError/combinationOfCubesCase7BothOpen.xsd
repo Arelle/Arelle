@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Taxonomy based on XBRL standard Version 2.1.-->
+<schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" 
+ targetNamespace="http://www.xbrl.org/dim/conf/389/combinationOfCubesCase7BothOpen" attributeFormDefault="unqualified" 
+ xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+ xmlns:tx="http://www.xbrl.org/dim/conf/389/combinationOfCubesCase7BothOpen"
+ xmlns:xbrldt="http://xbrl.org/2005/xbrldt">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="combinationOfCubesCase7BothOpen-definition.xml" xlink:title="Definition Links, all" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:roleType roleURI="http://www.example.com/link/role/allCube" id="allCube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.example.com/link/role/exclusionCube" id="exclusionCube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <import namespace="http://www.xbrl.org/dim/conf/product" schemaLocation="../../lib/base/products.xsd"/>
+  <import namespace="http://www.xbrl.org/dim/conf/region" schemaLocation="../../lib/base/regions.xsd"/>
+  <import namespace="http://www.xbrl.org/dim/conf/primary" schemaLocation="../../lib/base/primary.xsd"/>
+  <element name="hc_AllCube" id="tx_hc_AllCube" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <element name="ProductDim" id="tx_ProductDim" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <element name="RegionDim" id="tx_RegionDim" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="instant"/>
+  <element name="hc_ExlHc" id="ExlHc" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" abstract="true" nillable="true" xbrli:periodType="instant"/>
+</schema>

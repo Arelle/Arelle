@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (C) XBRL International inc. Editeb by Ignacio Hernández-Ros (ignacio@hernandez-ros.com) Reporting Estandar S.L. -->
+<xsd:schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.fujitsu.com/xbrl/taxeditor/default" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:x="http://www.fujitsu.com/xbrl/taxeditor/default">
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:annotation>
+		<xsd:appinfo>
+			<link:linkbaseRef xlink:type="simple" xlink:href="230-02-Custom-linkbase.xml" xlink:actuate="onRequest" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+</xsd:schema>

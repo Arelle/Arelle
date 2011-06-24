@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:us-types="http://xbrl.us/us-types/2008-03-31"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:soi="http://xbrl.us/soi/2008-11-30"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd">
+<link:schemaRef xlink:type="simple" xlink:href="e62204003ng-20091231.xsd"/>
+<xbrli:context id="_">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2008-01-01</xbrli:startDate>
+<xbrli:endDate>2008-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="_e">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2008-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="USD">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="Sharees">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<dei:DocumentType contextRef="_">485BPOS</dei:DocumentType>
+<dei:AmendmentFlag contextRef="_">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="_">2008-12-31</dei:DocumentPeriodEndDate>
+<dei:EntityCentralIndexKey contextRef="_">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="_">e62204003ng</dei:EntityRegistrantName>
+<dei:CurrentFiscalYearEndDate contextRef="_">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:EntityPublicFloat precision="INF" contextRef="_e" unitRef="USD">0</dei:EntityPublicFloat>
+<dei:EntityCommonStockSharesOutstanding decimals="0" contextRef="_e" unitRef="Sharees">0</dei:EntityCommonStockSharesOutstanding>
+</xbrli:xbrl>

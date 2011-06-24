@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:conf="http://www.example.com/conformance/test">
+  <link:presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="prefLabel-single-language-invalid.xsd#conf_Asset" xlink:label="Asset_1126188901932_1" xlink:title="Asset"/>
+    <link:loc xlink:type="locator" xlink:href="prefLabel-single-language-invalid.xsd#conf_CurrentAsset" xlink:label="CurrentAsset_1126188901932_2" xlink:title="CurrentAsset"/>
+    <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="Asset_1126188901932_1" xlink:to="CurrentAsset_1126188901932_2" xlink:title="presentation: Asset to CurrentAsset" order="1.0" preferredLabel="http://www.xbrl.org/2003/role/verboseLabel"/>
+  </link:presentationLink>
+</link:linkbase>

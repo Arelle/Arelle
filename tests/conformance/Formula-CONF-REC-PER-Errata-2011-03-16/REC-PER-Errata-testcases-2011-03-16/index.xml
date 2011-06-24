@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type='text/xsl' href='infrastructure/documentation.xsl'?>
+<documentation 
+  name='Conformance suite tests and examples for formula and related specifications'
+  date='2007-01-23'
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
+  xsi:noNamespaceSchemaLocation='infrastructure/documentation.xsd'>
+
+    <testcases title='Formula Specification' root='tests/10000 Formula'>
+      <testcase uri='11021-Formula-StaticAnalysis-MissingConceptRule/11021_MissingConceptRule_testcase.xml'/>
+      <testcase uri='11023-Formula-StaticAnalysis-MissingUnitConstructionRule/11023-MissingUnitRule_testcase.xml'/>
+      <testcase uri='11025-Formula-StaticAnalysis-ConflictingAspectRules/11025-ConflictingAspectRules_testcase.xml'/>
+      <testcase uri='11027-Formula-StaticAnalysis-MissingEntityIdentifierRule/11027-MissingEntityIdentifierRule_testcase.xml'/>
+      <testcase uri='11028-Formula-StaticAnalysis-MissingPeriodRule/11028-MissingPeriodRule_testcase.xml'/>
+      <testcase uri='11029-Formula-StaticAnalysis-incompleteConceptRule/11029-incompleteConceptRule_testcase.xml'/>
+      <testcase uri='11041-Formula-StaticAnalysis-incompleteEntityIdentifierRule/11041-incompleteEntityIdentifierRule_testcase.xml'/>
+      <testcase uri='11051-Formula-StaticAnalysis-incompletePeriodRule/11051-incompletePeriodRule_testcase.xml'/>
+      <testcase uri='11062-Formula-StaticAnalysis-OCC-missingSAVForDimensionRule/11062-OCC-missingSAVForDimensionRule_testcase.xml'/>
+      <testcase uri='11063-Formula-StaticAnalysis-MissingSAVForUnitRule/11063-missingSAVForUnitRule_testcase.xml'/>
+      <testcase uri='11071-Formula-StaticAnalysis-badUsageOfDimensionRule/11071 Bad Usage Of Dimension Rules.xml' />
+      <testcase uri='11201-Formula-StaticAnalysis-unrecognisedAspectRule/11201-unrecognisedAspectRule_testcase.xml'/>
+      <testcase uri='11202-Formula-StaticAnalysis-illegalUseOfUncoveredQName/11202-illegalUseOfUncoveredQName_testcase.xml'/>
+      <testcase uri='11204-Formula-StaticAnalysis-sequenceSAVConflicts/11204-sequenceSAVConflicts_testcase.xml'/>
+      <testcase uri='11205-Formula-StaticAnalysis-nonExistentSourceVariable/11205-nonExistentSourceVariable_testcase.xml'/>
+      <testcase uri='11206-Formula-StaticAnalysis-bindEmptySourceVariable/11206-bindEmptySourceVariable_testcase.xml'/>
+      <testcase uri='11207-Formula-StaticAnalysis-defaultAspectValueConflicts/11207-defaultAspectValueConflicts_testcase.xml'/>
+
+      <testcase uri='12010-Formula-Processing-ConstructingFactValue/12010 Constructing fact value.xml'/>
+      <testcase uri='12020-Formula-Processing-AspectRules/12020 Aspect Rules.xml'/>
+      <testcase uri='12021-Formula-Processing-undefinedSAV/12021-undefinedSAV_testcase.xml'/>
+      <testcase uri='12030-Formula-Processing-ConceptRules/12030 Concept Rules.xml'/>
+      <testcase uri='12040-Formula-Processing-EntityRules/12040 Entity Rules.xml'/>
+      <testcase uri='12050-Formula-Processing-PeriodRules/12050 Period Rules.xml'/>
+      <testcase uri='12060-Formula-Processing-OCCRules/12060 OCC Rules.xml'/>
+      <testcase uri='12061-Formula-Processing-DimensionRules/12061 Dimension Rules.xml'/>
+      <testcase uri='12062-Formula-Processing-DimensionUncovered/12062 DimensionUncovered Rules.xml'/>
+      <testcase uri='12070-Formula-Processing-UnitRules/12070 Unit Rules.xml'/>
+      <testcase uri='12080-Formula-Processing-ConstructingAccuracy/12080 Constructing accuracy.xml'/>
+
+      <testcase uri='14010-Formula-UseCases-BasicCalculation/14010 Use Cases Basic Calculation.xml'/>
+      <testcase uri='14020-Formula-UseCases-Movement/14020 Use Cases Movement.xml'/>
+    </testcases>
+
+    <testcases title='Variables Specification' root='tests/20000 Variables'>
+       <testcase uri='21201-VariableStaticAnalysis-noCustomFunctionSignature/21201_noCustomFunctionSignature_testcase.xml'/>
+      <testcase uri='21221-VariableStaticAnalysis-parameterNameClash/21221-parameterNameClash_testcase.xml'/>
+      <testcase uri='21222-VariableStaticAnalysis-parameterCyclicDependencies/21222-parameterCyclicDependencies_testcase.xml'/>
+      <testcase uri='21231-VariableStaticAnalysis-parameterTypeMismatch/21231-parameterTypeMismatch_testcase.xml'/>
+      <testcase uri='21322-VariableStaticAnalysis-aspectModelMismatch/21322-aspectModelMismatch_testcase.xml' />
+      <testcase uri='21233-VariableStaticAnalysis-GeneralVariables/21233 General Variable Static Analysis.xml'/>
+      <testcase uri='21241-VariableStaticAnalysis-FactVariables/21241 Fact Variable Static Analysis.xml'/>
+      <testcase uri='21261-VariableStaticAnalysis-VariableFilterRelationships/21261 VariableFilter Relationship.xml'/>
+      <testcase uri='21271-VariableStaticAnalysis-VariableSetFilterRelationships/21271 VariableSetFilter Relationship.xml'/>
+      <testcase uri='21291-VariableStaticAnalysis-VariableSetRelationships/21291 VariableSet Relationship.xml'/>
+      <testcase uri='21321-VariableStaticAnalysis-unkownAspectModel/21321-unkownAspectModel_testcase.xml'/>
+      <testcase uri='21350-VariableStaticAnalysis-PreconditionRelationships/21350 Precondition Relationship.xml'/>
+      <testcase uri='21363-VariableStaticAnalysis-unresolvedDependency/21363-unresolvedDependency_testcase.xml'/>
+      <testcase uri='21851-VariableStaticAnalysis-factVariableReferenceNotAllowed/21851-factVariableReferenceNotAllowed_testcase.xml'/>
+      <testcase uri='21930-VariableStaticAnalysis-cyclicDependencies/21930-cyclicDependencies_testcase.xml'/>
+      <testcase uri='22010-Variable-Processing-XPathUsage/22010 XPath Usage.xml'/>
+      <testcase uri='22015-Variable-Processing-CustomFunctionSignatures/22015 Custom Function Signatures Processing.xml'/>
+      <testcase uri='22020-Variable-Processing-Parameters/22020 Parameters.xml'/>
+      <testcase uri='22030-Variable-Processing-GeneralVariables/22030 General Variables.xml'/>
+      <testcase uri='22040-Variable-Processing-FactVariables/22040 Fact Variables.xml'/>
+      <testcase uri='22050-Variable-Processing-Filters/22050 Filters.xml'/>
+      <testcase uri='22060-Variable-Processing-VariableNames/22060 Variable Names.xml'/>
+      <testcase uri='22070-Variable-Processing-VariableSetFilterRelationships/22070 Variable Set Filter Relationships.xml'/>
+      <testcase uri='22090-Variable-Processing-VariableSetRelationships/22090 Variable Set Relationship.xml'/>
+      <testcase uri='22140-Variable-Processing-Precondition/22140 Preconditions.xml'/>
+      <testcase uri='22160-Variable-Processing-Evaluation/22160 Evaluation.xml'/>
+      <!-- testcase uri='22161-Variable-Processing-Evaluation-ambiguousAspects/22161 Evaluation AmbiguousAspects.xml'/ -->
+      <testcase uri='22170-Variable-Processing-BindAsSequence/22170 Bind As Sequence.xml'/>
+      <testcase uri='22180-Variable-Processing-BindEmpty/22180 Bind To Empty Sequence.xml'/>
+      <testcase uri='23020-Variable-AspectTests-TypedDimension/23020 AspectTests TypedDimension.xml'/>
+    </testcases>
+
+    <testcases title='Assertions Specifications' root='tests/30000 Assertions'>
+      <testcase uri='31110-ConsistencyAssertion-StaticAnalysis-radiusConflict/31110 Consistency Assertion Radius Conflict.xml'/>
+      <testcase uri='31130-ConsistencyAssertion-StaticAnalysis-variablesNotAllowed/31130 Consistency Assertion Variables Not Allowed.xml'/>
+      <testcase uri='31140-ConsistencyAssertion-StaticAnalysis-missingFormulae/31140 Consistency Assertion Missing Formulae.xml'/>
+      <testcase uri='31210-ConsistencyAssertion-Processing/31210 Consistency Assertion Processing.xml'/>
+      <testcase uri='31220-ConsistencyAssertion-Processing-Nil/31220 Consistency Assertion Nil Processing.xml'/>
+      <testcase uri='31230-ConsistencyAssertion-Processing-Accuracy/31230 Consistency Assertion Processing.xml'/>
+      <testcase uri='31410-ConsistencyAssertion-UseCases-BasicCalculation/31410 Use Cases Basic Calculation.xml'/>
+      <testcase uri='31420-ConsistencyAssertion-UseCases-DerivedRiskedCapital/31420 Use Case Derived Risked Capital.xml'/>
+      <testcase uri='31430-ConsistencyAssertion-UseCases-Pharmaceutical/31430 Use Cases Pharmaceutical.xml'/>
+      <testcase uri='31440-ConsistencyAssertion-UseCases-DimensionalWeightedAverage/31440 Use Cases Dimensional Weighted Average.xml'/>
+      <testcase uri='32110-ExistenceAssertion-StaticAnalysis-Element/32110 Existence Assertion Element Static Analysis .xml'/>
+      <testcase uri='32120-ExistenceAssertion-StaticAnalysis-Relationships/32120 Existence Assertion Relationship Static Analysis.xml'/>
+      <testcase uri='32210-ExistenceAssertion-Processing/32210 Existence Assertion Processing.xml'/>
+      <testcase uri='33210-ValueAssertion-Processing/33210 Value Assertion Processing.xml'/>
+      <testcase uri='34110-MultiAssertion-Processing/34110 Multi Assertion Processing.xml'/>
+    </testcases>
+
+    <testcases title='Filter Specifications' root='tests/40000 Filters'>
+      <testcase uri='40110-BareFilter-Processing/40110 Bare Filter Processing.xml'/>
+      <testcase uri='41210-BooleanFilter-Processing-And/41210 Boolean And Filter Processing.xml'/>
+      <testcase uri='41220-BooleanFilter-Processing-Or/41220 Boolean Or Filter Processing.xml'/>
+      <testcase uri='41230-BooleanFilter-Processing-FilterRelationships/41230 Boolean Filter Relationships Processing.xml'/>
+      <testcase uri='42210-ConceptFilter-Processing-ConceptName/42210 ConceptFilter Processing ConceptName.xml'/>
+      <testcase uri='42220-ConceptFilter-Processing-ConceptPeriodType/42220 ConceptFilter Processing ConceptPeriodType.xml'/>
+      <testcase uri='42230-ConceptFilter-Processing-ConceptBalance/42230 ConceptFilter Processing ConceptBalance.xml'/>
+      <testcase uri='42240-ConceptFilter-Processing-ConceptCustomAttribute/42240 ConceptFilter Processing ConceptCustomAttribute.xml'/>
+      <testcase uri='42250-ConceptFilter-Processing-ConceptDataType/42250 ConceptFilter Processing ConceptDataType.xml'/>
+      <testcase uri='42260-ConceptFilter-Processing-ConceptSubstitutionGroup/42260 ConceptFilter Processing ConceptSubstitutionGroup.xml'/>
+      <testcase uri='43130-DimensionFilter-StaticAnalysis-DimensionMember Filter/43130 DimensionMember Filter.xml'/>
+      <testcase uri='43210-DimensionFilter-Processing-ExplicitDimension/43210 Explicit dimension Filter Processing.xml'/>
+      <testcase uri='43230-DimensionFilter-Processing-DomainMember/43230 Dimension Member Filter Processing.xml'/>
+      <testcase uri='43240-DimensionFilter-Processing-TypedDimension/43240 Typed dimension Filter Processing.xml'/>
+      <testcase uri='44210-EntityFilter-Processing-EntityIdentifier/44210 EntityFilter Processing EntityIdentifier.xml'/>
+      <testcase uri='44220-EntityFilter-Processing-SpecificScheme/44220 EntityFilter Processing SpecificScheme.xml'/>
+      <testcase uri='44230-EntityFilter-Processing-RegexpScheme/44230 EntityFilter Processing RegexpScheme.xml'/>
+      <testcase uri='44240-EntityFilter-Processing-SpecificIdentifier/44240 EntityFilter Processing SpecificIdentifier.xml'/>
+      <testcase uri='44250-EntityFilter-Processing-RegexpIdentifier/44250 EntityFilter Processing RegexpIdentifier.xml'/>
+      <testcase uri='45210-GeneralFilter-Processing/45210 General Filter Processing.xml'/>
+      <testcase uri='46210-ImplicitFilter-Processing-NonDimensional/46210 NonDimensional ImplicitFilter Processing.xml'/>
+      <testcase uri='46220-ImplicitFilter-Processing-Dimensional/46220 Dimensional ImplicitFilter Processing.xml'/>
+      <testcase uri='47200-NoMatchingFilter-Processing/47200 No MatchingFilter Processing.xml'/>
+      <testcase uri='47201-ConceptMatchingFilter-Processing/47201 ConceptMatchingFilter Processing.xml'/>
+      <testcase uri='47202-LocationMatchingFilter-Processing/47202 LocationMatchingFilter Processing.xml'/>
+      <testcase uri='47203-UnitMatchingFilter-Processing/47203 UnitMatchingFilter Processing.xml'/>
+      <testcase uri='47204-EntityIdentifierMatchingFilter-Processing/47204 EntityIdentifierMatchingFilter Processing.xml'/>
+      <testcase uri='47205-PeriodMatchingFilter-Processing/47205 PeriodMatchingFilter Processing.xml'/>
+      <testcase uri='47206-CompleteSegmentMatchingFilter-Processing/47206 CompleteSegmentMatchingFilter Processing.xml'/>
+      <testcase uri='47207-NonXDTSegmentMatchingFilter-Processing/47207 NonXDTSegmentMatchingFilter Processing.xml'/>
+      <testcase uri='47209-CompleteScenarioMatchingFilter-Processing/47209 CompleteScenarioMatchingFilter Processing.xml'/>
+      <testcase uri='47210-NonXDTScenarioMatchingFilter-Processing/47210 NonXDTScenarioMatchingFilter Processing.xml'/>
+      <testcase uri='47212-DimensionMatchingFilter-Processing/47212 DimensionMatchingFilter Processing.xml'/>
+      <testcase uri='48210-PeriodFilter-Processing-Period/48210 PeriodFilter Processing Period.xml'/>
+      <testcase uri='48220-PeriodFilter-Processing-PeriodStart/48220 PeriodFilter Processing PeriodStart.xml'/>
+      <testcase uri='48230-PeriodFilter-Processing-PeriodEnd/48230 PeriodFilter Processing PeriodEnd.xml'/>
+      <testcase uri='48240-PeriodFilter-Processing-PeriodInstant/48240 PeriodFilter Processing PeriodInstant.xml'/>
+      <testcase uri='48250-PeriodFilter-Processing-Forever/48250 PeriodFilter Processing Forever.xml'/>
+      <testcase uri='48260-PeriodFilter-Processing-InstantDuration/48260 PeriodFilter Processing InstantDuration.xml'/>
+      <testcase uri='49210-RelativeFilter-Processing-Dimensional/49210 Relative Dimensional Filter Processing.xml'/>
+      <testcase uri='49220-RelativeFilter-Processing-NonDimensional/49220 Relative NonDimensional Filter Processing.xml'/>
+      <testcase uri='50210-SegmentScenarioFilter-Processing-Segment/50210 SegmentScenarioFilter Processing Segment.xml'/>
+      <testcase uri='50220-SegmentScenarioFilter-Processing-Scenario/50220 SegmentScenarioFilter Processing Scenario.xml'/>
+      <testcase uri='51210-TupleFilter-Processing-Parent/51210 Tuple Parent Processing.xml'/>
+      <testcase uri='51220-TupleFilter-Processing-Ancestor/51220 Tuple Ancestor Processing.xml'/>
+      <testcase uri='51230-TupleFilter-Processing-Sibling/51230 Tuple Sibling Processing.xml'/>
+      <testcase uri='51240-TupleFilter-Processing-Location/51240 Tuple Location Processing.xml'/>
+      <testcase uri='52210-UnitFilter-Processing-SingleMeasure/52210 Unit Single Measure Processing.xml'/>
+      <testcase uri='52220-UnitFilter-Processing-General/52220 Unit General Measures Processing.xml'/>
+      <testcase uri='53210-ValueFilter-Processing-Nil/53210 ValueFilter Processing Nil.xml'/>
+      <testcase uri='53230-ValueFilter-Processing-Precision/53230 ValueFilter Processing Precision.xml'/>
+    </testcases>
+
+    <testcases title='Linkbase Specifications' root='tests/70000 Linkbase'>
+      <testcase uri='70011-GenericLink-StaticAnalysis-LinkbaseRef/70011 GenericLink LinkbaseRef StaticAnalysis.xml'/>
+      <testcase uri='70012-GenericLink-StaticAnalysis-SchemaAppinfo/70012 GenericLink In Appinfo StaticAnalysis.xml'/>
+      <testcase uri='70013-GenericLink-StaticAnalysis-Link-Role/70013 GenericLink Link Role StaticAnalysis.xml'/>
+      <testcase uri='70014-GenericLink-StaticAnalysis-Loc-DTS-Discovery/70014 Loc DTS Discovery StaticAnalysis.xml'/>
+      <testcase uri='70015-GenericLink-StaticAnalysis-Loc-href-targets/70015 Loc href Targets StaticAnalysis.xml'/>
+      <testcase uri='70016-GenericLink-StaticAnalysis-Arc-Arcrole/70016 GenericLink Arc Arcrole StaticAnalysis.xml'/>
+      <testcase uri='70017-GenericLink-StaticAnalysis-Arc-Label/70017 GenericLink Arc Label StaticAnalysis.xml'/>
+      <testcase uri='70018-GenericLink-StaticAnalysis-Arc-Cycles/70018 GenericLink Arc Cycles StaticAnalysis.xml'/>
+      <testcase uri='70019-GenericLink-StaticAnalysis-Arc-Override/70019 GenericLink Arc Override StaticAnalysis.xml'/>
+      <testcase uri='70020-GenericLink-StaticAnalysis-Arc-Prohibition/70020 GenericLink Arc Prohibition StaticAnalysis.xml'/>
+      <testcase uri='70021-GenericLink-StaticAnalysis-Resource-Role/70021 GenericLink Resource Role StaticAnalysis.xml'/>
+      <testcase uri='70111-GenericLabel-StaticAnalysis-Label/70111 GenericLabel Label StaticAnalysis.xml'/>
+      <testcase uri='70112-GenericLabel-StaticAnalysis-Relationship/70112 GenericLabel Relationship StaticAnalysis.xml'/>
+      <testcase uri='70211-GenericReference-StaticAnalysis-Reference/70211 GenericReference Reference StaticAnalysis.xml'/>
+      <testcase uri='70212-GenericReference-StaticAnalysis-Relationship/70212 GenericReference Relationship StaticAnalysis.xml'/>
+    </testcases>
+
+    <testcases title='Function xfi:uncovered-aspect Formula-based Test Cases' root='function-registry'>
+      <testcase uri='80155 xff.uncovered-aspect/80155 xff.uncovered-aspect formula testcase.xml'/>
+    </testcases>
+
+    <examples title='General Examples' root='examples'>
+      <example uri='0001 Boolean test of balance sheet/index.xml' />
+      <example uri='0002 Assets equals liabilities plus equity/index.xml' />
+      <example uri='0003 End stock derivation from start stock and flows/index.xml' />
+      <example uri='0004 End stock with restatement date dimension/index.xml' />
+      <example uri='0005 Aggregate across dimension/index.xml' />
+      <example uri='0006 Parameters for filtering/index.xml' />
+      <example uri='0007 Concept data type and precondition filtering/index.xml' />
+      <example uri='0008 Tuple filtering/index.xml' />
+      <example uri='0009 Typed dimension filtering/index.xml' />
+      <example uri='0010 Concept name filter/index.xml' />
+      <example uri='0011 Concept filter with tuple filter/index.xml' />
+      <example uri='0012 Concept filter with period filter/index.xml' />
+      <example uri='0013 Concept filter with unit filter/index.xml' />
+      <example uri='0014 Concept filter with entity filters/index.xml' />
+      <example uri='0014 Concept filter with scenario and segment filters/index.xml' />
+      <example uri='0014 Wagetax example part 5/index.xml' />
+      <example uri='0015 Movement Pattern/index.xml' />
+      <example uri='0016 Pharmaceutical Dimension Aggregation/index.xml' />
+      <example uri='0017 COREP 18 Dimensional Weighted Avg/index.xml' />
+      <example uri='0018 GL Examples/index.xml' />
+      <example uri='0019 Value Assertion/index.xml' />
+      <example uri='0020 Existence Assertion/index.xml' />
+      <example uri='0021 Consistency Assertion/index.xml' />
+      <example uri='0022 Assertion Set/index.xml' />
+      <example uri='0023 Context and Unit checking/index.xml' />
+      <example uri='0024 FactVariables multi purpose/index.xml' />
+      <example uri='0025 Variables Scope Tuples Chaining/index.xml' />
+    </examples>
+
+    <!--performancetests title='Performance Tests' root='performance-tests'>
+      <testcase uri='10000 Formula/13000-Formula-Performance-SampleTemplateTest/13000-Performance-SampleTemplateTest_testcase.xml'/>
+      <testcase uri='10000 Formula/13010-Formula-Performance-FactGeneration/13010 Fact Generation Performance.xml'/>
+      <testcase uri='30000 Assertions/31310-ConsistencyAssertion-Performance/31310 Consistency Assertion Performance.xml'/>
+    </performancetests-->
+
+    <!--function registry is not part of the formula test cases; however
+         there are some formula-based tests now in function registry as follows -->
+ 
+    <!--function-registry title='Function Formula-based Test Cases' root='function-registry'>
+      <testcase uri='90502 xfi.navigate-relationships/90502 xfi.navigate-relationships formula testcase.xml' />
+      <testcase uri='90503 xfi.concept-label/90503 xfi.concept-label formula testcase.xml' />
+      <testcase uri='90601 xfi.xbrl-instance/90601 xfi.xbrl-instance formula testcase.xml' />
+    </function-registry-->
+
+</documentation>
+

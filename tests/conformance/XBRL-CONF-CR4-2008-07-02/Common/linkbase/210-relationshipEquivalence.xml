@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Relationship Equivalence" outpath="out" owner="cps@decisionsoft.com" minimal="false" description="Checks that relationship equivalence is correctly evaluated." xsi:noNamespaceSchemaLocation="../lib/test.xsd">
+	<!-- Tests that relationship equivalence is correct -->
+	<variation id="V-1" name="Two calculation arcs are equivalent.">
+		<description>210.01 A prohibiting arc of a higher priority overrides a relationship, thus removing the calculation relationship.  The instance would be invalid if the relationship had not been prohibited.</description>
+		<data>
+			<xsd readMeFirst="false">210-01-RelationshipEquivalence.xsd</xsd>
+			<linkbase readMeFirst="false">210-01-RelationshipEquivalence-calculation-1.xml</linkbase>
+			<linkbase readMeFirst="false">210-01-RelationshipEquivalence-calculation-2.xml</linkbase>
+			<instance readMeFirst="true">210-01-RelationshipEquivalence-instance.xml</instance>
+		</data>
+		<result expected="valid">210-01-RelationshipEquivalence-instanceOut.xml</result>
+	</variation>
+	<variation id="V-2" name="Two calculation arcs are not equivalent (differing order).">
+		<description>210.02 A prohibiting arc of a higher priority has a different order to another arc and thus fails to prohibit the said arc.  The instance is thus invalid since it doesn't add up.</description>
+		<data>
+			<xsd readMeFirst="false">210-02-DifferentOrder.xsd</xsd>
+			<linkbase readMeFirst="false">210-02-DifferentOrder-calculation-1.xml</linkbase>
+			<linkbase readMeFirst="false">210-02-DifferentOrder-calculation-2.xml</linkbase>
+			<instance readMeFirst="true">210-02-DifferentOrder-instance.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-3" name="Two calculation arcs are equivalent (default order).">
+		<description>210.03 A prohibiting arc of a higher priority has no order attribute, and another arc has order one.  The instance is thus valid since the arc is prohibited as the prohibiting arc's order takes the default value.</description>
+		<data>
+			<xsd readMeFirst="false">210-03-MissingOrder.xsd</xsd>
+			<linkbase readMeFirst="false">210-03-MissingOrder-calculation-1.xml</linkbase>
+			<linkbase readMeFirst="false">210-03-MissingOrder-calculation-2.xml</linkbase>
+			<instance readMeFirst="true">210-03-MissingOrder-instance.xml</instance>
+		</data>
+		<result expected="valid">210-03-MissingOrder-instanceOut.xml</result>
+	</variation>
+</testcase>

@@ -1,0 +1,2672 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title></title>
+   </head>
+   <body>
+      <!--100 Rules-->
+      <table>
+         <tr>
+            <th>Rule</th>
+            <th>Text</th>
+            <th>Page</th>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.3.2">6.3.2</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>XBRL instance, schema, and linkbase documents must be attached to an EDGAR submission using the EX-100.* or EX-101.* document
+                  types.
+               </h2>
+               <p>A single submission must not contain both EX-100 and EX-101 attachments.</p>
+               <p>All XBRL document types are listed in the table below.</p>
+               <p>REMARK: This cannot be tested outside of the EDGAR system itself.</p>
+               <p>REMARK: On variation 002, EdgarLink software already tests for this condition so it is unlikely this could ever come about;
+                  it is here in the suite for internal testing.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-4</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.3.4">6.3.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An XBRL document must not contain HTML character name references.</h2>
+               <p>Section 5.2.2.6 defines extended ASCII characters and how they may be referenced in HTML, but XBRL documents are not HTML
+                  documents, and recognize only XML predefined entities (&amp;quot; &amp;amp; &amp;apos; &amp;lt; and &amp;gt;). To include characters greater than
+                  127, use XML numeric character references. For example, &amp;#xAE; and &amp;#174; are ASCII sequences producing the ® symbol.
+               </p>
+               <p>REMARK: This test suite does NOT test to see that only the subset of ASCII allowed by 5.2.1.1 are used.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-5</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.3.5">6.3.5</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The ampersand character must begin a valid XML predefined entity or numeric character reference.</h2>
+               <p>XML with invalid predefined entity or numeric character references are treated as if an invalid character had appeared. For
+                  example, &amp;&amp;; is invalid XML.
+               </p>
+               <p>REMARK: the files e60305001ng-20111231.xml and e60305002ng-20111231_lab.xml are not even good XML, so don't try to process
+                  them as such.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-5</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.3.6">6.3.6</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The URI content of the xlink:href attribute, the xsi:schemaLocation attribute and the schemaLocation attribute, must be relative
+                  and contain no forward slashes, or a recognized external location of a standard taxonomy schema file, or a "#" followed by
+                  a shorthand xpointer.
+               </h2>
+               <p>The xlink:href attribute must appear on the link:loc element; the schemaLocation attribute must appear on the xsd:import element,
+                  and the xsi:schemaLocation attribute must appear on the link:linkbase element and may appear on the xbrli:xbrl element.
+               </p>
+               <p>Valid entries for the xlink:href attribute, the xsi:schemaLocation attribute and the schemaLocation attribute are document
+                  locations. If they are relative URIs, they are subject to EDGARLink attachment naming conventions. Therefore, all documents
+                  attached to the submission will be at the same level of folder hierarchy. By restricting the content of these attributes,
+                  all documents in the DTS of an instance will be either a standard taxonomy or present in the submission.
+               </p>
+               <p>Examples:</p>
+               <ul>
+                  <li>xlink:href="abccorp-20100123.xsd"</li>
+                  <li>&lt;xsd:import schemaLocation="http://xbrl.org/2006/xbrldi-2006.xsd" namespace="..."/&gt;</li>
+               </ul>
+               <p>Counterexamples:</p>
+               <ul>
+                  <li>xlink:href="http://www.example.com/2007/example.xsd"</li>
+                  <li>xlink:href="#element(1/4)" (Comment: this is a scheme-based xpointer, not shorthand)</li>
+               </ul>
+               <p>The XHTML namespace is intentionally omitted, since an XHTML declaration could not be a valid target for any XBRL element's
+                  xlink:href or schemaLocation attribute, and its presence in the xsi:schemaLocation attribute would not impact XBRL validation.
+               </p>
+               <p>There are dozens of other XBRL US GAAP Taxonomies documents to be used as templates to copy from during the preparation process,
+                  but their inclusion in an EDGAR filing tends to load unused linkbases and therefore introduces unwarranted complications such
+                  as unused extended links and a need for many prohibiting arcs. Reducing the amount of content in the DTS of the instance to
+                  its essentials frees users to more easily link the submitted documents to the linkbases of their particular interest for analysis.
+               </p>
+               <p>REMARK: xml:base is forbidden.</p>
+               <p>REMARK:<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>defines URI syntax
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-6</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.3.8">6.3.8</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A submission must contain exactly one EX-100.INS or EX-101.INS.</h2>
+               <p>An XBRL instance submitted in the Voluntary Filing Program may be an EX-100.INS. An Interactive Data instance in XBRL format
+                  must be an EX-101.INS.
+               </p>
+               <p>REMARK: This cannot be tested independently of the EDGAR submission system.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-6</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.3.11">6.3.11</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Attribute xml:base must not appear in any Interactive Data document.</h2>
+               <p>XML processors interpret this attribute differently, so it must not be used.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-7</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.4.3">6.4.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The XBRL instance documents in a submission must be XBRL 2.1 valid.</h2>
+               <p>Each instance document in the filing is tested separately for XBRL 2.1 validity. In order to increase the likelihood that
+                  XBRL documents within an EDGAR submission pass validation, filers are encouraged to validate their XBRL documents for compliance
+                  with the XBRL 2.1 Specification prior to submission.
+               </p>
+               <p>REMARK: XBRL 1.0 Dimensional validity is required also.</p>
+               <p>REMARK: This obviously does not test all XBRL 2.1, only those areas that have been known to cause problems.</p>
+               <p>REMARK: At this time, only one instance is allowed per submission.</p>
+               <p>REMARK: Variation 009gd assumes there is no units registry yet implemented.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-7</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.1">6.5.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The scheme attribute of the xbrli:identifier element must be http://www.sec.gov/CIK.</h2>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-8</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.2">6.5.2</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An xbrli:identifier element must have the CIK of the registrant as its content.</h2>
+               <p>The CIK is an xsd:normalizedString of exactly ten digits from 0 to 9.</p>
+               <p>The xbrli:identifier contains the CIK of the registrant (issuer), not the filer. Fund Series and Class identifiers, which
+                  are nine digits following an S or C, are not allowed in the xbrli:identifier element.
+               </p>
+               <p>Each instance might have a different CIK for the value in the xbrli:identifier element. By contrast, if all subsidiaries are
+                  reported in the same instance, then the CIK of the holding company is the only CIK that will appear in the xbrli:identifier
+                  element of that one instance. Section 6.6 below contains rules that apply to the xbrli:context elements in an instance containing
+                  a combined submission.
+               </p>
+               <p>REMARK: Variations 001ng and 002ng may produce error 60523 depending on implementation.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-8</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.3">6.5.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>All xbrli:identifier elements in an instance must have identical content.</h2>
+               <p>REMARK: this will inevitably generate two errors</p>.
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-7</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.4">6.5.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xbrli:scenario element must not appear in any xbrli:context.</h2>
+               <p>If the xbrli:scenario element was used, then XBRL requires that it have child elements; however, all dimensions in Interactive
+                  Data filings appear in the xbrli:segment element. Therefore, the xbrli:scenario element cannot be used.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-8</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.5">6.5.5</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If an xbrli:segment element appears in a context, then its children must be one or more xbrldi:explicitMember elements.</h2>
+               <p>The xbrldi:typedMember element cannot appear in an instance, nor can the xbrli:segment element be used for anything other
+                  than for explicit members.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-8</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.7">6.5.7</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An instance must not contain duplicate xbrli:context elements.</h2>
+               <p>An instance must not contain equivalent xbrli:context elements. xbrli:segment elements are tested for equality of their children
+                  without regard to order. Contexts are defined to be equivalent if they have S-equal identifiers, equal dateUnion values for
+                  startDate, endDate and instant (respectively), and segment element children with equal QNames for each explicit dimension
+                  (the scenario element is disallowed by another rule).
+               </p>
+               <p>The id attribute of an xbrli:context element can be any xsd:NCName, but users will find it helpful when it is a mnemonic string
+                  that contains the xbrli:period (or fiscal period), and the local part of the QName contents of the dimension attribute and
+                  xbrldi:explicitMember. There is usually no need to repeat the registrant name in the id attribute. There is no limit on the
+                  length of the id attribute.
+               </p>
+               <p>The table shows examples of this usage.</p>
+               <table>
+                  <tr>
+                     <th>Period</th>
+                     <th>xbrli:context id attribute</th>
+                  </tr>
+                  <tr>
+                     <td>12 months of fiscal 2007</td>
+                     <td>FY07d</td>
+                  </tr>
+                  <tr>
+                     <td>End of fiscal 2007</td>
+                     <td>FY07e</td>
+                  </tr>
+                  <tr>
+                     <td>Start of fiscal 2007</td>
+                     <td>FY06e</td>
+                  </tr>
+                  <tr>
+                     <td>3 months of the 2nd Quarter of fiscal 2007</td>
+                     <td>FY07Q2d</td>
+                  </tr>
+                  <tr>
+                     <td>End of the 2nd Quarter of fiscal 2007</td>
+                     <td>FY07Q2e</td>
+                  </tr>
+                  <tr>
+                     <td>9 months year to date in fiscal 2007</td>
+                     <td>FY07M9d</td>
+                  </tr>
+                  <tr>
+                     <td>Fiscal 2006 previously reported amounts</td>
+                     <td>FY06d_ScenarioAxis_PreviouslyReportedMember</td>
+                  </tr>
+               </table>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-8</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.8">6.5.8</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Every xbrli:context element must appear in at least one contextRef attribute in the same instance.</h2>
+               <p>Unused xbrli:context elements have no benefit to users and are easily removed by the filer before submission.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-9</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.9">6.5.9</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If the original HTML/ASCII document represents a reporting period of one quarter or longer, then the same date must not appear
+                  as the content of both an xbrli:startDate and an xbrli:endDate in an instance.
+               </h2>
+               <p>This rule applies if the document type is one of 20-F, 40-F, 10-Q, 10-K, 10, N-CSR, N-Q, or N-CSRS.</p>
+               <p>Note that XBRL 2.1 interprets a date used as a context start date as "midnight at the beginning of" that day.</p>
+               <p>A date used as an instant or endDate in a context means "midnight at the end of" that day. For example, a company reporting
+                  at a May 31st, 2009 fiscal year end will have contexts whose end date time is midnight at the end of 2008-05-31 (the prior
+                  fiscal year) and contexts whose start date-times are midnight at the beginning of 2008-06-01 (the current fiscal year). It
+                  will not have any contexts with start date time of midnight at the beginning of 2008-05-31, and no contexts with end date-time
+                  of midnight at the end of 2008-06-01.
+               </p>
+               <p>REMARK: 6.5.9 applies to all context start dates compared against all context end dates, irrespective of segments.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-9</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.10">6.5.10</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If the original HTML/ASCII document represents a reporting period of one quarter or longer, then the same date must not appear
+                  in the content of an xbrli:startDate and an xbrli:instant in the same instance.
+               </h2>
+               <p>This rule applies if the document type matches any of 20-F, 40-F, 10-Q, 10-K, 10, N-CSR, N-Q, or N-CSRS.</p>
+               <p>For example, a company with a May 31st, 2009 fiscal year end will have contexts whose end date time is midnight at the end
+                  of 2008-05-31 (the prior fiscal year) and contexts whose start date-times are midnight at the beginning of 2008-06-01 (the
+                  current fiscal year). But it must not have any instant contexts with the date-time of midnight at the end of 2008-06-01.
+               </p>
+               <p>REMARK: this applies to all pairs of duration and instant contexts. It is not necessary to test a context's start and end
+                  dates against itself because XBR2.1 section 4.7.2 requires that startDate is strictly less than end date.
+               </p>
+               <p>REMARK: It is possible in principle that the measurement date for a public float or common shares outstanding might coincide
+                  with the start date of a period. Although that situation has not yet been observed in practice, an appropriate way to carve
+                  out an exception may appear in a future edition of the Manual.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-9</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.11">6.5.11</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Element xbrli:xbrl must not have duplicate child xbrli:unit elements.</h2>
+               <p>Element xbrli:xbrl must not have equivalent child xbrli:unit elements. Units are equivalent if they have equivalent measures
+                  or equivalent numerator and denominator. Measures are equivalent if their contents are equivalent QNames. Numerators and Denominators
+                  are equivalent if they have a set of equivalent measures.
+               </p>
+               <p>REMARK: Some of these variations will be disallowed under 6.6.35 after a UTR is implemented.</p>
+               <p>REMARK: Abbreviations are from<a href="http://en.wikipedia.org/wiki/SI_base_unit">Base Units</a></p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-10</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.12">6.5.12</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An instance must not have more than one fact having the same element name, equal contextRef attributes, and if they are present
+                  equal unitRef attributes and xml:lang attributes, respectively.
+               </h2>
+               <p>An instance must not have more than one fact having S-Equal element names, equal contextRef attributes, and if they are present
+                  V-Equal unitRef attributes and xml:lang attributes, respectively. A fact is an occurrence in an instance of an element with
+                  a contextRef attribute. The values of the id attribute and the text content of the element are not relevant to detection of
+                  duplicate facts. Other rules forbidding equivalent xbrli:context and xbrli:unit elements ensure that duplicate values of the
+                  contextRef and unitRef attributes can be detected without dereferencing.
+               </p>
+               <p>The predicate V-Equal is as defined in the XBRL 2.1 specification. The V-Equal test is sensitive to the underlying data type,
+                  so the decimals attribute of "-6" is V-Equal to decimals "-06.0".
+               </p>
+               <p>In unusual cases the same fact may be presented with different levels of detail, such as "123456 Shares with decimals equal
+                  to 'INF'", and "120000 Shares with decimals equal to '-3'". Instead of including both facts in the instance, the instance
+                  should contain only the more precise one.
+               </p>
+               <p>Duplicate facts have no benefit to users and are easily consolidated by the filer before submission.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-10</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.13">6.5.13</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The default value of the xml:lang attribute on non-numeric facts and on link:footnote is 'en-US'.</h2>
+               <p>XBRL 2.1 does not specify a default value for the xml:lang attribute, but an Interactive Data instance assumes one.</p>
+               <p>REMARK: This rule establishes what the default value of xml:lang is and therefore can only be indirectly violated by the violation
+                  of some other rule. Therefore the only error code that appears here is du-60512-Duplicate-Facts which normally would appear
+                  in 6.5.12.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-10</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.14">6.5.14</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An instance having a fact with non-nil content and the xml:lang attribute not starting with "en" must also contain a fact
+                  using the same element and all other attributes with an xml:lang attribute that begins with "en".
+               </h2>
+               <p>The valid values of an xml:lang attribute that begin with "en" denote variants of English, such as "en", "en-US", and "en-UK"
+                  and match the pattern en|en-[A-Z][A-Z].
+               </p>
+               <p>Non-English content may appear but it must be translated into English.</p>
+               <p>For example, the English fact below can appear in an instance without the French fact, but the French fact cannot appear without
+                  the English fact:
+               </p><pre>&lt;eg:q contextRef='x'&gt;yes&lt;/eg:q&gt; &lt;eg:q contextRef='x' xml:lang='fr'&gt;oui&lt;/eg:q&gt;</pre></td>
+            <td style="text-align:left;vertical-align:top;">6-10</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.15">6.5.15</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If the un-escaped content of a fact with base type us-types:textBlockItemType, or a type derived by restriction of type 'escapedItemType'
+                  in a standard taxonomy schema namespace contains the "&lt;" character followed by a QName and whitespace, "/&gt;" or "&gt;", then the
+                  un-escaped content must contain only a sequence of text and XML nodes.
+               </h2>
+               <p>The "&lt;" character may appear in the text content of an XML element as "&amp;lt;", "&amp;#x3C;", "&amp;#60;" or some other guise; when
+                  it appears, the content of the element will then be "un-escaped" for analysis. If "&lt;"is followed by a QName and whitespace,
+                  then the content is tested for XML well-formedness.
+               </p>
+               <p>Although the name of every element in the US GAAP Taxonomies with base type us-gaap:textBlockItemType ends with the string
+                  "TextBlock," the reverse may not be true; an element name has no significance in this rule.
+               </p>
+               <p>Some software applications may render the resulting content of the element as if it was embedded in an HTML 3.2 document,
+                  and well-formed XML is a prerequisite for well-formed HTML. Registrants may also choose other variations of HTML such as XHTML.
+                  Considering the status of the text as a kind of management assertion, well-formed XML is in the interest of the registrant
+                  because it decreases the likelihood of incorrect renderings.
+               </p>
+               <p>If the ampersand character must appear in the well-formed XML, it must be doubly quoted as shown in the example above.</p>
+               <p>REMARK: In XML it is vital to distinguish the DOM from its various serializations. For a text block, the DOM node starts as
+                  an element with one child text node; exactly one. It is that child text node that you now treat as a string, wrap lt;body&gt;
+                  and &lt;/body&gt; around it, then re-parse and validate. See edbody.dtd; the grammar for the % Flow entity is clear.
+               </p>
+               <p>REMARK: By contrast, the content of a footnote according to XBRL 2.1 is any alternating sequence of text nodes and element
+                  nodes drawn with names in the xhtml namespace. The serialization does not (and cannot) matter. The additional constraint on
+                  footnotes imposed by EDGAR is that a footnote cannot just contain any old sequence of text and element DOM nodes. It has to
+                  be a sequence of DOM nodes that would be valid if they were the children of a body node instead. You do not read the footnote
+                  as a text node (that might have ampersands and angle brackets), as if it were itself a serialization. You take that sequence
+                  of DOM nodes, make them the children of a &lt;body&gt; node and validate.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-11</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.16">6.5.16</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Facts of type "text block" or a type (or derived by restriction from) the type 'escapedItemType' in a standard taxonomy schema
+                  namespace whose un-escaped content contains markup must satisfy the content model of the BODY tag as defined in 5.2.2.
+               </h2>
+               <p>This specifies the circumstances under which content containing escaped markup will be interpreted as HTML. HTML as accepted
+                  by EDGAR is detailed in section 5.2.2 and is based on HTML 3.2 elements and entities, with extensions (such as allowing the
+                  "style" attribute) and restrictions (such as disallowing the "SPAN" element).
+               </p>
+               <p>Except for exceptions specified in 6.10, there is no prohibition on escaped markup appearing in other XBRL elements in schemas
+                  (such as link:definition) or linkbases (such as link:label), and the SEC Rendering does not unescape that content.
+               </p>
+               <p>REMARK: Restrictions on the content of href are documented in EFM 5.2.2.1. There is a<a href="../../../lib/edbody.dtd">DTD</a>used for validation of unescaped content, but a change to Schema (and therefore disallowing named entities) may occur at some
+                  time in the future.
+               </p>
+               <p>REMARK: For reference only, here are tags forbidden, keeping in mind that all permitted tags are lower case: &lt;acronym/&gt; &lt;applet/&gt;
+                  &lt;area/&gt; &lt;base/&gt; &lt;basefont/&gt; &lt;bdo/&gt; &lt;button/&gt; &lt;col/&gt; &lt;colgroup/&gt; &lt;del/&gt; &lt;fieldset/&gt; &lt;font/&gt; &lt;form/&gt; &lt;frame/&gt; &lt;frameset/&gt; &lt;iframe/&gt;
+                  &lt;input/&gt; &lt;ins/&gt; &lt;label/&gt; &lt;legend/&gt; &lt;map/&gt; &lt;meta http-equiv='name' content='content'/&gt; &lt;noframes/&gt; &lt;noscript/&gt; &lt;object/&gt; &lt;option/&gt;
+                  &lt;param/&gt; &lt;q/&gt; &lt;s/&gt; &lt;S/&gt; &lt;script/&gt; &lt;select/&gt; &lt;span/&gt; &lt;style/&gt; &lt;tbody/&gt; &lt;textarea/&gt; &lt;tfoot/&gt; &lt;thead/&gt;
+               </p>
+               <p>REMARK: Variations 018 through 022 require http://www.xbrl.org/dtr/type/nonNumeric-2010-12-16.xsd in edgartaxonomies.xml</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-12</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.17">6.5.17</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xbrli:xbrl element must not have any facts with the precision attribute.</h2>
+               <p>This applies to the submission only; the word "precision" may be used in other ways by XBRL preparation software.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-12</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.19">6.5.19</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An instance covering a reporting period must contain a Required Context that is an xbrli:context having xbrli:startDate equal
+                  to 00:00:00 on the first day of the reporting period and xbrli:endDate equal to 24:00:00 on its last day.
+               </h2>
+               <p>This rule defines "Required Context". For example, this rule applies to a filing such as a Form 10-Q for the last calendar
+                  quarter of 2009, with xbrli:startDate equal to '2009-10-01' and xbrli:endDate equal to '2009-12-31'.
+               </p>
+               <p>Many submissions require a second Required Context, see 6.5.21 below. Required contexts are distinguished by having no xbrli:segment
+                  elements.
+               </p>
+               <p>REMARK: The absence of required context will cause several other errors in section 6.5, this has a separate error code to
+                  help users identify the root error of the cascade.
+               </p>
+               <p>REMARK: At this point there is only one distinction, between 485BPOS and 497 which require a one day duration, and all other
+                  filings having any duration. At some point in the future the ERXL table will be extended to include columns that indicate
+                  the allowable range of durations, for example:
+               </p>
+               <table>
+                  <tr>
+                     <th>Forms</th>
+                     <th>Shortest</th>
+                     <th>Longest</th>
+                  </tr>
+                  <tr>
+                     <td>485BPOS, 497</td>
+                     <td>P1D</td>
+                     <td>P1D</td>
+                  </tr>
+                  <tr>
+                     <td>10-K, 10-K/A, N-CSR, N-CSR/A</td>
+                     <td>P1D</td>
+                     <td>P1Y</td>
+                  </tr>
+                  <tr>
+                     <td>10-Q, 10-Q/A, N-Q</td>
+                     <td>P1D</td>
+                     <td>P9M</td>
+                  </tr>
+                  <tr>
+                     <td>N-CSRS, N-CSRS/A</td>
+                     <td>P1D</td>
+                     <td>P6M</td>
+                  </tr>
+               </table>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-12</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.20">6.5.20</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>For each required Document Information element, an instance must contain a fact with that element and a contextRef attribute
+                  referring to its Required Context.
+               </h2>
+               <p>Required Document Information facts may specify attribute xml:lang, but facts with xml:lang attribute absent or xml:lang equal
+                  to "en-US" take precedence over facts with other languages starting with "en", which in turn take precedence over facts having
+                  other values for xml:lang. Additional facts using the Required Document Information elements are allowed in other contexts.
+                  The Required Document Information elements are:
+               </p>
+               <table>
+                  <tr>
+                     <th>Required Document Element</th>
+                     <th>Base Type</th>
+                     <th>(Example)</th>
+                  </tr>
+                  <tr>
+                     <td>dei:DocumentType</td>
+                     <td>EDGAR Form Types<br>(Corporate Finance):<br>10, 10-K, 10-Q, 20-F, 40-F, 6-K, 8-K, F-1, F-10, F-3, F-4, F-9, S-1, S-11, S-3, S-4, 10/A, 10-K/A, 10-Q/A, 20-F/A, 40-F/A,
+                        6-K/A, 8-K/A, F-1/A, F-10/A, F-3/A, F-4/A, F-9/A, S-1/A, S-11/A, S-3/A, S-4/A<br><br>EDGAR Form Types<br>(Investment Management):<br>485BPOS, 497 , N-CSR, N-CSRS, N-Q, N-CSR-CSRS/A, N-Q
+                     </td>
+                     <td>8-K</td>
+                  </tr>
+                  <tr>
+                     <td>dei:DocumentPeriodEndDate</td>
+                     <td>CCYY-MM-DD</td>
+                     <td>2009-09-30</td>
+                  </tr>
+                  <tr>
+                     <td>dei:AmendmentFlag</td>
+                     <td>xsd:Boolean</td>
+                     <td>true</td>
+                  </tr>
+                  <tr>
+                     <td>dei:AmendmentDescription<br>(present if and only if dei:AmendmentFlag equals 'true')
+                     </td>
+                     <td>xsd:normalizedString</td>
+                     <td>Correct the company HQ address</td>
+                  </tr>
+               </table>
+               <p>CCYY-MM-DD is an ISO 8601 format date. ISO 8601 is the international standard for representing dates, times, durations and
+                  periods issued by the International Standards Organization. Other elements in the "dei" namespace whose names start with "Document"
+                  are optional.
+               </p>
+               <p>REMARK: There is a mapping from submission types recognized by EDGAR, to the valid values of the dei:DocumentType element.
+                  The mapping (submissionType,documentType) is:
+               </p>
+               <table>
+                  <tr>
+                     <th>EDGAR<br>Form Type:
+                     </th>
+                     <th>dei:DocumentType<br>Value:
+                     </th>
+                  </tr>
+                  <tr>
+                     <td>10</td>
+                     <td>10</td>
+                  </tr>
+                  <tr>
+                     <td>10/A</td>
+                     <td>10</td>
+                  </tr>
+                  <tr>
+                     <td>10-K</td>
+                     <td>10-K</td>
+                  </tr>
+                  <tr>
+                     <td>10-K/A</td>
+                     <td>10-K</td>
+                  </tr>
+                  <tr>
+                     <td>10-Q</td>
+                     <td>10-Q</td>
+                  </tr>
+                  <tr>
+                     <td>10-Q/A</td>
+                     <td>10-Q</td>
+                  </tr>
+                  <tr>
+                     <td>20-F</td>
+                     <td>20-F</td>
+                  </tr>
+                  <tr>
+                     <td>20-F/A</td>
+                     <td>20-F</td>
+                  </tr>
+                  <tr>
+                     <td>40-F</td>
+                     <td>40-F</td>
+                  </tr>
+                  <tr>
+                     <td>40-F/A</td>
+                     <td>40-F</td>
+                  </tr>
+                  <tr>
+                     <td>485BPOS</td>
+                     <td>485BPOS</td>
+                  </tr>
+                  <tr>
+                     <td>6-K</td>
+                     <td>6-K</td>
+                  </tr>
+                  <tr>
+                     <td>6-K/A</td>
+                     <td>6-K</td>
+                  </tr>
+                  <tr>
+                     <td>8-K</td>
+                     <td>8-K</td>
+                  </tr>
+                  <tr>
+                     <td>F-1</td>
+                     <td>F-1</td>
+                  </tr>
+                  <tr>
+                     <td>F-1/A</td>
+                     <td>F-1</td>
+                  </tr>
+                  <tr>
+                     <td>F-10</td>
+                     <td>F-10</td>
+                  </tr>
+                  <tr>
+                     <td>F-10/A</td>
+                     <td>F-10</td>
+                  </tr>
+                  <tr>
+                     <td>F-3</td>
+                     <td>F-3</td>
+                  </tr>
+                  <tr>
+                     <td>F-3/A</td>
+                     <td>F-3</td>
+                  </tr>
+                  <tr>
+                     <td>F-4</td>
+                     <td>F-4</td>
+                  </tr>
+                  <tr>
+                     <td>F-4/A</td>
+                     <td>F-4</td>
+                  </tr>
+                  <tr>
+                     <td>F-9</td>
+                     <td>F-9</td>
+                  </tr>
+                  <tr>
+                     <td>F-9/A</td>
+                     <td>F-9</td>
+                  </tr>
+                  <tr>
+                     <td>N-1A</td>
+                     <td>N-1A</td>
+                  </tr>
+                  <tr>
+                     <td>NCSR</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>NCSR/A</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>NCSRS</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>NCSRS/A</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>N-Q</td>
+                     <td>N-Q</td>
+                  </tr>
+                  <tr>
+                     <td>N-Q/A</td>
+                     <td>N-Q</td>
+                  </tr>
+                  <tr>
+                     <td>S-1</td>
+                     <td>S-1</td>
+                  </tr>
+                  <tr>
+                     <td>S-1/A</td>
+                     <td>S-1</td>
+                  </tr>
+                  <tr>
+                     <td>S-11</td>
+                     <td>S-11</td>
+                  </tr>
+                  <tr>
+                     <td>S-11/A</td>
+                     <td>S-11</td>
+                  </tr>
+                  <tr>
+                     <td>S-3</td>
+                     <td>S-3</td>
+                  </tr>
+                  <tr>
+                     <td>S-3/A</td>
+                     <td>S-3</td>
+                  </tr>
+                  <tr>
+                     <td>S-4</td>
+                     <td>S-4</td>
+                  </tr>
+                  <tr>
+                     <td>S-4/A</td>
+                     <td>S-4</td>
+                  </tr>
+                  <tr>
+                     <td>N-CSR</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>N-CSR/A</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>N-CSRS</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>NCSRS/A</td>
+                     <td>NCSR</td>
+                  </tr>
+                  <tr>
+                     <td>497</td>
+                     <td>Other</td>
+                  </tr>
+               </table>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-12</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.21">6.5.21</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An instance must contain one non-empty fact for each required Entity Information element, each with a contextRef attribute
+                  referring to a Required Context. The value of an EntityPublicFloat fact in an instance will be 0 for an entity that has only
+                  public debt.
+               </h2>
+               <p>Required Entity Information facts may specify attribute xml:lang, but facts with xml:lang attribute absent or xml:lang equal
+                  to "en-US" take precedence over facts with other languages starting with "en", which in turn take precedence over facts having
+                  other values for xml:lang. Required Entity Information facts having period type "instant" use a context containing an xbrli:instant
+                  value that is the measurement date (for public float and common shares outstanding), otherwise identical to the Required Context.
+               </p>
+               <p>Additional facts using the Required Entity Information elements are allowed in other contexts.</p>
+               <table>
+                  <tr>
+                     <th>Element</th>
+                     <th>Base Type</th>
+                     <th>(Example)</th>
+                  </tr>
+                  <tr>
+                     <td>EntityRegistrantName</td>
+                     <td>xsd:normalizedString</td>
+                     <td>General Example Company</td>
+                  </tr>
+                  <tr>
+                     <td>EntityCentralIndexKey</td>
+                     <td>us-types:centralIndexKey</td>
+                     <td>0005551212</td>
+                  </tr>
+                  <tr>
+                     <td>EntityCurrentReportingStatus</td>
+                     <td>us-types:yesNo</td>
+                     <td>Yes</td>
+                  </tr>
+                  <tr>
+                     <td>EntityVoluntaryFilers</td>
+                     <td>us-types:yesNo</td>
+                     <td>No</td>
+                  </tr>
+                  <tr>
+                     <td>CurrentFiscalYearEndDate</td>
+                     <td>xbrli:gMonthDayItemType</td>
+                     <td>--12-31<sup>*</sup></td>
+                  </tr>
+                  <tr>
+                     <td>EntityFilerCategory</td>
+                     <td>us-types:filerCategory</td>
+                     <td>Large Accelerated Filer</td>
+                  </tr>
+                  <tr>
+                     <td>EntityWellKnownSeasonedIssuer</td>
+                     <td>us-types:yesNo</td>
+                     <td>Yes</td>
+                  </tr>
+                  <tr>
+                     <td>EntityPublicFloat</td>
+                     <td>xsd:decimal</td>
+                     <td>987654321</td>
+                  </tr>
+                  <tr>
+                     <td>DocumentFiscalYearFocus</td>
+                     <td>xbrli:gYearItemType</td>
+                     <td>2009<sup>**</sup></td>
+                  </tr>
+                  <tr>
+                     <td>DocumentFiscalPeriodFocus</td>
+                     <td>us-types:fiscalPeriodItemType</td>
+                     <td>FY, Q1, Q2, Q3, Q4, H1, H2, M9, T1, T2, T3, M8, CY</td>
+                  </tr>
+               </table>
+               <p><sup>*</sup>Note: The value space of xbrli:gMonthDayItemType is in the format --MM-DD.
+               </p>
+               <p><sup>**</sup>Note: The value space of xsd:gYearItemType is a year in the form CCYY.
+               </p>
+               <p><sup>***</sup>Note: 10-Q‟s for the 1st, 2nd and 3rd quarters should have a fiscal period focus of Q1, Q2, and Q3 respectively, and a 10-K
+                  should have fiscal period focus of FY.
+               </p>
+               <p>The following table shows which elements will be validated for each form type. Please note, however, that omitting the Registrant
+                  Name or Central Index Key leads to other errors, but otherwise, omission of data within the XBRL tags for these elements will
+                  not result in the suspension of the filing nor will the XBRL data be removed. Instead, a warning message will be added to
+                  the filer's acceptance message if the data is not included or does not match the base type as specified in the table above.
+                  All other Entity Information elements are optional (see 6.5.22).
+               </p>
+               <table>
+                  <tr>
+                     <th>Element</th>
+                     <th>10-K</th>
+                     <th>10-Q</th>
+                     <th>20-F</th>
+                     <th>40-F</th>
+                     <th>6-K,<br>N-CSR,<br>N-Q,<br>NCSRS
+                     </th>
+                     <th>10, S-1,<br>S-3, S-4,<br>S-11
+                     </th>
+                     <th>8-K, F-1,<br>F-3, F-10,<br>497,<br>485BPOS
+                     </th>
+                  </tr>
+                  <tr>
+                     <td>EntityRegistrantName</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                  </tr>
+                  <tr>
+                     <td>EntityCentralIndexKey</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                  </tr>
+                  <tr>
+                     <td>EntityCurrentReportingStatus</td>
+                     <td>X</td>
+                     <td></td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td>EntityVoluntaryFilers</td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td>CurrentFiscalYearEndDate</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td>EntityFilerCategory</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                     <td>X</td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td>EntityWellKnownSeasonedIssuer</td>
+                     <td>X</td>
+                     <td></td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td>EntityPublicFloat</td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td>DocumentFiscalYearFocus</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td>DocumentFiscalPeriodFocus</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td>X</td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+               </table>
+               <p>REMARK: This set of test cases reflects the variations for the forms 20-F, 40-F, 6-K, 8-K, 10-Q, 10-K, 10, S-1, S-3, S-4,
+                  S-11, F-1, F-3, F-10, 485BPOS, N-CSR, N-Q, NCSRS as well as, implicitly 20-F/A, 40-F/A, 10-K/A, S-1/A, S-3/A, S-4/A, S-11/A,
+                  F-1/A, F-3/A, F-10/A, N-CSR/A, N-Q/A, NCSRS/A, 485BPOS and 497. Here is what form requires what element:
+               </p>
+               <p>10-K: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityWellKnownSeasonedIssuer, EntityVoluntaryFilers,
+                  EntityCurrentReportingStatus, EntityFilerCategory, EntityPublicFloat, DocumentFiscalYearFocus, DocumentFiscalPeriodFocus;
+               </p>
+               <p>10-Q: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityFilerCategory, DocumentFiscalYearFocus,
+                  DocumentFiscalPeriodFocus;
+               </p>
+               <p>20-F: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityWellKnownSeasonedIssuer, EntityCurrentReportingStatus,
+                  EntityFilerCategory, DocumentFiscalYearFocus, DocumentFiscalPeriodFocus;
+               </p>
+               <p>40-F: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, EntityCurrentReportingStatus, DocumentFiscalYearFocus,
+                  DocumentFiscalPeriodFocus;
+               </p>
+               <p>6-K, N-CSR, N-Q, NCSRS: EntityRegistrantName, EntityCentralIndexKey, CurrentFiscalYearEndDate, DocumentFiscalYearFocus, DocumentFiscalPeriodFocus;</p>
+               <p>10, S-1, S-3, S-4, S-11: EntityRegistrantName, EntityCentralIndexKey, EntityFilerCategory;</p>
+               <p>8-K, F-1, F-3, F-10, 497, 485BPOS: EntityRegistrantName, EntityCentralIndexKey;</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-13</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.22">6.5.22</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>All other elements in the dei namespace are optional.</h2>
+               <p>REMARK: The second variation is logically part of 6.5.20, but it generates no errors so that shouldn't matter.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-15</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.23">6.5.23</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The contents of the dei:EntityCentralIndexKey fact in the Required Context must equal the content of the xbrli:identifier
+                  element in that context.
+               </h2>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-15</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.24">6.5.24</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>he official Registrant Name that corresponds to the CIK of the xbrli:identifier text content must be a case-insensitive prefix
+                  of the dei:EntityRegistrantName fact in the Required Context.
+               </h2>
+               <p>For example, the CIK 0005551212 has official registrant name ALPHA BETA CHI. The following would be valid values for dei:EntityRegistrantName:
+                  "alpha beta chi", "alpha beta chicago", "Alpha Beta Chicago", "aLpHa BeTa ChIcAgO". The following would not be valid: "alphabeta
+                  chi", "alpha beta", "alpha beta corp".
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-15</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.25">6.5.25</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Elements with a type attribute having the local name 'domainItemType' in a standard taxonomy schema namespace, or a type derived
+                  by restriction from it, must not appear as facts in an instance.
+               </h2>
+               <p>Elements of this type are for use only in the xbrldi:explicitMember element.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-15</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.26">6.5.26</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An instance with dei:DocumentType of 10-K, 10-Q, 20-F, or 40-F must have at least one dei:EntityCommonStockSharesOutstanding
+                  fact for each class of stock outstanding.
+               </h2>
+               <p>If an entity represented in the Required Context has only one class of common stock outstanding, then no matter what the share
+                  class is named, the instance requires only one dei:EntityCommonStockSharesOutstanding fact, and the context of that fact will
+                  have an xbrli:instant equal to the measurement date, and that context will have no xbrli:segment element.
+               </p>
+               <p>If the entity represented in the Required Context has multiple classes of common shares outstanding, then the instance must
+                  not have any dei:EntityCommonStockSharesOutstanding fact in any context without an xbrli:segment. Instead, the instance must
+                  have a distinct context for each class of common stock outstanding, and each context will have xbrli:instant equal to the
+                  measurement date, an xbrli:segment with an explicit member of the us gaap:StatementClassOfStockAxis for each class of stock,
+                  and a dei:EntityCommonStockSharesOutstanding fact in each such context. This is a specific case of the more general requirement
+                  in 6.6.10 below.
+               </p>
+               <p>REMARK: This test substitutes for 6.5.21's requirement for CommonStockSharesOutstanding but is not yet implemented as of EDGAR
+                  10.4 (December 2010).
+               </p>
+               <table>
+                  <tr>
+                     <th>[Variant]</th>
+                     <th>[Form Type]</th>
+                     <th>[Facts in Req Context]</th>
+                     <th>[Facts with Share Class]</th>
+                     <th>[Extra Facts]</th>
+                     <th>[Result]</th>
+                  </tr>
+                  <tr>
+                     <td>000</td>
+                     <td>10-K</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>001</td>
+                     <td>10-K</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>1</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>002</td>
+                     <td>10-K</td>
+                     <td>0</td>
+                     <td>1</td>
+                     <td>0</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>003</td>
+                     <td>10-K</td>
+                     <td>0</td>
+                     <td>1</td>
+                     <td>1</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>004</td>
+                     <td>10-K</td>
+                     <td>0</td>
+                     <td>2</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>005</td>
+                     <td>10-K</td>
+                     <td>0</td>
+                     <td>2</td>
+                     <td>1</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>006</td>
+                     <td>10-K</td>
+                     <td>1</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>007</td>
+                     <td>10-K</td>
+                     <td>1</td>
+                     <td>0</td>
+                     <td>1</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>008</td>
+                     <td>10-K</td>
+                     <td>1</td>
+                     <td>1</td>
+                     <td>0</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>009</td>
+                     <td>10-K</td>
+                     <td>1</td>
+                     <td>1</td>
+                     <td>1</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>010</td>
+                     <td>10-K</td>
+                     <td>1</td>
+                     <td>2</td>
+                     <td>0</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>011</td>
+                     <td>10-K</td>
+                     <td>1</td>
+                     <td>2</td>
+                     <td>1</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>012</td>
+                     <td>10-Q</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>013</td>
+                     <td>20-F</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>014</td>
+                     <td>40-F</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>ng</td>
+                  </tr>
+                  <tr>
+                     <td>015</td>
+                     <td>N-Q</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>016</td>
+                     <td>8-K</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>017</td>
+                     <td>6-K</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>018</td>
+                     <td>NCSR</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>019</td>
+                     <td>485BPOS</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+                  <tr>
+                     <td>020</td>
+                     <td>Other</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>0</td>
+                     <td>gd</td>
+                  </tr>
+               </table>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-16</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.27">6.5.27</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A link:footnoteLink element must have no children other than link:loc, link:footnote, and link:footnoteArc.</h2>
+               <p>Although valid XBRL 2.1, custom elements in the substitution groups of link:loc, link:footnote or link:footnoteArc have no
+                  value to users.
+               </p>
+               <p>REMARK: Although these variations each show only one error code, depending on a vendors' implementation, validation errors
+                  may occur prior to the error listed, or other errors may cascade after Footnote-Substitution-Group. In particular, the schema
+                  fales of the ng variations should throw error 6.7.27 because they use a substitutionGroup disallowed by that rule; the point
+                  being that 6.7.27 would not apply to a standard taxonomy but 6.5.27 would still be an error. As long as all variations marked
+                  NOGOOD are rejected because of the disallowed substitutionGroup, a validator may be considered as legitimately passing this
+                  testcase.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-16</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.28">6.5.28</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xlink:role attribute of a link:footnote element must be defined in the XBRL Specification 2.1.</h2>
+               <p>REMARK: The content of the link:definition element is irrelevant because the entire declaration is forbidden. These variations
+                  may also signal errors 6.9.4 and 6.9.5 for the schemas, but the point is that this test is still meaningful even if the schemas
+                  with offending role declarations happened to be in standard taxonomies.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-16</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.29">6.5.29</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xlink:role attribute of a link:loc element must be empty, or defined in the XBRL Specification 2.1.</h2>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-16</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.30">6.5.30</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xlink:arcrole attribute of a link:footnoteArc element must be defined in the XBRL Specification 2.1. or a standard taxonomy
+                  schema.
+               </h2>
+               <p>REMARK the arc role link:definition does not matter because the entire declaration is forbidden. Variation 001ng' schema also
+                  throws error 6.9.5 from its schema. The test of the instance remains meaningful.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-16</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.32">6.5.32</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A link:footnoteLink link:loc xlink:href attribute must start with the sharp sign "#".</h2>
+               <p>Occurrences of link:footnote in an instance can only refer to facts in that instance. The target of a link:footnote locator
+                  xlink:href attribute may be an element with xsi:nil='true', so registrants should not assume that a "nil" fact is completely
+                  equivalent to a "missing" fact.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-16</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.33">6.5.33</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Every nonempty link:footnote element must be linked to at least one fact.</h2>
+               <p>A nonempty link:footnote element must have an xlink:label attribute equal to an xlink:to attribute of a sibling link:footnoteArc.</p>
+               <p>Footnotes with text must not "dangle". By contrast, a link:loc element that is not connected by a link:footnoteArc is legal
+                  syntax.
+               </p>
+               <p>REMARK: It would have been better instead of referring to "link:footnote element" to refer to "link:footnoteLink child element
+                  with @xlink:type of 'resource'". Likewise instead of "link:footnoteArc element" refer to "link:footnoteLink child element
+                  with @xlink:type of 'arc'". Then you will never get spurious errors if element substitutionGroups were to be allowed.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-16</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.34">6.5.34</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The content of a link:footnote element must satisfy the content model of the BODY tag as defined in 5.2.2.</h2>
+               <p>XBRL 2.1 allows link:footnote elements to contain XHTML. HTML as accepted by EDGAR is detailed in section 5.2.2 and is based
+                  on HTML 3.2 elements and entities, with extensions (such as allowing the "style" attribute) and restrictions (such as disallowing
+                  the "SPAN" element.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-17</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.5.35">6.5.35</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If a standard numeric data type registry is in the DTS of an instance, then the value of each 'unitRef' attribute on each
+                  fact of a type in that registry must refer to a unit declaration consistent with the data type of that fact, where consistency
+                  is defined by that registry.
+               </h2>
+               <p>XBRL 2.1 already enforces the requirement that a fact of type xbrli:monetaryItemType must have a unitRef whose xbrli:measure
+                  is an ISO standard currency. A standard numeric data type registry is similar but broader: it has a schema with numeric type
+                  declarations, and each numeric data type is associated with consistent unit declaration measures, numerators and denominators.
+               </p>
+               <p>A portion of a registry is shown below; additional information is at<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/edgar/info/edgartaxonomies.shtml</a>.
+               </p>
+               <table cellspacing="0" border="1pt" style="font-family: Arial; font-size: smaller;">
+                  <tr>
+                     <th>Type name-space</th>
+                     <th>Type element name</th>
+                     <th>Unit measure name-space</th>
+                     <th>Unit measure element names</th>
+                     <th>Meaning</th>
+                     <th>Unit numerator name-space</th>
+                     <th>Unit numerator element name</th>
+                     <th>Unit denominator namespace</th>
+                     <th>Unit denominator element name</th>
+                  </tr>
+                  <tr valign="top">
+                     <td>(any)</td>
+                     <td>percentItemType</td>
+                     <td>xbrli</td>
+                     <td>pure</td>
+                     <td>&nbsp;</td>
+                     <td>n/a</td>
+                     <td>disallowed</td>
+                     <td>n/a</td>
+                     <td>disallowed</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>(any)</td>
+                     <td>perShareItemType</td>
+                     <td>n/a</td>
+                     <td>disallowed</td>
+                     <td>&nbsp;</td>
+                     <td>iso4217</td>
+                     <td><span style="white-space: nowrap;">3-letter ISO</span>4217 codes
+                     </td>
+                     <td>xbrli</td>
+                     <td>shares</td>
+                  </tr>
+                  <tr valign="top">
+                     <td rowspan="7" valign="top">(any)</td>
+                     <td rowspan="7" valign="top">areaItemType</td>
+                     <td rowspan="7" valign="top">(any)</td>
+                     <td>sqft</td>
+                     <td>Square Foot</td>
+                     <td rowspan="7" valign="top">n/a</td>
+                     <td rowspan="7" valign="top">disallowed</td>
+                     <td rowspan="7" valign="top">n/a</td>
+                     <td rowspan="7" valign="top">disallowed</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>sqyd</td>
+                     <td>Square Yard</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>sqmi</td>
+                     <td>Square Mile</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>A</td>
+                     <td>Acre</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>sqm</td>
+                     <td style="white-space: nowrap">Square Meter</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>sqkm</td>
+                     <td>Square Km</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>sqemi</td>
+                     <td>Square English Mile</td>
+                  </tr>
+                  <tr valign="top">
+                     <td rowspan="10" valign="top">(any)</td>
+                     <td rowspan="10" valign="top">volumeItemType</td>
+                     <td rowspan="10" valign="top">(any)</td>
+                     <td>l</td>
+                     <td>Liter</td>
+                     <td rowspan="10" valign="top">n/a</td>
+                     <td rowspan="10" valign="top">disallowed</td>
+                     <td rowspan="10" valign="top">n/a</td>
+                     <td rowspan="10" valign="top">disallowed</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>m3</td>
+                     <td>Cubic Meter</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>ft3</td>
+                     <td>Cubic Foot</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>gal</td>
+                     <td>Gallon</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>cf</td>
+                     <td>Cubic Feet of Natural Gas at 14.73psi and 60 degrees F</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>Mcf</td>
+                     <td>Thousands of Cubic Feet of Natural Gas at 14.73psi and 60 degrees F</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>MMcf</td>
+                     <td>Millions of Cubic Feet of Natural Gas at 14.73psi and 60 degrees F</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>bbl</td>
+                     <td>Barrels of Oil at 60 degrees F</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>MBbls</td>
+                     <td>Thousands of Barrels of Oil at 60 degrees F</td>
+                  </tr>
+                  <tr valign="top">
+                     <td>MMbbls</td>
+                     <td>Millions of Barrels of Oil at 60 degrees F</td>
+                  </tr>
+               </table>
+               <p>In this table, for example, facts whose type is based on areaItemType must have a unit whose measure is one of sqft, sqyd,
+                  sqmi, etc. The notation "(any)" means that the element namespace is ignored for the purposes of checking for consistency.
+               </p>
+               <p>REMARK: International types declared at www.xbrl.org can appear in the same DTS with US data types.</p>
+               <p>REMARK: As of EDGAR 10.4 this test had not been implemented. The values in the table above are not completely consistent with
+                  the forthcoming Unit Types Registry.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-17</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.1">6.7.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xsd:schema must not have an xsd:include element.</h2>
+               <p>This rule does not apply to schemas in a standard taxonomy.</p>
+               <p>There is one namespace per xsd:schema element and therefore no "chameleon schemas", and additional XBRL 2.1 syntax restrictions
+                  apply.
+               </p>
+               <p>The elementFormDefault attribute is usually "qualified" and the attributeFormDefault attribute usually "unqualified", but
+                  there are no formal restrictions on the values of these attributes and no formal restrictions on the formDefault attribute.
+               </p>
+               <p>REMARK: Because this applies only to company extensions, in principle there could be a test in which a standard taxonomy schema
+                  having an 'include' element would be 'GOOD', but there is no such standard taxonomy schema.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-32</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.3">6.7.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The authority part of a xsd:schema targetNamespace attribute must not equal the authority part of a targetNamespace attribute
+                  of any standard taxonomy schema.
+               </h2>
+               <p>REMARK:<a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">edgartaxonomies.xml</a>is the ONLY authoritative source of "standard taxonomies".
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-33</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.4">6.7.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The targetNamespace attribute must match http://{authority}/{versionDate}.</h2>
+               <p>The company-specific schema has a unique targetNamespace attribute name for each schema. Namespaces are not to be confused
+                  with external references even though they may appear to have very similar formats. An external reference describes the location
+                  of a particular file with the intent of accessing the contents of that file. A namespace, on the other hand, is a name that
+                  identifies elements that belong to a particular markup vocabulary. However, since they function very differently, restrictions
+                  that are placed on external references do not apply to namespaces. Since a particular instance document is expected to reference
+                  multiple vocabularies, namespaces provide a convention by which each vocabulary is uniquely identified. This avoids problems
+                  of recognition and collision of similarly named elements from different vocabularies appearing in XBRL documents.
+               </p>
+               <p>REMARK: There is a mismatch between the date formats currently accepted by EDGAR, and the possible ISO8601 formats.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-33</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.7">6.7.7</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Element xsd:schema must bind a Recommended Namespace Prefix for the targetNamespace attribute that does not contain the underscore
+                  character.
+               </h2>
+               <p>REMARK: This only applies to a company extension schema. A standard taxonomy could in principle have an underscore in their
+                  namespace prefix, but there is no such standard taxonomy and therefore no such test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-34</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.8">6.7.8</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Element xsd:schema must not contain any occurrences of "embedded" linkbases.</h2>
+               <p>REMARK: This applies only to company extension schemas. In principle a standard taxonomy is allowed to have an embedded linkbase.
+                  But there is no such standard taxonomy and therefore no such test variation.
+               </p>
+               <p>REMARK: there are no variations for linkbases other than link:labelLink, but the rule does apply to all of them.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-34</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.9">6.7.9</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The roleURI attribute of a link:roleType element must begin with the same {scheme} and {authority} as the targetNamespace
+                  attribute.
+               </h2>
+               <p>For example, in an xsd:schema with a targetNamespace attribute equal to 'http://abcinc.com/2009-02-29', the string 'http://abcinc.com/'
+                  must start the roleURI attribute value of any link:roleType.
+               </p>
+               <p>The roleURI attribute should be considered permanent, to be used in future submissions.</p>
+               <p>In a link:roleType declaration the roleURI attribute should end with "/role/" and a mnemonic name in LC3 format.</p>
+               <p>For example,</p>
+               <p style="text-align: center; font-family: Sans-Serif; font-size: smaller;">&lt;link:roleType @roleURI="http://abcinc.com/role/StatementOfIncome"&gt; ...&lt;/link:roleType&gt;</p>
+               <p>REMARK:<a href="http://www.ietf.org/rfc/rfc2396.txt">http://www.ietf.org/rfc/rfc2396.txt</a>notes that the host component of a URL is case insensitive, a URI in Interactive Data documents has a case-sensitive host
+                  component. The same rfc allows characters in URIs that are not normally thought of as legal; variation 000gd exercises that
+                  in a minimal way without wading into the complex realm of XML character escaping versus URI character escaping.
+               </p>
+               <p>REMARK: This applies only to company extension schemas. In principle a standard taxonomy could have a different authority
+                  part in the targetNamespace and a role or arcrole declaration. There being no such standard taxonomies, there are no such
+                  'gd' variations.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-34</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.10">6.7.10</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A DTS must not contain more than one link:roleType element with equal values of the roleURI attribute.</h2>
+               <p>REMARK: this applies to the entire DTS, not just the company schema which is what the similar XBRL 2.1 constraint applies
+                  to.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-33</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.11">6.7.11</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A link:roleType declaration with link:usedOn containing link:presentationLink, link:definitionLink or link:calculationLink
+                  must also have a link:usedOn for the other two.
+               </h2>
+               <p>This rule is relevant to three of the linkbase elements whose type attribute is fixed at 'extended' as shown in the table
+                  below.
+               </p>
+               <table>
+                  <tr>
+                     <th>type attribute</th>
+                     <th>QName in link:usedOn</th>
+                     <th>Declared by</th>
+                  </tr>
+                  <tr>
+                     <td>extended</td>
+                     <td>link:calculationLink</td>
+                     <td>link:roleType</td>
+                  </tr>
+                  <tr>
+                     <td>extended</td>
+                     <td>link:definitionLink</td>
+                     <td>link:roleType</td>
+                  </tr>
+                  <tr>
+                     <td>extended</td>
+                     <td>link:presentationLink</td>
+                     <td>link:roleType</td>
+                  </tr>
+               </table>
+               <p>REMARK: this applies only to company extension schemas, so that exceptions in the us-roles-YYYY-MM-DD.xsd schemas are not
+                  invalid.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-33</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.12">6.7.12</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A link:roleType element must contain a link:definition child element whose content will communicate the title of the financial
+                  statement section, the level of facts in the instance that a presentation relationship in the base set of that role would
+                  display, and sort alphanumerically into the order that statements and footnotes appear in the official HTML/ASCII document.
+               </h2>
+               <p>The link:roleType link:definition text must match the following pattern:</p>
+               <p style="text-align: center; font-family: Sans-Serif; font-size: smaller;">{SortCode} - {Title}</p>
+               <p>The meaning of the base set appears in {Title}.</p>
+               <p>{SortCode} is used only to sort base sets for display. The sort code is sorted alphanumerically, not numerically, so "10"
+                  would appear before "2". Filers must choose a scheme for their sort code and declare separate role types so as to achieve
+                  the following:
+               </p>
+               <ol>
+                  <li>Each Statement must appear in at least one base set, in the order the statement appeared in the official HTML/ASCII document.</li>
+                  <li>If the presentation relationships of more than one base set contains the facts of a Statement (to achieve a layout effect,
+                     such as a set of rows, followed by a table with a dimension axis on the vertical, followed by another set of rows) then the
+                     {SortCode} of that base set must sort in the order that the rows of the Statement will be displayed.
+                  </li>
+                  <li>A Statement that contains parenthetical disclosures on one or more rows must have a base set immediately following that of
+                     the Statement, where all facts in its parenthetical disclosures appear in presentation relationships.
+                  </li>
+                  <li>All base sets containing the contents of Footnotes must appear after base sets containing the contents of Statements.</li>
+                  <li>A Text Block for each Footnote must appear in at least one presentation relationship in a base set.</li>
+                  <li>Each base set for a "Footnote as a Text Block" presentation link must contain one presentation relationship whose target is
+                     a Text Block.
+                  </li>
+                  <li>Base sets with presentation relationships for a Footnote tagged at level (ii) must appear after all base sets tagged at level
+                     (i).
+                  </li>
+                  <li>A base set with presentation relationships for a Footnote tagged at level (iii) must appear after all base sets tagged at
+                     level (ii).
+                  </li>
+                  <li>A base set with presentation relationships for a Footnote tagged at level (iv) must appear after all base sets tagged at level
+                     (iii).
+                  </li>
+               </ol>
+               <p>The {Title} is the text that follows " - " in the link:definition. The text should distinguish to a human reader what each
+                  separate relationship group contains. The table below shows an example in which the filer has simply used a two-digit sequence
+                  number.
+               </p>
+               <p>The {Title} must not contain scale or units (such as "in millions of US dollars except per share data") text.</p>
+               <p>Note: the link:definition MUST NOT have leading or trailing XML whitespace.</p>
+               <table style="border-style: solid;">
+                  <tr>
+                     <th>Example link:definition Text</th>
+                     <th>Each Footnote as a Text Block</th>
+                     <th>Each Accounting Policy as a Text Block</th>
+                     <th>Each Table in a Footnote as a Text Block</th>
+                     <th>Individual Values or Narratives</th>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">01 - Statement - Statement of Income</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">02 - Statement - Balance Sheet</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">03 - Statement - Balance Sheet (Parenthetical)</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">04 - Statement - Cash Flows</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">05 - Statement - Changes in Equity</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">06 - Statement - Comprehensive Income</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">07 - Disclosure - Accounting Policies</td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">08 - Disclosure - Inventories</td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">09 - Disclosure - Earnings per Share</td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">10 - Disclosure - Unearned Revenue</td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">11 - Disclosure - Equity</td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">12 - Disclosure - Accounting Policies, by Policy</td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">13 - Disclosure - Inventories (Tables)</td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">14 - Disclosure - Unearned Revenue (Tables)</td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">15 - Disclosure - Equity, Share Repurchases (Table)</td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">16 - Disclosure - Equity, Dividends (Table)</td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">17 - Disclosure - Inventories (Detail)</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">18 - Disclosure - Unearned, by Component (Detail)</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">19 - Disclosure - Unearned, by Segment (Detail)</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">20 - Disclosure - Equity, Share Repurchases (Detail)</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+                  <tr>
+                     <td style="white-space: nowrap;">21 - Disclosure - Equity, Dividends (Detail)</td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td align="center">Yes</td>
+                  </tr>
+               </table>
+               <p>Defining roles is important, because the SEC Interactive Data Viewer displays all the facts in an instance if they appear
+                  in a presentation relationship, and displays facts only when they appear in a presentation relationshiparc in a base set of
+                  the role. Note that if the link:definition text matches "{SortCode} - {Type} - {Title}" then the SEC Interactive Data Viewer
+                  shows only the {Title} part.
+               </p>
+               <p>REMARK: This applies only to company extension schemas, so that exceptions in the us-roles-YYYY-MM-DD.xsd schemas are not
+                  invalid.
+               </p>
+               <p>REMARK: This was never meant to apply to resource roles, and that will be corrected in a future release.</p>
+               <p>REMARK: Because the (incorrectly percieved) importance of instance rendering has continued to increase beyond reason, the
+                  validator now enforces an even more stringent criterion than documented in manual version v13. The regex is "[0-9]+ \- {Statement|Disclosure|Schedule|Document}
+                  \-.*[^\s]"; this discrepancy between the text of the manual and the actual validation MUST be corrected in the manual ASAP.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-35</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.13">6.7.13</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The arcroleURI attribute of a link:arcroleType element must begin with the same {scheme} and {authority} parts as the targetNamespace
+                  attribute.
+               </h2>
+               <p>REMARK: This applies only to company extension schemas. In principle a standard taxonomy schema could violate this, but there
+                  are no such taxonomy schemas and so no 'good' variation.
+               </p>
+               <p>REMARK: An arcrole definition should not have to match the same pattern as presentation definitions, but we do so in this
+                  testcase to avoid spurious errors.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.14">6.7.14</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A DTS must not contain more than one link:arcroleType element with equal values of the arcroleURI attribute.</h2>
+               <p>REMARK: this applies to the entire DTS not just company extension schemas.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.15">6.7.15</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A link:arcroleType element must have a nonempty link:definition.</h2>
+               <p>The link:arcroleType link:definition text should explain the purpose of the arc role.</p>
+               <p>The content of link:usedOn is the QName of an arc element; however, note that there are additional rules that restrict what
+                  may be used as the value of the xlink:arcrole attribute in instances, schemas and linkbases.
+               </p>
+               <p>REMARK: The test for emptiness is done after trimming.</p>
+               <p>REMARK: this applies only to company extension schemas, so if there were any exceptions standard schemas those would not be
+                  invalid.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.16">6.7.16</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The name attribute of an xsd:element must not equal any xsd:element name attribute in a standard taxonomy.</h2>
+               <p>It is not necessary to compare the @name attribute to all element declarations in all standard taxonomy schemas. Only those
+                  schemas that are present in the DTS of a specific instance being validated are relevant.
+               </p>
+               <p>REMARK: only<a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">http://www.sec.gov/info/edgar/edgartaxonomies.xml</a>defines "standard taxonomy".
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.17">6.7.17</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The id attribute of an xsd:element must consist of the Recommended Namespace Prefix of the element namespace, followed by
+                  one underscore, followed by its name attribute.
+               </h2>
+               <p>REMARK: This only applies to the company extension schemas. If there were a standard taxonomy schema that violated this, it
+                  would nevertheless be good. There being no such standard taxonomy, there is no such test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.18">6.7.18</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The nillable attribute value of an xsd:element must equal "true".</h2>
+               <p>REMARK: This only applies to the company extension schemas. If there were a standard taxonomy schema that violated this, it
+                  would nevertheless be good. There being no such standard taxonomy, there is no such test variation.
+               </p>
+               <p>REMARK: This was only meant to apply to element declarations in an xbrli substitution group. In the current EDGAR release,
+                  non-XBRL element declarations are effectively useless and if that were ever to change this rule should be changed and some
+                  new variations included.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-36</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.19">6.7.19</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xsd:element substitutionGroup attribute must not be a member of a substitution group with head 'xbrli:tuple'.</h2>
+               <p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                  2006 taxonomy. Hence the inclusion of a 'good' case 003gd that imports the ICI 2006 taxonomy. It is 'GOOD' with respect to
+                  this rule, but has dozens of violations of other EFM rules. ICI 2006 can only be used with EX-100 attachments that are not
+                  subject to Chapter 6 validations.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.20">6.7.20</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An xsd:element must not have an xbrldt:typedDomainRef attribute.</h2>
+               <p>REMARK: This only applies to company extension schemas, although it also holds for all standard taxonomies. If there were
+                  a standard taxonomy that used xbrldt:typedDomainRef then there would be 'good' test variation covering it.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.21">6.7.21</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If the abstract attribute of xsd:element is 'true', then the xbrli:periodType attribute must be 'duration'.</h2>
+               <p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                  2006 taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-37</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.23">6.7.23</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xsd:element substitutionGroup attribute must equal 'xbrldt:dimensionItem' if and only if the name attribute ends with
+                  'Axis'.
+               </h2>
+               <p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                  2006 taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-38</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.24">6.7.24</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xsd:element name attribute must end with 'Table' if and only if substitutionGroup attribute equals 'xbrldt:hypercubeItem'.</h2>
+               <p>An element is defined to be a "Table" if and only if its substitutionGroup attribute equals 'xbrldt:hypercubeItem'.</p>
+               <p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI
+                  2006 taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-38</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.25">6.7.25</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If the xsd:element substitutionGroup attribute is not equal to 'xbrldt:dimensionItem' or equal to 'xbrldt:hypercubeItem' then
+                  it must equal 'xbrli:item'.
+               </h2>
+               <p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies. If there were any
+                  such standard taxonomy it would be included in a 'good' test variation.
+               </p>
+               <p>REMARK: This does allow @substitutionGroup to be absent, so it would allow non-XBRL elements and that may have some use in
+                  some future EDGAR release.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-38</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.26">6.7.26</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If xsd:element name attribute ends with 'LineItems' then the abstract attribute must equal 'true'.</h2>
+               <p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies. If there were any
+                  such standard taxonomy it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-38</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.27">6.7.27</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xsd:element name attribute must end with 'Domain' or 'Member' if and only if the type equals or is derived from 'domainItemType'
+                  in a standard taxonomy schema target namespace.
+               </h2>
+               <p>An element is a "Domain" if and only if its name attribute ends with 'Domain'.</p>
+               <p>An element is a "Member" if and only if its name attribute ends with 'Member'.</p>
+               <p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies.</p>
+               <p>REMARK: The original wording required a specific US type, not a type derived from it. Now, types in any standard namespace
+                  can trigger this rule. 006gd flips to 006ng as a consequence.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-38</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.7.28">6.7.28</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If xsd:element type attribute equals or is derived from 'domainItemType' in a standard taxonomy schema target namespace then
+                  the xbrli:periodType attribute must equal 'duration'.
+               </h2>
+               <p>REMARK: this only applies to company extension schemas, although it holds for all standard taxonomies. If there were a standard
+                  taxonomy that violated the rule, it would appear in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-38</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.9.1">6.9.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A link:linkbase must be XML Linking Language (XLink) 1.0 valid.</h2>
+               <p>Two syntax rules about elements with a type attribute equal to 'extended' ("extended-type links") require emphasis:</p>
+               <ol>
+                  <li>The scope of the xlink:label attribute is only its enclosing extended-type link. The xlink:label attribute does not function
+                     like the XML id attribute, which must be unique in an entire document. Therefore, the same value of the xlink:label attribute
+                     may appear on any number of elements, so long as those elements appear in different extended-type links.
+                  </li>
+                  <li>Two elements with a type attribute equal to 'arc' ("arcs") in the same extended-type link must not have the same values for
+                     the xlink:from attribute and the xlink:to attribute, even if their xlink:arcrole attribute is different. However, this prohibition
+                     against duplicate arcs is unrelated to any XBRL or EDGAR level syntax rule that forbids equivalent arcs (<a href="http://www.xbrl.org/Specification/XBRL-RECOMMENDATION-2003-12-31+Corrected-Errata-2008-07-02.htm#_3.5.3.9">XBRL 2.1 section 3.5.3.9.7.4</a>).
+                  </li>
+               </ol>
+               <p>Reliance on these two rules of XLink syntax yields the meaning of the term 'base set' of arcs as defined in XBRL 2.1 and used
+                  elsewhere in this manual.
+               </p>
+               <p>REMARK: This applies to company extension linkbases, but no standard taxonomy linkbase violates it.</p>
+               <p>REMARK: This is tested in 604-03-xbrl-valid.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-46</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.9.3">6.9.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A link:linkbase in a submission must have no ineffectual arcs.</h2>
+               <p>Elements of the xlink:type='arc' attribute are ineffectual when there is an equivalent arc with the same or higher priority.
+                  An arc with use="prohibited" always takes precedence over arcs with use="optional" when their priorities are the same.
+               </p>
+               <p>Examples:</p>
+               <ul>
+                  <li>An arc with a use attribute equal to 'prohibited' with no equivalent arc is ineffectual.</li>
+                  <li>An arc with a use attribute equal to 'prohibited' with the priority attribute less than the priority attribute of an effective
+                     arc is ineffectual.
+                  </li>
+                  <li>An arc in a submission may cause an arc in a standard taxonomy to become ineffective.</li>
+               </ul>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-46</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.9.4">6.9.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xlink:role attribute of an element with a type='extended' attribute or a type='resource' attribute must be present and
+                  must not be empty.
+               </h2>
+               <p>REMARK: Note that type='extended' is handled by XBRL 2.1 so this really only applies to type='resource', and there are other
+                  rules for reference and footnote that would trigger errors if the xlink:role were missing. Therefore just one variation for
+                  the label resource, for now. Also note that this only applies to a company extension linkbase.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-47</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.9.5">6.9.5</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xlink:role attribute of an element with an xlink:type attribute of 'resource' must be present and must be defined in XBRL
+                  2.1 or a standard taxonomy.
+               </h2>
+               <p>REMARK: type='extended' is handled by XBRL 2.1 so this really only applies to type='resource', moreover, footnote and reference
+                  would be handled by other rules so this is only for labels.
+               </p>
+               <p>REMARK: This only applies to a company extension linkbase. There is no standard taxonomy linkbase that violates this rule,
+                  but if there were, it would be included in a 'good' test variation.
+               </p>
+               <p>REMARK: the roles declared in these tests have link:definition text that conforms to 6.7.12 even though 6.7.12 was only meant
+                  to apply to roles that are used on link:presentation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-47</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.9.6">6.9.6</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The text preceding a sharp sign '#' in an xlink:href attribute of link:arcroleRef must be a standard taxonomy.</h2>
+               <p>No custom arc roles.</p>
+               <p>REMARK: This applies only to company extension taxonomies. The arc roles declared in<a href="http://www.xbrl.org/2005/xbrldt-2005.xsd">http://www.xbrl.org/2005/xbrldt-2005.xsd</a>are okay because that is a standard taxonomy location. The arc roles declared in US GAAP 2009 are not in a standard taxonomy
+                  location.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-47</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.9.7">6.9.7</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>All extended link elements in a single linkbase must have the same namespace and local name.</h2>
+               <p>An element is an extended link if its type attribute is equal to 'extended'.</p>
+               <p>A single linkbase cannot mix different kinds of link elements.</p>
+               <p>REMARK: Although this error is caught at the EDGARLink submission (transport) level it is easy to verify before attempted
+                  submission.
+               </p>
+               <p>REMARK: This only applies to a company extension linkbase. There is no standard taxonomy linkbase that violates this rule,
+                  but if there were, it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-47</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.9.9">6.9.9</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The value of the priority attribute must be strictly less than 10.</h2>
+               <p>Future standard taxonomy linkbases may need to prevent specific arcs from being prohibited.</p>
+               <p>REMARK: This only applies to a company extension linkbase. The RR 2010 standard taxonomy linkbase contains links with priority
+                  attributes of 10, and is therefore a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-48</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.10.1">6.10.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An element used in a fact or xbrldi:explicitMember in an instance must have an English standard label in the DTS of that instance.</h2>
+               <p>An element "has an English standard label" in a DTS if there is an effective arc with the defining xsd:element source, an
+                  xlink:arcrole attribute equal to 'http://www.xbrl.org/2003/role/concept-label' and target link:label with an xml:lang attribute
+                  equal to 'en-US' and an xlink:role attribute equal to 'http://www.xbrl.org/2003/role/label'.
+               </p>
+               <p>This rule is particularly relevant to elements declared in the company schema, because a document that could contain a link:label
+                  for a company-specific element would never appear in a standard taxonomy, and therefore has to be in a label linkbase in the
+                  same submission. It is not necessary for the DTS to have a standard label for all elements declared in the DTS.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-48</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.10.2">6.10.2</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An element used in a fact or xbrldi:explicitMember in an instance must have at most one label for any combination of the xlink:role
+                  attribute and the xml:lang attribute in the DTS of that instance.
+               </h2>
+               <p>An element "has a label" in a DTS if there is an effective arc with the defining xsd:element source, an xlink:arcrole attribute
+                  equal to 'http://www.xbrl.org/2003/role/label' and target link:label with an xml:lang attribute starting with 'en'.
+               </p>
+               <p>This rule is particularly relevant to elements declared in the company schema, because a document that could contain a link:label
+                  for a company-specific element would never appear in a standard taxonomy, and therefore has to be in a label linkbase in the
+                  same submission.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-48</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.10.3">6.10.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If an element used in an instance is assigned a label in the DTS whose xml:lang attribute does not start with 'en', then the
+                  DTS must also contain a link:label for the same element and all other attributes with an xml:lang attribute that starts with
+                  'en'.
+               </h2>
+               <p>Non-English labels may appear for elements in the schema, but they must be translated into English if they are used in an
+                  instance.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-48</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.10.4">6.10.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The DTS of an instance must have no distinct elements having the same English standard label.</h2>
+               <p>Users will most often see the English standard label of a concept, and it decreases clarity if distinct elements have the
+                  same label. Note that there is no restriction on elements having duplicated labels for other values of an xlink:role attribute.
+               </p>
+               <p>REMARK: this restriction applies to all elements, not just those used in the instance.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-48</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.10.5">6.10.5</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A label linkbase must not have a definition for an element defined in a standard taxonomy.</h2>
+               <p>The rule prevents an extension linkbase from removing the documentation from a published element. This is important for comparability
+                  and to prevent contradictory definitions for elements.
+               </p>
+               <p>REMARK: This only applies to company extension linkbases. If edgartaxonomies.xml were to list a standard taxonomy linkbase
+                  containing 'documentation' label roles, then that standard taxonomy linkbase would be included in a 'good' testcase variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-49</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.10.6">6.10.6</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The ASCII text of link:label must be a string of fewer than 511 characters with no consecutive XML whitespace characters and
+                  no occurrences of '&lt;' unless its xlink:role attribute is 'http://www.xbrl.org/2003/label/documentation'.
+               </h2>
+               <p>ASCII character 60 (decimal) and the following ASCII sequences are prohibited in the content of labels other than documentation
+                  labels: &amp;lt; &amp;#60; &amp;#x3C.
+               </p>
+               <p>REMARK: This only applies to company extension label linkbases. If a standard taxonomy label linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-49</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.10.8">6.10.8</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The text of link:label must not have leading or trailing XML whitespace.</h2>
+               <p>All labels may contain the XML whitespace characters ASCII 9, 10, 13 and 32 anywhere except at their start or end. Documentation
+                  labels may contain sequences of extra whitespace; all other labels must be normalized; see 6.10.6.
+               </p>
+               <p>REMARK: This only applies to company extension label linkbases. If a standard taxonomy label linkbase appearing in edgartaxonomies.xml
+                  were to violate this rule, then it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-49</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.12.1">6.12.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The link:presentationArc element requires an order attribute.</h2>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-53</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.12.2">6.12.2</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>All effective presentation relatonships in the same base set with the same source element must have distinct values of the
+                  order attribute.
+               </h2>
+               <p>This rule ensures an intentional ordering of facts when displayed.</p>
+               <p>REMARK: this rule applies whether either of the elements in the presentation arcs used in an instance or not</p>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-52</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.12.3">6.12.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An element used in an instance must participate in at least one effective presentation relationship in the DTS of that instance.</h2>
+               <p>An element "participates in" a presentation arc in a DTS if it is a source or target of a presentation relationship in that
+                  DTS.
+               </p>
+               <p>An element is "a source of a presentation relationship" in a DTS if there is an effective arc with the defining xsd:element
+                  source and an xlink:arcrole attribute equal to 'http://www.xbrl.org/2003/role/parent-child' in a document of that DTS.
+               </p>
+               <p>An element is "a target of a presentation relationship" in a DTS if there is an effective arc with the defining xsd:element
+                  target and an xlink:arcrole attribute equal to 'http://www.xbrl.org/2003/role/parent-child' in a document of that DTS.
+               </p>
+               <p>Every fact must be displayable in some way using presentation relationships. This rule is relevant to all elements but particularly
+                  so to elements declared in the company schema, because a linkbase that could contain a link:loc element for a company-specific
+                  element would never appear in a standard taxonomy, and therefore has to be in a linkbase in the same submission.
+               </p>
+               <p>Elements used in an instance only as QNames in xbrldi:explicitMember must nevertheless have a presentation relationship in
+                  the DTS of that instance.
+               </p>
+               <p>It is not necessary for the DTS to have a presentation relationship for all elements declared in the DTS.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-53</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.12.5">6.12.5</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If an element used in an instance is the target in the instance DTS of more than one effective presentation relationship in
+                  a base set with the same source element, then the presentation relationships must have distinct values of the preferredLabel
+                  attribute.
+               </h2>
+               <p>This rule prevents the same fact from appearing twice in a set of line items, except when it is, for example, shown as both
+                  the beginning and ending value of a roll forward.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-54</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.14.1">6.14.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Element link:calculationArc requires an order attribute.</h2>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-55</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.14.2">6.14.2</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Element link:calculationArc requires a weight attribute value equal to 1 or -1.</h2>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-55</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.14.3">6.14.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The source and target of an effective calculation arc must have equal values of the xblri:periodType attribute.</h2>
+               <p>Facts of elements with different values of the xbrli:periodType attribute must have different values of the contextRef attribute
+                  and therefore the calculation arc between them has no meaning.
+               </p>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation. In fact, because there are no standard taxonomies that
+                  violate the rule, there is not even a variation that tests whether such a bad arc would be okay if prohibited.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-55</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.14.4">6.14.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>There must be no directed cycles in effective relationships having arc role http://www.xbrl.org/2003/role/summation-item.</h2>
+               <p>This rule prevents a fact from participating in a summation that includes itself.</p>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation. In particular, add this test: calculation arcs form a
+                  directed cycle, but one of the imported standard arcs is prohibited, GOOD.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-55</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.14.5">6.14.5</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If an instance contains non-empty facts for the source and target of an effective calculation relationship, then at least
+                  one effective presentation relationship that the source and target appear in (because of 6.12.3) must be either (a) a relationship
+                  with each other or (b) two relationships with any other elements that share a single extended link.
+               </h2>
+               <p>When facts participate in a calculation together, they must be shown with presentation relationships in the same relationship
+                  group, although not necessarily adjacent to each other.
+               </p>
+               <p>REMARK: Should be "...single extended link<i>role</i>".
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-55</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.1">6.16.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Element link:definitionArc requires an order attribute.</h2>
+               <p>This ensures an intentional displayed order of definition relationships.</p>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-57</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.3">6.16.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The target of an effective relationship with an xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/dimension-domain'
+                  or 'http://xbrl.org/int/arcrole/dimension-default' must be a Domain or Member.
+               </h2>
+               <p>In this rule both the dimension-domain and the dimension-default arc roles must have a source that is an Axis (xbrldt:dimensionItem);
+                  these two rules work together to ensure that each Axis has an meaningful set of domain members.
+               </p>
+               <p>REMARK: Note that it is not necessary for the target element to be used in the instance, for this to be a violation.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-58</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.4">6.16.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The xlink:arcrole attributes 'http://xbrl.org/int/dim/arcrole/domain-member' and 'http://xbrl.org/int/dim/arcrole/dimension-domain'
+                  must have no undirected cycles in any Directed Relationship Set as defined in XBRL Dimensions 1.0.
+               </h2>
+               <p>For example, company ABC defines, in us-gaap:SegmentGeographicalDomain, the regions abc:MidwestMember and abc:SoutheastMember,
+                  but stpr:KY (Kentucky) cannot be in both regions.
+               </p>
+               <p>This rule also impacts line items, so that the balance at the start and end a roll forward cannot appear twice under a single
+                  axis. The same rendering effect is achieved by including only the ending balance in the domain-member relationships, so that
+                  the beginning balance will appear simply as the ending balance of the previous period.
+               </p>
+               <p>Tables define the rows and columns (the axes) that cells (the facts) may have. The domain-member arc role defines relationships
+                  within each row or column, such as those between a parent entity and its reportable segments, among sets of classes of equity,
+                  and or among geographical regions. Tables become difficult to consistently populate with facts and ambiguous to display when
+                  elements can appear in more than one Domain (or Member). This rule ensures that any given element does not appear in more
+                  than one place along an Axis, and will not have any overlapping domain subsets or members. In general, almost every situation
+                  that at first appears to call for an Axis with tangled and overlapping subsets of Member elements actually turns out to be
+                  a case more clearly modeled using two distinct axes.
+               </p>
+               <p>REMARK: DRS discovery begins at dimension-domain relationships. Whether the domain member appears in instance facts is not
+                  relevant.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-58</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.5">6.16.5</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The DTS of an instance must contain in each base set, for each source element, at most one effective relationship with an
+                  xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/all'.
+               </h2>
+               <p>A fact can always appear in more than one Table (hypercube), but this rule prevents a fact from having contradictory meanings
+                  in different Tables.
+               </p>
+               <p>REMARK: This constraint does not take primary item inheritance into account, and therefore rules out the simplest uses of
+                  unions of 'all' hypercubes. A future release may take primary item inheritance into account and therefore implementors may
+                  wish to issue a warning in situations like that shown in variation 002gd.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-58</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.6">6.16.6</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An effective relationship with an xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/notAll' must have an xbrldt:closed
+                  attribute equal to 'false'.
+               </h2>
+               <p>A closed negative hypercube is better modeled with an open positive hypercube.</p>
+               <p>REMARK: This only applies to company extension linkbases. If a standard taxonomy linkbase appearing in edgartaxonomies.xml
+                  violated this rule it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-58</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.7">6.16.7</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An axis of a negative table must appear in a positive table in a definitionLink having an equal value of xlink:role.</h2>
+               <p>An Axis cannot appear as an Axis of a negative hypercube (that is, axis excluded from a table) unless there are members of
+                  that Axis in a positive table.
+               </p>
+               <p>Formally, an axis element that is the target of an effective relationship with arcrole equal to 'http://xbrl.org/int/dim/arcrole/hypercube-dimension'
+                  that is consecutive from a relationship with arc role 'http://xbrl.org/int/dim/arcrole/notAll' must also be the target of
+                  an effective relationship in a link:definitionLink having the same value of xlink:role, and which itself is consecutive from
+                  an effective relationship with xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/all'.
+               </p>
+               <p>An instance DTS in which the arc role 'http://xbrl.org/int/dim/arcrole/notAll' does not appear will not be affected by this
+                  rule.
+               </p>
+               <p>REMARK: Ordinarily there would be a test here which would have a prohibited notAll arc somewhere; can't do that in this test
+                  because no standard taxonomy has a notAll, and the prohibition on ineffectual arcs prevents me from putting one in here. So
+                  those were variations 001 and 003 and they are not in here.
+               </p>
+               <p>REMARK: This rule is intended to ensure that the notAll arc does not forbid members of a dimension that is not even relevant
+                  to a hypercube. domain-member relationships between P1 and P2 are not relevant, since neither all nor notAll are ever consecutive
+                  from domain-member. Note that the rule assumes, but does not require, that the target roles on HcDim1 and HcDim2 are different,
+                  so that the members of Dim1 are different in HC1 and HC2.
+               </p>
+               <p>REMARK: The rule, as written, fails to make explicit that the condition can only be evaluated with respect to some primary
+                  item; without some primary item as a common ancestor, dimensions are irrelevant to each other. In variation 003ng, the element
+                  EntityTaxIdentificationNumber has a notAll, but no all (and neither does any ancestor in that role).
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-59</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.8">6.16.8</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>The target of an effective relationship with an xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/notAll'
+                  must not be the target of an effective arc with an xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/all'
+                  in link:definitionLink elements having the equal values of xlink:role.
+               </h2>
+               <p>This rule ensures that a Table (hypercube) is not both positive and negative.</p>
+               <p>REMARK: This rule complements 6.16.7 by ensuring that HC1 and HC2 are distinct. The combination of this constraint, 6.16.4,
+                  and XBRL Dimensions 1.0 constraint's prohibition of undirected cycles in HcDim relationships prevents using @targetRole to
+                  give the same HC element different members of the same axis.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-59</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.16.9">6.16.9</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>If the value of attribute xbrldt:targetRole on an effective definition relationship is not empty, then it must have at least
+                  one effective consecutive relationship, as defined by the XBRL Dimensions specification.
+               </h2>
+               <p>The xbrldt:targetRole attribute is used to connect certain definition arcs that appear in different extended link roles. A
+                  targetRole attribute that points to no arcs indicates that a table is malformed.
+               </p>
+               <p>REMARK: Consecutive relationships are defined at<a href="http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1">http://www.xbrl.org/Specification/XDT-REC-2006-09-18.htm#_2.1.1</a>and consist only of the following initial-following arc role pairs: all, hypercube-dimension; not-all, hypercube-dimension;
+                  hypercube-dimension, dimension-domain; dimension-domain, domain-member; domain-member, domain-member. Note that domain-member
+                  is never followed by all, not-all, or any arcrole other than domain-member.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-59</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.18.1">6.18.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>An element that has a company specific namespace must not have a reference.</h2>
+               <p>The elements defined in a company extension schema must not have any authoritative references.</p>
+               <p>An xsd:element "has a reference" if the DTS of the instance contains an effective reference arc whose source is that xsd:element.
+                  A reference linkbase should only be attached to a submission when it is a copy of a linkbase published along with a schema
+                  for early adopters. In that situation the schema would have a targetNamespace attribute of some authority other than the registrant
+                  itself.
+               </p>
+               <p>REMARK: A company extension also cannot remove or change references in standard taxonomies (this is a technical consequence
+                  of the rule prohibiting URI fragments other than shorthand xpointers).
+               </p>
+               <p>REMARK: This only applies to company extension linkbases. If there were a reference linkbase in edgartaxonomies.xml, then
+                  it would be included in a 'good' test variation.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-60</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.18.2">6.18.2</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>A company extension reference linkbase must not add, remove or change references for any element declared in a standard taxonomy
+                  schema.
+               </h2>
+               <p>REMARK: 6.19 reads "A company extension also cannot remove or change references in standard taxonomies (this is a technical
+                  consequence of the rule prohibiting URI fragments other than shorthand xpointers)." but this does not explicitly say the obvious
+                  point that you can't ADD authoritative references, either.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-60</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.22.1">6.22.1</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+               <p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files that are supported by EDGAR, their locations, required namespaces,
+                  and where appropriate, the relevant EDGAR form types.
+               </p>
+               <p>REMARK: There is no such section 6.22.1, it is meant to refer to 'taxonomies that we allow'. Keep in mind that<a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">http://www.sec.gov/info/edgar/edgartaxonomies.xml</a>is the ONLY authoritative source of "standard taxonomies". In this test suite we test the allowed files in groups according
+                  to family and version (i.e., release).
+               </p>
+               <p>REMARK: This test leaves out USFRTF and ICI given that none of the other EDGAR validations apply to them.</p>6-61
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-61</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.22.2">6.22.2</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+               <p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files that are supported by EDGAR, their locations, required namespaces,
+                  and where appropriate, the relevant EDGAR form types.
+               </p>
+               <p>REMARK: There is no such section 6.22.2, it is meant to refer to 'files that are likely to be referenced but that actually
+                  we do not allow.'. Keep in mind that<a href="http://www.sec.gov/info/edgar/edgartaxonomies.xml">http://www.sec.gov/info/edgar/edgartaxonomies.xml</a>is the ONLY authoritative source of "standard taxonomies". In this test suite we test a subset of the disallowed files, one
+                  at a time.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-61</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.22.3">6.22.3</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+               <p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files that are supported by EDGAR, their locations, required namespaces,
+                  and where appropriate, the relevant EDGAR form types.
+               </p>
+               <p>REMARK: There is no such section 6.22.3, these tests are just to verify that 2008 taxonomies work together but do not work
+                  with the 2009 or subsequent taxonomies because of the XBRL 2.1 level conflict between roleType declarations (when their allowed
+                  linkbases are included in the mix). Going forward, taxonomies of different vintages are expected to coexist in a DTS without
+                  XBRL-level errors and this testcase will not be necessary.
+               </p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-61</td>
+         </tr>
+         <tr>
+            <td style="vertical-align:top;">
+               <h2 id="_6.22.4">6.22.4</h2>
+            </td>
+            <td colspan="1" style="vertical-align:top;">
+               <h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+               <p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files that are supported by EDGAR, their locations, required namespaces,
+                  and where appropriate, the relevant EDGAR form types.
+               </p>
+               <p>REMARK: There is no such section 6.22.4, it is only here to make sure that ex-101's are validated even for SOI and RR taxonomies.</p>
+            </td>
+            <td style="text-align:left;vertical-align:top;">6-61</td>
+         </tr>
+      </table>
+   </body>
+</html>

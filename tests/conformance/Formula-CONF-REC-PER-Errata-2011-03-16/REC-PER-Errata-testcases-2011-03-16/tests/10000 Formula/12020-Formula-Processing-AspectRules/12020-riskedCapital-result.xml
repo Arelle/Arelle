@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:dim="http://xbrl.org/formula/conformance/example/dimensions" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd
+http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd
+http://xbrl.org/formula/conformance/example 12020-riskedCapital-concepts.xsd
+">  
+
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="12020-riskedCapital-concepts.xsd"/>
+
+  <unit id="unit-usd">
+    <measure>iso4217:USD</measure>
+  </unit>
+
+  <context id="instant-2007">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+        <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="instant-2006">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+        <instant>2006-12-31</instant>
+    </period>
+  </context>
+
+  <context id="instant-2005">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+        <instant>2005-12-31</instant>
+    </period>
+  </context>
+  
+  <concept:RiskedCapital decimals="0" contextRef="instant-2007" unitRef="unit-usd">100</concept:RiskedCapital>
+
+  <concept:RiskedCapital decimals="0" contextRef="instant-2006" unitRef="unit-usd">120</concept:RiskedCapital>
+
+  <concept:RiskedCapital decimals="0" contextRef="instant-2005" unitRef="unit-usd">120</concept:RiskedCapital>
+
+</xbrl>

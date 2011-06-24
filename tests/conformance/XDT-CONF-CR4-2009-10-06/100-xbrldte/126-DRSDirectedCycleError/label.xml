@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linkbase xmlns='http://www.xbrl.org/2003/linkbase' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation=' http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd' xmlns:xlink='http://www.w3.org/1999/xlink'>
+  <labelLink xlink:role='http://www.xbrl.org/2003/role/link' xlink:type='extended'>
+    <loc xlink:href='schema.xsd#primaryItem' xlink:label='primaryItem' xlink:type='locator'/>
+    <loc xlink:href='schema.xsd#hypercube' xlink:label='hypercube' xlink:type='locator'/>
+    <loc xlink:href='schema.xsd#dimension' xlink:label='dimension' xlink:type='locator'/>
+    <loc xlink:href='schema.xsd#domain' xlink:label='domain' xlink:type='locator'/>
+    <loc xlink:href='schema.xsd#domainMember' xlink:label='domainMember' xlink:type='locator'/>
+
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="primaryItem_lbl" xml:lang="en">Primary item</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="hypercube_lbl" xml:lang="en">Hypercube</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="dimension_lbl" xml:lang="en">Dimension</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="domain_lbl" xml:lang="en">Domain head</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="domainMember_lbl" xml:lang="en">Domain member</label>
+
+    <labelArc xlink:arcrole='http://www.xbrl.org/2003/arcrole/concept-label' xlink:from='primaryItem'  xlink:to='primaryItem_lbl' xlink:type='arc'/>
+    <labelArc xlink:arcrole='http://www.xbrl.org/2003/arcrole/concept-label' xlink:from='hypercube'    xlink:to='hypercube_lbl' xlink:type='arc'/>
+    <labelArc xlink:arcrole='http://www.xbrl.org/2003/arcrole/concept-label' xlink:from='dimension'    xlink:to='dimension_lbl' xlink:type='arc'/>
+    <labelArc xlink:arcrole='http://www.xbrl.org/2003/arcrole/concept-label' xlink:from='domain'       xlink:to='domain_lbl' xlink:type='arc'/>
+    <labelArc xlink:arcrole='http://www.xbrl.org/2003/arcrole/concept-label' xlink:from='domainMember' xlink:to='domainMember_lbl' xlink:type='arc'/>
+  </labelLink>
+</linkbase>

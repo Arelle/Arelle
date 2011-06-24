@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-25</number>
+<name>EDGAR Filer Manual v16 6.7.25 page 6-38</name>
+<description>
+<h2>If the xsd:element substitutionGroup attribute is not equal to 'xbrldt:dimensionItem' or equal to 'xbrldt:hypercubeItem' then it
+must equal 'xbrli:item'.</h2>
+<p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies. If there were any such
+standard taxonomy it would be included in a 'good' test variation.</p>
+<p>REMARK: This does allow @substitutionGroup to be absent, so it would allow non-XBRL elements and that may have some use in some
+future EDGAR release.</p>
+</description>
+<reference specification="11188"/>
+<variation id="_001ng">
+<name>6.7.25, substitutionGroup on stringItemType is wrong, NOGOOD. </name>
+<description> substitutionGroup on stringItemType is wrong, NOGOOD. </description>
+<reference specification="11188"/>
+<data>
+<instance readMeFirst="true">e60725001ng-20081231.xml</instance>
+<linkbase>e60725001ng-20081231_pre.xml</linkbase>
+<linkbase>e60725001ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60725001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60725" name="Substitution-Group-Custom" frd="du"/>
+</result>
+</variation>
+<variation id="_002gd">
+<name>6.7.25, substitutionGroup is absent on non-xbrl element, GOOD.</name>
+<description> substitutionGroup is absent on non-xbrl element, GOOD.</description>
+<reference specification="11188"/>
+<data>
+<instance readMeFirst="true">e60725002gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60725002gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

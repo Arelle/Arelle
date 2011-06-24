@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Custom Linkbases on Instance documents" description="Rules about DTS discovery and what is or is not included in the DTS in relation with custom linkbases on instance documents" outpath="out" owner="ihr@xbrl.org" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-1" name="instance-points-to-another-instance-in-a-schema">
+		<description>
+			The instance document 310-01... includes a custom linkbase. In that linkbase there is an arc whose locators one point to a concept in the instance and the other point to another concept in another instance that exist inside the appinfo section of another schema. The test case is valid and the second taxonomy schema MUST be discovered in the DTS of the instance because there is a locator pointing to an XML schema document.
+		</description>
+		<data>
+			<instance readMeFirst="true">310-01-instance-points-to-another-instance-in-a-schema.xml</instance>
+			<xsd readMeFirst="false">310-SimpleTaxonomy.xsd</xsd>
+			<linkbase readMeFirst="false">310-SimpleTaxonomy-label.xml</linkbase>
+			<xsd readMeFirst="false">310-01-second-schema.xsd</xsd>
+			<linkbase readMeFirst="false">310-custom-linkbase-instance.xml</linkbase>
+			<xsd readMeFirst="false">310-custom-linkbase.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="SchemaRefCounterExample">
+		<description>
+			The instance document 310-02... includes a custom linkbase. In that linkbase there is an arc whose locators one point to a concept in the instance and the other point to an XML element in a XML file. The test case is valid and the arbitrary XML file MUST NOT be included in the DTS.
+		</description>
+		<data>
+			<instance readMeFirst="true">310-02-instance-points-to-xml-file.xml</instance>
+			<xsd readMeFirst="false">310-SimpleTaxonomy.xsd</xsd>
+			<linkbase readMeFirst="false">310-SimpleTaxonomy-label.xml</linkbase>
+			<linkbase readMeFirst="false">310-02-custom-linkbase-instance.xml</linkbase>
+			<xsd readMeFirst="false">310-custom-linkbase.xsd</xsd>
+			<instance readMeFirst="false">310-02-raw-xml-file.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>

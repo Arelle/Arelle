@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47201</number>
+  <name>Concept matching filter test</name>
+  <description>
+    Tests of concept matching filter.
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-concept-matching-filter"/>
+
+  <variation id="V-01">
+    <name>Three facts, concept match of second of two fact variables</name>
+    <description>Tests strategy is three facts to two fact variables, with second concept-matched to first produces three results</description>
+    <reference specification="MATCH-FILTER" id="sec-concept-matching-filter"/>
+    <data>
+      <schema>47201-concepts.xsd</schema>
+      <linkbase>47201-conceptMatching-formula.xml</linkbase>
+      <instance readMeFirst="true">47201-conceptMatching-instance.xml</instance>
+    </data>
+    <result>
+      <instance>47201-conceptMatching-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Three facts, concept match complement of second of two fact variables</name>
+    <description>Tests strategy is three facts to two fact variables, with second concept-matched-complement to first produces six results</description>
+    <reference specification="MATCH-FILTER" id="sec-concept-matching-filter"/>
+    <data>
+      <schema>47201-concepts.xsd</schema>
+      <linkbase>47201-conceptMatchingComplement-formula.xml</linkbase>
+      <instance readMeFirst="true">47201-conceptMatchingComplement-instance.xml</instance>
+    </data>
+    <result>
+      <instance>47201-conceptMatchingComplement-result.xml</instance>
+    </result>
+  </variation>  
+
+<!-- Bad test per specification
+  <variation id="V-03">
+    <name>Variable name has bad prefix</name>
+    <description>Same as V-01.
+</description>
+    <reference specification="MATCH-FILTER" id="sec-concept-matching-filter"/>
+    <data>
+      <schema>47201-concepts.xsd</schema>
+      <linkbase>47201-badVariablePrefix-formula.xml</linkbase>
+      <instance readMeFirst="true">47201-badVariablePrefix-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">
+         xbrlve:variableNameResolutionFailure
+      </error>
+    </result>
+  </variation>  
+-->
+
+  <variation id="V-03">
+    <name>Variable name has no prefix and filter element has default xmlns not used for variable name</name>
+    <description>
+Same as V-01
+</description>
+    <reference specification="MATCH-FILTER" id="sec-concept-matching-filter"/>
+    <data>
+      <schema>47201-concepts.xsd</schema>
+      <linkbase>47201-noVariablePrefix-formula.xml</linkbase>
+      <instance readMeFirst="true">47201-noVariablePrefix-instance.xml</instance>
+    </data>
+    <result>
+      <instance>47201-conceptMatching-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

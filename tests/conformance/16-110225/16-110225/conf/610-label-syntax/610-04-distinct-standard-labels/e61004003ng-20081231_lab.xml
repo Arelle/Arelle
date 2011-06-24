@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityListingsLineItems"
+xlink:label="EntityListingsLineItems"/>
+<link:loc xlink:type="locator" xlink:href="e61004003ng-20081231.xsd#e6100400_Promises"
+xlink:label="Promises"/>
+<link:loc xlink:type="locator" xlink:href="e61004003ng-20081231.xsd#e6100400_DefMember"
+xlink:label="DefMember"/>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsLineItems"
+xlink:role="http://www.xbrl.org/2003/role/totalLabel"
+xml:lang="en-US"
+id="label_EntityListingsLineItems">Entity Listings, Redundant:</link:label>
+<link:label xlink:type="resource" xlink:label="label_Promises"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Promises">Promises</link:label>
+<link:label xlink:type="resource" xlink:label="label_DefMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DefMember">Top</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingsLineItems"
+xlink:to="label_EntityListingsLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Promises"
+xlink:to="label_Promises"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DefMember"
+xlink:to="label_DefMember"/>
+</link:labelLink>
+</link:linkbase>

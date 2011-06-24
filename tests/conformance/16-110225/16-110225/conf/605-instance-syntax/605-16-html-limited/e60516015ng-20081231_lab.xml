@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="e60516015ng-20081231.xsd#e60516_ItemTextBlock"
+xlink:label="edgar_MyReceivablesPolicyTextBlock"/>
+<link:loc xlink:type="locator" xlink:href="e60516015ng-20081231.xsd#e60516_ItemString"
+xlink:label="stringItem"/>
+<link:loc xlink:type="locator"
+xlink:href="e60516015ng-20081231.xsd#e60516_ItemMonetaryInstant"
+xlink:label="monetaryItem"/>
+<link:label xlink:type="resource" xlink:label="edgar_MyReceivablesPolicyTextBlock_lbl"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Item [Text Block]</link:label>
+<link:label xlink:type="resource" xlink:label="label_stringItem"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_stringItem">Item [String]</link:label>
+<link:label xlink:type="resource" xlink:label="label_monetaryItem"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_monetaryItem">Item [Monetary, Instant]</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="edgar_MyReceivablesPolicyTextBlock"
+xlink:to="edgar_MyReceivablesPolicyTextBlock_lbl"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="stringItem"
+xlink:to="label_stringItem"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="monetaryItem"
+xlink:to="label_monetaryItem"/>
+</link:labelLink>
+</link:linkbase>

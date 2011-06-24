@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" targetNamespace="http://xbrl.org/2007/custom" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:c="http://xbrl.org/2007/custom">
+
+	<annotation>
+		<appinfo>    
+			<link:arcroleType 
+				id="instance-to-instance" 
+				arcroleURI="http://www.xbrl.org/2999/instance-to-instance"
+				cyclesAllowed="any">
+				<link:definition>Identifies the content of a custom linkbase</link:definition>
+				<link:usedOn>c:customArc</link:usedOn>
+			</link:arcroleType>
+		</appinfo>
+		<appinfo>    
+			<link:arcroleType 
+				id="instance-to-anything" 
+				arcroleURI="http://www.xbrl.org/2999/instance-to-anything"
+				cyclesAllowed="any">
+				<link:definition>Identifies the content of a custom linkbase</link:definition>
+				<link:usedOn>c:customArc</link:usedOn>
+			</link:arcroleType>
+		</appinfo>
+	</annotation>
+	
+	<import namespace="http://www.xbrl.org/2003/XLink" schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+	<import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.xbrl.org/2003/xlink-2003-12-31.xsd"/>
+	
+	<element name="customLink" substitutionGroup="xl:extended" type="xl:extendedType">
+		<annotation>
+			<documentation>
+      custom extended link element definition
+			</documentation>
+		</annotation>
+	</element>
+
+	<element name="customArc" substitutionGroup="xl:arc" type="xl:arcType"/>
+
+</schema>

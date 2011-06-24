@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:xbrli="http://www.xbrl.org/2003/instance"
+            xmlns:link="http://www.xbrl.org/2003/linkbase"
+            xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+            xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+            xmlns:example="http://www.example.com/2009"
+            xmlns:xbrldi="http://xbrl.org/2006/xbrldi">
+   <link:schemaRef xlink:type="simple"
+                   xlink:href="closed-segment-segment-default-default-segment-absent.xsd"/>
+   <xbrli:context id="ctx">
+      <xbrli:entity>
+         <xbrli:identifier scheme="http://www.xbrl.org">271</xbrli:identifier>
+         <xbrli:segment>
+            <xbrldi:explicitMember dimension="example:Axis1">example:Member1</xbrldi:explicitMember>
+         </xbrli:segment>
+      </xbrli:entity>
+      <xbrli:period>
+         <xbrli:startDate>2009-01-01</xbrli:startDate>
+         <xbrli:endDate>2009-12-31</xbrli:endDate>
+      </xbrli:period>
+   </xbrli:context>
+   <xbrli:unit id="pure">
+      <xbrli:measure>xbrli:pure</xbrli:measure>
+   </xbrli:unit>
+   <example:Prime contextRef="ctx" unitRef="pure" decimals="INF">41</example:Prime>
+</xbrli:xbrl>

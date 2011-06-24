@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated manually by IHR :-) -->
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:tx1="http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx1" xmlns:tx2="http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx2" xmlns:xbrldt="http://xbrl.org/2005/xbrldt">
+	<link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+	<link:roleRef xlink:type="simple" roleURI="http://www.xbrl.org/2003/role/link1" xlink:href="PrimaryItemTaxonomy.xsd#link1"/>
+	<link:roleRef xlink:type="simple" roleURI="http://www.xbrl.org/2003/role/link2" xlink:href="PrimaryItemTaxonomy.xsd#link2"/>
+	<link:definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link1">
+		<link:loc xlink:type="locator" xlink:href="PrimaryItemTaxonomy.xsd#tx_Sales" xlink:label="Sales" xlink:title="Sales"/>
+		<link:loc xlink:type="locator" xlink:href="InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy1.xsd#tx1_Hypercube1" xlink:label="Hypercube1" xlink:title="Hypercube1"/>
+		<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="Sales" xlink:to="Hypercube1" xlink:title="definition: Sales to Hypercube1" order="1.0" xbrldt:contextElement="segment" xbrldt:targetRole="http://www.xbrl.org/2003/role/link"/>
+	</link:definitionLink>
+	<link:definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link2">	
+		<link:loc xlink:type="locator" xlink:href="PrimaryItemTaxonomy.xsd#tx_Sales" xlink:label="Sales" xlink:title="Sales"/>
+		<link:loc xlink:type="locator" xlink:href="InstanceValidAccordingToTwoDimensionalTaxonomiesTaxonomy2.xsd#tx2_Hypercube2" xlink:label="Hypercube2" xlink:title="Hypercube2"/>
+		<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="Sales" xlink:to="Hypercube2" xlink:title="definition: Sales to Hypercube2" order="2.0" xbrldt:contextElement="segment" xbrldt:targetRole="http://www.xbrl.org/2003/role/link"/>
+	</link:definitionLink>
+</link:linkbase>

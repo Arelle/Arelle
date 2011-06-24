@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22140</number>
+  <name>Precondition processing examples</name>
+  <description>
+    Tests of precondition processing
+  </description>
+  <reference specification="VARIABLES" id="sec-preconditions"/>
+
+  <variation id="V-01">
+    <name>Precondition is met</name>
+    <description>Tests that a precondition which is met produces the output fact variable.  In this case, a sequence of (eight) planets is checked for all eight being present.  They are and an output fact is produced.</description>
+    <reference specification="VARIABLES" id="sec-preconditions"/>
+    <data>
+      <schema>22140-precondition-tests.xsd</schema>
+      <linkbase>22140-allPlanets-formula.xml</linkbase>
+      <instance readMeFirst="true">22140-allPlanets-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22140-allPlanets-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Precondition not met</name>
+    <description>Tests that a precondition which is not met prevents the output fact variable.  As above but count is one short.  Result instance has no fact items.</description>
+    <reference specification="VARIABLES" id="sec-preconditions"/>
+    <data>
+      <schema>22140-precondition-tests.xsd</schema>
+      <linkbase>22140-allPlanets-formula.xml</linkbase>
+      <instance readMeFirst="true">22140-missingMars-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22140-missingMars-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Precondition does not produce an effective boolean test result</name>
+    <description>Tests that a precondition which has an expression that has no effective boolean value (according to XPath2 spec).  Result is not produced.</description>
+    <reference specification="VARIABLES" id="sec-preconditions"/>
+    <data>
+      <schema>22140-precondition-tests.xsd</schema>
+      <linkbase>22140-not-effectiveBooleanTest-formula.xml</linkbase>
+      <instance readMeFirst="true">22140-not-effectiveBooleanTest-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:err="http://www.w3.org/2005/xqt-errors">err:FORG0006</error>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Precondition test has xbrli:xbrl as expression context node.</name>
+    <description>Same as V-01 but checks that xbrli:xbrl/xbrli:context node count is 1</description>
+    <reference specification="VARIABLES" id="sec-preconditions"/>
+    <data>
+      <schema>22140-precondition-tests.xsd</schema>
+      <linkbase>22140-contextNodeIsXbrl-formula.xml</linkbase>
+      <instance readMeFirst="true">22140-contextNodeIsXbrl-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22140-contextNodeIsXbrl-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+
+
+

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>616-05</number>
+<name>EDGAR Filer Manual v16 6.16.5 page 6-58</name>
+<description>
+<h2>The DTS of an instance must contain in each base set, for each source element, at most one effective relationship with an
+xlink:arcrole attribute equal to 'http://xbrl.org/int/dim/arcrole/all'.</h2>
+<p>A fact can always appear in more than one Table (hypercube), but this rule prevents a fact from having contradictory meanings in
+different Tables.</p>
+<p>REMARK: This constraint does not take primary item inheritance into account, and therefore rules out the simplest uses of unions of
+'all' hypercubes. A future release may take primary item inheritance into account and therefore implementors may wish to issue a
+warning in situations like that shown in variation 002gd.</p>
+</description>
+<reference specification="11170"/>
+<variation id="_000gd">
+<name>6.16.5, Two all arcs with the same source in same base set, one (from 2008 rr) prohibited, GOOD. </name>
+<description> Two all arcs with the same source in same base set, one (from 2008 rr) prohibited, GOOD. </description>
+<reference specification="11170"/>
+<data>
+<instance readMeFirst="true">e61605000gd-20081231.xml</instance>
+<linkbase>e61605000gd-20081231_lab.xml</linkbase>
+<linkbase>e61605000gd-20081231_pre.xml</linkbase>
+<linkbase>e61605000gd-20081231_def.xml</linkbase>
+<schema>e61605000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.16.5, Two all arcs with the same source in same base set, NOGOOD. </name>
+<description>Element dei:EntityInformationLineItems is a primary element of more than one Table in relationship group 990 - Document -
+Other Information, ABC, to dei:EntityListingsTable in e61605001ng-20081231_def.xml, line 77, and to dei:EntitiesTable defined in
+e61605001ng-20081231_def.xml, line 59. NOGOOD. </description>
+<reference specification="11170"/>
+<data>
+<instance readMeFirst="true">e61605001ng-20081231.xml</instance>
+<linkbase>e61605001ng-20081231_lab.xml</linkbase>
+<linkbase>e61605001ng-20081231_pre.xml</linkbase>
+<linkbase>e61605001ng-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61605001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61605" name="Primary-Element-Has-Redundant-Tables" frd="fs"/>
+</result>
+</variation>
+<variation id="_002gd">
+<name>6.16.5, A primary item has two all hypercubes, one inherited. GOOD. </name>
+<description>Primary item 'Statistics' has two 'all' hypercubes, one inherited from its domain-member parent. GOOD.</description>
+<reference specification="11170"/>
+<data>
+<instance readMeFirst="true">e61605002gd-20081231.xml</instance>
+<linkbase>e61605002gd-20081231_lab.xml</linkbase>
+<linkbase>e61605002gd-20081231_pre.xml</linkbase>
+<linkbase>e61605002gd-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61605002gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

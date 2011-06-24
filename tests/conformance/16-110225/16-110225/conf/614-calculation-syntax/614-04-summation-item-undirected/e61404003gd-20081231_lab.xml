@@ -1,0 +1,1318 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="e61404003gd-20081231.xsd#e6140400_Statistics"
+xlink:label="Statistics"/>
+<link:loc xlink:type="locator" xlink:href="e61404003gd-20081231.xsd#e6140400_DamnedLies"
+xlink:label="DamnedLies"/>
+<link:loc xlink:type="locator" xlink:href="e61404003gd-20081231.xsd#e6140400_Lies"
+xlink:label="Lies"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AccountingAddressMember"
+xlink:label="AccountingAddressMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AccountingContactMember"
+xlink:label="AccountingContactMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AccountingFaxMember"
+xlink:label="AccountingFaxMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AccountingPhoneMember"
+xlink:label="AccountingPhoneMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AddressTypeDomain"
+xlink:label="AddressTypeDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AmendmentDescription"
+xlink:label="AmendmentDescription"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AmendmentFlag"
+xlink:label="AmendmentFlag"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ApproximateDateOfCommencementOfProposedSaleToThePublic"
+xlink:label="ApproximateDateOfCommencementOfProposedSaleToThePublic"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_BusinessContactMember"
+xlink:label="BusinessContactMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_CityAreaCode"
+xlink:label="CityAreaCode"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContactAddressMember"
+xlink:label="ContactAddressMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContactFaxMember"
+xlink:label="ContactFaxMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContactPersonnelEmailAddress"
+xlink:label="ContactPersonnelEmailAddress"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContactPersonnelName"
+xlink:label="ContactPersonnelName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContactPersonnelUniformResourceLocatorURL"
+xlink:label="ContactPersonnelUniformResourceLocatorURL"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContactPersonTypeDomain"
+xlink:label="ContactPersonTypeDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContactPhoneMember"
+xlink:label="ContactPhoneMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContainedFileInformationFileDescription"
+xlink:label="ContainedFileInformationFileDescription"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContainedFileInformationFileName"
+xlink:label="ContainedFileInformationFileName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContainedFileInformationFileNumber"
+xlink:label="ContainedFileInformationFileNumber"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ContainedFileInformationFileType"
+xlink:label="ContainedFileInformationFileType"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_CountryRegion"
+xlink:label="CountryRegion"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_CurrentFiscalYearEndDate"
+xlink:label="CurrentFiscalYearEndDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DeprecatedItemsForDEI"
+xlink:label="DeprecatedItemsForDEI"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentContactMember"
+xlink:label="DocumentContactMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentCopyrightInformation"
+xlink:label="DocumentCopyrightInformation"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentCreationDate"
+xlink:label="DocumentCreationDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentDescription"
+xlink:label="DocumentDescription"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentDomain"
+xlink:label="DocumentDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentEffectiveDate"
+xlink:label="DocumentEffectiveDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentFiscalPeriodFocus"
+xlink:label="DocumentFiscalPeriodFocus"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentFiscalYearFocus"
+xlink:label="DocumentFiscalYearFocus"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentInformationDocumentAxis"
+xlink:label="DocumentInformationDocumentAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentInformationLineItems"
+xlink:label="DocumentInformationLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentInformationTable"
+xlink:label="DocumentInformationTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentInformationTextBlock"
+xlink:label="DocumentInformationTextBlock"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentName"
+xlink:label="DocumentName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentPeriodEndDate"
+xlink:label="DocumentPeriodEndDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentPeriodStartDate"
+xlink:label="DocumentPeriodStartDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentReportType"
+xlink:label="DocumentReportType"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentSubtitle"
+xlink:label="DocumentSubtitle"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentSynopsis"
+xlink:label="DocumentSynopsis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentTitle"
+xlink:label="DocumentTitle"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentType"
+xlink:label="DocumentType"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentVersion"
+xlink:label="DocumentVersion"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntitiesTable"
+xlink:label="EntitiesTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAccountingStandard"
+xlink:label="EntityAccountingStandard"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressAddressDescription"
+xlink:label="EntityAddressAddressDescription"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressAddressLine1"
+xlink:label="EntityAddressAddressLine1"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressAddressLine2"
+xlink:label="EntityAddressAddressLine2"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressAddressLine3"
+xlink:label="EntityAddressAddressLine3"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressCityOrTown"
+xlink:label="EntityAddressCityOrTown"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressCountry"
+xlink:label="EntityAddressCountry"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressesAddressTypeAxis"
+xlink:label="EntityAddressesAddressTypeAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressesLineItems"
+xlink:label="EntityAddressesLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressesTable"
+xlink:label="EntityAddressesTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressPostalZipCode"
+xlink:label="EntityAddressPostalZipCode"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressRegion"
+xlink:label="EntityAddressRegion"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityAddressStateOrProvince"
+xlink:label="EntityAddressStateOrProvince"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityByLocationAxis"
+xlink:label="EntityByLocationAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityCentralIndexKey"
+xlink:label="EntityCentralIndexKey"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityCommonStockSharesOutstanding"
+xlink:label="EntityCommonStockSharesOutstanding"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityContactPersonnelContactPersonTypeAxis"
+xlink:label="EntityContactPersonnelContactPersonTypeAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityContactPersonnelLineItems"
+xlink:label="EntityContactPersonnelLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityContactPersonnelTable"
+xlink:label="EntityContactPersonnelTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityCurrentReportingStatus"
+xlink:label="EntityCurrentReportingStatus"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityDataUniversalNumberingSystemNumber"
+xlink:label="EntityDataUniversalNumberingSystemNumber"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityDomain"
+xlink:label="EntityDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityFilerCategory"
+xlink:label="EntityFilerCategory"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityHomeCountryISOCode"
+xlink:label="EntityHomeCountryISOCode"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityIncorporationDateOfIncorporation"
+xlink:label="EntityIncorporationDateOfIncorporation"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityIncorporationStateCountryName"
+xlink:label="EntityIncorporationStateCountryName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityInformationCurrentLegalOrRegisteredName"
+xlink:label="EntityInformationCurrentLegalOrRegisteredName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityInformationDateToChangeFormerLegalOrRegisteredName"
+xlink:label="EntityInformationDateToChangeFormerLegalOrRegisteredName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityInformationFormerLegalOrRegisteredName"
+xlink:label="EntityInformationFormerLegalOrRegisteredName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityInformationLineItems"
+xlink:label="EntityInformationLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityLegalForm"
+xlink:label="EntityLegalForm"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingDepositoryReceiptRatio"
+xlink:label="EntityListingDepositoryReceiptRatio"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingDescription"
+xlink:label="EntityListingDescription"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingForeign"
+xlink:label="EntityListingForeign"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingParValuePerShare"
+xlink:label="EntityListingParValuePerShare"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingPrimary"
+xlink:label="EntityListingPrimary"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingSecurityTradingCurrency"
+xlink:label="EntityListingSecurityTradingCurrency"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingsExchangeAxis"
+xlink:label="EntityListingsExchangeAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingsInstrumentAxis"
+xlink:label="EntityListingsInstrumentAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingsLineItems"
+xlink:label="EntityListingsLineItems_2"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityListingsTable"
+xlink:label="EntityListingsTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityLocationLineItems"
+xlink:label="EntityLocationLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityLocationPrimary"
+xlink:label="EntityLocationPrimary"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityLocationTable"
+xlink:label="EntityLocationTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityNorthAmericanIndustryClassificationPrimary"
+xlink:label="EntityNorthAmericanIndustryClassificationPrimary"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityNorthAmericanIndustryClassificationsIndustryAxis"
+xlink:label="EntityNorthAmericanIndustryClassificationsIndustryAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityNorthAmericanIndustryClassificationsLineItems"
+xlink:label="EntityNorthAmericanIndustryClassificationsLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityNorthAmericanIndustryClassificationsTable"
+xlink:label="EntityNorthAmericanIndustryClassificationsTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityNumberOfEmployees"
+xlink:label="EntityNumberOfEmployees"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityOtherIdentificationType"
+xlink:label="EntityOtherIdentificationType"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityOtherIdentificationValue"
+xlink:label="EntityOtherIdentificationValue"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityPhoneFaxNumbersLineItems"
+xlink:label="EntityPhoneFaxNumbersLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"
+xlink:label="EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityPhoneFaxNumbersTable"
+xlink:label="EntityPhoneFaxNumbersTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityPublicFloat"
+xlink:label="EntityPublicFloat"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityRegistrantName"
+xlink:label="EntityRegistrantName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityReportingCurrencyISOCode"
+xlink:label="EntityReportingCurrencyISOCode"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntitySectorIndustryClassificationPrimary"
+xlink:label="EntitySectorIndustryClassificationPrimary"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntitySectorIndustryClassificationsLineItems"
+xlink:label="EntitySectorIndustryClassificationsLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntitySectorIndustryClassificationsSectorAxis"
+xlink:label="EntitySectorIndustryClassificationsSectorAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntitySectorIndustryClassificationsTable"
+xlink:label="EntitySectorIndustryClassificationsTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityTaxIdentificationNumber"
+xlink:label="EntityTaxIdentificationNumber"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityTextBlock"
+xlink:label="EntityTextBlock"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityVoluntaryFilers"
+xlink:label="EntityVoluntaryFilers"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityWellKnownSeasonedIssuer"
+xlink:label="EntityWellKnownSeasonedIssuer"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ExchangeDomain"
+xlink:label="ExchangeDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_Extension"
+xlink:label="Extension"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_FormerFiscalYearEndDate"
+xlink:label="FormerFiscalYearEndDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_GeneralFaxMember"
+xlink:label="GeneralFaxMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_GeneralPhoneMember"
+xlink:label="GeneralPhoneMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_HumanResourcesContactMember"
+xlink:label="HumanResourcesContactMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_InstrumentDomain"
+xlink:label="InstrumentDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_InvestorRelationsContactMember"
+xlink:label="InvestorRelationsContactMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_InvestorRelationsFaxMember"
+xlink:label="InvestorRelationsFaxMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_InvestorRelationsPhoneMember"
+xlink:label="InvestorRelationsPhoneMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_LegalAddressMember"
+xlink:label="LegalAddressMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_LegalContactMember"
+xlink:label="LegalContactMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_LegalEntityAxis"
+xlink:label="LegalEntityAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_LegalFaxMember"
+xlink:label="LegalFaxMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_LegalPhoneMember"
+xlink:label="LegalPhoneMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_LocalPhoneNumber"
+xlink:label="LocalPhoneNumber"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_LocationDomain"
+xlink:label="LocationDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_MailingAddressMember"
+xlink:label="MailingAddressMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_NAICSDomain"
+xlink:label="NAICSDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_OtherAddressMember"
+xlink:label="OtherAddressMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_ParentEntityLegalName"
+xlink:label="ParentEntityLegalName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_PhoneFaxNumberDescription"
+xlink:label="PhoneFaxNumberDescription"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_PhoneFaxNumberTypeDomain"
+xlink:label="PhoneFaxNumberTypeDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_PostEffectiveAmendmentNumber"
+xlink:label="PostEffectiveAmendmentNumber"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_PreEffectiveAmendmentNumber"
+xlink:label="PreEffectiveAmendmentNumber"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_PrincipalAddressMember"
+xlink:label="PrincipalAddressMember"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_RegistrationStatementAmendmentNumber"
+xlink:label="RegistrationStatementAmendmentNumber"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_SectorDomain"
+xlink:label="SectorDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_TradingSymbol"
+xlink:label="TradingSymbol"/>
+<link:label xlink:type="resource" xlink:label="label_Statistics"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Statistics">Statistics</link:label>
+<link:label xlink:type="resource" xlink:label="label_DamnedLies"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DamnedLies">Damned Lies</link:label>
+<link:label xlink:type="resource" xlink:label="label_Lies"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Lies">Lies</link:label>
+<link:label xlink:type="resource" xlink:label="label_AccountingAddressMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Accounting Address [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_AccountingContactMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Accounting Contact [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_AccountingFaxMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Accounting Fax [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_AccountingPhoneMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Accounting Phone [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_AddressTypeDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Address Type [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_AmendmentDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Amendment Description</link:label>
+<link:label xlink:type="resource" xlink:label="label_AmendmentFlag"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Amendment Flag</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_ApproximateDateOfCommencementOfProposedSaleToThePublic"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Approximate Date of Commencement of Proposed Sale to Public</link:label>
+<link:label xlink:type="resource" xlink:label="label_BusinessContactMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Business Contact [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_CityAreaCode"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">City Area Code</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContactAddressMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contact Address [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContactFaxMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contact Fax [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContactPersonnelEmailAddress"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contact Personnel Email Address</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContactPersonnelName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contact Personnel Name</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_ContactPersonnelUniformResourceLocatorURL"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contact Personnel Uniform Resource Locator (URL)</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContactPersonTypeDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contact Person Type [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContactPhoneMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contact Phone [Member]</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_ContainedFileInformationFileDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contained File Information, File Description</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContainedFileInformationFileName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contained File Information, File Name</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContainedFileInformationFileNumber"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contained File Information, File Number</link:label>
+<link:label xlink:type="resource" xlink:label="label_ContainedFileInformationFileType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Contained File Information, File Type</link:label>
+<link:label xlink:type="resource" xlink:label="label_CountryRegion"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Country Region</link:label>
+<link:label xlink:type="resource" xlink:label="label_CurrentFiscalYearEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Current Fiscal Year End Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeprecatedItemsForDEI"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Deprecated Items for DEI [Abstract]</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentContactMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Contact [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentCopyrightInformation"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Copyright Information</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentCreationDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Creation Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Description</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentEffectiveDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Effective Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentFiscalPeriodFocus"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Fiscal Period Focus</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentFiscalYearFocus"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Fiscal Year Focus</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentInformationDocumentAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Information, Document [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentInformationLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Information [Line Items]</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentInformationTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Information [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentInformationTextBlock"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Information [Text Block]</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Name</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentPeriodEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Period End Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentPeriodStartDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Period Start Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentReportType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Report Type (Deprecated 2009-01-31)</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentSubtitle"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Subtitle</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentSynopsis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Synopsis</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentTitle"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Title</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Type</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentVersion"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Version</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntitiesTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entities [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAccountingStandard"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Accounting Standard</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressAddressDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, Address Description</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressAddressLine1"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, Address Line One</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressAddressLine2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, Address Line Two</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressAddressLine3"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, Address Line Three</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressCityOrTown"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, City or Town</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressCountry"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, Country</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressesAddressTypeAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Addresses, Address Type [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressesLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Addresses [Line Items]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressesTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Addresses [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressPostalZipCode"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, Postal Zip Code</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressRegion"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, Region</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityAddressStateOrProvince"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Address, State or Province</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityByLocationAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity by Location [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityCentralIndexKey"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Central Index Key</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityCommonStockSharesOutstanding"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Common Stock, Shares Outstanding</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityContactPersonnelContactPersonTypeAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Contact Personnel, Contact Person Type [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityContactPersonnelLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Contact Personnel [Line Items]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityContactPersonnelTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Contact Personnel [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityCurrentReportingStatus"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Current Reporting Status</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityDataUniversalNumberingSystemNumber"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Data Universal Numbering System Number</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityFilerCategory"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Filer Category</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityHomeCountryISOCode"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Home Country ISO Code</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityIncorporationDateOfIncorporation"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Incorporation, Date of Incorporation</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityIncorporationStateCountryName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Incorporation, State Country Name</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityInformationCurrentLegalOrRegisteredName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Information, Current Legal or Registered Name (Deprecated 2009-01-31)</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityInformationDateToChangeFormerLegalOrRegisteredName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Information, Date to Change Former Legal or Registered Name</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityInformationFormerLegalOrRegisteredName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Information, Former Legal or Registered Name</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityInformationLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Information [Line Items]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityLegalForm"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Legal Form</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingDepositoryReceiptRatio"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listing, Depository Receipt Ratio</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listing, Description</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingForeign"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listing, Foreign</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingParValuePerShare"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listing, Par Value Per Share</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingPrimary"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listing, Primary</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingSecurityTradingCurrency"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listing, Security Trading Currency</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsExchangeAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listings, Exchange [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsInstrumentAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listings, Instrument [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsLineItems_2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listings [Line Items]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Listings [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityLocationLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Location [Line Items]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityLocationPrimary"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Location, Primary</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityLocationTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Location [Table]</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityNorthAmericanIndustryClassificationPrimary"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity North American Industry Classification, Primary</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityNorthAmericanIndustryClassificationsIndustryAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity North American Industry Classifications, Industry [Axis]</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityNorthAmericanIndustryClassificationsLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity North American Industry Classifications [Line Items]</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityNorthAmericanIndustryClassificationsTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity North American Industry Classifications [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityNumberOfEmployees"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Number of Employees</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityOtherIdentificationType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Other Identification Type</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityOtherIdentificationValue"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Other Identification Value</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityPhoneFaxNumbersLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Phone Fax Numbers [Line Items]</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Phone Fax Numbers, Phone Fax Number Type [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityPhoneFaxNumbersTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Phone Fax Numbers [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityPublicFloat"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Public Float</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityRegistrantName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Registrant Name</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityReportingCurrencyISOCode"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Reporting Currency ISO Code</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntitySectorIndustryClassificationPrimary"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Sector Industry Classification, Primary</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntitySectorIndustryClassificationsLineItems"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Sector Industry Classifications [Line Items]</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntitySectorIndustryClassificationsSectorAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Sector Industry Classifications, Sector [Axis]</link:label>
+<link:label xlink:type="resource"
+xlink:label="label_EntitySectorIndustryClassificationsTable"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Sector Industry Classifications [Table]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityTaxIdentificationNumber"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Tax Identification Number</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityTextBlock"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity [Text Block]</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityVoluntaryFilers"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Voluntary Filers</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityWellKnownSeasonedIssuer"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Entity Well-known Seasoned Issuer</link:label>
+<link:label xlink:type="resource" xlink:label="label_ExchangeDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Exchange [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_Extension"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Extension</link:label>
+<link:label xlink:type="resource" xlink:label="label_FormerFiscalYearEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Former Fiscal Year End Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_GeneralFaxMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">General Fax [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_GeneralPhoneMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">General Phone [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_HumanResourcesContactMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Human Resources Contact [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_InstrumentDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Instrument [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_InvestorRelationsContactMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Investor Relations Contact [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_InvestorRelationsFaxMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Investor Relations Fax [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_InvestorRelationsPhoneMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Investor Relations Phone [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_LegalAddressMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Legal Address [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_LegalContactMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Legal Contact [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_LegalEntityAxis"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Legal Entity [Axis]</link:label>
+<link:label xlink:type="resource" xlink:label="label_LegalFaxMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Legal Fax [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_LegalPhoneMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Legal Phone [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_LocalPhoneNumber"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Local Phone Number</link:label>
+<link:label xlink:type="resource" xlink:label="label_LocationDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Location [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_MailingAddressMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Mailing Address [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_NAICSDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">NAICS [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_OtherAddressMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Other Address [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_ParentEntityLegalName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Parent Entity Legal Name</link:label>
+<link:label xlink:type="resource" xlink:label="label_PhoneFaxNumberDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Phone Fax Number Description</link:label>
+<link:label xlink:type="resource" xlink:label="label_PhoneFaxNumberTypeDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Phone Fax Number Type [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_PostEffectiveAmendmentNumber"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Post-Effective Amendment Number</link:label>
+<link:label xlink:type="resource" xlink:label="label_PreEffectiveAmendmentNumber"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Pre-Effective Amendment Number</link:label>
+<link:label xlink:type="resource" xlink:label="label_PrincipalAddressMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Principal Address [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_RegistrationStatementAmendmentNumber"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Registration Statement Amendment Number</link:label>
+<link:label xlink:type="resource" xlink:label="label_SectorDomain"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Sector [Domain]</link:label>
+<link:label xlink:type="resource" xlink:label="label_TradingSymbol"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Trading Symbol</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsLineItems"
+xlink:role="http://www.xbrl.org/2003/role/totalLabel"
+xml:lang="en-US"
+id="label_EntityListingsLineItems">Entity Listings, Redundant:</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Statistics"
+xlink:to="label_Statistics"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DamnedLies"
+xlink:to="label_DamnedLies"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Lies"
+xlink:to="label_Lies"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AccountingAddressMember"
+xlink:to="label_AccountingAddressMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AccountingContactMember"
+xlink:to="label_AccountingContactMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AccountingFaxMember"
+xlink:to="label_AccountingFaxMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AccountingPhoneMember"
+xlink:to="label_AccountingPhoneMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AddressTypeDomain"
+xlink:to="label_AddressTypeDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AmendmentDescription"
+xlink:to="label_AmendmentDescription"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AmendmentFlag"
+xlink:to="label_AmendmentFlag"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ApproximateDateOfCommencementOfProposedSaleToThePublic"
+xlink:to="label_ApproximateDateOfCommencementOfProposedSaleToThePublic"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="BusinessContactMember"
+xlink:to="label_BusinessContactMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="CityAreaCode"
+xlink:to="label_CityAreaCode"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContactAddressMember"
+xlink:to="label_ContactAddressMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContactFaxMember"
+xlink:to="label_ContactFaxMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContactPersonnelEmailAddress"
+xlink:to="label_ContactPersonnelEmailAddress"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContactPersonnelName"
+xlink:to="label_ContactPersonnelName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContactPersonnelUniformResourceLocatorURL"
+xlink:to="label_ContactPersonnelUniformResourceLocatorURL"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContactPersonTypeDomain"
+xlink:to="label_ContactPersonTypeDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContactPhoneMember"
+xlink:to="label_ContactPhoneMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContainedFileInformationFileDescription"
+xlink:to="label_ContainedFileInformationFileDescription"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContainedFileInformationFileName"
+xlink:to="label_ContainedFileInformationFileName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContainedFileInformationFileNumber"
+xlink:to="label_ContainedFileInformationFileNumber"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ContainedFileInformationFileType"
+xlink:to="label_ContainedFileInformationFileType"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="CountryRegion"
+xlink:to="label_CountryRegion"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="CurrentFiscalYearEndDate"
+xlink:to="label_CurrentFiscalYearEndDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeprecatedItemsForDEI"
+xlink:to="label_DeprecatedItemsForDEI"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentContactMember"
+xlink:to="label_DocumentContactMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentCopyrightInformation"
+xlink:to="label_DocumentCopyrightInformation"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentCreationDate"
+xlink:to="label_DocumentCreationDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentDescription"
+xlink:to="label_DocumentDescription"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentDomain"
+xlink:to="label_DocumentDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentEffectiveDate"
+xlink:to="label_DocumentEffectiveDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentFiscalPeriodFocus"
+xlink:to="label_DocumentFiscalPeriodFocus"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentFiscalYearFocus"
+xlink:to="label_DocumentFiscalYearFocus"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentInformationDocumentAxis"
+xlink:to="label_DocumentInformationDocumentAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentInformationLineItems"
+xlink:to="label_DocumentInformationLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentInformationTable"
+xlink:to="label_DocumentInformationTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentInformationTextBlock"
+xlink:to="label_DocumentInformationTextBlock"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentName"
+xlink:to="label_DocumentName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentPeriodEndDate"
+xlink:to="label_DocumentPeriodEndDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentPeriodStartDate"
+xlink:to="label_DocumentPeriodStartDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentReportType"
+xlink:to="label_DocumentReportType"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentSubtitle"
+xlink:to="label_DocumentSubtitle"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentSynopsis"
+xlink:to="label_DocumentSynopsis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentTitle"
+xlink:to="label_DocumentTitle"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentType"
+xlink:to="label_DocumentType"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentVersion"
+xlink:to="label_DocumentVersion"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntitiesTable"
+xlink:to="label_EntitiesTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAccountingStandard"
+xlink:to="label_EntityAccountingStandard"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressAddressDescription"
+xlink:to="label_EntityAddressAddressDescription"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressAddressLine1"
+xlink:to="label_EntityAddressAddressLine1"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressAddressLine2"
+xlink:to="label_EntityAddressAddressLine2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressAddressLine3"
+xlink:to="label_EntityAddressAddressLine3"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressCityOrTown"
+xlink:to="label_EntityAddressCityOrTown"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressCountry"
+xlink:to="label_EntityAddressCountry"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressesAddressTypeAxis"
+xlink:to="label_EntityAddressesAddressTypeAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressesLineItems"
+xlink:to="label_EntityAddressesLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressesTable"
+xlink:to="label_EntityAddressesTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressPostalZipCode"
+xlink:to="label_EntityAddressPostalZipCode"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressRegion"
+xlink:to="label_EntityAddressRegion"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityAddressStateOrProvince"
+xlink:to="label_EntityAddressStateOrProvince"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityByLocationAxis"
+xlink:to="label_EntityByLocationAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityCentralIndexKey"
+xlink:to="label_EntityCentralIndexKey"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityCommonStockSharesOutstanding"
+xlink:to="label_EntityCommonStockSharesOutstanding"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityContactPersonnelContactPersonTypeAxis"
+xlink:to="label_EntityContactPersonnelContactPersonTypeAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityContactPersonnelLineItems"
+xlink:to="label_EntityContactPersonnelLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityContactPersonnelTable"
+xlink:to="label_EntityContactPersonnelTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityCurrentReportingStatus"
+xlink:to="label_EntityCurrentReportingStatus"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityDataUniversalNumberingSystemNumber"
+xlink:to="label_EntityDataUniversalNumberingSystemNumber"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityDomain"
+xlink:to="label_EntityDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityFilerCategory"
+xlink:to="label_EntityFilerCategory"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityHomeCountryISOCode"
+xlink:to="label_EntityHomeCountryISOCode"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityIncorporationDateOfIncorporation"
+xlink:to="label_EntityIncorporationDateOfIncorporation"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityIncorporationStateCountryName"
+xlink:to="label_EntityIncorporationStateCountryName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityInformationCurrentLegalOrRegisteredName"
+xlink:to="label_EntityInformationCurrentLegalOrRegisteredName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityInformationDateToChangeFormerLegalOrRegisteredName"
+xlink:to="label_EntityInformationDateToChangeFormerLegalOrRegisteredName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityInformationFormerLegalOrRegisteredName"
+xlink:to="label_EntityInformationFormerLegalOrRegisteredName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityInformationLineItems"
+xlink:to="label_EntityInformationLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityLegalForm"
+xlink:to="label_EntityLegalForm"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingDepositoryReceiptRatio"
+xlink:to="label_EntityListingDepositoryReceiptRatio"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingDescription"
+xlink:to="label_EntityListingDescription"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingForeign"
+xlink:to="label_EntityListingForeign"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingParValuePerShare"
+xlink:to="label_EntityListingParValuePerShare"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingPrimary"
+xlink:to="label_EntityListingPrimary"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingSecurityTradingCurrency"
+xlink:to="label_EntityListingSecurityTradingCurrency"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingsExchangeAxis"
+xlink:to="label_EntityListingsExchangeAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingsInstrumentAxis"
+xlink:to="label_EntityListingsInstrumentAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingsLineItems_2"
+xlink:to="label_EntityListingsLineItems_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingsTable"
+xlink:to="label_EntityListingsTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityLocationLineItems"
+xlink:to="label_EntityLocationLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityLocationPrimary"
+xlink:to="label_EntityLocationPrimary"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityLocationTable"
+xlink:to="label_EntityLocationTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityNorthAmericanIndustryClassificationPrimary"
+xlink:to="label_EntityNorthAmericanIndustryClassificationPrimary"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityNorthAmericanIndustryClassificationsIndustryAxis"
+xlink:to="label_EntityNorthAmericanIndustryClassificationsIndustryAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityNorthAmericanIndustryClassificationsLineItems"
+xlink:to="label_EntityNorthAmericanIndustryClassificationsLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityNorthAmericanIndustryClassificationsTable"
+xlink:to="label_EntityNorthAmericanIndustryClassificationsTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityNumberOfEmployees"
+xlink:to="label_EntityNumberOfEmployees"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityOtherIdentificationType"
+xlink:to="label_EntityOtherIdentificationType"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityOtherIdentificationValue"
+xlink:to="label_EntityOtherIdentificationValue"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityPhoneFaxNumbersLineItems"
+xlink:to="label_EntityPhoneFaxNumbersLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"
+xlink:to="label_EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityPhoneFaxNumbersTable"
+xlink:to="label_EntityPhoneFaxNumbersTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityPublicFloat"
+xlink:to="label_EntityPublicFloat"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityRegistrantName"
+xlink:to="label_EntityRegistrantName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityReportingCurrencyISOCode"
+xlink:to="label_EntityReportingCurrencyISOCode"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntitySectorIndustryClassificationPrimary"
+xlink:to="label_EntitySectorIndustryClassificationPrimary"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntitySectorIndustryClassificationsLineItems"
+xlink:to="label_EntitySectorIndustryClassificationsLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntitySectorIndustryClassificationsSectorAxis"
+xlink:to="label_EntitySectorIndustryClassificationsSectorAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntitySectorIndustryClassificationsTable"
+xlink:to="label_EntitySectorIndustryClassificationsTable"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityTaxIdentificationNumber"
+xlink:to="label_EntityTaxIdentificationNumber"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityTextBlock"
+xlink:to="label_EntityTextBlock"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityVoluntaryFilers"
+xlink:to="label_EntityVoluntaryFilers"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityWellKnownSeasonedIssuer"
+xlink:to="label_EntityWellKnownSeasonedIssuer"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ExchangeDomain"
+xlink:to="label_ExchangeDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Extension"
+xlink:to="label_Extension"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="FormerFiscalYearEndDate"
+xlink:to="label_FormerFiscalYearEndDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="GeneralFaxMember"
+xlink:to="label_GeneralFaxMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="GeneralPhoneMember"
+xlink:to="label_GeneralPhoneMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="HumanResourcesContactMember"
+xlink:to="label_HumanResourcesContactMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="InstrumentDomain"
+xlink:to="label_InstrumentDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="InvestorRelationsContactMember"
+xlink:to="label_InvestorRelationsContactMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="InvestorRelationsFaxMember"
+xlink:to="label_InvestorRelationsFaxMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="InvestorRelationsPhoneMember"
+xlink:to="label_InvestorRelationsPhoneMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LegalAddressMember"
+xlink:to="label_LegalAddressMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LegalContactMember"
+xlink:to="label_LegalContactMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LegalEntityAxis"
+xlink:to="label_LegalEntityAxis"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LegalFaxMember"
+xlink:to="label_LegalFaxMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LegalPhoneMember"
+xlink:to="label_LegalPhoneMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LocalPhoneNumber"
+xlink:to="label_LocalPhoneNumber"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="LocationDomain"
+xlink:to="label_LocationDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="MailingAddressMember"
+xlink:to="label_MailingAddressMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="NAICSDomain"
+xlink:to="label_NAICSDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="OtherAddressMember"
+xlink:to="label_OtherAddressMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ParentEntityLegalName"
+xlink:to="label_ParentEntityLegalName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="PhoneFaxNumberDescription"
+xlink:to="label_PhoneFaxNumberDescription"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:to="label_PhoneFaxNumberTypeDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="PostEffectiveAmendmentNumber"
+xlink:to="label_PostEffectiveAmendmentNumber"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="PreEffectiveAmendmentNumber"
+xlink:to="label_PreEffectiveAmendmentNumber"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="PrincipalAddressMember"
+xlink:to="label_PrincipalAddressMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="RegistrationStatementAmendmentNumber"
+xlink:to="label_RegistrationStatementAmendmentNumber"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="SectorDomain"
+xlink:to="label_SectorDomain"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="TradingSymbol"
+xlink:to="label_TradingSymbol"/>
+</link:labelLink>
+</link:linkbase>

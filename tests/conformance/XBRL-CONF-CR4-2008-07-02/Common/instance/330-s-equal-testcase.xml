@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2008 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+name="s-equal tests" 
+description="Test s-equal processing" 
+owner="fischer@markv.com" 
+minimal="true">
+
+        <variation id="V-01" name="v01-s-equal-by-identical-contextRef">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  The contributing items have identical contextRef and thus there is no calculation inconsistency.  The context has a scenario contrived to show nesting, attributes, and elements for s-equality testing purposes in subsequent variations.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-01.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-02" name="v02-s-unequal-by-missing-scenario">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context is missing the scenario of the summation item and other contributing item, thus causing calculation inconsistency. 
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-02.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-03" name="v03-s-unequal-by-t:strVal-within-scenario">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has a different t:strVal within its context scenario, thus causing calculation inconsistency. 
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-03.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-04" name="v04-s-unequal-by-ordering-within-scenario">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has a ordering of t:strVal and t:decVal within its context scenario, thus causing calculation inconsistency. 
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-04.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-05" name="v05-s-unequal-by-parenting-within-scenario">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has a different parenting of t:strVal within its context scenario, thus causing calculation inconsistency. 
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-05.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-06" name="v06-s-unequal-by-attribute-within-scenario">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has a different attribute a1 on nested element t:scenarioVal within its context scenario, thus causing calculation inconsistency. 
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-06.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+<!-- Herm: defer these test case variations per bugzilla # 322
+
+        <variation id="V-07" name="v07-s-equal-by-lexically-same-scenario-different-ids">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  According to the 2006-12-18 spec, t:P2's context would be s-equal to that of t:P1 and t:P3 were it not for the id attributes in the scenario.  Should id attributes be excluded from element s-equality?  See XBRL bug 322.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-07.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+Herm: end of deferred test case variations per bugzilla 322 -->
+
+
+        <variation id="V-08" name="v08-s-equal-with-scenario-sub-element-attributes-reordered">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but attributes on element dv2-v02 have been re-ordered, but it is still s-equal to the context of t:P1 and t:P3, so the calculation is valid.  (Only the id attribute on the context differs, for the moment, id attributes have been removed from subelements.)
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-08.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+<!-- Herm: defer these test case variations per bugzilla # 322
+
+        <variation id="V-09" name="v09-s-equal-with-s-equal-prettyprint-trim-whitespace">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario as that of t:P1 and t:P3, except that element and attribute values are prettyprinted (different leading/trailing whitespace), preventing the contexts from being s-equal.  Should special treatment, in addition to the normalization already done by XML and Schema, be applied to whitespace by s-equality?  See XBRL bug 322.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-09.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-10" name="v10-s-unequal-by-embedded-whitespaces">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but t:strVal has different embedded whitespace to demonstrate that internal (between word) whitespace is significant for s-equality testing.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-10.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-11" name="v11-s-unequal-normalizedStrings-embedded-whitespaces">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but t:nmlStrVal has different embedded whitespace to demonstrate that internal (between word) whitespace is significant for s-equality testing.  (Cliff suggests that perhaps normalized strings should ignore whitespace differences between them, as if the XPath normalize-string operator were applied before comparing.  XPath does not appear to perform this implicitly when comparing, and the expected result is here deemed invalid.)  However some descriptions of validation imply that a validator may physically trim and normalize interior whitespaces from the text value of a normalizedString DOm object when validating, so this result may be different between different processor implementations depending on their validator interaction with retrievable node text.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-11.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+Herm: end of deferred test case variations per bugzilla 322 -->
+
+        <variation id="V-12" name="v12-s-equal-with-different-number-lexical-scaling">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but doubles and booleans test lexical representations by scaling, though values are the same. 
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-12.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-13" name="v13-s-equal-with-number-signing">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but numbers test lexical signing representations, + optional on positive, and +0 equal to -0.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-13.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-14" name="v14-s-equal-with-INF-doubles">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but doubles and test lexical non-number representations, INF.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-14.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-15" name="v15-s-unequal-with-INF-doubles">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but doubles and test lexical non-number representations, INF. Attribute a3 differs, to check that + infinity and - infinity are detected as unequal.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-15.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-16" name="v16-s-unequal-due-to-NaN-attribute">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but attributes a3 in both contexts are NaN which is always unequal to all values including itself.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-16.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-17" name="v17-s-equal-with-booleans">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  t:P2's context has the same scenario, but booleans test lexical representations, 0 or 1 for false or true. 
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-17.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+<!-- Herm: defer these test case variations per bugzilla # 322
+
+        <variation id="V-81" name="v81-s-equal-instant-date-vs-dateTime">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  t:P1 and t:P3 have a Dec 31st date (no time part), and t:P2 has a new-years-eve dateTime of midnight (Jan 1 T00:00:00).  These are equivalent according to spec 4.7.1.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-81.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-82" name="v82-s-unequal-instant-date-vs-dateTime">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  t:P1 and t:P3 have a Dec 31st date (no time part), and t:P2 has a Dec 31st dateTime of midnight (2007-12-31T00:00:00).  These are not equivalent according to spec 4.7.1.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-82.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-83" name="v83-s-unequal-instant-dateTime-vs-dateTime">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  t:P1 and t:P3 have a Dec 31st date at 11:59:59 pm, and t:P2 has a new-years-eve dateTime of midnight (Jan 1 T00:00:00).  These are not equivalent.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-83.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-84" name="v84s-equal-instant-midnights">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  t:P1 and t:P3 have a Dec 31st date at 24:00:00, and t:P2 has a new-years-eve dateTime of midnight (Jan 1 T00:00:00).  XML defines 24:00:00 to be equivalent to 00:00:00 the next day.  Thus these are equivalent (is the champagne glass half full at 24:00 and half empty at 00:00?).
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-84.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-85" name="v85-s-equal-instant-midnights-rev">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  Reverse of times of V-84.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-85.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-86" name="v86-s-equal-instant-midnights-feb28-nonleap-yr">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  Same as V-84 but for Feb 28 on non-leap year.  t:P1 and t:P3 have a Feb 28th date at 24:00:00, and t:P2 has a March 1 dateTime of midnight (Mar 1 T00:00:00).  
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-86.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-87" name="v87-s-equal-instant-date-vs-dateTime-feb29-leap-yr">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  t:P1 and t:P3 have a Feb 29th date (no time part), and t:P2 has a March 1 dateTime of midnight (2008-03-01 T00:00:00).  These are equivalent according to spec 4.7.1.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-87.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-88" name="v88-s-equal-instant-date-vs-dateTime-2100-02-28-nonleap-yr">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are instant.  t:P1 and t:P3 have a 2100 Feb 28th date (no time part), and t:P2 has a March 1 dateTime of midnight (2100-03-01 T00:00:00).  These are equivalent according to spec 4.7.1.  Tests that years divisible by 4 that are not leap years work correctly (e.g., 2100, 2200, 2300, 2500, 2600, 2700, 2900, and 3000 will not be leap years, but 2400 and 2800 will be).
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-88.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-89" name="v89-s-equal-start-date-vs-dateTime">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are duration.  t:P1 and t:P3 have a leap year March 1st start date (no time part), and t:P2 has a March 1 dateTime of midnight (2008-03-01 T00:00:00).  These are equivalent according to spec 4.7.1.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-89.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-90" name="v90-s-unequal-start-date-vs-dateTime">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are duration.  t:P1 and t:P3 have a leap year Feb 29 start date (no time part), and t:P2 has a March 1 dateTime of midnight (2008-03-01 T00:00:00).  These are not equivalent according to spec 4.7.1.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-90.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-91" name="v91-s-equal-start-dateTime-midnights">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are duration.  t:P1 and t:P3 have a leap year Feb 29 start date 24:00 hrs midnight (2008-02-29T24:00:00), and t:P2 has a March 1 dateTime of 00:00 hrs midnight (2008-03-01 T00:00:00).  These are equivalent according to XML.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-91.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-92" name="v92-s-equal-end-date-vs-dateTime">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are duration.  t:P1 and t:P3 have a leap year Feb 29th end date (no time part), and t:P2 has a March 1 dateTime of midnight (2008-03-01 T00:00:00).  These are equivalent according to spec 4.7.1.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-92.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+        <variation id="V-93" name="v93-s-unequal-end-date-vs-dateTime">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are duration.  t:P1 and t:P3 have a leap year March 1 end date (no time part), and t:P2 has a March 1 dateTime of midnight (2008-03-01 T00:00:00).  These are not equivalent according to spec 4.7.1.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-93.xml</instance>
+                </data>
+                <result expected="invalid"/>
+        </variation>
+
+        <variation id="V-94" name="v94-s-equal-end-dateTime-midnights">
+                <description>
+                    t:P1 is a summation of t:P2 and t:P3.  Contexts are duration.  t:P1 and t:P3 have a leap year Feb 29 end date 24:00 hrs midnight (2008-02-29T24:00:00), and t:P2 has a March 1 dateTime of 00:00 hrs midnight (2008-03-01 T00:00:00).  These are equivalent according to XML.
+                </description>
+                <data>
+                        <instance readMeFirst="true">330-s-equal-instance-94.xml</instance>
+                </data>
+                <result expected="valid"/>
+        </variation>
+
+Herm: end of deferred test case variations per bugzilla 322 -->
+
+</testcase>
+

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-16</number>
+<name>EDGAR Filer Manual v16 6.7.16 page 6-37</name>
+<description>
+<h2>The name attribute of an xsd:element must not equal any xsd:element name attribute in a standard taxonomy.</h2>
+<p>It is not necessary to compare the @name attribute to all element declarations in all standard taxonomy schemas. Only those schemas
+that are present in the DTS of a specific instance being validated are relevant.</p>
+<p>REMARK: Only <a href="../../../lib/edgartaxonomies.xml">edgartaxonomies.xml</a> defines "standard taxonomy" for purposes of this test.</p>
+</description>
+<reference specification="10491.13.1"/>
+<variation id="_000gd">
+<name>6.7.16, custom element not a duplicate, GOOD.</name>
+<description>custom element not a duplicate, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60716000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60716000gd-20081231_pre.xml</linkbase>
+<linkbase>e60716000gd-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60716000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.7.16, custom element a duplicate of 2008 dei tag, used in instance, NOGOOD.</name>
+<description>custom element a duplicate of 2008 dei tag, used in instance, NOGOOD.</description>
+<reference specification="10491.13.1"/>
+<data>
+<instance readMeFirst="true">e60716001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60716000gd-20081231_pre.xml</linkbase>
+<linkbase>e60716000gd-20081231_lab.xml</linkbase>
+<linkbase>e60716001ng-20081231_pre.xml</linkbase>
+<linkbase>e60716001ng-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60716000gd-20081231.xsd</schema>
+<schema>e60716001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60716" name="Element-Name-Same-As-Base" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.7.16, custom element a duplicate of 2008 dei tag, not used in instance, but nevertheless NOGOOD.</name>
+<description>custom element a duplicate of 2008 dei tag, not used in instance, but nevertheless NOGOOD.</description>
+<reference specification="10491.13.1"/>
+<data>
+<instance readMeFirst="true">e60716002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60716002ng-20081231_pre.xml</linkbase>
+<linkbase>e60716002ng-20081231_lab.xml</linkbase>
+<schema>e60716002ng-20081231.xsd</schema>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60716" name="Element-Name-Same-As-Base" frd="cp"/>
+</result>
+</variation>
+<variation id="_003gd">
+<name>6.7.16, extension e6071600_Top is a duplicate only of non-standard element edgar_Top, GOOD.</name>
+<description>extension e6071600_Top is a duplicate only of non-standard element edgar_Top, GOOD.</description>
+<reference specification="10491.13.1"/>
+<data>
+<instance readMeFirst="true">e60716003gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60716003gd-20081231_pre.xml</linkbase>
+<linkbase>e60716003gd-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60716003gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.7.16, extension e6071600_NY is a duplicate of an element in stpr standard taxonomy but stpr is not in the DTS, GOOD.</name>
+<description>extension e6071600_NY is a duplicate of an element in stpr standard taxonomy but stpr not in the DTS, GOOD.</description>
+<reference specification="10491.13.1"/>
+<data>
+<instance readMeFirst="true">e60716004gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60716004gd-20081231_pre.xml</linkbase>
+<linkbase>e60716004gd-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60716004gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005gd">
+<name>6.7.16, KY appears as element name in sptr and country in the same DTS but they are standard taxonomies, GOOD.</name>
+<description>KY appears as element name in sptr and country in the same DTS but they are standard taxonomies, GOOD.</description>
+<reference specification="10491.13.1"/>
+<data>
+<instance readMeFirst="true">e60716005gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>e60716005gd-20081231_pre.xml</linkbase>
+<linkbase>e60716005gd-20081231_def.xml</linkbase>
+<linkbase>e60716005gd-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60716005gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

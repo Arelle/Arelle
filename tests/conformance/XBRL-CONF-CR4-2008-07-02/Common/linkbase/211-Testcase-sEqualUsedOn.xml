@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  name="sEqualUsedOn" 
+  description="5.1.3.4 - Within a roleType element there MUST NOT be s-equal usedOn elements." 
+  outpath="out" 
+  owner="mrg@decisionsoft.com" 
+  minimal="true"
+  xsi:noNamespaceSchemaLocation="../lib/test.xsd" >
+
+  <!-- 
+    NOTE: The definition of s-equal for usedOn was modified by erratum 041.
+    Variations 02 and 03 test the change.
+  -->
+
+	<variation id="V-00" name="NonSEqualUsedOn">
+		<description>
+      A valid roleType.  usedOn elements refer to different elements in the
+      same namespace.
+    </description>
+		<data>
+			<xsd readMeFirst="true">211-00-NonSEqualUsedOn-valid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+	<variation id="V-01" name="SEqualUsedOnSamePrefixSameNamespace">
+		<description>
+      Simple invalid roleType.  usedOn elements refer to the same element
+      twice.
+      
+      QName content of the two usedOn elements is lexically identical AND equal
+      in the QName value space (same prefix, same namespace, same local name).
+    </description>
+		<data>
+			<xsd readMeFirst="true">211-01-SEqualUsedOnSamePrefixSameNamespace-invalid.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation id="V-02" name="SEqualUsedOnDifferentPrefixesSameNamespace">
+    <description>
+      roleType invalid according to erratum 041.  usedOn elements refer to the
+      same element twice.
+      
+      QName content of the two usedOn elements is lexically different, but
+      equal in the QName value space (prefixes are different, but both prefixes
+      are bound to the same namespace).
+    </description> 
+    <data>
+			<xsd readMeFirst="true">211-02-SEqualUsedOnDifferentPrefixesSameNamespace-invalid.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+
+	<variation id="V-03" name="NonSEqualUsedOnSamePrefixDifferentNamespaces">
+		<description>
+      roleType that is valid according to erratum 041.  usedOn elements refer
+      to elements that have the same local name but different namespaces.
+      
+      QName content of the two usedOn elements is lexically identical but
+      distinct in the QName value space (prefixes are the same, but each prefix
+      is bound to a different namespace).
+    </description>
+		<data>
+			<xsd readMeFirst="true">211-03-NonSEqualUsedOnSamePrefixDifferentNamespaces-valid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+
+</testcase>

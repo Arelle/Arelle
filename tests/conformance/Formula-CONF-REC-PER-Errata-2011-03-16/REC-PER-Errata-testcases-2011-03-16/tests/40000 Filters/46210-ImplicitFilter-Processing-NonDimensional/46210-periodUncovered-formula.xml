@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:ef="http://xbrl.org/2008/filter/entity"
+  xmlns:tf="http://xbrl.org/2008/filter/tuple"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ssf="http://xbrl.org/2008/filter/segment-scenario"
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:c="http://xbrl.org/formula/conformance/example" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/general
+    ../../../core_schemas/general-filter.xsd
+  http://xbrl.org/2008/filter/tuple 
+    ../../../core_schemas/tuple-filter.xsd
+  http://xbrl.org/2008/filter/entity 
+    ../../../core_schemas/entity-filter.xsd
+  http://xbrl.org/2008/filter/period 
+    ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/2008/filter/unit 
+    ../../../core_schemas/unit-filter.xsd
+  http://xbrl.org/2008/filter/segment-scenario 
+    ../../../core_schemas/segment-scenario-filter.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    46210-concepts.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="$v:fv1 + $v:fv2 + $v:fv3" 
+      source="v:fv3"
+      aspectModel="non-dimensional" implicitFiltering="true"/>
+      
+    <variable:factVariable xlink:type="resource" xlink:label="fv1" bindAsSequence="false"  />
+    <variable:factVariable xlink:type="resource" xlink:label="fv2" bindAsSequence="false"  />
+    <variable:factVariable xlink:type="resource" xlink:label="fv3" bindAsSequence="false"  />
+
+    <!-- fake filters to cover all aspects of fv2 so fv3 must go to fv2 for match -->
+    <cf:conceptPeriodType xlink:type="resource" xlink:label="fv2filter" periodType="instant" />
+    <tf:ancestorFilter xlink:type="resource" xlink:label="fv2filter">
+      <tf:ancestor><tf:qname>xbrli:xbrl</tf:qname></tf:ancestor>
+    </tf:ancestorFilter>
+    <ef:identifier xlink:type="resource" xlink:label="fv2filter" test="true()" />
+    <pf:period xlink:type="resource" xlink:label="fv2filter" test="true()" />
+    <ssf:segment xlink:type="resource" xlink:label="fv2filter" test="true()" />
+    <ssf:scenario xlink:type="resource" xlink:label="fv2filter" test="true()" />
+    <uf:generalMeasures xlink:type="resource" xlink:label="fv2filter" test="true()" />
+
+    <!-- fake filters to cover the aspects we want ignored for this variation -->
+
+    <cf:conceptPeriodType xlink:type="resource" xlink:label="fv3filter" periodType="instant" />
+    <tf:ancestorFilter xlink:type="resource" xlink:label="fv3filter">
+      <tf:ancestor><tf:qname>xbrli:xbrl</tf:qname></tf:ancestor>
+    </tf:ancestorFilter>
+    <ef:identifier xlink:type="resource" xlink:label="fv3filter" test="true()" />
+    <!-- allow implicit matching on period
+    <pf:period xlink:type="resource" xlink:label="fv3filter" test="true()" />
+         -->
+    <ssf:segment xlink:type="resource" xlink:label="fv3filter" test="true()" />
+    <ssf:scenario xlink:type="resource" xlink:label="fv3filter" test="true()" />
+    <uf:generalMeasures xlink:type="resource" xlink:label="fv3filter" test="true()" />
+
+    <variable:variableArc xlink:type="arc" xlink:to="fv1" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v:fv1" />
+    <variable:variableArc xlink:type="arc" xlink:to="fv2" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v:fv2" />
+    <variable:variableArc xlink:type="arc" xlink:to="fv3" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v:fv3" />
+
+    <variable:variableFilterArc xlink:type="arc" xlink:to="fv1filter" xlink:from="fv1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" complement="false" cover="true" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="fv2filter" xlink:from="fv2" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" complement="false" cover="true" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="fv3filter" xlink:from="fv3" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" complement="false" cover="true" />
+
+    <!-- fv1 id="z", fv2 id="w", fv3 no id -->
+ 
+    <!-- ID filter separates match source from match target -->
+    <gf:general xlink:type="resource" xlink:label="fv1filter" 
+      test="./@id eq 'z'" />
+    <!-- ID filter separates intermediate fact var from match target -->
+    <gf:general xlink:type="resource" xlink:label="fv2filter" 
+      test="./@id eq 'w'" />
+    <!-- bound variable 3 has no id attribute -->
+    <gf:general xlink:type="resource" xlink:label="fv3filter" 
+      test="empty(./@id)" />
+
+    <!-- make fv2 dependent on fv1 -->
+    <!-- ID filter separates intermediate fact var from match target -->
+    <gf:general xlink:type="resource" xlink:label="fv2filter" 
+      test="$v:fv1 gt 0" />
+
+    <!-- make fv3 dependent on fv2 -->
+    <!-- ID filter separates intermediate fact var from match target -->
+    <gf:general xlink:type="resource" xlink:label="fv3filter" 
+      test="$v:fv2 gt 0" />
+
+  </generic:link>
+</link:linkbase>
+
+
+
+

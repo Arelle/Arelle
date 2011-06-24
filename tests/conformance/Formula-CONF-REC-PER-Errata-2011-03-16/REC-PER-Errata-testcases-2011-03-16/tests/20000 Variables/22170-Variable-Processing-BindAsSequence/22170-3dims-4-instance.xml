@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-3dim-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22170-sequence-3dim-tests-definition-defaults.xml"/>
+  
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22170-3dims-4-formula.xml"/>
+  
+  <context id="c-d1m1d2m1d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m1d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m1d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m2d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m2d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m2d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m3d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m3d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m3d3m1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <!--xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem1</xbrldi:explicitMember-->
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m1d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m1d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m1d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m2d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m2d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m2d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m3d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m3d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m3d3m2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m1d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m1d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m1d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m2d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m2d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m2d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m1d2m3d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem1</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m2d2m3d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-d1m3d2m3d3m3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="concept:Dim1">concept:Dim1Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim2">concept:Dim2Mem3</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="concept:Dim3">concept:Dim3Mem3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <concept:C1 contextRef="c-d1m1d2m1d3m1">c1-d1m1d2m1d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m1d3m1">c1-d1m2d2m1d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m1d3m1">c1-d1m3d2m1d3m1</concept:C1>
+
+  <!-- 2 facts for same subpartition -->
+  <concept:C1 contextRef="c-d1m1d2m2d3m1">c1a-d1m1d2m2d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m1d2m2d3m1">c1b-d1m1d2m2d3m1</concept:C1>
+
+  <concept:C1 contextRef="c-d1m2d2m2d3m1">c1-d1m2d2m2d3m1</concept:C1>
+
+  <!-- 3 facts for same subpartition -->
+  <concept:C1 contextRef="c-d1m3d2m2d3m1">c1a-d1m3d2m2d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m2d3m1">c1b-d1m3d2m2d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m2d3m1">c1c-d1m3d2m2d3m1</concept:C1>
+
+  <concept:C1 contextRef="c-d1m1d2m3d3m1">c1-d1m1d2m3d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m3d3m1">c1-d1m2d2m3d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m3d3m1">c1-d1m3d2m3d3m1</concept:C1>
+  <concept:C1 contextRef="c-d1m1d2m1d3m2">c1-d1m1d2m1d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m1d3m2">c1-d1m2d2m1d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m1d3m2">c1-d1m3d2m1d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m1d2m2d3m2">c1-d1m1d2m2d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m2d3m2">c1-d1m2d2m2d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m2d3m2">c1-d1m3d2m2d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m1d2m3d3m2">c1-d1m1d2m3d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m3d3m2">c1-d1m2d2m3d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m3d3m2">c1-d1m3d2m3d3m2</concept:C1>
+  <concept:C1 contextRef="c-d1m1d2m1d3m3">c1-d1m1d2m1d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m1d3m3">c1-d1m2d2m1d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m1d3m3">c1-d1m3d2m1d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m1d2m2d3m3">c1-d1m1d2m2d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m2d3m3">c1-d1m2d2m2d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m2d3m3">c1-d1m3d2m2d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m1d2m3d3m3">c1-d1m1d2m3d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m2d2m3d3m3">c1-d1m2d2m3d3m3</concept:C1>
+  <concept:C1 contextRef="c-d1m3d2m3d3m3">c1-d1m3d2m3d3m3</concept:C1>
+  <concept:C2 contextRef="c-d1m1d2m1d3m1">c2-d1m1d2m1d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m1d3m1">c2-d1m2d2m1d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m1d3m1">c2-d1m3d2m1d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m2d3m1">c2-d1m1d2m2d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m2d3m1">c2-d1m2d2m2d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m2d3m1">c2-d1m3d2m2d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m3d3m1">c2-d1m1d2m3d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m3d3m1">c2-d1m2d2m3d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m3d3m1">c2-d1m3d2m3d3m1</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m1d3m2">c2-d1m1d2m1d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m1d3m2">c2-d1m2d2m1d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m1d3m2">c2-d1m3d2m1d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m2d3m2">c2-d1m1d2m2d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m2d3m2">c2-d1m2d2m2d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m2d3m2">c2-d1m3d2m2d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m3d3m2">c2-d1m1d2m3d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m3d3m2">c2-d1m2d2m3d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m3d3m2">c2-d1m3d2m3d3m2</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m1d3m3">c2-d1m1d2m1d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m1d3m3">c2-d1m2d2m1d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m1d3m3">c2-d1m3d2m1d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m2d3m3">c2-d1m1d2m2d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m2d3m3">c2-d1m2d2m2d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m2d3m3">c2-d1m3d2m2d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m1d2m3d3m3">c2-d1m1d2m3d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m2d2m3d3m3">c2-d1m2d2m3d3m3</concept:C2>
+  <concept:C2 contextRef="c-d1m3d2m3d3m3">c2-d1m3d2m3d3m3</concept:C2>
+  <concept:C3 contextRef="c-d1m1d2m1d3m1">c3-d1m1d2m1d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m1d3m1">c3-d1m2d2m1d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m1d3m1">c3-d1m3d2m1d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m2d3m1">c3-d1m1d2m2d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m2d3m1">c3-d1m2d2m2d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m2d3m1">c3-d1m3d2m2d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m3d3m1">c3-d1m1d2m3d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m3d3m1">c3-d1m2d2m3d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m3d3m1">c3-d1m3d2m3d3m1</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m1d3m2">c3-d1m1d2m1d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m1d3m2">c3-d1m2d2m1d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m1d3m2">c3-d1m3d2m1d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m2d3m2">c3-d1m1d2m2d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m2d3m2">c3-d1m2d2m2d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m2d3m2">c3-d1m3d2m2d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m3d3m2">c3-d1m1d2m3d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m3d3m2">c3-d1m2d2m3d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m3d3m2">c3-d1m3d2m3d3m2</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m1d3m3">c3-d1m1d2m1d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m1d3m3">c3-d1m2d2m1d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m1d3m3">c3-d1m3d2m1d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m2d3m3">c3-d1m1d2m2d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m2d3m3">c3-d1m2d2m2d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m2d3m3">c3-d1m3d2m2d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m1d2m3d3m3">c3-d1m1d2m3d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m2d2m3d3m3">c3-d1m2d2m3d3m3</concept:C3>
+  <concept:C3 contextRef="c-d1m3d2m3d3m3">c3-d1m3d2m3d3m3</concept:C3>
+
+</xbrl>
+

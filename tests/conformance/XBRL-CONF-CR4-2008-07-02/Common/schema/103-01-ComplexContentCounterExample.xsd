@@ -1,0 +1,15 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<complexType name="locationItemType" final="extension">
+		<sequence>
+			<element name="longitude" type="decimal"/>
+			<element name="latitude" type="decimal"/>
+		</sequence>
+		<attribute name="contextRef" type="IDREF" use="required"/>
+		<attribute name="id" type="ID" use="optional"/>
+		<anyAttribute namespace="##other" processContents="lax"/>
+	</complexType>
+	<element name="companyLocation" type="my:locationItemType" substitutionGroup="xbrli:item" id="a1" xbrli:periodType="duration"/>
+</schema>

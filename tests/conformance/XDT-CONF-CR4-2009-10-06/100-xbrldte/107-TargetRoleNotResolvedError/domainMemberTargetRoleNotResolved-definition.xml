@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2140.24707 (2005-11-10 01:10).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-11-10 15:55:04
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <roleRef xlink:type="simple" xlink:href="domainMemberTargetRoleNotResolved.xsd#secondary" roleURI="http://www.example.com/new/role/secondary" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="domainMemberTargetRoleNotResolved.xsd#new_PrimaryItem" xlink:label="new_PrimaryItem" />
+    <loc xlink:type="locator" xlink:href="domainMemberTargetRoleNotResolved.xsd#new_PrimaryItemMemberChild" xlink:label="new_PrimaryItemMemberChild" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="new_PrimaryItem" xlink:to="new_PrimaryItemMemberChild" order="1" use="optional" xbrldt:targetRole="http://www.example.com/new/role/foobar" xbrldt:usable="true" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.example.com/new/role/secondary">
+    <loc xlink:type="locator" xlink:href="domainMemberTargetRoleNotResolved.xsd#new_PrimaryItemMemberChild" xlink:label="new_PrimaryItemMemberChild" />
+    <loc xlink:type="locator" xlink:href="domainMemberTargetRoleNotResolved.xsd#new_PrimaryItemMemberGrandchild" xlink:label="new_PrimaryItemMemberGrandchild" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="new_PrimaryItemMemberChild" xlink:to="new_PrimaryItemMemberGrandchild" order="1" use="optional" xbrldt:usable="true" />
+  </definitionLink>
+</linkbase>

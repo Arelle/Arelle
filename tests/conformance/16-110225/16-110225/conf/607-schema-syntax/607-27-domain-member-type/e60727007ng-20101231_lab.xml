@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e60727="http://e60727/20101231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="e60727007ng-20101231.xsd#e60727_Form10KMember"
+xlink:label="Form10KMember"/>
+<link:loc xlink:type="locator"
+xlink:href="e60727007ng-20101231.xsd#e60727_Exhibit31Member"
+xlink:label="Exhibit31Member"/>
+<link:loc xlink:type="locator" xlink:href="e60727007ng-20101231.xsd#e60727_AbcfsMember"
+xlink:label="AbcfsMember"/>
+<link:loc xlink:type="locator" xlink:href="e60727007ng-20101231.xsd#e60727_AbcMember"
+xlink:label="AbcMember"/>
+<link:loc xlink:type="locator" xlink:href="e60727007ng-20101231.xsd#e60727_Top"
+xlink:label="Top"/>
+<link:loc xlink:type="locator"
+xlink:href="e60727007ng-20101231.xsd#e60727_DomainMemberConcept"
+xlink:label="DomainMember"/>
+<link:label xlink:type="resource" xlink:label="label_Form10KMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Form10KMember">Form 10K [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_Exhibit31Member"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Exhibit31Member">Exhibit 31 [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_AbcfsMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_AbcfsMember">ABCFS [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_AbcMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_AbcMember">ABC [Member]</link:label>
+<link:label xlink:type="resource" xlink:label="label_Top"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Top">Top</link:label>
+<link:label xlink:type="resource" xlink:label="label_DomainMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DomainMember">Domain Member</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Form10KMember"
+xlink:to="label_Form10KMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Exhibit31Member"
+xlink:to="label_Exhibit31Member"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AbcfsMember"
+xlink:to="label_AbcfsMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AbcMember"
+xlink:to="label_AbcMember"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Top"
+xlink:to="label_Top"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DomainMember"
+xlink:to="label_DomainMember"/>
+</link:labelLink>
+</link:linkbase>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:p0="http://www.bdi.org/inheritanceEdgeUseCase">p0:p26</qnElement>
+      <sPointer>6</sPointer>
+      <member>
+         <qnDimension xmlns:p0="http://www.bdi.org/inheritanceEdgeUseCase">p0:dim2</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:edgar="http://edgar/20081231" xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="e60505000gd-20081231.xsd"/>
+<xbrli:context id="__">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2009-07-01</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="_">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2009-04-02</xbrli:startDate>
+<xbrli:endDate>2009-07-01</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="_Dim">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+<xbrli:segment>
+<xbrldi:explicitMember dimension="edgar:Axis">edgar:PepperoniMember</xbrldi:explicitMember>
+</xbrli:segment>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2009-04-02</xbrli:startDate>
+<xbrli:endDate>2009-07-01</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="USD">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="shares">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<dei:EntityCentralIndexKey contextRef="_">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="_">e60505000gd</dei:EntityRegistrantName>
+<dei:DocumentType contextRef="_">8-K</dei:DocumentType>
+<dei:DocumentPeriodEndDate contextRef="_">2009-07-01</dei:DocumentPeriodEndDate>
+<dei:AmendmentFlag contextRef="_">false</dei:AmendmentFlag>
+<dei:CurrentFiscalYearEndDate contextRef="_">--09-30</dei:CurrentFiscalYearEndDate>
+<dei:EntityPublicFloat decimals="-3" contextRef="__" unitRef="USD">123456000</dei:EntityPublicFloat>
+<dei:EntityCommonStockSharesOutstanding decimals="0" contextRef="__" unitRef="shares">123456000</dei:EntityCommonStockSharesOutstanding>
+<edgar:CompanyOwnedRestaurantSalesDomestic decimals="-3" contextRef="_Dim" unitRef="USD">12345000</edgar:CompanyOwnedRestaurantSalesDomestic>
+</xbrli:xbrl>

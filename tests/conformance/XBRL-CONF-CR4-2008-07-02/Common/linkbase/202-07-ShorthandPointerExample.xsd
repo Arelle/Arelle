@@ -1,0 +1,12 @@
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<xsd:schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<link:linkbaseRef xlink:type="simple" xlink:href="202-07-ShorthandPointerExample-label.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:element name="aaa" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="aaa" xbrli:periodType="duration"/>
+</xsd:schema>

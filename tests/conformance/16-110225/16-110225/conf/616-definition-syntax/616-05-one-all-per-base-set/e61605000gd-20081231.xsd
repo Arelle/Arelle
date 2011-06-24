@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:e6160500="http://e6160500/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:ref="http://www.xbrl.org/2006/ref"
+xmlns:us-types="http://xbrl.us/us-types/2008-03-31"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:rr="http://xbrl.us/rr/2008-12-31"
+targetNamespace="http://e6160500/20081231"
+elementFormDefault="qualified">
+<xsd:annotation>
+<xsd:appinfo>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61605000gd-20081231_pre.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61605000gd-20081231_def.xml"
+xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61605000gd-20081231_lab.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:roleType roleURI="http://e6160500/role/Other" id="Other">
+<link:definition>000000 - Document - Other</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+</xsd:appinfo>
+</xsd:annotation>
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:import namespace="http://xbrl.org/2005/xbrldt"
+schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+<xsd:import namespace="http://xbrl.us/rr-ent/2008-12-31"
+schemaLocation="http://taxonomies.xbrl.us/rr/2008/rr-ent-2008-12-31.xsd"/>
+<xsd:element name="Statistics" id="e6160500_Statistics" type="xbrli:monetaryItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:balance="debit"
+xbrli:periodType="instant"/>
+</xsd:schema>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl 
+	xmlns="http://www.xbrl.org/2003/instance" 
+	xmlns:link="http://www.xbrl.org/2003/linkbase" 
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	xmlns:my="http://mycompany.com/xbrl/taxonomy" 
+	xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy 306-Required.xsd">
+
+	<link:schemaRef xlink:href="306-Required.xsd" xlink:type="simple"/>
+	
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+	<my:tFlag/>
+	<my:monetaryItem unitRef="u1" contextRef="c1" precision="18">7</my:monetaryItem>
+	<context id="c1">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+		<!--scenario/ -->
+	</context>
+</xbrl>

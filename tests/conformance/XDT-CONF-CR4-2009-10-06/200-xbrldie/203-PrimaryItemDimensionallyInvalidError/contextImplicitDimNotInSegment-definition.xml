@@ -1,0 +1,11 @@
+<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xdt="http://xbrl.org/2005/xbrldt" xmlns:tx="http://www.xbrl.org/dim/conf/389/contextImplicitDimNotInSegment" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation="http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="../../lib/base/primary.xsd#pr_sales" xlink:label="Sales_1124492937581_0" xlink:title="Sales"/>
+    <link:loc xlink:type="locator" xlink:href="contextImplicitDimNotInSegment.xsd#tx_hc_CustomerCode" xlink:label="hc_CustomerCode_1124493026078_0" xlink:title="hc_CustomerCode"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:type="arc" xlink:from="Sales_1124492937581_0" xlink:to="hc_CustomerCode_1124493026078_0" xbrldt:contextElement="segment" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="contextImplicitDimNotInSegment.xsd#tx_CustomerCodeDim" xlink:label="CustomerCodeDim_1124493028281_0" xlink:title="CustomerCodeDim"/>
+    <link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="arc" xlink:from="hc_CustomerCode_1124493026078_0" xlink:to="CustomerCodeDim_1124493028281_0" xlink:title="definition: hc_CustomerCode to CustomerCodeDim" use="optional" order="1.0"/>
+  </link:definitionLink>
+</link:linkbase>

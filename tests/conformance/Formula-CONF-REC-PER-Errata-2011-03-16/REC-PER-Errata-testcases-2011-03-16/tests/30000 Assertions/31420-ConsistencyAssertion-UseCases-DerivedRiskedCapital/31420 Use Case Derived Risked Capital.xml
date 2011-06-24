@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Victor Morilla</name>
+    <email>victor.morilla@bde.es</email>
+  </creator>
+  <number>31420</number>
+  <name>Derived Risked Capital</name>
+  <description>
+    The example checks the consistency of the derived RiskedFactor
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>         
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+
+  <variation id="V-01">
+    <name>Simple existence assertion</name>
+    <description>
+        The example checks the consistency of the derived RiskedCapital given a
+        proportionalRadius determined by a parameter. The RiskedCapital is
+        calculated as: RiskedCapital = InvestedCapital * RiskFactor
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>         
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+    <data>
+      <schema>concepts.xsd</schema>
+      <linkbase>assertions.xml</linkbase>
+      <instance readMeFirst="true">instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="1" />
+    </result>
+  </variation>
+
+</testcase>
+

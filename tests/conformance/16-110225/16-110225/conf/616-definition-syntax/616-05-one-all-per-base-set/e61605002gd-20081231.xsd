@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:e6160400="http://e6160400/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:edgar="http://edgar/20081231"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+targetNamespace="http://e6160400/20081231"
+elementFormDefault="qualified">
+<xsd:annotation>
+<xsd:appinfo>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61605002gd-20081231_pre.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61605002gd-20081231_def.xml"
+xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e61605002gd-20081231_lab.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:roleType roleURI="http://e6160400/role/R2" id="R2">
+<link:definition>0002 - Document - R2</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://e6160400/role/R1" id="R1">
+<link:definition>0001 - Document - R1</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:roleType roleURI="http://e6160400/role/Defaults" id="Defaults">
+<link:definition>0003 - Document - Defaults</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+</xsd:appinfo>
+</xsd:annotation>
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:import namespace="http://edgar/20081231" schemaLocation="edgar-20081231.xsd"/>
+<xsd:import namespace="http://www.xbrl.org/dtr/type/non-numeric"
+schemaLocation="http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"/>
+<xsd:import namespace="http://xbrl.org/2005/xbrldt"
+schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+<xsd:element name="Statistics" id="e6160400_Statistics" type="xbrli:monetaryItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:balance="debit"
+xbrli:periodType="instant"/>
+<xsd:element name="PathologicalLineItems" id="e6160400_PathologicalLineItems"
+type="xbrli:stringItemType"
+substitutionGroup="xbrli:item"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="M1Member" id="e6160400_M1Member" type="nonnum:domainItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="M2Member" id="e6160400_M2Member" type="nonnum:domainItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="M3Member" id="e6160400_M3Member" type="nonnum:domainItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="Dim1Axis" id="e6160400_Dim1Axis" type="xbrli:stringItemType"
+substitutionGroup="xbrldt:dimensionItem"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="Dim2Axis" id="e6160400_Dim2Axis" type="xbrli:stringItemType"
+substitutionGroup="xbrldt:dimensionItem"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="Hc1Table" id="e6160400_Hc1Table" type="xbrli:stringItemType"
+substitutionGroup="xbrldt:hypercubeItem"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="Hc2Table" id="e6160400_Hc2Table" type="xbrli:stringItemType"
+substitutionGroup="xbrldt:hypercubeItem"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+</xsd:schema>

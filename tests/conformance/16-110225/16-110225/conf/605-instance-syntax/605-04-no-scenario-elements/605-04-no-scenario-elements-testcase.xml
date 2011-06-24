@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-04</number>
+<name>EDGAR Filer Manual v16 6.5.4 page 6-8</name>
+<description>
+<h2>The xbrli:scenario element must not appear in any xbrli:context.</h2>
+<p>If the xbrli:scenario element was used, then XBRL requires that it have child elements; however, all dimensions in Interactive Data
+filings appear in the xbrli:segment element. Therefore, the xbrli:scenario element cannot be used.</p>
+</description>
+<variation id="_000gd">
+<name>6.5.4, Dimension is in segment, GOOD</name>
+<description>6.5.4 Tests that no error is reported with segment dimension, GOOD </description>
+<reference specification="10491.15.2"/>
+<data>
+<instance readMeFirst="true">e60504000gd-20111231.xml</instance>
+<linkbase>e60504000gd-20111231_lab.xml</linkbase>
+<linkbase>e60504000gd-20111231_def.xml</linkbase>
+<linkbase>e60504000gd-20111231_pre.xml</linkbase>
+<schema>e60504000gd-20111231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.4, Dimension is reported in scenario to raise error, NOGOOD</name>
+<description>6.5.4 Tests that scenario dimension reports error, NOGOOD</description>
+<reference specification="10491.15.2"/>
+<reference specification="11075"/>
+<data>
+<instance readMeFirst="true">e60504001ng-20111231.xml</instance>
+<linkbase>e60504001ng-20111231_lab.xml</linkbase>
+<linkbase>e60504001ng-20111231_def.xml</linkbase>
+<linkbase>e60504001ng-20111231_pre.xml</linkbase>
+<schema>e60504001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60504" name="No-Scenario" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.5.4, Arbitrary user-defined dimension is reported in scenario to raise error, NOGOOD</name>
+<description>Arbitrary user-defined dimension is reported in scneario to raise error, NOGOOD</description>
+<reference specification="10491.15.2"/>
+<data>
+<instance readMeFirst="true">e60504002ng-20111231.xml</instance>
+<linkbase>e60504002ng-20111231_lab.xml</linkbase>
+<linkbase>e60504002ng-20111231_def.xml</linkbase>
+<linkbase>e60504002ng-20111231_pre.xml</linkbase>
+<schema>e60504002ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60504" name="No-Scenario" frd="cp"/>
+</result>
+</variation>
+</testcase>

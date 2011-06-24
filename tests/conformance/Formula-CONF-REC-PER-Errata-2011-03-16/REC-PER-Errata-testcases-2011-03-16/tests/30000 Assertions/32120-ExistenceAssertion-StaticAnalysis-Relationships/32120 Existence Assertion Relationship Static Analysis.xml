@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>32120</number>
+  <name>Existence Assertion variables static analysis</name>
+  <description>
+    Assertion testing of existence expression has no fact variables
+  </description>
+  <reference specification="EXISTENCE-ASSERTION" id="sec-processing-model"/>         
+
+  <variation id="V-01">
+    <name>Test is missing any fact variables.  A single evaluation occurs.</name>
+    <description>
+      Test is missing any fact variables.  (An PWD version of the existence assertion specification raised an error in this situation.  The CR specification uses the definition of variable evaluation from the variables specification, in which case the variableSet evaluates once if there are no variables.  Thus this test has been modified to expect one evaluation and no error.)
+    </description>
+    <reference specification="EXISTENCE-ASSERTION" id="sec-processing-model"/>         
+    <data>
+      <schema>32120-existenceAssertion-concepts.xsd</schema>
+      <linkbase>32120-noVariables-formula.xml</linkbase>
+      <instance readMeFirst="true">32120-noVariables-instance.xml</instance>
+    </data>
+    <result>
+      <!--
+      <error xmlns:xbrleae="http://xbrl.org/2008/assertion/existence/error"> 
+          xbrleae:emptyVariableSet
+      </error>
+      -->
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+
+
+</testcase>
+
+
+
+

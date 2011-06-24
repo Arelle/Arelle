@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2009 XBRL International. All Rights Reserved. -->
+
+<!--
+     Proposed for usage cases extension modules (tuple generation)
+
+     At some later date this should go into core_schemas directory (not yet).
+  -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:tuple="http://xbrl.org/2008/formula/tuple"
+  targetNamespace="http://xbrl.org/2008/formula/tuple"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/formula"
+    schemaLocation="http://www.xbrl.org/2008/formula.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/variable"
+    schemaLocation="http://www.xbrl.org/2008/variable.xsd" />
+
+  <!--
+        tuple generation equivalent to formula:formula
+        omitting precision, decimals, and value
+  -->
+  <element id="xml-formula-tuple"
+  name="tuple" 
+  substitutionGroup="variable:variableSet">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:variableSet.type">
+          <sequence>
+            <element ref="formula:aspects" minOccurs="0" maxOccurs="unbounded"/>
+          </sequence>
+          <attribute name="source" type="variable:QName" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+ 
+  <!-- 
+        aspect rule for location
+  -->
+  <element id="xml-location" 
+  name="location" 
+  substitutionGroup="formula:abstract.aspect"/>
+  
+</schema>
+
+
+
+
+
+

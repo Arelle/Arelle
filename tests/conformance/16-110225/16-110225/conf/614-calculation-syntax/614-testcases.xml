@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='614-01-calculation-order-required/614-01-calculation-order-required-testcase.xml' />
+  <testcase uri='614-02-calculation-is-unitary/614-02-calculation-is-unitary-testcase.xml' />
+  <testcase uri='614-03-calculation-same-period-types/614-03-calculation-same-period-types-testcase.xml' />
+  <testcase uri='614-04-summation-item-undirected/614-04-summation-item-undirected-testcase.xml' />
+  <testcase uri='614-05-calculation-has-presentation-same-base-set/614-05-calculation-has-presentation-same-base-set-testcase.xml' />
+</testcases>

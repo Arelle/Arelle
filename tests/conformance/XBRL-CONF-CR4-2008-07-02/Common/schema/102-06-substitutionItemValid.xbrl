@@ -1,0 +1,24 @@
+<xbrl
+   xmlns="http://www.xbrl.org/2003/instance"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   xmlns:link="http://www.xbrl.org/2003/linkbase"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:my="http://www.example.com/test"
+   xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.example.com/test 102-05-substitutionItem.xsd">
+
+	<link:schemaRef xlink:href="102-05-substitutionItem.xsd" xlink:type="simple"/>
+
+	<my:organizationAccountingMethod
+            contextRef="ci">cash</my:organizationAccountingMethod>
+
+	<context id="ci">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+	</context>
+</xbrl>

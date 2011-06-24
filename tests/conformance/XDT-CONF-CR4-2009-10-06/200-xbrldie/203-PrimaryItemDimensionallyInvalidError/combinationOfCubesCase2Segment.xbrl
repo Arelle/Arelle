@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2157.40120 (2005-11-27 22:17).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-11-27 23:07:30
+--><xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:p="http://www.xbrl.org/dim/conf/product" xmlns:r="http://www.xbrl.org/dim/conf/region" xmlns:pr="http://www.xbrl.org/dim/conf/primary" xmlns:tx="http://www.xbrl.org/dim/conf/389/combinationOfCubesCase2InSegment" xmlns:cc="http://www.example.com/customer-code" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xsi:schemaLocation="http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd http://www.xbrl.org/dim/conf/product ../../lib/base/products.xsd http://www.xbrl.org/dim/conf/region ../../lib/base/regions.xsd http://www.xbrl.org/dim/conf/primary ../../lib/base/primary.xsd http://www.xbrl.org/dim/conf/389/combinationOfCubesCase2InSegment combinationOfCubesCase2Segment.xsd http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd">
+  <link:schemaRef xlink:type="simple" xlink:href="combinationOfCubesCase2Segment.xsd"/>
+  <context id="ctxNotAllInValid">
+    <entity>
+      <identifier scheme="http://www.sample.com">Sample Dimensions Company</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="tx:ProductDim">p:Sedan</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="tx:RegionDim">r:UnitedKingdom</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2005-01-01</startDate>
+      <endDate>2005-12-31</endDate>
+    </period>
+  </context>
+  <unit id="Euros">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <pr:Sales contextRef="ctxNotAllInValid" unitRef="Euros" decimals="0">1000000</pr:Sales>
+</xbrl>

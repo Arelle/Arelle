@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:t="http://xbrl.org/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="330-s-equal-01.xsd"/>
+
+  <context id="c-V01">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+    <scenario>
+       <t:scenarioVal>
+          <t:scenarioVal id="dv-V01">
+            <t:scenarioVal id="dv2-V01" a1="xyz" a2="123" a3="0.321E1">
+              <t:strVal>abc</t:strVal>
+              <t:decVal>0001.234</t:decVal>
+              <t:dblVal>123456E-3</t:dblVal>
+            </t:scenarioVal>
+          </t:scenarioVal>
+       </t:scenarioVal>
+    </scenario>
+  </context>  
+
+  <!-- this context is grossly s-unequal from c-V01 as it lacks any scenario -->
+  <context id="c-V02">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+
+  <unit id="pure">
+    <measure>pure</measure>
+  </unit>
+
+  <t:P1 contextRef="c-V01" unitRef="pure" decimals="0">300003</t:P1>
+
+  <!-- P2's context is grossly s-unequal from c-V01 so P1 will not see it as contributing item -->
+  <t:P2 contextRef="c-V02" unitRef="pure" decimals="0">100001</t:P2>
+
+  <t:P3 contextRef="c-V01" unitRef="pure" decimals="0">200002</t:P3>
+
+
+</xbrl>

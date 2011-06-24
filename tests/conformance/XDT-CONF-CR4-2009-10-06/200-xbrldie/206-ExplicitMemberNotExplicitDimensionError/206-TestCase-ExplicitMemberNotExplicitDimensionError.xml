@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" xmlns="http://xbrl.org/2005/conformance" name="206-TestCase-ExplicitMemberNotExplicitDimensionError" description="Rules 2.4.2.1, 2.8.3.1 and section 2.9." outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional syntax rules pertaining to instances and not covered by XML Schema and XBRL validation. -->
+        <!-- As of the 2005-12-10 internal working draft (by HF).  -->
+        <!-- 3.1.4.5.2  1. The content of the xlink:href attribute of an xbrldi:explicitMember element MUST resolve to an explicit dimension within the DTS of the instance document. A dimensional processor MUST raise an error [Ins Err, 11] xbrldie:ExplicitMemberNotExplicitDimensionError if the content of the xlink:href attribute of xbrldi:explicitMember resolves (with xml:base) to anything other than an explicit dimension declaration -->
+        <variation id="V-01" name="contextMemberNotExplicitDimension">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.4.5.2">The content of the xlink:href attribute of an xbrldi:explicitMember element MUST resolve to an explicit dimension within the DTS of the instance document.  In this case it resolves to a hypercube element instead.  The usual hypercube arc from primary item is not present in this test, to prevent missing dimension errors from also being detected.</description>
+                <data>
+                        <xsd readMeFirst="false">contextMemberNotExplicitDimension.xsd</xsd>
+                        <linkbase readMeFirst="false">contextMemberNotExplicitDimension-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">contextMemberNotExplicitDimension-label.xml</linkbase>
+                        <instance readMeFirst="true">contextMemberNotExplicitDimension.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:ExplicitMemberNotExplicitDimensionError</error>
+                </result>
+        </variation>
+</testcase>
+

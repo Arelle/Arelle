@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70011</number>
+  <name>Generic link in appinfo linkbase static analysis</name>
+  <description>
+    Test appinfo of schema file has linkbase containing generic link.
+  </description>
+  <reference specification="GENERIC-LINK" id="gen-link"/>
+
+  <variation id="V-01">
+    <name>Schema file has appinfo containing a linkbase of a generic link.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-LINK" id="gen-link"/>
+    <data>
+      <schema readMeFirst="true">70012-linkbaseInAppinfo-concepts-v01.xsd</schema>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+</testcase>
+

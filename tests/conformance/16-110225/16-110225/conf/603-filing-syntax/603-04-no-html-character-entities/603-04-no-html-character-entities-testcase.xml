@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>603-04</number>
+<name>EDGAR Filer Manual v16 6.3.4 page 6-5</name>
+<description><h2>An XBRL document must not contain HTML character name references.</h2>
+<p>Section 5.2.2.6 defines extended
+ASCII characters and how they may be referenced in HTML, but XBRL documents are not HTML documents, and recognize
+only XML predefined entities (&amp;quot; &amp;amp; &amp;apos; &amp;lt; and &amp;gt;). To include
+characters greater than 127, use XML numeric character references. For example, &amp;#xAE; and &amp;#174;
+are ASCII sequences producing the &#xAE; symbol.</p>
+<p>REMARK: This test suite does NOT test to see that only the subset of ASCII allowed by 5.2.1.1 are used.</p></description>
+<variation id="_001ng">
+<name>Instance has HTML characters in footnote</name>
+<description>Tests that incorrect characters are caught</description>
+<data>
+<instance readMeFirst="true">e60304001ng-20111231.xml</instance>
+<linkbase>e60304001ng-20111231_lab.xml</linkbase>
+<linkbase>e60304001ng-20111231_def.xml</linkbase>
+<linkbase>e60304001ng-20111231_pre.xml</linkbase>
+<schema>e60304001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60304" name="Invalid-Html-In-Footnote" frd="cp"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>Label linkbase has HTML characters</name>
+<description>Tests that incorrect characters are caught</description>
+<data>
+<instance readMeFirst="true">e60304002ng-20111231.xml</instance>
+<linkbase>e60304002ng-20111231_lab.xml</linkbase>
+<linkbase>e60304002ng-20111231_def.xml</linkbase>
+<linkbase>e60304002ng-20111231_pre.xml</linkbase>
+<schema>e60304002ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60304" name="Invalid-Html-In-Linkbase" frd="cp"/>
+</result>
+</variation>
+</testcase>

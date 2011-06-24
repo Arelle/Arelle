@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:tpl="http://xbrl.org/dims/conformance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" targetNamespace="http://xbrl.org/dims/conformance" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType roleURI="http://www.xbrl.org/2003/role/link/R1" id="R1">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.xbrl.org/2003/role/link/R2" id="R2">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:linkbaseRef xlink:type="simple" xlink:href="label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+
+  <element id="primaryItem" name="primaryItem" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" />
+  <element id="hypercube" name="hypercube" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" xbrli:periodType="instant" abstract="true"/>
+  <element id="dimension" name="dimension" type="xbrli:stringItemType" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="instant" abstract="true"/>
+  <element id="domain" name="domain" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" />
+  <element id="domainMember" name="domainMember" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" />
+</schema>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xsd:schema 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xl="http://www.xbrl.org/2003/XLink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  >
+
+  <xsd:import 
+    namespace="http://www.xbrl.org/2003/instance" 
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+   <xsd:element 
+    name="h" 
+    id="h" 
+    xbrli:periodType="instant"
+    type="xbrli:pureItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+
+  <xsd:element 
+    name="i" 
+    id="i" 
+    xbrli:periodType="instant"
+    type="xbrli:pureItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+
+  <xsd:element 
+    name="j" 
+    id="j" 
+    xbrli:periodType="instant"
+    type="xbrli:pureItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+
+  <xsd:element 
+    name="k" 
+    id="k" 
+    xbrli:periodType="instant"
+    type="xbrli:pureItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+
+  <xsd:element 
+    name="l" 
+    id="l" 
+    xbrli:periodType="instant"
+    type="xbrli:pureItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+
+  <xsd:element 
+    name="m" 
+    id="m" 
+    xbrli:periodType="instant"
+    type="xbrli:pureItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+
+  <xsd:element 
+    name="n" 
+    id="n" 
+    xbrli:periodType="instant"
+    type="xbrli:stringItemType" 
+    substitutionGroup="xbrli:item" 
+    abstract="false" 
+    nillable="true" />
+
+</xsd:schema>

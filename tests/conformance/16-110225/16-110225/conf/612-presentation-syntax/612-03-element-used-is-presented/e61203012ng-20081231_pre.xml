@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://edgar/role/OtherInformation" xlink:type="simple"
+xlink:href="edgar-20081231.xsd#OtherInformation"/>
+<link:roleRef roleURI="http://edgar/role/EntityInformation" xlink:type="simple"
+xlink:href="edgar-20081231.xsd#EntityInformation"/>
+<link:presentationLink xlink:type="extended" xlink:role="http://edgar/role/OtherInformation"/>
+<link:presentationLink xlink:type="extended" xlink:role="http://edgar/role/EntityInformation">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityInformationLineItems"
+xlink:label="EntityInformationLineItems"/>
+<link:loc xlink:type="locator" xlink:href="e61203012ng-20081231.xsd#e6120300_Statistics"
+xlink:label="Statistics"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityInformationLineItems"
+xlink:to="Statistics"
+order="26.0"/>
+</link:presentationLink>
+</link:linkbase>

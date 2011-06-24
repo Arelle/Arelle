@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:eg="http://www.example.com">eg:P1</qnElement>
+      <sPointer>3</sPointer>
+      <member>
+         <qnDimension xmlns:eg="http://www.example.com">eg:Dim1</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:eg="http://www.example.com">eg:Dim2</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

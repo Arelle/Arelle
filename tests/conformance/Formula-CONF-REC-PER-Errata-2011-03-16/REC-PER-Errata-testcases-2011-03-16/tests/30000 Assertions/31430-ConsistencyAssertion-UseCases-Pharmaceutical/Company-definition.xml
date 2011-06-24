@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 3.0.2760.2310 (2007-05-15 03:15).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-05-31 21:51:24
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <roleRef xlink:type="simple" xlink:href="Company.xsd#Hypercube" roleURI="http://www.SampleCompany.com/Hypercube" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension" arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <roleRef xlink:type="simple" xlink:href="Company.xsd#PrimaryConcepts" roleURI="http://www.SampleCompany.com/PrimaryConcepts" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all" arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.SampleCompany.com/Hypercube">
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_CompanyHypercube" xlink:label="company_CompanyHypercube" />
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_ByRegionPlaceholder" xlink:label="company_ByRegionPlaceholder" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="company_CompanyHypercube" xlink:to="company_ByRegionPlaceholder" order="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="Regions.xsd#regions_AllRegions" xlink:label="regions_AllRegions" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="company_ByRegionPlaceholder" xlink:to="regions_AllRegions" order="1" use="optional" xbrldt:targetRole="http://www.xbrl.org/2003/role/link" />
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_ByProductPlaceholder" xlink:label="company_ByProductPlaceholder" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="company_CompanyHypercube" xlink:to="company_ByProductPlaceholder" order="2" use="optional"/>
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_AllProducts" xlink:label="products_AllProducts" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="company_ByProductPlaceholder" xlink:to="products_AllProducts" order="1" use="optional" xbrldt:targetRole="http://www.xbrl.org/2003/role/link" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.SampleCompany.com/PrimaryConcepts">
+    <loc xlink:type="locator" xlink:href="Sales.xsd#ci_Sales" xlink:label="ci_Sales" />
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_CompanyHypercube" xlink:label="company_CompanyHypercube" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="ci_Sales" xlink:to="company_CompanyHypercube" order="1" use="optional" xbrldt:targetRole="http://www.SampleCompany.com/Hypercube" xbrldt:contextElement="scenario"/>
+  </definitionLink>
+</linkbase>

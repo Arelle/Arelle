@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>12040</number>
+  <name>Entity rules processing examples</name>
+  <description>
+    Tests of formula entity rules processing
+  </description>
+  <reference specification="FORMULA" id="sec-default-aspect-rules"/>
+  <reference specification="FORMULA" id="sec-entity-identifier-rules"/>
+
+  <variation id="V-01">
+    <name>Output of source entity identifier</name>
+    <description>Tests that the output entity identifier is that of the input.</description>
+    <reference specification="FORMULA" id="example-entity-identifier-rules"/>
+    <data>
+      <schema>12040-entity-tests.xsd</schema>
+      <linkbase>12040-source-entity-formula.xml</linkbase>
+      <instance readMeFirst="true">12040-source-entity-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12040-source-entity-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Output of identifier scheme from a rule</name>
+    <description>Tests that the output entity scheme is that of the rule instead of the source input.</description>
+    <reference specification="FORMULA" id="example-entity-identifier-rules"/>
+    <data>
+      <schema>12040-entity-tests.xsd</schema>
+      <linkbase>12040-dynamic-scheme-formula.xml</linkbase>
+      <instance readMeFirst="true">12040-dynamic-scheme-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12040-dynamic-scheme-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Output of identifier scheme and value from a rule</name>
+    <description>Tests that the output entity identifier and value are that of the formula rule.</description>
+    <reference specification="FORMULA" id="example-entity-identifier-rules"/>
+    <data>
+      <schema>12040-entity-tests.xsd</schema>
+      <linkbase>12040-dynamic-entity-formula.xml</linkbase>
+      <instance readMeFirst="true">12040-dynamic-entity-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12040-dynamic-entity-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

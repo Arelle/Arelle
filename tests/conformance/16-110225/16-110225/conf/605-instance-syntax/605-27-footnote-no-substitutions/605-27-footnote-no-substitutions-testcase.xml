@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-27</number>
+<name>EDGAR Filer Manual v16 6.5.27 page 6-16</name>
+<description>
+<h2>A link:footnoteLink element must have no children other than link:loc, link:footnote, and link:footnoteArc.</h2>
+<p>Although valid XBRL 2.1, custom elements in the substitution groups of link:loc, link:footnote or 
+link:footnoteArc have no value to users.</p>
+<p>REMARK: Although these variations each show only one error code, depending
+on a vendors' implementation, validation errors may occur prior to the error listed, or other errors may cascade
+after Footnote-Substitution-Group. In particular, the schema fales of the ng variations should throw error 6.7.27 because
+they use a substitutionGroup disallowed by that rule; the point being that 6.7.27 would not apply to a standard taxonomy but
+6.5.27 would still be an error. As long as all variations marked NOGOOD are rejected because of the disallowed
+substitutionGroup, a validator may be considered as legitimately passing this testcase.</p>
+</description>
+<reference specification="10942"/>
+<reference specification="10944"/>
+<variation id="_000ng">
+<name>6.5.27 Instance footnote contains a link:documentation element, NOGOOD</name>
+<description>Instance footnote contains a link:documentation element, NOGOOD</description>
+<reference specification="10942"/>
+<reference specification="10944"/>
+<data>
+<instance readMeFirst="true">e60527000ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60527" name="Footnote-Substitution-Group" frd="du"/>
+</result>
+</variation>
+<variation id="_001ng">
+<name>6.5.27 Instance footnote contains an footsub:Arc in place of a link:footnoteArc, NOGOOD</name>
+<description>Instance footnote contains an footsub:Arc in place of a link:footnoteArc, which MAY also cause an XBRL
+2.1 validation error because the fact-footnote arc appears on an element other than link:footnote, or error
+Substitution-Group-Custom. NOGOOD.</description>
+<reference specification="10942"/>
+<reference specification="10944"/>
+<data>
+<instance readMeFirst="true">e60527001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60527001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60527" name="Footnote-Substitution-Group" frd="du"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.5.27 Instance footnote contains an footsub:Title element, NOGOOD</name>
+<description>Instance footnote contains an footsub:Title element, this MAY also cause error Substitution-Group-Custom,
+NOGOOD.</description>
+<reference specification="10942"/>
+<reference specification="10944"/>
+<data>
+<instance readMeFirst="true">e60527002ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60527002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60527" name="Footnote-Substitution-Group" frd="du"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.5.27 Instance footnote contains an footsub:Loc in place of a link:loc, NOGOOD</name>
+<description>Instance footnote contains an footsub:Loc in place of a link:loc. This MAY cause other cascading errors
+such as an XLink unresolvable arc label, or a Dangling-Footnote error, or Substitution-Group-Custom.
+NOGOOD.</description>
+<reference specification="10942"/>
+<reference specification="10944"/>
+<data>
+<instance readMeFirst="true">e60527003ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60527003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60527" name="Footnote-Substitution-Group" frd="du"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.5.27 Instance footnote contains an (empty) footsub:Footnote in place of a link:footnote, NOGOOD</name>
+<description>Instance footnote contains an (empty) footsub:Footnote in place of a link:footnote, this MAY also cause error
+Substitution-Group-Custom. NOGOOD.</description>
+<reference specification="10942"/>
+<reference specification="10944"/>
+<data>
+<instance readMeFirst="true">e60527004ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60527004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60527" name="Footnote-Substitution-Group" frd="du"/>
+</result>
+</variation>
+</testcase>

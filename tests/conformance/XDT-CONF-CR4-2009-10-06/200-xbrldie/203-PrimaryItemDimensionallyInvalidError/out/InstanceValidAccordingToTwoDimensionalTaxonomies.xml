@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:tx="http://www.xbrl.org/dim/conf/203/PrimaryItemTaxonomy">tx:Sales</qnElement>
+      <sPointer>7</sPointer>
+      <member>
+         <qnDimension xmlns:tx1="http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx1">tx1:Dim1</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+      <member>
+         <qnDimension xmlns:tx2="http://www.xbrl.org/dim/conf/203/InstanceValidAccordingToTwoDimensionalTaxonomiesTx2">tx2:Dim2</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Edited by Walter Hamscher (Standard Advantage) -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/instance
+http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd">
+	<link:schemaRef xlink:href="SchemaRefExample.xsd" xlink:type="simple"/>
+</xbrl>

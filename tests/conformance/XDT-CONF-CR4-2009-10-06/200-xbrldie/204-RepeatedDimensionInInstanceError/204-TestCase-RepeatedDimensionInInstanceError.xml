@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xbrldie="http://xbrl.org/2005/xbrldi/errors" xmlns="http://xbrl.org/2005/conformance"
+        name="204-TestCase-RepeatedDimensionInInstanceError"
+        description="Rules 2.4.2.1, 2.8.3.1 and section 2.9." outpath="out" owner="ihr@xbrl.org"
+        minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional syntax rules pertaining to instances and not covered by XML Schema and XBRL validation. -->
+        <!-- As of the 2005-12-10 internal working draft (by HF).  -->
+        <!-- 3.1.3.2  1. A context MUST NOT contain more than one dimension value for every dimension. A validator MUST signal [Ins Err, 7] xbrldie:RepeatedDimensionInInstance when this rule is violated -->
+        <variation id="V-01" name="contextContainsTypedDimensionValid">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.3.2">1. A context MUST NOT
+                        contain more than one dimension value for every dimension. A validator MUST
+                        signal [Ins Err, 7] xbrldie:RepeatedDimensionInInstance when this rule is
+                        violated. In this valid variation only one dimension value is
+                        provided.</description>
+                <data>
+                        <xsd readMeFirst="false">contextContainsRepeatedDimension.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextContainsRepeatedDimension-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextContainsRepeatedDimension-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >contextContainsTypedDimensionValid.xbrl</instance>
+                </data>
+                <result>
+                        <file>contextContainsTypedDimensionValid.xml</file>
+                </result>
+        </variation>
+        <variation id="V-02" name="contextContainsRepeatedDimension">
+                <description reference="XDT-IWD-2005-12-10.doc#3.1.3.2">1. A context MUST NOT
+                        contain more than one dimension value for every dimension. A validator MUST
+                        signal [Ins Err, 7] xbrldie:RepeatedDimensionInInstance when this rule is
+                        violated. In this case two customer names are provided for the same context
+                        segment.</description>
+                <data>
+                        <xsd readMeFirst="false">contextContainsRepeatedDimension.xsd</xsd>
+                        <linkbase readMeFirst="false"
+                                >contextContainsRepeatedDimension-definition.xml</linkbase>
+                        <linkbase readMeFirst="false"
+                                >contextContainsRepeatedDimension-label.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >contextContainsRepeatedDimension.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:RepeatedDimensionInInstanceError</error>
+                </result>
+        </variation>
+        <variation id="V-03" name="biLocatableExplicitDimInSeg">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.2">1. A context MUST NOT
+                        contain more than one dimension value [Def, 15] for each dimension. A
+                        validator MUST signal [Ins Err, 3] xbrldie:RepeatedDimensionInInstanceError
+                        when this rule is violated. In this case an explicit dimension, defined to
+                        be locatable in both segment and scenario, appears in only segment, so it is
+                        valid.</description>
+                <data>
+                        <xsd readMeFirst="false">bi-locational-dim-concepts.xsd</xsd>
+                        <linkbase readMeFirst="false">bi-locational-dim-definition.xml</linkbase>
+                        <instance readMeFirst="true">bi-locational-seg-explicit-instance.xml</instance>
+                </data>
+                <result>
+                        <file>bi-locational-seg-explicit-instance.xml</file>
+                </result>
+        </variation>
+        <variation id="V-04" name="biLocatableExplicitDimInSegAndScen">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.2">1. A context MUST NOT
+                        contain more than one dimension value [Def, 15] for each dimension. A
+                        validator MUST signal [Ins Err, 3] xbrldie:RepeatedDimensionInInstanceError
+                        when this rule is violated. In this case an explicit dimension, defined to
+                        be locatable in both segment and scenario, appears twice, once each in both
+                        segment and scenario, so by working group voted decision, it is
+                        invalid.</description>
+                <data>
+                        <xsd readMeFirst="false">bi-locational-dim-concepts.xsd</xsd>
+                        <linkbase readMeFirst="false">bi-locational-dim-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >bi-locational-dual-explicit-instance.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:RepeatedDimensionInInstanceError</error>
+                </result>
+        </variation>
+        <variation id="V-04b" name="biLocatableTypedDimInSeg">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.2">1. A context MUST NOT
+                        contain more than one dimension value [Def, 15] for each dimension. A
+                        validator MUST signal [Ins Err, 3] xbrldie:RepeatedDimensionInInstanceError
+                        when this rule is violated. In this case a typed dimension, defined to be
+                        locatable in both segment and scenario, appears in only segment, so it is
+                        valid.</description>
+                <data>
+                        <xsd readMeFirst="false">bi-locational-dim-concepts.xsd</xsd>
+                        <linkbase readMeFirst="false">bi-locational-dim-definition.xml</linkbase>
+                        <instance readMeFirst="true">bi-locational-seg-typed-instance.xml</instance>
+                </data>
+                <result>
+                        <file>bi-locational-seg-typed-instance.xml</file>
+                </result>
+        </variation>
+        <variation id="V-05" name="biLocatableTypedDimInSegAndScen">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.2">1. 1. A context MUST NOT
+                        contain more than one dimension value [Def, 15] for each dimension. A
+                        validator MUST signal [Ins Err, 3] xbrldie:RepeatedDimensionInInstanceError
+                        when this rule is violated. In this case an explicit dimension, defined to
+                        be locatable in both segment and scenario, appears twice, once each in both
+                        segment and scenario, so by working group voted decision, it is
+                        invalid.</description>
+                <data>
+                        <xsd readMeFirst="false">bi-locational-dim-concepts.xsd</xsd>
+                        <linkbase readMeFirst="false">bi-locational-dim-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >bi-locational-dual-typed-instance.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:RepeatedDimensionInInstanceError</error>
+                </result>
+        </variation>
+        <variation id="V-07" name="biLocatableExplicitDimInSegAndScenNoFacts">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.2">This is the same test case
+                        as V-04 but the instance contains no facts to validate. is this valid or
+                        invalid?</description>
+                <data>
+                        <xsd readMeFirst="false">bi-locational-dim-concepts.xsd</xsd>
+                        <linkbase readMeFirst="false">bi-locational-dim-definition.xml</linkbase>
+                        <instance readMeFirst="true"
+                                >bi-locational-dual-explicit-instance2.xml</instance>
+                </data>
+                <result>
+                        <error>xbrldie:RepeatedDimensionInInstanceError</error>
+                </result>
+        </variation>
+        <variation id="V-08" name="repeatedDimensionInScenario">
+                <description reference="XDT-REC-2006-09-18.doc#3.1.4.2">Repeated dimension in scenario</description>
+                <data>
+                        <instance readMeFirst="true">repeatedDimensionInScenario.xbrl</instance>
+                </data>
+                <result>
+                        <error>xbrldie:RepeatedDimensionInInstanceError</error>
+                </result>
+        </variation>
+</testcase>

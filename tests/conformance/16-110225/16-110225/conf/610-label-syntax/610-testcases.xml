@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='610-01-element-used-has-label/610-01-element-used-has-label-testcase.xml' />
+  <testcase uri='610-02-element-used-one-label-per-role/610-02-element-used-one-label-per-role-testcase.xml' />
+  <testcase uri='610-03-foreign-label-requires-english/610-03-foreign-label-requires-english-testcase.xml' />
+  <testcase uri='610-04-distinct-standard-labels/610-04-distinct-standard-labels-testcase.xml' />
+  <testcase uri='610-05-no-documentation-replacement/610-05-no-documentation-replacement-testcase.xml' />
+  <testcase uri='610-06-no-special-chars-unless-documentation/610-06-no-special-chars-unless-documentation-testcase.xml' />
+  <testcase uri='610-08-label-is-trimmed/610-08-label-is-trimmed-testcase.xml' />
+</testcases>

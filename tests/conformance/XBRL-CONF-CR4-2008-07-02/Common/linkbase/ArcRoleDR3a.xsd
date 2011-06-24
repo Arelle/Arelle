@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  XBRL 2.1 Tests 
+  -->
+<!--  Copyright 2003 XBRL International. All Rights Reserved. 
+  -->
+<schema targetNamespace="http://mycompany.com/xbrl/arcroleDR3" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns="http://www.w3.org/2001/XMLSchema">
+	<annotation>
+		<appinfo>
+			<link:arcroleType id="row-cell" arcroleURI="http://mycompany.com/xbrl/arcroleDR3/row-cell" cyclesAllowed="any">
+				<link:definition>
+					A new arc role used to represent relationships between a row concept and a cell concept.
+				</link:definition>
+				<link:usedOn>link:presentationArc</link:usedOn>
+			</link:arcroleType>
+			<link:linkbaseRef xlink:type="simple" xlink:href="ArcRoleDR3_presentation.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="conceptC" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptC" xbrli:periodType="instant" xbrli:balance="debit"/>
+</schema>

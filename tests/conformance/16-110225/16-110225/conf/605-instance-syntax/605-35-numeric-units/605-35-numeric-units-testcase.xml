@@ -1,0 +1,699 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://edgar/2009/conformance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-35</number>
+<name>EDGAR Filer Manual v16 6.5.35 page 6-17</name>
+<description>
+<h2>If a standard numeric data type registry is in the DTS of an instance, then the value of each 'unitRef' attribute on each fact of a
+type in that registry must refer to a unit declaration consistent with the data type of that fact, where consistency is defined by
+that registry.</h2>
+<p>XBRL 2.1 already enforces the requirement that a fact of type xbrli:monetaryItemType must have a unitRef whose xbrli:measure is an ISO
+standard currency. A standard numeric data type registry is similar but broader: it has a schema with numeric type declarations, and
+each numeric data type is associated with consistent unit declaration measures, numerators and denominators.</p>
+<p>A portion of a registry is shown below; additional information is at <a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/edgar/info/edgartaxonomies.shtml</a>.</p>
+<table cellspacing="0" border="1pt" style="font-family: Arial; font-size: smaller;">
+<tr>
+<th>Type name-space</th>
+<th>Type element name</th>
+<th>Unit measure name-space</th>
+<th>Unit measure element names</th>
+<th>Meaning</th>
+<th>Unit numerator name-space</th>
+<th>Unit numerator element name</th>
+<th>Unit denominator namespace</th>
+<th>Unit denominator element name</th>
+</tr>
+<tr valign="top">
+<td>(any)</td>
+<td>percentItemType</td>
+<td>xbrli</td>
+<td>pure</td>
+<td>&#160;</td>
+<td>n/a</td>
+<td>disallowed</td>
+<td>n/a</td>
+<td>disallowed</td>
+</tr>
+<tr valign="top">
+<td>(any)</td>
+<td>perShareItemType</td>
+<td>n/a</td>
+<td>disallowed</td>
+<td>&#160;</td>
+<td>iso4217</td>
+<td>
+<span style="white-space: nowrap;">3-letter ISO</span> 4217 codes</td>
+<td>xbrli</td>
+<td>shares</td>
+</tr>
+<tr valign="top">
+<td rowspan="7" valign="top">(any)</td>
+<td rowspan="7" valign="top">areaItemType</td>
+<td rowspan="7" valign="top">(any)</td>
+<td>sqft</td>
+<td>Square Foot</td>
+<td rowspan="7" valign="top">n/a</td>
+<td rowspan="7" valign="top">disallowed</td>
+<td rowspan="7" valign="top">n/a</td>
+<td rowspan="7" valign="top">disallowed</td>
+</tr>
+<tr valign="top">
+<td>sqyd</td>
+<td>Square Yard</td>
+</tr>
+<tr valign="top">
+<td>sqmi</td>
+<td>Square Mile</td>
+</tr>
+<tr valign="top">
+<td>A</td>
+<td>Acre</td>
+</tr>
+<tr valign="top">
+<td>sqm</td>
+<td style="white-space: nowrap">Square Meter</td>
+</tr>
+<tr valign="top">
+<td>sqkm</td>
+<td>Square Km</td>
+</tr>
+<tr valign="top">
+<td>sqemi</td>
+<td>Square English Mile</td>
+</tr>
+<tr valign="top">
+<td rowspan="10" valign="top">(any)</td>
+<td rowspan="10" valign="top">volumeItemType</td>
+<td rowspan="10" valign="top">(any)</td>
+<td>l</td>
+<td>Liter</td>
+<td rowspan="10" valign="top">n/a</td>
+<td rowspan="10" valign="top">disallowed</td>
+<td rowspan="10" valign="top">n/a</td>
+<td rowspan="10" valign="top">disallowed</td>
+</tr>
+<tr valign="top">
+<td>m3</td>
+<td>Cubic Meter</td>
+</tr>
+<tr valign="top">
+<td>ft3</td>
+<td>Cubic Foot</td>
+</tr>
+<tr valign="top">
+<td>gal</td>
+<td>Gallon</td>
+</tr>
+<tr valign="top">
+<td>cf</td>
+<td>Cubic Feet of Natural Gas at 14.73psi and 60 degrees F</td>
+</tr>
+<tr valign="top">
+<td>Mcf</td>
+<td>Thousands of Cubic Feet of Natural Gas at 14.73psi and 60 degrees F</td>
+</tr>
+<tr valign="top">
+<td>MMcf</td>
+<td>Millions of Cubic Feet of Natural Gas at 14.73psi and 60 degrees F</td>
+</tr>
+<tr valign="top">
+<td>bbl</td>
+<td>Barrels of Oil at 60 degrees F</td>
+</tr>
+<tr valign="top">
+<td>MBbls</td>
+<td>Thousands of Barrels of Oil at 60 degrees F</td>
+</tr>
+<tr valign="top">
+<td>MMbbls</td>
+<td>Millions of Barrels of Oil at 60 degrees F</td>
+</tr>
+</table>
+<p>In this table, for example, facts whose type is based on areaItemType must have a unit whose measure is one of sqft, sqyd, sqmi,
+etc. The notation "(any)" means that the element namespace is ignored for the purposes of checking for consistency.</p>
+<p>REMARK: International types declared at www.xbrl.org can appear in the same DTS with US data types.</p>
+<p>REMARK: As of EDGAR 10.4 this test had not been implemented.  The values in the table above are not completely consistent with the forthcoming Unit Types Registry.</p>
+</description>
+<reference specification="11969"/>
+<variation id="_000gd">
+<name>6.5.35, Instance with all compatible combinations of numeric type and unit, GOOD.</name>
+<description>Instance with all compatible combinations of numeric type and unit, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60535000gd-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.5.35, Instance with all compatible combinations of numeric type and unit, GOOD.</name>
+<description>Instance with all compatible combinations of numeric type and unit, GOOD.</description>
+<data>
+<instance readMeFirst="true">e60535001gd-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.5.35, Type num:perShareItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:perShareItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535002ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.5.35, Type num:perShareItemType (Base xbrli:decimalItemType) with (edgar:unit1/xbrli:shares), NOGOOD</name>
+<description>Type num:perShareItemType (Base xbrli:decimalItemType) with (edgar:unit1/xbrli:shares), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535003ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.5.35, Type num:perShareItemType (Base xbrli:decimalItemType) with (iso4217:USD/edgar:unit2), NOGOOD</name>
+<description>Type num:perShareItemType (Base xbrli:decimalItemType) with (iso4217:USD/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535004ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.5.35, Type num:perShareItemType (Base xbrli:decimalItemType) with (iso4217:XXX/xbrli:shares), NOGOOD</name>
+<description>Type num:perShareItemType (Base xbrli:decimalItemType) with (iso4217:XXX/xbrli:shares), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535005ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.5.35, Type num:areaItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:areaItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535006ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_007ng">
+<name>6.5.35, Type num:volumeItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:volumeItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535007ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_008ng">
+<name>6.5.35, Type num:volumeItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:volumeItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535008ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_009ng">
+<name>6.5.35, Type num:massItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:massItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535009ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_010ng">
+<name>6.5.35, Type num:massItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:massItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535010ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_013ng">
+<name>6.5.35, Type num:energyItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:energyItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535013ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_014ng">
+<name>6.5.35, Type num:energyItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:energyItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535014ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_015ng">
+<name>6.5.35, Type num:powerItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:powerItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535015ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_016ng">
+<name>6.5.35, Type num:powerItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:powerItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535016ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_017ng">
+<name>6.5.35, Type num:lengthItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:lengthItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535017ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_018ng">
+<name>6.5.35, Type num:lengthItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:lengthItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535018ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_019ng">
+<name>6.5.35, Type num:memoryItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:memoryItemType (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535019ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_020ng">
+<name>6.5.35, Type num:memoryItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:memoryItemType (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535020ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_021ng">
+<name>6.5.35, Type num:percentItemType (Base xbrli:pureItemType) with edgar:unit1, NOGOOD</name>
+<description>Type num:percentItemType (Base xbrli:pureItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535021ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_022ng">
+<name>6.5.35, Type num:percentItemType (Base xbrli:pureItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type num:percentItemType (Base xbrli:pureItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535022ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_023ng">
+<name>6.5.35, Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535023ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_024ng">
+<name>6.5.35, Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/xbrli:shares), NOGOOD</name>
+<description>Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/xbrli:shares), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535024ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_025ng">
+<name>6.5.35, Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with (iso4217:USD/edgar:unit2), NOGOOD</name>
+<description>Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with (iso4217:USD/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535025ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_026ng">
+<name>6.5.35, Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with (iso4217:XXX/xbrli:shares), NOGOOD</name>
+<description>Type edgar:perShareItemTypeDerived (Base xbrli:decimalItemType) with (iso4217:XXX/xbrli:shares), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535026ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_027ng">
+<name>6.5.35, Type edgar:areaItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:areaItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535027ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_028ng">
+<name>6.5.35, Type edgar:volumeItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:volumeItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535028ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_029ng">
+<name>6.5.35, Type edgar:volumeItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:volumeItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535029ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_030ng">
+<name>6.5.35, Type edgar:massItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:massItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535030ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_031ng">
+<name>6.5.35, Type edgar:massItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:massItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535031ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_034ng">
+<name>6.5.35, Type edgar:energyItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:energyItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535034ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_035ng">
+<name>6.5.35, Type edgar:energyItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:energyItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535035ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_036ng">
+<name>6.5.35, Type edgar:powerItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:powerItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535036ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_037ng">
+<name>6.5.35, Type edgar:powerItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:powerItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535037ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_038ng">
+<name>6.5.35, Type edgar:lengthItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:lengthItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535038ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_039ng">
+<name>6.5.35, Type edgar:lengthItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:lengthItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535039ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_040ng">
+<name>6.5.35, Type edgar:memoryItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:memoryItemTypeDerived (Base xbrli:decimalItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535040ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_041ng">
+<name>6.5.35, Type edgar:memoryItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:memoryItemTypeDerived (Base xbrli:decimalItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535041ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_042ng">
+<name>6.5.35, Type edgar:percentItemTypeDerived (Base xbrli:pureItemType) with edgar:unit1, NOGOOD</name>
+<description>Type edgar:percentItemTypeDerived (Base xbrli:pureItemType) with edgar:unit1, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535042ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+<variation id="_043ng">
+<name>6.5.35, Type edgar:percentItemTypeDerived (Base xbrli:pureItemType) with (edgar:unit1/edgar:unit2), NOGOOD</name>
+<description>Type edgar:percentItemTypeDerived (Base xbrli:pureItemType) with (edgar:unit1/edgar:unit2), NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60535043ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60535" name="Incompatible-Numeric-Type-And-Unit" frd="cp"/>
+</result>
+</variation>
+</testcase>

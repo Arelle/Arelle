@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47200</number>
+  <name>Matching filter strategy test</name>
+  <description>
+    Tests of strategy for matching filters tests.  Run without any matching filters.
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-syntax"/>
+
+  <variation id="V-01">
+    <name>Three facts have no filters</name>
+    <description>Tests assures strategy that three unfiltered facts to two fact variables produces nine (cross-product) results</description>
+    <reference specification="MATCH-FILTER" id="sec-syntax"/>
+    <data>
+      <schema>47200-concepts.xsd</schema>
+      <linkbase>47200-noMatching-formula.xml</linkbase>
+      <instance readMeFirst="true">47200-noMatching-instance.xml</instance>
+    </data>
+    <result>
+      <instance>47200-noMatching-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

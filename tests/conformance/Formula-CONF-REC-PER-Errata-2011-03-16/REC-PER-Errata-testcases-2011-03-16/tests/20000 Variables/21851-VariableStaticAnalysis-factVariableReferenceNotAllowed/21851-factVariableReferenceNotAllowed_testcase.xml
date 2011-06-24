@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" 
+href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance" 
+xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>21851</number>
+  <name>Fact Variable Reference not Allowed</name>
+  <description>
+    If a filter that is associated with fact variables 
+    by a variable-set-filter relationship implies 
+    an XPath expression that includes an XPath variable reference 
+    to a general variable or a fact variable.
+     then the error MUST be thrown
+  </description>
+  <reference specification="VARIABLES" id="error-fact-variable-reference-not-allowed"/>
+  <variation id="V-01">
+    <name>Variable-set filter refers to a fact variable</name>
+    <description>
+      A filter associated with fact variables by a variable-set-filter 
+      implies an XPath expression that includes an XPath variable reference 
+      to a fact variable.
+    </description>
+    <data>
+      <schema readMeFirst="true">21851-varSetFilterFactVarDependency.xsd</schema>
+      <linkbase>21851-varSetFilterFactVarDependency-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:factVariableReferenceNotAllowed</error>
+    </result>
+  </variation>  
+  <variation id="V-02">
+    <name>Variable-set filter refers to a genral variable</name>
+    <description>
+      A filter associated with fact variables by a variable-set-filter 
+      implies an XPath expression that includes an XPath variable reference 
+      to a general variable.
+    </description>
+    <data>
+      <schema readMeFirst="true">21851-varSetFilterGenVarDependency.xsd</schema>
+      <linkbase>21851-varSetFilterGenVarDependency-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:factVariableReferenceNotAllowed</error>
+    </result>
+  </variation>  
+  
+</testcase>

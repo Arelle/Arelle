@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:p="http://www.xbrl.org/dim/conf/product" xmlns:pr="http://www.xbrl.org/dim/conf/primary" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:tx="http://www.xbrl.org/dim/conf/389/contextMemberNotExplicitDimension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xsi:schemaLocation="http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/dim/conf/primary ../../lib/base/primary.xsd http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd http://www.xbrl.org/dim/conf/product ../../lib/base/products.xsd http://www.xbrl.org/dim/conf/389/contextMemberNotExplicitDimension contextMemberNotExplicitDimension.xsd">
+  <link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="contextMemberNotExplicitDimension.xsd"/>
+  <context id="ctx1">
+    <entity>
+      <identifier scheme="http://www.example-dims.com">Example Dimensional Company</identifier>
+      <segment>
+      <!--The element do not point to a dimension element. The dimension element is tx_hc_ProductsDim -->
+        <xbrldi:explicitMember dimension="tx:hc_Products">p:PinotNoir</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <startDate>2005-01-01</startDate>
+      <endDate>2005-12-31</endDate>
+    </period>
+  </context>
+  <unit id="Euros">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <pr:Sales decimals="0" contextRef="ctx1" unitRef="Euros">120000</pr:Sales>
+  <pr:RevenueTotal decimals="0" contextRef="ctx1" unitRef="Euros">120000</pr:RevenueTotal>
+  <pr:CostOfSales decimals="0" contextRef="ctx1" unitRef="Euros">90000</pr:CostOfSales>
+  <pr:GrossProfit decimals="0" contextRef="ctx1" unitRef="Euros">30000</pr:GrossProfit>
+</xbrl>

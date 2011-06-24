@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Edited by UBmatrix LLC -->
+<!-- 11-08-2004 edit by Neil Wills (www.UBmatrix.com) -->
+<!-- Copyright 2003 XBRL International. See http://www.xbrl.org/legal. All Rights Reserved. -->
+
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Balance Attribute" description="Section 5.5.9 (Optional) An optional balance attribute MAY be added to the definition of an element if its type is monetaryItemType or derived from monetaryItemType. The balance attribute MUST NOT be used on items that do not have type equal to the monetaryItemType or to a type that is derived from monetaryItemType. If the idea of debit/credit balance is appropriate to the element, it MAY be indicated using this attribute." 
+
+outpath="out" owner="charleshoffman@olywa.net" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+
+	<!-- Detect invalid data type -->
+	<variation id="V-01" name="105.01 Element type attribute (data type) is not monetaryItemType.">
+	<description>105.01 Any element with a balance attibute MUST have a type attribute value of monetaryItemType</description>
+	<data>
+		<instance readMeFirst="true">105-01-ElementWithBalanceTypeNotMonetary-instance.xml</instance>
+		<xsd readMeFirst="false">105-01-ElementWithBalanceTypeNotMonetary.xsd</xsd>
+	</data>
+	<result expected="invalid"/>
+	</variation>
+
+	
+	<!-- Detect tuples with balance attribute -->
+	<variation id="V-02" name="105.02 Elements which are tuples must not have balance attribute.">
+	<description>105.02 Elemements where the substitutionGroup attribute value is tuple MUST NOT have a balance attribute</description>
+	<data>
+		<instance readMeFirst="true">105-02-TuplesMustHaveNoBalanceAttribute-instance.xml</instance>
+		<xsd readMeFirst="false">105-02-TuplesMustHaveNoBalanceAttribute.xsd</xsd>
+	</data>
+	<result expected="invalid"/>
+	</variation>
+
+
+	<!-- Monetary items with balance type -->
+	<variation id="V-03" name="105.03 Monetary items with balance type">
+	<description>105.03 An optional balance attribute MAY be added to the definition of an element if its type is monetaryItemType or derived from monetaryItemType.</description>
+	<data>
+		<instance readMeFirst="true">105-03-ElementWithBalanceTypeMonetary.xml</instance>
+		<xsd readMeFirst="false">105-03-ElementWithBalanceTypeMonetary.xsd</xsd>
+	</data>
+	<result expected="valid"/>
+	</variation>
+
+	<variation id="V-04" name="105.04 Derived element of Monetary datatype with Balance defined">
+	<description>105.04 Derived element of Monetary datatype with Balance defined</description>
+	<data>
+		<xsd readMeFirst="true">105-04-DerivedElementWithBalanceTypeMonetary.xsd</xsd>
+	</data>
+	<result expected="valid"/>
+	</variation>
+
+	<variation id="V-05" name="105.05 Derived element with string datatype with Balance defined">
+	<description>105.05 Derived element with string datatype with Balance defined</description>
+	<data>
+		<xsd readMeFirst="true">105-05-DerivedElementWithBalanceTypeString.xsd</xsd>
+	</data>
+	<result expected="invalid"/>
+	</variation>
+
+</testcase>
+

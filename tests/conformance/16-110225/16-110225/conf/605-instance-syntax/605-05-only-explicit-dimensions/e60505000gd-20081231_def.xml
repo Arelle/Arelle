@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<linkbase xmlns:edgar="http://edgar/20081231" xmlns="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:p0="http://xbrl.org/2005/xbrldt">
+<roleRef roleURI="http://edgar/role/role1" xlink:type="simple"
+xlink:href="e60505000gd-20081231.xsd#role1"/>
+<roleRef roleURI="http://edgar/role/role2" xlink:type="simple"
+xlink:href="e60505000gd-20081231.xsd#role2"/>
+<arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+<arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain"
+xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"/>
+<arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+<arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default"/>
+<arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+<definitionLink xlink:type="extended" xlink:role="http://edgar/role/role1">
+<loc xlink:type="locator"
+xlink:href="e60505000gd-20081231.xsd#edgar_CompanyOwnedRestaurantSalesDomestic"
+xlink:label="CompanyOwnedRestaurantSalesDomestic"/>
+<loc xlink:type="locator" xlink:href="e60505000gd-20081231.xsd#edgar_Table"
+xlink:label="Table"/>
+<loc xlink:type="locator" xlink:href="e60505000gd-20081231.xsd#edgar_Axis"
+xlink:label="Axis"/>
+<loc xlink:type="locator" xlink:href="e60505000gd-20081231.xsd#edgar_TotalDomain"
+xlink:label="TotalDomain"/>
+<loc xlink:type="locator" xlink:href="e60505000gd-20081231.xsd#edgar_TotalDomain"
+xlink:label="TotalDomain_2"/>
+<loc xlink:type="locator"
+xlink:href="e60505000gd-20081231.xsd#edgar_PepperoniMember"
+xlink:label="PepperoniMember"/>
+<definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+xlink:from="CompanyOwnedRestaurantSalesDomestic"
+xlink:to="Table"
+use="optional"
+order="1.0"
+p0:contextElement="segment"/>
+<definitionArc xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:from="Table"
+xlink:to="Axis"
+order="1.0"/>
+<definitionArc xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+xlink:from="Axis"
+xlink:to="TotalDomain"
+order="2.0"/>
+<definitionArc xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:from="Axis"
+xlink:to="TotalDomain_2"
+use="optional"
+priority="1"
+order="3.0"/>
+<definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="TotalDomain"
+xlink:to="PepperoniMember"
+use="optional"
+order="1.0"/>
+</definitionLink>
+</linkbase>

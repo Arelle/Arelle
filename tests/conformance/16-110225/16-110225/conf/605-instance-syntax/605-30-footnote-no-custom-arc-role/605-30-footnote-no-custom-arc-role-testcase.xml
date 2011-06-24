@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-30</number>
+<name>EDGAR Filer Manual v16 6.5.30 page 6-16</name>
+<description>
+<h2>The xlink:arcrole attribute of a link:footnoteArc element must be defined in the XBRL Specification 2.1 or a standard taxonomy schema.</h2>
+<p>REMARK EFM v16 is wrong, the above text <i>or a standard taxonomy schema</i> is correct.</p>
+<p>REMARK the arc role link:definition does not matter because the entire declaration is forbidden.  Variation 001ng' schema
+also throws error 6.9.5 from its schema.  The test of the instance remains meaningful.</p>
+</description>
+<reference specification="10996"/>
+<reference specification="12074"/>
+<variation id="_000ng">
+<name>6.5.30 Instance footnote contains a custom footnote arc role, NOGOOD</name>
+<description>Instance footnote contains a custom footnote arc role. NOGOOD.</description>
+<reference specification="10996"/>    
+<data>
+<instance readMeFirst="true">e6053000ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e6053000ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60530" name="Footnote-Custom-Arcrole" frd="du"/>
+</result>
+</variation>
+<variation id="_001gd">
+<name>6.5.30 Instance footnote contains a footnote arc with arcrole defined in edgartaxonomies.xml, GOOD.</name>
+<description>Instance footnote contains a footnote arc with arcrole defined in edgartaxonomies.xml, GOOD.</description>
+<reference specification="10996"/>
+<reference specification="12074"/>
+<data>
+<instance readMeFirst="true">e6053001gd-20101231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e6053001gd-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

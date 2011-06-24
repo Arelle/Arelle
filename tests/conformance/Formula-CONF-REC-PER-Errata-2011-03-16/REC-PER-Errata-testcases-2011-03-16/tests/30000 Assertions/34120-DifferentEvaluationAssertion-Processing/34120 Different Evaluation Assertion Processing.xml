@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>34120</number>
+  <name>Different Evaluation Assertion Processing</name>
+  <description>
+    Assess that processors evaluate assertions only for "different fact-variable evaluations" (where fact variables differ) or for all evaluations (regardless of whether it is general variables that differ or fact variables that differ).
+  </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+
+  <variation id="V-01">
+    <name>Consistency check a = b * c, strict, reported valid a, evaluated ok, 4 total evaluations</name>
+    <description>
+      Consistency check valid a = b * c.  Evaluates consistently.
+      There are two "different fact-variable evaluations" but four total evaluations, four facts are produced.
+      General variable differs (for the non-"different" evaluations)
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-strict-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-strict-abc-evaluated-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="4"
+         countNotSatisfied="0" />
+      <instance>34120-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Consistency check a = b * c, strict, reported valid a, evaluated ok, 2 "different fact-variable evaluations"</name>
+    <description>
+      Same files as V-01 but assertion count reflects only "different fact-variable evaluations" are expected.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-strict-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-strict-abc-evaluated-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+      <instance>34120-a-bc-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-11">
+    <name>Existence check, no fact variables, general variable counts contexts</name>
+    <description>
+      General variable differs (considered non-different evaluations) for 6 contexts
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-contextCountAllExistence-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-contextCountAllExistence-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-12">
+    <name>Existence check, no fact variables, general variable "different fact-variable evaluations" (only 1)</name>
+    <description>
+      General variable differs but only 1 context is counted as a "different fact-variable evaluation"
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-contextCountDifferentExistence-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-contextCountDifferentExistence-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-21">
+    <name>Value check a = b * c, strict, reported valid a, evaluated ok, 4 total evaluations</name>
+    <description>
+      Value check valid a = b * c.  Evaluates consistently.
+      There are two "different fact-variable evaluations" but four total evaluations.
+      General variable differs (for the non-different evaluations)
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-value-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-value-abc-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="4"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-22">
+    <name>Value check a = b * c, strict, reported valid a, evaluated ok, 2 "different fact-variable evaluations"</name>
+    <description>
+      Same files as V-01 but assertion count reflects only "different fact-variable evaluations" are expected.
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-value-abc-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-value-abc-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="2"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-23">
+    <name>Value assertion, no fact variables, general variable tests contexts, expect all evaluations</name>
+    <description>
+      General variable differs (considered non-different evaluations) for 6 contexts
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-contextValue-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-contextValue-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="6"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-24">
+    <name>Value check, no fact variables, general variable "different fact-variable evaluations" (only 1)</name>
+    <description>
+      General variable differs but only 1 context is counted as a "different fact-variable evaluations"
+    </description>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-syntax-ca-resources"/>         
+    <data>
+      <schema>34120-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>34120-contextValue-formula.xml</linkbase>
+      <instance readMeFirst="true">34120-contextValue-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+
+
+</testcase>
+

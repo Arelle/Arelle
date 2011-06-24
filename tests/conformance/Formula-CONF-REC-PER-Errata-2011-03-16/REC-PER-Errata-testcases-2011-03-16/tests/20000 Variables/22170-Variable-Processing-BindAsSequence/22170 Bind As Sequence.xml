@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22170</number>
+  <name>Bind as sequence processing tests</name>
+  <description>
+    Tests of bind as sequence processing
+  </description>
+  <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+
+  <variation id="V-01">
+    <name>No value duplicates in sequence test</name>
+    <description>Tests that a sequence has no duplicate values (by v-equals criteria, not by item duplicates criteria).</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-noDups-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-noDups-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-noDups-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Uncovered aspects same value test</name>
+    <description>Tests that a sequence has only facts of same uncovered aspect values.  The input planets are grouped by identifier to inner, home, and outer planets.  A non-covering identifier filter tries to sneak all planets into same collection, but should fail to do so.  Result should have 3 sequences by entity identifier aspect segregation.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-sameUncoveredAspects-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-sameUncoveredAspects-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-sameUncoveredAspects-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Implicit filtering on, location aspect prevents any evaluations of tuple-nested c1's</name>
+    <description>Same as 22040 V-02, but $c1 matches only c1 facts that are implicity matched to eg:c2, which lists only the single root-level c1 (mercury) for hello result.</description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-impl-filt-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-impl-filt-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-impl-filt-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <!-- place holder, v-05 deleted, available for future -->
+
+  <variation id="V-06">
+    <name>Fact variable with implicit filtering false but equivalent location evaluations filtering per variables spec 4.1 bullet 3</name>
+    <description>$v binds to sequence of items without implicit filtering.  Because of no implicit filtering, the sequence "receives" all the items in facts-in-instance of all locations.  In this variation v fact items are sub-grouped into 3 tuples. Since location is uncovered, the processing for spec 4.1 bullet 3 separates these three tuple groupings into separate evaluations.  Thus three fact items are output</description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-uncovered-aspect-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-uncovered-aspect-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-uncovered-aspect-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-07">
+    <name>Fact variable with implicit filtering false but both concept name and location sub-grouping for separate evaluations</name>
+    <description>
+Same as v-06 above, but evaluation of the sequence groups evaluations by both location and concept name (both uncovered).
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-uncovered-aspect-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-uncovered-2-aspects-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-uncovered-2-aspects-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-08">
+    <name>Fact variable with implicit filtering false but both concept name covered, with location sub-grouping for separate evaluations</name>
+    <description>
+Same as v-07 above, but evaluation of the sequence groups evaluations by location (uncovered), not concept name (covered).
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-uncovered-covered-aspect-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-uncovered-covered-aspects-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-uncovered-covered-aspects-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-09">
+    <name>Fact variable with implicit filtering false but dimensional sub-grouping for separate evaluations</name>
+    <description>
+Same as v-07 above, but evaluation of the sequence groups evaluations by dimension (uncovered).
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-dim-tests.xsd</schema>
+      <linkbase>22170-seq-uncovered-dim-aspect-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-uncovered-dim-aspects-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-uncovered-dim-aspects-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-10">
+    <name>Uncovered aspects include unit and mix of numeric/string data</name>
+    <description>Same as V-06 but numeric values added to sequence, so they should be unit-sub-filtered by implicit segregating.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-uncovered-aspect-3-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-uncovered-aspect-3-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-uncovered-aspect-3-factsInInst-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-10a">
+    <name>Same as V-10 but value has XPath error for integer results</name>
+    <description>
+       Same as V-10, original version, attempted string-join on integer arguments, should raise XPath wrong argument type error (XPTY0004)
+    </description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-uncovered-aspect-3a-factsInInst-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-uncovered-aspect-3a-factsInInst-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xqt-err="http://www.w3.org/2005/xqt-errors">
+         xqt-err:XPTY0004
+      </error>
+    </result>
+  </variation>  
+
+  <variation id="V-11">
+    <name>Duplicates test with implicit filtering true and dimensional sub-grouping for separate evaluations</name>
+    <description>
+Inspired by a COREP test by Victor Morilla, checks that all implicitly-matching concepts (same uncovered aspects) are all duplicates of each other.  (Similar test is in 33210 assertion tests, but there with assertion.)
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-dim-tests.xsd</schema>
+      <linkbase>22170-seq-dupTest-1-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-dupTest-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-dupTest-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-12">
+    <name>Duplicates test with implicit filtering false and dimensional sub-grouping for separate evaluations</name>
+    <description>
+Same as v-11 but not implicit filtering; still the sequence should be sub-grouped by uncovered aspects and have same effect as v-11.  Aspects hand-constructed because of no implicit filtering, $v can't be a source.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-dim-tests.xsd</schema>
+      <linkbase>22170-seq-dupTest-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-dupTest-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-dupTest-2-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-13">
+    <name>Duplicates test with implicit filtering true but now testing for some duplicate in sequence instead of every is duplicate</name>
+    <description>
+Same as v-11 but instead of testing that every concept is duplicate, tests that there is just some duplicate in the sequence.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-dim-tests.xsd</schema>
+      <linkbase>22170-seq-dupTest-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-dupTest-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-dupTest-3-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-14">
+    <name>Aggregates with implicit filtering and formula:uncovered to sub-partitioned sequence with explicit dimension</name>
+    <description>
+Based on a COREP example by Victor Morilla.  Determines the aggregate total for all facts whose concepts aggregate by an explicit dimension, single fact variable, single bind as sequence, just dimension is covered.  Sequence of facts should have two evaluations, one for planetary natural moons and the other for planetary manufactured satellites, producing two aggregate sums (natural and manufactured).
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-dim-tests.xsd</schema>
+      <linkbase>22170-seq-aggregationTest-1-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-aggregationTest-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-aggregationTest-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-15">
+    <name>Aggregates with implicit filtering and formula:uncovered to sub-partitioned sequence by typed dimension</name>
+    <description>
+Same as V-14 but uses typed dimension to be sure s-equal checks of typed dimension aspects work for subpartitioning.
+    </description>
+    <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <data>
+      <schema>22170-sequence-typedDim-tests.xsd</schema>
+      <linkbase>22170-seq-aggregationTest-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-aggregationTest-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-aggregationTest-2-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-16">
+    <name>Item duplicates in sequence test, duplicates attribute true</name>
+    <description>Tests that a sequence has allows duplicate values (by item duplicates criteria).  Three tuples each have multiple p-equal, c-equal, u-equal items (even though they are not v-equal).  @duplicates="true" to allow the sequences to hold item duplicates.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-item-duplicates-true-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-item-duplicates-true-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-item-duplicates-true-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-17">
+    <name>Item duplicates in sequence test, duplicates attribute false</name>
+    <description>Tests that a sequence is sub-partitioned when not allowing duplicate values (by item duplicates criteria).  Three tuples each have multiple p-equal, c-equal, u-equal items (even though they are not v-equal).  @duplicates="false" to force each evaluation to have no item duplicates (p-,c-,u-equality).  Does not consider v-equality for item duplicaes (see 2.1 spec).</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-item-duplicates-false-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-item-duplicates-false-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-item-duplicates-false-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-18">
+    <name>Item duplicates in sequence test, duplicates attribute absent</name>
+    <description>Same as v-17 but duplicates attribute is absent, so duplicates=false is assumed.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-seq-item-duplicates-unspecified-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-seq-item-duplicates-unspecified-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-seq-item-duplicates-unspecified-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-19">
+    <name>General variable duplicates in sequence test, duplicates are allowed</name>
+    <description>Issue is that of v-17 but generalVariable, not factVariable, binds as sequence, no sub-partitioning or removal of duplicates.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-generalVar-dupSeq-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-generalVar-dupSeq-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-generalVar-dupSeq-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-20">
+    <name>General variable sequence test, empty sequences are allowed</name>
+    <description>Issue is that of v-17 but generalVariable, not factVariable, binds as sequence, sequence is empty and binds correctly.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-generalVar-emptySeq-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-generalVar-emptySeq-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-generalVar-emptySeq-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-20a">
+    <name>Fact variable sequence test, empty sequences don't bind</name>
+    <description>Issue is that of v-20 but factVariable, binds as sequence, sequence is empty and does not bind, because no fallback value is provided.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-noEmptyEvals-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-noEmptyEvals-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-noEmptyEvals-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-21">
+    <name>General variable sequence test, mixed data types in sequences are allowed</name>
+    <description>Issue is that of v-17 but generalVariable, not factVariable, binds as sequence, sequence contains five repeats of qname and string objects, e.g., (QName, string, integer, QName, string, integer, QName, string, integer, QName, string, integer, QName, string, integer).  The integers in the sequence are multiplied by 10 to ensure they were typed as integers and can be treated numerically, the qnames and strings just rendered.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-generalVar-dupMixSeq-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-generalVar-dupMixSeq-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-generalVar-dupMixSeq-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-22">
+    <name>No nils when not expected in fact variable sequence</name>
+    <description>Tests that a fact variable sequence has no nil values when nils attribute is absent.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-noFvNils-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-noFvNils-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-noFvNils-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-23">
+    <name>Nils when requested in fact variable sequence</name>
+    <description>Tests that a fact variable sequence has nil values when nils="true" requests them.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-withFvNils-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-withFvNils-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-withFvNils-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-24">
+    <name>Nils do appear in general variable sequence</name>
+    <description>Tests that a general variable sequence has no nil values.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-withGvNils-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-withGvNils-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-withGvNils-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-25">
+    <name>No nils when not expected in fact variable sub-sequence partitioned by uncovered aspect</name>
+    <description>Same as V-22 but tests that a fact variable sub-sequence partitioned by uncovered aspect has no nil values when nils attribute is absent.</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-noFvNils-uncoveredAspect-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-noFvNils-uncoveredAspect-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-noFvNils-uncoveredAspect-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-26">
+    <name>Nils when requested in fact variable sub-sequence partitioned by uncovered aspect</name>
+    <description>Same as V-25 but nils requested by nils="true".</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-tests.xsd</schema>
+      <linkbase>22170-withFvNils-uncoveredAspect-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-withFvNils-uncoveredAspect-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-withFvNils-uncoveredAspect-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-27">
+    <name>Sub-sequence partitioned by uncovered dimensional aspects with duplicates and matches=true</name>
+    <description>Three dimensional aspects all in segment showing partitioning by each dimensional aspect, one fact duplicated twice, other three times, string-join for result value shows the duplication</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-3dim-tests.xsd</schema>
+      <linkbase>22170-sequence-3dim-tests-definition.xml</linkbase>
+      <linkbase>22170-3dims-1-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-3dims-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-3dims-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-28">
+    <name>Sub-sequence partitioned by uncovered dimensional aspects with duplicates and matches absent</name>
+    <description>Same as V-27 but without matches=true, the duplicates are not string-joined in result</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-3dim-tests.xsd</schema>
+      <linkbase>22170-sequence-3dim-tests-definition.xml</linkbase>
+      <linkbase>22170-3dims-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-3dims-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-3dims-2-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-29">
+    <name>Sub-sequence partitioned by uncovered dimensional aspects irrespective of segment or scenario</name>
+    <description>Same as V-27 but the duplicates have dimensions scattered randomly between segment and scenario</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-3dim-tests.xsd</schema>
+      <linkbase>22170-sequence-3dim-tests-definition.xml</linkbase>
+      <linkbase>22170-3dims-3-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-3dims-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-3dims-3-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-30">
+    <name>Sub-sequence partitioned by uncovered dimensional aspects irrespective of segment or scenario, with a default specified</name>
+    <description>Same as V-27 but the duplicates have dimensions scattered randomly between segment and scenario and Dim3Mem1 is a default</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-3dim-tests.xsd</schema>
+      <linkbase>22170-sequence-3dim-tests-definition.xml</linkbase>
+      <linkbase>22170-sequence-3dim-tests-definition-defaults.xml</linkbase>
+      <linkbase>22170-3dims-4-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-3dims-4-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-3dims-4-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-31">
+    <name>Sub-sequence partitioned by uncovered non-dimensional aspects with orderings and sneaky differences</name>
+    <description>Same as V-29 but aspectModel is non-dimensional, one pair of contexts has dimension aspects in different order (which should be s-equals different), others have v-29 (seg/scen scatterings) which also should be s-equals different</description>
+    <reference specification="VARIABLES" id="sec-binding-as-a-sequence"/>
+    <data>
+      <schema>22170-sequence-3dim-tests.xsd</schema>
+      <linkbase>22170-sequence-3dim-tests-definition.xml</linkbase>
+      <linkbase>22170-3dims-5-formula.xml</linkbase>
+      <instance readMeFirst="true">22170-3dims-5-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22170-3dims-5-result.xml</instance>
+    </result>
+  </variation>  
+
+
+
+</testcase>
+
+
+
+

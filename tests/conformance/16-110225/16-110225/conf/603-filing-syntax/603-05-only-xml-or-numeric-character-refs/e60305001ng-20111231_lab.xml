@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:edgar="http://edgar/20111231"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:href="e60305001ng-20111231.xsd#edgar_Form10KMember" xlink:type="locator"
+xlink:label="Form10KMember"/>
+<link:loc xlink:href="e60305001ng-20111231.xsd#edgar_Exhibit31Member"
+xlink:type="locator"
+xlink:label="Exhibit31Member"/>
+<link:loc xlink:href="e60305001ng-20111231.xsd#edgar_AbcfsMember" xlink:type="locator"
+xlink:label="AbcfsMember"/>
+<link:loc xlink:href="e60305001ng-20111231.xsd#edgar_AbcMember" xlink:type="locator"
+xlink:label="AbcMember"/>
+<link:loc xlink:href="e60305001ng-20111231.xsd#edgar_Top" xlink:type="locator"
+xlink:label="Top"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentType"
+xlink:type="locator"
+xlink:label="DocumentType"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AmendmentFlag"
+xlink:type="locator"
+xlink:label="AmendmentFlag"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AmendmentDescription"
+xlink:type="locator"
+xlink:label="AmendmentDescription"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentPeriodEndDate"
+xlink:type="locator"
+xlink:label="DocumentPeriodEndDate"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityRegistrantName"
+xlink:type="locator"
+xlink:label="EntityRegistrantName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCentralIndexKey"
+xlink:type="locator"
+xlink:label="EntityCentralIndexKey"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_CurrentFiscalYearEndDate"
+xlink:type="locator"
+xlink:label="CurrentFiscalYearEndDate"/>
+<link:label id="label_Form10KMember" xlink:type="resource"
+xlink:label="label_Form10KMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Form 10K [Member]</link:label>
+<link:label id="label_Exhibit31Member" xlink:type="resource"
+xlink:label="label_Exhibit31Member"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Exhibit 31 [Member]</link:label>
+<link:label id="label_AbcfsMember" xlink:type="resource" xlink:label="label_AbcfsMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">ABCFS [Member]</link:label>
+<link:label id="label_AbcMember" xlink:type="resource" xlink:label="label_AbcMember"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">ABC [Member]</link:label>
+<link:label id="label_Top" xlink:type="resource" xlink:label="label_Top"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Top</link:label>
+<link:label id="label_DocumentType" xlink:type="resource" xlink:label="label_DocumentType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Type</link:label>
+<link:label id="label_AmendmentFlag" xlink:type="resource"
+xlink:label="label_AmendmentFlag"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Amendment Flag</link:label>
+<link:label id="label_AmendmentDescription" xlink:type="resource"
+xlink:label="label_AmendmentDescription"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Amendment Description</link:label>
+<link:label id="label_DocumentPeriodEndDate" xlink:type="resource"
+xlink:label="label_DocumentPeriodEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Document Period End Date</link:label>
+<link:label id="label_EntityRegistrantName" xlink:type="resource"
+xlink:label="label_EntityRegistrantName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Registrant Name</link:label>
+<link:label id="label_EntityCentralIndexKey" xlink:type="resource"
+xlink:label="label_EntityCentralIndexKey"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Central Index Key</link:label>
+<link:label id="label_CurrentFiscalYearEndDate" xlink:type="resource"
+xlink:label="label_CurrentFiscalYearEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US">Current Fiscal Year End Date</link:label>
+<link:labelArc xlink:to="label_Form10KMember" xlink:from="Form10KMember" xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_Exhibit31Member" xlink:from="Exhibit31Member" xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_AbcfsMember" xlink:from="AbcfsMember" xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_AbcMember" xlink:from="AbcMember" xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_Top" xlink:from="Top" xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_DocumentType" xlink:from="DocumentType" xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_AmendmentFlag" xlink:from="AmendmentFlag" xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_AmendmentDescription" xlink:from="AmendmentDescription"
+xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_DocumentPeriodEndDate" xlink:from="DocumentPeriodEndDate"
+xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_EntityRegistrantName" xlink:from="EntityRegistrantName"
+xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_EntityCentralIndexKey" xlink:from="EntityCentralIndexKey"
+xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+<link:labelArc xlink:to="label_CurrentFiscalYearEndDate" xlink:from="CurrentFiscalYearEndDate"
+xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+</link:labelLink>
+</link:linkbase>

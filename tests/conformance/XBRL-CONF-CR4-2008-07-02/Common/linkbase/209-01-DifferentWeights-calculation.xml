@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--Edited by Charles Hoffman (UBmatrix) -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<!-- the purpose of this test is to ensure that trivial undirected cycles (created by a pair of arcs with the same source and destination) are detected.-->
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="209-01-DifferentWeights.xsd#ItemCredit" xlink:label="ItemCredit"/>
+		<loc xlink:type="locator" xlink:href="209-01-DifferentWeights.xsd#SumCredit" xlink:label="SumCredit"/>
+		<calculationArc xlink:type="arc" xlink:from="ItemCredit" xlink:to="SumCredit" weight="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" priority="0"/>
+	</calculationLink>
+
+	<calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="209-01-DifferentWeights.xsd#ItemCredit" xlink:label="ItemCredit"/>
+		<loc xlink:type="locator" xlink:href="209-01-DifferentWeights.xsd#SumCredit" xlink:label="SumCredit"/>
+		<calculationArc xlink:type="arc" xlink:from="ItemCredit" xlink:to="SumCredit" weight="0.5" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" priority="0"/>
+	</calculationLink>
+</linkbase>

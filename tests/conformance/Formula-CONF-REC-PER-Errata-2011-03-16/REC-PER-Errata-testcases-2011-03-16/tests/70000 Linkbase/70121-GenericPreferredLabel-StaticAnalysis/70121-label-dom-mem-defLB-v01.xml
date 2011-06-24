@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linkbase 
+  xmlns="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt" 
+  xmlns:gpl="http://xbrl.org/2010/preferred-label"
+  xsi:schemaLocation=" 
+    http://www.xbrl.org/2003/linkbase 
+       http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd 
+    http://xbrl.org/2005/xbrldt 
+       http://www.xbrl.org/2005/xbrldt-2005.xsd
+    http://xbrl.org/2010/preferred-label
+       ../../../core_schemas/preferred-label.xsd
+  ">
+  <arcroleRef xlink:type="simple" 
+     xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" 
+     arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" 
+   />
+  <roleRef xlink:type="simple" xlink:href="70121-label-dom-mem-concepts-v01.xsd#PrimaryItems" 
+    roleURI="http://www.SampleCompany.com/PrimaryItems" />
+  <definitionLink xlink:type="extended" 
+    xlink:role="http://www.SampleCompany.com/PrimaryItems">
+    <loc xlink:type="locator" xlink:href="70121-label-dom-mem-concepts-v01.xsd#a" xlink:label="a" />
+    <loc xlink:type="locator" xlink:href="70121-label-dom-mem-concepts-v01.xsd#b" xlink:label="b" />
+    
+    <!-- note: a roleRef for gpl:preferredLabel is not required here -->
+    <definitionArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" 
+      xlink:from="a" xlink:to="b" order="1" use="optional" 
+      
+      gpl:preferredLabel="http://www.SampleCompany.com/MyLabel" />
+  </definitionLink>
+</linkbase>

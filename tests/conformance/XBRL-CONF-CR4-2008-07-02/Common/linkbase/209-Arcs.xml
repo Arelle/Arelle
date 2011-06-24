@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- edited with UBMatrix -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+
+<testcase name='Linkbase References' description='Section 5 Taxonomies' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' minimal='true' outpath='out' owner='jinesh.varia@ubmatrix.com' xsi:noNamespaceSchemaLocation='../lib/test.xsd'>
+  <variation name='SameCalculationArcsButDifferentWeights' id='V-01'>
+    <description>
+			209.01 Checking that trivial undirected cycles (created by a pair of arcs with the same 
+      source and destination) are detected.  As per
+      http://xbrlbugs.decisionsoft.com/show_bug.cgi?id=7 such cycles are no
+      longer illegal.
+		</description>
+    <data>
+      <xsd readMeFirst='true'>209-01-DifferentWeights.xsd</xsd>
+      <linkbase readMeFirst='false'>209-01-DifferentWeights-calculation.xml</linkbase>
+    </data>
+    <result expected='valid'>209-01-Out.xml</result>
+  </variation>
+  <variation name='SamePresentationArcsButDifferentPreferredLabels' id='V-02'>
+    <description>
+		209.02 (Spec 2_1 - Section 5-2-4-2-1) Checking that two presentation arcs are NOT identified as being
+equivalent when they are equivalent in all other respects AND their
+preferredLabel attributes are not equal.
+There are two Presentation arcs that have exactly same structure and value except that they have preferred Label 
+attributes different (standard, terse) The presentation arcs are not identical. the test is valid
+		</description>
+    <data>
+      <xsd readMeFirst='true'>209-02-DifferentPreferredLabels.xsd</xsd>
+      <linkbase readMeFirst='false'>209-02-DifferentPreferredLabels-label.xml</linkbase>
+      <linkbase readMeFirst='false'>209-02-DifferentPreferredLabels-presentation.xml</linkbase>
+    </data>
+    <result expected='valid'>209-02-Out.xml</result>
+  </variation>
+  <variation name='SameDefinitionArcs' id='V-03'>
+    <description>
+		209.03  Verify that arcs in separate extended-links do not violate any XLink constraint 
+		even though their 'from' and 'to' labels identify identical hrefs.   
+		The definitionLink and general-special arc are used in this test because the 
+		general-special arc allows the undirected cycle formed by the pair of arcs in this test.
+		</description>
+    <data>
+      <xsd readMeFirst='true'>209-03-SameDefinitionArcs.xsd</xsd>
+      <linkbase readMeFirst='false'>209-03-SameDefinitionArcs-definition.xml</linkbase>
+    </data>
+    <result expected='valid'>209-03-Out.xml</result>
+  </variation>
+  <variation name='SameDefinitionArcsButDifferentArcroles' id='V-04'>
+    <description>
+		209.04  This test is extended from "209.03".
+		This arcs are same as 209.03 except arcrole value.
+		This arcs have different arcrole value,then the result of 209-04-Out.xml has two arc elements.
+	</description>
+    <data>
+      <xsd readMeFirst='true'>209-04-DifferentArcroles.xsd</xsd>
+      <linkbase readMeFirst='false'>209-04-DifferentArcroles-definition.xml</linkbase>
+    </data>
+    <result expected='valid'>209-04-Out.xml</result>
+  </variation>
+</testcase>

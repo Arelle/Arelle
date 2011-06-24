@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2086.16077 (2005-09-17 09:21).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-09-20 06:02:10
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_AllProducts" xlink:label="products_AllProducts" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_ConsumerHealthSegment" xlink:label="products_ConsumerHealthSegment" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_GenericsSegment" xlink:label="products_GenericsSegment" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_OtherSegments" xlink:label="products_OtherSegments" />
+    <loc xlink:type="locator" xlink:href="Products.xsd#products_PharmaceuticalsSegment" xlink:label="products_PharmaceuticalsSegment" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="products_AllProducts" xlink:to="products_AllProducts_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="products_ConsumerHealthSegment" xlink:to="products_ConsumerHealthSegment_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="products_GenericsSegment" xlink:to="products_GenericsSegment_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="products_OtherSegments" xlink:to="products_OtherSegments_lbl" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="products_PharmaceuticalsSegment" xlink:to="products_PharmaceuticalsSegment_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="products_AllProducts_lbl" xml:lang="en">All Products</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="products_ConsumerHealthSegment_lbl" xml:lang="en">Consumer Health Segment</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="products_GenericsSegment_lbl" xml:lang="en">Generics Segment</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="products_OtherSegments_lbl" xml:lang="en">Other Segments</label>
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="products_PharmaceuticalsSegment_lbl" xml:lang="en">Pharmaceuticals Segment</label>
+  </labelLink>
+</linkbase>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Automator Professional Edition 6.403.2201.29023 (2006-01-10 17:07).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2006 Universal Business Matrix inc., All Rights Reserved
+Produced on 2006-01-13 12:23:52
+--><xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:tx="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xsi:schemaLocation="http://www.xbrl.org/dim/conf/203/ComplexHypercubeInheritance ComplexHypercubeInheritance.xsd http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:schemaRef xlink:type="simple" xlink:href="ComplexHypercubeInheritance.xsd"/>
+    <context id="ctx1">
+    <entity>
+      <identifier scheme="http://sample.com">Sample Company (Only Dimension One)</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="tx:DimensionOne">tx:MemberOne</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2005-12-31</instant>
+    </period>
+  </context>
+  <context id="ctx2">
+    <entity>
+      <identifier scheme="http://sample.com">Sample Company (Only Dimension One and Dimension Two)</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="tx:DimensionOne">tx:MemberOne</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="tx:DimensionTwo">tx:MemberTwo</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2005-12-31</instant>
+    </period>
+  </context>
+  <context id="ctx3">
+    <entity>
+      <identifier scheme="http://sample.com">Sample Company (Only HcThree)</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="tx:DimensionThree">tx:MemberThree</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2005-12-31</instant>
+    </period>
+  </context>
+  <unit id="Euros">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <tx:PrimaryParent contextRef="ctx1" unitRef="Euros" precision="INF">10000000</tx:PrimaryParent>
+  <tx:FirstChildren contextRef="ctx2" unitRef="Euros" precision="INF">20000000</tx:FirstChildren>
+  <tx:SecondChildren contextRef="ctx3" unitRef="Euros" precision="INF">30000000</tx:SecondChildren>
+  <tx:ThirdChildren contextRef="ctx3" unitRef="Euros" precision="INF">40000000</tx:ThirdChildren>
+</xbrl>

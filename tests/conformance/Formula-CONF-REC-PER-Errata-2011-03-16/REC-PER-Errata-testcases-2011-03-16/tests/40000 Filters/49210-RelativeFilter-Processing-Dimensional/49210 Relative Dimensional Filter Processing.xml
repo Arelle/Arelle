@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>49210</number>
+  <name>Relative Filter Dimensional Processing</name>
+  <description>
+    Test relative dimensional filter processing.
+  </description>
+  <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+
+  <variation id="V-01">
+    <name>Test relative filtering of stock-flow example with restatement filter based on a restatement date of type xbrli:dateUnion (here reported without time)</name>
+    <description>
+For variable $v:flow, a covering concept-name filter requires matching facts to report values for the eg:flow concept.  
+For variable $v:stock (starting stock), a covering concept-name filter requires matching facts to report values for the eg:stock concept; and a
+covering instant-duration filter requires matching facts to report values with an instant equal to the start of the duration of the fact matched by the eg:flow variable, and a
+covering typed dimension filter requires matching facts to report values with a restatement date that is equal to the end date of the fact matched by the eg:flow variable, and the final
+covering relative filter matches otherwise uncovered aspects to the fact that variable eg:flow has evaluated to.  
+(Note that the test expression for the date check has to honor a date union, for instant date, so if reported without time, it has to be converted into dateTime on the next midnight, as shown.  For timeless dates, the +dateTime(1 day) is needed because dateTime(date, xs:time(24:00:00)) does not work.)
+    </description>
+    <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+    <data>
+      <schema>49210-relDimFilter-concepts.xsd</schema>
+      <linkbase>49210-relDimFilter-concepts-definition.xml</linkbase>
+      <linkbase>49210-restatementFilter-formula.xml</linkbase>
+      <instance readMeFirst="true">49210-restatementFilter-instance.xml</instance>
+    </data>
+    <result>
+      <instance>49210-restatementFilter-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Same as V-01 but restatement date here is reported with time</name>
+    <description>
+    </description>
+    <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+    <data>
+      <schema>49210-relDimFilter-concepts.xsd</schema>
+      <linkbase>49210-relDimFilter-concepts-definition.xml</linkbase>
+      <linkbase>49210-restatementFilter-formula.xml</linkbase>
+      <instance readMeFirst="true">49210-restatementFilter-with-time-instance.xml</instance>
+    </data>
+    <result>
+      <instance>49210-restatementFilter-with-time-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>
+      Fact being matched has fewer dimensions than variable being matched to
+    </name>
+    <description>
+      Variable being matched to (v1) has 3 dimensions, but fact being tested (for v2) 
+      has only two dimensions, v2's absent 3rd dimension does not have a default.  
+      The relative filter is only concerned with those aspects
+      uncovered of variable being matched (v2's two dimensions) and does not worry
+      about the third dimension (on v1 being matched to) which is not present on
+      v2. 
+      (Variation supports e-mail by Okumura-san.)
+    </description>
+    <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+    <data>
+      <schema>49210-noDefDim-concepts.xsd</schema>
+      <linkbase>49210-noDefDim-definition.xml</linkbase>
+      <linkbase>49210-noDefDim-formula.xml</linkbase>
+      <instance readMeFirst="true">49210-noDefDim-instance.xml</instance>
+    </data>
+    <result>
+      <instance>49210-noDefDim-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>
+      Fact being matched has fewer dimensions than variable being matched to, but default provided
+    </name>
+    <description>
+      As V-03 but variable being matched to (v1) has 3 dimensions; fact being tested (for v2) 
+      has only two dimensions, v2's absent 3rd dimension has a default.  
+      The relative filter processes the dimension-implied dimensions for v2, thus
+      accounting for the default value of the absent 3rd dimension.
+    </description>
+    <reference specification="RELATIVE-FILTER" id="sec-relative-filters"/>
+    <data>
+      <schema>49210-withDefDim-concepts.xsd</schema>
+      <linkbase>49210-withDefDim-definition.xml</linkbase>
+      <linkbase>49210-withDefDim-formula.xml</linkbase>
+      <instance readMeFirst="true">49210-withDefDim-instance.xml</instance>
+    </data>
+    <result>
+      <instance>49210-withDefDim-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

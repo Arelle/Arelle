@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eg="http://xbrl.org/formula/conformance/example" xmlns:formula="http://xbrl.org/2008/formula" xmlns:variable="http://xbrl.org/2008/variable" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:label="http://xbrl.org/2008/label" targetNamespace="http://xbrl.org/formula/conformance/example" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+
+  <!-- concepts of different name for concept aspect testing -->
+
+  <element id="a" name="a" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="b" name="b" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="c" name="c" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="d" name="d" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="e" name="e" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="f" name="f" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="g" name="g" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="h" name="h" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+
+  <element id="z" name="z" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="w" name="w" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+
+  <!-- nestable tuple for location independence -->
+
+  <element id="t" name="t" substitutionGroup="xbrli:tuple" nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction base="anyType">
+          <sequence>
+            <any maxOccurs="unbounded"/>
+          </sequence>
+          <attribute name="id" type="ID" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <!-- units for unit independence -->
+
+  <element name="u1" id="u1" type="xs:string" abstract="true" />
+  <element name="u2" id="u2" type="xs:string" abstract="true" />
+  <element name="u3" id="u3" type="xs:string" abstract="true" />
+  <element name="u4" id="u4" type="xs:string" abstract="true" />
+  <element name="u5" id="u5" type="xs:string" abstract="true" />
+  <element name="u6" id="u6" type="xs:string" abstract="true" />
+  <element name="u7" id="u7" type="xs:string" abstract="true" />
+  <element name="u8" id="u8" type="xs:string" abstract="true" />
+
+  <element name="uz" id="uz" type="xs:string" abstract="true" />
+  <element name="uw" id="uw" type="xs:string" abstract="true" />
+
+  <!-- segment/scenario -->
+  <element name="earmarked" id="earmarked" type="xs:string" />
+
+  <!-- to provide dummy segment/scenario for implicit filter testing -->
+  <element name="dummy"     id="dummy" type="xs:string" />
+  
+</schema>
+
+
+

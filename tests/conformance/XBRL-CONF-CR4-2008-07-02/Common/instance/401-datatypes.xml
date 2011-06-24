@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Created by Neil Wills, UBmatrix -->
+<!-- Instance test to prove validating fact values against their datatypes -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Identifier Scope" description="Section 4.3  The Item Element" outpath="out" owner="mg@fla.fujitsu.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+
+<!-- mrg 2007-03-05: Schema invalid variations should not appear in the
+conformance suite.  Neil has an action to investigate the purpose of this variation,
+but I'm commenting it out for now. 
+
+<variation id="v401-00" name="401-00 instance with non existent QNamed Fact Value">
+
+	<description>401-00 invalid instance with non existent QNamed Fact Value - namespace not declared</description>
+	<data>
+		<xsd readMeFirst="false">schema_with_qname_datatype.xsd</xsd>
+		<xsd readMeFirst="false">schemaforqnamevalue.xsd</xsd>
+		<instance readMeFirst="true">401-00-instance_nonexistentQNamedFactValue_withSchemaRef.xbrl</instance>
+	</data>
+	<result expected="invalid"/>
+</variation>
+-->
+		
+<variation id="v401-01" name="401-01 instance with valid QNamed, non existent element within fact value">
+
+	<description>401-01 instance with valid QNamed, non existent element within fact value, element existence is not checked http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/#QName</description>
+	<data>
+		<xsd readMeFirst="false">schema_with_qname_datatype.xsd</xsd>
+		<xsd readMeFirst="false">schemaforqnamevalue.xsd</xsd>
+		<instance readMeFirst="true">401-01-instance_invalidQNamedElementwithinFactValue_withSchemaRef.xbrl</instance>
+	</data>
+	<result expected="valid"/>
+</variation>
+
+<!-- mrg 2007-03-05: Schema invalid variations should not appear in the
+conformance suite.  Neil has an action to investigate the purpose of this variation,
+but I'm commenting it out for now. 
+
+<variation id="v401-02" name="401-02 instance with Qname fact value - ns not declared - no schema ref">
+
+	<description>401-02 instance with Qname fact value - ns not declared - no schema ref</description>
+	<data>
+		<xsd readMeFirst="false">schema_with_qname_datatype.xsd</xsd>
+		<xsd readMeFirst="false">schemaforqnamevalue.xsd</xsd>
+		<instance readMeFirst="true">401-02-instance_FactValuewith_with_qname_value.xbrl</instance>
+	</data>
+	<result expected="invalid"/>
+</variation>
+-->
+
+<variation id="v401-03" name="401-03 instance Qnamed fact value">
+
+	<description>401-03 valid instance QNamed fact value - with namespace and schemaref</description>
+	<data>
+		<xsd readMeFirst="false">schema_with_qname_datatype.xsd</xsd>
+		<xsd readMeFirst="false">schemaforqnamevalue.xsd</xsd>
+		<instance readMeFirst="true">401-03-instance_QnameFactValue_withSchemaRef.xbrl</instance>
+	</data>
+<result expected="valid"/>
+
+</variation>
+</testcase>

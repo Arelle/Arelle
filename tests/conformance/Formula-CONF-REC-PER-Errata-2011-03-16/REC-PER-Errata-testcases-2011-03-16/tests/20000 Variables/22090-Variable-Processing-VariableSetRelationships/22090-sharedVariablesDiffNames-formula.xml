@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:df="http://xbrl.org/2008/filter/dimension" 
+  xmlns:ef="http://xbrl.org/2008/filter/entity" 
+  xmlns:gf="http://xbrl.org/2008/filter/general" 
+  xmlns:pf="http://xbrl.org/2008/filter/period" 
+  xmlns:tf="http://xbrl.org/2008/filter/tuple" 
+  xmlns:uf="http://xbrl.org/2008/filter/unit" 
+  xmlns:vf="http://xbrl.org/2008/filter/value" 
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    22090-variableSetRelationship-tests.xsd"
+  >
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../../core_schemas/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+    <formula:formula xlink:type="resource" xlink:label="formulaInnerPlanet" 
+      value="concat('hello ', $c1i, ' from inner planet formula')" 
+      source="c1i"
+      aspectModel="dimensional" implicitFiltering="true" />
+
+    <formula:formula xlink:type="resource" xlink:label="formulaHomePlanet" 
+      value="concat('hello ', $c1h, ' from home planet formula')" 
+      source="c1h"
+      aspectModel="dimensional" implicitFiltering="true" />
+
+    <formula:formula xlink:type="resource" xlink:label="formulaOuterPlanet" 
+      value="concat('hello ', $c1o, ' from outer planet formula')" 
+      source="c1o"
+      aspectModel="dimensional" implicitFiltering="true" />
+
+    <!-- binds to each c1 in instance -->
+    <variable:factVariable xlink:type="resource" xlink:label="factvar1" bindAsSequence="false"  />
+    <cf:conceptName xlink:type="resource" xlink:label="namefilter1">
+      <cf:concept>
+        <cf:qname>eg:c1</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <!-- c1 -->
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formulaInnerPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c1i" />
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formulaHomePlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c1h" />
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formulaOuterPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+      name="c1o" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="namefilter1" xlink:from="factvar1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true" />
+
+    <!-- precondition, only venus fires formulaInnerPlanet -->
+    <variable:precondition xlink:type="resource" xlink:label="preconditionI" 
+     test="$c1i eq 'venus'" />
+    <generic:arc xlink:type="arc" xlink:to="preconditionI" xlink:from="formulaInnerPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" />
+
+    <!-- precondition, only earth fires formulaHomePlanet -->
+    <variable:precondition xlink:type="resource" xlink:label="preconditionH" 
+     test="$c1h eq 'earth'" />
+    <generic:arc xlink:type="arc" xlink:to="preconditionH" xlink:from="formulaHomePlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" />
+
+    <!-- precondition, only venus fires formulaInnerPlanet -->
+    <variable:precondition xlink:type="resource" xlink:label="preconditionO" 
+     test="$c1o eq 'mars'" />
+    <generic:arc xlink:type="arc" xlink:to="preconditionO" xlink:from="formulaOuterPlanet" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" />
+  </generic:link>
+</link:linkbase>
+
+
+
+
+
+
+
+
+
+
+

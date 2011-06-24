@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://www.xml.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>53230</number>
+  <name>Precision Filter Processing</name>
+  <description>
+    Test precision filter processing
+  </description>
+  <reference specification="VALUE-FILTER" id="sec-precision-filter"/>
+
+  <variation id="V-01">
+    <name>Test filter by checking whether the inferred precision is greater than or equal to one.</name>
+    <description>The fact must be numeric and its inferred precision must be greater than or equal to one.</description>
+    <reference specification="VALUE-FILTER" id="eg-precision-filters"/>
+    <data>
+      <schema>53230-precisionFilter-concepts.xsd</schema>
+      <linkbase>53230-precisionFilter-ge1-formula.xml</linkbase>
+      <instance readMeFirst="true">53230-precisionFilter-ge1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>53230-precisionFilter-ge1-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test filter by checking whether the inferred precision is greater than or equal to four.</name>
+    <description>The fact must be numeric and its inferred precision must be greater than or equal to four.</description>
+    <reference specification="VALUE-FILTER" id="eg-precision-filters"/>
+    <data>
+      <schema>53230-precisionFilter-concepts.xsd</schema>
+      <linkbase>53230-precisionFilter-ge4-formula.xml</linkbase>
+      <instance readMeFirst="true">53230-precisionFilter-ge4-instance.xml</instance>
+    </data>
+    <result>
+      <instance>53230-precisionFilter-ge4-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

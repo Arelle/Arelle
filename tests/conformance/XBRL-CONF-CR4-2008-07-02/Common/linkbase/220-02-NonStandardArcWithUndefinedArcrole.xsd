@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--  XBRL 2.1 Tests 
+  -->
+<!--  Copyright 2003 XBRL International. All Rights Reserved. 
+  -->
+<schema targetNamespace='http://mycompany.com/xbrl/arcrole' xmlns='http://www.w3.org/2001/XMLSchema' xmlns:link='http://www.xbrl.org/2003/linkbase' xmlns:nsl='http://example.com/nonStandardLinks' xmlns:xbrli='http://www.xbrl.org/2003/instance' xmlns:xl='http://www.xbrl.org/2003/XLink' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://example.com/nonStandardLinks NonStandardLinks.xsd">
+  <import namespace='http://www.xbrl.org/2003/XLink' schemaLocation='http://www.xbrl.org/2003/xl-2003-12-31.xsd' />
+  <import namespace='http://www.w3.org/1999/xlink' schemaLocation='http://www.xbrl.org/2003/xlink-2003-12-31.xsd' />
+  <annotation>
+    <appinfo>
+      <link:linkbase>
+        <nsl:link xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link" xlink:title="Something">
+          <link:loc xlink:type="locator" xlink:href="#conceptA" xlink:label="a" />
+          <link:loc xlink:type="locator" xlink:href="#conceptB" xlink:label="b" />
+          <link:loc xlink:type="locator" xlink:href="#conceptC" xlink:label="c" />
+          <nsl:arc xlink:type="arc" xlink:arcrole="DOESNT EXIST" xlink:from="a" xlink:to="b" />
+          <nsl:arc xlink:type="arc" xlink:arcrole="DOESNT EXIST" xlink:from="b" xlink:to="c" />
+          <nsl:arc xlink:type="arc" xlink:arcrole="DOESNT EXIST" xlink:from="c" xlink:to="a" />
+        </nsl:link>
+      </link:linkbase>
+    </appinfo>
+  </annotation>
+  <import namespace='http://www.xbrl.org/2003/instance' schemaLocation='http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd' />
+  <element name='conceptA' type='xbrli:monetaryItemType' id='conceptA' abstract='false' nillable='true' substitutionGroup='xbrli:item' xbrli:balance='debit' xbrli:periodType='instant' />
+  <element name='conceptB' type='xbrli:monetaryItemType' id='conceptB' abstract='false' nillable='true' substitutionGroup='xbrli:item' xbrli:balance='debit' xbrli:periodType='instant' />
+  <element name='conceptC' type='xbrli:monetaryItemType' id='conceptC' abstract='false' nillable='true' substitutionGroup='xbrli:item' xbrli:balance='debit' xbrli:periodType='instant' />
+</schema>

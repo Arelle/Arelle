@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--Business Reporting - Advisory Group Sp. z o.o.-->
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <link:roleRef roleURI="http://www.test.com/role/BalanceSheet" xlink:type="simple" xlink:href="polymorphismErrorDifferentSubgraph.xsd#BalanceSheet"/>
+  <link:presentationLink xlink:type="extended" xlink:role="http://www.test.com/role/BalanceSheet">
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_BalanceSheetAbstract" xlink:label="BalanceSheetAbstract"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_Assets" xlink:label="Assets"/>
+    <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BalanceSheetAbstract" xlink:to="Assets" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_PPE" xlink:label="PPE"/>
+    <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="Assets" xlink:to="PPE" order="1.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_BiologicalAssets" xlink:label="BiologicalAssets"/>
+    <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="Assets" xlink:to="BiologicalAssets" order="2.0"/>
+    <link:loc xlink:type="locator" xlink:href="polymorphismErrorDifferentSubgraph.xsd#t_EquityAndLiabilities" xlink:label="EquityAndLiabilities"/>
+    <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BalanceSheetAbstract" xlink:to="EquityAndLiabilities" order="2.0"/>
+  </link:presentationLink>
+</link:linkbase>

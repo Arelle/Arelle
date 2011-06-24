@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:RevenueTotal</qnElement>
+      <sPointer>6</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:Sales</qnElement>
+      <sPointer>7</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:CostOfSales</qnElement>
+      <sPointer>8</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:GrossProfit</qnElement>
+      <sPointer>9</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>true</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:RevenueTotal</qnElement>
+      <sPointer>10</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:Sales</qnElement>
+      <sPointer>11</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:CostOfSales</qnElement>
+      <sPointer>12</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:GrossProfit</qnElement>
+      <sPointer>13</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:RevenueTotal</qnElement>
+      <sPointer>14</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:Sales</qnElement>
+      <sPointer>15</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:CostOfSales</qnElement>
+      <sPointer>16</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+   <item>
+      <qnElement xmlns:pr="http://www.xbrl.org/dim/conf/primary">pr:GrossProfit</qnElement>
+      <sPointer>17</sPointer>
+      <member>
+         <qnDimension xmlns:tpl="http://xbrl.org/dims/conformance">tpl:ProductDim</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

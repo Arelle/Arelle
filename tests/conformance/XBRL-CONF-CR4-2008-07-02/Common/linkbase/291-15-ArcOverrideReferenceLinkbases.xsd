@@ -1,0 +1,38 @@
+<!-- XBRL 2.1 Tests -->
+
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+
+<schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/2001/XMLSchema">
+
+	<annotation>
+
+		<appinfo>
+
+			<link:roleType roleURI="http://mycompany.com/xbrl/roleE/newExtendedRoleType" id="newExtendedRoleType">
+
+		     	<link:definition>new role on a labelLink</link:definition> 
+
+               	<link:usedOn>link:referenceLink</link:usedOn> 
+
+               </link:roleType>
+
+			<link:linkbaseRef xlink:type="simple" xlink:href="291-15-ArcOverrideReferenceLinkbases-1-reference.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/2003/role/referenceLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+			<link:linkbaseRef xlink:type="simple" xlink:href="291-15-ArcOverrideReferenceLinkbases-2-reference.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/2003/role/referenceLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+		</appinfo>
+
+	</annotation>
+
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+	<import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+
+	<element name="fixedAssets" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="fixedAssets" xbrli:balance="debit" xbrli:periodType="instant"/>
+
+	<element name="currentAssets" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="currentAssets" xbrli:balance="debit" xbrli:periodType="instant"/>
+
+      <element name="note" type="string" substitutionGroup="link:part"/>
+
+</schema>
+

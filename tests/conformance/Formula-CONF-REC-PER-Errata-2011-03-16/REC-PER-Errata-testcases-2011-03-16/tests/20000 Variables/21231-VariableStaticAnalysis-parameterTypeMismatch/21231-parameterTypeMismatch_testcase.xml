@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" 
+href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance" 
+xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>21231</number>
+  <name>Parameter Type Mismatch</name>
+  <description>
+    If the parameter value, either supplied by the caller 
+    or determined from the @select attribute on the parameter, 
+    cannot be converted to the specified data type then the error MUST be thrown
+  </description>
+  <reference specification="VARIABLES" id="error-parameter-type-mismatch"/>
+  <variation id="V-01">
+    <name>Parameter type mismatch for string</name>
+    <description>
+      The parameter value determined by the @select attribute 
+      is a QName and can't be converted to an xs:date.
+    </description>
+    <data>
+      <instance readMeFirst="true">21231-paramTypeMismatch1-instance.xml</instance>
+      <schema>21231-paramTypeMismatch1.xsd</schema>
+      <linkbase>21231-paramTypeMismatch1-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:parameterTypeMismatch</error>
+    </result>
+  </variation>
+  
+  <variation id="V-02">
+    <name>Parameter type mismatch for QName, as supplied by select attribute</name>
+    <description>
+      The parameter value determined by the @select attribute 
+      is a float and can't be converted to a QName.
+    </description>
+    <data>
+      <instance readMeFirst="true">21231-paramTypeMismatch2-instance.xml</instance>
+      <schema>21231-paramTypeMismatch2.xsd</schema>
+      <linkbase>21231-paramTypeMismatch2-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:parameterTypeMismatch</error>
+    </result>
+  </variation>  
+  
+  <variation id="V-03">
+    <name>Parameter type mismatch for QName, as supplied by processing application</name>
+    <description>
+      The parameter value supplied by the processing application, from this 
+      testcase variation.  The &lt;data&gt;&lt;parameter ...&gt; construct 
+      is that of an xs:double and the parameter is required=&quot;true&quot;, 
+      but the formula processor declares it as a QName, which causes an error 
+      when the formula processor attempts to convert from the double supplied by
+      the processing application to the QName required by the formula processor.
+      (Note: as it is likely that the parameter is not processed until
+      instance document execution, this variation provides such an instance
+      document to ensure the processing application supplies the parameter.)
+    </description>
+    <data>
+      <instance readMeFirst="true">21231-paramTypeMismatch3-instance.xml</instance>
+      <schema>21231-paramTypeMismatch3.xsd</schema>
+      <linkbase>21231-paramTypeMismatch3-formula.xml</linkbase>
+      <parameter name="p:conceptNameParam" datatype="xs:double" value="1234567E-3"
+        xmlns:p="http://xbrl.org/2008/formula/conformance/parameter"
+        />
+    </data>
+    <result>
+      <error>xbrlve:parameterTypeMismatch</error>
+    </result>
+  </variation>  
+</testcase>

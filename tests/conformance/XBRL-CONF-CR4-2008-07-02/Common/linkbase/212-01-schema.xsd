@@ -1,0 +1,24 @@
+<!-- edited with Eclipse 3.1.1 by Geoff Shuetrim (Galexy) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<schema 
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  targetNamespace="http://xbrl.org/xbrl/taxonomy/212-01" 
+  xmlns:s-212-01="http://xbrl.org/xbrl/taxonomy/212-01"
+  >
+	<annotation>
+		<appinfo>
+			<link:linkbaseRef 
+			  xlink:type="simple" 
+			  xlink:href="212-01-label.xml" 
+			  xlink:actuate="onRequest" 
+			  xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" 
+			  xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="conceptA" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" id="conceptA" xbrli:periodType="duration"/>
+</schema>

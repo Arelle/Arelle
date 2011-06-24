@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<schema targetNamespace="http://example.com/nonStandardLinks" 
+  xmlns:nsl="http://example.com/nonStandardLinks" 
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xl="http://www.xbrl.org/2003/XLink" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  elementFormDefault="qualified">
+
+  <annotation>
+    <documentation>
+    XBRL simple and extended link schema constructs
+    </documentation>
+  </annotation>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://www.w3.org/1999/xlink" 
+    schemaLocation="http://www.xbrl.org/2003/xlink-2003-12-31.xsd"/>
+
+  <element name="link" substitutionGroup="xl:extended" id="link">
+    <complexType>
+      <complexContent>
+        <restriction base="xl:extendedType">
+          <choice minOccurs="0" maxOccurs="unbounded">
+            <element ref="xl:title" />
+            <element ref="xl:documentation" />
+            <element ref="xl:locator" />
+            <element ref="nsl:arc" />
+            <element ref="xl:resource" />
+          </choice>
+          <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element name="arc" type="xl:arcType" substitutionGroup="xl:arc" id="arc">
+    <annotation>
+      <documentation>
+        Generic arc.
+      </documentation>
+    </annotation>
+  </element>
+
+</schema>

@@ -1,0 +1,2170 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:edgar="http://edgar/20101231" xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:utr="http://www.xbrl.org/2009/utr"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns="http://edgar/2009/conformance">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20101231.xsd"/>
+<xbrli:context id="d">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2010-01-01</xbrli:startDate>
+<xbrli:endDate>2010-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="AED_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:AED</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="AED_per_Share" xsi:nil="true"/>
+<xbrli:unit id="AFN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:AFN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="AFN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ALL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ALL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ALL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="AMD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:AMD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="AMD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ANG_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ANG</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ANG_per_Share" xsi:nil="true"/>
+<xbrli:unit id="AOA_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:AOA</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="AOA_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ARS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ARS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ARS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="AUD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:AUD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="AUD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="AWG_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:AWG</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="AWG_per_Share" xsi:nil="true"/>
+<xbrli:unit id="AZN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:AZN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="AZN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BAM_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BAM</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BAM_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BBD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BBD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BBD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BDT_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BDT</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BDT_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BGN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BGN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BGN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BHD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BHD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BHD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BIF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BIF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BIF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BMD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BMD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BMD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BND_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BND</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BND_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BOB_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BOB</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BOB_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BOV_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BOV</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BOV_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BRL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BRL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BRL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BSD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BSD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BSD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BTN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BTN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BTN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BWP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BWP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BWP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BYR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BYR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BYR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="BZD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:BZD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="BZD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CAD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CAD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CAD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CDF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CDF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CDF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CHE_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CHE</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CHE_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CHF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CHF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CHF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CHW_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CHW</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CHW_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CLF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CLF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CLF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CLP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CLP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CLP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CNY_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CNY</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CNY_per_Share" xsi:nil="true"/>
+<xbrli:unit id="COP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:COP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="COP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="COU_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:COU</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="COU_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CRC_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CRC</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CRC_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CUC_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CUC</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CUC_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CUP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CUP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CUP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CVE_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CVE</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CVE_per_Share" xsi:nil="true"/>
+<xbrli:unit id="CZK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:CZK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="CZK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="DJF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:DJF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="DJF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="DKK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:DKK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="DKK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="DOP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:DOP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="DOP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="DZD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:DZD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="DZD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="EEK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:EEK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="EEK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="EGP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:EGP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="EGP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ERN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ERN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ERN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ETB_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ETB</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ETB_per_Share" xsi:nil="true"/>
+<xbrli:unit id="EUR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:EUR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="EUR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="FJD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:FJD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="FJD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="FKP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:FKP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="FKP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GBP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GBP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GBP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GEL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GEL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GEL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GHS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GHS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GHS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GIP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GIP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GIP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GMD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GMD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GMD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GNF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GNF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GNF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GTQ_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GTQ</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GTQ_per_Share" xsi:nil="true"/>
+<xbrli:unit id="GYD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:GYD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="GYD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="HKD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:HKD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="HKD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="HNL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:HNL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="HNL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="HRK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:HRK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="HRK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="HTG_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:HTG</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="HTG_per_Share" xsi:nil="true"/>
+<xbrli:unit id="HUF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:HUF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="HUF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="IDR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:IDR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="IDR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ILS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ILS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ILS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="INR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:INR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="INR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="IQD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:IQD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="IQD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="IRR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:IRR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="IRR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ISK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ISK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ISK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="JMD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:JMD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="JMD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="JOD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:JOD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="JOD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="JPY_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:JPY</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="JPY_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KES_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KES</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KES_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KGS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KGS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KGS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KHR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KHR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KHR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KMF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KMF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KMF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KPW_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KPW</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KPW_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KRW_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KRW</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KRW_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KWD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KWD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KWD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KYD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KYD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KYD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="KZT_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:KZT</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="KZT_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LAK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LAK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LAK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LBP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LBP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LBP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LKR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LKR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LKR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LRD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LRD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LRD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LSL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LSL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LSL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LTL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LTL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LTL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LVL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LVL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LVL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="LYD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:LYD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="LYD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MAD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MAD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MAD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MDL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MDL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MDL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MGA_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MGA</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MGA_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MKD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MKD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MKD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MMK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MMK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MMK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MNT_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MNT</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MNT_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MOP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MOP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MOP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MRO_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MRO</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MRO_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MUR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MUR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MUR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MVR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MVR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MVR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MWK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MWK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MWK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MXN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MXN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MXN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MXV_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MXV</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MXV_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MYR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MYR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MYR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="MZN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:MZN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="MZN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="NAD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:NAD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="NAD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="NGN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:NGN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="NGN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="NIO_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:NIO</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="NIO_per_Share" xsi:nil="true"/>
+<xbrli:unit id="NOK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:NOK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="NOK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="NPR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:NPR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="NPR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="NZD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:NZD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="NZD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="OMR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:OMR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="OMR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="PAB_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:PAB</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="PAB_per_Share" xsi:nil="true"/>
+<xbrli:unit id="PEN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:PEN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="PEN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="PGK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:PGK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="PGK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="PHP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:PHP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="PHP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="PKR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:PKR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="PKR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="PLN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:PLN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="PLN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="PYG_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:PYG</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="PYG_per_Share" xsi:nil="true"/>
+<xbrli:unit id="QAR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:QAR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="QAR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="RON_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:RON</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="RON_per_Share" xsi:nil="true"/>
+<xbrli:unit id="RSD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:RSD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="RSD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="RUB_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:RUB</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="RUB_per_Share" xsi:nil="true"/>
+<xbrli:unit id="RWF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:RWF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="RWF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SAR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SAR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SAR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SBD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SBD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SBD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SCR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SCR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SCR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SDG_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SDG</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SDG_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SEK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SEK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SEK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SGD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SGD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SGD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SHP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SHP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SHP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SLL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SLL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SLL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SOS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SOS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SOS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SRD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SRD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SRD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="STD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:STD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="STD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SYP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SYP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SYP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="SZL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:SZL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="SZL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="THB_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:THB</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="THB_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TJS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TJS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TJS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TMT_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TMT</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TMT_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TND_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TND</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TND_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TOP_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TOP</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TOP_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TRY_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TRY</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TRY_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TTD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TTD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TTD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TWD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TWD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TWD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="TZS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:TZS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="TZS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="UAH_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:UAH</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="UAH_per_Share" xsi:nil="true"/>
+<xbrli:unit id="UGX_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:UGX</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="UGX_per_Share" xsi:nil="true"/>
+<xbrli:unit id="USD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="USD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="USN_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:USN</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="USN_per_Share" xsi:nil="true"/>
+<xbrli:unit id="USS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:USS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="USS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="UYU_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:UYU</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="UYU_per_Share" xsi:nil="true"/>
+<xbrli:unit id="UZS_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:UZS</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="UZS_per_Share" xsi:nil="true"/>
+<xbrli:unit id="VEF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:VEF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="VEF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="VND_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:VND</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="VND_per_Share" xsi:nil="true"/>
+<xbrli:unit id="VUV_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:VUV</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="VUV_per_Share" xsi:nil="true"/>
+<xbrli:unit id="WST_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:WST</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="WST_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XAF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XAF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XAF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XAG_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XAG</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XAG_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XAU_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XAU</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XAU_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XBA_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XBA</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XBA_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XBB_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XBB</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XBB_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XBC_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XBC</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XBC_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XBD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XBD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XBD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XCD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XCD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XCD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XDR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XDR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XDR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XFU_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XFU</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XFU_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XOF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XOF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XOF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XPD_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XPD</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XPD_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XPF_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XPF</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XPF_per_Share" xsi:nil="true"/>
+<xbrli:unit id="XPT_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:XPT</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="XPT_per_Share" xsi:nil="true"/>
+<xbrli:unit id="YER_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:YER</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="YER_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ZAR_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ZAR</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ZAR_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ZMK_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ZMK</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ZMK_per_Share" xsi:nil="true"/>
+<xbrli:unit id="ZWL_per_Share">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>iso4217:ZWL</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<edgar:PerShareItemTypeConcept contextRef="d" unitRef="ZWL_per_Share" xsi:nil="true"/>
+<xbrli:unit id="sqm">
+<xbrli:measure>utr:sqm</xbrli:measure>
+</xbrli:unit>
+<edgar:AreaItemTypeConcept contextRef="d" unitRef="sqm" xsi:nil="true"/>
+<xbrli:unit id="sqkm">
+<xbrli:measure>utr:sqkm</xbrli:measure>
+</xbrli:unit>
+<edgar:AreaItemTypeConcept contextRef="d" unitRef="sqkm" xsi:nil="true"/>
+<xbrli:unit id="ha">
+<xbrli:measure>utr:ha</xbrli:measure>
+</xbrli:unit>
+<edgar:AreaItemTypeConcept contextRef="d" unitRef="ha" xsi:nil="true"/>
+<xbrli:unit id="sqft">
+<xbrli:measure>utr:sqft</xbrli:measure>
+</xbrli:unit>
+<edgar:AreaItemTypeConcept contextRef="d" unitRef="sqft" xsi:nil="true"/>
+<xbrli:unit id="sqyd">
+<xbrli:measure>utr:sqyd</xbrli:measure>
+</xbrli:unit>
+<edgar:AreaItemTypeConcept contextRef="d" unitRef="sqyd" xsi:nil="true"/>
+<xbrli:unit id="sqmi">
+<xbrli:measure>utr:sqmi</xbrli:measure>
+</xbrli:unit>
+<edgar:AreaItemTypeConcept contextRef="d" unitRef="sqmi" xsi:nil="true"/>
+<xbrli:unit id="acre">
+<xbrli:measure>utr:acre</xbrli:measure>
+</xbrli:unit>
+<edgar:AreaItemTypeConcept contextRef="d" unitRef="acre" xsi:nil="true"/>
+<xbrli:unit id="l">
+<xbrli:measure>utr:l</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="l" xsi:nil="true"/>
+<xbrli:unit id="m3">
+<xbrli:measure>utr:m3</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="m3" xsi:nil="true"/>
+<xbrli:unit id="ft3">
+<xbrli:measure>utr:ft3</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="ft3" xsi:nil="true"/>
+<xbrli:unit id="gal">
+<xbrli:measure>utr:gal</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="gal" xsi:nil="true"/>
+<xbrli:unit id="Mcf">
+<xbrli:measure>utr:Mcf</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="Mcf" xsi:nil="true"/>
+<xbrli:unit id="MMcf">
+<xbrli:measure>utr:MMcf</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="MMcf" xsi:nil="true"/>
+<xbrli:unit id="bbl">
+<xbrli:measure>utr:bbl</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="bbl" xsi:nil="true"/>
+<xbrli:unit id="MBbls">
+<xbrli:measure>utr:MBbls</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="MBbls" xsi:nil="true"/>
+<xbrli:unit id="MMBbls">
+<xbrli:measure>utr:MMBbls</xbrli:measure>
+</xbrli:unit>
+<edgar:VolumeItemTypeConcept contextRef="d" unitRef="MMBbls" xsi:nil="true"/>
+<xbrli:unit id="g">
+<xbrli:measure>utr:g</xbrli:measure>
+</xbrli:unit>
+<edgar:MassItemTypeConcept contextRef="d" unitRef="g" xsi:nil="true"/>
+<xbrli:unit id="kg">
+<xbrli:measure>utr:kg</xbrli:measure>
+</xbrli:unit>
+<edgar:MassItemTypeConcept contextRef="d" unitRef="kg" xsi:nil="true"/>
+<xbrli:unit id="t">
+<xbrli:measure>utr:t</xbrli:measure>
+</xbrli:unit>
+<edgar:MassItemTypeConcept contextRef="d" unitRef="t" xsi:nil="true"/>
+<xbrli:unit id="oz">
+<xbrli:measure>utr:oz</xbrli:measure>
+</xbrli:unit>
+<edgar:MassItemTypeConcept contextRef="d" unitRef="oz" xsi:nil="true"/>
+<xbrli:unit id="lb">
+<xbrli:measure>utr:lb</xbrli:measure>
+</xbrli:unit>
+<edgar:MassItemTypeConcept contextRef="d" unitRef="lb" xsi:nil="true"/>
+<xbrli:unit id="T">
+<xbrli:measure>utr:T</xbrli:measure>
+</xbrli:unit>
+<edgar:MassItemTypeConcept contextRef="d" unitRef="T" xsi:nil="true"/>
+<xbrli:unit id="J">
+<xbrli:measure>utr:J</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="J" xsi:nil="true"/>
+<xbrli:unit id="kJ">
+<xbrli:measure>utr:kJ</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="kJ" xsi:nil="true"/>
+<xbrli:unit id="mJ">
+<xbrli:measure>utr:mJ</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="mJ" xsi:nil="true"/>
+<xbrli:unit id="Btu">
+<xbrli:measure>utr:Btu</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="Btu" xsi:nil="true"/>
+<xbrli:unit id="Boe">
+<xbrli:measure>utr:Boe</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="Boe" xsi:nil="true"/>
+<xbrli:unit id="MBoe">
+<xbrli:measure>utr:MBoe</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="MBoe" xsi:nil="true"/>
+<xbrli:unit id="MMBoe">
+<xbrli:measure>utr:MMBoe</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="MMBoe" xsi:nil="true"/>
+<xbrli:unit id="Mcfe">
+<xbrli:measure>utr:Mcfe</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="Mcfe" xsi:nil="true"/>
+<xbrli:unit id="ft_lb">
+<xbrli:measure>utr:ft_lb</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="ft_lb" xsi:nil="true"/>
+<xbrli:unit id="kWh">
+<xbrli:measure>utr:kWh</xbrli:measure>
+</xbrli:unit>
+<edgar:EnergyItemTypeConcept contextRef="d" unitRef="kWh" xsi:nil="true"/>
+<xbrli:unit id="W">
+<xbrli:measure>utr:W</xbrli:measure>
+</xbrli:unit>
+<edgar:PowerItemTypeConcept contextRef="d" unitRef="W" xsi:nil="true"/>
+<xbrli:unit id="kW">
+<xbrli:measure>utr:kW</xbrli:measure>
+</xbrli:unit>
+<edgar:PowerItemTypeConcept contextRef="d" unitRef="kW" xsi:nil="true"/>
+<xbrli:unit id="MW">
+<xbrli:measure>utr:MW</xbrli:measure>
+</xbrli:unit>
+<edgar:PowerItemTypeConcept contextRef="d" unitRef="MW" xsi:nil="true"/>
+<xbrli:unit id="GW">
+<xbrli:measure>utr:GW</xbrli:measure>
+</xbrli:unit>
+<edgar:PowerItemTypeConcept contextRef="d" unitRef="GW" xsi:nil="true"/>
+<xbrli:unit id="TW">
+<xbrli:measure>utr:TW</xbrli:measure>
+</xbrli:unit>
+<edgar:PowerItemTypeConcept contextRef="d" unitRef="TW" xsi:nil="true"/>
+<xbrli:unit id="hp">
+<xbrli:measure>utr:hp</xbrli:measure>
+</xbrli:unit>
+<edgar:PowerItemTypeConcept contextRef="d" unitRef="hp" xsi:nil="true"/>
+<xbrli:unit id="mm">
+<xbrli:measure>utr:mm</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="mm" xsi:nil="true"/>
+<xbrli:unit id="cm">
+<xbrli:measure>utr:cm</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="cm" xsi:nil="true"/>
+<xbrli:unit id="m">
+<xbrli:measure>utr:m</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="m" xsi:nil="true"/>
+<xbrli:unit id="km">
+<xbrli:measure>utr:km</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="km" xsi:nil="true"/>
+<xbrli:unit id="in">
+<xbrli:measure>utr:in</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="in" xsi:nil="true"/>
+<xbrli:unit id="ft">
+<xbrli:measure>utr:ft</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="ft" xsi:nil="true"/>
+<xbrli:unit id="yd">
+<xbrli:measure>utr:yd</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="yd" xsi:nil="true"/>
+<xbrli:unit id="nmi">
+<xbrli:measure>utr:nmi</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="nmi" xsi:nil="true"/>
+<xbrli:unit id="mi">
+<xbrli:measure>utr:mi</xbrli:measure>
+</xbrli:unit>
+<edgar:LengthItemTypeConcept contextRef="d" unitRef="mi" xsi:nil="true"/>
+<xbrli:unit id="B">
+<xbrli:measure>utr:B</xbrli:measure>
+</xbrli:unit>
+<edgar:MemoryItemTypeConcept contextRef="d" unitRef="B" xsi:nil="true"/>
+<xbrli:unit id="MB">
+<xbrli:measure>utr:MB</xbrli:measure>
+</xbrli:unit>
+<edgar:MemoryItemTypeConcept contextRef="d" unitRef="MB" xsi:nil="true"/>
+<xbrli:unit id="GB">
+<xbrli:measure>utr:GB</xbrli:measure>
+</xbrli:unit>
+<edgar:MemoryItemTypeConcept contextRef="d" unitRef="GB" xsi:nil="true"/>
+<xbrli:unit id="TB">
+<xbrli:measure>utr:TB</xbrli:measure>
+</xbrli:unit>
+<edgar:MemoryItemTypeConcept contextRef="d" unitRef="TB" xsi:nil="true"/>
+<xbrli:unit id="pure">
+<xbrli:measure>xbrli:pure</xbrli:measure>
+</xbrli:unit>
+<edgar:PercentItemTypeConcept contextRef="d" unitRef="pure" xsi:nil="true"/>
+<dei:DocumentType contextRef="d">8-K</dei:DocumentType>
+<dei:AmendmentFlag contextRef="d">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="d">2008-12-31</dei:DocumentPeriodEndDate>
+<dei:EntityRegistrantName contextRef="d">e60535000gd</dei:EntityRegistrantName>
+<dei:EntityCentralIndexKey contextRef="d">9876543210</dei:EntityCentralIndexKey>
+<dei:CurrentFiscalYearEndDate contextRef="d">--12-31</dei:CurrentFiscalYearEndDate>
+</xbrli:xbrl>

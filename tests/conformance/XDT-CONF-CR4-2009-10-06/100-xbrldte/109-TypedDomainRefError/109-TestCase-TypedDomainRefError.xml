@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xbrl.org/2005/conformance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" name="109-TestCase-TypedDomainRefError" description="2.5.2 - Attribute typedDomainRef." outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+<!-- spec sections updated for spec 2005-10-26 by Herm Fischer, on 2005-11-07 -->
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and not covered by XML Schema and XBRL Validation. -->
+        <!-- As of the 2005-10-26 internal working draft (with localised edits), this pertained only to the xbrldt:typedDomainRef attribute. -->
+        <!-- TESTCASE HAS NO STANDARD LABELS: 2.7.1.1 only requires standard labels on element declarations which are the targets of has-hypercube, hypercube-dimension, dimension-domain and domain-member relationships, but there are none in this testcase -->
+        <!-- 2.5.2.1.1   1. A dimensional processor MUST raise an error [Dim Err, 13] xbrldte:TypedDomainRefError if the xbrldt:typedDomainRef attribute appears on an XML Schema element declaration that is not a dimension declaration [Def, 3]. -->
+        <variation id="V-01" name="typedDomainRefvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">The typedDomainRef attribute correctly appears on a dimension declaration element pointing to a non-abstract item declaration.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainRefvalid.xsd</xsd>
+                        <xsd readMeFirst="false">typedDomainRefvalid2.xsd</xsd>
+                </data>
+                <result/>
+        </variation>
+        <variation id="V-02" name="typedDomainRefonNonItemDeclaration">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1.1">Signal xbrldte:TypedDomainRefError because typedDomainRef attribute appears on an XML Schema element definition that is not a dimensional declaration.</description>
+                <data>
+                        <xsd readMeFirst="true">typedDomainRefonNonItemDeclaration.xsd</xsd>
+                </data>
+                <result>
+                        <error>xbrldte:TypedDomainRefError</error>
+                </result>
+        </variation>
+        <!-- 2.5.2.1 Duplicate typedDimensionRef's had been disallowed in previous spec versions but appear Ok now -->
+        <variation id="V-03" name="TwotypedDomainRefattributesContainSameRef">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1">Currently allows two dimension declarations which have typedDomainRef attributes whose contents are identical.</description>
+                <data>
+                        <xsd readMeFirst="true">TwotypedDomainRefattributesContainSameRef.xsd</xsd>
+                </data>
+                <result/>
+        </variation>
+        <variation id="V-04" name="TwotypedDomainRefattributesContainRefsLocatingSameElement">
+                <description reference="XDT-IWD-2005-10-26.doc#2.5.2.1">Currently allows two dimension declarations which have typedDomainRef attributes that differ  (e.g., one uses "foo.xsd#bar" and the other "../schema/foo.xsd#bar") but locate the same element declaration.</description>
+                <data>
+                        <xsd readMeFirst="true">TwotypedDomainRefattributesContainRefsLocatingSameElement.xsd</xsd>
+                </data>
+                <result/>
+        </variation>
+</testcase>
+

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.com/conformance/test" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:conf="http://www.example.com/conformance/test">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="prefLabel-incomplete-multi-languageset-presentation.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"/>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="prefLabel-incomplete-multi-languageset-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="prefLabel-incomplete-multi-languageset-label-ja.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:element name="CurrentAsset" id="conf_CurrentAsset" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Asset" id="conf_Asset" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+</xsd:schema>

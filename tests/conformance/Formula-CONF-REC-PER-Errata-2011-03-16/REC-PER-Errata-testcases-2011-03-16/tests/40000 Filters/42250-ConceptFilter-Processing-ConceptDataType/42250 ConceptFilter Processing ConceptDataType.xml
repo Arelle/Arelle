@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>42250</number>
+  <name>Concept Data-Type Filter Processing</name>
+  <description>
+    Test concept data-type filter processing
+  </description>
+  <reference specification="CONCEPT-FILTER" id="sec-concept-data-type-filter"/>
+
+  <variation id="V-01">
+    <name>Test filter on data type by QName.</name>
+    <description>
+      The data type of the fact's concept must be "xbrli:monetaryItemType".
+    </description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-data-type-filter"/>
+    <data>
+      <schema>42250-dataTypeFilter-concepts.xsd</schema>
+      <linkbase>42250-dataTypeFilter-strict-true-qname-formula.xml</linkbase>
+      <instance readMeFirst="true">42250-dataTypeFilter-strict-true-qname-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42250-dataTypeFilter-strict-true-qname-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test filter on data type being restriction of specified type by QName.</name>
+    <description>
+      The data type of the fact's concept must be a restriction of "xbrli:pureItemType".
+    </description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-data-type-filter"/>
+    <data>
+      <schema>42250-dataTypeFilter-concepts.xsd</schema>
+      <linkbase>42250-dataTypeFilter-strict-false-qname-formula.xml</linkbase>
+      <instance readMeFirst="true">42250-dataTypeFilter-strict-false-qname-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42250-dataTypeFilter-strict-false-qname-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Test filter on data type being restriction of specified type by expression for QName.</name>
+    <description>
+      The data type of the fact's concept must be a restriction of "xbrli:monetaryItemType".
+    </description>
+    <reference specification="CONCEPT-FILTER" id="example-concept-data-type-filter"/>
+    <data>
+      <schema>42250-dataTypeFilter-concepts.xsd</schema>
+      <linkbase>42250-dataTypeFilter-strict-false-qnameExpression-formula.xml</linkbase>
+      <instance readMeFirst="true">42250-dataTypeFilter-strict-false-qnameExpression-instance.xml</instance>
+    </data>
+    <result>
+      <instance>42250-dataTypeFilter-strict-false-qnameExpression-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>

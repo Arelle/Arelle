@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>11207</number>
+  <name>Aspect rules in Formulae. Static Analysis</name>
+  <description>
+      An error must be thrown if a formula's source 
+      equals the QName of a fact variable 
+      that binds to a sequence. 
+  </description>
+  <reference specification="FORMULA" id="error-default-aspect-value-conflicts"/>        
+  <variation id="V-01">
+    <description>
+       The source of a formula is a QName 
+       of a formulas fact variable that binds to a sequence.
+    </description>
+    <data>
+      <schema readMeFirst="true">11207-formulaSourceIsSequence.xsd</schema>
+      <linkbase>11207-formulaSourceIsSequence-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:defaultAspectValueConflicts</error>
+    </result>
+  </variation>
+ 
+</testcase>

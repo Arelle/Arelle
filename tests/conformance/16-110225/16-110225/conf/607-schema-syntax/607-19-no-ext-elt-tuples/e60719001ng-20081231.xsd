@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tuple="http://tuple/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xl="http://www.xbrl.org/2003/XLink"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:edgar="http://edgar/20081231"
+targetNamespace="http://tuple/20081231"
+elementFormDefault="qualified">
+<xsd:annotation>
+<xsd:appinfo>
+<link:linkbaseRef xlink:type="simple" xlink:href="e60719001ng-20081231_pre.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="e60719001ng-20081231_lab.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:roleType roleURI="http://tuple/role/Rockn" id="Rockn">
+<link:definition>000 - Document - Rock'n Role</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+</xsd:appinfo>
+</xsd:annotation>
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:import namespace="http://edgar/20081231" schemaLocation="edgar-20081231.xsd"/>
+<xsd:element name="SomeStuff" id="tuple_SomeStuff" substitutionGroup="xbrli:tuple"
+nillable="true">
+<xsd:complexType>
+<xsd:sequence/>
+<xsd:attributeGroup ref="xbrli:tupleAttrs"/>
+</xsd:complexType>
+</xsd:element>
+</xsd:schema>

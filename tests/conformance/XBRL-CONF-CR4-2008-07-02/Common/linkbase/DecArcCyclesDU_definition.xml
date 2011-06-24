@@ -1,0 +1,58 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<arcroleRef xlink:type="simple" xlink:href="DecArcCyclesDU.xsd#directed" arcroleURI="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptB" xlink:label="conceptB"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptB" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptC" xlink:label="conceptC"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptC" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptB" xlink:label="conceptB"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptD" xlink:label="conceptD"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptB" xlink:to="conceptD" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptB" xlink:label="conceptB"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptE" xlink:label="conceptE"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptB" xlink:to="conceptE" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptB" xlink:label="conceptB"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptF" xlink:label="conceptF"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptB" xlink:to="conceptF" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptE" xlink:label="conceptE"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptI" xlink:label="conceptI"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptE" xlink:to="conceptI" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptE" xlink:label="conceptE"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptJ" xlink:label="conceptJ"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptE" xlink:to="conceptJ" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptI" xlink:label="conceptI"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptL" xlink:label="conceptL"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptI" xlink:to="conceptL" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptC" xlink:label="conceptC"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptG" xlink:label="conceptG"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptC" xlink:to="conceptG" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptC" xlink:label="conceptC"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptH" xlink:label="conceptH"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptC" xlink:to="conceptH" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+	<definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptG" xlink:label="conceptG"/>
+		<loc xlink:type="locator" xlink:href="DecArcCyclesDU.xsd#conceptJ" xlink:label="conceptJ"/>
+		<definitionArc xlink:type="arc" xlink:from="conceptG" xlink:to="conceptJ" xlink:arcrole="http://mycompany.com/xbrl/decArcCyclesDU/directed"/>
+	</definitionLink>
+</linkbase>

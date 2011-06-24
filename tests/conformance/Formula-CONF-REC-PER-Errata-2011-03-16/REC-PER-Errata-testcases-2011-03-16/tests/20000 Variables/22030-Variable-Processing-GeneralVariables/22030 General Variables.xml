@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22030</number>
+  <name>General variable processing examples</name>
+  <description>
+    Tests of general variable processing, reference and expression
+  </description>
+  <reference specification="VARIABLES" id="sec-general-variables"/>
+
+  <variation id="V-01">
+    <name>General variable depends on fact variable</name>
+    <description>Tests that a general variable with a value dependent on a fact variable properly sequences execution and dependency.  The order numbers on the variable arcs are reverse of what is needed to properly execute dependency, to assure that the formula processor sorts out variable dependency within the XPath expressions, and not based on the XLink arc order attribute.  The fact variable has the string &quot;hello&quot; which the general variable concatenates to &quot; world&quot;.  The formula expression displays the general varaible.</description>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>22030-genVar-tests.xsd</schema>
+      <linkbase>22030-hello-world-fvToGv-formula.xml</linkbase>
+      <instance readMeFirst="true">22030-hello-world-fvToGv-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22030-hello-world-fvToGv-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-01a">
+    <name>General variable depends indirectly on fact variable</name>
+    <description>Same as V-01 but dependency has more dependencies to assure dependency order is worked out completely.
+</description>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>22030-genVar-tests.xsd</schema>
+      <linkbase>22030-hello-world-fvToGv-2-formula.xml</linkbase>
+      <instance readMeFirst="true">22030-hello-world-fvToGv-2-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22030-hello-world-fvToGv-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Fact variable depends on general variable</name>
+    <description>Tests that a fact variable with a value dependent on a general variable properly sequences execution and dependency.  The order numbers on the variable arcs are reverse of what is needed to properly execute dependency, to assure that the formula processor sorts out variable dependency within the XPath expressions, and not based on the XLink arc order attribute.  The general variable evaluates dynamically to the local name of the fact variable, which must then be subsequent in execution.  The formula expression depends on the general variable.  The general variable also is &quot;tricked&quot; to be sure that it has the xbrli:xbrl node as its context.</description>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>22030-genVar-tests.xsd</schema>
+      <linkbase>22030-hello-world-gvToFv-formula.xml</linkbase>
+      <instance readMeFirst="true">22030-hello-world-gvToFv-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22030-hello-world-gvToFv-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Fact variable depends on general variable which is a sequence</name>
+    <description>Tests that a general variable can have a sequence. Variation V-02 is used here in all other respects.</description>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>22030-genVar-tests.xsd</schema>
+      <linkbase>22030-hello-world-gvSeqToFv-formula.xml</linkbase>
+      <instance readMeFirst="true">22030-hello-world-gvSeqToFv-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22030-hello-world-gvSeqToFv-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>General variable is lookup (of fact variable as a key) in an xml doc file table</name>
+    <description>Tests that a general variable can be bound to a doc() file node, and that the doc file nodes provide typed values to XPath expressions.</description>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>22030-genVar-tests.xsd</schema>
+      <linkbase>22030-fvToGv-lookupTableRow-formula.xml</linkbase>
+      <instance readMeFirst="true">22030-fvToGv-lookupTableRow-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22030-fvToGv-lookupTableRow-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>General variable binds to empty sequence, alone in variable set</name>
+    <description>General variable is the only variable in variable set, which binds to an empty sequence, and its emptyness, or it's being just alone without fact variables, does not prevent evaluation of the variable sequence.</description>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>22030-genVar-tests.xsd</schema>
+      <linkbase>22030-GvEmptySeq-formula.xml</linkbase>
+      <instance readMeFirst="true">22030-GvEmptySeq-instance.xml</instance>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+    </result>
+  </variation>  
+
+</testcase>
+
+

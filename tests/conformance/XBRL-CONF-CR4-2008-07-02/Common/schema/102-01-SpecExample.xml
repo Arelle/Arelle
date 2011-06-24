@@ -1,0 +1,26 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy 102-01-SpecExample.xsd">
+	<link:schemaRef xlink:href="102-01-SpecExample.xsd" xlink:type="simple"/>
+	<my:fixedAssets contextRef="ci" unitRef="u1" precision="3">100</my:fixedAssets>
+	<my:changeInRetainedEarnings contextRef="cd" unitRef="u1" precision="3">200</my:changeInRetainedEarnings>
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+	<context id="ci">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+	</context>
+		<context id="cd">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<startDate>2001-07-01</startDate>
+			<endDate>2001-12-31</endDate>
+		</period>
+	</context>
+
+</xbrl>

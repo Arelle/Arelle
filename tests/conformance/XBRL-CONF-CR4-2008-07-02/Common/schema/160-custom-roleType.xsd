@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" targetNamespace="http://xbrl.org/2007/customRoleType" xmlns:link="http://www.xbrl.org/2003/linkbase">
+	<annotation>
+		<appinfo>    
+			<link:roleType 
+				id="customLinkbase" 
+				roleURI="http://www.xbrl.org/2007/role/customLinkbaseRef">
+				<link:definition>Identifies the content of a custom linkbase</link:definition>
+				<link:usedOn>link:linkbaseRef</link:usedOn>
+			</link:roleType>
+		</appinfo>
+	</annotation>	
+</schema>
