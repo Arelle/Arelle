@@ -373,7 +373,7 @@ class ModelConcept(ModelSchemaObject):
         try:
             return self._isTypedDimension
         except AttributeError:
-            self._isTypedDimension = self.isDimensionItem and self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef")
+            self._isTypedDimension = self.isDimensionItem and self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef") is not None
             return self._isTypedDimension
         
     @property

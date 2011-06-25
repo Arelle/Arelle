@@ -88,7 +88,7 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
             (attrNsURI is None or attrNsURI not in exclusions)):
             if keyByTag:
                 qname = attrTag
-            elif attrNsURI:
+            elif attrNsURI is not None:
                 qname = ModelValue.QName(None, attrNsURI, localName)
             else:
                 qname = ModelValue.QName(None, None, attrTag)

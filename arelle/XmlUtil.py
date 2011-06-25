@@ -361,7 +361,7 @@ def copyChildren(parent, elt):
             copyNodes(parent, childNode)
 
 def addComment(parent, commentText):
-    child = ModelComment( str(commentText) )
+    child = etree.Comment( str(commentText) )
     parent.append(child)
     
 def addQnameValue(modelDocument, qnameValue):
@@ -501,16 +501,14 @@ def elementFragmentIdentifier(element):
         location = element.id
     else:
         childSequence = [""] # "" represents document element for / on the join below
-        while element:
-            if element.nodeType == 1:
-                sibling = element
+        while element is not None:
+            if isinstance(element,ModelObject):
                 siblingPosition = 0
-                while sibling:
-                    if sibling.nodeType == 1:
+                for sibling in element.itersiblings(preceding=True):
+                    if isinstance(sibling,ModelObject):
                         siblingPosition += 1
-                    sibling = sibling.previousSibling
                 childSequence.insert(1, str(siblingPosition))
-            element = element.parentNode
+            element = element.getparent()
         location = "/".join(childSequence)
     return "element({0})".format(location)
 
@@ -529,7 +527,9 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
                     writexml(writer, nsmapChild, indent=indent, parentNsmap={}) # force all xmlns in next element
             else:
                 writexml(writer, child, indent=indent, parentNsmap={})
-    elif isinstance(node,ModelObject):
+    elif isinstance(node,etree._Comment): # ok to use minidom implementation
+        writer.write(indent+"<!--" + node.text + "-->\n")
+    elif isinstance(node,etree._Element):
         if parentNsmap is None: 
             parent = node.getparent()
             if parent is not None:
@@ -541,7 +541,19 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
                 else:
                     writer.write('<?xml version="1.0"?>\n')
                 parentNsmap = {}
-        writer.write(indent+"<" + node.prefixedName)
+        if isinstance(node,ModelObject):
+        	tag = node.prefixedName
+        else:
+            ns, sep, localName = node.tag.partition('}')
+            if sep:
+                prefix = xmlnsprefix(node,ns[1:])
+                if prefix:
+                    tag = prefix + ":" + localName
+                else:
+                    tag = localName
+            else:
+                tag = ns
+        writer.write(indent+"<" + tag)
         attrs = {}
         for prefix, ns in sorted((k if k is not None else '', v) 
                                  for k, v in (node.nsmap.items() - parentNsmap.items())):
@@ -552,7 +564,11 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
         for aTag,aValue in node.items():
             ns, sep, localName = aTag.partition('}')
             if sep:
-                prefixedName = xmlnsprefix(node,ns[1:]) + ":" + localName
+                prefix = xmlnsprefix(node,ns[1:])
+                if prefix:
+                    prefixedName = prefix + ":" + localName
+                else:
+                    prefixedName = localName
             else:
                 prefixedName = ns
             attrs[prefixedName] = aValue
@@ -593,10 +609,8 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
                 firstChild = False
             writexml(writer, child, indent=indent+'    ')
         if hasChildNodes:
-            writer.write("%s</%s>\n" % (indent, node.prefixedName))
+            writer.write("%s</%s>\n" % (indent, tag))
         elif text:
-            writer.write(">%s</%s>\n" % (text, node.prefixedName))
+            writer.write(">%s</%s>\n" % (text, tag))
         else:
             writer.write("/>\n")
-    elif isinstance(node,ModelComment): # ok to use minidom implementation
-        writer.write(indent+"<!--" + node.text + "-->\n")
