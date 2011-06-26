@@ -520,7 +520,7 @@ def checkElements(val, modelDocument, parent):
                     val.modelXbrl.error(
                         _("Xbrl file {0} link:{1} not child of link:linkbase or xbrli:instance").format(
                               modelDocument.basename, elt.localName),
-                        "err", "xbrl.{0}:{1}Location".format(xbrlSection,elt.localName))
+                        "info", "info:{1}Location".format(xbrlSection,elt.localName))
                 else: # parent is linkbase or instance, element IS in the right location
     
                     # check for duplicate roleRefs when parent is linkbase or instance element

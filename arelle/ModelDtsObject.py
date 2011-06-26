@@ -447,9 +447,11 @@ class ModelAttribute(ModelSchemaObject):
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
+            ''' HF: I don't think attributes can have a substitution group ??
             subs = self.substitutionGroup
             if subs:
                 return subs.typeQname
+            '''
             return None
     
     @property
@@ -466,6 +468,8 @@ class ModelAttribute(ModelSchemaObject):
             return self._baseXsdType
         except AttributeError:
             typeqname = self.typeQname
+            if typeqname is None:   # anyType is default type
+                return "anyType"
             if typeqname.namespaceURI == XbrlConst.xsd:
                 return typeqname.localName
             type = self.type

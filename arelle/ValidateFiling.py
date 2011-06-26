@@ -202,61 +202,62 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if disclosureSystem.deiNamespacePattern is not None:
                     factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(f.namespaceURI)
                 # standard dei items from required context
-                if not context.hasSegment and not context.hasScenario: 
-                    #default context
-                    if factInDeiNamespace:
-                        value = f.value
-                        if factElementName == disclosureSystem.deiAmendmentFlagElement:
-                            amendmentFlag = value
-                        elif factElementName == "AmendmentDescription":
-                            amendmentDescription = value
-                        elif factElementName == disclosureSystem.deiDocumentPeriodEndDateElement:
-                            documentPeriodEndDate = value
-                            commonStockMeasurementDatetime = context.endDatetime
-                        elif factElementName == "DocumentType":
-                            documentType = value
-                        elif factElementName == disclosureSystem.deiFilerIdentifierElement:
-                            deiItems[factElementName] = value
-                            if entityIdentifierValue != value:
-                                self.modelXbrl.error(
-                                    _("dei:{0} {1} is must match the context entity identifier {2}").format(
-                                          disclosureSystem.deiFilerIdentifierElement,
-                                          value, entityIdentifierValue), 
-                                    "err", "EFM.6.05.23", "GFM.3.02.02")
-                            if paramFilerIdentifier and value != paramFilerIdentifier:
-                                self.modelXbrl.error(
-                                    _("dei:{0} {1} must match submission: {2}").format(
-                                          disclosureSystem.deiFilerIdentifierElement,
-                                          value, paramFilerIdentifier), 
-                                    "err", "EFM.6.05.23", "GFM.3.02.02")
-                        elif factElementName == disclosureSystem.deiFilerNameElement:
-                            deiItems[factElementName] = value
-                            if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
-                                prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
-                                if not value.lower().startswith(prefix.lower()):
+                if context is not None: # tests do not apply to tuples
+                    if not context.hasSegment and not context.hasScenario: 
+                        #default context
+                        if factInDeiNamespace:
+                            value = f.value
+                            if factElementName == disclosureSystem.deiAmendmentFlagElement:
+                                amendmentFlag = value
+                            elif factElementName == "AmendmentDescription":
+                                amendmentDescription = value
+                            elif factElementName == disclosureSystem.deiDocumentPeriodEndDateElement:
+                                documentPeriodEndDate = value
+                                commonStockMeasurementDatetime = context.endDatetime
+                            elif factElementName == "DocumentType":
+                                documentType = value
+                            elif factElementName == disclosureSystem.deiFilerIdentifierElement:
+                                deiItems[factElementName] = value
+                                if entityIdentifierValue != value:
                                     self.modelXbrl.error(
-                                        _("dei:{0} {1} be a case-insensitive prefix of: {2}").format(
-                                              disclosureSystem.deiFilerNameElement,
-                                              prefix, value), 
-                                        "err", "EFM.6.05.24", "GFM.3.02.02")
-                        elif factElementName in deiCheckLocalNames:
-                            deiItems[factElementName] = value
-                else:
-                    # segment present
-                    
-                    # note all concepts used in explicit dimensions
-                    for dimValue in context.qnameDims.values():
-                        if dimValue.isExplicit:
-                            dimConcept = dimValue.dimension
-                            memConcept = dimValue.member
-                            for dConcept in (dimConcept, memConcept):
-                                if dConcept is not None:
-                                    conceptsUsed[dConcept] = False
-                            if (factElementName == "EntityCommonStockSharesOutstanding" and
-                                dimConcept.name == "StatementClassOfStockAxis"):
-                                commonSharesItemsByStockClass[memConcept.qname].append(f)
-                                if commonSharesClassMembers is None:
-                                    commonSharesClassMembers = self.getDimMembers(dimConcept)
+                                        _("dei:{0} {1} is must match the context entity identifier {2}").format(
+                                              disclosureSystem.deiFilerIdentifierElement,
+                                              value, entityIdentifierValue), 
+                                        "err", "EFM.6.05.23", "GFM.3.02.02")
+                                if paramFilerIdentifier and value != paramFilerIdentifier:
+                                    self.modelXbrl.error(
+                                        _("dei:{0} {1} must match submission: {2}").format(
+                                              disclosureSystem.deiFilerIdentifierElement,
+                                              value, paramFilerIdentifier), 
+                                        "err", "EFM.6.05.23", "GFM.3.02.02")
+                            elif factElementName == disclosureSystem.deiFilerNameElement:
+                                deiItems[factElementName] = value
+                                if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
+                                    prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
+                                    if not value.lower().startswith(prefix.lower()):
+                                        self.modelXbrl.error(
+                                            _("dei:{0} {1} be a case-insensitive prefix of: {2}").format(
+                                                  disclosureSystem.deiFilerNameElement,
+                                                  prefix, value), 
+                                            "err", "EFM.6.05.24", "GFM.3.02.02")
+                            elif factElementName in deiCheckLocalNames:
+                                deiItems[factElementName] = value
+                    else:
+                        # segment present
+                        
+                        # note all concepts used in explicit dimensions
+                        for dimValue in context.qnameDims.values():
+                            if dimValue.isExplicit:
+                                dimConcept = dimValue.dimension
+                                memConcept = dimValue.member
+                                for dConcept in (dimConcept, memConcept):
+                                    if dConcept is not None:
+                                        conceptsUsed[dConcept] = False
+                                if (factElementName == "EntityCommonStockSharesOutstanding" and
+                                    dimConcept.name == "StatementClassOfStockAxis"):
+                                    commonSharesItemsByStockClass[memConcept.qname].append(f)
+                                    if commonSharesClassMembers is None:
+                                        commonSharesClassMembers = self.getDimMembers(dimConcept)
                                     
                 #6.5.17 facts with precision
                 concept = f.concept
@@ -480,7 +481,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     "err", "EFM.6.10.03", "GFM.1.5.3")
                             hasDefaultLang = False
                             priorRole = role
-                        if lang.startswith(disclosureSystem.defaultXmlLang):
+                        if lang is not None and lang.startswith(disclosureSystem.defaultXmlLang):
                             hasDefaultLang = True
                         
     

@@ -374,7 +374,8 @@ def checkDTS(val, modelDocument, visited):
                             
                         # 6.7.12 definition match pattern
                         definition = modelRoleTypes[0].definitionNotStripped
-                        if definition is None or not val.disclosureSystem.roleDefinitionPattern.match(definition):
+                        if (val.disclosureSystem.roleDefinitionPattern is not None and
+                            (definition is None or not val.disclosureSystem.roleDefinitionPattern.match(definition))):
                             val.modelXbrl.error(
                                 _("Taxonomy schema {0} roleType {1} definition \"{2}\" must match {3}Sortcode{4} - {3}Type{4} - {3}Title{4}").format(
                                     os.path.basename(modelDocument.uri),

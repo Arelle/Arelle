@@ -40,6 +40,7 @@ class DisclosureSystem:
         self.maxSubmissionSubdirectoryEntryNesting = 0
         self.defaultXmlLang = None
         self.xmlLangPattern = None
+        self.defaultLanguage = None
         self.language = None
         self.standardTaxonomiesUrl = None
         self.mappingsUrl = os.path.join(self.modelManager.cntlr.configDir, "mappings.xml")
