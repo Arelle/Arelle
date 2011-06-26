@@ -40,7 +40,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for modelConcept in modelXbrl.qnameConcepts.values():
                 if modelConcept.isTypedDimension:
                     typedDomainElement = modelConcept.typedDomainElement
-                    if typedDomainElement:
+                    if typedDomainElement is not None:
                         self.typedDomainQnames.add(typedDomainElement.qname)
         
         # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks

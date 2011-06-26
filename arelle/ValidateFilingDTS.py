@@ -91,6 +91,7 @@ def checkDTS(val, modelDocument, visited):
                 if isinstance(eltName,ModelObject):
                     # 6.7.16 name not duplicated in standard taxonomies
                     name = eltName.get("name")
+                    if name is None: name = ""
                     concepts = val.modelXbrl.nameConcepts.get(name)
                     modelConcept = None
                     if concepts is not None:
@@ -118,7 +119,7 @@ def checkDTS(val, modelDocument, visited):
                                             "err", "SBR.NL.2.2.2.02")
                     # 6.7.17 id properly formed
                     id = eltName.id
-                    requiredId = str(prefix) + "_" + name
+                    requiredId = (prefix if prefix is not None else "") + "_" + name
                     if val.validateEFMorGFM and id != requiredId:
                         val.modelXbrl.error(
                             _("Taxonomy schema {0} element {1} id {2} should be {3}").format(
@@ -313,7 +314,7 @@ def checkDTS(val, modelDocument, visited):
                                     "err", "SBR.NL.2.2.5.01")
                             if modelConcept.isTypedDimension:
                                 domainElt = modelConcept.typedDomainElement
-                                if domainElt and domainElt.element and domainElt.element.localName == "complexType":
+                                if domainElt is not None and domainElt.localName == "complexType":
                                     val.modelXbrl.error(
                                         _("Taxonomy schema {0} typed dimension {1} domain element {2} has disallowed complex content").format(
                                             os.path.basename(modelDocument.uri), modelConcept.qname, domainElt.qname), 
@@ -451,7 +452,7 @@ def tupleCycle(val, concept, ancestorTuples=None):
     ancestorTuples.add(concept)
     for elementQname in concept.type.elements:
         childConcept = val.modelXbrl.qnameConcepts.get(elementQname)
-        if childConcept and tupleCycle(val, childConcept, ancestorTuples):
+        if childConcept is not None and tupleCycle(val, childConcept, ancestorTuples):
             return True
     ancestorTuples.discard(concept)
     return False

@@ -59,7 +59,7 @@ def load(modelXbrl, uri, base=None, isEntry=False, isIncluded=None, namespace=No
     modelXbrl.modelManager.showStatus(_("parsing {0}").format(uri))
     file = None
     try:
-        if modelXbrl.modelManager.validateDisclosureSystem:
+        if modelXbrl.modelManager.disclosureSystem.validateFileText:
             file = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
             file = modelXbrl.fileSource.file(filepath)

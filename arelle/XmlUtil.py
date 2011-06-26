@@ -30,7 +30,7 @@ def xmlnsprefix(element, ns):
             else:
                 return ""   # prefix none but exists, xml process as zero-length string
     return None
-
+    
 def targetNamespace(element):
     treeElt = element
     while treeElt is not None:
@@ -57,7 +57,16 @@ def schemaLocation(element, namespace, returnElement=False):
         treeElt = treeElt.getparent()
     return None
 
-# provide python-style QName, e.g., {namespaceURI}localName
+def clarkNotationToPrefixNsLocalname(element, clarkName, isAttribute=False):
+    ns, sep, localName = clarkName[1:].partition('}')
+    if sep:
+        prefix = xmlnsprefix(element, ns)
+        if prefix is None and isAttribute:
+            return (None, None, clarkName) # don't use default xmlns on unqualified attribute name
+        return (prefix, ns, localName)
+    return (None, None, clarkName)
+        
+
 def prefixedNameToNamespaceLocalname(element, prefixedName, defaultNsmap=None):
     if prefixedName is None or prefixedName == "":
         return None
@@ -78,23 +87,12 @@ def prefixedNameToNamespaceLocalname(element, prefixedName, defaultNsmap=None):
                 return None  # error, prefix not found
     return (ns, localName, prefix)
 
-# provide python-style QName, e.g., {namespaceURI}localName
-def prefixedNameToPyQname(element, prefixedName):
+def prefixedNameToClarkNotation(element, prefixedName):
     nsLocalname = prefixedNameToNamespaceLocalname(element, prefixedName)
     if nsLocalname is None: return None
     ns, localname, prefix = nsLocalname
     if ns is None: return localname
     return "{{{0}}}{1}".format(ns, localname)
-
-def pyQnameToNamespaceLocalname(pyQname):
-    if pyQname[0] == "{":
-        ns,sep,name = pyQname[1:].partition("}")
-        return (ns,name)
-    return None
-
-def pyQname(element):
-    return "{{{0}}}{1}".format(element.namespaceURI, element.localName)
-    
 
 def encoding(xml):
     if isinstance(xml,bytes):
@@ -398,7 +396,7 @@ def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeNam
             for child in parentElement.iterdescendants(tag="{{{0}}}{1}".format(childNamespaceUri,childLocalName)):
                 value = text(child)
                 if qnames:
-                    value = prefixedNameToPyQname(child, value)
+                    value = prefixedNameToClarkNotation(child, value)
                 if childAttributeName is not None:
                     list.append((child.tag, value, child.get(childAttributeName)))
                 else:

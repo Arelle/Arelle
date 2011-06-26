@@ -27,7 +27,7 @@ def xmlValidate(entryModelDocument):
             imports.append('<xsd:import namespace="{0}" schemaLocation="{1}"/>'.format(
                 modelDocument.targetNamespace, modelDocument.filepath.replace("\\","/")))
             importedNamespaces.add(modelDocument.targetNamespace)
-    if entryModelDocument.xmlRootElement.hasAttributeNS(XbrlConst.xsi, "schemaLocation"):
+    if entryModelDocument.xmlRootElement.get(XbrlConst.xsi, "schemaLocation") is not None:
         ns = None
         for entry in entryModelDocument.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation").split():
             if ns is None:

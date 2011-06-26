@@ -168,7 +168,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                 modelObject.modelAspect = modelAspect
             ModelVersObject.relateConceptMdlObjs(self, actionRelatedFromMdlObjs, actionRelatedToMdlObjs)
             # do linkbaseRef's at end after idObjects all loaded
-            for element in rootElement.getElementsByTagNameNS(XbrlConst.link,"linkbaseRef"):
+            for element in rootElement.iterdescendants("{http://www.xbrl.org/2003/linkbase}linkbaseRef"):
                 self.schemaLinkbaseRefDiscover(element)
         except (ValueError, LookupError) as err:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
