@@ -201,6 +201,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 factElementName = f.localName
                 if disclosureSystem.deiNamespacePattern is not None:
                     factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(f.namespaceURI)
+                else:
+                    factInDeiNamespace = None
                 # standard dei items from required context
                 if context is not None: # tests do not apply to tuples
                     if not context.hasSegment and not context.hasScenario: 

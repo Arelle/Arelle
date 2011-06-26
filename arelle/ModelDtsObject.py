@@ -617,14 +617,21 @@ class ModelType(ModelSchemaObject):
     
     def baseXsdAttrType(self, attrName):
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
-        if attr is not None and attr.get("type"):
-            qnameAttrType = ModelValue.qname(attr, attr.get("type"))
+        if attr is not None:
+            qnameAttrType = None
+            if attr.get("type"):
+                qnameAttrType = ModelValue.qname(attr, attr.get("type"))
+            else:
+                restriction = XmlUtil.descendant(self, XbrlConst.xsd, "restriction")
+                if restriction is not None:
+                    if restriction.get("base"):
+                        qnameAttrType = ModelValue.qname(restriction, restriction.get("base"))
             if qnameAttrType and qnameAttrType.namespaceURI == XbrlConst.xsd:
                 return qnameAttrType.localName
             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameAttrType)
             if typeDerivedFrom is not None:
                 return typeDerivedFrom.baseXsdType
-        return None
+        return "anyType"
 
     def fixedOrDefaultAttrValue(self, attrName):
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
