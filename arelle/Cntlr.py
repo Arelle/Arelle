@@ -16,7 +16,7 @@ class Cntlr:
             self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = True
-            self.updateURL = "http://arelle.org/downloads/5"
+            self.updateURL = "http://arelle.org/downloads/8"
         elif sys.platform.startswith("win"):
             tempDir = tempfile.gettempdir()
             if tempDir.endswith('local\\temp'):
@@ -30,9 +30,9 @@ class Cntlr:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
             if "64 bit" in sys.version:
-                self.updateURL = "http://arelle.org/downloads/6"
+                self.updateURL = "http://arelle.org/downloads/9"
             else: # 32 bit
-                self.updateURL = "http://arelle.org/downloads/7"
+                self.updateURL = "http://arelle.org/downloads/10"
         else: # Unix/Linux
             self.userAppDir = os.path.join(
                    os.getenv('XDG_CONFIG_HOME', os.path.expanduser("~/.config")),

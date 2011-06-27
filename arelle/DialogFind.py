@@ -10,7 +10,10 @@ import tkinter.messagebox, traceback
 import re
 from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton)
 from arelle.CntlrWinTooltip import ToolTip
-from arelle import (ModelDocument, ModelObject, ModelRssObject, XPathContext, XPathParser, XmlUtil)
+from arelle import (ModelDocument, ModelRssObject, XPathContext, XPathParser, XmlUtil)
+from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelFormulaObject import Trace
 
 '''
@@ -273,13 +276,13 @@ class DialogFind(Toplevel):
         numRssItems = 0
         self.objsList = []
         for obj in objsFound:
-            if isinstance(obj,ModelObject.ModelConcept):
+            if isinstance(obj,ModelConcept):
                 numConcepts += 1
                 self.objsList.append( ('c', obj.localName, obj.objectId()) )
-            elif isinstance(obj,ModelObject.ModelFact):
+            elif isinstance(obj,ModelFact):
                 numFacts += 1
                 self.objsList.append( ('f', obj.__hash__(), obj.objectId()) )
-            elif isinstance(obj,ModelRssObject.ModelRssItem):
+            elif isinstance(obj,ModelRssItem):
                 numRssItems += 1
                 self.objsList.append( ('r', obj.__hash__(), obj.objectId()) )
         self.objsList.sort()

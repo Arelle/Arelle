@@ -426,7 +426,7 @@ class ValidateXbrl:
                                       f.qname), 
                                 "err", "xbrl.4.6.3:tuplePrecisionDecimals")
                         # custom attributes may be allowed by anyAttribute but not by 2.1
-                        for attrQname, attrValue in XbrlUtil.attributes(self.modelXbrl, concept, f):
+                        for attrQname, attrValue in XbrlUtil.attributes(self.modelXbrl, f):
                             if attrQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
                                 self.modelXbrl.error(
                                     _("Fact {0} is a tuple and must not have attribute in this namespace {1}").format(

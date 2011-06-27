@@ -8,6 +8,14 @@ import os, re
 from lxml import etree
 from arelle import (UrlUtil)
 
+def compileAttrPattern(elt, attrName, flags=None):
+    attr = elt.get(attrName)
+    if attr is None: attr = ""
+    if flags is not None:
+        return re.compile(attr, flags)
+    else:
+        return re.compile(attr)
+
 class DisclosureSystem:
     def __init__(self, modelManager):
         self.modelManager = modelManager
@@ -27,10 +35,12 @@ class DisclosureSystem:
         self.EFMorGFM = False
         self.HMRC = False
         self.SBRNL = False
+        self.validateFileText = False
         self.blockDisallowedReferences = False
         self.maxSubmissionSubdirectoryEntryNesting = 0
         self.defaultXmlLang = None
         self.xmlLangPattern = None
+        self.defaultLanguage = None
         self.language = None
         self.standardTaxonomiesUrl = None
         self.mappingsUrl = os.path.join(self.modelManager.cntlr.configDir, "mappings.xml")
@@ -87,14 +97,14 @@ class DisclosureSystem:
                             self.EFMorGFM = self.EFM or self.GFM
                             self.HMRC = self.validationType == "HMRC"
                             self.SBRNL = self.validationType == "SBR-NL"
+                            self.validateFileText = dsElt.get("validateFileText") == "true"
                             self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
                             try:
                                 self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.get("maxSubmissionSubdirectoryEntryNesting"))
                             except (ValueError, TypeError):
                                 self.maxSubmissionSubdirectoryEntryNesting = 0
                             self.defaultXmlLang = dsElt.get("defaultXmlLang")
-                            if dsElt.get("xmlLangPattern"):
-                                self.xmlLangPattern = re.compile(dsElt.get("xmlLangPattern"))
+                            self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
                             self.defaultLanguage = dsElt.get("defaultLanguage")
                             self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                              dsElt.get("standardTaxonomiesUrl"),
@@ -103,14 +113,14 @@ class DisclosureSystem:
                                 self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                              dsElt.get("mappingsUrl"),
                                              self.url)
-                            self.identifierSchemePattern = re.compile(dsElt.get("identifierSchemePattern"))
-                            self.identifierValuePattern = re.compile(dsElt.get("identifierValuePattern"))
+                            self.identifierSchemePattern = compileAttrPattern(dsElt,"identifierSchemePattern")
+                            self.identifierValuePattern = compileAttrPattern(dsElt,"identifierValuePattern")
                             self.identifierValueName = dsElt.get("identifierValueName")
                             self.contextElement = dsElt.get("contextElement")
-                            self.roleDefinitionPattern = re.compile(dsElt.get("roleDefinitionPattern"))
-                            self.labelCheckPattern = re.compile(dsElt.get("labelCheckPattern"), re.DOTALL)
-                            self.labelTrimPattern = re.compile(dsElt.get("labelTrimPattern"), re.DOTALL)
-                            self.deiNamespacePattern = re.compile(dsElt.get("deiNamespacePattern"))
+                            self.roleDefinitionPattern = compileAttrPattern(dsElt,"roleDefinitionPattern")
+                            self.labelCheckPattern = compileAttrPattern(dsElt,"labelCheckPattern", re.DOTALL)
+                            self.labelTrimPattern = compileAttrPattern(dsElt,"labelTrimPattern", re.DOTALL)
+                            self.deiNamespacePattern = compileAttrPattern(dsElt,"deiNamespacePattern")
                             self.deiAmendmentFlagElement = dsElt.get("deiAmendmentFlagElement")
                             self.deiCurrentFiscalYearEndDateElement = dsElt.get("deiCurrentFiscalYearEndDateElement")
                             self.deiDocumentFiscalYearFocusElement = dsElt.get("deiDocumentFiscalYearFocusElement")
@@ -131,7 +141,7 @@ class DisclosureSystem:
             etree.clear_error_log()
         self.modelManager.cntlr.showStatus(_("Disclosure system and mappings {0}: {1}").format(status,name), 3500)
         return result
-
+    
     def loadStandardTaxonomiesDict(self):
         if self.selection:
             self.standardTaxonomiesDict = {}

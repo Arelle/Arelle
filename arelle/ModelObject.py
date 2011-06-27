@@ -69,10 +69,6 @@ class ModelObject(etree.ElementBase):
             self.setNamespaceLocalName()
             return self._prefixedName
         
-    def getElementsByTagNameNS(self, ns, tag):
-        from arelle import XmlUtil
-        return XmlUtil.descendants(self, ns, tag)
-    
     @property
     def namespaceURI(self):
         try:
