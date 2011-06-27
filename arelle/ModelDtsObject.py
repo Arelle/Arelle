@@ -36,13 +36,13 @@ class ModelRoleType(ModelObject):
             return self._definition
         except AttributeError:
             definition = XmlUtil.child(self, XbrlConst.link, "definition")
-            self._definition = definition.text if definition is not None else None
+            self._definition = XmlUtil.text(definition) if definition is not None else None
             return self._definition
 
     @property
     def definitionNotStripped(self):
         definition = XmlUtil.child(self, XbrlConst.link, "definition")
-        return definition.textNotStripped if definition is not None else None
+        return XmlUtil.textNotStripped(definition) if definition is not None else None
     
     @property
     def usedOns(self): 
@@ -146,7 +146,7 @@ class ModelConcept(ModelSchemaObject):
                     if subs is not None:
                         self._typeQname = subs.typeQname
                     else:
-                        self._typeQname =  None
+                        self._typeQname =  XbrlConst.qnXsdDefaultType
             return self._typeQname
         
     @property
@@ -164,10 +164,11 @@ class ModelConcept(ModelSchemaObject):
             return self._baseXsdType
         except AttributeError:
             typeqname = self.typeQname
-            if typeqname.namespaceURI == XbrlConst.xsd:
-                return typeqname.localName
-            type = self.type
-            self._baseXsdType = type.baseXsdType if type is not None else None
+            if typeqname is not None and typeqname.namespaceURI == XbrlConst.xsd:
+                self._baseXsdType = typeqname.localName
+            else:
+                type = self.type
+                self._baseXsdType = type.baseXsdType if type is not None else "anyType"
             return self._baseXsdType
     
     def baseXsdAttrType(self,attrName):
@@ -372,7 +373,7 @@ class ModelConcept(ModelSchemaObject):
         try:
             return self._isTypedDimension
         except AttributeError:
-            self._isTypedDimension = self.isDimensionItem and self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef")
+            self._isTypedDimension = self.isDimensionItem and self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef") is not None
             return self._isTypedDimension
         
     @property
@@ -446,9 +447,11 @@ class ModelAttribute(ModelSchemaObject):
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
+            ''' HF: I don't think attributes can have a substitution group ??
             subs = self.substitutionGroup
             if subs:
                 return subs.typeQname
+            '''
             return None
     
     @property
@@ -465,6 +468,8 @@ class ModelAttribute(ModelSchemaObject):
             return self._baseXsdType
         except AttributeError:
             typeqname = self.typeQname
+            if typeqname is None:   # anyType is default type
+                return "anyType"
             if typeqname.namespaceURI == XbrlConst.xsd:
                 return typeqname.localName
             type = self.type
@@ -612,14 +617,21 @@ class ModelType(ModelSchemaObject):
     
     def baseXsdAttrType(self, attrName):
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
-        if attr is not None and attr.get("type"):
-            qnameAttrType = ModelValue.qname(attr, attr.get("type"))
+        if attr is not None:
+            qnameAttrType = None
+            if attr.get("type"):
+                qnameAttrType = ModelValue.qname(attr, attr.get("type"))
+            else:
+                restriction = XmlUtil.descendant(self, XbrlConst.xsd, "restriction")
+                if restriction is not None:
+                    if restriction.get("base"):
+                        qnameAttrType = ModelValue.qname(restriction, restriction.get("base"))
             if qnameAttrType and qnameAttrType.namespaceURI == XbrlConst.xsd:
                 return qnameAttrType.localName
             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameAttrType)
             if typeDerivedFrom is not None:
                 return typeDerivedFrom.baseXsdType
-        return None
+        return "anyType"
 
     def fixedOrDefaultAttrValue(self, attrName):
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)

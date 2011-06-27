@@ -17,14 +17,14 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
         xmldoc = etree.parse(utrUrl)
         for unitElt in xmldoc.iter(tag="{http://www.xbrl.org/2009/utr}unit"):
             id = unitElt.get("id")
-            unitId = getText(unitElt, "{http://www.xbrl.org/2009/utr}unitId")
-            nsUnit = getText(unitElt, "{http://www.xbrl.org/2009/utr}nsUnit")
-            itemType = getText(unitElt, "{http://www.xbrl.org/2009/utr}itemType")
-            nsItemType = getText(unitElt, "{http://www.xbrl.org/2009/utr}nsItemType")
-            numeratorItemType = getText(unitElt, "{http://www.xbrl.org/2009/utr}numeratorItemType")
-            nsNumeratorItemType = getText(unitElt, "{http://www.xbrl.org/2009/utr}nsNumeratorItemType")
-            denominatorItemType = getText(unitElt, "{http://www.xbrl.org/2009/utr}denominatorItemType")
-            nsDenominatorItemType = getText(unitElt, "{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
+            unitId = unitElt.findtext("{http://www.xbrl.org/2009/utr}unitId")
+            nsUnit = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsUnit")
+            itemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}itemType")
+            nsItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsItemType")
+            numeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}numeratorItemType")
+            nsNumeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsNumeratorItemType")
+            denominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}denominatorItemType")
+            nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
             # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
             if modelManager.utrDict.get(itemType) == None:
                 modelManager.utrDict[itemType] = {}
@@ -39,11 +39,6 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
         modelManager.cntlr.addToLog("Unit Type Registry Import error: {0}".format(err))
         etree.clear_error_log()
   
-def getText(node, sTag): # Simple function just scoops up text inside the element
-    s = ''.join([t for t in node.itertext(tag=sTag)]).strip()
-    if s == "": s = None
-    return s
-
 '''
 def MeasureQName(node): # Return the qame of the content of the measure element
     assert node.nodeType == xml.dom.Node.ELEMENT_NODE

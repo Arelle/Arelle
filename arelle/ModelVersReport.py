@@ -40,8 +40,6 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.actions = {}
         self.namespaceRenameFrom = {}
         self.namespaceRenameTo = {}
-        self.roleChangeFrom = {}
-        self.roleChangeTo = {}
         self.roleChanges = {}
         self.conceptBasicChanges = []
         self.conceptExtendedChanges = []
@@ -170,7 +168,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                 modelObject.modelAspect = modelAspect
             ModelVersObject.relateConceptMdlObjs(self, actionRelatedFromMdlObjs, actionRelatedToMdlObjs)
             # do linkbaseRef's at end after idObjects all loaded
-            for element in rootElement.getElementsByTagNameNS(XbrlConst.link,"linkbaseRef"):
+            for element in rootElement.iterdescendants("{http://www.xbrl.org/2003/linkbase}linkbaseRef"):
                 self.schemaLinkbaseRefDiscover(element)
         except (ValueError, LookupError) as err:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
@@ -205,11 +203,13 @@ class ModelVersReport(ModelDocument.ModelDocument):
             '  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' 
             '  xmlns:link="http://www.xbrl.org/2003/linkbase"' 
             '  xmlns:xlink="http://www.w3.org/1999/xlink"' 
-            '  xsi:schemaLocation="' 
-                'http://xbrl.org/2010/versioning-base http://xbrl.org/2010/versioning-base ' 
-                'http://xbrl.org/2010/versioning-concept-basic http://xbrl.org/2010/versioning-concept-basic ' 
-                'http://xbrl.org/2010/versioning-concept-extended http://xbrl.org/2010/versioning-concept-extended ' 
-            '">' 
+            # for generated testcases the schema locations need to be relative to test case directory
+            #'  xsi:schemaLocation="' 
+            #    'http://xbrl.org/2010/versioning-base http://xbrl.org/2010/versioning-base ' 
+            #    'http://xbrl.org/2010/versioning-concept-basic http://xbrl.org/2010/versioning-concept-basic ' 
+            #    'http://xbrl.org/2010/versioning-concept-extended http://xbrl.org/2010/versioning-concept-extended ' 
+            #'"
+            '>' 
                 '<!-- link:linkbaseRef xlink:type="simple"' 
                 '  xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"' 
                 '  xlink:title="documentation"' 
@@ -262,6 +262,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
         
     def diffNamespaces(self):
         # build fomr and to lists based on namespaces
+        self.namespaceRenameFromURI = {}
+        self.namespaceRenameToURI = {}
         fromNSes = set()
         toNSes = set()
         for fromModelDoc in self.fromDTS.urlDocs.values():
@@ -273,14 +275,16 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.diffURIs( fromNSes, toNSes, 
                        "namespaceRename",
                        (self.roleNumlessMatchPattern, self.rolePathlessMatchPattern, self.roleNoFromToMatchPattern),
-                        self.namespaceRenameFrom, self.namespaceRenameTo)
+                        self.namespaceRenameFromURI, self.namespaceRenameToURI)
     
     def diffRoles(self):
+        self.roleChangeFromURI = {}
+        self.roleChangeToURI = {}
         self.diffURIs( set( self.fromDTS.roleTypes.keys() ),
                        set( self.toDTS.roleTypes.keys() ),
                        "roleChange", 
                        (self.roleNumlessMatchPattern, self.rolePathlessMatchPattern, self.roleNoFromToMatchPattern),
-                       self.roleChangeFrom, self.roleChangeTo )
+                       self.roleChangeFromURI, self.roleChangeToURI )
                     
     def diffURIs(self, fromURIs, toURIs, eventName, matchers, changeFrom, changeTo):
         # remove common roles from each
@@ -370,7 +374,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     fromType = fromConcept.type # it is null for xsd:anyType
                     toType = toConcept.type
                     # TBD change to xml comparison with namespaceURI mappings, prefixes ignored
-                    if fromType and toType and fromType.toxml() != toType.toxml():
+                    if fromType is not None and toType and XbrlUtil.nodesCorrespond(self.fromDTS, fromType, toType, self.toDTS):
                         action = self.createConceptEvent(verce, "verce:tupleContentModelChange", fromConcept, toConcept, action)
                 # custom attributes in from Concept
                 fromCustAttrs = {}
@@ -406,9 +410,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                     resource = rel.toModelObject
                                     key = (rel.linkrole, arcrole, resource.role, resource.xmlLang,
                                            rel.linkQname, rel.qname, resource.qname) + \
-                                           XbrlUtil.attributes(dts, None, rel.arcElement,
+                                           XbrlUtil.attributes(dts, rel.arcElement,
                                                 exclusions=(XbrlConst.xlink, "use","priority","order","id")) + \
-                                           XbrlUtil.attributes(dts, None, resource,
+                                           XbrlUtil.attributes(dts, resource,
                                                 exclusions=(XbrlConst.xlink))
                                     resources[key] = resource
                     for key,label in fromResources.items():
@@ -418,7 +422,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         else:
                             toLabel = toResources[key]
                             toText = XmlUtil.innerText(toLabel)
-                            if not XbrlUtil.sEqual(self.fromDTS, label, toLabel, excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameTo):
+                            if not XbrlUtil.sEqual(self.fromDTS, label, toLabel, excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI):
                                 action = self.createConceptEvent(verce, event + "Change", fromConcept, toConcept, action, fromResource=label, toResource=toResources[key], fromResourceText=fromText, toResourceText=toText)
                     for key,label in toResources.items():
                         toText = XmlUtil.innerText(label)
@@ -445,8 +449,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 linkRoleUris.add(linkroleUri)
         # removed, added ELRs
         for dts, linkRoleUris, otherRoleUris, roleChanges, e1, e2, isFrom in (
-                        (self.fromDTS, fromLinkRoleUris, toLinkRoleUris, self.roleChangeFrom, "relationshipSetModelDelete", "fromRelationshipSet", True),
-                        (self.toDTS, toLinkRoleUris, fromLinkRoleUris, self.roleChangeTo, "relationshipSetModelAdd", "toRelationshipSet", False)):
+                        (self.fromDTS, fromLinkRoleUris, toLinkRoleUris, self.roleChangeFromURI, "relationshipSetModelDelete", "fromRelationshipSet", True),
+                        (self.toDTS, toLinkRoleUris, fromLinkRoleUris, self.roleChangeToURI, "relationshipSetModelAdd", "toRelationshipSet", False)):
             for linkRoleUri in linkRoleUris:
                 if not (linkRoleUri in otherRoleUris or linkRoleUri in roleChanges):
                     # fromUri tree is removed
@@ -468,7 +472,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     toRoots = toRelationshipSet.rootConcepts
                     for fromRoot in fromRoots:
                         toRootConcept = self.toDTS.qnameConcepts.get(self.toDTSqname(fromRoot.qname))
-                        if toRootConcept and toRootConcept not in toRoots: # added qname
+                        if toRootConcept is not None and toRootConcept not in toRoots: # added qname
                             if self.relSetDeletedEvent is None:
                                 relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelDelete")
                                 relSetEvent = self.createRelationshipSetEvent("fromRelationshipSet", eventParent=relSetMdlEvent)
@@ -479,7 +483,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                             self.diffRelationships(fromRoot, toRootConcept, fromRelationshipSet, toRelationshipSet)
                     for toRoot in toRoots:
                         fromRootConcept = self.toDTS.qnameConcepts.get(self.fromDTSqname(toRoot.qname))
-                        if fromRootConcept and fromRootConcept not in fromRoots: # added qname
+                        if fromRootConcept is not None and fromRootConcept not in fromRoots: # added qname
                             if self.relSetAddedEvent is None:
                                 relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelAdd")
                                 relSetEvent = self.createRelationshipSetEvent("toRelationshipSet", eventParent=relSetMdlEvent)
@@ -491,14 +495,14 @@ class ModelVersReport(ModelDocument.ModelDocument):
         toRels = toRelationshipSet.fromModelObject(toConcept)
         for i, fromRel in enumerate(fromRels):
             fromTgtConcept = fromRel.toModelObject
-            toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept else None
+            toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept is not None else None
             toRel = toRels[i] if i < len(toRels) else None
-            if toRel and toRel.toModelObject and toRel.toModelObject.qname == toTgtQname:
-                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromRel.arcElement,
+            if toRel is not None and toRel.toModelObject is not None and toRel.toModelObject.qname == toTgtQname:
+                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, fromRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
-                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toRel.arcElement,
+                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, toRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion,
-                     ns2ns1Tbl=self.namespaceRenameTo)
+                     ns2ns1Tbl=self.namespaceRenameToURI)
                 if fromRelAttrs != toRelAttrs:
                     fromAttrsSet = set(fromRelAttrs)
                     toAttrsSet = set(toRelAttrs)
@@ -516,21 +520,21 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelDelete")
                     relSetEvent = self.createRelationshipSetEvent("fromRelationshipSet", eventParent=relSetMdlEvent)
                     self.relSetDeletedEvent = self.createRelationshipSetEvent("relationshipSet", eventParent=relSetEvent, linkrole=fromRelationshipSet.linkrole, arcrole=fromRelationshipSet.arcrole)
-                if toRel:
+                if toRel is not None:
                     comment = _('corresponding relationship {0} toDTS toName="{1}"').format(i+1, XmlUtil.addQnameValue(self.reportElement, toRel.toModelObject.qname))
                 else:
                     comment = _('toDTS does not have a corresponding relationship at position {0}'.format(i+1))
                 self.createRelationshipSetEvent("relationships", eventParent=self.relSetDeletedEvent, fromConcept=fromConcept, toConcept=fromTgtConcept, comment=comment)
         for i, toRel in enumerate(toRels):
             toTgtConcept = toRel.toModelObject
-            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject else None
+            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject is not None else None
             fromRel = fromRels[i] if i < len(fromRels) else None
-            if not fromRel or not fromRel.toModelObject or fromRel.toModelObject.qname != fromTgtQname:
+            if fromRel is None or fromRel.toModelObject is None or fromRel.toModelObject.qname != fromTgtQname:
                 if self.relSetAddedEvent is None:
                     relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelAdd")
                     relSetEvent = self.createRelationshipSetEvent("toRelationshipSet", eventParent=relSetMdlEvent)
                     self.relSetAddedEvent = self.createRelationshipSetEvent("relationshipSet", eventParent=relSetEvent, linkrole=toRelationshipSet.linkrole, arcrole=toRelationshipSet.arcrole)
-                if fromRel:
+                if fromRel is not None:
                     comment = _('corresponding relationship {0} toDTS toName="{1}"').format(i+1, XmlUtil.addQnameValue(self.reportElement, fromRel.toModelObject.qname))
                 else:
                     comment = _('fromDTS does not have a corresponding relationship at position {0}'.format(i+1))
@@ -570,8 +574,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     DRSrels[DRSrel.fromModelObject.qname,DRSrel.linkrole].append( DRSrel )
         # removed, added pri item dimensions
         for dts, DRSrels, otherDTS, otherDRSrels, otherDTSqname, roleChanges, e1, e2, isFrom in (
-                        (self.fromDTS, fromDRSrels, self.toDTS, toDRSrels, self.toDTSqname, self.roleChangeFrom, "aspectModelDelete", "fromAspects", True),
-                        (self.toDTS, toDRSrels, self.fromDTS, fromDRSrels, self.fromDTSqname, self.roleChangeTo, "aspectModelAdd", "toAspects", False)):
+                        (self.fromDTS, fromDRSrels, self.toDTS, toDRSrels, self.toDTSqname, self.roleChangeFromURI, "aspectModelDelete", "fromAspects", True),
+                        (self.toDTS, toDRSrels, self.fromDTS, fromDRSrels, self.fromDTSqname, self.roleChangeToURI, "aspectModelAdd", "toAspects", False)):
             aspectEvent = None
             for DRSkey, priItemDRSrels in DRSrels.items():
                 priItemQname, linkrole = DRSkey
@@ -620,14 +624,14 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     priItemDifferences = self.DRSdiff(priItemConcept, linkrole, otherDTSpriItemConcept, otherLinkrole, XbrlConst.domainMember)
                     if priItemDifferences:
                         for fromRel, toRel, fromAttrSet, toAttrSet in priItemDifferences:
-                            if fromRel:
-                                if toRel: e = "aspectModelChange"
-                                else:     e = "aspectModelAdd"
-                            else:         e = "aspectModelDelete"
+                            if fromRel is not None:
+                                if toRel is not None: e = "aspectModelChange"
+                                else:                 e = "aspectModelAdd"
+                            else:                     e = "aspectModelDelete"
                             aspectMdlEvent = self.createInstanceAspectsEvent(e)
                             for rel, attrSet, e in ((fromRel, fromAttrSet-toAttrSet, "fromAspects"),
                                                     (toRel, toAttrSet-fromAttrSet, "toAspects")):
-                                if rel:
+                                if rel is not None:
                                     aspectEvent = self.createInstanceAspectsEvent(e, eventParent=aspectMdlEvent)
                                     priItemInheritRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
                                     priItem = self.createInstanceAspectsEvent("concept", 
@@ -652,14 +656,14 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     dimsDifferences = self.DRSdimsDiff(dts, priItemDRSrels, otherDTS, otherDTSpriItemDRSrels)
                     if dimsDifferences:
                         for fromDimRel, toDimRel, isNotAll, mbrDiffs in dimsDifferences:
-                            if fromDimRel:
-                                if toDimRel: e = "aspectModelChange"
-                                else:            e = "aspectModelAdd"
-                            else:                e = "aspectModelDelete"
+                            if fromDimRel is not None:
+                                if toDimRel is not None: e = "aspectModelChange"
+                                else:                    e = "aspectModelAdd"
+                            else:                        e = "aspectModelDelete"
                             aspectMdlEvent = self.createInstanceAspectsEvent(e)
                             for dimRel, e, isFrom in ((fromDimRel, "fromAspects", True),
                                                       (toDimRel, "toAspects", False)):
-                                if dimRel:
+                                if dimRel is not None:
                                     aspectEvent = self.createInstanceAspectsEvent(e, eventParent=aspectMdlEvent)
                                     priItemInheritRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
                                     priItem = self.createInstanceAspectsEvent("concept", 
@@ -677,7 +681,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                         for fromRel, toRel, fromAttrSet, toAttrSet in mbrDiffs:
                                             if isFrom: rel = fromRel
                                             else:      rel = toRel
-                                            if rel:
+                                            if rel is not None:
                                                 domHasMemRels = dts.relationshipSet(XbrlConst.domainMember, rel.linkrole).fromModelObject(rel.toModelObject)
                                                 self.createInstanceAspectsEvent("member", (('name',rel.toModelObject.qname),) + \
                                                                                           ((('linkrole',rel.linkrole),
@@ -709,15 +713,15 @@ class ModelVersReport(ModelDocument.ModelDocument):
         if arcrole == XbrlConst.dimensionDomain: arcrole = XbrlConst.domainMember #consec rel set
         for i, fromRel in enumerate(fromRels):
             fromTgtConcept = fromRel.toModelObject
-            toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept else None
+            toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept is not None else None
             toRel = toRels[i] if i < len(toRels) else None
-            if toRel and toRel.toModelObject and toRel.toModelObject.qname == toTgtQname:
+            if toRel is not None and toRel.toModelObject is not None and toRel.toModelObject.qname == toTgtQname:
                 toTgtConcept = toRel.toModelObject
-                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromRel.arcElement,
+                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, fromRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
-                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toRel.arcElement,
+                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, toRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion,
-                     ns2ns1Tbl=self.namespaceRenameTo)
+                     ns2ns1Tbl=self.namespaceRenameToURI)
                 if fromRelAttrs != toRelAttrs:
                     diffs.append((fromRel, toRel, set(fromRelAttrs), set(toRelAttrs)))
                 else:
@@ -728,9 +732,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 diffs.append((fromRel, None, None, None))
         for i, toRel in enumerate(toRels):
             toTgtConcept = toRel.toModelObject
-            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject else None
+            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject is not None else None
             fromRel = fromRels[i] if i < len(fromRels) else None
-            if not fromRel or not fromRel.toModelObject or fromRel.toModelObject.qname != fromTgtQname:
+            if fromRel is None or fromRel.toModelObject is None or fromRel.toModelObject.qname != fromTgtQname:
                 diffs.append((None, toRel, None, None))
         return diffs
     
@@ -748,11 +752,11 @@ class ModelVersReport(ModelDocument.ModelDocument):
             try:
                 toHcRel = fromHcRels[toPriItemQname, toHcQname, isNotAll]
                 fromHcRel = fromHcRels[fromHcRelKey]
-                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, fromHcRel.arcElement,
+                fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, fromHcRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
-                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, None, toHcRel.arcElement,
+                toRelAttrs = XbrlUtil.attributes(self.modelXbrl, toHcRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion,
-                     ns2ns1Tbl=self.namespaceRenameTo)
+                     ns2ns1Tbl=self.namespaceRenameToURI)
                 if fromRelAttrs != toRelAttrs:
                     diffs.append( (fromHcRel, toHcRel, set(fromRelAttrs), set(toRelAttrs)) )
             except KeyError:
@@ -765,9 +769,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
         except KeyError:
             fromTypedDomain = fromDimConcept.typedDomainElement
             toTypedDomain = toDimConcept.typedDomainElement
-            isCorresponding = (fromTypedDomain and toTypedDomain and
+            isCorresponding = (fromTypedDomain is not None and toTypedDomain is not None and
                                XbrlUtil.sEqual(self.fromDTS, fromTypedDomain, toTypedDomain, 
-                                              excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameTo))
+                                              excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI))
             self.typedDomainsCorrespond[fromDimConcept, toDimConcept] = isCorresponding
             return isCorresponding
 
@@ -785,7 +789,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             fromDimConcept = fromDimRel.toModelObject
             toDimQname = self.toDTSqname(fromDimQname)
             toDimRel = toDims.get( (toDimQname, fromIsNotAll) )
-            if toDimRel:
+            if toDimRel is not None:
                 toDimConcept = toDimRel.toModelObject
                 mbrDiffs = self.DRSdiff(fromDimConcept, fromDimRel.consecutiveLinkrole,
                                         toDimConcept, toDimRel.consecutiveLinkrole,
@@ -810,18 +814,14 @@ class ModelVersReport(ModelDocument.ModelDocument):
         return diffs
 
     def toDTSqname(self, fromDTSqname):
-        if fromDTSqname and fromDTSqname.namespaceURI in self.namespaceRenameFrom:
-            # namespaceRenames dict's used for URIs, not objects, in report production
-            NSrename = self.namespaceRenameFrom[fromDTSqname.namespaceURI]
-            return qname(NSrename if isinstance(NSrename,str) else NSrename.toURI, 
+        if fromDTSqname is not None and fromDTSqname.namespaceURI in self.namespaceRenameFromURI:
+            return qname(self.namespaceRenameFromURI[fromDTSqname.namespaceURI], 
                          fromDTSqname.localName)
         return fromDTSqname
         
     def fromDTSqname(self, toDTSqname):
-        if toDTSqname and toDTSqname.namespaceURI in self.namespaceRenameTo:
-            # namespaceRenames dict's used for URIs, not objects, in report production
-            NSrename = self.namespaceRenameTo[toDTSqname.namespaceURI]
-            return qname(NSrename if isinstance(NSrename,str) else NSrename.fromURI, 
+        if toDTSqname and toDTSqname.namespaceURI in self.namespaceRenameToURI:
+            return qname(self.namespaceRenameToURI[toDTSqname.namespaceURI], 
                          toDTSqname.localName)
         return toDTSqname
         
@@ -904,12 +904,12 @@ class ModelVersReport(ModelDocument.ModelDocument):
         return eventElement
         
     def createInstanceAspectsEvent(self, eventName, eventAttributes=None, comment=None, eventParent=None):
-        if not eventParent:
+        if eventParent is None:
             eventParent = self.createAction()
         eventElement = XmlUtil.addChild(eventParent, XbrlConst.veria, "veria:" + eventName, 
                 attributes=tuple((name,
                                   (XmlUtil.addQnameValue(self.reportElement, val) if isinstance(val,QName) else val)
                                   ) for name, val in eventAttributes) if eventAttributes else None)
-        if comment:
+        if comment is not None:
             XmlUtil.addComment(eventParent, ' ' + comment + ' ')
         return eventElement

@@ -556,13 +556,15 @@ class scrolledHeaderedFrame(Frame):
             if bodyCellH > rowColH:
                 self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize', bodyCellH ) )
         '''
-        hdrCells = [] # sort by col span, column row in header
-        for hdrCell in self.colHdrInterior.children.values():
+        hdrCells = self.colHdrInterior.children
+        hdrCellSortKeys = [] # sort by col span, column row in header
+        for hdrCellId, hdrCell in hdrCells.items():
             if not hdrCell.x & 1:
                 colspan = hdrCell.columnspan if hasattr(hdrCell,'columnspan') and hdrCell.columnspan else 1
-                hdrCells.append( (colspan, hdrCell.x, -hdrCell.y, hdrCell) ) 
-        hdrCells.sort()
-        for columnspan, x, y, hdrCell in hdrCells:
+                hdrCellSortKeys.append( (colspan, hdrCell.x, -hdrCell.y, hdrCellId) ) 
+        hdrCellSortKeys.sort()
+        for columnspan, x, y, hdrCellId in hdrCellSortKeys:
+            hdrCell = hdrCells[hdrCellId]
             hdrCellW = hdrCell.winfo_reqwidth()
             w = int(hdrCellW / columnspan)
             wWiderAlloced = 0

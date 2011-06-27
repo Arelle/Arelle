@@ -8,6 +8,7 @@ from arelle import (ModelDocument, ModelDtsObject, UrlUtil, XmlUtil, XbrlUtil, X
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.HtmlUtil import attrValue
+from lxml import etree
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 xsd1_1datatypes = {qname(XbrlConst.xsd,'anyAtomicType'), qname(XbrlConst.xsd,'yearMonthDuration'), qname(XbrlConst.xsd,'dayTimeDuration'), qname(XbrlConst.xsd,'dateTimeStamp'), qname(XbrlConst.xsd,'precisionDecimal')}
@@ -202,40 +203,42 @@ def checkDTS(val, modelDocument, visited):
         if val.validateSBRNL:
             if modelDocument.type in (ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE):
                 isSchema = modelDocument.type == ModelDocument.Type.SCHEMA
-                if modelDocument.xmlDocument.version != "1.0":
+                docinfo = modelDocument.xmlDocument.docinfo
+                if docinfo and docinfo.xml_version != "1.0":
                     val.modelXbrl.error(_('{0} file {1} xml version must be "1.0" but is "{2}"').format(
-                            modelDocument.gettype().title(), modelDocument.basename, modelDocument.xmlDocument.version), 
+                            modelDocument.gettype().title(), modelDocument.basename, docinfo.xml_version), 
                         "err", "SBR.NL.2.2.0.02" if isSchema else "SBR.NL.2.3.0.02")
-                if modelDocument.xmlDocument.encoding.lower() != "utf-8":
+                if docinfo.encoding.lower() != "utf-8":
                     val.modelXbrl.error(_('{0} file {1} encoding must be "utf-8" but is "{2}"').format(
-                            modelDocument.gettype().title(), modelDocument.basename, modelDocument.xmlDocument.encoding), 
+                            modelDocument.gettype().title(), modelDocument.basename, docinfo.encoding), 
                         "err", "SBR.NL.2.2.0.03" if isSchema else "SBR.NL.2.3.0.03")
-                # FIX FOR COMMENT!!!
-                commentNode = modelDocument.xmlDocument.firstChild
-                if commentNode.nodeType != 8 or modelDocument.xmlRootElement.previousSibling != commentNode:
-                    val.modelXbrl.error(_('{0} file {1} must have comment node only on line 2').format(
-                            modelDocument.gettype().title(), modelDocument.basename), 
-                        "err", "SBR.NL.2.2.0.04" if isSchema else "SBR.NL.2.3.0.04")
-                elif modelDocument.xmlRootElement.previousSibling != commentNode:
+                lookingForPrecedingComment = True
+                for commentNode in modelDocument.xmlRootElement.itersiblings(preceding=True):
+                    if isinstance(commentNode,etree._Comment):
+                        if lookingForPrecedingComment:
+                            lookingForPrecedingComment = False
+                        else:
+                            val.modelXbrl.error(_('{0} file {1} must have comment node only on line 2').format(
+                                    modelDocument.gettype().title(), modelDocument.basename), 
+                                "err", "SBR.NL.2.2.0.04" if isSchema else "SBR.NL.2.3.0.04")
+                if lookingForPrecedingComment:
                     val.modelXbrl.error(_('{0} file {1} must have only one comment node before schema element').format(
                             modelDocument.gettype().title(), modelDocument.basename), 
                         "err", "SBR.NL.2.2.0.05,07" if isSchema else "SBR.NL.2.3.0.05")
                 
                 # check namespaces are used
-                for i in range(len(modelDocument.xmlRootElement.attributes)):
-                    attribute = modelDocument.xmlRootElement.attributes.item(i)
-                    if (((attribute.prefix == "xmlns" and attribute.localName not in val.valUsedPrefixes) or
-                         (attribute.name == "xmlns" and None not in val.valUsedPrefixes)) and
-                        (modelDocument.type != ModelDocument.Type.SCHEMA or attribute.value != modelDocument.targetNamespace)):
+                for prefix, ns in modelDocument.xmlRootElement.nsmap.items():
+                    if ((prefix not in val.valUsedPrefixes) and
+                        (modelDocument.type != ModelDocument.Type.SCHEMA or ns != modelDocument.targetNamespace)):
                         val.modelXbrl.error(
                             _('{0} file {1} namespace declaration {2}="{3}" is not used').format(
-                                  modelDocument.gettype().title(), modelDocument.basename, attribute.name, attribute.value), 
+                                  modelDocument.gettype().title(), modelDocument.basename, prefix, ns), 
                             "err", "SBR.NL.2.2.0.11" if modelDocument.type == ModelDocument.Type.SCHEMA else "SBR.NL.2.3.0.08")
             if modelDocument.type ==  ModelDocument.Type.LINKBASE:
                 if not val.containsRelationship:
                     val.modelXbrl.error(
                         _("Linkbase file {0} has no relationships").format(
-                              modelDocument.gettype().title(), modelDocument.basename, attribute.localName), 
+                              modelDocument.gettype().title(), modelDocument.basename), 
                         "err", "SBR.NL.2.3.0.12")
         del val.valUsedPrefixes
         del val.schemaRoleTypes
@@ -322,7 +325,7 @@ def checkElements(val, modelDocument, parent):
                                         modelDocument.basename), 
                                     "err", "SBR.NL.2.2.0.09")
                             for attrName in ("blockDefault", "finalDefault", "version"):
-                                if elt.hasAttribute(attrName):
+                                if elt.get(attrName) is not None:
                                     val.modelXbrl.error(_('Schema file {0} <schema> must not have a {1} attribute').format(
                                             modelDocument.basename, attrName), 
                                         "err", "SBR.NL.2.2.0.10")
@@ -338,7 +341,7 @@ def checkElements(val, modelDocument, parent):
                                                             ("final", False, "2.2.2.10"),
                                                             ("fixed", False, "2.2.2.11"),
                                                             ("form", False, "2.2.2.12"),):
-                                if elt.hasAttribute(attr) != presence:
+                                if (elt.get(attr) is not None) != presence:
                                     val.modelXbrl.error(
                                         _('Schema file {0} element {1} {2} contain attribute {3}').format(
                                             modelDocument.basename, elt.get("name"), (_("MUST NOT"),_("MUST"))[presence], attr), 
@@ -351,7 +354,7 @@ def checkElements(val, modelDocument, parent):
                                         modelDocument.basename, elt.get("name"), type), 
                                     "err", "SBR.NL.2.2.0.01")
                             if parent.localName != "schema": # root element
-                                if elt.hasAttribute("name"):
+                                if elt.get("name") is not None:
                                     val.modelXbrl.error(
                                         _('Schema file {0} contains an element definition not at the root level: {1}').format(
                                             modelDocument.basename, elt.get("name")), 
@@ -361,7 +364,7 @@ def checkElements(val, modelDocument, parent):
                                                                 ("id", True, "2.2.2.13"),
                                                                 ("nillable", True, "2.2.2.15"),
                                                                 ("substitutionGroup", True, "2.2.2.18"),):
-                                    if elt.hasAttribute(attr) != presence:
+                                    if (elt.get(attr) is not None) != presence:
                                         val.modelXbrl.error(
                                             _('Schema file {0} root element {1} {2} contain attribute {3}').format(
                                                 modelDocument.basename, elt.get("name"), (_("MUST NOT"),_("MUST"))[presence], attr), 
@@ -384,8 +387,8 @@ def checkElements(val, modelDocument, parent):
                                 if modelConcept.isAbstract and modelConcept.isItem:
                                     val.hasAbstractItem = True
                         elif (elt.localName in ("sequence","choice") and 
-                              ((elt.hasAttribute("minOccurs") and elt.get("minOccurs") != "1") or
-                               (elt.hasAttribute("maxOccurs") and elt.get("maxOccurs") != "1"))):
+                              ((elt.get("minOccurs") != "1") or
+                               (elt.get("maxOccurs") != "1"))):
                             val.modelXbrl.error(
                                 _('Schema file {0} {1} must have minOccurs and maxOccurs = "1"').format(
                                 modelDocument.basename, elt.prefixedName), 
@@ -411,7 +414,7 @@ def checkElements(val, modelDocument, parent):
                                         modelDocument.basename, elt.localName), 
                                     "err", "SBR.NL.2.2.0.12")
                             nextSiblingElement = XmlUtil.nextSiblingElement(parent)
-                            if nextSiblingElement and nextSiblingElement.localName != "import":
+                            if nextSiblingElement is not None and nextSiblingElement.localName != "import":
                                 val.modelXbrl.error(
                                     _('Schema file {0} annotation/appinfo record must be followed only by import').format(
                                         modelDocument.basename, elt.localName), 
@@ -517,7 +520,7 @@ def checkElements(val, modelDocument, parent):
                     val.modelXbrl.error(
                         _("Xbrl file {0} link:{1} not child of link:linkbase or xbrli:instance").format(
                               modelDocument.basename, elt.localName),
-                        "err", "xbrl.{0}:{1}Location".format(xbrlSection,elt.localName))
+                        "info", "info:{1}Location".format(xbrlSection,elt.localName))
                 else: # parent is linkbase or instance, element IS in the right location
     
                     # check for duplicate roleRefs when parent is linkbase or instance element
@@ -874,7 +877,7 @@ def checkElements(val, modelDocument, parent):
                                   xlinkRole), 
                             "err", "EFM.6.09.05", "GFM.1.04.05", "SBR.NL.2.3.10.14")
                     if elt.localName == "reference" and val.validateSBRNL:
-                        for child in elt.descendants():
+                        for child in elt.iterdescendants():
                             if isinstance(child,ModelObject) and child.namespaceURI != "http://www.xbrl.org/2006/ref":
                                 val.modelXbrl.error(
                                     _("XBRL file {0} reference {1} has unauthorized part element {2}").format(
@@ -983,32 +986,31 @@ def checkElements(val, modelDocument, parent):
                                 "err", "SBR.NL.2.2.0.06")
                     # check attributes for prefixes and xmlns
                     val.valUsedPrefixes.add(elt.prefix)
-                    for i in range(len(elt.attributes)):
-                        attribute = elt.attributes.item(i)
-                        prefix = attribute.prefix
-                        if attribute.name == "xmlns" or prefix == "xmlns":
-                            if parent.nodeType == 1: # not for linkbase or schema, which are parented by document element
+                    for attrTag, attrValue in elt.items():
+                        prefix, ns, localName = XmlUtil.clarkNotationToPrefixNsLocalname(elt, attrTag, isAttribute=True)
+                        val.valUsedPrefixes.add(prefix)
+                        if ns not in (None, XbrlConst.xbrli, XbrlConst.xbrldt, XbrlConst.xlink, XbrlConst.xml):
+                            val.modelXbrl.error(
+                                _("XBRL file {0} {1} element {2} must not have {3}:{4}").format(
+                                      modelDocument.basename,
+                                      "schema" if isSchema else "linkbase" ,
+                                      elt.prefixedName, prefix, localName), 
+                                "err", "SBR.NL.2.2.0.20")
+                        if isSchema and localName in ("base", "ref", "substitutionGroup", "type"):
+                            valuePrefix, sep, valueName = attrValue.partition(":")
+                            if sep:
+                                val.valUsedPrefixes.add(valuePrefix)
+                    # check for xmlns on a non-root element
+                    parentElt = elt.getparent()
+                    if parentElt is not None:
+                        for prefix, ns in elt.nsmap.items():
+                            if prefix not in parentElt.nsmap or parentElt.nsmap[prefix] != ns:
                                 val.modelXbrl.error(
-                                    _("XBRL file {0} {1} element {2} must not have {3}").format(
+                                    _("XBRL file {0} {1} element {2} must not have xmlns:{3}").format(
                                           modelDocument.basename,
                                           "schema" if isSchema else "linkbase" ,
-                                          elt.prefixedName, attribute.name), 
+                                          elt.prefixedName, prefix), 
                                     "err", "SBR.NL.2.2.0.19" if isSchema else "SBR.NL.2.3.1.01")
-                        else: # not an xmlns
-                            if prefix:  # don't add None for unprefixed attributes
-                                val.valUsedPrefixes.add(prefix)
-                                # check for disalloed prefixes
-                                if attribute.namespaceURI not in (XbrlConst.xbrli, XbrlConst.xbrldt):
-                                    val.modelXbrl.error(
-                                        _("XBRL file {0} {1} element {2} must not have {3}").format(
-                                              modelDocument.basename,
-                                              "schema" if isSchema else "linkbase" ,
-                                              elt.prefixedName, attribute.name), 
-                                        "err", "SBR.NL.2.2.0.20")
-                            if isSchema and attribute.name in ("base", "ref", "substitutionGroup", "type"):
-                                valuePrefix, sep, valueName = attribute.value.partition(":")
-                                if sep:
-                                    val.valUsedPrefixes.add(valuePrefix)
                             
                     if elt.localName == "roleType" and not elt.get("id"): 
                         val.modelXbrl.error(
@@ -1029,7 +1031,7 @@ def checkElements(val, modelDocument, parent):
                                   XmlUtil.text(elt)), 
                             "err", "SBR.NL.2.3.10.12")
                     if elt.localName == "linkbase":
-                        for attrName, errCode in ((None, "id", "SBR.NL.2.3.10.04"),
+                        for attrName, errCode in (("id", "SBR.NL.2.3.10.04"),
                                                   ("{http://www.w3.org/2001/XMLSchema-instance}nil", "SBR.NL.2.3.10.05"),
                                                   ("{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation", "SBR.NL.2.3.10.06"),
                                                   ("{http://www.w3.org/2001/XMLSchema-instance}type", "SBR.NL.2.3.10.07")):
@@ -1050,9 +1052,9 @@ def checkElements(val, modelDocument, parent):
             checkElements(val, modelDocument, elt)
         elif isinstance(elt,ModelComment): # comment node
             if val.validateSBRNL:
-                if modelDocument.xmlRootElement.previousSibling != elt:
+                if elt.itersiblings(preceding=True):
                     val.modelXbrl.error(_('{0} file {1} must have only one comment node before schema element: "{2}"').format(
-                            modelDocument.gettype().title(), modelDocument.basename, elt.data), 
+                            modelDocument.gettype().title(), modelDocument.basename, elt.text), 
                         "err", "SBR.NL.2.2.0.05")
 
     # dereference at end of processing children of instance linkbase

@@ -117,7 +117,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         isRelation = isinstance(modelObject, ModelDtsObject.ModelRelationship)
         if isinstance(concept, ModelDtsObject.ModelConcept):
             text = labelPrefix + concept.label(preferredLabel,lang=self.lang)
-        elif self.arcrole == "EU-rendering" and isRelation:
+        elif self.arcrole == "EU-rendering":
             text = concept.genLabel(lang=self.lang)
             if isRelation:
                 relArcrole = modelObject.arcrole

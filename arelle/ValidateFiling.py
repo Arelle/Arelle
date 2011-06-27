@@ -40,14 +40,15 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for modelConcept in modelXbrl.qnameConcepts.values():
                 if modelConcept.isTypedDimension:
                     typedDomainElement = modelConcept.typedDomainElement
-                    if typedDomainElement:
+                    if typedDomainElement is not None:
                         self.typedDomainQnames.add(typedDomainElement.qname)
         
         # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks
         super(ValidateFiling,self).validate(modelXbrl, parameters)
         xbrlInstDoc = modelXbrl.modelDocument.xmlDocument.getroot()
+        disclosureSystem = self.disclosureSystem
         self.modelXbrl = modelXbrl
-        modelXbrl.modelManager.showStatus(_("validating {0}").format(self.disclosureSystem.name))
+        modelXbrl.modelManager.showStatus(_("validating {0}").format(disclosureSystem.name))
         
         self.modelXbrl.profileActivity()
         conceptsUsed = {} # key=concept object value=True if has presentation label
@@ -64,19 +65,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             #6.5.1 scheme, 6.5.2, 6.5.3 identifier
             entityIdentifierValue = None
-            if self.disclosureSystem.identifierValueName:   # omit if no checks
+            if disclosureSystem.identifierValueName:   # omit if no checks
                 for entityIdentifierElt in xbrlInstDoc.iterdescendants("{http://www.xbrl.org/2003/instance}identifier"):
                     if isinstance(entityIdentifierElt,ModelObject):
                         schemeAttr = entityIdentifierElt.get("scheme")
-                        if not self.disclosureSystem.identifierSchemePattern.match(schemeAttr):
+                        if not disclosureSystem.identifierSchemePattern.match(schemeAttr):
                             modelXbrl.error(
                                 _("Invalid entity identifier scheme: {0}").format(schemeAttr), 
                                 "err", "EFM.6.05.01", "GFM.1.02.01")
                         entityIdentifier = XmlUtil.text(entityIdentifierElt)
-                        if not self.disclosureSystem.identifierValuePattern.match(entityIdentifier):
+                        if not disclosureSystem.identifierValuePattern.match(entityIdentifier):
                             modelXbrl.error(
                                 _("Invalid entity identifier {0}: {1}").format(
-                                           self.disclosureSystem.identifierValueName,
+                                           disclosureSystem.identifierValueName,
                                            entityIdentifier), 
                                 "err", "EFM.6.05.02", "GFM.1.02.02")
                         if not entityIdentifierValue:
@@ -84,7 +85,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         elif entityIdentifier != entityIdentifierValue:
                             modelXbrl.error(
                                 _("Multiple {0}s: {1}, {2}").format(
-                                           self.disclosureSystem.identifierValueName,
+                                           disclosureSystem.identifierValueName,
                                            entityIdentifierValue, entityIdentifier), 
                                 "err", "EFM.6.05.03", "GFM.1.02.03")
                 self.modelXbrl.profileActivity("... filer identifier checks", minTimeToShow=1.0)
@@ -119,13 +120,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 hasSegment = XmlUtil.hasChild(context, XbrlConst.xbrli, "segment")
                 hasScenario = XmlUtil.hasChild(context, XbrlConst.xbrli, "scenario")
                 notAllowed = None
-                if self.disclosureSystem.contextElement == "segment" and hasScenario:
+                if disclosureSystem.contextElement == "segment" and hasScenario:
                     notAllowed = _("Scenario")
-                elif self.disclosureSystem.contextElement == "scenario" and hasSegment:
+                elif disclosureSystem.contextElement == "scenario" and hasSegment:
                     notAllowed = _("Segment")
-                elif self.disclosureSystem.contextElement == "either" and hasSegment and hasScenario:
+                elif disclosureSystem.contextElement == "either" and hasSegment and hasScenario:
                     notAllowed = _("Both segment and scenario")
-                elif self.disclosureSystem.contextElement == "none" and (hasSegment or hasScenario):
+                elif disclosureSystem.contextElement == "none" and (hasSegment or hasScenario):
                     notAllowed = _("Neither segment nor scenario")
                 if notAllowed:
                     modelXbrl.error(
@@ -183,11 +184,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 "EntityCommonStockSharesOutstanding",
                 "EntityCurrentReportingStatus", 
                 "EntityVoluntaryFilers", 
-                self.disclosureSystem.deiCurrentFiscalYearEndDateElement, 
+                disclosureSystem.deiCurrentFiscalYearEndDateElement, 
                 "EntityFilerCategory", 
                 "EntityWellKnownSeasonedIssuer", 
                 "EntityPublicFloat", 
-                self.disclosureSystem.deiDocumentFiscalYearFocusElement, 
+                disclosureSystem.deiDocumentFiscalYearFocusElement, 
                 "DocumentFiscalPeriodFocus"
                  }
             #6.5.8 unused contexts
@@ -198,63 +199,67 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     
                 context = f.context
                 factElementName = f.localName
-                factInDeiNamespace = self.disclosureSystem.deiNamespacePattern.match(f.namespaceURI)
-                # standard dei items from required context
-                if not context.hasSegment and not context.hasScenario: 
-                    #default context
-                    if factInDeiNamespace:
-                        value = f.value
-                        if factElementName == self.disclosureSystem.deiAmendmentFlagElement:
-                            amendmentFlag = value
-                        elif factElementName == "AmendmentDescription":
-                            amendmentDescription = value
-                        elif factElementName == self.disclosureSystem.deiDocumentPeriodEndDateElement:
-                            documentPeriodEndDate = value
-                            commonStockMeasurementDatetime = context.endDatetime
-                        elif factElementName == "DocumentType":
-                            documentType = value
-                        elif factElementName == self.disclosureSystem.deiFilerIdentifierElement:
-                            deiItems[factElementName] = value
-                            if entityIdentifierValue != value:
-                                self.modelXbrl.error(
-                                    _("dei:{0} {1} is must match the context entity identifier {2}").format(
-                                          self.disclosureSystem.deiFilerIdentifierElement,
-                                          value, entityIdentifierValue), 
-                                    "err", "EFM.6.05.23", "GFM.3.02.02")
-                            if paramFilerIdentifier and value != paramFilerIdentifier:
-                                self.modelXbrl.error(
-                                    _("dei:{0} {1} must match submission: {2}").format(
-                                          self.disclosureSystem.deiFilerIdentifierElement,
-                                          value, paramFilerIdentifier), 
-                                    "err", "EFM.6.05.23", "GFM.3.02.02")
-                        elif factElementName == self.disclosureSystem.deiFilerNameElement:
-                            deiItems[factElementName] = value
-                            if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
-                                prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
-                                if not value.lower().startswith(prefix.lower()):
-                                    self.modelXbrl.error(
-                                        _("dei:{0} {1} be a case-insensitive prefix of: {2}").format(
-                                              self.disclosureSystem.deiFilerNameElement,
-                                              prefix, value), 
-                                        "err", "EFM.6.05.24", "GFM.3.02.02")
-                        elif factElementName in deiCheckLocalNames:
-                            deiItems[factElementName] = value
+                if disclosureSystem.deiNamespacePattern is not None:
+                    factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(f.namespaceURI)
                 else:
-                    # segment present
-                    
-                    # note all concepts used in explicit dimensions
-                    for dimValue in context.qnameDims.values():
-                        if dimValue.isExplicit:
-                            dimConcept = dimValue.dimension
-                            memConcept = dimValue.member
-                            for dConcept in (dimConcept, memConcept):
-                                if dConcept is not None:
-                                    conceptsUsed[dConcept] = False
-                            if (factElementName == "EntityCommonStockSharesOutstanding" and
-                                dimConcept.name == "StatementClassOfStockAxis"):
-                                commonSharesItemsByStockClass[memConcept.qname].append(f)
-                                if commonSharesClassMembers is None:
-                                    commonSharesClassMembers = self.getDimMembers(dimConcept)
+                    factInDeiNamespace = None
+                # standard dei items from required context
+                if context is not None: # tests do not apply to tuples
+                    if not context.hasSegment and not context.hasScenario: 
+                        #default context
+                        if factInDeiNamespace:
+                            value = f.value
+                            if factElementName == disclosureSystem.deiAmendmentFlagElement:
+                                amendmentFlag = value
+                            elif factElementName == "AmendmentDescription":
+                                amendmentDescription = value
+                            elif factElementName == disclosureSystem.deiDocumentPeriodEndDateElement:
+                                documentPeriodEndDate = value
+                                commonStockMeasurementDatetime = context.endDatetime
+                            elif factElementName == "DocumentType":
+                                documentType = value
+                            elif factElementName == disclosureSystem.deiFilerIdentifierElement:
+                                deiItems[factElementName] = value
+                                if entityIdentifierValue != value:
+                                    self.modelXbrl.error(
+                                        _("dei:{0} {1} is must match the context entity identifier {2}").format(
+                                              disclosureSystem.deiFilerIdentifierElement,
+                                              value, entityIdentifierValue), 
+                                        "err", "EFM.6.05.23", "GFM.3.02.02")
+                                if paramFilerIdentifier and value != paramFilerIdentifier:
+                                    self.modelXbrl.error(
+                                        _("dei:{0} {1} must match submission: {2}").format(
+                                              disclosureSystem.deiFilerIdentifierElement,
+                                              value, paramFilerIdentifier), 
+                                        "err", "EFM.6.05.23", "GFM.3.02.02")
+                            elif factElementName == disclosureSystem.deiFilerNameElement:
+                                deiItems[factElementName] = value
+                                if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
+                                    prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
+                                    if not value.lower().startswith(prefix.lower()):
+                                        self.modelXbrl.error(
+                                            _("dei:{0} {1} be a case-insensitive prefix of: {2}").format(
+                                                  disclosureSystem.deiFilerNameElement,
+                                                  prefix, value), 
+                                            "err", "EFM.6.05.24", "GFM.3.02.02")
+                            elif factElementName in deiCheckLocalNames:
+                                deiItems[factElementName] = value
+                    else:
+                        # segment present
+                        
+                        # note all concepts used in explicit dimensions
+                        for dimValue in context.qnameDims.values():
+                            if dimValue.isExplicit:
+                                dimConcept = dimValue.dimension
+                                memConcept = dimValue.member
+                                for dConcept in (dimConcept, memConcept):
+                                    if dConcept is not None:
+                                        conceptsUsed[dConcept] = False
+                                if (factElementName == "EntityCommonStockSharesOutstanding" and
+                                    dimConcept.name == "StatementClassOfStockAxis"):
+                                    commonSharesItemsByStockClass[memConcept.qname].append(f)
+                                    if commonSharesClassMembers is None:
+                                        commonSharesClassMembers = self.getDimMembers(dimConcept)
                                     
                 #6.5.17 facts with precision
                 concept = f.concept
@@ -289,7 +294,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     "err", "EFM.6.05.08", "GFM.1.02.08")
     
             #6.5.9 start-end durations
-            if self.disclosureSystem.GFM or \
+            if disclosureSystem.GFM or \
                documentType in ('20-F', '40-F', '10-Q', '10-K', '10', 'N-CSR', 'N-CSRS', 'NCSR', 'N-Q'):
                 '''
                 for c1 in contexts:
@@ -370,9 +375,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
             # EFM.6.05.14, GFM.1.02.13 xml:lang tests, EFM is just 'en', GFM is full default lang
             if self.validateEFM:
-                factLangStartsWith = self.disclosureSystem.defaultXmlLang[:2]
+                factLangStartsWith = disclosureSystem.defaultXmlLang[:2]
             else:
-                factLangStartsWith = self.disclosureSystem.defaultXmlLang
+                factLangStartsWith = disclosureSystem.defaultXmlLang
 
             #6.5.12 equivalent facts
             factsForLang = {}
@@ -388,7 +393,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if lang and not lang.startswith(factLangStartsWith):
                         keysNotDefaultLang[langTestKey] = f1
                         
-                    if self.disclosureSystem.GFM and f1.isNumeric and \
+                    if disclosureSystem.GFM and f1.isNumeric and \
                         f1.decimals and f1.decimals != "INF" and not f1.isNil:
                         try:
                             vf = float(f1.value)
@@ -446,7 +451,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     dupLabels = set()
                     for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
                         modelLabel = modelLabelRel.toModelObject
-                        if modelLabel.xmlLang.startswith(self.disclosureSystem.defaultXmlLang) and \
+                        if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                            modelLabel.role == XbrlConst.standardLabel:
                             hasDefaultLangStandardLabel = True
                         dupDetectKey = (modelLabel.role,modelLabel.xmlLang)
@@ -462,11 +467,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if not hasDefaultLangStandardLabel:
                         modelXbrl.error(
                             _("Concept {0} is missing an {1} standard label.").format(
-                                concept.qname, self.disclosureSystem.defaultLanguage),
+                                concept.qname, disclosureSystem.defaultLanguage),
                             "err", "EFM.6.10.01", "GFM.1.05.01")
                         
                     #6 10.3 default lang label for every role
-                    dupLabels.add(("zzzz",self.disclosureSystem.defaultXmlLang)) #to allow following loop
+                    dupLabels.add(("zzzz",disclosureSystem.defaultXmlLang)) #to allow following loop
                     priorRole = None
                     hasDefaultLang = True
                     for role, lang in sorted(dupLabels):
@@ -474,11 +479,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if not hasDefaultLang:
                                 modelXbrl.error(
                                     _("Concept {0} is missing an {1} label for role {2}.").format(
-                                        concept.qname, self.disclosureSystem.defaultLanguage, priorRole),
+                                        concept.qname, disclosureSystem.defaultLanguage, priorRole),
                                     "err", "EFM.6.10.03", "GFM.1.5.3")
                             hasDefaultLang = False
                             priorRole = role
-                        if lang.startswith(self.disclosureSystem.defaultXmlLang):
+                        if lang is not None and lang.startswith(disclosureSystem.defaultXmlLang):
                             hasDefaultLang = True
                         
     
@@ -489,20 +494,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if amendmentFlag is None:
                     modelXbrl.error(
                         _("{0} is not found in the default context").format(
-                            self.disclosureSystem.deiAmendmentFlagElement), 
+                            disclosureSystem.deiAmendmentFlagElement), 
                         "wrn", "EFM.6.05.20", "GFM.3.02.01")
         
                 if not documentPeriodEndDate:
                     modelXbrl.error(
                         _("{0} is required and was not found in the default context").format(
-                           self.disclosureSystem.deiDocumentPeriodEndDateElement), 
+                           disclosureSystem.deiDocumentPeriodEndDateElement), 
                         "err", "EFM.6.05.20", "GFM.3.02.01")
                 else:
                     dateMatch = self.datePattern.match(documentPeriodEndDate)
                     if not dateMatch or dateMatch.lastindex != 3:
                         modelXbrl.error(
                             _("{0} is in the default context is incorrect '{1}'").format(
-                                self.disclosureSystem.deiDocumentPeriodEndDateElement,
+                                disclosureSystem.deiDocumentPeriodEndDateElement,
                                 documentPeriodEndDate), 
                             "err", "EFM.6.05.20", "GFM.3.02.01")
             self.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
@@ -608,11 +613,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                   documentType), 
                             "err", "EFM.6.05.26")
                 
-            elif self.disclosureSystem.GFM:
+            elif disclosureSystem.GFM:
                 for deiItem in (
-                        self.disclosureSystem.deiCurrentFiscalYearEndDateElement, 
-                        self.disclosureSystem.deiDocumentFiscalYearFocusElement, 
-                        self.disclosureSystem.deiFilerNameElement):
+                        disclosureSystem.deiCurrentFiscalYearEndDateElement, 
+                        disclosureSystem.deiDocumentFiscalYearFocusElement, 
+                        disclosureSystem.deiFilerNameElement):
                     if deiItem not in deiItems or deiItems[deiItem] == "":
                         modelXbrl.error(
                             _("dei:{0} is required in the default context").format(
@@ -663,8 +668,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             elif xlinkType == "locator":
                                 locNbr += 1
                                 locrole = child.get("{http://www.w3.org/1999/xlink}role")
-                                if locrole is not None and (self.disclosureSystem.GFM or \
-                                                            not self.disclosureSystem.uriAuthorityValid(locrole)): 
+                                if locrole is not None and (disclosureSystem.GFM or \
+                                                            not disclosureSystem.uriAuthorityValid(locrole)): 
                                     modelXbrl.error(
                                         _("FootnoteLink {0} loc {1} has disallowed role {2}").format(
                                             footnoteLinkNbr, locNbr, locrole), 
@@ -680,8 +685,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             elif xlinkType == "arc":
                                 arcNbr += 1
                                 arcrole = child.get("{http://www.w3.org/1999/xlink}arcrole")
-                                if (self.validateEFM and not self.disclosureSystem.uriAuthorityValid(arcrole)) or \
-                                   (self.disclosureSystem.GFM  and arcrole != XbrlConst.factFootnote and arcrole != XbrlConst.factExplanatoryFact): 
+                                if (self.validateEFM and not disclosureSystem.uriAuthorityValid(arcrole)) or \
+                                   (disclosureSystem.GFM  and arcrole != XbrlConst.factFootnote and arcrole != XbrlConst.factExplanatoryFact): 
                                     modelXbrl.error(
                                         _("FootnoteLink {0} arc {1} has disallowed arcrole {2}").format(
                                             footnoteLinkNbr, arcNbr, arcrole), 
@@ -693,8 +698,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("Footnote {0} is missing a role").format(
                                             child.get("{http://www.w3.org/1999/xlink}label")), 
                                         "err", "EFM.6.05.28", "GFM.1.2.20")
-                                elif (self.validateEFM and not self.disclosureSystem.uriAuthorityValid(footnoterole)) or \
-                                     (self.disclosureSystem.GFM  and footnoterole != XbrlConst.footnote): 
+                                elif (self.validateEFM and not disclosureSystem.uriAuthorityValid(footnoterole)) or \
+                                     (disclosureSystem.GFM  and footnoterole != XbrlConst.footnote): 
                                     modelXbrl.error(
                                         _("Footnote {0} has disallowed role {1}").format(
                                             child.get("{http://www.w3.org/1999/xlink}label"),
@@ -728,17 +733,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 text = modelLabel.text
                 lang = modelLabel.xmlLang
                 if role == XbrlConst.documentationLabel:
-                    if concept.modelDocument.targetNamespace in self.disclosureSystem.standardTaxonomiesDict:
+                    if concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict:
                         modelXbrl.error(
                             _("Concept {0} of a standard taxonomy cannot have a documentation label, in {1}.").format(
                                 concept.qname, text, modelLabel.modelDocument.basename),
                             "err", "EFM.6.10.05", "GFM.1.05.05", "SBR.NL.2.1.0.08")
-                elif text and lang and lang.startswith(self.disclosureSystem.defaultXmlLang):
+                elif text and lang and lang.startswith(disclosureSystem.defaultXmlLang):
                     if role == XbrlConst.standardLabel:
                         if text in defaultLangStandardLabels:
                             modelXbrl.error(
                                 _("Same labels for concepts {0} and {1} for {2} standard role: {3}, in {4}.").format(
-                                    concept.qname, defaultLangStandardLabels[text].qname, self.disclosureSystem.defaultLanguage, text, modelLabel.modelDocument.basename),
+                                    concept.qname, defaultLangStandardLabels[text].qname, disclosureSystem.defaultLanguage, text, modelLabel.modelDocument.basename),
                                 "err", "EFM.6.10.04", "GFM.1.05.04")
                         else:
                             defaultLangStandardLabels[text] = concept
@@ -765,13 +770,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 modelReference = modelRefRel.toModelObject
                 text = modelReference.text
                 #6.18.1 no reference to company extension concepts
-                if concept.modelDocument.targetNamespace not in self.disclosureSystem.standardTaxonomiesDict:
+                if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
                     modelXbrl.error(
                         _("Xbrl File {0}, references for extension concept {0} are not allowed: {1}").format(
                             modelReference.modelDocument.basename, concept.qname, text),
                         "err", "EFM.6.18.01", "GFM.1.9.1")
                 elif (self.validateEFM or self.validateSBRNL) and \
-                     modelRefRel.modelDocument.uri not in self.disclosureSystem.standardTaxonomiesDict: 
+                     modelRefRel.modelDocument.uri not in disclosureSystem.standardTaxonomiesDict: 
                     #6.18.2 no extension to add or remove references to standard concepts
                     modelXbrl.error(
                         _("Xbrl File {0}, references for standard taxonomy concept {0} are not allowed in an extension linkbase: {1}").format(
@@ -783,7 +788,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         _("Concept {0} missing standard label in local language.").format(
                             concept.qname),
                         "err", "SBR.NL.2.2.2.26")
-                if concept.modelDocument.targetNamespace not in self.disclosureSystem.standardTaxonomiesDict:
+                if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
                     if (concept not in presentationRelationshipSet.toModelObject(concept) and
                         concept not in presentationRelationshipSet.fromModelObject(concept)):
                         modelXbrl.error(
@@ -895,7 +900,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             usedCalcsPresented[toObjId].add(fromObjId)
                                             
                                     order = rel.order
-                                    if order in orderRels and self.disclosureSystem.GFM:
+                                    if order in orderRels and disclosureSystem.GFM:
                                         self.modelXbrl.error(
                                             _("Duplicate calculations relations from concept {0} for order {1} in base set role {2} to concept {3} and to concept {4}").format(
                                                   relFrom.qname, order, rel.linkrole, 
@@ -929,7 +934,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 relTo = rel.toModelObject
     
                                 if not (relTo.type is not None and relTo.type.isDomainItemType) and \
-                                   rel.modelDocument.uri not in self.disclosureSystem.standardTaxonomiesDict:
+                                   rel.modelDocument.uri not in disclosureSystem.standardTaxonomiesDict:
                                     self.modelXbrl.error(
                                         _("Definition relationship from {0} to {1} in role {2} requires domain item target").format(
                                               relFrom.qname, relTo.qname, rel.linkrole), 
@@ -945,14 +950,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 "err", "SBR.NL.2.3.6.05")
                            
                     # definition tests (GFM only, for now)
-                    if XbrlConst.isStandardOrXdtArcrole(arcrole) and self.disclosureSystem.GFM: 
+                    if XbrlConst.isStandardOrXdtArcrole(arcrole) and disclosureSystem.GFM: 
                         fromRelationships = modelXbrl.relationshipSet(arcrole,ELR).fromModelObjects()
                         for relFrom, rels in fromRelationships.items():
                             orderRels = {}
                             for rel in rels:
                                 relTo = rel.toModelObject
                                 order = rel.order
-                                if order in orderRels and self.disclosureSystem.GFM:
+                                if order in orderRels and disclosureSystem.GFM:
                                     self.modelXbrl.error(
                                         _("Duplicate definitions relations from concept {0} for order {1} in base set role {2} to concept {3} and to concept {4}").format(
                                               relFrom.qname, order, rel.linkrole, 
@@ -993,14 +998,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 hasDefaultLangPreferredLabel = False
                 for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
                     modelLabel = modelLabelRel.toModelObject
-                    if modelLabel.xmlLang.startswith(self.disclosureSystem.defaultXmlLang) and \
+                    if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                        modelLabel.role == preferredLabel:
                         hasDefaultLangPreferredLabel = True
                         break
                 if not hasDefaultLangPreferredLabel:
                     self.modelXbrl.error(
                         _("Concept {0} missing {1} preferred labels for role {2}").format(
-                            concept.qname, self.disclosureSystem.defaultLanguage, preferredLabel),
+                            concept.qname, disclosureSystem.defaultLanguage, preferredLabel),
                         "err", "EFM.6.12.04", "GFM.1.06.04")
                 
         # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing

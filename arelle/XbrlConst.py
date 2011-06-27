@@ -2,6 +2,7 @@ from arelle.ModelValue import qname
 import os
 
 xsd = "http://www.w3.org/2001/XMLSchema"
+qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
 xsi = "http://www.w3.org/2001/XMLSchema-instance"
 qnXsiNil = qname(xsi,"xsi:nil") # need default prefix in qname
 xml = "http://www.w3.org/XML/1998/namespace"

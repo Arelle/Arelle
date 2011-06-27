@@ -450,7 +450,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         except KeyError:
             if self.hcDimRelSet:
                 for dimHcRel in self.hcDimRelSet.toModelObject(dimConcept):
-                    if dimHcRel.fromModelObject:
+                    if dimHcRel.fromModelObject is not None:
                         for hcRel in self.hcDimRelSet.toModelObject(dimHcRel.fromModelObject):
                             contextElement = hcRel.contextElement
                             self.dimsContextElement[dimConcept] = contextElement
