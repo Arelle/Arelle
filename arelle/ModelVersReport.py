@@ -183,7 +183,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 return [DTS.uri]
         return []
     
-    def diffDTSes(self, versReportFile, fromDTS, toDTS, reason="technical", scheamDir=None):
+    def diffDTSes(self, versReportFile, fromDTS, toDTS, reason="technical", schemaDir=None):
         self.uri = os.path.normpath(versReportFile)
         from arelle import FileSource
         self.modelXbrl.fileSource = FileSource.FileSource(self.uri)
