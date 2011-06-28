@@ -10,7 +10,6 @@ from setuptools import os, setup, find_packages
 setup_requires = ['nose>=1.0']
 options = {}
 scripts = []
-test_suite = "nose.collector"
 
 # Get the files
 packages = find_packages('.')
@@ -101,5 +100,6 @@ setup(name='Arelle',
       },
       setup_requires = setup_requires,
       options = options,
+      test_suite = "nose.collector",
       # executables = cx_FreezeExecutables,
      )
