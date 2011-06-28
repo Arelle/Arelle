@@ -183,7 +183,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 return [DTS.uri]
         return []
     
-    def diffDTSes(self, versReportFile, fromDTS, toDTS, reason="technical"):
+    def diffDTSes(self, versReportFile, fromDTS, toDTS, reason="technical", scheamDir=None):
         self.uri = os.path.normpath(versReportFile)
         from arelle import FileSource
         self.modelXbrl.fileSource = FileSource.FileSource(self.uri)
@@ -482,7 +482,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                             # check hierarchies
                             self.diffRelationships(fromRoot, toRootConcept, fromRelationshipSet, toRelationshipSet)
                     for toRoot in toRoots:
-                        fromRootConcept = self.toDTS.qnameConcepts.get(self.fromDTSqname(toRoot.qname))
+                        fromRootConcept = self.fromDTS.qnameConcepts.get(self.fromDTSqname(toRoot.qname))
                         if fromRootConcept is not None and fromRootConcept not in fromRoots: # added qname
                             if self.relSetAddedEvent is None:
                                 relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelAdd")
