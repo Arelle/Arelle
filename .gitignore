@@ -8,10 +8,11 @@ buildRenameX86.bat
 arelle/Version.py
 profile.dot
 profile.stats
+.coverage
 .DS_Store
 .project
 .pydevproject
 .settings
+.virtualenv
 gprof2dot.py
 nosetests.xml
-.virtualenv
