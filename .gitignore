@@ -13,3 +13,4 @@ profile.stats
 .pydevproject
 .settings
 gprof2dot.py
+nosetests.xml
