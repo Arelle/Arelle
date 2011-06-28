@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -x
+#!/usr/bin/env bash
 
 if [ -d ".virtualenv" ]; then
    echo "**> virtualenv exists"
