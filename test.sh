@@ -1,13 +1,13 @@
 #!/usr/bin/env bash -x
 
-if [ -d ".env" ]; then
+if [ -d ".virtualenv" ]; then
    echo "**> virtualenv exists"
 else
    echo "**> creating virtualenv"
-   virtualenv-3.2 .env
+   virtualenv-3.2 .virtualenv
 fi
 
-source .env/bin/activate
+source .virtualenv/bin/activate
 
 pip install -r requirements.txt
 

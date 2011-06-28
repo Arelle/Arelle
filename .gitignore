@@ -14,3 +14,4 @@ profile.stats
 .settings
 gprof2dot.py
 nosetests.xml
+.virtualenv
