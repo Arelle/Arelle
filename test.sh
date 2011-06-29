@@ -12,3 +12,5 @@ source .virtualenv/bin/activate
 pip install -r requirements.txt
 
 python setup.py test
+
+exit 0
