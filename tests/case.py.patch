@@ -1,0 +1,12 @@
+--- a/nose/case.py
++++ b/nose/case.py
+@@ -281,7 +281,8 @@
+             name = func.compat_func_name
+         else:
+             name = func.__name__
+-        name = "%s.%s" % (func.__module__, name)
++        if hasattr(func, "__module__"):
++            name = "%s.%s" % (func.__module__, name)
+         if arg:
+             name = "%s%s" % (name, arg)
+         # FIXME need to include the full dir path to disambiguate

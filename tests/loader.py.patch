@@ -1,0 +1,11 @@
+--- a/nose/loader.py
++++ b/nose/loader.py
+@@ -232,7 +232,7 @@
+                     test_func, arg = self.parseGeneratedTest(test)
+                     if not callable(test_func):
+                         test_func = getattr(m, test_func)
+-                    yield FunctionTestCase(test_func, arg=arg, descriptor=g)
++                    yield FunctionTestCase(test_func, arg=arg, descriptor=test_func)
+             except KeyboardInterrupt:
+                 raise
+             except:

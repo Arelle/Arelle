@@ -1,10 +1,9 @@
-import sys
-import os, os.path
-import gettext
+"""
+This script runs the conformance tests to validate the implementation.
+"""
+import os.path, gettext, nose
 from functools import partial
-
 from arelle import Cntlr, FileSource, ModelDocument
-from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 
 gettext.install("arelle")
@@ -43,11 +42,10 @@ tests = {
                     }
          }
 
-def check_variation(index, test, variation):
-    assert variation.status == "pass"
-    
-class Tester(Cntlr.Cntlr):
+class TestCntlr(Cntlr.Cntlr):
+    """The function used to wrap tests."""
     def run(self, testfn, csvfn, logfn, efm, utr, dec):
+        """The run method is invoked to make things happen."""
         self.messages = []
         self.filename = testfn
         filesource = FileSource.FileSource(self.filename, self)
@@ -66,9 +64,7 @@ class Tester(Cntlr.Cntlr):
         self.modelManager.formulaOptions = FormulaOptions()
 
         modelXbrl = self.modelManager.load(filesource, gettext.gettext("validating"))
-
         self.modelManager.validate()
-
         modelDocument = modelXbrl.modelDocument
 
         self.outcomes = list()
@@ -98,25 +94,29 @@ class Tester(Cntlr.Cntlr):
     def showStatus(self, msg, clearAfter=None):
         pass
 
+def check_variation(index, test, variation):
+    assert variation.status == "pass"
+  
 def conformance_test():
     dirpath=os.path.join(os.getcwd(), "tests", "conformance")
-
     # At the moment xbrl and xdt work, efm and formula fail with None.type error
     for test in [tests["xbrl"], tests["xdt"]]:
         short_name = os.path.basename(test['url'])
-        local_name = os.path.join(dirpath, short_name)
         dir_name = os.path.join(dirpath, os.path.splitext(short_name)[0])
-
         args = test['args']
         args[0] = os.path.join(dir_name, args[0])
         args[1] = os.path.join(dir_name, args[1])
         args[2] = os.path.join(dir_name, args[2])
-
-        for index, test, variation in Tester().run(*args):
-            partial_fn = partial(check_variation, index, test, variation)
-            base_message = "%(index)s %(test)s %(id)s %(name)s"
-            partial_fn.description = base_message % { 'index' : index, 
-                                                     'test' : test,
-                                                     'id' : variation.id or "",
-                                                     'name': variation.name }
-            yield(partial_fn,)
+        for index, test, variation in TestCntlr().run(*args):
+            z = partial(check_variation, index, test, variation)
+            z.description = "%s [ %s ] %s %s" % (index or "", test, variation.id, variation.name)
+            setattr(z, "__module__", test)
+            setattr(z, "__name__", "%s %s" % (variation.id, variation.name))
+#            setattr(z, "compat_func_name", "IRJ")
+            yield(z)
+            
+if __name__ == "__main__":
+    """Main program."""
+#    argv = ["nosetests", "-v", "--with-xunit", "-l nose,nose.importer,nose.inspector,nose.plugins,nose.result"]
+    argv = ["nosetests", "-v", "--with-xunit"]
+    nose.main(argv=argv)
