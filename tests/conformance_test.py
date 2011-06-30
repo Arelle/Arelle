@@ -99,8 +99,7 @@ def check_variation(index, test, variation):
   
 def conformance_test():
     dirpath=os.path.join(os.getcwd(), "tests", "conformance")
-    # At the moment xbrl and xdt work, efm and formula fail with None.type error
-    for test in [tests["xbrl"], tests["xdt"]]:
+    for test in [tests["xbrl"], tests["xdt"], tests["formula"], tests["edgar"]]:
         short_name = os.path.basename(test['url'])
         dir_name = os.path.join(dirpath, os.path.splitext(short_name)[0])
         args = test['args']
@@ -110,13 +109,11 @@ def conformance_test():
         for index, test, variation in TestCntlr().run(*args):
             z = partial(check_variation, index, test, variation)
             z.description = "%s [ %s ] %s %s" % (index or "", test, variation.id, variation.name)
-            setattr(z, "__module__", test)
+            setattr(z, "__module__", "%s %s" % (index or "", test))
             setattr(z, "__name__", "%s %s" % (variation.id, variation.name))
-#            setattr(z, "compat_func_name", "IRJ")
             yield(z)
             
 if __name__ == "__main__":
     """Main program."""
-#    argv = ["nosetests", "-v", "--with-xunit", "-l nose,nose.importer,nose.inspector,nose.plugins,nose.result"]
     argv = ["nosetests", "-v", "--with-xunit"]
     nose.main(argv=argv)
