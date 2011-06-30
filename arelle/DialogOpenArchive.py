@@ -44,7 +44,7 @@ def selectDisclosureSystem(mainWin, disclosureSystem):
 class DialogOpenArchive(Toplevel):
     def __init__(self, mainWin, openType, filesource, filenames, title, colHeader):
         parent = mainWin.parent
-        super().__init__(parent)
+        super(DialogOpenArchive, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))

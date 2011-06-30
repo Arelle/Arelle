@@ -45,7 +45,7 @@ def main():
 class CntlrGenVersReports(Cntlr.Cntlr):
 
     def __init__(self):
-        super().__init__()
+        super(CntlrGenVersReports, self).__init__()
         
     def runFromExcel(self, options):
         #testGenFileName = options.excelfilename

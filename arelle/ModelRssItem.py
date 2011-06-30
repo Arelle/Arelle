@@ -34,7 +34,7 @@ class RssWatchOptions():
         # Note: if adding to this list keep DialogRssWatch in sync
 class ModelRssItem(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRssItem, self).init(modelDocument)
         try:
             if (self.modelXbrl.modelManager.rssWatchOptions.latestPubDate and 
                 self.pubDate <= self.modelXbrl.modelManager.rssWatchOptions.latestPubDate):

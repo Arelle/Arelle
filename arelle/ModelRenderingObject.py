@@ -9,12 +9,12 @@ from arelle.ModelDtsObject import ModelResource
 
 class ModelRenderingResource(ModelResource):
     def __init__(self, modelDocument):
-        super().__init__(modelDocument)
+        super(ModelRenderingResource, self).__init__(modelDocument)
         
 
 class ModelTable(ModelRenderingResource):
     def __init__(self, modelDocument):
-        super().__init__(modelDocument)
+        super(ModelTable, self).__init__(modelDocument)
         
     @property
     def propertyView(self):
@@ -26,7 +26,7 @@ class ModelTable(ModelRenderingResource):
 
 class ModelAxisCoord(ModelRenderingResource):
     def __init__(self, modelDocument):
-        super().__init__(modelDocument)
+        super(ModelAxisCoord, self).__init__(modelDocument)
         
     @property
     def abstract(self):

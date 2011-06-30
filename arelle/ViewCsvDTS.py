@@ -15,7 +15,7 @@ def viewDTS(modelXbrl, csvfile):
     
 class ViewDTS(ViewCsv.View):
     def __init__(self, modelXbrl, csvfile):
-        super().__init__(modelXbrl, csvfile, "DTS")
+        super(ViewDTS, self).__init__(modelXbrl, csvfile, "DTS")
                 
     def viewDtsElement(self, modelDocument, indent, visited):
         visited.append(modelDocument)

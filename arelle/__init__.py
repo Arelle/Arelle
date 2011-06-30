@@ -1,4 +1,4 @@
-from arelle.externals import six
+import six
 
 arelle_mods = [
     ["urllib_parse", "urlparse", "urllib.parse"],

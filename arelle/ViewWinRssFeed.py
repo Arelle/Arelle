@@ -48,7 +48,7 @@ def viewRssFeed(modelXbrl, tabWin):
     
 class ViewRssFeed(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "RSS Feed", True)
+        super(ViewRssFeed, self).__init__(modelXbrl, tabWin, "RSS Feed", True)
         
     def view(self): # reload view
         self.setColumnsSortable(startUnsorted=True)

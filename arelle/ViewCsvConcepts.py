@@ -16,7 +16,7 @@ def viewConcepts(modelXbrl, csvfile, lang=None):
     
 class ViewConcepts(ViewCsv.View):
     def __init__(self, modelXbrl, csvfile, lang):
-        super().__init__(modelXbrl, csvfile, "Concepts", lang)
+        super(ViewConcepts, self).__init__(modelXbrl, csvfile, "Concepts", lang)
         
     def view(self, modelDocument):
         # sort by labels

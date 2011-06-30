@@ -27,7 +27,7 @@ def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentCh
     
 class ViewFactTable(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
-        super().__init__(modelXbrl, tabWin, header, True, lang)
+        super(ViewFactTable, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname

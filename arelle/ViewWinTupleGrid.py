@@ -34,7 +34,7 @@ def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
             
 class ViewTuplesGrid(ViewWinGrid.ViewGrid):
     def __init__(self, modelXbrl, tabWin, tupleFact, parentFacts, lang):
-        super().__init__(modelXbrl, tabWin, "Tuples", True, lang)
+        super(ViewTuplesGrid, self).__init__(modelXbrl, tabWin, "Tuples", True, lang)
         self.tupleFact = tupleFact
         self.tupleConcept = tupleFact.concept
         self.parentFacts = parentFacts

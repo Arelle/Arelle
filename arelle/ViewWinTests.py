@@ -42,7 +42,7 @@ def viewTests(modelXbrl, tabWin):
     
 class ViewTests(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "Tests", True)
+        super(ViewTests, self).__init__(modelXbrl, tabWin, "Tests", True)
         
     def viewTestcaseIndexElement(self, modelDocument, parentNode):
         self.id = 1

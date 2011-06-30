@@ -139,7 +139,7 @@ else:
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
-import builtins
+from six.moves import builtins
 for fname in "sum len enumerate sorted reversed list tuple set any all".split():
     try:
         singleArgBuiltins.append(getattr(builtins,fname))

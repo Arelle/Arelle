@@ -11,7 +11,6 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import sys, encodings, re, collections, functools, locale, encodings.aliases
-from builtins import str as _builtin_str
 
 CHAR_MAX = 127
 LC_ALL = 6

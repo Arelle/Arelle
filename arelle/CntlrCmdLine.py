@@ -118,7 +118,7 @@ def main():
 class CntlrCmdLine(Cntlr.Cntlr):
 
     def __init__(self):
-        super().__init__()
+        super(CntlrCmdLine, self).__init__()
         
     def run(self, options):
         if options.logFile:

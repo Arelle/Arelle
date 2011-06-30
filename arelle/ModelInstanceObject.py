@@ -12,11 +12,11 @@ from arelle.ModelObject import ModelObject
 
 class ModelFact(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelFact, self).init(modelDocument)
         self.modelTupleFacts = []
         
     def __del__(self):
-        super().__del__()
+        super(ModelFact, self).__del__()
         self.modelTupleFacts = []
         
     @property
@@ -236,7 +236,7 @@ class ModelFact(ModelObject):
 
 class ModelInlineFact(ModelFact):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInlineFact, self).init(modelDocument)
         
     @property
     def qname(self):
@@ -337,7 +337,7 @@ class ModelInlineFact(ModelFact):
                
 class ModelContext(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelContext, self).init(modelDocument)
         self.segDimValues = {}
         self.scenDimValues = {}
         self.qnameDims = {}
@@ -347,7 +347,7 @@ class ModelContext(ModelObject):
         self._isEqualTo = {}
         
     def __del__(self):
-        super().__del__()
+        super(ModelContext, self).__del__()
         self.segDimValues = None
         self.scenDimValues = None
         self.qnameDims = None
@@ -645,7 +645,7 @@ def measuresStr(m):
 
 class ModelDimensionValue(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelDimensionValue, self).init(modelDocument)
         
     def __hash__(self):
         if self.isExplicit:
@@ -712,7 +712,7 @@ class ModelDimensionValue(ModelObject):
         
 class ModelUnit(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelUnit, self).init(modelDocument)
         
     @property
     def measures(self):

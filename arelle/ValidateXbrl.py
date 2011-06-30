@@ -31,7 +31,7 @@ baseXbrliTypes = {
         "normalizedStringItemType", "tokenItemType", "languageItemType", "NameItemType", "NCNameItemType"
       }
 
-class ValidateXbrl:
+class ValidateXbrl(object):
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl
         

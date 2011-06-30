@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 '''
 Created on Oct 17, 2010
 
@@ -19,7 +20,6 @@ from arelle.ModelInstanceObject import ModelFact
 class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super(ValidateFiling, self).__init__(modelXbrl)
-
         # TODO: These should be class variables, not instance
         self.datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
         self.GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
