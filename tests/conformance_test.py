@@ -108,9 +108,10 @@ def conformance_test():
         args[1] = os.path.join(dir_name, args[1])
         args[2] = os.path.join(dir_name, args[2])
         for index, test, variation in TestCntlr().run(*args):
-            z = partial(check_variation, index, test, variation)
-            z.description = "%s [ %s ] %s %s" % (name, test, variation.id, variation.name)
-            setattr(z, "__module__", "%s %s" % (name, test))
+            tname = os.path.splitext(test)[0]
+            z = partial(check_variation, name, tname, variation)
+            z.description = "%s [ %s ] %s %s" % (name, tname, variation.id, variation.name)
+            setattr(z, "__module__", "%s %s" % (name, tname))
             setattr(z, "__name__", "%s %s" % (variation.id, variation.name))
             yield(z)
             
