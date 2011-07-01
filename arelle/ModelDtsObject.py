@@ -775,10 +775,11 @@ class ModelRelationship(ModelObject):
             o = self.arcElement.get("order")
             if o is None:
                 order = 1.0
-            try:
-                order = float(o)
-            except (TypeError,ValueError) :
-                order = float("nan")
+            else:
+                try:
+                    order = float(o)
+                except (TypeError,ValueError) :
+                    order = float("nan")
             self.arcElement._order = order
             return order
 
@@ -790,11 +791,12 @@ class ModelRelationship(ModelObject):
             p = self.arcElement.get("priority")
             if p is None:
                 priority = 0
-            try:
-                priority = int(p)
-            except (TypeError,ValueError) :
-                # XBRL validation error needed
-                priority = 0
+            else:
+                try:
+                    priority = int(p)
+                except (TypeError,ValueError) :
+                    # XBRL validation error needed
+                    priority = 0
             self.arcElement._priority = priority
             return priority
 
@@ -806,11 +808,12 @@ class ModelRelationship(ModelObject):
             w = self.arcElement.get("weight")
             if w is None:
                 weight = None
-            try:
-                weight = float(w)
-            except (TypeError,ValueError) :
-                # XBRL validation error needed
-                weight = float("nan")
+            else:
+                try:
+                    weight = float(w)
+                except (TypeError,ValueError) :
+                    # XBRL validation error needed
+                    weight = float("nan")
             self.arcElement._weight = weight
             return weight
 

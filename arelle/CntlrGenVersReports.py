@@ -51,7 +51,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
         #testGenFileName = options.excelfilename
         testGenFileName = r"C:\Users\Herm Fischer\Documents\mvsl\projects\XBRL.org\conformance-versioning\trunk\versioningReport\conf\creation-index.xls"
         testGenDir = os.path.dirname(testGenFileName)
-        schemaDir = os.path.dirname(testGenDir)
+        schemaDir = os.path.dirname(testGenDir) + os.sep + "schema"
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         if options.testfiledate:
             today = options.testfiledate
@@ -186,7 +186,9 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         except WindowsError:
                             pass # dir already exists
                         modelVersReport = ModelVersReport.ModelVersReport(modelTestcases)
-                        modelVersReport.diffDTSes(reportFullPath,modelDTSfrom, modelDTSto, schemaDir=schemaDir)
+                        modelVersReport.diffDTSes(reportFullPath,modelDTSfrom, modelDTSto, 
+                                                  assignment=assignment,
+                                                  schemaDir=schemaDir)
                         
                         # check for expected elements
                         if expectedEvents and expectedEvents not in (

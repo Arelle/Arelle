@@ -518,7 +518,7 @@ class ModelContext(ModelObject):
     @property
     def segmentHash(self):
         # s-equality hash
-        return XbrlUtil.equalityHash( self.scenario ) # self-caching
+        return XbrlUtil.equalityHash( self.segment ) # self-caching
         
     @property
     def scenarioHash(self):
@@ -578,6 +578,10 @@ class ModelContext(ModelObject):
             return result
         
     def isEqualTo_(self, cntx2, dimensionalAspectModel):
+        if cntx2 is None:
+            return False
+        if cntx2 == self:   # same context
+            return True
         if (self.periodHash != cntx2.periodHash or
             self.entityIdentifierHash != cntx2.entityIdentifierHash):
             return False 
@@ -744,19 +748,7 @@ class ModelUnit(ModelObject):
         return len(measures[0]) == 1 and len(measures[1]) == 0
     
     def isEqualTo(self, unit2):
-        '''
-        meas1 = self.measures
-        meas2 = unit2.measures
-        num1 = list(meas1[0])
-        denom1 = list(meas1[1])
-        num2 = list(meas2[0])
-        denom2 = list(meas2[1])
-        num1.sort()
-        num2.sort()
-        denom1.sort()
-        denom2.sort()
-        return num1 == num2 and denom1 == denom2
-        '''
+        if unit2 is None: return False
         return self.measures == unit2.measures
     
     @property
