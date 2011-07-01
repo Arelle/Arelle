@@ -42,7 +42,8 @@ class FunctionNumArgs(Exception):
         return _("Exception: Number of arguments mismatch")
     
 class FunctionArgType(Exception):
-    def __init__(self, argIndex, expectedType):
+    def __init__(self, argIndex, expectedType, errCode='err:XPTY0004'):
+        self.errCode = errCode
         self.argNum = argIndex + 1
         self.expectedType = expectedType
         self.args = ( self.__repr__(), )
@@ -127,7 +128,7 @@ class XPathContext:
                     except FunctionNumArgs:
                         raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity.'))
                     except FunctionArgType as err:
-                        raise XPathException(p, 'err:XPTY0004', _('Argument {0} does not match expected type {1}.')
+                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1}.')
                                              .format(err.argNum, err.expectedType))
                     except FunctionNotAvailable:
                         raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.')

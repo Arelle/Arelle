@@ -183,16 +183,16 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 return [DTS.uri]
         return []
     
-    def diffDTSes(self, versReportFile, fromDTS, toDTS, reason="technical", schemaDir=None):
+    def diffDTSes(self, versReportFile, fromDTS, toDTS, assignment="technical", schemaDir=None):
         self.uri = os.path.normpath(versReportFile)
         from arelle import FileSource
         self.modelXbrl.fileSource = FileSource.FileSource(self.uri)
         self.fromDTS = fromDTS
         self.toDTS = toDTS
-        reason = reason.lower()
-        if ":" in reason: categoryType = reason
-        elif reason.startswith("technical"): categoryType = "technicalCategory"
-        elif reason.startswith("business"): categoryType = "businessCategory"
+        assignment = assignment.lower()
+        if ":" in assignment: categoryType = assignment
+        elif assignment.startswith("technical"): categoryType = "technicalCategory"
+        elif assignment.startswith("business"): categoryType = "businessCategory"
         else: categoryType = "errataCategory"
         import io
         file = io.StringIO(
@@ -249,6 +249,28 @@ class ModelVersReport(ModelDocument.ModelDocument):
         
         self.modelXbrl.modelManager.showStatus(_("Comparing explicit dimensions"))
         self.diffDimensions()
+        
+        # determine namespaces
+        schemaLocations = []
+        schemasRelPath = os.path.relpath(schemaDir, os.path.dirname(versReportFile)) + os.sep
+        for prefix in self.reportElement.nsmap.values():
+            if prefix  == XbrlConst.ver:
+                schemaLocations.append(XbrlConst.ver)
+                schemaLocations.append(schemasRelPath + "versioning-base.xsd")
+            elif prefix  == XbrlConst.vercb:
+                schemaLocations.append(XbrlConst.vercb)
+                schemaLocations.append(schemasRelPath + "versioning-concept-basic.xsd")
+            elif prefix  == XbrlConst.verce:
+                schemaLocations.append(XbrlConst.verce)
+                schemaLocations.append(schemasRelPath + "versioning-concept-extended.xsd")
+            elif prefix  == XbrlConst.verrels:
+                schemaLocations.append(XbrlConst.verrels)
+                schemaLocations.append(schemasRelPath + "versioning-relationship-sets.xsd")
+            elif prefix  == XbrlConst.veria:
+                schemaLocations.append(XbrlConst.veria)
+                schemaLocations.append(schemasRelPath + "versioning-instance-aspects.xsd")
+        self.reportElement.set("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation", 
+                               " ".join(schemaLocations))
         
         self.modelXbrl.modelManager.showStatus(_("Checking report file"))
         self.modelXbrl.modelDocument = self # model document is now established
