@@ -42,17 +42,17 @@ def evaluate(xpCtx, varSet):
             if result: varSet.countSatisfied += 1
             else: varSet.countNotSatisfied += 1
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.error(_("Existence Assertion {0} \nResult: {1}").format( varSet.id, result),
+                xpCtx.modelXbrl.error(_("Existence Assertion {0} \nResult: {1}").format( varSet.xlinkLabel, result),
                     "info", "formula:trace")
             msg = varSet.message(result)
             if msg:
                 xpCtx.modelXbrl.error(msg.evaluate(xpCtx), "info", "message:" + varSet.id)
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCountInfo:
-                xpCtx.modelXbrl.error( _("Variable set {0} had no xpCtx.evaluations").format( varSet ),
+                xpCtx.modelXbrl.error( _("Variable set {0} had no xpCtx.evaluations").format( varSet.xlinkLabel ),
                     "info", "formula:trace")
         xpCtx.variableSet = None
     except XPathContext.XPathException as err:
-        xpCtx.modelXbrl.error( _("Variable set {0} \nException: {1}").format( varSet, err.message),
+        xpCtx.modelXbrl.error( _("Variable set {0} \nException: {1}").format( varSet.xlinkLabel, err.message),
             "err", err.code)
         xpCtx.variableSet = None
     
@@ -66,7 +66,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
                 if not vb.isFallback: anyBoundFactVar = True 
         if xpCtx.varBindings and anyFactVar and not anyBoundFactVar:
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.error( _("Variable set {0} evaluation skipped, all fact variables have fallen back").format( varSet ),
+                xpCtx.modelXbrl.error( _("Variable set {0} skipped evaluation, all fact variables have fallen back").format( varSet.xlinkLabel ),
                     "info", "formula:trace")
             return
         # record completed evaluation, for fallback blocking purposes
@@ -74,7 +74,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
         thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
         if evaluationIsUnnecessary(thisEvaluation, xpCtx.evaluations):
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.error( _("Variable set {0} non-different or fallback evaluation skipped, duplicates another evaluation").format( varSet ),
+                xpCtx.modelXbrl.error( _("Variable set {0} skipped non-different or fallback evaluation, duplicates another evaluation").format( varSet.xlinkLabel ),
                     "info", "formula:trace")
             return
         xpCtx.evaluations.append(thisEvaluation)
@@ -82,7 +82,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
         for precondition in varSet.preconditions:
             result = precondition.evalTest(xpCtx)
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.error( _("Variable set {0} \nPrecondition {1} \nResult: {2}").format( varSet, precondition.xlinkLabel, result),
+                xpCtx.modelXbrl.error( _("Variable set {0} \nPrecondition {1} \nResult: {2}").format( varSet.xlinkLabel, precondition.xlinkLabel, result),
                     "info", "formula:trace")
             if not result: # precondition blocks evaluation
                 return
@@ -103,7 +103,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
                     xpCtx.modelXbrl.error(msg.evaluate(xpCtx), "info", "message:" + varSet.id)
                 traceOf = "Value Assertion"
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.error( _("{0} {1} \nResult: \n{2}").format( traceOf, varSet, result),
+                xpCtx.modelXbrl.error( _("{0} {1} \nResult: \n{2}").format( traceOf, varSet.xlinkLabel, result),
                     "info", "formula:trace")
             if isinstance(varSet, ModelFormula) and varSet.outputInstanceQname in xpCtx.inScopeVars:
                 newFact = produceOutputFact(xpCtx, varSet, result)
