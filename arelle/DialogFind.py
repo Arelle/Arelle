@@ -98,6 +98,7 @@ class DialogFind(Toplevel):
            checkbox(frame, 3, y + 3, "   value", "factValue"),
            checkbox(frame, 3, y + 4, "   context", "factCntx"),
            checkbox(frame, 3, y + 5, "   unit", "factUnit"),
+           checkbox(frame, 3, y + 6, "Messages", "messagesLog"),
         
            # Note: if adding to this list keep Finder.FindOptions in sync
         
@@ -156,18 +157,24 @@ class DialogFind(Toplevel):
         # self.close()
         
         docType = self.modelManager.modelXbrl.modelDocument.type
-        if not self.modelManager.modelXbrl or not docType in (
-             ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL,
-             ModelDocument.Type.RSSFEED):
-            tkinter.messagebox.showerror(_("Find cannot be completed"),
-                     _("Find requires an opened DTS or RSS Feed"), parent=self.parent)
-            return
-        
-        if docType == ModelDocument.Type.RSSFEED and self.options.exprType == "xpath":
-            tkinter.messagebox.showerror(_("Find cannot be completed"),
-                     _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self.parent)
-            return
-            
+        if self.options.messagesLog:
+            if docType == ModelDocument.Type.RSSFEED and self.options.exprType == "xpath":
+                tkinter.messagebox.showerror(_("Find cannot be completed"),
+                         _("XPath matching is not available for searching messages, please choose text or regular expression.  "), parent=self.parent)
+                return
+        else:
+            if not self.modelManager.modelXbrl or not docType in (
+                 ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL,
+                 ModelDocument.Type.RSSFEED):
+                tkinter.messagebox.showerror(_("Find cannot be completed"),
+                         _("Find requires an opened DTS or RSS Feed"), parent=self.parent)
+                return
+                
+            if docType == ModelDocument.Type.RSSFEED and self.options.exprType == "xpath":
+                tkinter.messagebox.showerror(_("Find cannot be completed"),
+                         _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self.parent)
+                return
+                
         self.modelXbrl = self.modelManager.modelXbrl
         expr = self.cbExpr.value
         # update find expressions history
@@ -198,6 +205,7 @@ class DialogFind(Toplevel):
         inFactValue = self.options.factValue
         inFactCntx = self.options.factCntx
         inFactUnit = self.options.factUnit
+        inMessagesLog = self.options.messagesLog
         self.nextIsDown = self.options.direction == "down"
         
         objsFound = set()
@@ -230,7 +238,11 @@ class DialogFind(Toplevel):
             else:
                 return  # nothing to do
             
-            if self.modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
+            if inMessagesLog:
+                for lineNumber, line in enumerate(self.modelManager.cntlr.logView.lines()):
+                    if pattern.search(line):
+                        objsFound.add(lineNumber)
+            elif self.modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
                 for rssItem in self.modelXbrl.modelDocument.items:
                     if any(pattern.search(str(value)) for name, value in rssItem.propertyView):
                         objsFound.add(rssItem)  
@@ -274,9 +286,13 @@ class DialogFind(Toplevel):
         numConcepts = 0
         numFacts = 0
         numRssItems = 0
+        numMessages = 0
         self.objsList = []
         for obj in objsFound:
-            if isinstance(obj,ModelConcept):
+            if inMessagesLog:
+                numMessages += 1
+                self.objsList.append( ('m', obj) )
+            elif isinstance(obj,ModelConcept):
                 numConcepts += 1
                 self.objsList.append( ('c', obj.localName, obj.objectId()) )
             elif isinstance(obj,ModelFact):
@@ -294,7 +310,9 @@ class DialogFind(Toplevel):
             self.result += "{0} facts".format(numFacts)
         if numRssItems:
             self.result += "{0} RSS items".format(numRssItems)
-        if numConcepts + numFacts + numRssItems == 0:
+        if numMessages:
+            self.result += "{0} Messages".format(numMessages)
+        if numConcepts + numFacts + numRssItems + numMessages == 0:
             self.result += "no matches"
             self.foundIndex = -1
             self.resultText.setValue(self.result)
@@ -305,12 +323,13 @@ class DialogFind(Toplevel):
                                     
     def next(self):
         # check that asme instance applies
-        if self.modelXbrl is None:
-            return
-        if self.modelManager.modelXbrl != self.modelXbrl:
-            tkinter.messagebox.showerror(_("Next cannot be completed"),
-                            _("A different DTS is active, than find was initiated with.  Please press 'find' to re-search with the current DTS"), parent=self.parent)
-            return
+        if not self.options.messagesLog:
+            if self.modelXbrl is None:
+                return
+            if self.modelManager.modelXbrl != self.modelXbrl:
+                tkinter.messagebox.showerror(_("Next cannot be completed"),
+                                _("A different DTS is active, than find was initiated with.  Please press 'find' to re-search with the current DTS"), parent=self.parent)
+                return
         lenObjsList = len(self.objsList)
         if lenObjsList == 0:
             tkinter.messagebox.showwarning(_("Next cannot be completed"),
@@ -319,7 +338,11 @@ class DialogFind(Toplevel):
             
         self.result = self.result.partition("Selection")[0]
         if 0 <= self.foundIndex < lenObjsList:
-            self.modelManager.modelXbrl.viewModelObject(self.objsList[self.foundIndex][2])
+            objectFound = self.objsList[self.foundIndex][1]
+            if self.options.messagesLog:
+                self.modelManager.cntlr.logView.selectLine(objectFound)
+            else:
+                self.modelManager.modelXbrl.viewModelObject(objectFound)
             self.resultText.setValue("{0}, selection {1} of {2}".format(self.result, self.foundIndex + 1, len(self.objsList) ) )
             self.foundIndex += 1 if self.nextIsDown else -1
         elif self.nextIsDown:
@@ -353,5 +376,6 @@ class FindOptions():
         self.factValue = False
         self.factCntx = False
         self.factUnit = False
+        self.messagesLog = False
         self.priorExpressions = []
         self.geometry = None
