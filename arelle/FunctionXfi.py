@@ -10,7 +10,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import (qname, QName, dateTime, DATE, DATETIME, DATEUNION, anyURI)
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.ModelDtsObject import anonymousTypeSuffix
-from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from math import (isnan,isinf)
 
 class xfiFunctionNotAvailable(Exception):
@@ -286,14 +286,54 @@ def identical_nodes(xc, p, args):
 def s_equal(xc, p, args):
     raise xfiFunctionNotAvailable()
 
+def itemsEqual(xc, args, test):
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
+    seq2 = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    for i, modelItem1 in enumerate(seq1):
+        try:
+            modelItem2 = seq2[i]
+            if not isinstance(modelItem1, ModelObject): 
+                raise XPathContext.FunctionArgType(1,"xbrl:item*")
+            if not isinstance(modelItem2, ModelObject): 
+                raise XPathContext.FunctionArgType(2,"xbrl:item*")
+            if not isinstance(modelItem1, (ModelFact, ModelInlineFact)) or not modelItem1.isItem: 
+                raise XPathContext.FunctionArgType(1,"xbrl:item*", errCode="xfie:NodeIsNotXbrlItem")
+            if not isinstance(modelItem2, (ModelFact, ModelInlineFact)) or not modelItem2.isItem: 
+                raise XPathContext.FunctionArgType(2,"xbrl:item*", errCode="xfie:NodeIsNotXbrlItem")
+            if not test(modelItem1, modelItem2):
+                return False
+        except IndexError:
+            return False
+    return True
+
 def u_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return itemsEqual(xc, args, u_equal_test)
+
+def u_equal_test(modelItem1, modelItem2):
+    modelUnit1 = modelItem1.unit
+    modelUnit2 = modelItem2.unit
+    if modelUnit1 is None:
+        return modelUnit2 is None
+    else:
+        return modelUnit1.isEqualTo(modelUnit2)
 
 def v_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return itemsEqual(xc, args, u_equal_test)
+
+def v_equal_test(modelItem1, modelItem2):
+    return modelItem1.isVEqualTo(modelItem2)
 
 def c_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return itemsEqual(xc, args, c_equal_test)
+
+def c_equal_test(modelItem1, modelItem2):
+    modelCntx1 = modelItem1.context
+    modelCntx2 = modelItem2.context
+    if modelCntx1 is None:
+        return modelCntx2 is None
+    else:
+        return modelCntx1.isEqualTo(modelCntx2,dimensionalAspectModel=False)
 
 def identical_node_set(xc, p, args):
     raise xfiFunctionNotAvailable()
