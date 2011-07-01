@@ -56,7 +56,7 @@ class ViewFactList(ViewWinTree.ViewTree):
             #self.menu.delete(0, 0) # remove old filings
             menuRow = self.treeView.identify_row(event.y) # this is the object ID
             modelFact = self.modelXbrl.modelObject(menuRow)
-            if modelFact.isTuple:
+            if modelFact is not None and modelFact.isTuple:
                 self.menu.entryconfigure(0, state='normal')
                 self.viewedTupleId = menuRow
             else:

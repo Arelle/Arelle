@@ -13,6 +13,7 @@ versioning reports, per Roland Hommes 2010-12-10
 
 '''
 import time, datetime, os, gettext, io, sys, traceback
+from gettext import gettext as _
 from lxml import etree
 from optparse import OptionParser
 from arelle import (Cntlr, ModelXbrl, ModelDocument, ModelVersReport, FileSource, XmlUtil, Version)
@@ -51,6 +52,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
         #testGenFileName = options.excelfilename
         testGenFileName = r"C:\Users\Herm Fischer\Documents\mvsl\projects\XBRL.org\conformance-versioning\trunk\versioningReport\conf\creation-index.xls"
         testGenDir = os.path.dirname(testGenFileName)
+        schemaDir = os.path.dirname(testGenDir) + os.sep + "schema"
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         if options.testfiledate:
             today = options.testfiledate
@@ -183,7 +185,9 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         except WindowsError:
                             pass # dir already exists
                         modelVersReport = ModelVersReport.ModelVersReport(modelTestcases)
-                        modelVersReport.diffDTSes(reportFullPath,modelDTSfrom, modelDTSto)
+                        modelVersReport.diffDTSes(reportFullPath, modelDTSfrom, modelDTSto, 
+                                                  assignment=assignment,
+                                                  schemaDir=schemaDir)
                         
                         # check for expected elements
                         if expectedEvent and expectedEvent not in (
