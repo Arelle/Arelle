@@ -87,6 +87,7 @@ class gridSpacer(Frame):
         self.grid(column=x, row=y) # same dimensions as separator in col/row headers
         self.x = x
         self.y = y
+        self.config(width=2,height=2) # need same default as Spacer, which is 2 pixels (shadow pixel and highlight pixel)
         # copy bindings
         try:
             contextMenuBinding = master.bind(master.contextMenuClick)
