@@ -8,7 +8,7 @@ This module is Arelle's controller in command line non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import gettext, time, datetime
+import gettext, time, datetime, os, shlex
 from optparse import OptionParser
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, ViewCsvRelationshipSet, ViewCsvTests)
@@ -87,7 +87,12 @@ def main():
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
     
-    (options, args) = parser.parse_args()
+    envArgs = os.getenv("ARELLE_ARGS")
+    if envArgs:
+        argvFromEnv = shlex.split(envArgs)
+        (options, args) = parser.parse_args(argvFromEnv)
+    else:
+        (options, args) = parser.parse_args()
     if options.about:
         print(_("\narelle(r) {0}\n\n"
                 "An open source XBRL platform\n"

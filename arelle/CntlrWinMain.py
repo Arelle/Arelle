@@ -1004,6 +1004,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         widget.after(delayMsecs, lambda: self.uiThreadChecker(widget))
 
 def main():
+    # this is the entry called by arelleGUI.pyw for windows
     gettext.install("arelle")
     global restartMain
     while restartMain:
@@ -1014,4 +1015,12 @@ def main():
         application.mainloop()
 
 if __name__ == "__main__":
-    main()
+    # this is the entry called by MacOS open and MacOS shell scripts
+    # check if ARELLE_ARGS are used to emulate command line operation
+    if os.getenv("ARELLE_ARGS"):
+        # command line mode
+        from arelle import CntlrCmdLine
+        CntlrCmdLine.main()
+    else:
+        # GUI mode
+        main()
