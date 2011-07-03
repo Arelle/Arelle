@@ -84,14 +84,14 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
             for iF1, f1 in enumerate(modelXbrl.facts):
                 context = f1.context
                 unit = f1.unit
-                factElementName = f1.element.localName
-                if busNamespacePattern.match(f1.element.namespaceURI) and factElementName in busLocalNames:
+                factElementName = f1.localName
+                if busNamespacePattern.match(f1.namespaceURI) and factElementName in busLocalNames:
                         busItems[factElementName] = f1
-                elif gaapNamespacePattern.match(f1.element.namespaceURI) and factElementName in gaapLocalNames:
+                elif gaapNamespacePattern.match(f1.namespaceURI) and factElementName in gaapLocalNames:
                         gaapItems[factElementName] = f1
-                elif ifrsNamespacePattern.match(f1.element.namespaceURI) and factElementName in ifrsLocalNames:
+                elif ifrsNamespacePattern.match(f1.namespaceURI) and factElementName in ifrsLocalNames:
                         ifrsItems[factElementName] = f1
-                elif direpNamespacePattern.match(f1.element.namespaceURI) and factElementName in direpLocalNames:
+                elif direpNamespacePattern.match(f1.namespaceURI) and factElementName in direpLocalNames:
                         direpItems[factElementName] = f1
 
                 if context:
