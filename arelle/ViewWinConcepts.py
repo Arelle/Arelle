@@ -9,7 +9,7 @@ from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from collections import defaultdict
 
-def viewConcepts(modelXbrl, tabWin, header, lang=None):
+def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
     modelXbrl.modelManager.showStatus(_("viewing concepts"))
     view = ViewConcepts(modelXbrl, tabWin, header, lang)
     view.treeView["columns"] = ("conceptname", "id", "abstr", "subsGrp", "type", "periodType", "balance", "facets")
@@ -44,6 +44,8 @@ def viewConcepts(modelXbrl, tabWin, header, lang=None):
     view.menuAddClipboard()
     view.menuAddLangs()
     view.menuAddLabelRoles()
+    view.menuAddNameStyle()
+    view.menuAddViews(addClose=False, tabWin=altTabWin)
     
 class ViewConcepts(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, lang):
@@ -55,6 +57,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
         lbls = defaultdict(list)
         role = self.labelrole
         lang = self.lang
+        nameIsPrefixed = self.nameIsPrefixed
         for concept in self.modelXbrl.qnameConcepts.values():
             lbls[concept.label(role,lang=lang)].append(concept.objectId())
         srtLbls = sorted(lbls.keys())
@@ -84,10 +87,10 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     '''
                     node = self.treeView.insert("", "end", 
                                                 concept.objectId(), 
-                                                text=concept.label(self.labelrole,lang=self.lang),
+                                                text=concept.label(role,lang=lang),
                                                 tags=("odd" if nodeNum & 1 else "even",))
                     nodeNum += 1
-                    self.treeView.set(node, "conceptname", concept.name)
+                    self.treeView.set(node, "conceptname", concept.qname if nameIsPrefixed else concept.name)
                     self.treeView.set(node, "id", concept.id)
                     self.treeView.set(node, "abstr", concept.abstract)
                     self.treeView.set(node, "subsGrp", concept.substitutionGroupQname)

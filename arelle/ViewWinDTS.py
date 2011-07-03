@@ -9,7 +9,7 @@ from tkinter.ttk import *
 import os
 from arelle import ViewWinTree
 
-def viewDTS(modelXbrl, tabWin):
+def viewDTS(modelXbrl, tabWin, altTabWin=None):
     view = ViewDTS(modelXbrl, tabWin)
     modelXbrl.modelManager.showStatus(_("viewing DTS"))
     view.viewDtsElement(modelXbrl.modelDocument, "", 1, set(), {modelXbrl.modelDocument})
@@ -17,6 +17,7 @@ def viewDTS(modelXbrl, tabWin):
     menu = view.contextMenu()
     view.menuAddExpandCollapse()
     view.menuAddClipboard()
+    view.menuAddViews(addClose=False, tabWin=altTabWin)
     
 class ViewDTS(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):

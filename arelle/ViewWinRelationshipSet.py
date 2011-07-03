@@ -127,6 +127,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 text = concept.localName
         elif isinstance(concept, ModelDtsObject.ModelResource):
             text = concept.text
+            if text is None:
+                text = concept.localName
         else:   # just a resource
             text = concept.localName
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
