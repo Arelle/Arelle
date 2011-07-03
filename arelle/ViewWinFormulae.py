@@ -38,8 +38,9 @@ class ViewFormulae(ViewWinTree.ViewTree):
         self.treeView.heading("expression", text="Expression")
 
         # relationship set based on linkrole parameter, to determine applicable linkroles
-        relationshipSet = self.modelXbrl.relationshipSet("XBRL-formulae")
-        if relationshipSet is None or len(relationshipSet.modelRelationships) == 0:
+        self.allFormulaRelationshipsSet = self.modelXbrl.relationshipSet("XBRL-formulae")
+        self.varSetFilterRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.variableSetFilter)
+        if self.allFormulaRelationshipsSet is None or len(self.allFormulaRelationshipsSet.modelRelationships) == 0:
             self.modelXbrl.modelManager.addToLog(_("no relationships for XBRL formulae"))
             return
 
@@ -61,11 +62,14 @@ class ViewFormulae(ViewWinTree.ViewTree):
                 
         # root node for tree view
         self.id = 1
+        n = 1
         for rootObject in rootObjects:
-            self.viewFormulaObjects("", rootObject, None, relationshipSet, set())
+            self.viewFormulaObjects("", rootObject, None, n, set())
+            n += 1
         for cfQname in sorted(self.modelXbrl.modelCustomFunctionSignatures.keys()):
             cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQname]
-            self.viewFormulaObjects("", cfObject, None, relationshipSet, set())
+            self.viewFormulaObjects("", cfObject, None, n, set())
+            n += 1
         self.treeView.bind("<<TreeviewSelect>>", self.treeviewSelect, '+')
         self.treeView.bind("<Enter>", self.treeviewEnter, '+')
         self.treeView.bind("<Leave>", self.treeviewLeave, '+')
@@ -76,14 +80,14 @@ class ViewFormulae(ViewWinTree.ViewTree):
         menu.add_cascade(label=_("Collapse"), underline=0, command=self.collapse)
         self.menuAddClipboard()
 
-    def viewFormulaObjects(self, parentNode, fromObject, fromRel, relationshipSet, visited):
+    def viewFormulaObjects(self, parentNode, fromObject, fromRel, n, visited):
         if fromObject is None:
             return
         if isinstance(fromObject, ModelVariable) and fromRel is not None:
             text = "{0} ${1}".format(fromObject.localName, fromRel.variableQname)
         else:
             text = fromObject.localName
-        childnode = self.treeView.insert(parentNode, "end", fromObject.objectId(self.id), text=text)
+        childnode = self.treeView.insert(parentNode, "end", fromObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
         self.treeView.set(childnode, "label", fromObject.xlinkLabel)
         if fromRel is not None and fromRel.arcrole == XbrlConst.variableFilter:
             self.treeView.set(childnode, "cover", "true" if fromRel.isCovered else "false")
@@ -95,9 +99,15 @@ class ViewFormulae(ViewWinTree.ViewTree):
         self.id += 1
         if fromObject not in visited:
             visited.add(fromObject)
-            for modelRel in relationshipSet.fromModelObject(fromObject):
-                toObject = modelRel.toModelObject
-                self.viewFormulaObjects(childnode, toObject, modelRel, relationshipSet, visited)
+            relationshipArcsShown = set()
+            for relationshipSet in (self.varSetFilterRelationshipSet,
+                                    self.allFormulaRelationshipsSet):
+                for modelRel in relationshipSet.fromModelObject(fromObject):
+                    if modelRel.arcElement not in relationshipArcsShown:
+                        relationshipArcsShown.add(modelRel.arcElement)
+                        toObject = modelRel.toModelObject
+                        n += 1 # child has opposite row style of parent
+                        self.viewFormulaObjects(childnode, toObject, modelRel, n, visited)
             visited.remove(fromObject)
             
     def treeviewEnter(self, *args):
