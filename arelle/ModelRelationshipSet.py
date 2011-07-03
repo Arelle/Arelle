@@ -59,7 +59,8 @@ def baseSetArcroles(modelXbrl):
 def labelroles(modelXbrl, includeConceptName=False):
     # returns sorted list of tuples of arcrole basename and uri
     return sorted(set((XbrlConst.labelroleLabel(r),r) 
-                        for r in (modelXbrl.labelroles | ({XbrlConst.conceptNameLabelRole} if includeConceptName else set()))))
+                        for r in (modelXbrl.labelroles | ({XbrlConst.conceptNameLabelRole} if includeConceptName else set()))
+                        if r is not None))
     
 class ModelRelationshipSet:
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
