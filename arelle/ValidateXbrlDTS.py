@@ -4,10 +4,9 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ModelDocument, ModelDtsObject, UrlUtil, XmlUtil, XbrlUtil, XbrlConst)
+from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
-from arelle.HtmlUtil import attrValue
 from lxml import etree
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
@@ -266,17 +265,13 @@ def checkElements(val, modelDocument, parent):
 
     parentIsAppinfo = False
     if modelDocument.type == ModelDocument.Type.INLINEXBRL:
-        if parent is not None: # element
+        if isinstance(parent,ModelObject): # element
             if parent.localName == "meta" and parent.namespaceURI == XbrlConst.xhtml and \
             parent.get("http-equiv").lower() == "content-type":
-                val.metaContentTypeEncoding = attrValue(parent.get("content"), "charset")
-        elif parent is None: # documentNode
-            val.documentTypeEncoding = parent._get_encoding()
+                val.metaContentTypeEncoding = HtmlUtil.attrValue(parent.get("content"), "charset")
+        elif isinstance(parent,etree._ElementTree): # documentNode
+            val.documentTypeEncoding = parent.docinfo.encoding
             val.metaContentTypeEncoding = ""
-        '''
-        elif parent.nodeType == 10: # document type node
-            val.documentTypeEncoding = parent.get("encoding")
-        '''
 
     instanceOrder = 0
     if modelDocument.type == ModelDocument.Type.SCHEMA:

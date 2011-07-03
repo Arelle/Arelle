@@ -657,12 +657,12 @@ class ModelDocument:
                 
     def inlineXbrlDiscover(self, htmlElement):
         self.schemaLinkbaseRefsDiscover(htmlElement)
-        for inlineElement in htmlElement.getdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}resources"):
+        for inlineElement in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}resources"):
             self.instanceContentsDiscover(inlineElement)
             
         tuplesByElement = {}
         tuplesByTupleID = {}
-        for modelInlineTuple in htmlElement.getdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}tuple"):
+        for modelInlineTuple in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}tuple"):
             if isinstance(modelInlineTuple,ModelObject):
                 modelInlineTuple.unorderedTupleFacts = []
                 if modelInlineTuple.tupleID:
@@ -673,7 +673,7 @@ class ModelDocument:
             self.inlineXbrlLocateFactInTuple(tupleFact, tuplesByTupleID, tuplesByElement)
 
         for tag in ("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric", "{http://www.xbrl.org/2008/inlineXBRL}nonFraction", "{http://www.xbrl.org/2008/inlineXBRL}fraction"):
-            for modelInlineFact in htmlElement.getdescendants(tag=tag):
+            for modelInlineFact in htmlElement.iterdescendants(tag=tag):
                 if isinstance(modelInlineFact,ModelObject):
                     self.inlineXbrlLocateFactInTuple(modelInlineFact, tuplesByTupleID, tuplesByElement)
         # order tuple facts
