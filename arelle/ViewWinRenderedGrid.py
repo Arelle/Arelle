@@ -355,6 +355,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 yAxisPriItemQname = self.inheritedPrimaryItemQname(yAxisHdrObj)
                 yAxisExplicitDims = self.inheritedExplicitDims(yAxisHdrObj)
                     
+                gridSpacer(self.gridBody, self.dataFirstCol, row, LEFTBORDER)
                 # data for columns of row
                 ignoreDimValidity = self.ignoreDimValidity.get()
                 zFilter = zFilters[self.zFilterIndex]

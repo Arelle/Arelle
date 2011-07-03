@@ -554,9 +554,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ViewWinRssFeed.viewRssFeed(modelXbrl, self.tabWinTopRt)
             else:
                 currentAction = "tree view of tests"
-                ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft)
+                ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
                 currentAction = "view of concepts"
-                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang)
+                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang, altTabWin=self.tabWinTopRt)
                 if modelXbrl.hasEuRendering:  # show rendering grid even without any facts
                     ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.lang)
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
