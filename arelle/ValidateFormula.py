@@ -428,6 +428,7 @@ def validate(val):
     # add instances with variable sets with no variables or other dependencies
     for independentInstance in instanceProducingVariableSets.keys() - orderedInstancesList:
         orderedInstancesList.append(independentInstance)
+        orderedInstancesSet.add(independentInstance)
     if None not in orderedInstancesList:
         orderedInstancesList.append(None)  # assertions come after all formulas that produce outputs
 
