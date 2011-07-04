@@ -205,7 +205,12 @@ class ModelFact(ModelObject):
                 return float(self.value) == float(other.value)
             else:
                 return False
-        return self.value.strip() == other.value.strip()
+        selfValue = self.value
+        otherValue = other.value
+        if isinstance(selfValue,str) and isinstance(otherValue,str):
+            return selfValue.strip() == otherValue.strip()
+        else:
+            return selfValue == otherValue
 
     @property
     def propertyView(self):
