@@ -1146,14 +1146,14 @@ class ModelConceptRelation(ModelFilter):
     @property
     def variable(self):
         variableElt = XmlUtil.child(self, XbrlConst.crf, "variable")
-        if variableElt:
+        if variableElt is not None:
             return qname( variableElt, XmlUtil.text(variableElt), noPrefixIsNoNamespace=True )
         return None
     
     @property
     def sourceQname(self):
         sourceQname = XmlUtil.child(self, XbrlConst.crf, "qname")
-        if sourceQname:
+        if sourceQname is not None:
             return qname( sourceQname, XmlUtil.text(sourceQname) )
         return None
     
@@ -1286,7 +1286,7 @@ class ModelConceptRelation(ModelFilter):
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         if self.variable:
             otherFact = xpCtx.inScopeVars.get(self.variable)
-            sourceQname = otherFact.qname if otherFact else None
+            sourceQname = otherFact.qname if otherFact is not None else None
         else:
             sourceQname = self.evalSourceQname(xpCtx, None)
         if not sourceQname:
