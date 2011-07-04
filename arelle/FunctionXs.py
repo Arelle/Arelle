@@ -303,7 +303,20 @@ def ENTITY(xc, source):
     raise xsFunctionNotAvailable()
   
 def boolean(xc, source):
-    raise xsFunctionNotAvailable()
+    if isinstance(source,bool):
+        return source
+    elif isinstance(source,(int,float)):
+        if source == 1:
+            return True
+        elif source == 0:
+            return False
+    elif isinstance(source,str):
+        b = source.lower()
+        if b in ('true','yes'):
+            return True
+        elif b in ('false','no'):
+            return False
+    raise FORG0001
   
 def base64Binary(xc, source):
     raise xsFunctionNotAvailable()

@@ -580,7 +580,7 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
                 else:
                     acfAspectsCovering[aspect] = (varFilterRel.isCovered, filter.xlinkLabel)
             isAllAspectCoverFilter = filter.isAll
-        if varFilterRel.isCovered:
+        if True: # changed for test case 50210 v03 varFilterRel.isCovered:
             try:
                 aspectsCovered = filter.aspectsCovered(None)
                 if (not isAllAspectCoverFilter and 

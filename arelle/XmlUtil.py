@@ -109,7 +109,7 @@ def text(element):
 
 def childText(element, childNamespaceURI, childLocalNames):   
     element = child(element, childNamespaceURI, childLocalNames)
-    return textNotStripped(element).strip() if element else None
+    return textNotStripped(element).strip() if element is not None else None
 
 def textNotStripped(element):
     text = six.u("")
@@ -152,8 +152,8 @@ def hasDescendant(element, descendantNamespaceURI, descendantLocalNames):
     
 def hasAncestor(element, ancestorNamespaceURI, ancestorLocalNames):
     treeElt = element.getparent()
-    while treeElt is not None:
-        if treeElt.elementNamespaceURI == ancestorNamespaceURI:
+    while isinstance(treeElt,ModelObject):
+        if treeElt.namespaceURI == ancestorNamespaceURI:
             if isinstance(ancestorLocalNames,tuple):
                 if treeElt.localName in ancestorLocalNames:
                     return True
@@ -164,7 +164,7 @@ def hasAncestor(element, ancestorNamespaceURI, ancestorLocalNames):
     
 def ancestor(element, ancestorNamespaceURI, ancestorLocalNames):
     treeElt = element.getparent()
-    while treeElt is not None:
+    while isinstance(treeElt,ModelObject):
         if treeElt.elementNamespaceURI == ancestorNamespaceURI:
             if isinstance(ancestorLocalNames,tuple):
                 if treeElt.localName in ancestorLocalNames:
