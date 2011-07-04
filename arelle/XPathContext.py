@@ -543,7 +543,7 @@ class XPathContext:
             else:
                 h = 0
             l.add((h,e))
-        return [e for h,e in sorted(l)]
+        return [e for h,e in sorted(l, key=lambda h: h[0])]
     
     def modelItem(self, x):
         modelItem = None
