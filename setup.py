@@ -4,7 +4,7 @@ Created on Jan 30, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 """
-import sys
+import os, sys
 from setuptools import os, setup, find_packages
 
 setup_requires = ['nose>=1.0']
@@ -19,6 +19,8 @@ if sys.platform == 'darwin':
     setup_requires.append('py2app')
     # Cross-platform applications generally expect sys.argv to
     # be used for opening files.
+    
+    # MacOS launches CntlrWinMain and uses "ARELLE_ARGS" to effect console (shell) mode
     options['py2app'] =  dict(app=['arelle/CntlrWinMain.py'],
                               iconfile='arelle/images/arelle.icns',
                               plist=dict(CFBundleIconFile='arelle.icns',
@@ -51,10 +53,14 @@ elif sys.platform == 'win32':
         "packages": packages,
         } )
    
+    # windows uses arelleGUI.exe to launch in GUI mode, arelleCmdLine.exe in command line mode
     cx_FreezeExecutables = [
         Executable(
-                script="arelle.pyw",
+                script="arelleGUI.pyw",
                 base="Win32GUI",
+                ),
+        Executable(
+                script="arelleCmdLine.py",
                 )                            
         ]
 # Otherwise pretend it's a *nix
