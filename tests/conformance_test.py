@@ -26,20 +26,20 @@ gettext.install("arelle")
 
 verbose = True
 tests = {
-         'xbrl' :  {    # XBRL 2.1
+         'XBRL' :  {    # XBRL 2.1
                     'url'  : 'http://www.xbrl.org/2008/XBRL-CONF-CR4-2008-07-02.zip',
                     'args' : ["xbrl.xml", False, False, False]
                     }, 
          
-         'formula' : {  # Formula
+         'Formula' : {  # Formula
                       'url'  : 'http://www.xbrl.org/Specification/formula/REC-2009-06-22/conformance/Formula-CONF-REC-PER-Errata-2011-03-16.zip',
                       'args' : [ "index.xml", False, False, False],
                       },
-         'xdt' : {      # XDT
+         'XDT' : {      # XDT
                   'url'  : "http://www.xbrl.org/2009/XDT-CONF-CR4-2009-10-06.zip",
                   'args' : [ "xdt.xml", False, False, False ]
                   }, 
-         'edgar' : {    # Edgar
+         'Edgar' : {    # Edgar
                     'url'  : 'http://www.sec.gov/info/edgar/ednews/efmtest/16-110225.zip',
                     'args' : [ "testcases.xml", True, False, False]
                     }
