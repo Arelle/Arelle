@@ -5,6 +5,7 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+import arelle.qname
 from lxml import etree
 
 class ModelObject(etree.ElementBase):
@@ -90,7 +91,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = qname(self)
+            self._elementQname = arelle.qname.qname(self)
             return self._elementQname
         
     # qname is overridden for concept, type, attribute, and formula parameter, elementQname is unambiguous
@@ -99,7 +100,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = qname(self)
+            self._elementQname = arelle.qname.qname(self)
             return self._elementQname
     
     @property
@@ -107,7 +108,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._parentQname
         except AttributeError:
-            self._parentQname = qname( self.getparent() )
+            self._parentQname = arelle.qname.qname( self.getparent() )
             return self._parentQname
 
     
@@ -121,7 +122,7 @@ class ModelObject(etree.ElementBase):
     
     def prefixedNameQname(self, prefixedName):
         if prefixedName:    # passing None would return element qname, not prefixedName None Qname
-            return qname(self, prefixedName)
+            return arelle.qname.qname(self, prefixedName)
         else:
             return None
     
@@ -190,7 +191,6 @@ class ModelObject(etree.ElementBase):
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
-from arelle.ModelValue import qname
 
 class ModelComment(etree.CommentBase):
     def _init(self):

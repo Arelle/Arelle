@@ -387,8 +387,6 @@ class Sheet(BaseObject):
             fmt_info = self.formatting_info
             xce = XL_CELL_EMPTY
             nc = self.ncols
-
-            #(to_py3) if self.dont_use_array: ... removed
             for _unused in range(self.nrows, nr):
                 scta(array('B', [xce]) * nc)
                 scva([''] * nc)

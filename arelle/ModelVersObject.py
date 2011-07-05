@@ -6,7 +6,7 @@ Created on Nov 9, 2010
 '''
 from arelle import XmlUtil, XbrlConst
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
+from arelle.qname import qname
 
 
 def relateConceptMdlObjs(modelDocument, fromConceptMdlObjs, toConceptMdlObjs):

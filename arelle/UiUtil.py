@@ -5,7 +5,7 @@ Created on Jan 25, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
-from tkinter.ttk import *
+from tkinter import tkk
 
 TOPBORDER = 1
 LEFTBORDER = 2

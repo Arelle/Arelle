@@ -8,6 +8,7 @@ from collections import defaultdict
 import os
 from arelle import (ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil)
 from arelle.ViewUtil import viewReferences
+from gettext import gettext as _
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
     relationshipSet =  modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)

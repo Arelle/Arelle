@@ -11,7 +11,7 @@ elementSubstitutionModelClass = {}
 
 from lxml import etree
 from arelle import XbrlConst
-from arelle.ModelValue import qname
+from arelle.qname import qname
 from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelType, ModelEnumeration,
                                    ModelRoleType, ModelLocator, ModelLink)
 from arelle.ModelRssItem import ModelRssItem

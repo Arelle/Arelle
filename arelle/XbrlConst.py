@@ -1,7 +1,7 @@
 import os, six
 from gettext import gettext as _
 
-from arelle.ModelValue import qname
+from arelle.qname import qname
 
 xsd = six.u("http://www.w3.org/2001/XMLSchema")
 qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")

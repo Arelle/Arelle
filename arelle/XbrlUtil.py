@@ -4,8 +4,7 @@ Created on Nov 26, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom.minidom
-from arelle import (ModelValue, XbrlConst, XmlUtil, XmlValidate)
+from arelle import qname, XmlValidate
 from arelle.ModelObject import ModelObject
 
 S_EQUAL = 0 # ordinary S-equality from 2.1 spec
@@ -87,15 +86,15 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
         if (attrTag not in exclusions and 
             (attrNsURI is None or attrNsURI not in exclusions)):
             if keyByTag:
-                qname = attrTag
+                zqname = attrTag
             elif attrNsURI is not None:
-                qname = ModelValue.QName(None, attrNsURI, localName)
+                zqname = qname.QName(None, attrNsURI, localName)
             else:
-                qname = ModelValue.QName(None, None, attrTag)
+                zqname = qname.QName(None, None, attrTag)
             xValid, xValue, sValue = elt.xAttributes[attrTag]
             if excludeIDs and xValid == XmlValidate.VALID_ID:
                 continue
-            attrs[qname] = sValue if equalMode == S_EQUAL2 else xValue
+            attrs[zqname] = sValue if equalMode == S_EQUAL2 else xValue
     return attrs
 
 def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False):

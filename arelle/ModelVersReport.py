@@ -9,7 +9,7 @@ from gettext import gettext as _
 from collections import defaultdict
 from arelle import (XbrlConst, XbrlUtil, XmlUtil, UrlUtil, ModelXbrl, ModelDocument, ModelVersObject)
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname, QName
+from arelle.qname import qname, QName
 
 def create(modelXbrlFromDTS, modelXbrlToDTS):
     modelXbrlVersReport = ModelXbrl.create(modelXbrlFromDTS.modelManager)

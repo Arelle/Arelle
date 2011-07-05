@@ -8,7 +8,7 @@ from collections import defaultdict
 import datetime, re
 from gettext import gettext as _
 from arelle import (XmlUtil, XbrlConst, XPathParser, XPathContext)
-from arelle.ModelValue import (qname, QName)
+from arelle.qname import qname, QName
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact

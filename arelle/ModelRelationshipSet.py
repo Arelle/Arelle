@@ -7,9 +7,8 @@ Created on Oct 5, 2010
 
 # initialize object from loaded linkbases
 from collections import defaultdict
-from arelle import (ModelDtsObject, XbrlConst, XmlUtil, ModelValue)
+from arelle import ModelDtsObject, XbrlConst, qname
 from arelle.ModelObject import ModelObject
-import os
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
     return ModelRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname, includeProhibits)
@@ -193,8 +192,8 @@ class ModelRelationshipSet:
     # if only modelFrom, determine that there are relationships present of specified axis
     def isRelated(self, modelFrom, axis, modelTo=None, visited=None): # either model concept or qname
         if visited is None: visited = set()
-        if isinstance(modelFrom,ModelValue.QName): modelFrom = self.modelXbrl.qnameConcepts[modelFrom]
-        if isinstance(modelTo,ModelValue.QName): modelTo = self.modelXbrl.qnameConcepts[modelTo]
+        if isinstance(modelFrom, qname.QName): modelFrom = self.modelXbrl.qnameConcepts[modelFrom]
+        if isinstance(modelTo, qname.QName): modelTo = self.modelXbrl.qnameConcepts[modelTo]
         if axis.endswith("self") and (modelTo is None or modelFrom == modelTo):
             return True
         for modelRel in self.fromModelObject(modelFrom):

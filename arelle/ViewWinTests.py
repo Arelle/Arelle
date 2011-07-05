@@ -8,6 +8,7 @@ from tkinter import *
 from tkinter.ttk import *
 import os
 from arelle import (ViewWinTree, ModelDocument)
+from gettext import gettext as _
 
 def viewTests(modelXbrl, tabWin):
     view = ViewTests(modelXbrl, tabWin)

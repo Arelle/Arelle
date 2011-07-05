@@ -4,10 +4,13 @@ Created on Jan 25, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+import re, os
+from gettext import gettext as _
+
 from tkinter import *
 from tkinter.ttk import *
 import tkinter.filedialog
-import re, os
+
 from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isValidAbsolute

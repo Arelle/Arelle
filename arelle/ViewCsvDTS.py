@@ -5,6 +5,7 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os
+from gettext import gettext as _
 from arelle import ViewCsv
 
 def viewDTS(modelXbrl, csvfile):

@@ -9,6 +9,7 @@ from tkinter.ttk import *
 from arelle.CntlrWinTooltip import ToolTip
 import io
 from arelle import (XmlUtil, ViewWinList)
+from gettext import gettext as _
 
 def viewXml(modelXbrl, tabWin, tabTitle, xmlDoc):
     modelXbrl.modelManager.showStatus(_("viewing xml"))

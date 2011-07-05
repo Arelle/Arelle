@@ -4,13 +4,19 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import math, re
+import math, re, six
+from gettext import gettext as _
+from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
-                         YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
-from arelle import (FunctionXs, XPathContext, XbrlUtil, XmlUtil)
+from arelle.qname import qname
+from arelle.ModelValue import dateTime, DateTime, DATE, DATETIME, dayTimeDuration, YearMonthDuration, DayTimeDuration, time, Time
+from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg
     
+if six.PY3:
+    from urllib.parse import quote
+else:
+    from urllib import quote
+
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
         self.args =  ("fn function not available",)
@@ -32,8 +38,8 @@ def node_name(xc, p, contextItem, args):
 
 def nilled(xc, p, contextItem, args):
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
-    if node != () and isinstance(node,ModelObject):
-        return node.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
+    if node != () and isinstance(node, ModelObject):
+        return node.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == six.u("true")
     return ()
 
 def string(xc, p, contextItem, args):
@@ -198,7 +204,6 @@ def translate(xc, p, contextItem, args):
     return ''.join(out)
 
 def encode_for_uri(xc, p, contextItem, args):
-    from urllib.parse import quote
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return quote(stringArg(xc, args, 0, "xs:string"))
 

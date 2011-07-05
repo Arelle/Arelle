@@ -12,7 +12,7 @@ from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseExceptio
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
 from arelle.Locale import format_string
-from arelle import (XmlUtil, ModelValue, XbrlConst)
+from arelle import XmlUtil, qname, XbrlConst
 
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -53,7 +53,7 @@ def pushQuotedString( sourceStr, loc, toks ):
     exprStack.append( dequotedStr )
     return dequotedStr
 
-class QNameDef(ModelValue.QName):
+class QNameDef(qname.QName):
     def __init__(self, loc, prefix, namespaceURI, localName, isAttribute=False):
         super(QNameDef, self).__init__(prefix, namespaceURI, localName)
         self.unprefixed = prefix is None
@@ -76,23 +76,23 @@ defaultNsmap = {
     }
 
 def pushQName( sourceStr, loc, toks ):
-    qname = toks[0]
+    mqname = toks[0]
     if xmlElement is not None:
-        nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
+        nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, mqname, defaultNsmap=defaultNsmap)
         if nsLocalname is None:
             modelXbrl.error(
-                _("QName prefix not defined for {0}").format(qname),
+                _("QName prefix not defined for {0}").format(mqname),
                   "err","err:XPST0081")
             return
         if (nsLocalname == (XbrlConst.xff,"uncovered-aspect") and
             xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion")):
                 modelXbrl.error(
-                    _("Function {0} cannot be used on an XPath expression associated with a {1}").format(qname, xmlElement.localName),
+                    _("Function {0} cannot be used on an XPath expression associated with a {1}").format(mqname, xmlElement.localName),
                       "err","xffe:invalidFunctionUse")
     else:
-        nsLocalname = (None,qname)
+        nsLocalname = (None, mqname)
     q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1])
-    if qname not in ("INF", "NaN", "for", "some", "every", "return") and \
+    if mqname not in ("INF", "NaN", "for", "some", "every", "return") and \
         len(exprStack) == 0 or exprStack[-1] != q:
         exprStack.append( q )
     return q
@@ -234,20 +234,20 @@ def pushRootStep( sourceStr, loc, toks ):
     return rootStep
 
 class VariableRef:
-    def __init__(self, loc, qname):
-        self.name = qname
+    def __init__(self, loc, name):
+        self.name = name
         self.loc = loc
     def __repr__(self):
         return ("variableRef('{0}')".format(self.name))
 
 def pushVarRef( sourceStr, loc, toks ):
-    qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)
-    if qname is None:
+    my_qname = qname.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)
+    if my_qname is None:
         modelXbrl.error(
             _("QName prefix not defined for variable reference ${0}").format(toks[0][1:]),
               "err","err:XPST0081")
-        qname = ModelValue.qname(XbrlConst.xpath2err,"XPST0081") # use as qname to allow parsing to complete
-    varRef = VariableRef(loc, qname)
+        my_qname = qname.qname(XbrlConst.xpath2err, "XPST0081") # use as qname to allow parsing to complete
+    varRef = VariableRef(loc, my_qname)
     exprStack.append( varRef )
     return varRef
 
@@ -662,12 +662,11 @@ def variableReferencesSet(exprStack, element):
 def variableReferences(exprStack, varRefSet, element, rangeVars=None):
     localRangeVars = []
     if rangeVars is None: rangeVars = []
-    from arelle.ModelValue import qname
     for p in exprStack:
         if isinstance(p, ProgHeader):
             element = p.element
         elif isinstance(p,VariableRef):
-            var = qname(element, p.name, noPrefixIsNoNamespace=True)
+            var = qname.qname(element, p.name, noPrefixIsNoNamespace=True)
             if var not in rangeVars:
                 varRefSet.add(var)
         elif isinstance(p,OperationDef):

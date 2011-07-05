@@ -4,7 +4,7 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re
+import re, sys
 from gettext import gettext as _
 
 from tkinter import *

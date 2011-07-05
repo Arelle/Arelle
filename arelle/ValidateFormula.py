@@ -5,6 +5,7 @@ Created on Dec 9, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os
+from gettext import gettext as _
 from collections import defaultdict
 from arelle.pyparsing.pyparsing_py3 import (ParseException) 
 from arelle.ModelFormulaObject import (ModelParameter, ModelInstance,
@@ -14,7 +15,7 @@ from arelle.ModelFormulaObject import (ModelParameter, ModelInstance,
                                        ModelPrecondition, ModelConceptName, Trace,
                                        Aspect, aspectModels, ModelAspectCover)
 from arelle.ModelObject import (ModelObject)
-from arelle.ModelValue import (qname,QName)
+from arelle.qname import qname,QName
 from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs) 
 
 arcroleChecks = {

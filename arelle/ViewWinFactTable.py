@@ -7,6 +7,7 @@ Created on Nov 15, 2010
 from collections import defaultdict
 import os, datetime
 from arelle import (ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst)
+from gettext import gettext as _
 
 def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentChild, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))

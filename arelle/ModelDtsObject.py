@@ -7,7 +7,7 @@ Refactored from ModelObject on Jun 11, 2011
 '''
 from collections import defaultdict
 from lxml import etree
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
+from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, qname
 from arelle.ModelObject import ModelObject
 
 class ModelRoleType(ModelObject):
@@ -49,7 +49,7 @@ class ModelRoleType(ModelObject):
         try:
             return self._usedOns
         except AttributeError:
-            self._usedOns = set(ModelValue.qname(usedOn, usedOn.text)
+            self._usedOns = set(qname.qname(usedOn, usedOn.text)
                                 for usedOn in self.iterdescendants("{http://www.xbrl.org/2003/linkbase}usedOn")
                                 if isinstance(usedOn,ModelObject))
             return self._usedOns
@@ -92,7 +92,7 @@ class ModelSchemaObject(ModelObject):
             name = self.name
             if self.name:
                 prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
-                self._qname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
+                self._qname = qname.QName(prefix, self.modelDocument.targetNamespace, name)
             else:
                 self._qname = None
             return self._qname
@@ -137,7 +137,7 @@ class ModelConcept(ModelSchemaObject):
                 self._typeQname = self.prefixedNameQname(self.get("type"))
             else:
                 # check if anonymous type exists
-                typeQname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
+                typeQname = qname.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
                 if typeQname in self.modelXbrl.qnameTypes:
                     self._typeQname = typeQname
                 else:
@@ -443,7 +443,7 @@ class ModelAttribute(ModelSchemaObject):
             return self.prefixedNameQname(self.get("type"))
         else:
             # check if anonymous type exists
-            typeqname = ModelValue.qname(self.qname.clarkNotation +  "@anonymousType")
+            typeqname = qname.qname(self.qname.clarkNotation +  "@anonymousType")
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
@@ -620,12 +620,12 @@ class ModelType(ModelSchemaObject):
         if attr is not None:
             qnameAttrType = None
             if attr.get("type"):
-                qnameAttrType = ModelValue.qname(attr, attr.get("type"))
+                qnameAttrType = qname.qname(attr, attr.get("type"))
             else:
                 restriction = XmlUtil.descendant(self, XbrlConst.xsd, "restriction")
                 if restriction is not None:
                     if restriction.get("base"):
-                        qnameAttrType = ModelValue.qname(restriction, restriction.get("base"))
+                        qnameAttrType = qname.qname(restriction, restriction.get("base"))
             if qnameAttrType and qnameAttrType.namespaceURI == XbrlConst.xsd:
                 return qnameAttrType.localName
             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameAttrType)
@@ -838,7 +838,7 @@ class ModelRelationship(ModelObject):
 
     @property
     def variableQname(self):
-        return ModelValue.qname(self.arcElement, self.get("name"), noPrefixIsNoNamespace=True) if self.get("name") else None
+        return qname.qname(self.arcElement, self.get("name"), noPrefixIsNoNamespace=True) if self.get("name") else None
 
     @property
     def linkrole(self):
@@ -846,7 +846,7 @@ class ModelRelationship(ModelObject):
     
     @property
     def linkQname(self):
-        return ModelValue.qname(self.arcElement.getparent())
+        return qname.qname(self.arcElement.getparent())
     
     @property
     def contextElement(self):

@@ -6,6 +6,7 @@ Created on Oct 5, 2010
 '''
 from arelle import (ViewWinTree, ModelObject)
 from tkinter import TRUE
+from gettext import gettext as _
 
 def viewProperties(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing properties"))

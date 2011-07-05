@@ -8,6 +8,7 @@ from arelle import (ViewWinGrid, )
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, 
                      label, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
+from gettext import gettext as _
 
 def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing tuples"))

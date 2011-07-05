@@ -5,11 +5,12 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import re
+from gettext import gettext as _
 from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst, 
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelInlineFact
-from arelle.ModelValue import qname
+from arelle.qname import qname
 
 arcNamesTo21Resource = {"labelArc","referenceArc"}
 xlinkTypeValues = {None, "simple", "extended", "locator", "arc", "resource", "title", "none"}

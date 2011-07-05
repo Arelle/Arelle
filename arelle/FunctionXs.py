@@ -5,8 +5,9 @@ Created on Dec 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import datetime, re
-from arelle import (XPathContext, ModelValue)
-from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
+from gettext import gettext as _
+from arelle import XPathContext, qname, ModelValue, qname
+from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg
     
 class FORG0001(Exception):
     def __init__(self):
@@ -83,7 +84,7 @@ objtype = {
         #'base64Binary': byte,
         #'hexBinary': byte,
         'anyURI': ModelValue.AnyURI,
-        'QName': ModelValue.QName,
+        'QName': qname.QName,
         'NOTATION': str,
       }
         
@@ -332,7 +333,7 @@ def QName(xc, source):
         element = xc.progHeader.element
     else:
         element = xc.sourceElement
-    return ModelValue.qname(element, source, castException=FORG0001, prefixException=FONS0004)
+    return qname.qname(element, source, castException=FORG0001, prefixException=FONS0004)
   
 def NOTATION(xc, source):
     raise xsFunctionNotAvailable()

@@ -4,10 +4,11 @@ Created on Dec 31, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, datetime
-from arelle import (ModelValue, XmlUtil)
+import datetime
+from gettext import gettext as _
+from arelle import ModelValue, qname
 from arelle.ModelObject import ModelObject
-from arelle.XPathContext import (XPathException, FunctionArgType)
+from arelle.XPathContext import XPathException, FunctionArgType
 
 def anytypeArg(xc, args, i, type, missingArgFallback=None):
     if len(args) > i:
@@ -28,8 +29,8 @@ def atomicArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
 def stringArg(xc, args, i, type, missingArgFallback=None, emptyFallback=''):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
-    if isinstance(item, ModelObject):
-        return item.text
+    if isinstance(item, ModelObject) and hasattr(item, 'text'):
+        return item['text']
     return str(item)
 
 def numericArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, convertFallback=None):
@@ -49,7 +50,7 @@ def qnameArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
     qn = xc.atomize(p, item)
-    if not isinstance(qn, ModelValue.QName): raise FunctionArgType(i,type)
+    if not isinstance(qn, qname.QName): raise FunctionArgType(i,type)
     return qn
 
 def nodeArg(xc, args, i, type, missingArgFallback=None, emptyFallback=None):

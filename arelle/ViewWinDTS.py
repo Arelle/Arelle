@@ -7,6 +7,7 @@ Created on Oct 5, 2010
 from tkinter import *
 from tkinter.ttk import *
 import os
+from gettext import gettext as _
 from arelle import ViewWinTree
 
 def viewDTS(modelXbrl, tabWin, altTabWin=None):

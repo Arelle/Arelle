@@ -5,13 +5,12 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 """
-import xml.sax, xml.sax.handler
 import os, re, io
 from gettext import gettext as _
-
+import xml.sax
 import six
 
-from arelle import XbrlConst
+from arelle.ModelObject import ModelObject
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)

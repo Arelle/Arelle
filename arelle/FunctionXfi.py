@@ -4,17 +4,19 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom
+from math import isnan, isinf
+from gettext import gettext as _
 from arelle import (XPathContext, XbrlConst, XbrlUtil, XmlUtil)
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import (qname, QName, dateTime, DATE, DATETIME, DATEUNION, anyURI)
+from arelle.qname import qname, QName
+from arelle.ModelValue import dateTime, DATETIME, anyURI
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.ModelDtsObject import anonymousTypeSuffix
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
-from math import (isnan,isinf)
 
 class xfiFunctionNotAvailable(Exception):
     def __init__(self):
+        super(xfiFunctionNotAvailable, self).__init__()
         self.args =  (_("xfi function not available"),)
     def __repr__(self):
         return self.args[0]

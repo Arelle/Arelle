@@ -7,7 +7,7 @@ Refactored from ModelObject on Jun 11, 2011
 '''
 import six
 
-from arelle import XmlUtil, XbrlConst, ModelValue
+from arelle import XmlUtil, XbrlConst, ModelValue, qname
 from arelle.ModelObject import ModelObject
 
 class ModelTestcaseVariation(ModelObject):
@@ -47,7 +47,7 @@ class ModelTestcaseVariation(ModelObject):
                     else:
                         uri = XmlUtil.innerText(anElement)
                     if anElement.get("name"):
-                        self._readMeFirstUris.append( (ModelValue.qname(anElement, anElement.get("name")), uri) )
+                        self._readMeFirstUris.append( (qname.qname(anElement, anElement.get("name")), uri) )
                     elif anElement.get("dts"):
                         self._readMeFirstUris.append( (anElement.get("dts"), uri) )
                     else:
@@ -60,8 +60,8 @@ class ModelTestcaseVariation(ModelObject):
             return self._parameters
         except AttributeError:
             self._parameters = dict([
-                (ModelValue.qname(paramElt, paramElt.get("name")),
-                 (ModelValue.qname(paramElt, paramElt.get("datatype")),paramElt.get("value"))) 
+                (qname.qname(paramElt, paramElt.get("name")),
+                 (qname.qname(paramElt, paramElt.get("datatype")),paramElt.get("value"))) 
                 for paramElt in XmlUtil.descendants(self, self.namespaceURI, "parameter")])
             return self._parameters
     
@@ -115,7 +115,7 @@ class ModelTestcaseVariation(ModelObject):
             return self.document.basename[:4]   #starts with PASS or FAIL
         errorElement = XmlUtil.descendant(self, None, "error")
         if errorElement is not None:
-            return ModelValue.qname(errorElement, XmlUtil.text(errorElement))
+            return qname.qname(errorElement, XmlUtil.text(errorElement))
         versioningReport = XmlUtil.descendant(self, None, "versioningReport")
         if versioningReport is not None:
             return XmlUtil.text(versioningReport)

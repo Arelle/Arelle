@@ -9,6 +9,7 @@ This module is Arelle's controller in command line non-interactive mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import gettext, time, datetime, os, shlex
+from gettext import gettext as _
 from optparse import OptionParser
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, ViewCsvRelationshipSet, ViewCsvTests)

@@ -5,15 +5,12 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, xml.parsers
-import os, re, collections, datetime
+import os, re, datetime
 from collections import defaultdict
 
 from gettext import gettext as _
 
-from arelle import (ModelDocument, ModelValue, ValidateXbrl,
-                ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,
-                ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
+from arelle import ModelDocument, qname, ValidateXbrl, ModelRelationshipSet, XmlUtil, XbrlConst, ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 
@@ -167,13 +164,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             paramFilerIdentifiers = None
             paramFilerNames = None
             if self.validateEFM and self.parameters:
-                p = self.parameters.get(ModelValue.qname("CIK",noPrefixIsNoNamespace=True))
+                p = self.parameters.get(qname.qname("CIK",noPrefixIsNoNamespace=True))
                 if p and len(p) == 2:
                     paramFilerIdentifier = p[1]
-                p = self.parameters.get(ModelValue.qname("cikList",noPrefixIsNoNamespace=True))
+                p = self.parameters.get(qname.qname("cikList",noPrefixIsNoNamespace=True))
                 if p and len(p) == 2:
                     paramFilerIdentifiers = p[1].split(",")
-                p = self.parameters.get(ModelValue.qname("cikNameList",noPrefixIsNoNamespace=True))
+                p = self.parameters.get(qname.qname("cikNameList",noPrefixIsNoNamespace=True))
                 if p and len(p) == 2:
                     paramFilerNames = p[1].split("|Edgar|")
                     if paramFilerIdentifiers and len(paramFilerIdentifiers) != len(paramFilerNames):

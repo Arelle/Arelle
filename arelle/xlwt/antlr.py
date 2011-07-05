@@ -94,7 +94,6 @@ def is_string_type(x):
 
 def assert_string_type(x):
     assert is_string_type(x)
-    pass
 
 ###xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx###
 ###                     ANTLR Exceptions                           ###
@@ -299,11 +298,11 @@ class MismatchedCharException(RecognitionException):
             if self.mismatchType == MismatchedCharException.NOT_RANGE:
                 sb.append("NOT ")
             sb.append("in range: ")
-            appendCharName(sb, self.expecting)
+            self.appendCharName(sb, self.expecting)
             sb.append("..")
-            appendCharName(sb, self.upper)
+            self.appendCharName(sb, self.upper)
             sb.append(", found ")
-            appendCharName(sb, self.foundChar)
+            self.appendCharName(sb, self.foundChar)
         elif self.mismatchType in [MismatchedCharException.SET, MismatchedCharException.NOT_SET]:
             sb.append("expecting ")
             if self.mismatchType == MismatchedCharException.NOT_SET:
@@ -416,9 +415,9 @@ class MismatchedTokenException(RecognitionException):
             if self.mismatchType == MismatchedTokenException.NOT_RANGE:
                 sb.append("NOT ")
             sb.append("in range: ")
-            appendTokenName(sb, self.expecting)
+            self.appendTokenName(sb, self.expecting)
             sb.append("..")
-            appendTokenName(sb, self.upper)
+            self.appendTokenName(sb, self.upper)
             sb.append(", found " + self.tokenText)
         elif self.mismatchType in [MismatchedTokenException.SET, MismatchedTokenException.NOT_SET]:
             sb.append("expecting ")

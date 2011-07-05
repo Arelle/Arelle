@@ -4,15 +4,16 @@ Created on Jan 9, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil)
+from arelle import XPathContext, XbrlConst, XmlUtil, XbrlUtil
 from arelle.FunctionXs import xsString
 from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFormula, ModelExistenceAssertion,
                                  ModelValueAssertion, 
                                  ModelFactVariable, ModelGeneralVariable, ModelVariable,
                                  ModelParameter, ModelFilter, ModelAspectCover)
-from arelle.ModelValue import (QName)
+from arelle.qname import QName
 import datetime
+from gettext import gettext as _
 
 def evaluate(xpCtx, varSet):
     # for each dependent variable, find bindings

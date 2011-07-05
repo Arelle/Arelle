@@ -11,6 +11,7 @@ from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombob
                      label, checkbox, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
 from collections import defaultdict
+from gettext import gettext as _
 
 def viewFactsGrid(modelXbrl, tabWin, header="Fact Grid", arcrole=XbrlConst.parentChild, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))

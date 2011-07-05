@@ -6,6 +6,7 @@ Created on Oct 6, 2010
 '''
 from arelle import (ModelObject, XbrlConst, ViewCsv)
 import os
+from gettext import gettext as _
 
 def viewRelationshipSet(modelXbrl, csvfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))

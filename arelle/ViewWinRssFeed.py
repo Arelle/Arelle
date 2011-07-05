@@ -8,6 +8,7 @@ from tkinter import *
 from tkinter.ttk import *
 import os
 from arelle import (ViewWinTree, ModelDocument)
+from gettext import gettext as _
 
 def viewRssFeed(modelXbrl, tabWin):
     view = ViewRssFeed(modelXbrl, tabWin)

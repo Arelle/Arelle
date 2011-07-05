@@ -4,13 +4,16 @@ Created on Dec 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from lxml import etree
+from gettext import gettext as _
+
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                           exceptionErrorIndication)
 from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
-from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
-from lxml import etree
+from arelle.qname import qname, QName
+from arelle.ModelValue import dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI
 
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
@@ -302,7 +305,7 @@ class XPathContext:
                                         qn = t.args[0]
                                         if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
                                             result = True
-                                            if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
+                                            if len(t.args) >= 2 and isinstance(t.args[1], QNameDef):
                                                 modelXbrl = x.modelDocument.modelXbrl
                                                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                                                 if not modelConcept.instanceOfType(t.args[1]):
@@ -431,7 +434,7 @@ class XPathContext:
                     targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
                     targetNodes = [ XmlUtil.parent(node) ]
-            elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
+            elif isinstance(p, OperationDef) and isinstance(p.name, QNameDef):
                 if p.name.localName == "text":
                     targetNodes = [XmlUtil.text(node)]
                 # todo: add element, attribute, node, etc...

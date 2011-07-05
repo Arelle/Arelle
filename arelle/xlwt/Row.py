@@ -13,7 +13,6 @@ except ImportError:
     class Decimal(object):
         pass
 
-
 class Row(object):
     __slots__ = [# private variables
                  "__idx",

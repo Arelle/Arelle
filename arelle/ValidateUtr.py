@@ -7,7 +7,7 @@ Created on Dec 30, 2010
 import os
 from gettext import gettext as _ 
 from lxml import etree
-from arelle import (ModelDocument, ModelValue, XbrlConst, XmlUtil)
+from arelle import ModelDocument
 
 def loadUtr(modelManager): # Build a dictionary of item types that are constrained by the UTR.
     modelManager.utrDict = {} # This attribute is unbound on modelManager until this function is called.
@@ -45,7 +45,7 @@ def MeasureQName(node): # Return the qame of the content of the measure element
     assert node.nodeType == xml.dom.Node.ELEMENT_NODE
     assert node.localName == "measure"
     assert node.namespaceUri == XbrlConst.xbrli
-    return ModelValue.qname(node, node.text)
+    return qname.qname(node, node.text)
 '''
 
 def UnitSatisfies(aRegEntry, unit, modelXbrl): # Return true if entry is satisfied by unit

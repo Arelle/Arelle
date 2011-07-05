@@ -5,10 +5,11 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, sys, traceback
+from gettext import gettext as _
 from collections import defaultdict
 from arelle import (ModelXbrl, ModelVersReport, XbrlConst, ModelDocument,
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula)
-from arelle.ModelValue import (qname, QName)
+from arelle.qname import qname, QName
 
 def validate(modelXbrl):
     validate = Validate(modelXbrl)

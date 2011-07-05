@@ -8,6 +8,7 @@ import os
 from gettext import gettext as _
 
 from arelle import (ModelDocument, ViewCsv)
+from gettext import gettext as _
 
 def viewTests(modelXbrl, csvfile):
     modelXbrl.modelManager.showStatus(_("viewing Tests"))

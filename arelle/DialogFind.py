@@ -4,10 +4,13 @@ Created on May 1, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+import re
+from gettext import gettext as _
+
 from tkinter import *
 from tkinter.ttk import *
-import tkinter.messagebox, traceback
-import re
+import tkinter.messagebox
+
 from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton)
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import (ModelDocument, ModelRssObject, XPathContext, XPathParser, XmlUtil)

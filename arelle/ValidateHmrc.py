@@ -4,13 +4,10 @@ Created on May 20, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, xml.parsers
-import os, re, collections, datetime
+import re
 from gettext import gettext as _
 from collections import defaultdict
-from arelle import (ModelObject, ModelDocument, ModelValue, ValidateXbrl,
-                ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,
-                ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
+from arelle import ModelDocument, ValidateXbrl, XmlUtil 
 
 class ValidateHmrc(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):

@@ -4,7 +4,8 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ViewCsv, XbrlConst)
+from gettext import gettext as _
+from arelle import ViewCsv, XbrlConst
 from collections import defaultdict
 
 def viewConcepts(modelXbrl, csvfile, lang=None):

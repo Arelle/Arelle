@@ -9,7 +9,7 @@ from gettext import gettext as _
 from lxml import etree
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
+from arelle.qname import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser

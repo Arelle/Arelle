@@ -4,6 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from gettext import gettext as _
 from arelle import ViewWinTree, XbrlConst
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelFact

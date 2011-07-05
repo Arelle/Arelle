@@ -4,6 +4,8 @@ Created on Jan 10, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+from gettext import gettext as _
+
 from arelle import (ViewCsv, XbrlConst)
 from collections import defaultdict
 

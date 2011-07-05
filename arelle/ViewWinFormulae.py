@@ -8,6 +8,7 @@ from collections import defaultdict
 import os
 from arelle import (ViewWinTree, ModelObject, XbrlConst)
 from arelle.ModelFormulaObject import (ModelVariable)
+from gettext import gettext as _
 
 def viewFormulae(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing formulas"))

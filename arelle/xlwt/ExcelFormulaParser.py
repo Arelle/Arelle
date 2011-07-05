@@ -1,6 +1,5 @@
 ### $ANTLR 2.7.7 (20060930): "xlwt/excel-formula.g" -> "ExcelFormulaParser.py"$
 ### import antlr and other modules ..
-import sys
 from arelle.xlwt import antlr
 
 ### header action >>>
@@ -165,7 +164,6 @@ class Parser(antlr.LLkParser):
 
                 self.prec2_expr(arg_type)
                 self.rpn += op;
-                          # print "**prec1_expr4 %s" % arg_type
             else:
                 break
 

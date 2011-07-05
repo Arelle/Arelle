@@ -7,7 +7,7 @@ Refactored from ModelObject on Jun 11, 2011
 '''
 from collections import defaultdict
 from lxml import etree
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
+from arelle import XmlUtil, XbrlConst, XbrlUtil, Locale, ModelValue, qname
 from arelle.ModelObject import ModelObject
 
 class ModelFact(ModelObject):
@@ -100,7 +100,7 @@ class ModelFact(ModelObject):
         try:
             return self._ancestorQnames
         except AttributeError:
-            self._ancestorQnames = set( ModelValue.qname(ancestor) for ancestor in self.iterancestors() )
+            self._ancestorQnames = set( qname.qname(ancestor) for ancestor in self.iterancestors() )
             return self._ancestorQnames
 
     @property
@@ -491,7 +491,7 @@ class ModelContext(ModelObject):
         dimValue = self.dimValue(dimQname)
         if isinstance(dimValue, ModelDimensionValue) and dimValue.isExplicit:
             return dimValue.memberQname
-        elif isinstance(dimValue, ModelValue.QName):
+        elif isinstance(dimValue, qname.QName):
             return dimValue
         if not dimValue and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
             return self.modelXbrl.qnameDimensionDefaults[dimQname]
@@ -645,7 +645,7 @@ class ModelContext(ModelObject):
                 )
 
 def measuresOf(parent):
-    return sorted([ModelValue.qname(m, XmlUtil.text(m)) 
+    return sorted([qname.qname(m, XmlUtil.text(m)) 
                    for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure")])
 
 def measuresStr(m):
@@ -699,7 +699,7 @@ class ModelDimensionValue(ModelObject):
             return  self._member
         
     def isEqualTo(self, other):
-        if isinstance(other, ModelValue.QName):
+        if isinstance(other, qname.QName):
             return self.isExplicit and self.memberQname == other
         elif other is None:
             return False

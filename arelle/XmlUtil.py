@@ -8,7 +8,7 @@ import re, datetime, six
 from lxml import etree
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject, ModelComment
-from arelle.ModelValue import qname, QName
+from arelle import qname
 
 datetimePattern = re.compile('\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|'
                              '\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*')
@@ -245,8 +245,8 @@ def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=
     wildLocalName = descendantLocalNames == ('*',)
     wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
     if isinstance(element,(ModelObject,etree._ElementTree)):
-        for child in (element.iterdescendants() if isinstance(element,ModelObject) else element.iter()):
-            if isinstance(child,ModelObject) and \
+        for child in (element.iterdescendants() if isinstance(element, ModelObject) else element.iter()):
+            if isinstance(child, ModelObject) and \
                 (wildNamespaceURI or child.elementNamespaceURI == descendantNamespaceURI) and \
                 (wildLocalName or child.localName in descendantLocalNames):
                 if attrName:
@@ -271,9 +271,9 @@ def schemaDescendantsNames(element, descendantNamespaceURI, descendantLocalName,
         if isinstance(child,ModelObject):
             if child.get("name"):
                 # need to honor attribute/element form default
-                qnames.add(qname(targetNamespace(element), child.get("name")))
+                qnames.add(qname.qname(targetNamespace(element), child.get("name")))
             elif child.get("ref"):
-                qnames.add(qname(element, child.get("ref")))
+                qnames.add(qname.qname(element, child.get("ref")))
     return qnames
 
 def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name):
@@ -281,10 +281,10 @@ def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name)
         if isinstance(child,ModelObject):
             # need to honor attribute/element form default
             if descendantLocalName == "attribute":
-                if child.get("name") == (name.localName if isinstance(name,QName) else name):
+                if child.get("name") == (name.localName if isinstance(name, qname.QName) else name):
                     return child
             else:
-                if qname(child, child.get("name")) == name:
+                if qname.qname(child, child.get("name")) == name:
                     return child
     return None
 
@@ -293,7 +293,7 @@ def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name)
 def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None):
     from arelle.FunctionXs import xsString
     modelDocument = parent.modelDocument
-    if isinstance(childName1, QName):
+    if isinstance(childName1, qname.QName):
         addQnameValue(modelDocument, childName1)
         child = modelDocument.parser.makeelement(childName1.clarkNotation)
     else:   # called with namespaceURI, localName
@@ -312,7 +312,7 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
         parent.append(child)
     if attributes:
         for name, value in (attributes if len(attributes) > 0 and isinstance(attributes[0],tuple) else (attributes,)):
-            if isinstance(name,QName):
+            if isinstance(name, qname.QName):
                 if name.namespaceURI:
                     addQnameValue(modelDocument, name)
                 child.set(name.clarkNotation, str(value))
@@ -330,7 +330,7 @@ def copyNodes(parent, elts):
         copyElt.init(modelDocument)
         parent.append(copyElt)
         for attrTag, attrValue in origElt.items():
-            qn = qname(attrTag)
+            qn = qname.qname(attrTag)
             if qn.prefix and qn.namespaceURI:
                 setXmlns(modelDocument, qn.prefix, qn.namespaceURI)
                 copyElt.set(attrTag, attrValue)
@@ -338,7 +338,7 @@ def copyNodes(parent, elts):
                 copyElt.set(attrTag, attrValue)
         textContentSet = False
         if hasattr(origElt, "xValue"):
-            if isinstance(origElt.xValue,QName):
+            if isinstance(origElt.xValue, qname.QName):
                 copyElt.text = addQnameValue(modelDocument, origElt.xValue)
                 textContentSet = True
         if not textContentSet:

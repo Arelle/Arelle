@@ -9,6 +9,7 @@ from tkinter import *
 from tkinter.ttk import *
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XmlUtil
+from gettext import gettext as _
 
 class ViewList():
     def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False):

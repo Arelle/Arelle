@@ -11,8 +11,7 @@ from gettext import gettext as _
 import six
 
 if six.PY3:
-    from urllib.request import ProxyHandler, ProxyBasicAuthHandler, \
-                                HTTPBasicAuthHandler, build_opener
+    from urllib.request import ProxyHandler, ProxyBasicAuthHandler, HTTPBasicAuthHandler, build_opener
     from urllib.parse import unquote
     from urllib.error import HTTPError, URLError, ContentTooShortError
 else:

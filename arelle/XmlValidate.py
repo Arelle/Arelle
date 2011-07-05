@@ -5,9 +5,10 @@ Created on Feb 20, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
-import xml.dom.minidom, os
-from arelle import (XbrlConst, XmlUtil)
-from arelle.ModelValue import (qname, dateTime, DATE, DATETIME)
+from gettext import gettext as _
+from arelle import XbrlConst, XmlUtil
+from arelle.qname import qname
+from arelle.ModelValue import dateTime, DATE, DATETIME
 
 UNKNOWN = 0
 INVALID = 1

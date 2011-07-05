@@ -4,11 +4,14 @@ Created on Jan 25, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+import re
+from gettext import gettext as _
+
 from tkinter import *
 from tkinter.ttk import *
-import re
+
 from arelle.ModelFormulaObject import FormulaOptions
-from arelle.ModelValue import qname
+from arelle.qname import qname
 from arelle import FunctionXs
 from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
 

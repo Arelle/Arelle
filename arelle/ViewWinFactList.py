@@ -5,6 +5,7 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import (ViewWinTree, ModelDtsObject)
+from gettext import gettext as _
 
 def viewFacts(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))

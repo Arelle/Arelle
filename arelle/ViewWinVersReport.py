@@ -9,6 +9,7 @@ import os
 from arelle import (ViewWinTree, ModelObject, XbrlConst)
 from arelle.ModelVersObject import (ModelConceptChange, ModelRelationshipSetChange, ModelRelationshipSet,
                               ModelRelationships, ModelInstanceAspectsChange)
+from gettext import gettext as _
 
 def viewVersReport(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing versioning report"))
