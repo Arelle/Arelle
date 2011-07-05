@@ -1,3 +1,6 @@
+"""
+This script runs the conformance tests to validate the implementation.
+"""
 import sys
 import os, os.path
 import gettext
@@ -117,6 +120,7 @@ def conformance_test():
             yield(z)
             
 if __name__ == "__main__":
+    import nose
     """Main program."""
     argv = ["nosetests", "-v", "--with-xunit"]
     nose.main(argv=argv)

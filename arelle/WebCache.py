@@ -4,8 +4,21 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from six.moves import urllib_parse, urllib_request, urllib_error
+
 import os, posixpath, sys, re, shutil, time, pickle
+from gettext import gettext as _
+import six
+
+if six.PY3:
+    from urllib.request import ProxyHandler, ProxyBasicAuthHandler, \
+                                HTTPBasicAuthHandler, build_opener
+    from urllib.parse import unquote
+    from urllib.error import HTTPError, URLError, ContentTooShortError
+else:
+    from urllib import ContentTooShortError, unquote
+    from urllib2 import ProxyHandler, ProxyBasicAuthHandler, \
+                        HTTPBasicAuthHandler, build_opener, URLError, HTTPError
+                        
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,tuple) and len(httpProxyTuple) == 5:
@@ -65,15 +78,15 @@ class WebCache:
         self.cachedUrlCheckTimesModified = False
         
     def resetProxies(self, httpProxyTuple):
-        self.proxy_handler = urllib_error.ProxyHandler(proxyDirFmt(httpProxyTuple))
-        self.proxy_auth_handler = urllib_error.ProxyBasicAuthHandler()
-        self.http_auth_handler = urllib_error.HTTPBasicAuthHandler()
-        self.opener = urllib_error.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
+        self.proxy_handler = ProxyHandler(proxyDirFmt(httpProxyTuple))
+        self.proxy_auth_handler = ProxyBasicAuthHandler()
+        self.http_auth_handler = HTTPBasicAuthHandler()
+        self.opener = build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
     
     def normalizeUrl(self, url, base=None):
         if url and not (url.startswith('http://') or os.path.isabs(url)):
             if base is not None and not base.startswith('http:') and '%' in url:
-                url = urllib_unparse.unquote(url)
+                url = unquote(url)
             if base:
                 if base.startswith("http://"):
                     prot, sep, path = base.partition("://")
@@ -146,13 +159,13 @@ class WebCache:
                                       filename=filepathtmp,
                                       reporthook=self.reportProgress)
                     retryCount = 0
-                except urllib_request.ContentTooShortError as err:
+                except ContentTooShortError as err:
                     self.cntlr.addToLog(_("{0} \nretrieving {1}").format(err,url))
                     if os.path.exists(filepathtmp):
                         os.remove(filepathtmp)
                     return None
                     # handle file is bad
-                except (urllib_error.HTTPError, urllib_error.URLError) as err:
+                except (HTTPError, URLError) as err:
                     try:
                         if err.code == 401 and 'www-authenticate' in err.headers:
                             match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.headers['www-authenticate'])
@@ -273,7 +286,7 @@ class WebCache:
             fp.close()
         # raise exception if actual size does not match content-length header
         if size >= 0 and read < size:
-            raise urllib_request.ContentTooShortError(
+            raise ContentTooShortError(
                 "retrieval incomplete: got only %i out of %i bytes"
                 % (read, size), result)
 
