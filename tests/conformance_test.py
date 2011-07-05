@@ -1,9 +1,10 @@
-"""
-This script runs the conformance tests to validate the implementation.
-"""
-import os.path, gettext, nose
+import sys
+import os, os.path
+import gettext
 from functools import partial
+
 from arelle import Cntlr, FileSource, ModelDocument
+from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 
 gettext.install("arelle")
@@ -23,20 +24,20 @@ gettext.install("arelle")
 
 verbose = True
 tests = {
-         'XBRL' :  {    # XBRL 2.1
+         'xbrl' :  {    # XBRL 2.1
                     'url'  : 'http://www.xbrl.org/2008/XBRL-CONF-CR4-2008-07-02.zip',
                     'args' : ["xbrl.xml", "xbrl.csv", "xbrl.log", False, False, False]
                     }, 
          
-         'Formula' : {  # Formula
+         'formula' : {  # Formula
                       'url'  : 'http://www.xbrl.org/Specification/formula/REC-2009-06-22/conformance/Formula-CONF-REC-PER-Errata-2011-03-16.zip',
                       'args' : [ "index.xml", "formula.csv", "formula.log", False, False, False],
                       },
-         'XDT' : {      # XDT
+         'xdt' : {      # XDT
                   'url'  : "http://www.xbrl.org/2009/XDT-CONF-CR4-2009-10-06.zip",
                   'args' : [ "xdt.xml", "xdt.csv", "xdt.log", False, False, False ]
                   }, 
-         'Edgar' : {    # Edgar
+         'edgar' : {    # Edgar
                     'url'  : 'http://www.sec.gov/info/edgar/ednews/efmtest/16-110225.zip',
                     'args' : [ "testcases.xml", "edgar.csv", "edgar.log", True, False, False]
                     }
