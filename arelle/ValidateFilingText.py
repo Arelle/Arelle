@@ -1,13 +1,14 @@
-'''
+# -*- encoding: UTF-8 -*-
+"""
 Created on Oct 17, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
-'''
+"""
+import six
 import xml.sax, xml.sax.handler
 import os, re, io
 from arelle import XbrlConst
-from arelle.ModelObject import ModelObject
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
@@ -369,7 +370,7 @@ xhtmlEntities = {
     }
 
 def checkfile(modelXbrl, filepath):
-    result = []
+    result = ""
     lineNum = 1
     foundXmlDeclaration = False
     with modelXbrl.fileSource.file(filepath) as f:
@@ -397,16 +398,9 @@ def checkfile(modelXbrl, filepath):
                     start,end = xmlDeclarationMatch.span()
                     line = line[0:start] + line[end:]
                     foundXmlDeclaration = True
-            result.append(line)
+            result += line
             lineNum += 1
-    result = ''.join(result)
-    if not foundXmlDeclaration: # may be multiline, try again
-        xmlDeclarationMatch = XMLdeclaration.search(result)
-        if xmlDeclarationMatch: # remove it for lxml
-            start,end = xmlDeclarationMatch.span()
-            result = result[0:start] + result[end:]
-            foundXmlDeclaration = True
-    return io.StringIO(initial_value=result)
+    return io.StringIO(six.u(result))
         
 def removeEntities(text):
     entitylessText = []
@@ -490,7 +484,7 @@ def validateFootnote(modelXbrl, footnote, parent=None):
                         "err", "EFM.6.05.34")
             
     for child in footnote.iterchildren():
-        if isinstance(child,ModelObject): #element
+        if isinstance(child, ModelObject): #element
             if not child.localName in bodyTags:
                 modelXbrl.error(
                     _("Footnote {0} has disallowed html tag: <{1}>").format(

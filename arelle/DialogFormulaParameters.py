@@ -25,7 +25,7 @@ def getParameters(mainWin):
 class DialogFormulaParameters(Toplevel):
     def __init__(self, mainWin, options):
         parent = mainWin.parent
-        super().__init__(parent)
+        super(DialogFormulaParameters, self).__init__(parent)
         self.parent = parent
         self.options = options
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())

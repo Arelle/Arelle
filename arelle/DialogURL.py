@@ -21,7 +21,7 @@ def askURL(parent, url=None):
 
 class DialogURL(Toplevel):
     def __init__(self, parent, url=None):
-        super().__init__(parent)
+        super(DialogURL, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))

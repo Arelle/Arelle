@@ -20,7 +20,7 @@ def viewProperties(modelXbrl, tabWin):
     
 class ViewProperties(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "Properties", True)
+        super(ViewProperties, self).__init__(modelXbrl, tabWin, "Properties", True)
         self.openProperties = set()
                 
     def view(self):

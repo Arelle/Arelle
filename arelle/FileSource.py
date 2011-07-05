@@ -207,7 +207,9 @@ class FileSource:
                                 io.BytesIO(b), 
                                 encoding=XmlUtil.encoding(b))
                 return None
-        return open(filepath, 'rt', encoding='utf-8')
+        return open(filepath, 'rU')
+        # TODO: This might need to be fixed -- IRJ
+        # return open(filepath, 'rt', encoding='utf-8')
     
     @property
     def dir(self):

@@ -10,13 +10,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import sys
-import encodings
-import encodings.aliases
-import re
-import collections
-from builtins import str as _builtin_str
-import functools
+import sys, encodings, re, collections, functools, locale, encodings.aliases
 
 CHAR_MAX = 127
 LC_ALL = 6
@@ -29,15 +23,17 @@ LC_TIME = 2
 
 def getUserLocale():
     # get system localeconv and reset system back to default
-    import locale
     locale.setlocale(locale.LC_ALL, '')
     conv = locale.localeconv()
     locale.setlocale(locale.LC_ALL, 'C')
     return conv
 
 def getLanguageCode():
-    import locale
-    return locale.getdefaultlocale()[0].replace("_","-")
+    lang = locale.getdefaultlocale()[0]
+    if lang is not None:
+        return lang.replace("_","-")
+    else:
+        return "en-US"
 
 # Iterate over grouping intervals
 def _grouping_intervals(grouping):

@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 '''
 Created on Oct 17, 2010
 
@@ -7,6 +8,9 @@ Created on Oct 17, 2010
 import xml.dom, xml.parsers
 import os, re, collections, datetime
 from collections import defaultdict
+
+from gettext import gettext as _
+
 from arelle import (ModelDocument, ModelValue, ValidateXbrl,
                 ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,
                 ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
@@ -15,8 +19,8 @@ from arelle.ModelInstanceObject import ModelFact
 
 class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
-        super().__init__(modelXbrl)
-        
+        super(ValidateFiling, self).__init__(modelXbrl)
+        # TODO: These should be class variables, not instance
         self.datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
         self.GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
         self.targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
@@ -24,10 +28,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         self.roleTypePattern = re.compile(r".*/role/[^/]+")
         self.arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
         self.arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
-        
+
         self.signOrCurrency = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac£¥])")
 
-        
     def validate(self, modelXbrl, parameters=None):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
             return
@@ -55,7 +58,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         labelsRelationshipSet = modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         presentationRelationshipSet = modelXbrl.relationshipSet(XbrlConst.parentChild)
         referencesRelationshipSetWithProhibits = modelXbrl.relationshipSet(XbrlConst.conceptReference, includeProhibits=True)
-        self.modelXbrl.profileActivity("... cache lbl, pre, ref relationships", minTimeToShow=1.0)
+        self.modelXbrl.profileActivity("... cache lbl, pre, ref relationships")
         
         validateInlineXbrlGFM = (modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and
                                  self.validateGFM)
@@ -88,7 +91,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                            disclosureSystem.identifierValueName,
                                            entityIdentifierValue, entityIdentifier), 
                                 "err", "EFM.6.05.03", "GFM.1.02.03")
-                self.modelXbrl.profileActivity("... filer identifier checks", minTimeToShow=1.0)
+                self.modelXbrl.profileActivity("... filer identifier checks")
     
             #6.5.7 duplicated contextx
             contexts = modelXbrl.contexts.values()
@@ -146,7 +149,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                          contextID, childTags), 
                                     "err", "EFM.6.05.05", "GFM.1.02.05")
             del uniqueContextHashes
-            self.modelXbrl.profileActivity("... filer context checks", minTimeToShow=1.0)
+            self.modelXbrl.profileActivity("... filer context checks")
     
     
             #fact items from standard context (no dimension)
@@ -286,7 +289,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelXbrl.error(_('ix-numeric Fact {0} of context {1} has a sign or currency symbol "{2}" in "{3}"').format(
                                      f.qname, f.contextID, "".join(s for t in syms for s in t), f.text),
                                 "err", "EFM.N/A", "GFM.1.10.18")
-            self.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
+            self.modelXbrl.profileActivity("... filer fact checks")
     
             if len(contextIDs) > 0:
                 modelXbrl.error(_("The instance document contained a context(s) {0} that was(are) not used in any fact.").format(
@@ -343,7 +346,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                              otherCntx.id, cntx.id, documentType), 
                                         "err", "EFM.6.05.10")
                 del durationCntxStartDatetimes
-                self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
+                self.modelXbrl.profileActivity("... filer instant-duration checks")
                 
             #6.5.19 required context
             foundRequiredContext = False
@@ -370,7 +373,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 else:
                     uniqueUnitHashes[h] = unit
             del uniqueUnitHashes
-            self.modelXbrl.profileActivity("... filer unit checks", minTimeToShow=1.0)
+            self.modelXbrl.profileActivity("... filer unit checks")
    
     
             # EFM.6.05.14, GFM.1.02.13 xml:lang tests, EFM is just 'en', GFM is full default lang
@@ -424,8 +427,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     factForConceptContextUnitLangHash[h] = f1
                 iF1 += 1
             del factForConceptContextUnitLangHash
-            self.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
-    
+            self.modelXbrl.profileActivity("... filer fact checks")
+
             #6.5.14 facts without english text
             for keyNotDefaultLang, factNotDefaultLang in keysNotDefaultLang.items():
                 anyDefaultLangFact = False
@@ -510,7 +513,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 disclosureSystem.deiDocumentPeriodEndDateElement,
                                 documentPeriodEndDate), 
                             "err", "EFM.6.05.20", "GFM.3.02.01")
-            self.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
+            self.modelXbrl.profileActivity("... filer label and text checks")
     
             if self.validateEFM:
                 if amendmentFlag == "true" and not amendmentDescription:
@@ -623,7 +626,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("dei:{0} is required in the default context").format(
                                   deiItem), 
                             "err", "GFM.3.02.01")
-            self.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
+            self.modelXbrl.profileActivity("... filer required facts checks")
     
             #6.5.25 domain items as facts
             if self.validateEFM:
@@ -721,7 +724,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                 footnoteLinkNbr, 
                                                 child.get("{http://www.w3.org/1999/xlink}label")), 
                                             "err", "EFM.6.05.33", "GFM.1.02.24")
-            self.modelXbrl.profileActivity("... filer rfootnotes checks", minTimeToShow=1.0)
+            self.modelXbrl.profileActivity("... filer rfootnotes checks")
 
         # all-labels and references checks
         defaultLangStandardLabels = {}
@@ -795,13 +798,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("Concept {0} not referred to by presentation relationship.").format(
                                 concept.qname),
                             "err", "SBR.NL.2.2.0.21")
-        self.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
+        self.modelXbrl.profileActivity("... filer concepts checks")
 
         defaultLangStandardLabels = None #dereference
 
         # checks on all documents: instance, schema, instance                                
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
-        self.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
+        self.modelXbrl.profileActivity("... filer DTS checks")
 
         
         conceptsUsedWithPreferredLabels = defaultdict(list)
@@ -972,12 +975,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                               os.path.basename(arcrole), relFrom.qname, rel.linkrole, rel.toModelObject.qname), 
                                         "err", "GFM.1.08.11")
 
-        self.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
+        self.modelXbrl.profileActivity("... filer relationships checks")
 
                                 
         # checks on dimensions
         ValidateFilingDimensions.checkDimensions(self, drsELRs)
-        self.modelXbrl.profileActivity("... filer dimensions checks", minTimeToShow=1.0)
+        self.modelXbrl.profileActivity("... filer dimensions checks")
                                         
         for concept, hasPresentationRelationship in conceptsUsed.items():
             if not hasPresentationRelationship:

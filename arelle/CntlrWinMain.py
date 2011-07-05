@@ -37,9 +37,8 @@ from arelle.FileSource import openFileSource
 restartMain = True
 
 class CntlrWinMain (Cntlr.Cntlr):
-
     def __init__(self, parent):
-        super().__init__()
+        super(CntlrWinMain, self).__init__()
         self.parent = parent
         self.filename = None
         self.dirty = False
@@ -705,7 +704,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowGeometry"] = self.parent.geometry()
             if state in ("normal", "zoomed"):
                 self.config["windowState"] = state
-            super().close()
+            super(CntlrWinMain, self).close()
             self.parent.unbind_all(())
             self.parent.destroy()
             if self.logFile:

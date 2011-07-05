@@ -53,7 +53,7 @@ def pushQuotedString( sourceStr, loc, toks ):
 
 class QNameDef(ModelValue.QName):
     def __init__(self, loc, prefix, namespaceURI, localName, isAttribute=False):
-        super().__init__(prefix, namespaceURI, localName)
+        super(QNameDef, self).__init__(prefix, namespaceURI, localName)
         self.unprefixed = prefix is None
         self.isAttribute = isAttribute
         self.loc = loc
@@ -63,9 +63,9 @@ class QNameDef(ModelValue.QName):
         return ("{0}QName({1})".format('@' if self.isAttribute else '',str(self)))
     def __eq__(self,other):
         if isinstance(other,QNameDef):
-            return other.loc == self.loc and super().__eq__(other) 
+            return other.loc == self.loc and super(QNameDef, self).__eq__(other) 
         else:
-            return super().__eq__(other)
+            return super(QNameDef, self).__eq__(other)
     def __ne__(self,other):
     	return not self.__eq__(other)
 

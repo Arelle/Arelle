@@ -10,7 +10,7 @@ from arelle.ModelObject import ModelObject
 
 class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelTestcaseVariation, self).init(modelDocument)
         self.status = ""
         self.actual = []
         self.assertions = None

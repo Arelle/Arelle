@@ -5,6 +5,7 @@ Created on Jan 4, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import re, copy, datetime
+import six
 
 def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, prefixException=None):
     # either value can be an etree ModelObject element: if no name then qname is element tag quanem
@@ -29,7 +30,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         element = None
     if isinstance(value,QName):
         return value
-    elif not isinstance(value,str):
+    elif not isinstance(value, six.string_types):
         if castException: raise castException
         return None
     if value.startswith('{'): # clark notation (with optional prefix)
@@ -123,11 +124,11 @@ class QName:
 from arelle.ModelObject import ModelObject
     
 def anyURI(value):
-	return AnyURI(value)
-	
+    return AnyURI(value)
+
 class AnyURI(str):
     def __new__(cls, value):
-        return super().__new__(cls, value)
+        return super(AnyURI, self).__new__(cls, value)
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
@@ -200,7 +201,7 @@ class DateTime(datetime.datetime):
         lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d -= lastDay; m += 1
         if m > 12: m = 1; y += 1
-        dateTime = super().__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
+        dateTime = super(DateTime, self).__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
         dateTime.dateOnly = dateOnly
         return dateTime
     def __copy__(self):
@@ -218,14 +219,14 @@ class DateTime(datetime.datetime):
             return self.addYearMonthDuration(other, 1)
         else:
             if isinstance(other, Time): other = dayTimeDuration(other)
-            dt = super().__add__(other)
+            dt = super(DateTime, self).__add__(other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
     def __sub__(self, other):
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
         else:
-            dt = super().__sub__(other)
+            dt = super(DateTime, self).__sub__(other)
             if isinstance(dt,datetime.timedelta):
                 return DayTimeDuration(dt.days, 0, 0, dt.seconds)
             else:
@@ -251,9 +252,9 @@ def yearMonthDuration(value):
     sign = -1 if minus else 1
     return YearMonthDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
     
-class YearMonthDuration():
+class YearMonthDuration(object):
     def __new__(cls, years, months):
-        yrMo = super().__new__(cls)
+        yrMo = super(YearMonthDuration, self).__new__(cls)
         yrMo.years = years
         yrMo.months = months
         return yrMo
@@ -270,7 +271,7 @@ def dayTimeDuration(value):
     
 class DayTimeDuration(datetime.timedelta):
     def __new__(cls, days, hours, minutes, seconds):
-        dyTm = super().__new__(cls,days,hours,minutes,seconds)
+        dyTm = super(DayTimeDuration, self).__new__(cls,days,hours,minutes,seconds)
         return dyTm
     def dayHrsMinsSecs(self):
         days = int(self.days)
@@ -324,7 +325,7 @@ class Time(datetime.time):
     def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None):
         hour24 = (hour == 24 and minute == 0 and second == 0 and microsecond == 0)
         if hour24: hour = 0
-        time = super().__new__(cls, hour, minute, second, microsecond, tzinfo)
+        time = super(Time, self).__new__(cls, hour, minute, second, microsecond, tzinfo)
         time.hour24 = hour24
         return time
     

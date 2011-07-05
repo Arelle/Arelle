@@ -12,7 +12,7 @@ class ModelRssObject(ModelDocument):
     def __init__(self, modelXbrl, 
                  type=Type.RSSFEED, 
                  uri=None, filepath=None, xmlDocument=None):
-        super().__init__(modelXbrl, type, uri, filepath, xmlDocument)
+        super(ModelRssObject, self).__init__(modelXbrl, type, uri, filepath, xmlDocument)
         self.items = []
         
     def rssFeedDiscover(self, rootElement):

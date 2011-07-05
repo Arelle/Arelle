@@ -7,7 +7,7 @@ Created on Oct 3, 2010
 import tempfile, os, pickle, sys
 from arelle import (ModelManager, WebCache)
 
-class Cntlr:
+class Cntlr(object):
 
     __version__ = "0.0.4"
     

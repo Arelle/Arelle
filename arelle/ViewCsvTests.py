@@ -16,7 +16,7 @@ def viewTests(modelXbrl, csvfile):
     
 class ViewTests(ViewCsv.View):
     def __init__(self, modelXbrl, csvfile):
-        super().__init__(modelXbrl, csvfile, "Tests")
+        super(ViewTests, self).__init__(modelXbrl, csvfile, "Tests")
         
     def viewTestcaseIndexElement(self, modelDocument):
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):

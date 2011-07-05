@@ -1,10 +1,9 @@
-import sys
-import os, os.path
-import gettext
+"""
+This script runs the conformance tests to validate the implementation.
+"""
+import os.path, gettext, nose
 from functools import partial
-
 from arelle import Cntlr, FileSource, ModelDocument
-from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 
 gettext.install("arelle")
@@ -24,30 +23,29 @@ gettext.install("arelle")
 
 verbose = True
 tests = {
-         'xbrl' :  {    # XBRL 2.1
+         'XBRL' :  {    # XBRL 2.1
                     'url'  : 'http://www.xbrl.org/2008/XBRL-CONF-CR4-2008-07-02.zip',
                     'args' : ["xbrl.xml", "xbrl.csv", "xbrl.log", False, False, False]
                     }, 
          
-         'formula' : {  # Formula
+         'Formula' : {  # Formula
                       'url'  : 'http://www.xbrl.org/Specification/formula/REC-2009-06-22/conformance/Formula-CONF-REC-PER-Errata-2011-03-16.zip',
                       'args' : [ "index.xml", "formula.csv", "formula.log", False, False, False],
                       },
-         'xdt' : {      # XDT
+         'XDT' : {      # XDT
                   'url'  : "http://www.xbrl.org/2009/XDT-CONF-CR4-2009-10-06.zip",
                   'args' : [ "xdt.xml", "xdt.csv", "xdt.log", False, False, False ]
                   }, 
-         'edgar' : {    # Edgar
+         'Edgar' : {    # Edgar
                     'url'  : 'http://www.sec.gov/info/edgar/ednews/efmtest/16-110225.zip',
                     'args' : [ "testcases.xml", "edgar.csv", "edgar.log", True, False, False]
                     }
          }
 
-def check_variation(index, test, variation):
-    assert variation.status == "pass"
-    
-class Tester(Cntlr.Cntlr):
+class TestCntlr(Cntlr.Cntlr):
+    """The function used to wrap tests."""
     def run(self, testfn, csvfn, logfn, efm, utr, dec):
+        """The run method is invoked to make things happen."""
         self.messages = []
         self.filename = testfn
         filesource = FileSource.FileSource(self.filename, self)
@@ -66,9 +64,7 @@ class Tester(Cntlr.Cntlr):
         self.modelManager.formulaOptions = FormulaOptions()
 
         modelXbrl = self.modelManager.load(filesource, gettext.gettext("validating"))
-
         self.modelManager.validate()
-
         modelDocument = modelXbrl.modelDocument
 
         self.outcomes = list()
@@ -98,25 +94,28 @@ class Tester(Cntlr.Cntlr):
     def showStatus(self, msg, clearAfter=None):
         pass
 
+def check_variation(index, test, variation):
+    assert variation.status == "pass"
+  
 def conformance_test():
     dirpath=os.path.join(os.getcwd(), "tests", "conformance")
-
-    # At the moment xbrl and xdt work, efm and formula fail with None.type error
-    for test in [tests["xbrl"], tests["xdt"]]:
+    for name in ["XBRL", "XDT", "Formula", "Edgar"]:
+        test = tests[name]
         short_name = os.path.basename(test['url'])
-        local_name = os.path.join(dirpath, short_name)
         dir_name = os.path.join(dirpath, os.path.splitext(short_name)[0])
-
         args = test['args']
         args[0] = os.path.join(dir_name, args[0])
         args[1] = os.path.join(dir_name, args[1])
         args[2] = os.path.join(dir_name, args[2])
-
-        for index, test, variation in Tester().run(*args):
-            partial_fn = partial(check_variation, index, test, variation)
-            base_message = "%(index)s %(test)s %(id)s %(name)s"
-            partial_fn.description = base_message % { 'index' : index, 
-                                                     'test' : test,
-                                                     'id' : variation.id or "",
-                                                     'name': variation.name }
-            yield(partial_fn,)
+        for index, test, variation in TestCntlr().run(*args):
+            tname = os.path.splitext(test)[0]
+            z = partial(check_variation, name, tname, variation)
+            z.description = "%s [ %s ] %s %s" % (name, tname, variation.id, variation.name)
+            setattr(z, "__module__", "%s %s" % (name, tname))
+            setattr(z, "__name__", "%s %s" % (variation.id, variation.name))
+            yield(z)
+            
+if __name__ == "__main__":
+    """Main program."""
+    argv = ["nosetests", "-v", "--with-xunit"]
+    nose.main(argv=argv)

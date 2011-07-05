@@ -12,7 +12,7 @@ from arelle.ModelObject import ModelObject
 
 class ModelRoleType(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRoleType, self).init(modelDocument)
         
     @property
     def isArcrole(self):
@@ -74,7 +74,7 @@ class ModelRoleType(ModelObject):
 
 class ModelSchemaObject(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelSchemaObject, self).init(modelDocument)
         
     @property
     def name(self):
@@ -106,7 +106,7 @@ anonymousTypeSuffix = "@anonymousType"
 
 class ModelConcept(ModelSchemaObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConcept, self).init(modelDocument)
         if self.name:  # don't index elements with ref and no name
             self.modelXbrl.qnameConcepts[self.qname] = self
             self.modelXbrl.nameConcepts[self.name].append(self)
@@ -433,7 +433,7 @@ class ModelConcept(ModelSchemaObject):
             
 class ModelAttribute(ModelSchemaObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAttribute, self).init(modelDocument)
         self.modelXbrl.qnameAttributes[self.qname] = self
         self._baseXsdAttrType = {}
         
@@ -495,7 +495,7 @@ class ModelAttribute(ModelSchemaObject):
             
 class ModelType(ModelSchemaObject):
     def init(self, modelDocument):
-        super().init(modelDocument)     
+        super(ModelType, self).init(modelDocument)     
         self.modelXbrl.qnameTypes[self.qname] = self
         
     @property
@@ -654,7 +654,7 @@ class ModelType(ModelSchemaObject):
     
 class ModelEnumeration(ModelSchemaObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEnumeration, self).init(modelDocument)
         
     @property
     def value(self):
@@ -662,7 +662,7 @@ class ModelEnumeration(ModelSchemaObject):
     
 class ModelLink(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
         
     @property
@@ -678,7 +678,7 @@ class ModelLink(ModelObject):
 
 class ModelResource(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelResource, self).init(modelDocument)
         if self.xmlLang:
             self.modelXbrl.langs.add(self.xmlLang)
         if self.localName == "label":
@@ -707,7 +707,7 @@ class ModelResource(ModelObject):
         
 class ModelLocator(ModelResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelLocator, self).init(modelDocument)
     
     def dereference(self):
         # resource is a loc with href document and id modelHref a tuple with href's element, modelDocument, id

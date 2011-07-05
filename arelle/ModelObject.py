@@ -8,7 +8,6 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 from lxml import etree
 
 class ModelObject(etree.ElementBase):
-    
     def _init(self):
         self.isChanged = False
         parent = self.getparent()
@@ -191,8 +190,8 @@ class ModelObject(etree.ElementBase):
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
-from arelle.ModelValue import qname
-    
+from ModelValue import qname
+
 class ModelComment(etree.CommentBase):
     def _init(self):
         self.isChanged = False
@@ -207,5 +206,3 @@ class ModelProcessingInstruction(etree.PIBase):
     def _init(self):
         pass
             
-            
-

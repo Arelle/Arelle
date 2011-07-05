@@ -33,7 +33,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
     def __init__(self, modelXbrl, 
                  type=ModelDocument.Type.VERSIONINGREPORT, 
                  uri=None, filepath=None, xmlDocument=None):
-        super().__init__(modelXbrl, type, uri, filepath, xmlDocument)
+        super(ModelVersReport, self).__init__(modelXbrl, type, uri, filepath, xmlDocument)
         self.fromDTS = None
         self.toDTS = None
         self.assignments = {}

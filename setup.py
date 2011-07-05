@@ -1,18 +1,21 @@
-'''
+"""
 Created on Jan 30, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
-'''
+"""
 import sys
+from setuptools import os, setup, find_packages
 
-setup_requires = []
+setup_requires = ['nose>=1.0']
 options = {}
 scripts = []
 
-if sys.platform == 'darwin':
-    from setuptools import os, setup, find_packages
-    
+# Get the files
+packages = find_packages('.')
+
+# If on MacOS 
+if sys.platform == 'darwin':    
     setup_requires.append('py2app')
     # Cross-platform applications generally expect sys.argv to
     # be used for opening files.
@@ -20,15 +23,14 @@ if sys.platform == 'darwin':
                               iconfile='arelle/images/arelle.icns',
                               plist=dict(CFBundleIconFile='arelle.icns',
                                          NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited'))
-    packages = find_packages('.')
     dataFiles = [
 	'--iconfile',
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
 	('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
       ]
     cx_FreezeExecutables = None
+# If on Windows
 elif sys.platform == 'win32':
-    from setuptools import find_packages
     from cx_Freeze import setup, Executable 
     # py2exe is not ported to Python 3 yet
     # setup_requires.append('py2exe')
@@ -40,7 +42,7 @@ elif sys.platform == 'win32':
          'scripts/runVersioningConsumptionTests.bat',
          'scripts/runXDTTests.bat',
         ])
-    packages = find_packages('.')
+
     dataFiles = None
     options = dict( build_exe =  {
         "include_files": [('arelle\\config','config'),
@@ -55,7 +57,16 @@ elif sys.platform == 'win32':
                 base="Win32GUI",
                 )                            
         ]
+# Otherwise pretend it's a *nix
+else:
+    dataFiles = [        
+	('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+      ]
+    cx_FreezeExecutables = None
 
+#
+# The setup block
+#
 setup(name='Arelle',
       version='0.9.0',
       description='An open source XBRL platform',
@@ -89,5 +100,6 @@ setup(name='Arelle',
       },
       setup_requires = setup_requires,
       options = options,
-      executables = cx_FreezeExecutables,
+      test_suite = "nose.collector",
+      # executables = cx_FreezeExecutables,
      )

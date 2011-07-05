@@ -20,7 +20,7 @@ def viewDTS(modelXbrl, tabWin):
     
 class ViewDTS(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "DTS", True)
+        super(ViewDTS, self).__init__(modelXbrl, tabWin, "DTS", True)
                 
     def viewDtsElement(self, modelDocument, parentNode, n, parents, siblings):
         node = self.treeView.insert(parentNode, "end", 

@@ -4,9 +4,8 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, posixpath, sys, re, shutil, time, urllib.request, pickle
-from urllib.error import (URLError, HTTPError, ContentTooShortError)
-from urllib.parse import unquote
+from six.moves import urllib_parse, urllib_request, urllib_error
+import os, posixpath, sys, re, shutil, time, pickle
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,tuple) and len(httpProxyTuple) == 5:
@@ -44,16 +43,7 @@ class WebCache:
     
     def __init__(self, cntlr, httpProxyTuple):
         self.cntlr = cntlr
-        #self.proxies = urllib.request.getproxies()
-        #self.proxies = {'ftp': 'ftp://63.192.17.1:3128', 'http': 'http://63.192.17.1:3128', 'https': 'https://63.192.17.1:3128'}
-        
-        
         self.resetProxies(httpProxyTuple)
-        
-        #self.opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-
-        #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
-        
         if sys.platform == "darwin":
             self.cacheDir = cntlr.userAppDir.replace("Application Support","Caches")
         else:  #windows and unix
@@ -75,20 +65,15 @@ class WebCache:
         self.cachedUrlCheckTimesModified = False
         
     def resetProxies(self, httpProxyTuple):
-        self.proxy_handler = urllib.request.ProxyHandler(proxyDirFmt(httpProxyTuple))
-        self.proxy_auth_handler = urllib.request.ProxyBasicAuthHandler()
-        self.http_auth_handler = urllib.request.HTTPBasicAuthHandler()
-
-        self.opener = urllib.request.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
-
-        #self.opener.close()
-        #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
-        
+        self.proxy_handler = urllib_error.ProxyHandler(proxyDirFmt(httpProxyTuple))
+        self.proxy_auth_handler = urllib_error.ProxyBasicAuthHandler()
+        self.http_auth_handler = urllib_error.HTTPBasicAuthHandler()
+        self.opener = urllib_error.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
     
     def normalizeUrl(self, url, base=None):
         if url and not (url.startswith('http://') or os.path.isabs(url)):
             if base is not None and not base.startswith('http:') and '%' in url:
-                url = unquote(url)
+                url = urllib_unparse.unquote(url)
             if base:
                 if base.startswith("http://"):
                     prot, sep, path = base.partition("://")
@@ -161,13 +146,13 @@ class WebCache:
                                       filename=filepathtmp,
                                       reporthook=self.reportProgress)
                     retryCount = 0
-                except ContentTooShortError as err:
+                except urllib_request.ContentTooShortError as err:
                     self.cntlr.addToLog(_("{0} \nretrieving {1}").format(err,url))
                     if os.path.exists(filepathtmp):
                         os.remove(filepathtmp)
                     return None
                     # handle file is bad
-                except (HTTPError, URLError) as err:
+                except (urllib_error.HTTPError, urllib_error.URLError) as err:
                     try:
                         if err.code == 401 and 'www-authenticate' in err.headers:
                             match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.headers['www-authenticate'])
@@ -288,26 +273,8 @@ class WebCache:
             fp.close()
         # raise exception if actual size does not match content-length header
         if size >= 0 and read < size:
-            raise ContentTooShortError(
+            raise urllib_request.ContentTooShortError(
                 "retrieval incomplete: got only %i out of %i bytes"
                 % (read, size), result)
 
         return result
-
-'''
-class WebCacheUrlOpener(urllib.request.FancyURLopener):
-    def __init__(self, cntlr, proxies=None):
-        self.cntlr = cntlr
-        super().__init__(proxies)
-        self.version = 'Mozilla/5.0'
-
-    def http_error_401(self, url, fp, errcode, errmsg, headers, data=None, retry=False):
-        super().http_error_401(url, fp, errcode, errmsg, headers, data, True)
-        
-    def http_error_407(self, url, fp, errcode, errmsg, headers, data=None, retry=False):
-        super().http_error_407(self, url, fp, errcode, errmsg, headers, data, True)
-        
-    def prompt_user_passwd(self, host, realm):
-        return self.cntlr.internet_user_password(host, realm)
-'''
-    

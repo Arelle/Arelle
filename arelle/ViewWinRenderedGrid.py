@@ -45,7 +45,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
             
 class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def __init__(self, modelXbrl, tabWin, lang):
-        super().__init__(modelXbrl, tabWin, "Rendering", True, lang)
+        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, "Rendering", True, lang)
         self.dimsContextElement = {}
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
         self.zFilterIndex = 0

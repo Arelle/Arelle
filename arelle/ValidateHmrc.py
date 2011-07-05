@@ -13,7 +13,7 @@ from arelle import (ModelObject, ModelDocument, ModelValue, ValidateXbrl,
 
 class ValidateHmrc(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
-        super().__init__(modelXbrl)
+        super(ValidateHmrc, self).__init__(modelXbrl)
         
     def validate(self, modelXbrl, parameters=None):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed

@@ -15,7 +15,7 @@ def viewFacts(modelXbrl, csvfile, lang=None):
     
 class ViewFacts(ViewCsv.View):
     def __init__(self, modelXbrl, csvfile, lang):
-        super().__init__(modelXbrl, csvfile, "Fact List", lang)
+        super(ViewFacts, self).__init__(modelXbrl, csvfile, "Fact List", lang)
 
     def view(self, modelDocument):
         

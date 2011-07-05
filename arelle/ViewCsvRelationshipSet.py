@@ -15,7 +15,7 @@ def viewRelationshipSet(modelXbrl, csvfile, header, arcrole, linkrole=None, link
     
 class ViewRelationshipSet(ViewCsv.View):
     def __init__(self, modelXbrl, csvfile, header, lang):
-        super().__init__(modelXbrl, csvfile, header, lang)
+        super(ViewRelationshipSet, self).__init__(modelXbrl, csvfile, header, lang)
         
     def view(self, arcrole, linkrole=None, linkqname=None, arcqname=None):
         # relationship set based on linkrole parameter, to determine applicable linkroles
