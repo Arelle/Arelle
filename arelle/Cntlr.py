@@ -8,7 +8,6 @@ import tempfile, os, pickle, sys
 from arelle import (ModelManager, WebCache)
 
 class Cntlr(object):
-
     __version__ = "0.0.4"
     
     def __init__(self):
@@ -48,19 +47,6 @@ class Cntlr(object):
         if self.moduleDir.endswith("__pycache__"):
             self.moduleDir = os.path.dirname(self.moduleDir)
         if self.moduleDir.endswith("python32.zip/arelle"):
-            '''
-            distZipFile = os.path.dirname(self.moduleDir)
-            d = os.path.join(self.userAppDir, "arelle")
-            self.configDir = os.path.join(d, "config")
-            self.imagesDir = os.path.join(d, "images")
-            import zipfile
-            distZip = zipfile.ZipFile(distZipFile, mode="r")
-            distNames = distZip.namelist()
-            distZip.extractall(path=self.userAppDir,
-                               members=[f for f in distNames if "/config/" in f or "/images/" in f]
-                               )
-            distZip.close()
-            '''
             resources = os.path.dirname(os.path.dirname(os.path.dirname(self.moduleDir)))
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")

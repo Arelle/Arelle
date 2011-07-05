@@ -5,6 +5,7 @@ Created on Dec 30, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os
+from gettext import gettext as _ 
 from lxml import etree
 from arelle import (ModelDocument, ModelValue, XbrlConst, XmlUtil)
 

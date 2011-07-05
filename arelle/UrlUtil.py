@@ -5,8 +5,14 @@ Created on Oct 22, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import re
-from six.moves import urllib_parse
+import six
 
+if six.PY3:
+    from urllib.parse import unquote, urldefrag
+else:
+    from urlparse import urldefrag
+    from urllib import unquote
+                        
 def authority(url):
     if url is not None and url.startswith("http://"):
         pathpart = url.find("/",7)
@@ -18,10 +24,10 @@ absoluteUrlPattern = None
 relativeUrlPattern = re.compile(r"^[/:\.+-_@?&=!~\*'\(\)\w]+(#\w+)?$")
 
 def splitDecodeFragment(url):
-    urlPart, fragPart = urllib_parse.urldefrag(url)
+    urlPart, fragPart = urldefrag(url)
     # TODO: This might be wrong -- IRJ
     # return (urlPart, urllib_parse.unquote(fragPart, "utf-8", errors=None))
-    return (urlPart, urllib_parse.unquote(fragPart))
+    return (urlPart, unquote(fragPart))
 
 def isValidAbsolute(url):
     global absoluteUrlPattern

@@ -5,6 +5,7 @@ Created on Nov 11, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os
+from gettext import gettext as _
 from arelle import XmlUtil
 from arelle.ModelObject import ModelObject
 

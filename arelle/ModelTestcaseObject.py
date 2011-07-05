@@ -5,6 +5,8 @@ Refactored from ModelObject on Jun 11, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+import six
+
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 
@@ -14,7 +16,8 @@ class ModelTestcaseVariation(ModelObject):
         self.status = ""
         self.actual = []
         self.assertions = None
-
+        self._cfcnCall = None
+        
     @property
     def name(self):
         if self.get("name"):
@@ -108,7 +111,7 @@ class ModelTestcaseVariation(ModelObject):
     
     @property
     def expected(self):
-        if self.localName == "testcase":
+        if self.localName == six.u("testcase"):
             return self.document.basename[:4]   #starts with PASS or FAIL
         errorElement = XmlUtil.descendant(self, None, "error")
         if errorElement is not None:
@@ -140,16 +143,9 @@ class ModelTestcaseVariation(ModelObject):
     def propertyView(self):
         assertions = []
         for assertionElement in XmlUtil.descendants(self, None, "assertionTests"):
-            assertions.append(("assertion",assertionElement.get("assertionID")))
+            assertions.append(("assertion", assertionElement.get("assertionID")))
             assertions.append(("   satisfied", assertionElement.get("countSatisfied")))
             assertions.append(("   not sat.", assertionElement.get("countNotSatisfied")))
-        '''
-        for assertionElement in XmlUtil.descendants(self, None, "assert"):
-            efmNum = assertionElement.get("num")
-            assertions.append(("assertion",
-                               "EFM.{0}.{1}.{2}".format(efmNum[0], efmNum[1:2], efmNum[3:4])))
-            assertions.append(("   not sat.", "1"))
-        '''
         readMeFirsts = [("readFirst", readMeFirstUri) for readMeFirstUri in self.readMeFirstUris]
         parameters = []
         if len(self.parameters) > 0: parameters.append(("parameters", None))

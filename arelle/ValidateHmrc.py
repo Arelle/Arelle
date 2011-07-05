@@ -6,6 +6,7 @@ Created on May 20, 2011
 '''
 import xml.dom, xml.parsers
 import os, re, collections, datetime
+from gettext import gettext as _
 from collections import defaultdict
 from arelle import (ModelObject, ModelDocument, ModelValue, ValidateXbrl,
                 ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,

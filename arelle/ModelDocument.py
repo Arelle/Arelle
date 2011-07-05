@@ -5,6 +5,7 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os
+from gettext import gettext as _
 from lxml import etree
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
 from arelle.ModelObject import ModelObject
@@ -276,7 +277,7 @@ fractionParts = {"{http://www.xbrl.org/2003/instance}numerator",
 
 
 
-class ModelDocument:
+class ModelDocument(object):
     
     def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
         self.modelXbrl = modelXbrl
@@ -295,7 +296,9 @@ class ModelDocument:
         self.schemaLocationElements = set()
         self.referencedNamespaces = set()
         self.inDTS = False
-
+        self.fromDTS = None
+        self.toDTS = None
+        
     def objectId(self,refId=""):
         return "_{0}_{1}".format(refId, self.objectIndex)
     

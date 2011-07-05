@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # No part of the content of this file was derived from the works of David Giffin.
 #
 # Copyright © 2005-2008 Stephen John Machin, Lingfo Pty Ltd

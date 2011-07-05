@@ -3,6 +3,7 @@ import Cntlr, ModelManager, FileSource, time
 from optparse import OptionParser
 import cProfile
 import gettext
+from gettext import gettext as _
 import locale
 
 def main():
@@ -10,7 +11,6 @@ def main():
     CntlrProfiler().run()
         
 class CntlrProfiler(Cntlr.Cntlr):
-
     def __init__(self):
         super(CntlrProfiler, self).__init__()
         

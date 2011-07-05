@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Author:  mozman <mozman@gmx.at>
 # Purpose: xfcell -- cell with convenient xf function
 # Created: 04.12.2010

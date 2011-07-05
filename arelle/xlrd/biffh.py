@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Support module for the xlrd3 package.
 #
 # Portions copyright (c) 2005-2008 Stephen John Machin, Lingfo Pty Ltd
@@ -383,24 +384,22 @@ class BaseObject:
         pad = " " * indent
 
         if header is not None:
-            print(header, file=f)
+            print(header, f)
 
         for attr, value in sorted(self.__dict__.items()):
             if getattr(value, 'dump', None) and attr != 'book':
                 value.dump(f,
                     header="%s%s (%s object):" % (pad, attr, value.__class__.__name__),
                     indent=indent+4)
-            elif attr not in self._repr_these and \
-                 (isinstance(value, list) or
-                  isinstance(value, dict)):
-                print("%s%s: %s, len = %d" % (pad, attr, type(value), len(value)), file=f)
+            elif attr not in self._repr_these and (isinstance(value, list) or isinstance(value, dict)):
+                print("%s%s: %s, len = %d" % (pad, attr, type(value), len(value)), f)
             else:
-                print("%s%s: %r" % (pad, attr, value), file=f)
+                print("%s%s: %r" % (pad, attr, value), f)
         if footer is not None:
-            print(footer, file=f)
+            print(footer, f)
 
 def fprintf(f, fmt, *vargs):
-    print(fmt.rstrip('\n') % vargs, file=f)
+    print(fmt.rstrip('\n') % vargs, f)
 
 def upkbits(tgt_obj, src, manifest, local_setattr=setattr):
     for n, mask, attr in manifest:

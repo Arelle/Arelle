@@ -1943,9 +1943,9 @@ class Parser(object):
             col  = x.getLine()
             text = x.getText()
             fmt  = fmt + 'unexpected symbol at line %s (column %s) : "%s"'
-            print(fmt % (line,col,text), file=sys.stderr)
+            print(fmt % (line,col,text), sys.stderr)
         else:
-            print(fmt,str(x), file=sys.stderr)
+            print(fmt,str(x), sys.stderr)
 
     def reportWarning(self,s):
         f = self.getFilename()
@@ -2143,7 +2143,7 @@ class TreeParser(object):
             raise MismatchedTokenException(getTokenNames(), t, ttype, True)
 
     def reportError(self,ex):
-        print("error:",ex, file=sys.stderr)
+        print("error:",ex, sys.stderr)
 
     def  reportWarning(self, s):
         print("warning:",s)
@@ -2718,7 +2718,7 @@ class ASTFactory(object):
 
     def error(self, e):
         import sys
-        print(e, file=sys.stderr)
+        print(e, sys.stderr)
 
     def setTokenTypeASTNodeType(self, tokenType, className):
         """

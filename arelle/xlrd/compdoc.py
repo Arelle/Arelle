@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Implements the minimal functionality required
 # to extract a "Workbook" or "Book" stream (as one big string)
 # from an OLE2 Compound Document file.
@@ -86,16 +87,16 @@ class CompDoc(object):
             raise CompDocError('Expected "little-endian" marker, found %r' % mem[28:30])
         revision, version = unpack('<HH', mem[24:28])
         if DEBUG:
-            print("\nCompDoc format: version=0x%04x revision=0x%04x" % (version, revision), file=logfile)
+            print("\nCompDoc format: version=0x%04x revision=0x%04x" % (version, revision), logfile)
         self.mem = mem
         ssz, sssz = unpack('<HH', mem[30:34])
         if ssz > 20: # allows for 2**20 bytes i.e. 1MB
             print("WARNING: sector size (2**%d) is preposterous; assuming 512 and continuing ..." \
-                % ssz, file=logfile)
+                % ssz, logfile)
             ssz = 9
         if sssz > ssz:
             print("WARNING: short stream sector size (2**%d) is preposterous; assuming 64 and continuing ..." \
-                % sssz, file=logfile)
+                % sssz, logfile)
             sssz = 6
         self.sec_size = sec_size = 1 << ssz
         self.short_sec_size = 1 << sssz
@@ -110,14 +111,14 @@ class CompDoc(object):
         if left_over:
             #### raise CompDocError("Not a whole number of sectors")
             print("WARNING *** file size (%d) not 512 + multiple of sector size (%d)" \
-                % (len(mem), sec_size), file=logfile)
+                % (len(mem), sec_size), logfile)
         if DEBUG:
-            print('sec sizes', ssz, sssz, sec_size, self.short_sec_size, file=logfile)
-            print("mem data: %d bytes == %d sectors" % (mem_data_len, mem_data_secs), file=logfile)
+            print('sec sizes', ssz, sssz, sec_size, self.short_sec_size, logfile)
+            print("mem data: %d bytes == %d sectors" % (mem_data_len, mem_data_secs), logfile)
             print("SAT_tot_secs=%d, dir_first_sec_sid=%d, min_size_std_stream=%d" \
-                % (SAT_tot_secs, self.dir_first_sec_sid, self.min_size_std_stream,), file=logfile)
-            print("SSAT_first_sec_sid=%d, SSAT_tot_secs=%d" % (SSAT_first_sec_sid, SSAT_tot_secs,), file=logfile)
-            print("MSAT_first_sec_sid=%d, MSAT_tot_secs=%d" % (MSAT_first_sec_sid, MSAT_tot_secs,), file=logfile)
+                % (SAT_tot_secs, self.dir_first_sec_sid, self.min_size_std_stream,), logfile)
+            print("SSAT_first_sec_sid=%d, SSAT_tot_secs=%d" % (SSAT_first_sec_sid, SSAT_tot_secs,), logfile)
+            print("MSAT_first_sec_sid=%d, MSAT_tot_secs=%d" % (MSAT_first_sec_sid, MSAT_tot_secs,), logfile)
         nent = int_floor_div(sec_size, 4) # number of SID entries in a sector
         fmt = "<%di" % nent
         trunc_warned = 0
@@ -136,8 +137,8 @@ class CompDoc(object):
             sid = news.pop()
             MSAT.extend(news)
         if DEBUG:
-            print("MSAT: len =", len(MSAT), file=logfile)
-            print(MSAT, file=logfile)
+            print("MSAT: len =", len(MSAT), logfile)
+            print(MSAT, logfile)
         #
         # === build the SAT ===
         #
@@ -146,17 +147,17 @@ class CompDoc(object):
             if msid == FREESID: continue
             if msid >= mem_data_secs:
                 if not trunc_warned:
-                    print("WARNING *** File is truncated, or OLE2 MSAT is corrupt!!", file=logfile)
+                    print("WARNING *** File is truncated, or OLE2 MSAT is corrupt!!", logfile)
                     print("INFO: Trying to access sector %d but only %d available" \
-                        % (msid, mem_data_secs), file=logfile)
+                        % (msid, mem_data_secs), logfile)
                     trunc_warned = 1
                 continue
             offset = 512 + sec_size * msid
             news = list(unpack(fmt, mem[offset:offset+sec_size]))
             self.SAT.extend(news)
         if DEBUG:
-            print("SAT: len =", len(self.SAT), file=logfile)
-            print(self.SAT, file=logfile)
+            print("SAT: len =", len(self.SAT), logfile)
+            print(self.SAT, logfile)
             # print >> logfile, "SAT ",
             # for i, s in enumerate(self.SAT):
                 # print >> logfile, "entry: %4d offset: %6d, next entry: %4d" % (i, 512 + sec_size * i, s)
@@ -201,7 +202,7 @@ class CompDoc(object):
         #
         self.SSAT = []
         if SSAT_tot_secs > 0 and sscs_dir.tot_size == 0:
-            print("WARNING *** OLE2 inconsistency: SSCS size is 0 but SSAT size is non-zero", file=logfile)
+            print("WARNING *** OLE2 inconsistency: SSCS size is 0 but SSAT size is non-zero", logfile)
         if sscs_dir.tot_size > 0:
             sid = SSAT_first_sec_sid
             nsecs = SSAT_tot_secs
@@ -212,9 +213,9 @@ class CompDoc(object):
                 self.SSAT.extend(news)
                 sid = self.SAT[sid]
             # assert SSAT_tot_secs == 0 or sid == EOCSID
-            if DEBUG: print("SSAT last sid %d; remaining sectors %d" % (sid, nsecs), file=logfile)
+            if DEBUG: print("SSAT last sid %d; remaining sectors %d" % (sid, nsecs), logfile)
             assert nsecs == 0 and sid == EOCSID
-        if DEBUG: print("SSAT", self.SSAT, file=logfile)
+        if DEBUG: print("SSAT", self.SSAT, logfile)
 
     def _get_stream(self, mem, base, sat, sec_size, start_sid, size=None, name=''):
         # print >> self.logfile, "_get_stream", base, sec_size, start_sid, size
@@ -252,7 +253,7 @@ class CompDoc(object):
             assert s == EOCSID
             if todo != 0:
                 print("WARNING *** OLE2 stream %r: expected size %d, actual size %d" \
-                    % (name, size, size - todo), file=self.logfile)
+                    % (name, size, size - todo), self.logfile)
         return b''.join(sectors)
 
     def _dir_search(self, path, storage_DID=0):

@@ -4,14 +4,18 @@ Created on Apr 21, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, math, re
-from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
-                         YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
-from arelle import (XPathContext, ModelObject, XbrlUtil, XmlUtil)
-    
+#import xml.dom, math, re
+#from arelle.ModelValue import qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration, YearMonthDuration, DayTimeDuration, time, Time
+#from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg
+#from arelle import XPathContext, ModelObject, XbrlUtil, XmlUtil
+
+from gettext import gettext as _
+
+from arelle import XPathContext
+
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
+        super(fnFunctionNotAvailable, self).__init__()
         self.args =  ("custom function not available",)
     def __repr__(self):
         return self.args[0]

@@ -4,19 +4,22 @@ Created on Nov 28, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ModelDocument, ViewCsv)
 import os
+from gettext import gettext as _
+
+from arelle import (ModelDocument, ViewCsv)
 
 def viewTests(modelXbrl, csvfile):
     modelXbrl.modelManager.showStatus(_("viewing Tests"))
     view = ViewTests(modelXbrl, csvfile)
     view.write(["Index","Testcase","ID","Name", "ReadMeFirst","Status","Expected","Actual"])
-    view.viewTestcaseIndexElement(modelXbrl.modelDocument)
+    if modelXbrl.modelDocument is not None:
+        view.viewTestcaseIndexElement(modelXbrl.modelDocument)
     view.close()
     
 class ViewTests(ViewCsv.View):
     def __init__(self, modelXbrl, csvfile):
-        super(ViewTests, self).__init__(modelXbrl, csvfile, "Tests")
+        super(ViewTests, self).__init__(modelXbrl, csvfile)
         
     def viewTestcaseIndexElement(self, modelDocument):
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
@@ -40,10 +43,10 @@ class ViewTests(ViewCsv.View):
                 self.viewTestcaseVariation(modelTestcaseVariation)
                 
     def viewTestcaseVariation(self, modelTestcaseVariation):
-        id = modelTestcaseVariation.id
-        if id is None:
-            id = ""
-        self.write(["","",id,
+        tid = modelTestcaseVariation.id
+        if tid is None:
+            tid = ""
+        self.write(["","",tid,
                     modelTestcaseVariation.name,
                     " ".join(modelTestcaseVariation.readMeFirstUris),
                     modelTestcaseVariation.status,

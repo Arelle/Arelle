@@ -190,7 +190,7 @@ class ModelObject(etree.ElementBase):
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
-from ModelValue import qname
+from arelle.ModelValue import qname
 
 class ModelComment(etree.CommentBase):
     def _init(self):

@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 from struct import pack
 from arelle.xlwt.UnicodeUtils import upack1, upack2
 import sys

@@ -4,12 +4,14 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+import re
+from gettext import gettext as _
+
 from tkinter import *
 from tkinter.ttk import *
+
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import (checkbox)
-import re
-
 '''
 caller checks accepted, if True, caller retrieves url
 '''

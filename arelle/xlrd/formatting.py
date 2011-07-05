@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Module for formatting information.
 #
 # Copyright © 2005-2008 Stephen John Machin, Lingfo Pty Ltd
@@ -586,7 +587,7 @@ def handle_palette(book, data):
         book.colour_map[8+i] = new_rgb
         if verbose:
             if new_rgb != old_rgb:
-                print("%2d: %r -> %r" % (i, old_rgb, new_rgb), file=book.logfile)
+                print("%2d: %r -> %r" % (i, old_rgb, new_rgb), book.logfile)
 
 def palette_epilogue(book):
     # Check colour indexes in fonts etc.
@@ -603,11 +604,11 @@ def palette_epilogue(book):
         else:
             print("Size of colour table:", len(book.colour_map))
             print("*** Font #%d (%r): colour index 0x%04x is unknown" \
-                % (font.font_index, font.name, cx), file=book.logfile)
+                % (font.font_index, font.name, cx), book.logfile)
     if book.verbosity >= 1:
         used = list(book.colour_indexes_used.keys())
         used.sort()
-        print("\nColour indexes used:\n%r\n" % used, file=book.logfile)
+        print("\nColour indexes used:\n%r\n" % used, book.logfile)
 
 def handle_style(book, data):
     verbose = DEBUG or book.verbosity >= 2
@@ -636,14 +637,14 @@ def handle_style(book, data):
         else:
             name = unpack_string(data, 2, book.encoding, lenlen=1)
         if verbose and not name:
-            print("WARNING *** A user-defined style has a zero-length name", file=book.logfile)
+            print("WARNING *** A user-defined style has a zero-length name", book.logfile)
         built_in = 0
         built_in_id = 0
         level = 0
     book.style_name_map[name] = (built_in, xf_index)
     if verbose:
         print("STYLE: built_in=%d xf_index=%d built_in_id=%d level=%d name=%r" \
-            % (built_in, xf_index, built_in_id, level, name), file=book.logfile)
+            % (built_in, xf_index, built_in_id, level, name), book.logfile)
 
 def check_colour_indexes_in_obj(book, obj, orig_index):
     alist = list(obj.__dict__.items())
@@ -657,7 +658,7 @@ def check_colour_indexes_in_obj(book, obj, orig_index):
                 continue
             oname = obj.__class__.__name__
             print("*** xf #%d : %s.%s =  0x%04x (unknown)" \
-                % (orig_index, oname, attr, nobj), file=book.logfile)
+                % (orig_index, oname, attr, nobj), book.logfile)
 
 def handle_xf(self, data):
     ### self is a Book instance
