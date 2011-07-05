@@ -1,13 +1,13 @@
 Arelle.egg-info
 __pycache__
 *.pyc
+*.dot
+*.stats
 build
 dist
 buildRenameX64.bat
 buildRenameX86.bat
 arelle/Version.py
-profile.dot
-profile.stats
 .coverage
 .DS_Store
 .project
@@ -15,4 +15,5 @@ profile.stats
 .settings
 .virtualenv
 gprof2dot.py
+top.py
 nosetests.xml
