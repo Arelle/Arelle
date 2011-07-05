@@ -6,19 +6,18 @@ This module is Arelle's controller in windowing interactive UI mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, subprocess, pickle, time, locale, re
+import os, subprocess, pickle, time, gettext, re, threading
+from gettext import gettext as _
+
 from tkinter import *
 import tkinter.tix
 from tkinter.ttk import *
 import tkinter.filedialog
 import tkinter.messagebox, traceback
+
 from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
-import gettext
-
-import threading, queue
-
 from arelle import Cntlr
 from arelle import (DialogURL, 
                 ModelDocument,

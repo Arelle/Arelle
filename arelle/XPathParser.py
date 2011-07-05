@@ -4,12 +4,14 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+import time, xml.dom
+from gettext import gettext as _
+
 from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
 from arelle.Locale import format_string
-import time, xml.dom
 from arelle import (XmlUtil, ModelValue, XbrlConst)
 
 
@@ -61,7 +63,7 @@ class QNameDef(ModelValue.QName):
         return self.hash
     def __repr__(self):
         return ("{0}QName({1})".format('@' if self.isAttribute else '',str(self)))
-    def __eq__(self,other):
+    def __eq__(self, other):
         if isinstance(other,QNameDef):
             return other.loc == self.loc and super(QNameDef, self).__eq__(other) 
         else:

@@ -6,8 +6,8 @@ Created on Oct 9, 2010
 '''
 import csv
 
-class View:
-    def __init__(self, modelXbrl, outfile, tabTitle, lang=None):
+class View(object):
+    def __init__(self, modelXbrl, outfile, lang=None):
         self.modelXbrl = modelXbrl
         self.csvFile = open(outfile, "w", newline='')
         self.csvWriter = csv.writer(self.csvFile, dialect="excel")
@@ -22,4 +22,3 @@ class View:
     def close(self):
         self.csvFile.close()
         self.modelXbrl = None
-

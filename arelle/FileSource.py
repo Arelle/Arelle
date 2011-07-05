@@ -4,8 +4,9 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, os, io, base64, gzip
+import zipfile, os, io, base64, gzip, six
 from lxml import etree
+
 from arelle import XmlUtil
 
 archivePathSeparators = (".zip" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
@@ -45,7 +46,11 @@ class FileSource:
         self.selection = None
         self.filesDir = None
         self.referencedFileSources = {}  # archive file name, fileSource object
-
+        self.basefile = None
+        self.baseurl = None
+        self.xfdDocument = None
+        self.rssDocument = None
+        
     def open(self):
         if not self.isOpen:
             if (self.isZip or self.isXfd or self.isRss) and self.cntlr:
@@ -60,62 +65,57 @@ class FileSource:
                 self.isOpen = True    
             elif self.isXfd:
                 # check first line of file
-                file = open(self.basefile, 'rb')
-                firstline = file.readline()
+                infile = open(self.basefile, 'rb')
+                firstline = six.u(infile.readline())
                 if firstline.startswith(b"application/x-xfdl;content-encoding=\"asc-gzip\""):
                     # file has been gzipped
-                    base64input = file.read(-1)
-                    file.close();
-                    file = None;
-    
+                    base64input = infile.read(-1)
+                    infile.close()
+                    infile = None
                     fb = base64.b64decode(base64input)
                     ungzippedBytes = b""
-                    totalLenUncompr = 0
                     i = 0
                     while i < len(fb):
                         lenCompr = fb[i + 0] * 256 + fb[i + 1]
                         lenUncomp = fb[i + 2] * 256 + fb[i + 3]
                         lenRead = 0
-                        totalLenUncompr += lenUncomp
-
                         gzchunk = (bytes((31,139,8,0)) + fb[i:i+lenCompr])
                         try:
                             with gzip.GzipFile(fileobj=io.BytesIO(gzchunk)) as gf:
                                 while True:
                                     readSize = min(16384, lenUncomp - lenRead)
-                                    readBytes = gf.read(size=readSize)
+                                    readBytes = gf.read(readSize)
                                     lenRead += len(readBytes)
                                     ungzippedBytes += readBytes
                                     if len(readBytes) == 0 or (lenUncomp - lenRead) <= 0:
                                         break
-                        except IOError as err:
+                        except IOError:
                             pass # provide error message later
-
                         i += lenCompr + 4
                     #for learning the content of xfd file, uncomment this:
                     #with open("c:\\temp\\test.xml", "wb") as fh:
                     #    fh.write(ungzippedBytes)
-                    file = io.StringIO(initial_value=ungzippedBytes.decode("utf-8"))
+                    infile = io.StringIO(initial_value=ungzippedBytes.decode("utf-8"))
                 else:
                     # position to start of file
-                    file.seek(0,io.SEEK_SET)
+                    infile.seek(0,io.SEEK_SET)
                     
                 try:
-                    self.xfdDocument = etree.parse(file)
-                    file.close()
+                    self.xfdDocument = etree.parse(infile)
+                    infile.close()
                     self.isOpen = True
-                except EnvironmentError as err:
+                except EnvironmentError:
                     return # provide error message later
-                except etree.LxmlError as err:
+                except etree.LxmlError:
                     return # provide error message later
                 
             elif self.isRss:
                 try:
                     self.rssDocument = etree.parse(self.basefile)
                     self.isOpen = True
-                except EnvironmentError as err:
+                except EnvironmentError:
                     return # provide error message later
-                except etree.LxmlError as err:
+                except etree.LxmlError:
                     return # provide error message later
 
                     
@@ -156,7 +156,7 @@ class FileSource:
                 return self
         referencedFileParts = archiveFilenameParts(filepath)
         if referencedFileParts is not None:
-            referencedArchiveFile, referencedSelection = referencedFileParts
+            referencedArchiveFile = referencedFileParts[0]
             if referencedArchiveFile in self.referencedFileSources:
                 referencedFileSource = self.referencedFileSources[referencedArchiveFile]
             else:
@@ -185,31 +185,20 @@ class FileSource:
                     if outfn == archiveFileName:
                         b64data = data.findtext("mimedata")
                         if b64data:
-                            # convert to bytes
-                            #byteData = []
-                            #for c in b64data:
-                            #    byteData.append(ord(c))
                             b = base64.b64decode(b64data.encode("latin-1"))
                             # remove BOM codes if present
                             if len(b) > 3 and b[0] == 239 and b[1] == 187 and b[2] == 191:
-                                start = 3;
-                                length = len(b) - 3;
+                                start = 3
+                                length = len(b) - 3
                                 b = b[start:start + length]
                             else:
-                                start = 0;
-                                length = len(b);
-                            # pass back as ascii
-                            #str = ""
-                            #for bChar in b[start:start + length]:
-                            #    str += chr( bChar )
-                            #return str
+                                start = 0
+                                length = len(b)
                             return io.TextIOWrapper(
                                 io.BytesIO(b), 
                                 encoding=XmlUtil.encoding(b))
                 return None
         return open(filepath, 'rU')
-        # TODO: This might need to be fixed -- IRJ
-        # return open(filepath, 'rt', encoding='utf-8')
     
     @property
     def dir(self):
@@ -231,7 +220,7 @@ class FileSource:
                     if len(outfn) > 2 and outfn[0].isalpha() and \
                         outfn[1] == ':' and outfn[2] == '\\':
                         continue
-                    files.append(outfn);
+                    files.append(outfn)
             self.filesDir = files
         elif self.isRss:
             files = []  # return title, descr, pubdate, linst doc
@@ -259,7 +248,7 @@ class FileSource:
                         instDoc))
                 self.filesDir = files
             except (EnvironmentError,
-                    etree.LxmlError) as err:
+                    etree.LxmlError):
                 pass
         return self.filesDir
     

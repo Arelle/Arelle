@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # module pyparsing.py
 #
 # Copyright (c) 2003-2010  Paul T. McGuire
@@ -23,7 +24,6 @@
 #
 #from __future__ import generators
 
-__doc__ = \
 """
 pyparsing module - Classes and methods to define and execute parsing grammars
 
@@ -235,13 +235,13 @@ class ParseSyntaxException(ParseFatalException):
 
 #~ class ReparseException(ParseBaseException):
     #~ """Experimental class - parse actions can raise this exception to cause
-       #~ pyparsing to reparse the input string:
+        #~ pyparsing to reparse the input string:
         #~ - with a modified input string, and/or
         #~ - with a modified start location
-       #~ Set the values of the ReparseException in the constructor, and raise the
-       #~ exception in a parse action to cause pyparsing to use the new string/location.
-       #~ Setting the values as None causes no change to be made.
-       #~ """
+        #~ Set the values of the ReparseException in the constructor, and raise the
+        #~ exception in a parse action to cause pyparsing to use the new string/location.
+        #~ Setting the values as None causes no change to be made.
+        #~ """
     #~ def __init_( self, newstring, restartLoc ):
         #~ self.newParseText = newstring
         #~ self.reparseLoc = restartLoc
@@ -303,7 +303,7 @@ class ParseResults(object):
                     toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
-                        self[name] = _ParseResultsWithOffset(toklist.copy(),0)
+                        self[name] = _ParseResultsWithOffset(list(toklist),0)
                     else:
                         self[name] = _ParseResultsWithOffset(ParseResults(toklist[0]),0)
                     self[name].__name = name
@@ -2387,7 +2387,7 @@ class And(ParseExpression):
 
     class _ErrorStop(Empty):
         def __init__(self, *args, **kwargs):
-            super(Empty,self).__init__(*args, **kwargs)
+            super(And._ErrorStop,self).__init__(*args, **kwargs)
             self.leaveWhitespace()
 
     def __init__( self, exprs, savelist = True ):

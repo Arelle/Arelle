@@ -5,9 +5,12 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 """
-import six
 import xml.sax, xml.sax.handler
 import os, re, io
+from gettext import gettext as _
+
+import six
+
 from arelle import XbrlConst
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)

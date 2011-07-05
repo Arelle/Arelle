@@ -4,7 +4,7 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re, datetime
+import re, datetime, six
 from lxml import etree
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject, ModelComment
@@ -22,19 +22,19 @@ def xmlnsprefix(element, ns):
     if ns is None:
         return None
     if ns == XbrlConst.xml: # never declared explicitly
-        return 'xml'
+        return six.u('xml')
     for prefix, NS in element.nsmap.items():
         if NS == ns:
             if prefix is not None:
                 return prefix
             else:
-                return ""   # prefix none but exists, xml process as zero-length string
+                return six.u("")   # prefix none but exists, xml process as zero-length string
     return None
     
 def targetNamespace(element):
     treeElt = element
     while treeElt is not None:
-        if treeElt.localName == "schema" and treeElt.namespaceURI == XbrlConst.xsd and treeElt.get("targetNamespace"):
+        if treeElt.localName == six.u("schema") and treeElt.namespaceURI == XbrlConst.xsd and treeElt.get("targetNamespace"):
             return treeElt.get("targetNamespace")
         treeElt = treeElt.getparent()
     return None
@@ -112,24 +112,22 @@ def childText(element, childNamespaceURI, childLocalNames):
     return textNotStripped(element).strip() if element is not None else None
 
 def textNotStripped(element):
-    if element is None: 
-        return ""
-    text = element.text
-    if text is None:
-        return ""   
+    text = six.u("")
+    if element is not None and element.text is not None: 
+        text = element.text
     return text
 
 def innerText(element, ixExclude=False):   
     try:
-        return "".join(child.text for child in innerTextNodes(element, ixExclude)).strip()
+        return six.u("".join(child.text for child in innerTextNodes(element, ixExclude)).strip())
     except TypeError:
-        return ""
+        return six.u("")
 
 def innerTextList(element, ixExclude=False):   
     try:
-        return ", ".join(child.text.strip() for child in innerTextNodes(element, ixExclude) if len(child.text.strip()) > 0)
+        return six.u(", ".join(child.text.strip() for child in innerTextNodes(element, ixExclude) if len(child.text.strip()) > 0))
     except TypeError:
-        return ""
+        return six.u("")
 
 def innerTextNodes(element, ixExclude):
     return [child

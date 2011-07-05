@@ -18,7 +18,6 @@ else:
     from urllib import ContentTooShortError, unquote
     from urllib2 import ProxyHandler, ProxyBasicAuthHandler, \
                         HTTPBasicAuthHandler, build_opener, URLError, HTTPError
-                        
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,tuple) and len(httpProxyTuple) == 5:

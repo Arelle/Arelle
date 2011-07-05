@@ -13,6 +13,7 @@ versioning reports, per Roland Hommes 2010-12-10
 
 '''
 import time, datetime, os, gettext, io, sys, traceback
+from gettext import gettext as _
 from lxml import etree
 from optparse import OptionParser
 from arelle import (Cntlr, ModelXbrl, ModelDocument, ModelVersReport, FileSource, XmlUtil, Version)
@@ -43,7 +44,6 @@ def main():
         print (ex, traceback.format_tb(sys.exc_info()[2]))
         
 class CntlrGenVersReports(Cntlr.Cntlr):
-
     def __init__(self):
         super(CntlrGenVersReports, self).__init__()
         
@@ -186,7 +186,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         except WindowsError:
                             pass # dir already exists
                         modelVersReport = ModelVersReport.ModelVersReport(modelTestcases)
-                        modelVersReport.diffDTSes(reportFullPath,modelDTSfrom, modelDTSto, 
+                        modelVersReport.diffDTSes(reportFullPath, modelDTSfrom, modelDTSto, 
                                                   assignment=assignment,
                                                   schemaDir=schemaDir)
                         

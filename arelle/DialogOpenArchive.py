@@ -4,9 +4,12 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+import re, os
+from gettext import gettext as _
+
 from tkinter import *
 from tkinter.ttk import *
-import re, os
+
 from arelle.CntlrWinTooltip import ToolTip
 
 '''

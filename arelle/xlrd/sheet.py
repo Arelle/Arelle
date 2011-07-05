@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Portions copyright © 2005-2009 Stephen John Machin, Lingfo Pty Ltd
 # This module is part of the xlrd3 package, which is released under a
 # BSD-style licence.
@@ -463,10 +464,10 @@ class Sheet(BaseObject):
                 if self.formatting_info:
                     self._cell_xf_indexes[rowx][colx] = xf_index
             except:
-                print("put_cell", rowx, colx, file=self.logfile)
+                print("put_cell", rowx, colx, self.logfile)
                 raise
         except:
-            print("put_cell", rowx, colx, file=self.logfile)
+            print("put_cell", rowx, colx, self.logfile)
             raise
 
     def put_blank_cell(self, rowx, colx, xf_index):
@@ -484,10 +485,10 @@ class Sheet(BaseObject):
                 self._cell_values[rowx][colx] = value
                 self._cell_xf_indexes[rowx][colx] = xf_index
             except:
-                print("put_cell", rowx, colx, file=self.logfile)
+                print("put_cell %d %d" % (rowx, colx), self.logfile)
                 raise
         except:
-            print("put_cell", rowx, colx, file=self.logfile)
+            print("put_cell %d %d" % (rowx, colx), self.logfile)
             raise
 
     def put_number_cell(self, rowx, colx, value, xf_index):
@@ -508,10 +509,10 @@ class Sheet(BaseObject):
                 if self.formatting_info:
                     self._cell_xf_indexes[rowx][colx] = xf_index
             except:
-                print("put_number_cell", rowx, colx, file=self.logfile)
+                print("put_number_cell", rowx, colx, self.logfile)
                 raise
         except:
-            print("put_number_cell", rowx, colx, file=self.logfile)
+            print("put_number_cell", rowx, colx, self.logfile)
             raise
 
     # === Methods after this line neither know nor care about how cells are stored.
@@ -572,7 +573,7 @@ class Sheet(BaseObject):
                 if not(0 <= rowx < self.utter_max_rows):
                     print("*** NOTE: ROW record has row index %d; " \
                         "should have 0 <= rowx < %d -- record ignored!" \
-                        % (rowx, self.utter_max_rows), file=self.logfile)
+                        % (rowx, self.utter_max_rows), self.logfile)
                     continue
                 r = Rowinfo()
                 # Using upkbits() is far too slow on a file
@@ -610,7 +611,7 @@ class Sheet(BaseObject):
                         "**ROW %d %d %d\n",
                         self.number, rowx, r.xf_index)
                 if verbose_rows:
-                    print('ROW', rowx, bits1, bits2, file=self.logfile)
+                    print('ROW', rowx, bits1, bits2, self.logfile)
                     r.dump(self.logfile,
                         header="--- sh #%d, rowx=%d ---" % (self.number, rowx))
             elif rc in XL_FORMULA_OPCODES: # 06, 0206, 0406
@@ -710,7 +711,7 @@ class Sheet(BaseObject):
                     # We silently ignore the non-existing 257th column in that case.
                     print("*** NOTE: COLINFO record has first col index %d, last %d; " \
                         "should have 0 <= first <= last <= 255 -- record ignored!" \
-                        % (first_colx, last_colx), file=self.logfile)
+                        % (first_colx, last_colx), self.logfile)
                     del c
                     continue
                 upkbits(c, flags, (
@@ -737,12 +738,12 @@ class Sheet(BaseObject):
                     c.dump(self.logfile, header='===')
             elif rc == XL_DEFCOLWIDTH:
                 self.defcolwidth, = local_unpack("<H", data[:2])
-                if 0: print('DEFCOLWIDTH', self.defcolwidth, file=self.logfile)
+                if 0: print('DEFCOLWIDTH', self.defcolwidth, self.logfile)
             elif rc == XL_STANDARDWIDTH:
                 if data_len != 2:
-                    print('*** ERROR *** STANDARDWIDTH', data_len, repr(data), file=self.logfile)
+                    print('*** ERROR *** STANDARDWIDTH', data_len, repr(data), self.logfile)
                 self.standardwidth, = local_unpack("<H", data[:2])
-                if 0: print('STANDARDWIDTH', self.standardwidth, file=self.logfile)
+                if 0: print('STANDARDWIDTH', self.standardwidth, self.logfile)
             elif rc == XL_GCW:
                 if not fmt_info: continue # useless w/o COLINFO
                 assert data_len == 34
@@ -760,14 +761,14 @@ class Sheet(BaseObject):
             elif rc == XL_BLANK:
                 if not fmt_info: continue
                 rowx, colx, xf_index = local_unpack('<HHH', data[:6])
-                if 0: print("BLANK", rowx, colx, xf_index, file=self.logfile)
+                if 0: print("BLANK", rowx, colx, xf_index, self.logfile)
                 self_put_blank_cell(rowx, colx, xf_index)
             elif rc == XL_MULBLANK: # 00BE
                 if not fmt_info: continue
                 mul_row, mul_first = local_unpack('<HH', data[0:4])
                 mul_last, = local_unpack('<H', data[-2:])
                 if 0:
-                    print("MULBLANK", mul_row, mul_first, mul_last, file=self.logfile)
+                    print("MULBLANK", mul_row, mul_first, mul_last, self.logfile)
                 pos = 4
                 for colx in range(mul_first, mul_last+1):
                     xf_index, = local_unpack('<H', data[pos:pos+2])
@@ -793,7 +794,7 @@ class Sheet(BaseObject):
                         )
             elif rc == XL_EOF:
                 DEBUG = 0
-                if DEBUG: print("SHEET.READ: EOF", file=self.logfile)
+                if DEBUG: print("SHEET.READ: EOF", self.logfile)
                 eof_found = 1
                 break
             elif rc == XL_OBJ:
@@ -811,12 +812,12 @@ class Sheet(BaseObject):
                 version, boftype = local_unpack('<HH', data[0:4])
                 if boftype != 0x20: # embedded chart
                     print("*** Unexpected embedded BOF (0x%04x) at offset %d: version=0x%04x type=0x%04x" \
-                        % (rc, bk._position - data_len - 4, version, boftype), file=self.logfile)
+                        % (rc, bk._position - data_len - 4, version, boftype), self.logfile)
                 while 1:
                     code, data_len, data = bk.get_record_parts()
                     if code == XL_EOF:
                         break
-                if DEBUG: print("---> found EOF", file=self.logfile)
+                if DEBUG: print("---> found EOF", self.logfile)
             elif rc == XL_COUNTRY:
                 bk.handle_country(data)
             elif rc == XL_LABELRANGES:
@@ -1038,7 +1039,7 @@ class Sheet(BaseObject):
                     if not(0 <= rowx < self.utter_max_rows):
                         print("*** NOTE: ROW_B2 record has row index %d; " \
                             "should have 0 <= rowx < %d -- record ignored!" \
-                            % (rowx, self.utter_max_rows), file=self.logfile)
+                            % (rowx, self.utter_max_rows), self.logfile)
                         continue
                     r = Rowinfo()
                     r.height = bits1 & 0x7fff
@@ -1065,7 +1066,7 @@ class Sheet(BaseObject):
                             "**ROW %d %d %d\n",
                             self.number, rowx, r.xf_index)
                     if verbose_rows:
-                        print('ROW_B2', rowx, bits1, has_defaults, file=self.logfile)
+                        print('ROW_B2', rowx, bits1, has_defaults, self.logfile)
                         r.dump(self.logfile,
                             header="--- sh #%d, rowx=%d ---" % (self.number, rowx))
                 elif rc == XL_COLWIDTH: # BIFF2 only
@@ -1075,7 +1076,7 @@ class Sheet(BaseObject):
                     if not(first_colx <= last_colx):
                         print("*** NOTE: COLWIDTH record has first col index %d, last %d; " \
                             "should have first <= last -- record ignored!" \
-                            % (first_colx, last_colx), file=self.logfile)
+                            % (first_colx, last_colx), self.logfile)
                         continue
                     for colx in range(first_colx, last_colx+1):
                         if colx in self.colinfo_map:
@@ -1103,7 +1104,7 @@ class Sheet(BaseObject):
                     if not(0 <= first_colx < last_colx <= 256):
                         print("*** NOTE: COLUMNDEFAULT record has first col index %d, last %d; " \
                             "should have 0 <= first < last <= 256" \
-                            % (first_colx, last_colx), file=self.logfile)
+                            % (first_colx, last_colx), self.logfile)
                         last_colx = min(last_colx, 256)
                     for colx in range(first_colx, last_colx):
                         offset = 4 + 3 * (colx - first_colx)

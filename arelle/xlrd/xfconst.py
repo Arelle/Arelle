@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Author:  mozman <mozman@gmx.at>
 # Purpose: xfconst -- xf constants
 # Created: 05.12.2010

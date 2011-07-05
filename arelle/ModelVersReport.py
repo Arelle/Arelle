@@ -5,6 +5,7 @@ Created on Nov 11, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os
+from gettext import gettext as _
 from collections import defaultdict
 from arelle import (XbrlConst, XbrlUtil, XmlUtil, UrlUtil, ModelXbrl, ModelDocument, ModelVersObject)
 from arelle.ModelObject import ModelObject
@@ -30,8 +31,7 @@ relationshipSetArcAttributesExclusion = {
     }
 
 class ModelVersReport(ModelDocument.ModelDocument):
-    def __init__(self, modelXbrl, 
-                 type=ModelDocument.Type.VERSIONINGREPORT, 
+    def __init__(self, modelXbrl, type=ModelDocument.Type.VERSIONINGREPORT, 
                  uri=None, filepath=None, xmlDocument=None):
         super(ModelVersReport, self).__init__(modelXbrl, type, uri, filepath, xmlDocument)
         self.fromDTS = None

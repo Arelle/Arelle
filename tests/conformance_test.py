@@ -1,9 +1,8 @@
 """
 This script runs the conformance tests to validate the implementation.
 """
-import sys
-import os, os.path
-import gettext
+import os.path, gettext, nose
+from nose.tools import eq_
 from functools import partial
 
 from arelle import Cntlr, FileSource, ModelDocument
@@ -29,26 +28,32 @@ verbose = True
 tests = {
          'xbrl' :  {    # XBRL 2.1
                     'url'  : 'http://www.xbrl.org/2008/XBRL-CONF-CR4-2008-07-02.zip',
-                    'args' : ["xbrl.xml", "xbrl.csv", "xbrl.log", False, False, False]
+                    'args' : ["xbrl.xml", False, False, False]
                     }, 
          
          'formula' : {  # Formula
                       'url'  : 'http://www.xbrl.org/Specification/formula/REC-2009-06-22/conformance/Formula-CONF-REC-PER-Errata-2011-03-16.zip',
-                      'args' : [ "index.xml", "formula.csv", "formula.log", False, False, False],
+                      'args' : [ "index.xml", False, False, False],
                       },
          'xdt' : {      # XDT
                   'url'  : "http://www.xbrl.org/2009/XDT-CONF-CR4-2009-10-06.zip",
-                  'args' : [ "xdt.xml", "xdt.csv", "xdt.log", False, False, False ]
+                  'args' : [ "xdt.xml", False, False, False ]
                   }, 
          'edgar' : {    # Edgar
                     'url'  : 'http://www.sec.gov/info/edgar/ednews/efmtest/16-110225.zip',
-                    'args' : [ "testcases.xml", "edgar.csv", "edgar.log", True, False, False]
+                    'args' : [ "testcases.xml", True, False, False]
                     }
          }
 
 class TestCntlr(Cntlr.Cntlr):
     """The function used to wrap tests."""
-    def run(self, testfn, csvfn, logfn, efm, utr, dec):
+    def __init__(self):
+        super(TestCntlr, self).__init__()
+        self.messages = []
+        self.filename = None
+        self.outcomes = list()
+        
+    def run(self, testfn, efm, utr, dec):
         """The run method is invoked to make things happen."""
         self.messages = []
         self.filename = testfn
@@ -71,7 +76,6 @@ class TestCntlr(Cntlr.Cntlr):
         self.modelManager.validate()
         modelDocument = modelXbrl.modelDocument
 
-        self.outcomes = list()
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
             index = os.path.basename(modelDocument.uri)
             for tci in modelDocument.referencesDocument.keys():
@@ -98,8 +102,8 @@ class TestCntlr(Cntlr.Cntlr):
     def showStatus(self, msg, clearAfter=None):
         pass
 
-def check_variation(index, test, variation):
-    assert variation.status == "pass"
+def check_variation(variation):
+    assert variation.status == "pass", "%s != %s" % (variation.expected, variation.actual)
   
 def conformance_test():
     dirpath=os.path.join(os.getcwd(), "tests", "conformance")
@@ -109,11 +113,9 @@ def conformance_test():
         dir_name = os.path.join(dirpath, os.path.splitext(short_name)[0])
         args = test['args']
         args[0] = os.path.join(dir_name, args[0])
-        args[1] = os.path.join(dir_name, args[1])
-        args[2] = os.path.join(dir_name, args[2])
         for index, test, variation in TestCntlr().run(*args):
             tname = os.path.splitext(test)[0]
-            z = partial(check_variation, name, tname, variation)
+            z = partial(check_variation, variation)
             z.description = "%s [ %s ] %s %s" % (name, tname, variation.id, variation.name)
             setattr(z, "__module__", "%s %s" % (name, tname))
             setattr(z, "__name__", "%s %s" % (variation.id, variation.name))

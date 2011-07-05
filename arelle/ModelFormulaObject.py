@@ -6,6 +6,7 @@ Created on Dec 9, 2010
 '''
 from collections import defaultdict
 import datetime, re
+from gettext import gettext as _
 from arelle import (XmlUtil, XbrlConst, XPathParser, XPathContext)
 from arelle.ModelValue import (qname, QName)
 from arelle.ModelObject import ModelObject
@@ -439,7 +440,7 @@ class ModelExistenceAssertion(ModelVariableSetAssertion):
                 
 class ModelValueAssertion(ModelVariableSetAssertion):
     def init(self, modelDocument):
-        super(ModelExistenceAssertion, self).init(modelDocument)
+        super(ModelValueAssertion, self).init(modelDocument)
                 
     def evaluate(self, xpCtx):
         try:
@@ -589,10 +590,10 @@ class ModelInstance(ModelParameter):
 
 class ModelVariable(ModelFormulaResource):
     def init(self, modelDocument):
-        super(ModelInstance, self).init(modelDocument)
+        super(ModelVariable, self).init(modelDocument)
         
     def compile(self):
-        super(ModelInstance, self).compile()
+        super(ModelVariable, self).compile()
 
     @property
     def bindAsSequence(self):
@@ -1226,7 +1227,7 @@ class ModelConceptRelation(ModelFilter):
             self.arcroleExpressionProg = XPathParser.parse(self, self.arcroleExpression, self, "arcroleQnameExpressionProg", Trace.VARIABLE)
             self.arcnameExpressionProg = XPathParser.parse(self, self.arcnameExpression, self, "arcnameQnameExpressionProg", Trace.VARIABLE)
             self.testExpressionProg = XPathParser.parse(self, self.test, self, "testExpressionProg", Trace.VARIABLE)
-            super().compile()
+            super(ModelConceptRelation, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         if self.variable and self.variable != XbrlConst.qnXfiRoot:

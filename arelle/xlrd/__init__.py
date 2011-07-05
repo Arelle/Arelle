@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Copyright © 2005-2009 Stephen John Machin, Lingfo Pty Ltd
 # This module is part of the xlrd3 package, which is released under a
 # BSD-style licence.
@@ -370,26 +371,14 @@ for _bin, _bic in code_from_builtin_name.items():
 #
 # @return An instance of the Book class.
 
-def open_workbook(filename=None,
-                  logfile=sys.stdout,
-                  verbosity=0,
-                  pickleable=True,
-                  use_mmap=True,
-                  file_contents=None,
-                  encoding_override=None,
-                  formatting_info=False,
-                  on_demand=False):
+def open_workbook(filename=None, log=sys.stdout, verbosity=0, pickleable=True,
+                  use_mmap=True, file_contents=None, encoding_override=None,
+                  formatting_info=False, on_demand=False):
     t0 = time.clock()
     workbook = Book()
-    workbook.biff2_8_load(filename=filename,
-                          file_contents=file_contents,
-                          logfile=logfile,
-                          verbosity=verbosity,
-                          pickleable=pickleable,
-                          use_mmap=use_mmap,
-                          encoding_override=encoding_override,
-                          formatting_info=formatting_info,
-                          on_demand=on_demand)
+    workbook.biff2_8_load(filename, file_contents, log, verbosity, pickleable,
+                          use_mmap, encoding_override, formatting_info,
+                          on_demand)
     t1 = time.clock()
     workbook.load_time_stage_1 = t1 - t0
     biff_version = workbook.getbof(XL_WORKBOOK_GLOBALS)
@@ -444,7 +433,7 @@ def open_workbook(filename=None,
 
 def dump(filename, outfile=sys.stdout, unnumbered=False):
     workbook = Book()
-    workbook.biff2_8_load(filename=filename, logfile=outfile, )
+    workbook.biff2_8_load(filename, outfile)
     biff_dump(workbook.mem, workbook.base, workbook.stream_len, 0, outfile, unnumbered)
 
 # For debugging and analysis: summarise the file's BIFF records.
@@ -454,7 +443,7 @@ def dump(filename, outfile=sys.stdout, unnumbered=False):
 
 def count_records(filename, outfile=sys.stdout):
     workbook = Book()
-    workbook.biff2_8_load(filename=filename, logfile=outfile, )
+    workbook.biff2_8_load(filename, outfile)
     biff_count_records(workbook.mem, workbook.base, workbook.stream_len, outfile)
 
 # Information relating to a named reference, formula, macro, etc.
@@ -852,7 +841,7 @@ class Book(BaseObject):
                 del filestr
         self._position = self.base
         if DEBUG:
-            print("mem: %s, base: %d, len: %d" % (type(self.mem), self.base, self.stream_len), file=self.logfile)
+            print("mem: %s, base: %d, len: %d" % (type(self.mem), self.base, self.stream_len), self.logfile)
 
     def initialise_format_info(self):
         # needs to be done once per sheet for BIFF 4W :-(
@@ -921,12 +910,11 @@ class Book(BaseObject):
 
     def get_sheets(self):
         if DEBUG:
-            print("GET_SHEETS:", self._sheet_names, self._sh_abs_posn,
-                  file=self.logfile)
+            print("GET_SHEETS:", self._sheet_names, self._sh_abs_posn, self.logfile)
         for sheetno in range(len(self._sheet_names)):
             if DEBUG:
                 print("GET_SHEETS: sheetno =", sheetno, self._sheet_names,
-                      self._sh_abs_posn, file=self.logfile)
+                      self._sh_abs_posn, self.logfile)
             self.get_sheet(sheetno)
 
     def fake_globals_get_sheet(self): # for BIFF 4.0 and earlier
@@ -1044,7 +1032,7 @@ class Book(BaseObject):
     def handle_country(self, data):
         countries = unpack('<HH', data[0:4])
         if self.verbosity:
-            print("Countries:", countries, file=self.logfile)
+            print("Countries:", countries, self.logfile)
         # Note: in BIFF7 and earlier, country record was put (redundantly?) in each worksheet.
         assert self.countries == (0, 0) or self.countries == countries
         self.countries = countries
@@ -1207,10 +1195,10 @@ class Book(BaseObject):
         verbose = self.verbosity >= 2
         f = self.logfile
         if verbose:
-            print("+++++ names_epilogue +++++", file=f)
-            print("_all_sheets_map", self._all_sheets_map, file=f)
-            print("_extnsht_name_from_num", self._extnsht_name_from_num, file=f)
-            print("_sheet_num_from_name", self._sheet_num_from_name, file=f)
+            print("+++++ names_epilogue +++++", f)
+            print("_all_sheets_map", self._all_sheets_map, f)
+            print("_extnsht_name_from_num", self._extnsht_name_from_num, f)
+            print("_sheet_num_from_name", self._sheet_num_from_name, f)
         num_names = len(self.name_obj_list)
         for namex in range(num_names):
             nobj = self.name_obj_list[namex]
@@ -1246,11 +1234,11 @@ class Book(BaseObject):
             evaluate_name_formula(self, nobj, namex, verbose=verbose)
 
         if self.verbosity >= 2:
-            print("---------- name object dump ----------", file=f)
+            print("---------- name object dump ----------", f)
             for namex in range(num_names):
                 nobj = self.name_obj_list[namex]
                 nobj.dump(f, header="--- name[%d] ---" % namex)
-            print("--------------------------------------", file=f)
+            print("--------------------------------------", f)
         #
         # Build some dicts for access to the name objects
         #
@@ -1266,7 +1254,7 @@ class Book(BaseObject):
                     raise XLRDError(msg)
                 else:
                     if self.verbosity:
-                        print(msg, file=f)
+                        print(msg, f)
             name_and_scope_map[key] = nobj
             if name_lcase in name_map:
                 name_map[name_lcase].append((nobj.scope, nobj))
@@ -1335,25 +1323,25 @@ class Book(BaseObject):
         BOF_posn = self._position
         posn = BOF_posn - 4 - len(data)
         if DEBUG:
-            print('SHEETHDR %d at posn %d: len=%d name=%r' % (sheetno, posn, sheet_len, sheet_name), file=self.logfile)
+            print('SHEETHDR %d at posn %d: len=%d name=%r' % (sheetno, posn, sheet_len, sheet_name), self.logfile)
         self.initialise_format_info()
         if DEBUG:
-            print('SHEETHDR: xf epilogue flag is %d' % self._xf_epilogue_done, file=self.logfile)
+            print('SHEETHDR: xf epilogue flag is %d' % self._xf_epilogue_done, self.logfile)
         self._sheet_list.append(None) # get_sheet updates _sheet_list but needs a None beforehand
         self.get_sheet(sheetno, update_pos=False)
         if DEBUG:
-            print('SHEETHDR: posn after get_sheet() =', self._position, file=self.logfile)
+            print('SHEETHDR: posn after get_sheet() =', self._position, self.logfile)
         self._position = BOF_posn + sheet_len
 
     def handle_sheetsoffset(self, data):
         posn = unpack('<i', data)[0]
         if DEBUG:
-            print('SHEETSOFFSET:', posn, file=self.logfile)
+            print('SHEETSOFFSET:', posn, self.logfile)
         self._sheetsoffset = posn
 
     def handle_sst(self, data):
         if DEBUG:
-            print("SST Processing", file=self.logfile)
+            print("SST Processing", self.logfile)
             t0 = time.time()
         nbt = len(data)
         strlist = [data]
@@ -1371,7 +1359,7 @@ class Book(BaseObject):
         self._sharedstrings = unpack_SST_table(strlist, uniquestrings)
         if DEBUG:
             t1 = time.time()
-            print("SST processing took %.2f seconds" % (t1 - t0, ), file=self.logfile)
+            print("SST processing took %.2f seconds" % (t1 - t0, ), self.logfile)
 
     def handle_writeaccess(self, data):
         if self.biff_version < 80:
@@ -1383,7 +1371,7 @@ class Book(BaseObject):
         else:
             strg = unpack_unicode(data, 0, lenlen=2)
         if DEBUG:
-            print("WRITEACCESS: %d bytes; raw=%d %r" % (len(data), self.raw_user_name, strg), file=self.logfile)
+            print("WRITEACCESS: %d bytes; raw=%d %r" % (len(data), self.raw_user_name, strg), self.logfile)
         strg = strg.rstrip()
         self.user_name = strg
 
@@ -1432,7 +1420,7 @@ class Book(BaseObject):
                 self.handle_style(data)
             elif rc & 0xff == 9:
                 print("*** Unexpected BOF at posn %d: 0x%04x len=%d data=%r" \
-                    % (self._position - length - 4, rc, length, data), file=self.logfile)
+                    % (self._position - length - 4, rc, length, data), self.logfile)
             elif rc ==  XL_EOF:
                 self.xf_epilogue()
                 self.names_epilogue()
@@ -1454,7 +1442,7 @@ class Book(BaseObject):
             raise XLRDError('Unsupported format, or corrupt file: ' + msg)
 
         if DEBUG:
-            print("reqd: 0x%04x" % rqd_stream, file=self.logfile)
+            print("reqd: 0x%04x" % rqd_stream, self.logfile)
 
         savpos = self._position
         opcode = self.get2bytes()
@@ -1473,18 +1461,18 @@ class Book(BaseObject):
             bof_error('Invalid length (%d) for BOF record type 0x%04x' % (length, opcode))
 
         data = self.read(self._position, length);
-        if DEBUG: print("\ngetbof(): data=%r" % data, file=self.logfile)
+        if DEBUG: print("\ngetbof(): data=%r" % data, self.logfile)
         if len(data) < length:
             bof_error('Incomplete BOF record[2]; met end of file')
         version1 = opcode >> 8
         version2, streamtype = unpack('<HH', data[0:4])
         if DEBUG:
             print("getbof(): op=0x%04x version2=0x%04x streamtype=0x%04x" \
-                % (opcode, version2, streamtype), file=self.logfile)
+                % (opcode, version2, streamtype), self.logfile)
         bof_offset = self._position - 4 - length
         if DEBUG:
             print("getbof(): BOF found at offset %d; savpos=%d" \
-                % (bof_offset, savpos), file=self.logfile)
+                % (bof_offset, savpos), self.logfile)
         version = build = year = 0
         if version1 == 0x08:
             build, year = unpack('<HH', data[4:8])
@@ -1512,7 +1500,7 @@ class Book(BaseObject):
 
         if DEBUG or self.verbosity >= 2:
             print("BOF: op=0x%04x vers=0x%04x stream=0x%04x buildid=%d buildyr=%d -> BIFF%d" \
-                % (opcode, version2, streamtype, build, year, version), file=self.logfile)
+                % (opcode, version2, streamtype, build, year, version), self.logfile)
         got_globals = streamtype == XL_WORKBOOK_GLOBALS or (
             version == 45 and streamtype == XL_WORKBOOK_GLOBALS_4W)
         if (rqd_stream == XL_WORKBOOK_GLOBALS and got_globals) or streamtype == rqd_stream:

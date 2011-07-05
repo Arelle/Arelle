@@ -1,3 +1,4 @@
+# -*- encoding: UTF-8 -*-
 # Module for parsing/evaluating Microsoft Excel formulas.
 #
 # Copyright © 2005-2009 Stephen John Machin, Lingfo Pty Ltd
@@ -791,7 +792,8 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                 # tLT, ..., tNE
                 do_binop(opcode, stack)
             elif opcode == 0x0F: # tIsect
-                if verbose: print("tIsect pre", stack, file=bk.logfile)
+                if verbose: 
+                    print("tIsect pre %s" % stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -839,9 +841,9 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                 else:
                     pass
                 spush(res)
-                if verbose: print("tIsect post", stack, file=bk.logfile)
+                if verbose: print("tIsect post", stack, bk.logfile)
             elif opcode == 0x10: # tList
-                if verbose: print("tList pre", stack, file=bk.logfile)
+                if verbose: print("tList pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -870,9 +872,9 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                 else:
                     pass
                 spush(res)
-                if verbose: print("tList post", stack, file=bk.logfile)
+                if verbose: print("tList post", stack, bk.logfile)
             elif opcode == 0x11: # tRange
-                if verbose: print("tRange pre", stack, file=bk.logfile)
+                if verbose: print("tRange pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -911,7 +913,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                 else:
                     pass
                 spush(res)
-                if verbose: print("tRange post", stack, file=bk.logfile)
+                if verbose: print("tRange post", stack, bk.logfile)
             elif 0x12 <= opcode <= 0x14: # tUplus, tUminus, tPercent
                 do_unaryop(opcode, (oUNK, oNUM,), oNUM, stack)
             elif opcode == 0x15: # tParen
@@ -927,7 +929,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                     strg, newpos = unpack_unicode_update_pos(
                                         data, pos+1, lenlen=1)
                 sz = newpos - pos
-                if verbose: print("   sz=%d strg=%r" % (sz, strg), file=bk.logfile)
+                if verbose: print("   sz=%d strg=%r" % (sz, strg), bk.logfile)
                 text = '"' + strg.replace('"', '""') + '"'
                 spush(Operand(oSTRG, strg, LEAF_RANK, text))
             elif opcode == 0x18: # tExtended
@@ -942,7 +944,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                     sz = nc * 2 + 6
                 elif subop == 0x10: # Sum (single arg)
                     sz = 4
-                    if verbose: print("tAttrSum", stack, file=bk.logfile)
+                    if verbose: print("tAttrSum", stack, bk.logfile)
                     assert len(stack) >= 1
                     aop = stack[-1]
                     otext = 'SUM(%s)' % aop.text
@@ -984,7 +986,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
             func_attrs = func_defs.get(funcx, None)
             if not func_attrs:
                 print("*** formula/tFunc unknown FuncID:%d" \
-                      % funcx, file=bk.logfile)
+                      % funcx, bk.logfile)
                 spush(unk_opnd)
             else:
                 func_name, nargs = func_attrs[:2]
@@ -1008,7 +1010,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
             func_attrs = func_defs.get(funcx, None)
             if not func_attrs:
                 print("*** formula/tFuncVar unknown FuncID:%d" \
-                      % funcx, file=bk.logfile)
+                      % funcx, bk.logfile)
                 spush(unk_opnd)
             else:
                 func_name, minargs, maxargs = func_attrs[:3]
@@ -1056,7 +1058,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
         elif opcode == 0x03: #tName
             tgtnamex = unpack("<H", data[pos+1:pos+3])[0] - 1
             # Only change with BIFF version is number of trailing UNUSED bytes!
-            if verbose: print("   tgtnamex=%d" % tgtnamex, file=bk.logfile)
+            if verbose: print("   tgtnamex=%d" % tgtnamex, bk.logfile)
             tgtobj = bk.name_obj_list[tgtnamex]
             if not tgtobj.evaluated:
                 ### recursive ###
@@ -1082,17 +1084,17 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                 res.text = "%s!%s" \
                            % (bk._sheet_names[tgtobj.scope], tgtobj.name)
             if verbose:
-                print("    tName: setting text to", repr(res.text), file=bk.logfile)
+                print("    tName: setting text to", repr(res.text), bk.logfile)
             spush(res)
         elif opcode == 0x04: # tRef
             # not_in_name_formula(op, oname)
             res = get_cell_addr(data, pos+1, bv, reldelta)
-            if verbose: print("  ", res, file=bk.logfile)
+            if verbose: print("  ", res, bk.logfile)
             rowx, colx, row_rel, col_rel = res
             shx1 = shx2 = 0 ####### N.B. relative to the CURRENT SHEET
             any_rel = 1
             coords = (shx1, shx2+1, rowx, rowx+1, colx, colx+1)
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             res = Operand(oUNK, None)
             if optype == 1:
                 relflags = (1, 1, row_rel, row_rel, col_rel, col_rel)
@@ -1101,13 +1103,13 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
         elif opcode == 0x05: # tArea
             # not_in_name_formula(op, oname)
             res1, res2 = get_cell_range_addr(data, pos+1, bv, reldelta)
-            if verbose: print("  ", res1, res2, file=bk.logfile)
+            if verbose: print("  ", res1, res2, bk.logfile)
             rowx1, colx1, row_rel1, col_rel1 = res1
             rowx2, colx2, row_rel2, col_rel2 = res2
             shx1 = shx2 = 0 ####### N.B. relative to the CURRENT SHEET
             any_rel = 1
             coords = (shx1, shx2+1, rowx1, rowx2+1, colx1, colx2+1)
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             res = Operand(oUNK, None)
             if optype == 1:
                 relflags = (1, 1, row_rel1, row_rel2, col_rel1, col_rel2)
@@ -1117,7 +1119,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
             not_in_name_formula(op, oname)
         elif opcode == 0x09: # tMemFunc
             nb = unpack("<H", data[pos+1:pos+3])[0]
-            if verbose: print("  %d bytes of cell ref formula" % nb, file=bk.logfile)
+            if verbose: print("  %d bytes of cell ref formula" % nb, bk.logfile)
             # no effect on stack
         elif opcode == 0x0C: #tRefN
             not_in_name_formula(op, oname)
@@ -1142,7 +1144,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                 raw_extshtx, raw_shx1, raw_shx2 = \
                              unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if verbose:
-                    print("tRef3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
+                    print("tRef3d", raw_extshtx, raw_shx1, raw_shx2, bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
                                 bk, raw_extshtx, raw_shx1, raw_shx2, verbose)
             rowx, colx, row_rel, col_rel = res
@@ -1150,7 +1152,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
             any_rel = any_rel or is_rel
             coords = (shx1, shx2+1, rowx, rowx+1, colx, colx+1)
             any_err |= shx1 < -1
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             res = Operand(oUNK, None)
             if is_rel:
                 relflags = (0, 0, row_rel, row_rel, col_rel, col_rel)
@@ -1175,7 +1177,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                 raw_extshtx, raw_shx1, raw_shx2 = \
                              unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if verbose:
-                    print("tArea3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
+                    print("tArea3d", raw_extshtx, raw_shx1, raw_shx2, bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
                                 bk, raw_extshtx, raw_shx1, raw_shx2, verbose)
             any_err |= shx1 < -1
@@ -1184,7 +1186,7 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
             is_rel = row_rel1 or col_rel1 or row_rel2 or col_rel2
             any_rel = any_rel or is_rel
             coords = (shx1, shx2+1, rowx1, rowx2+1, colx1, colx2+1)
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             res = Operand(oUNK, None)
             if is_rel:
                 relflags = (0, 0, row_rel1, row_rel2, col_rel1, col_rel2)
@@ -1219,9 +1221,9 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                     dodgy = 1
             if verbose:
                 print("   origrefx=%d refx=%d tgtnamex=%d dodgy=%d" \
-                    % (origrefx, refx, tgtnamex, dodgy), file=bk.logfile)
+                    % (origrefx, refx, tgtnamex, dodgy), bk.logfile)
             if tgtnamex == namex:
-                if verbose: print("!!!! Self-referential !!!!", file=bk.logfile)
+                if verbose: print("!!!! Self-referential !!!!", bk.logfile)
                 dodgy = any_err = 1
             if not dodgy:
                 if bv >= 80:
@@ -1264,14 +1266,14 @@ def evaluate_name_formula(bk, nobj, namex, verbose=0, level=0):
                     res.text = "%s!%s" \
                                % (bk._sheet_names[tgtobj.scope], tgtobj.name)
                 if verbose:
-                    print("    tNameX: setting text to", repr(res.text), file=bk.logfile)
+                    print("    tNameX: setting text to", repr(res.text), bk.logfile)
             spush(res)
         elif opcode in _error_opcodes:
             any_err = 1
             spush(error_opnd)
         else:
             if verbose:
-                print("FORMULA: /// Not handled yet: t" + oname, file=bk.logfile)
+                print("FORMULA: /// Not handled yet: t" + oname, bk.logfile)
             any_err = 1
         if sz <= 0:
             raise FormulaError("Fatal: token size is not positive")
@@ -1385,7 +1387,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 # tLT, ..., tNE
                 do_binop(opcode, stack)
             elif opcode == 0x0F: # tIsect
-                if verbose: print("tIsect pre", stack, file=bk.logfile)
+                if verbose: print("tIsect pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -1419,9 +1421,9 @@ def decompile_formula(bk, fmla, fmlalen,
                 else:
                     pass
                 spush(res)
-                if verbose: print("tIsect post", stack, file=bk.logfile)
+                if verbose: print("tIsect post", stack, bk.logfile)
             elif opcode == 0x10: # tList
-                if verbose: print("tList pre", stack, file=bk.logfile)
+                if verbose: print("tList pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -1446,9 +1448,9 @@ def decompile_formula(bk, fmla, fmlalen,
                 else:
                     pass
                 spush(res)
-                if verbose: print("tList post", stack, file=bk.logfile)
+                if verbose: print("tList post", stack, bk.logfile)
             elif opcode == 0x11: # tRange
-                if verbose: print("tRange pre", stack, file=bk.logfile)
+                if verbose: print("tRange pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -1471,7 +1473,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 else:
                     pass
                 spush(res)
-                if verbose: print("tRange post", stack, file=bk.logfile)
+                if verbose: print("tRange post", stack, bk.logfile)
             elif 0x12 <= opcode <= 0x14: # tUplus, tUminus, tPercent
                 do_unaryop(opcode, (oUNK, oNUM,), oNUM, stack)
             elif opcode == 0x15: # tParen
@@ -1487,7 +1489,7 @@ def decompile_formula(bk, fmla, fmlalen,
                     strg, newpos = unpack_unicode_update_pos(
                                         data, pos+1, lenlen=1)
                 sz = newpos - pos
-                if verbose: print("   sz=%d strg=%r" % (sz, strg), file=bk.logfile)
+                if verbose: print("   sz=%d strg=%r" % (sz, strg), bk.logfile)
                 text = '"' + strg.replace('"', '""') + '"'
                 spush(Operand(oSTRG, None, LEAF_RANK, text))
             elif opcode == 0x18: # tExtended
@@ -1502,7 +1504,7 @@ def decompile_formula(bk, fmla, fmlalen,
                     sz = nc * 2 + 6
                 elif subop == 0x10: # Sum (single arg)
                     sz = 4
-                    if verbose: print("tAttrSum", stack, file=bk.logfile)
+                    if verbose: print("tAttrSum", stack, bk.logfile)
                     assert len(stack) >= 1
                     aop = stack[-1]
                     otext = 'SUM(%s)' % aop.text
@@ -1543,7 +1545,7 @@ def decompile_formula(bk, fmla, fmlalen,
             funcx = unpack("<" + " BH"[nb], data[pos+1:pos+1+nb])[0]
             func_attrs = func_defs.get(funcx, None)
             if not func_attrs:
-                print("*** formula/tFunc unknown FuncID:%d" % funcx, file=bk.logfile)
+                print("*** formula/tFunc unknown FuncID:%d" % funcx, bk.logfile)
                 spush(unk_opnd)
             else:
                 func_name, nargs = func_attrs[:2]
@@ -1571,7 +1573,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 func_attrs = func_defs.get(funcx, None)
             if not func_attrs:
                 print("*** formula/tFuncVar unknown FuncID:%d" \
-                      % funcx, file=bk.logfile)
+                      % funcx, bk.logfile)
                 spush(unk_opnd)
             else:
                 func_name, minargs, maxargs = func_attrs[:3]
@@ -1589,19 +1591,19 @@ def decompile_formula(bk, fmla, fmlalen,
         elif opcode == 0x03: #tName
             tgtnamex = unpack("<H", data[pos+1:pos+3])[0] - 1
             # Only change with BIFF version is number of trailing UNUSED bytes!
-            if verbose: print("   tgtnamex=%d" % tgtnamex, file=bk.logfile)
+            if verbose: print("   tgtnamex=%d" % tgtnamex, bk.logfile)
             tgtobj = bk.name_obj_list[tgtnamex]
             if tgtobj.scope == -1:
                 otext = tgtobj.name
             else:
                 otext = "%s!%s" % (bk._sheet_names[tgtobj.scope], tgtobj.name)
             if verbose:
-                print("    tName: setting text to", repr(otext), file=bk.logfile)
+                print("    tName: setting text to", repr(otext), bk.logfile)
             res = Operand(oUNK, None, LEAF_RANK, otext)
             spush(res)
         elif opcode == 0x04: # tRef
             res = get_cell_addr(data, pos+1, bv, reldelta, browx, bcolx)
-            if verbose: print("  ", res, file=bk.logfile)
+            if verbose: print("  ", res, bk.logfile)
             rowx, colx, row_rel, col_rel = res
             is_rel = row_rel or col_rel
             if is_rel:
@@ -1614,7 +1616,7 @@ def decompile_formula(bk, fmla, fmlalen,
         elif opcode == 0x05: # tArea
             res1, res2 = get_cell_range_addr(
                             data, pos+1, bv, reldelta, browx, bcolx)
-            if verbose: print("  ", res1, res2, file=bk.logfile)
+            if verbose: print("  ", res1, res2, bk.logfile)
             rowx1, colx1, row_rel1, col_rel1 = res1
             rowx2, colx2, row_rel2, col_rel2 = res2
             coords = (rowx1, rowx2+1, colx1, colx2+1)
@@ -1624,7 +1626,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 okind = oREL
             else:
                 okind = oREF
-            if verbose: print("   ", coords, relflags, file=bk.logfile)
+            if verbose: print("   ", coords, relflags, bk.logfile)
             otext = rangename2drel(coords, relflags)
             res = Operand(okind, None, LEAF_RANK, otext)
             spush(res)
@@ -1632,7 +1634,7 @@ def decompile_formula(bk, fmla, fmlalen,
             not_in_name_formula(op, oname)
         elif opcode == 0x09: # tMemFunc
             nb = unpack("<H", data[pos+1:pos+3])[0]
-            if verbose: print("  %d bytes of cell ref formula" % nb, file=bk.logfile)
+            if verbose: print("  %d bytes of cell ref formula" % nb, bk.logfile)
             # no effect on stack
         elif opcode == 0x0C: #tRefN
             not_in_name_formula(op, oname)
@@ -1657,7 +1659,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 raw_extshtx, raw_shx1, raw_shx2 = \
                              unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if verbose:
-                    print("tRef3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
+                    print("tRef3d", raw_extshtx, raw_shx1, raw_shx2, bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
                                 bk, raw_extshtx, raw_shx1, raw_shx2, verbose)
             rowx, colx, row_rel, col_rel = res
@@ -1665,7 +1667,7 @@ def decompile_formula(bk, fmla, fmlalen,
             any_rel = any_rel or is_rel
             coords = (shx1, shx2+1, rowx, rowx+1, colx, colx+1)
             any_err |= shx1 < -1
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             res = Operand(oUNK, None)
             if is_rel:
                 relflags = (0, 0, row_rel, row_rel, col_rel, col_rel)
@@ -1689,7 +1691,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 raw_extshtx, raw_shx1, raw_shx2 = \
                              unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if verbose:
-                    print("tArea3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
+                    print("tArea3d", raw_extshtx, raw_shx1, raw_shx2, bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
                                 bk, raw_extshtx, raw_shx1, raw_shx2, verbose)
             any_err |= shx1 < -1
@@ -1698,7 +1700,7 @@ def decompile_formula(bk, fmla, fmlalen,
             is_rel = row_rel1 or col_rel1 or row_rel2 or col_rel2
             any_rel = any_rel or is_rel
             coords = (shx1, shx2+1, rowx1, rowx2+1, colx1, colx2+1)
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             res = Operand(oUNK, None)
             if is_rel:
                 relflags = (0, 0, row_rel1, row_rel2, col_rel1, col_rel2)
@@ -1730,7 +1732,7 @@ def decompile_formula(bk, fmla, fmlalen,
                     dodgy = 1
             if verbose:
                 print("   origrefx=%d refx=%d tgtnamex=%d dodgy=%d" \
-                    % (origrefx, refx, tgtnamex, dodgy), file=bk.logfile)
+                    % (origrefx, refx, tgtnamex, dodgy), bk.logfile)
             # if tgtnamex == namex:
             #     if verbose: print >> bk.logfile, "!!!! Self-referential !!!!"
             #     dodgy = any_err = 1
@@ -1762,7 +1764,7 @@ def decompile_formula(bk, fmla, fmlalen,
                     otext = "%s!%s" \
                             % (bk._sheet_names[tgtobj.scope], tgtobj.name)
                 if verbose:
-                    print("    tNameX: setting text to", repr(res.text), file=bk.logfile)
+                    print("    tNameX: setting text to", repr(res.text), bk.logfile)
             res = Operand(okind, ovalue, LEAF_RANK, otext)
             spush(res)
         elif opcode in _error_opcodes:
@@ -1770,7 +1772,7 @@ def decompile_formula(bk, fmla, fmlalen,
             spush(error_opnd)
         else:
             if verbose:
-                print("FORMULA: /// Not handled yet: t" + oname, file=bk.logfile)
+                print("FORMULA: /// Not handled yet: t" + oname, bk.logfile)
             any_err = 1
         if sz <= 0:
             raise FormulaError("Fatal: token size is not positive")
@@ -1819,16 +1821,16 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, verbose=0, isname=0):
             if 0x01 <= opcode <= 0x02: # tExp, tTbl
                 # reference to a shared formula or table record
                 rowx, colx = unpack("<HH", data[pos+1:pos+5])
-                if verbose: print("  ", (rowx, colx), file=bk.logfile)
+                if verbose: print("  ", (rowx, colx), bk.logfile)
             elif opcode == 0x10: # tList
-                if verbose: print("tList pre", stack, file=bk.logfile)
+                if verbose: print("tList pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
                 spush(aop + bop)
-                if verbose: print("tlist post", stack, file=bk.logfile)
+                if verbose: print("tlist post", stack, bk.logfile)
             elif opcode == 0x11: # tRange
-                if verbose: print("tRange pre", stack, file=bk.logfile)
+                if verbose: print("tRange pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -1836,9 +1838,9 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, verbose=0, isname=0):
                 assert len(bop) == 1
                 result = do_box_funcs(tRangeFuncs, aop[0], bop[0])
                 spush(result)
-                if verbose: print("tRange post", stack, file=bk.logfile)
+                if verbose: print("tRange post", stack, bk.logfile)
             elif opcode == 0x0F: # tIsect
-                if verbose: print("tIsect pre", stack, file=bk.logfile)
+                if verbose: print("tIsect pre", stack, bk.logfile)
                 assert len(stack) >= 2
                 bop = stack.pop()
                 aop = stack.pop()
@@ -1846,7 +1848,7 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, verbose=0, isname=0):
                 assert len(bop) == 1
                 result = do_box_funcs(tIsectFuncs, aop[0], bop[0])
                 spush(result)
-                if verbose: print("tIsect post", stack, file=bk.logfile)
+                if verbose: print("tIsect post", stack, bk.logfile)
             elif opcode == 0x19: # tAttr
                 subop, nc = unpack("<BH", data[pos+1:pos+4])
                 subname = tAttrNames.get(subop, "??Unknown??")
@@ -1854,7 +1856,7 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, verbose=0, isname=0):
                     sz = nc * 2 + 6
                 else:
                     sz = 4
-                if verbose: print("   subop=%02xh subname=t%s sz=%d nc=%02xh" % (subop, subname, sz, nc), file=bk.logfile)
+                if verbose: print("   subop=%02xh subname=t%s sz=%d nc=%02xh" % (subop, subname, sz, nc), bk.logfile)
             elif opcode == 0x17: # tStr
                 if bv <= 70:
                     nc = data[pos+1]
@@ -1863,7 +1865,7 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, verbose=0, isname=0):
                 else:
                     strg, newpos = unpack_unicode_update_pos(data, pos+1, lenlen=1)
                     sz = newpos - pos
-                if verbose: print("   sz=%d strg=%r" % (sz, strg), file=bk.logfile)
+                if verbose: print("   sz=%d strg=%r" % (sz, strg), bk.logfile)
             else:
                 if sz <= 0:
                     print("**** Dud size; exiting ****")
@@ -1875,66 +1877,66 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, verbose=0, isname=0):
         elif opcode == 0x01: # tFunc
             nb = 1 + int(bv >= 40)
             funcx = unpack("<" + " BH"[nb], data[pos+1:pos+1+nb])
-            if verbose: print("   FuncID=%d" % funcx, file=bk.logfile)
+            if verbose: print("   FuncID=%d" % funcx, bk.logfile)
         elif opcode == 0x02: #tFuncVar
             nb = 1 + int(bv >= 40)
             nargs, funcx = unpack("<B" + " BH"[nb], data[pos+1:pos+2+nb])
             prompt, nargs = divmod(nargs, 128)
             macro, funcx = divmod(funcx, 32768)
-            if verbose: print("   FuncID=%d nargs=%d macro=%d prompt=%d" % (funcx, nargs, macro, prompt), file=bk.logfile)
+            if verbose: print("   FuncID=%d nargs=%d macro=%d prompt=%d" % (funcx, nargs, macro, prompt), bk.logfile)
         elif opcode == 0x03: #tName
             namex = unpack("<H", data[pos+1:pos+3])
             # Only change with BIFF version is the number of trailing UNUSED bytes!!!
-            if verbose: print("   namex=%d" % namex, file=bk.logfile)
+            if verbose: print("   namex=%d" % namex, bk.logfile)
         elif opcode == 0x04: # tRef
             res = get_cell_addr(data, pos+1, bv, reldelta)
-            if verbose: print("  ", res, file=bk.logfile)
+            if verbose: print("  ", res, bk.logfile)
         elif opcode == 0x05: # tArea
             res = get_cell_range_addr(data, pos+1, bv, reldelta)
-            if verbose: print("  ", res, file=bk.logfile)
+            if verbose: print("  ", res, bk.logfile)
         elif opcode == 0x09: # tMemFunc
             nb = unpack("<H", data[pos+1:pos+3])[0]
-            if verbose: print("  %d bytes of cell ref formula" % nb, file=bk.logfile)
+            if verbose: print("  %d bytes of cell ref formula" % nb, bk.logfile)
         elif opcode == 0x0C: #tRefN
             res = get_cell_addr(data, pos+1, bv, reldelta=1)
             # note *ALL* tRefN usage has signed offset for relative addresses
             any_rel = 1
-            if verbose: print("   ", res, file=bk.logfile)
+            if verbose: print("   ", res, bk.logfile)
         elif opcode == 0x0D: #tAreaN
             res = get_cell_range_addr(data, pos+1, bv, reldelta=1)
             # note *ALL* tAreaN usage has signed offset for relative addresses
             any_rel = 1
-            if verbose: print("   ", res, file=bk.logfile)
+            if verbose: print("   ", res, bk.logfile)
         elif opcode == 0x1A: # tRef3d
             refx = unpack("<H", data[pos+1:pos+3])[0]
             res = get_cell_addr(data, pos+3, bv, reldelta)
-            if verbose: print("  ", refx, res, file=bk.logfile)
+            if verbose: print("  ", refx, res, bk.logfile)
             rowx, colx, row_rel, col_rel = res
             any_rel = any_rel or row_rel or col_rel
             shx1, shx2 = get_externsheet_local_range(bk, refx, verbose)
             any_err |= shx1 < -1
             coords = (shx1, shx2+1, rowx, rowx+1, colx, colx+1)
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             if optype == 1: spush([coords])
         elif opcode == 0x1B: # tArea3d
             refx = unpack("<H", data[pos+1:pos+3])[0]
             res1, res2 = get_cell_range_addr(data, pos+3, bv, reldelta)
-            if verbose: print("  ", refx, res1, res2, file=bk.logfile)
+            if verbose: print("  ", refx, res1, res2, bk.logfile)
             rowx1, colx1, row_rel1, col_rel1 = res1
             rowx2, colx2, row_rel2, col_rel2 = res2
             any_rel = any_rel or row_rel1 or col_rel1 or row_rel2 or col_rel2
             shx1, shx2 = get_externsheet_local_range(bk, refx, verbose)
             any_err |= shx1 < -1
             coords = (shx1, shx2+1, rowx1, rowx2+1, colx1, colx2+1)
-            if verbose: print("   ", coords, file=bk.logfile)
+            if verbose: print("   ", coords, bk.logfile)
             if optype == 1: spush([coords])
         elif opcode == 0x19: # tNameX
             refx, namex = unpack("<HH", data[pos+1:pos+5])
-            if verbose: print("   refx=%d namex=%d" % (refx, namex), file=bk.logfile)
+            if verbose: print("   refx=%d namex=%d" % (refx, namex), bk.logfile)
         elif opcode in _error_opcodes:
             any_err = 1
         else:
-            if verbose: print("FORMULA: /// Not handled yet: t" + oname, file=bk.logfile)
+            if verbose: print("FORMULA: /// Not handled yet: t" + oname, bk.logfile)
             any_err = 1
         if sz <= 0:
             print("**** Dud size; exiting ****")
@@ -1942,9 +1944,9 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, verbose=0, isname=0):
         pos += sz
     if verbose:
         print("End of formula. any_rel=%d any_err=%d stack=%r" % \
-            (not not any_rel, any_err, stack), file=bk.logfile)
+            (not not any_rel, any_err, stack), bk.logfile)
         if len(stack) >= 2:
-            print("*** Stack has unprocessed args", file=bk.logfile)
+            print("*** Stack has unprocessed args", bk.logfile)
 
 # === Some helper functions for displaying cell references ===
 
