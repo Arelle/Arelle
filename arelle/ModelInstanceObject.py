@@ -293,38 +293,36 @@ class ModelInlineFact(ModelFact):
 
     @property
     def format(self):
-        return self.get("format")
+        return self.prefixedNameQname(self.get("format"))
 
     @property
     def scale(self):
         return self.get("scale")
     
-    def transformedValue(self):
+    def transformedValue(self, value):
         num = 0
         negate = -1 if self.sign else 1
-        mult = 1
-        decSep = "," if self.format.endswith("comma") else "."
-        for c in XmlUtil.text(self):
-            if c == decSep:
-                mult = 0.1
-            elif c.isnumeric():
-                if mult >= 1:
-                    num = num * 10 + int(c)
-                else:
-                    num += int(c) * mult
-                    mult *= .1
         try:
-            num *= 10 ** int(self.scale)
+            num = float(value) * 10 ** int(self.scale)
         except ValueError:
             pass
         return "{0}".format(num * negate)
     
     @property
     def value(self):
+        v = XmlUtil.innerText(self, ixExclude=True)
+        f = self.format
+        if f is not None:
+            if (f.namespaceURI.startswith("http://www.xbrl.org/inlineXBRL/transformation/2010-04-20") and
+                f.localName in FunctionIxt.ixtFunctions_2010_04_20):
+                v = FunctionIxt.ixtFunctions_2010_04_20[f.localName](v)
+            elif (f.namespaceURI.startswith("http://www.xbrl.org/inlineXBRL/transformation/2011-07-31") and
+                f.localName in FunctionIxt.ixtFunctions_2011_07_31):
+                v = FunctionIxt.ixtFunctions_2011_07_31[f.localName](v)
         if self.localName == "nonNumeric" or self.localName == "tuple":
-            return XmlUtil.innerText(self, ixExclude=True)
+            return v
         else:
-            return self.transformedValue()
+            return self.transformedValue(v)
 
     @property
     def propertyView(self):
@@ -770,6 +768,7 @@ class ModelUnit(ModelObject):
             return tuple(('',m) for m in self.measures[0])
 
 from arelle.ModelFormulaObject import Aspect
+from arelle import FunctionIxt
            
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((
