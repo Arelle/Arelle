@@ -93,7 +93,7 @@ class ModelRelationshipSet:
                 if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and \
                    linkChild.get("{http://www.w3.org/1999/xlink}arcrole"):
                     linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
-                    linkChildQname = linkChild
+                    linkChildQname = qname.qname(linkChild)
                     if isFootnoteRel:
                         arcs.append(linkChild)
                     elif isDimensionRel: 

@@ -422,7 +422,7 @@ class XPathContext:
             if not isinstance(node,(ModelObject, etree._ElementTree)):
                 raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
-            if isinstance(p,QNameDef):
+            if isinstance(p, QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
                     attrTag = p.localName if p.unprefixed else p.clarkNotation
