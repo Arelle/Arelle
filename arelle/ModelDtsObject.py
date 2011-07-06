@@ -102,7 +102,7 @@ class ModelSchemaObject(ModelObject):
         parent = self.getparent()
         return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"
 
-anonymousTypeSuffix = "@anonymousType"
+anonymousTypeSuffix = "_anonymousType"
 
 class ModelConcept(ModelSchemaObject):
     def init(self, modelDocument):
@@ -443,7 +443,7 @@ class ModelAttribute(ModelSchemaObject):
             return self.prefixedNameQname(self.get("type"))
         else:
             # check if anonymous type exists
-            typeqname = qname.qname(self.qname.clarkNotation +  "@anonymousType")
+            typeqname = qname.qname(self.qname.clarkNotation +  "_anonymousType")
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
@@ -506,7 +506,7 @@ class ModelType(ModelSchemaObject):
         element = self.getparent()
         while element is not None:
             if element.get("name"):
-                return element.get("name") + "@anonymousType"
+                return element.get("name") + "_anonymousType"
             element = element.getparent()
         return None
     

@@ -5,6 +5,7 @@ Refactored from ModelObject on Jun 11, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+import six
 from collections import defaultdict
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, Locale, ModelValue, qname
@@ -470,9 +471,9 @@ class ModelContext(ModelObject):
         return XmlUtil.child(self, XbrlConst.xbrli, "scenario")
     
     def dimValues(self, contextElement):
-        if contextElement == "segment":
+        if contextElement == six.u("segment"):
             return self.segDimValues
-        elif contextElement == "scenario":
+        elif contextElement == six.u("scenario"):
             return self.scenDimValues
         return {}
     
