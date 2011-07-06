@@ -741,8 +741,6 @@ class ParserElement(object):
         if breakFlag:
             _parseMethod = self._parse
             def breaker(instring, loc, doActions=True, callPreParse=True):
-                import pdb
-                pdb.set_trace()
                 return _parseMethod( instring, loc, doActions, callPreParse )
             breaker._originalParseMethod = _parseMethod
             self._parse = breaker

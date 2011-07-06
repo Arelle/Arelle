@@ -519,7 +519,7 @@ class ValidateXbrl(object):
                     if attributeQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
                         self.modelXbrl.error(
                             _("Tuple {0} must not have attribute in this namespace {1}").format(
-                                  concept.qname, attributeQname), 
+                                concept.qname, attributeQname), 
                             "err", "xbrl.4.9:tupleAttribute")
                 # check for mixed="true" or simple content
                 if XmlUtil.descendantAttr(conceptType, XbrlConst.xsd, ("complexType", "complexContent"), "mixed") == "true":
