@@ -110,8 +110,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.colHdrDocRow = False
             self.colHdrCodeRow = False
             self.colHdrRows = 0
+            self.rowHdrCols = 0
             self.dataRows = 0
-            self.rowHdrMaxIndent = 0
+            self.rowHdrColWidth = [0,]
             self.rowHdrDocRow = False
             self.rowHdrCodeRow = False
             self.zAxisRows = 0
@@ -125,8 +126,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 elif axisType == "zAxis": zAxisObj = axisObj
                 self.analyzeHdrs(axisObj, 1, axisType)
             self.colHdrTopRow = self.zAxisRows + (2 if self.zAxisRows else 1)
+            self.rowHdrWrapLength = 200 + sum(self.rowHdrColWidth[i] for i in range(self.rowHdrCols))
             self.dataFirstRow = self.colHdrTopRow + self.colHdrRows + self.colHdrDocRow + self.colHdrCodeRow
-            self.dataFirstCol = 2 + self.rowHdrDocRow + self.rowHdrCodeRow
+            self.dataFirstCol = 1 + self.rowHdrCols + self.rowHdrDocRow + self.rowHdrCodeRow
             #for i in range(self.dataFirstRow + self.dataRows):
             #    self.gridView.rowconfigure(i)
             #for i in range(self.dataFirstCol + self.dataCols):
@@ -143,8 +145,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             xFilters = []
             self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                        xAxisObj, xFilters, self.xAxisChildrenFirst.get(), True, True)
-            self.yAxis(self.dataFirstRow, 0, yAxisObj, True, self.yAxisChildrenFirst.get())
-            self.bodyCells(self.dataFirstRow, 0, yAxisObj, xFilters, zFilters, self.yAxisChildrenFirst.get())
+            self.yAxis(1, self.dataFirstRow,
+                       yAxisObj, self.yAxisChildrenFirst.get(), True, True)
+            self.bodyCells(self.dataFirstRow, yAxisObj, xFilters, zFilters, self.yAxisChildrenFirst.get())
                 
             # data cells
                 
@@ -170,7 +173,14 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         self.colHdrCodeRow = True
             elif axisType == "yAxis":
                 self.dataRows += 1
-                if depth > self.rowHdrMaxIndent: self.rowHdrMaxIndent = depth
+                if depth > self.rowHdrCols: 
+                    self.rowHdrCols = depth
+                    self.rowHdrColWidth.append(16)  # min width for 'tail' of nonAbstract coordinate
+                if axisMbrModelObject.abstract == "true":
+                    label = axisMbrModelObject.genLabel(lang=self.lang)
+                    widestWordLen = max(len(w) * 7 for w in label.split())
+                    if widestWordLen > self.rowHdrColWidth[depth]:
+                        self.rowHdrColWidth[depth] = widestWordLen 
                 if not self.rowHdrDocRow:
                     if axisMbrModelObject.genLabel(role="http://www.xbrl.org/2008/role/documentation",
                                                    lang=self.lang): 
@@ -289,15 +299,93 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             gridBorder(self.gridColHdr, rightCol - 1, 1, RIGHTBORDER, rowspan=self.dataFirstRow)
         return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
-    def yAxis(self, row, indent, yAxisParentObj, atLeft, childrenFirst):
+    def yAxis(self, leftCol, row, yAxisParentObj, childrenFirst, renderNow, atLeft):
+        nestedBottomRow = row
+        if atLeft:
+            gridBorder(self.gridRowHdr, self.rowHdrCols + self.colHdrDocRow + self.colHdrCodeRow, 
+                       self.dataFirstRow, 
+                       RIGHTBORDER, 
+                       rowspan=self.dataRows)
+            gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
+                       BOTTOMBORDER, 
+                       columnspan=(self.rowHdrCols + self.colHdrDocRow + self.colHdrCodeRow))
+        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
+            yAxisHdrObj = axisMbrRel.toModelObject
+            nestRow, nextRow = self.yAxis(leftCol + 1, row, yAxisHdrObj,  # nested items before totals
+                                    childrenFirst, childrenFirst, False)
+            
+            isNonAbstract = yAxisHdrObj.abstract == "false"
+            isAbstract = not isNonAbstract
+            label = yAxisHdrObj.genLabel(lang=self.lang)
+            topRow = row
+            if childrenFirst and isNonAbstract:
+                row = nextRow
+            if renderNow:
+                columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else None
+                gridBorder(self.gridRowHdr, leftCol, topRow, LEFTBORDER, 
+                           rowspan=(nestRow - topRow + 1) )
+                gridBorder(self.gridRowHdr, leftCol, topRow, TOPBORDER, 
+                           columnspan=(1 if childrenFirst and nextRow > row else columnspan))
+                if childrenFirst and row > topRow:
+                    gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
+                               columnspan=(self.rowHdrCols - leftCol))
+                gridHdr(self.gridRowHdr, leftCol, row, 
+                        label if label else "         ", 
+                        anchor=("w" if isNonAbstract or nestRow == row else "center"),
+                        columnspan=columnspan,
+                        rowspan=(nestRow - row if isAbstract else None),
+                        wraplength=(self.rowHdrColWidth[leftCol] if isAbstract else
+                                    self.rowHdrWrapLength -
+                                      sum(self.rowHdrColWidth[i] for i in range(leftCol))),
+                        minwidth=(16 if isNonAbstract and nextRow > topRow else None),
+                        objectId=yAxisHdrObj.objectId(),
+                        onClick=self.onClick)
+                if isNonAbstract:
+                    if self.rowHdrDocRow:
+                        docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
+                        gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
+                        gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
+                        gridHdr(self.gridRowHdr, docCol, row, 
+                                yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
+                                                     lang=self.lang), 
+                                anchor="center",
+                                wraplength=100,
+                                objectId=yAxisHdrObj.objectId(),
+                                onClick=self.onClick)
+                    if self.colHdrCodeRow:
+                        codeCol = self.dataFirstCol - 1
+                        gridBorder(self.gridRowHdr, codeCol, row, TOPBORDER)
+                        gridBorder(self.gridRowHdr, codeCol, row, LEFTBORDER)
+                        gridHdr(self.gridRowHdr, codeCol, row, 
+                                yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
+                                anchor="w",
+                                wraplength=40,
+                                objectId=yAxisHdrObj.objectId(),
+                                onClick=self.onClick)
+                    # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+            if isNonAbstract:
+                row += 1
+            elif childrenFirst:
+                row = nextRow
+            if nestRow > nestedBottomRow:
+                nestedBottomRow = nestRow + (not childrenFirst)
+            if row > nestedBottomRow:
+                nestedBottomRow = row
+            if renderNow and not childrenFirst:
+                dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass
+        return (nestedBottomRow, row)
+
+        
+        '''  prior indented y axis code
         col = 0
         isEntirelyAbstract = True
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
+        axisMbrRels = self.axisMbrRelSet.fromModelObject(yAxisParentObj)
+        for axisMbrRel in axisMbrRels:
             yAxisHdrObj = axisMbrRel.toModelObject
             if yAxisHdrObj.abstract == "false":
                 isEntirelyAbstract= False
                 break
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
+        for axisMbrRel in axisMbrRels:
             yAxisHdrObj = axisMbrRel.toModelObject
             if childrenFirst:
                 row = self.yAxis(row, 
@@ -346,12 +434,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         if atLeft and col > 0:
             gridBorder(self.gridRowHdr, 1, row, BOTTOMBORDER, columnspan=col)
         return row
+        '''
     
-    def bodyCells(self, row, indent, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
+    def bodyCells(self, row, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
             if yChildrenFirst:
-                row = self.bodyCells(row, indent + 20, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
+                row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
             if yAxisHdrObj.abstract == "false":
                 yAxisPriItemQname = self.inheritedPrimaryItemQname(yAxisHdrObj)
                 yAxisExplicitDims = self.inheritedExplicitDims(yAxisHdrObj)
@@ -388,7 +477,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     gridSpacer(self.gridBody, self.dataFirstCol + i, row, BOTTOMBORDER)
                 row += 1
             if not yChildrenFirst:
-                row = self.bodyCells(row, indent + 20, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
+                row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
         return row
     
     def inheritedPrimaryItemQname(self, axisMbrObj):
