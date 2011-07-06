@@ -105,7 +105,7 @@ class XPathContext:
                     args = self.evaluate(p.args, contextItem=contextItem)
                     ns = op.namespaceURI; localname = op.localName
                     try:
-                        from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionCustom)
+                        from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionIxt, FunctionCustom)
                         if op in self.modelXbrl.modelCustomFunctionSignatures:
                             result = FunctionCustom.call(self, p, op, contextItem, args)
                         elif op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element', 
@@ -123,6 +123,8 @@ class XPathContext:
                             result = FunctionXfi.call(self, p, localname, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
+                        elif ns.startswith("http://www.xbrl.org/inlineXBRL/transformation"):
+                            result = FunctionIxt.call(self, p, localname, args)
                         else:
                             raise XPathException(p, 'err:XPST0017', _('Function call not identified.'))
                     except FunctionNumArgs:
@@ -557,4 +559,5 @@ class XPathContext:
         if isinstance(x, ModelObject):
             return x.modelXbrl
         return None
-              
+        
+        

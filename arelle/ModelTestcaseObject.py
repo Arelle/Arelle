@@ -5,6 +5,7 @@ Refactored from ModelObject on Jun 11, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+import os
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 
@@ -14,15 +15,30 @@ class ModelTestcaseVariation(ModelObject):
         self.status = ""
         self.actual = []
         self.assertions = None
+        
+    @property
+    def id(self):
+        # if there is a real ID, use it
+        id = super().id
+        if id is not None:
+            return id
+        # no ID, use the object ID so it isn't None
+        return self.objectId()
 
     @property
     def name(self):
-        if self.get("name"):
-            return self.get("name")
-        nameElement = XmlUtil.descendant(self, None, "name" if self.localName != "testcase" else "number")
-        if nameElement is not None:
-            return XmlUtil.innerText(nameElement)
-        return None
+        try:
+            return self._name
+        except AttributeError:
+            if self.get("name"):
+                self._name = self.get("name")
+            else:
+                nameElement = XmlUtil.descendant(self, None, "name" if self.localName != "testcase" else "number")
+                if nameElement is not None:
+                    self._name = XmlUtil.innerText(nameElement)
+                else:
+                    self._name = None
+            return self._name
 
     @property
     def description(self):
@@ -49,6 +65,8 @@ class ModelTestcaseVariation(ModelObject):
                         self._readMeFirstUris.append( (anElement.get("dts"), uri) )
                     else:
                         self._readMeFirstUris.append(uri)
+            if not self._readMeFirstUris:  # provide a dummy empty instance document
+                self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
     
     @property
@@ -92,6 +110,11 @@ class ModelTestcaseVariation(ModelObject):
             for callElement in XmlUtil.descendants(self, XbrlConst.cfcn, "call"):
                 self._cfcnCall = (XmlUtil.innerText(callElement), callElement)
                 break
+            if self._cfcnCall is None and self.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
+                name = self.getparent().get("name")
+                input = self.get("input")
+                if name and input:
+                    self._cfcnCall =  ("{0}('{1}')".format(name, input.replace("'","''")), self)
             return self._cfcnCall
     
     @property
@@ -104,6 +127,10 @@ class ModelTestcaseVariation(ModelObject):
             testElement = XmlUtil.descendant(self, XbrlConst.cfcn, "test")
             if testElement is not None:
                 self._cfcnTest = (XmlUtil.innerText(testElement), testElement)
+            elif self.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
+                output = self.get("output")
+                if output:
+                    self._cfcnTest =  ("$result eq '{0}'".format(output.replace("'","''")), self)
             return self._cfcnTest
     
     @property
@@ -133,6 +160,8 @@ class ModelTestcaseVariation(ModelObject):
                     pass
             if asserTests:
                 return asserTests
+        elif self.get("result"):
+            return self.get("result")
                 
         return None
 

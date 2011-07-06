@@ -730,11 +730,20 @@ class ModelDocument:
                                 self.referencesDocument[doc] = "testcaseIndex"
 
     def testcaseDiscover(self, testcaseElement):
-        if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn):
+        isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
+        if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn) or isTransformTestcase:
             self.type = Type.REGISTRYTESTCASE
-        self.testcaseVariations = [modelVariation
-                                   for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, "variation")
-                                   if isinstance(modelVariation,ModelObject)]
+        self.testcaseVariations = []
+        priorTransformName = None
+        for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, "variation"):
+            self.testcaseVariations.append(modelVariation)
+            if isTransformTestcase and modelVariation.getparent().get("name") is not None:
+                transformName = modelVariation.getparent().get("name")
+                if transformName != priorTransformName:
+                    priorTransformName = transformName
+                    variationNumber = 1
+                modelVariation._name = "{0} v-{1:02}".format(priorTransformName, variationNumber)
+                variationNumber += 1
         if len(self.testcaseVariations) == 0:
             # may be a inline test case
             if XbrlConst.ixbrl in testcaseElement.values():

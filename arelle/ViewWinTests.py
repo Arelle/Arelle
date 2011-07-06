@@ -29,8 +29,13 @@ def viewTests(modelXbrl, tabWin):
     view.treeView.heading("expected", text="Expected")
     view.treeView.column("actual", width=100, anchor="w")
     view.treeView.heading("actual",  text="Actual")
+    view.isTransformRegistry = False
     if modelXbrl.modelDocument.type in (ModelDocument.Type.REGISTRY, ModelDocument.Type.REGISTRYTESTCASE):
-        view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
+        if modelXbrl.modelDocument.xmlRootElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
+            view.treeView["displaycolumns"] = ("status", "call", "test", "expected", "actual")
+            view.isTransformRegistry = True
+        else:
+            view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
     else:
         view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "expected", "actual")
     view.viewTestcaseIndexElement(modelXbrl.modelDocument, "")
@@ -72,9 +77,12 @@ class ViewTests(ViewWinTree.ViewTree):
                 self.viewTestcaseVariation(modelTestcaseVariation, node, n + i + 1)
                 
     def viewTestcaseVariation(self, modelTestcaseVariation, parentNode, n):
-        id = modelTestcaseVariation.id
-        if id is None:
-            id = ""
+        if self.isTransformRegistry:
+            id = modelTestcaseVariation.name
+        else:
+            id = modelTestcaseVariation.id
+            if id is None:
+                id = ""
         node = self.treeView.insert(parentNode, "end", modelTestcaseVariation.objectId(), 
                                     text=id, 
                                     tags=("odd" if n & 1 else "even",))
