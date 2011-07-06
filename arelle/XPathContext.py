@@ -560,4 +560,3 @@ class XPathContext:
         if isinstance(x, ModelObject):
             return x.modelXbrl
         return None
-              
