@@ -133,7 +133,9 @@ def innerTextNodes(element, ixExclude):
     return [child
             for child in element.iter()
             if isinstance(child,ModelObject) and (
-               not ixExclude or (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL"))]
+               not ixExclude or 
+               child == element or
+               (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL"))]
 
 def parentId(element, parentNamespaceURI, parentLocalName):
     while element is not None:
