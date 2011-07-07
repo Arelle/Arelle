@@ -488,7 +488,7 @@ class ModelContext(ModelObject):
             return dimValue.memberQname
         elif isinstance(dimValue, ModelValue.QName):
             return dimValue
-        if not dimValue and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
+        if dimValue is None and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
             return self.modelXbrl.qnameDimensionDefaults[dimQname]
         return None
     
