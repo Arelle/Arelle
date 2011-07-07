@@ -347,7 +347,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         gridHdr(self.gridRowHdr, docCol, row, 
                                 yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
                                                      lang=self.lang), 
-                                anchor="center",
+                                anchor="w",
                                 wraplength=100,
                                 objectId=yAxisHdrObj.objectId(),
                                 onClick=self.onClick)
@@ -466,8 +466,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             defaultedDims = dimDefaults.keys() - fp.dimKeys
                             if (all(factDimMem(dim,includeDefaults=True) == mem 
                                     for dim, mem in fp.dims) and
-                                all(factDimMem(defaultedDim,includeDefaults=True) == dimDefaults[defaultedDim]
-                                    for defaultedDim in defaultedDims)):
+                                all(factDimMem(dim,includeDefaults=True) in (dimDefaults[dim], None)
+                                    for dim in defaultedDims)):
                                 value = fact.effectiveValue
                                 objectId = fact.objectId()
                                 justify = "right" if fact.isNumeric else "left"
