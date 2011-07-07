@@ -52,6 +52,12 @@ class ModelObject(etree.ElementBase):
             self._prefixedName = self.prefix + ":" + self.localName
         else:
             self._prefixedName = self.localName
+            
+    def getStripped(self, attrName):
+        attrValue = self.get(attrName)
+        if attrValue is not None:
+            return attrValue.strip()
+        return attrValue
 
     @property
     def localName(self):
