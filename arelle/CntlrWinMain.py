@@ -254,8 +254,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         window.rowconfigure(0, weight=1)
         
         priorState = self.config.get('windowState')
+        screenW = self.parent.winfo_screenwidth() - 16 # allow for window edge
+        screenH = self.parent.winfo_screenheight() - 64 # allow for caption and menus
         if priorState == "zoomed":
             self.parent.state("zoomed")
+            w = screenW
+            h = screenH
         else:
             priorGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
             if priorGeometry and priorGeometry.lastindex >= 4:
@@ -264,8 +268,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                     h = int(priorGeometry.group(2))
                     x = int(priorGeometry.group(3))
                     y = int(priorGeometry.group(4))
-                    screenW = self.parent.winfo_screenwidth() - 16 # allow for window edge
-                    screenH = self.parent.winfo_screenheight() - 64 # allow for caption and menus
                     if x + w > screenW:
                         if w < screenW:
                             x = screenW - w
@@ -289,6 +291,12 @@ class CntlrWinMain (Cntlr.Cntlr):
                     self.parent.geometry("{0}x{1}+{2}+{3}".format(w,h,x,y))
                 except:
                     pass
+        # set top/btm divider
+        topLeftW, topLeftH = self.config.get('tabWinTopLeftSize',(250,300))
+        if 10 < topLeftW < w - 60:
+            self.tabWinTopLeft.config(width=topLeftW)
+        if 10 < topLeftH < h - 60:
+            self.tabWinTopLeft.config(height=topLeftH)
         
         self.parent.title(_("arelle - Unnamed"))
         
@@ -703,7 +711,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowGeometry"] = self.parent.geometry()
             if state in ("normal", "zoomed"):
                 self.config["windowState"] = state
+            self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width(),
+                                                self.tabWinTopLeft.winfo_height())
             super(CntlrWinMain, self).close()
+            super().close()
             self.parent.unbind_all(())
             self.parent.destroy()
             if self.logFile:
