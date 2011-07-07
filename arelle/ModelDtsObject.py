@@ -78,7 +78,7 @@ class ModelSchemaObject(ModelObject):
         
     @property
     def name(self):
-        return self.get("name")
+        return self.getStripped("name")
     
     @property
     def namespaceURI(self):
