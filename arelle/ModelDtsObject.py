@@ -500,13 +500,15 @@ class ModelType(ModelSchemaObject):
         
     @property
     def name(self):
-        if self.get("name"):
-            return self.get("name")
+        nameAttr = self.getStripped("name")
+        if nameAttr:
+            return nameAttr
         # may be anonymous type of parent
         element = self.getparent()
         while element is not None:
-            if element.get("name"):
-                return element.get("name") + "@anonymousType"
+            nameAttr = self.getStripped("name")
+            if nameAttr:
+                return nameAttr + "@anonymousType"
             element = element.getparent()
         return None
     
@@ -835,11 +837,12 @@ class ModelRelationship(ModelObject):
 
     @property
     def variablename(self):
-        return self.get("name")
+        return self.getStripped("name")
 
     @property
     def variableQname(self):
-        return ModelValue.qname(self.arcElement, self.get("name"), noPrefixIsNoNamespace=True) if self.get("name") else None
+        varName = self.variablename
+        return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None
 
     @property
     def linkrole(self):
