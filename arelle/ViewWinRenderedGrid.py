@@ -177,9 +177,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     self.rowHdrColWidth.append(16)  # min width for 'tail' of nonAbstract coordinate
                 if axisMbrModelObject.abstract == "true":
                     label = axisMbrModelObject.genLabel(lang=self.lang)
-                    widestWordLen = max(len(w) * 7 for w in label.split())
-                    if widestWordLen > self.rowHdrColWidth[depth]:
-                        self.rowHdrColWidth[depth] = widestWordLen 
+                    if label:
+                        widestWordLen = max(len(w) * 7 for w in label.split())
+                        if widestWordLen > self.rowHdrColWidth[depth]:
+                            self.rowHdrColWidth[depth] = widestWordLen 
                 if not self.rowHdrDocCol:
                     if axisMbrModelObject.genLabel(role="http://www.xbrl.org/2008/role/documentation",
                                                    lang=self.lang): 
