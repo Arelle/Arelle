@@ -7,7 +7,6 @@ Created on Oct 5, 2010
 
 import os, posixpath, sys, re, shutil, time, pickle
 from gettext import gettext as _
-
 import six
 
 if six.PY3:
@@ -19,7 +18,7 @@ else:
     from urllib import ContentTooShortError, unquote
     from urllib2 import ProxyHandler, ProxyBasicAuthHandler, \
                         HTTPBasicAuthHandler, build_opener, URLError, HTTPError
-    
+
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,tuple) and len(httpProxyTuple) == 5:
         useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple

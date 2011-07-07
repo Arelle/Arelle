@@ -112,8 +112,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.rowHdrCols = 0
             self.dataRows = 0
             self.rowHdrColWidth = [0,]
-            self.rowHdrDocRow = False
-            self.rowHdrCodeRow = False
+            self.rowHdrDocCol = False
+            self.rowHdrCodeCol = False
             self.zAxisRows = 0
             
             xAxisObj = yAxisObj = zAxisObj = None
@@ -127,7 +127,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.colHdrTopRow = self.zAxisRows + (2 if self.zAxisRows else 1)
             self.rowHdrWrapLength = 200 + sum(self.rowHdrColWidth[i] for i in range(self.rowHdrCols))
             self.dataFirstRow = self.colHdrTopRow + self.colHdrRows + self.colHdrDocRow + self.colHdrCodeRow
-            self.dataFirstCol = 1 + self.rowHdrCols + self.rowHdrDocRow + self.rowHdrCodeRow
+            self.dataFirstCol = 1 + self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol
             #for i in range(self.dataFirstRow + self.dataRows):
             #    self.gridView.rowconfigure(i)
             #for i in range(self.dataFirstCol + self.dataCols):
@@ -177,16 +177,17 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     self.rowHdrColWidth.append(16)  # min width for 'tail' of nonAbstract coordinate
                 if axisMbrModelObject.abstract == "true":
                     label = axisMbrModelObject.genLabel(lang=self.lang)
-                    widestWordLen = max(len(w) * 7 for w in label.split())
-                    if widestWordLen > self.rowHdrColWidth[depth]:
-                        self.rowHdrColWidth[depth] = widestWordLen 
-                if not self.rowHdrDocRow:
+                    if label:
+                        widestWordLen = max(len(w) * 7 for w in label.split())
+                        if widestWordLen > self.rowHdrColWidth[depth]:
+                            self.rowHdrColWidth[depth] = widestWordLen 
+                if not self.rowHdrDocCol:
                     if axisMbrModelObject.genLabel(role="http://www.xbrl.org/2008/role/documentation",
                                                    lang=self.lang): 
-                        self.rowHdrDocRow = True
-                if not self.rowHdrCodeRow:
+                        self.rowHdrDocCol = True
+                if not self.rowHdrCodeCol:
                     if axisMbrModelObject.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
-                        self.rowHdrCodeRow = True
+                        self.rowHdrCodeCol = True
             self.analyzeHdrs(axisMbrModelObject, depth+1, axisType) #recurse
             
     def zAxis(self, row, zAxisObj, zFilters):
@@ -268,9 +269,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         onClick=self.onClick)
                 if nonAbstract:
                     if self.colHdrDocRow:
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeRow, TOPBORDER)
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeRow, sideBorder)
-                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeRow, 
+                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, TOPBORDER)
+                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, sideBorder)
+                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, 
                                 xAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
                                                        lang=self.lang), 
                                 anchor="center",
@@ -282,7 +283,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, sideBorder)
                         gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1, 
                                 xAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                                anchor="w",
+                                anchor="center",
                                 wraplength=100,
                                 objectId=xAxisHdrObj.objectId(),
                                 onClick=self.onClick)
@@ -301,13 +302,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def yAxis(self, leftCol, row, yAxisParentObj, childrenFirst, renderNow, atLeft):
         nestedBottomRow = row
         if atLeft:
-            gridBorder(self.gridRowHdr, self.rowHdrCols + self.colHdrDocRow + self.colHdrCodeRow, 
+            gridBorder(self.gridRowHdr, self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol, 
                        self.dataFirstRow, 
                        RIGHTBORDER, 
                        rowspan=self.dataRows)
             gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
                        BOTTOMBORDER, 
-                       columnspan=(self.rowHdrCols + self.colHdrDocRow + self.colHdrCodeRow))
+                       columnspan=(self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol))
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
             nestRow, nextRow = self.yAxis(leftCol + 1, row, yAxisHdrObj,  # nested items before totals
@@ -340,24 +341,24 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         objectId=yAxisHdrObj.objectId(),
                         onClick=self.onClick)
                 if isNonAbstract:
-                    if self.rowHdrDocRow:
+                    if self.rowHdrDocCol:
                         docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
                         gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
                         gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
                         gridHdr(self.gridRowHdr, docCol, row, 
                                 yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
                                                      lang=self.lang), 
-                                anchor="center",
+                                anchor="w",
                                 wraplength=100,
                                 objectId=yAxisHdrObj.objectId(),
                                 onClick=self.onClick)
-                    if self.colHdrCodeRow:
+                    if self.rowHdrCodeCol:
                         codeCol = self.dataFirstCol - 1
                         gridBorder(self.gridRowHdr, codeCol, row, TOPBORDER)
                         gridBorder(self.gridRowHdr, codeCol, row, LEFTBORDER)
                         gridHdr(self.gridRowHdr, codeCol, row, 
                                 yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                                anchor="w",
+                                anchor="center",
                                 wraplength=40,
                                 objectId=yAxisHdrObj.objectId(),
                                 onClick=self.onClick)
@@ -402,7 +403,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         objectId=yAxisHdrObj.objectId(),
                         onClick=self.onClick)
                 col = 2
-                if self.rowHdrDocRow:
+                if self.rowHdrDocCol:
                     gridBorder(self.gridRowHdr, col, row, TOPBORDER)
                     gridBorder(self.gridRowHdr, col, row, LEFTBORDER)
                     gridHdr(self.gridRowHdr, col, row, 
@@ -413,7 +414,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             objectId=yAxisHdrObj.objectId(),
                             onClick=self.onClick)
                     col += 1
-                if self.rowHdrCodeRow:
+                if self.rowHdrCodeCol:
                     gridBorder(self.gridRowHdr, col, row, TOPBORDER)
                     gridBorder(self.gridRowHdr, col, row, LEFTBORDER)
                     gridHdr(self.gridRowHdr, col, row, 
@@ -436,6 +437,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         '''
     
     def bodyCells(self, row, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
+        dimDefaults = self.modelXbrl.qnameDimensionDefaults
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
             if yChildrenFirst:
@@ -460,9 +462,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     objectId = None
                     justify = None
                     for fact in self.modelXbrl.facts:
-                        if (fact.qname == fp.qname and
-                            all(fact.context.dimMemberQname(dim,includeDefaults=True) == mem 
-                                for dim, mem in fp.dims)):
+                        if fact.qname == fp.qname:
+                            factDimMem = fact.context.dimMemberQname
+                            defaultedDims = dimDefaults.keys() - fp.dimKeys
+                            if (all(factDimMem(dim,includeDefaults=True) == mem 
+                                    for dim, mem in fp.dims) and
+                                all(factDimMem(dim,includeDefaults=True) in (dimDefaults[dim], None)
+                                    for dim in defaultedDims)):
                                 value = fact.effectiveValue
                                 objectId = fact.objectId()
                                 justify = "right" if fact.isNumeric else "left"
@@ -553,7 +559,8 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         self.qname = qname
         self.concept = v.modelXbrl.qnameConcepts.get(qname)
         self.context = ContextPrototype(v, dims)
-        self.dims = dims
+        self.dims = dims # dim items
+        self.dimKeys = set(dim[0] for dim in dims)
 
 class ContextPrototype():  # behaves like a context
     def __init__(self, v, dims):

@@ -4,7 +4,9 @@ This script runs the conformance tests to validate the implementation.
 import os.path, gettext, nose
 from nose.tools import eq_
 from functools import partial
+
 from arelle import Cntlr, FileSource, ModelDocument
+from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 
 gettext.install("arelle")
@@ -120,5 +122,7 @@ def conformance_test():
             yield(z)
             
 if __name__ == "__main__":
+    import nose
+    """Main program."""
     argv = ["nosetests", "-v", "--with-xunit"]
     nose.main(argv=argv)

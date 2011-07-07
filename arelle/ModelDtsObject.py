@@ -631,7 +631,8 @@ class ModelType(ModelSchemaObject):
             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameAttrType)
             if typeDerivedFrom is not None:
                 return typeDerivedFrom.baseXsdType
-        return "anyType"
+            return "anyType"
+        return None
 
     def fixedOrDefaultAttrValue(self, attrName):
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)

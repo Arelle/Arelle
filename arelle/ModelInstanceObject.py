@@ -313,12 +313,9 @@ class ModelInlineFact(ModelFact):
         v = XmlUtil.innerText(self, ixExclude=True)
         f = self.format
         if f is not None:
-            if (f.namespaceURI.startswith("http://www.xbrl.org/inlineXBRL/transformation/2010-04-20") and
-                f.localName in FunctionIxt.ixtFunctions_2010_04_20):
-                v = FunctionIxt.ixtFunctions_2010_04_20[f.localName](v)
-            elif (f.namespaceURI.startswith("http://www.xbrl.org/inlineXBRL/transformation/2011-07-31") and
-                f.localName in FunctionIxt.ixtFunctions_2011_07_31):
-                v = FunctionIxt.ixtFunctions_2011_07_31[f.localName](v)
+            if (f.namespaceURI.startswith("http://www.xbrl.org/inlineXBRL/transformation") and
+                f.localName in FunctionIxt.ixtFunctions):
+                v = FunctionIxt.ixtFunctions[f.localName](v)
         if self.localName == "nonNumeric" or self.localName == "tuple":
             return v
         else:
@@ -491,7 +488,7 @@ class ModelContext(ModelObject):
             return dimValue.memberQname
         elif isinstance(dimValue, ModelValue.QName):
             return dimValue
-        if not dimValue and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
+        if dimValue is None and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
             return self.modelXbrl.qnameDimensionDefaults[dimQname]
         return None
     

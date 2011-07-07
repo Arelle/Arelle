@@ -504,7 +504,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                             # check hierarchies
                             self.diffRelationships(fromRoot, toRootConcept, fromRelationshipSet, toRelationshipSet)
                     for toRoot in toRoots:
-                        fromRootConcept = self.toDTS.qnameConcepts.get(self.fromDTSqname(toRoot.qname))
+                        fromRootConcept = self.fromDTS.qnameConcepts.get(self.fromDTSqname(toRoot.qname))
                         if fromRootConcept is not None and fromRootConcept not in fromRoots: # added qname
                             if self.relSetAddedEvent is None:
                                 relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelAdd")
