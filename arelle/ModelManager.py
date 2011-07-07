@@ -41,7 +41,7 @@ class ModelManager:
         
     def reloadViews(self, modelXbrl):
         self.cntlr.reloadViews(modelXbrl)
-        
+
     def load(self, filesource, nextaction):
         self.filesource = filesource
         self.modelXbrl = ModelXbrl.load(self, filesource, nextaction)

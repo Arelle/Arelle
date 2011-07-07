@@ -5,8 +5,12 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import sys, traceback
+import sys, traceback, time
+from gettext import gettext as _
+from arelle.Locale import format_string
+from profilehooks import profile
 
+@profile
 def load(modelManager, url, nextaction, base=None):
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager)
@@ -26,10 +30,14 @@ def load(modelManager, url, nextaction, base=None):
             modelDocument = modelDocuments.pop()
             modelDocumentsSchemaLocated.add(modelDocument)
             modelDocument.loadSchemalocatedSchemas()
-        
-    #from arelle import XmlValidate
-    #uncomment for trial use of lxml xml schema validation of entry document
-    #XmlValidate.xmlValidate(modelXbrl.modelDocument)
+#    startedAt = time.time()
+#    from arelle import XmlValidate
+#    # uncomment for trial use of lxml xml schema validation of entry document
+#    XmlValidate.xmlValidate(modelXbrl.modelDocument)
+#    finishedAt = time.time()
+#    modelManager.cntlr.addToLog(format_string(modelManager.locale,
+#                                    _("[info] XML Validation took in %.2f secs"),
+#                                    (finishedAt - startedAt)))
     modelManager.cntlr.webCache.saveUrlCheckTimes()
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl

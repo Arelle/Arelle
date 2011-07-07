@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, time
 from gettext import gettext as _
 from lxml import etree
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
@@ -61,11 +61,17 @@ def load(modelXbrl, uri, base=None, isEntry=False, isDiscovered=False, isInclude
     file = None
     try:
         if modelXbrl.modelManager.disclosureSystem.validateFileText:
+            started = time.time()
             file = ValidateFilingText.checkfile(modelXbrl,filepath)
+            ended = time.time()
+            modelXbrl.modelManager.cntlr.addToLog("[ValidateFilingText] File check %.2f" % (ended - started))
         else:
             file = modelXbrl.fileSource.file(filepath)
         _parser = parser(modelXbrl,filepath)
+        started = time.time()
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
+        ended = time.time()
+        modelXbrl.modelManager.cntlr.addToLog("[ElementTree] Parsing %.2f" % (ended-started))
         file.close()
     except EnvironmentError as err:
         modelXbrl.error(
