@@ -436,6 +436,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         '''
     
     def bodyCells(self, row, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
+        dimDefaults = self.modelXbrl.qnameDimensionDefaults
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
             if yChildrenFirst:
@@ -460,9 +461,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     objectId = None
                     justify = None
                     for fact in self.modelXbrl.facts:
-                        if (fact.qname == fp.qname and
-                            all(fact.context.dimMemberQname(dim,includeDefaults=True) == mem 
-                                for dim, mem in fp.dims)):
+                        if fact.qname == fp.qname:
+                            factDimMem = fact.context.dimMemberQname
+                            defaultedDims = dimDefaults.keys() - fp.dimKeys
+                            if (all(factDimMem(dim,includeDefaults=True) == mem 
+                                    for dim, mem in fp.dims) and
+                                all(factDimMem(defaultedDim,includeDefaults=True) == dimDefaults[defaultedDim]
+                                    for defaultedDim in defaultedDims)):
                                 value = fact.effectiveValue
                                 objectId = fact.objectId()
                                 justify = "right" if fact.isNumeric else "left"
@@ -553,7 +558,8 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         self.qname = qname
         self.concept = v.modelXbrl.qnameConcepts.get(qname)
         self.context = ContextPrototype(v, dims)
-        self.dims = dims
+        self.dims = dims # dim items
+        self.dimKeys = set(dim[0] for dim in dims)
 
 class ContextPrototype():  # behaves like a context
     def __init__(self, v, dims):
