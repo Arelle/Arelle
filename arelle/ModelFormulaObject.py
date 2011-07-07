@@ -1017,7 +1017,7 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
     @property
     def qnameExpression(self):
         qnExprElt = XmlUtil.descendant(self, XbrlConst.cf, "qnameExpression")
-        return XmlUtil.text(qnExprElt) if qnExprElt else None
+        return XmlUtil.text(qnExprElt) if qnExprElt is not None else None
     
     def compile(self):
         if not hasattr(self, "qnameExpressionProg"):
@@ -1068,7 +1068,7 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
     def propertyView(self):
         return (("label", self.xlinkLabel),
                 ("value", self.value) if self.value else () ,
-                ("qname", self.qname) if self.qname else () ,
+                ("qname", self.filterQname) if self.filterQname else () ,
                 ("qnameExpr", self.qnameExpression) if self.qnameExpression else () )
         
     def __repr__(self):
@@ -1076,8 +1076,8 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
     
     @property
     def viewExpression(self):
-        return self.qname if self.qname else self.qnameExpression + \
-                (" = " + self.value) if self.value else ""
+        return (XmlUtil.innerTextList(self) + 
+                (" = " + self.value) if self.value else "")
 
 class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
     def init(self, modelDocument):
@@ -1098,15 +1098,16 @@ class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
     def propertyView(self):
         return (("label", self.xlinkLabel),
                 ("strict", self.strict),
-                ("type", self.qname) if self.qname else () ,
-                ("typeExpression", self.qnameExpression) if self.qnameExpression else () )
+                ("type", self.filterQname) if self.filterQname else () ,
+                ("typeExpr", self.qnameExpression) if self.qnameExpression else () )
         
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
     
     @property
     def viewExpression(self):
-        return self.qname if self.qname else self.qnameExpression
+        return XmlUtil.innerTextList(self) + " \n(strict={0})".format(self.strict)
+
 
 class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
     def init(self, modelDocument):
@@ -1127,7 +1128,7 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
     def propertyView(self):
         return (("label", self.xlinkLabel),
                 ("strict", self.strict),
-                ("subsGrp", self.qname) if self.qname else () ,
+                ("subsGrp", self.filterQname) if self.filterQname else () ,
                 ("subsGrpExpr", self.qnameExpression) if self.qnameExpression else () )
         
     def __repr__(self):
@@ -1135,7 +1136,7 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
     
     @property
     def viewExpression(self):
-        return self.qname if self.qname else self.qnameExpression
+        return XmlUtil.innerTextList(self) + " \n(strict={0})".format(self.strict)
 
 class ModelConceptRelation(ModelFilter):
     def init(self, modelDocument):
@@ -1812,10 +1813,43 @@ class ModelExplicitDimension(ModelFilter):
             if cmplmt ^ (factOk):
                 outFacts.append(fact)
         return outFacts 
+
+    @property
+    def propertyView(self):
+        members = []
+        for memberElt in XmlUtil.children(self, XbrlConst.df, "member"):
+            member = XmlUtil.childText(memberElt, XbrlConst.df, ("qname","qnameExpression","variable"))
+            linkrole = XmlUtil.childText(memberElt, XbrlConst.df, "linkrole")
+            arcrole = XmlUtil.childText(memberElt, XbrlConst.df, "arcrole")
+            axis = XmlUtil.childText(memberElt, XbrlConst.df, "axis")
+            if linkrole or arcrole or axis:
+                members.append(("member", member,
+                                (("linkrole", linkrole) if linkrole else (),
+                                 ("arcrole", arcrole) if arcrole else (),
+                                 ("axis", axis) if axis else (), )))
+            else:
+                members.append(("member", member))
+        return (("label", self.xlinkLabel),
+                ("dim", self.dimQname) if self.dimQname else () ,
+                ("dimExpr", self.dimQnameExpression) if self.dimQnameExpression else () ,
+                ("members", "({0})".format(len(members)), tuple(members)) if members else (),
+                )
     
     @property
     def viewExpression(self):
-        return XmlUtil.innerTextList(self)
+        members = []
+        for memberElt in XmlUtil.children(self, XbrlConst.df, "member"):
+            member = XmlUtil.childText(memberElt, XbrlConst.df, ("qname","qnameExpression","variable"))
+            linkrole = XmlUtil.childText(memberElt, XbrlConst.df, "linkrole")
+            arcrole = XmlUtil.childText(memberElt, XbrlConst.df, "arcrole")
+            axis = XmlUtil.childText(memberElt, XbrlConst.df, "axis")
+            members.append(" \nmember: " +  member +
+                            (" \n  linkrole: " + linkrole if linkrole else "" +
+                             " \n  arcrole: " + arcrole if arcrole else "" +
+                             " \n  axis: " + axis if axis else ""
+                             ) if linkrole or arcrole or axis else "")
+        return ((str(self.dimQname) if self.dimQname else self.dimQnameExpression) +
+                " \n".join(members))
 
 class ModelTypedDimension(ModelTestFilter):
     def init(self, modelDocument):
@@ -1973,7 +2007,7 @@ class ModelAncestorFilter(ModelFilter):
     def propertyView(self):
         return (("label", self.xlinkLabel),
                 ("ancestor", self.ancestorQname) if self.ancestorQname else () ,
-                ("ancestorExpression", self.qnameExpression) if self.qnameExpression else () )
+                ("ancestorExpr", self.qnameExpression) if self.qnameExpression else () )
         
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
@@ -2028,7 +2062,7 @@ class ModelParentFilter(ModelFilter):
     def propertyView(self):
         return (("label", self.xlinkLabel),
                 ("parent", self.parentQname) if self.parentQname else () ,
-                ("parentExpression", self.qnameExpression) if self.qnameExpression else () )
+                ("parentExpr", self.qnameExpression) if self.qnameExpression else () )
         
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
