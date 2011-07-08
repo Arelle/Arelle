@@ -1,13 +1,12 @@
-'''
+"""
 Created on Oct 5, 2010
 Refactored from ModelObject on Jun 11, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
-'''
+"""
 from collections import defaultdict
-from lxml import etree
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
+from arelle import XmlUtil, XbrlConst, XbrlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 
 class ModelRoleType(ModelObject):
@@ -447,11 +446,11 @@ class ModelAttribute(ModelSchemaObject):
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
-            ''' HF: I don't think attributes can have a substitution group ??
+            """ HF: I don't think attributes can have a substitution group ??
             subs = self.substitutionGroup
             if subs:
                 return subs.typeQname
-            '''
+            """
             return None
     
     @property
@@ -500,15 +499,19 @@ class ModelType(ModelSchemaObject):
         
     @property
     def name(self):
-        nameAttr = self.getStripped("name")
-        if nameAttr:
-            return nameAttr
+        if self.get("name"):
+            return self.get("name")
+#        nameAttr = self.getStripped("name")
+#        if nameAttr:
+#            return nameAttr
         # may be anonymous type of parent
         element = self.getparent()
         while element is not None:
-            nameAttr = self.getStripped("name")
-            if nameAttr:
-                return nameAttr + "@anonymousType"
+            if element.get("name"):
+                return element.get("name") + "@anonymousType"
+#            nameAttr = self.getStripped("name")
+#            if nameAttr:
+#                return nameAttr + "@anonymousType"
             element = element.getparent()
         return None
     
@@ -837,12 +840,14 @@ class ModelRelationship(ModelObject):
 
     @property
     def variablename(self):
-        return self.getStripped("name")
+        return self.get("name")
+#        return self.getStripped("name")
 
     @property
     def variableQname(self):
-        varName = self.variablename
-        return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None
+        return ModelValue.qname(self.arcElement, self.get("name"), noPrefixIsNoNamespace=True) if self.get("name") else None
+#        varName = self.variablename
+#        return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None
 
     @property
     def linkrole(self):
