@@ -5,42 +5,24 @@ Refactored from ModelObject on Jun 11, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import six
-import os
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 
 class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
-        super(ModelTestcaseVariation, self).init(modelDocument)
+        super().init(modelDocument)
         self.status = ""
         self.actual = []
         self.assertions = None
-        self._cfcnCall = None
-        
-    @property
-    def id(self):
-        # if there is a real ID, use it
-        id = super().id
-        if id is not None:
-            return id
-        # no ID, use the object ID so it isn't None
-        return self.objectId()
 
     @property
     def name(self):
-        try:
-            return self._name
-        except AttributeError:
-            if self.get("name"):
-                self._name = self.get("name")
-            else:
-                nameElement = XmlUtil.descendant(self, None, "name" if self.localName != "testcase" else "number")
-                if nameElement is not None:
-                    self._name = XmlUtil.innerText(nameElement)
-                else:
-                    self._name = None
-            return self._name
+        if self.get("name"):
+            return self.get("name")
+        nameElement = XmlUtil.descendant(self, None, "name" if self.localName != "testcase" else "number")
+        if nameElement is not None:
+            return XmlUtil.innerText(nameElement)
+        return None
 
     @property
     def description(self):
@@ -67,8 +49,6 @@ class ModelTestcaseVariation(ModelObject):
                         self._readMeFirstUris.append( (anElement.get("dts"), uri) )
                     else:
                         self._readMeFirstUris.append(uri)
-            if not self._readMeFirstUris:  # provide a dummy empty instance document
-                self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
     
     @property
@@ -112,11 +92,6 @@ class ModelTestcaseVariation(ModelObject):
             for callElement in XmlUtil.descendants(self, XbrlConst.cfcn, "call"):
                 self._cfcnCall = (XmlUtil.innerText(callElement), callElement)
                 break
-            if self._cfcnCall is None and self.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
-                name = self.getparent().get("name")
-                input = self.get("input")
-                if name and input:
-                    self._cfcnCall =  ("{0}('{1}')".format(name, input.replace("'","''")), self)
             return self._cfcnCall
     
     @property
@@ -129,15 +104,11 @@ class ModelTestcaseVariation(ModelObject):
             testElement = XmlUtil.descendant(self, XbrlConst.cfcn, "test")
             if testElement is not None:
                 self._cfcnTest = (XmlUtil.innerText(testElement), testElement)
-            elif self.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
-                output = self.get("output")
-                if output:
-                    self._cfcnTest =  ("$result eq '{0}'".format(output.replace("'","''")), self)
             return self._cfcnTest
     
     @property
     def expected(self):
-        if self.localName == six.u("testcase"):
+        if self.localName == "testcase":
             return self.document.basename[:4]   #starts with PASS or FAIL
         errorElement = XmlUtil.descendant(self, None, "error")
         if errorElement is not None:
@@ -162,8 +133,6 @@ class ModelTestcaseVariation(ModelObject):
                     pass
             if asserTests:
                 return asserTests
-        elif self.get("result"):
-            return self.get("result")
                 
         return None
 
@@ -171,9 +140,16 @@ class ModelTestcaseVariation(ModelObject):
     def propertyView(self):
         assertions = []
         for assertionElement in XmlUtil.descendants(self, None, "assertionTests"):
-            assertions.append(("assertion", assertionElement.get("assertionID")))
+            assertions.append(("assertion",assertionElement.get("assertionID")))
             assertions.append(("   satisfied", assertionElement.get("countSatisfied")))
             assertions.append(("   not sat.", assertionElement.get("countNotSatisfied")))
+        '''
+        for assertionElement in XmlUtil.descendants(self, None, "assert"):
+            efmNum = assertionElement.get("num")
+            assertions.append(("assertion",
+                               "EFM.{0}.{1}.{2}".format(efmNum[0], efmNum[1:2], efmNum[3:4])))
+            assertions.append(("   not sat.", "1"))
+        '''
         readMeFirsts = [("readFirst", readMeFirstUri) for readMeFirstUri in self.readMeFirstUris]
         parameters = []
         if len(self.parameters) > 0: parameters.append(("parameters", None))

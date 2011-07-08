@@ -6,18 +6,19 @@ This module is Arelle's controller in windowing interactive UI mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, subprocess, pickle, time, gettext, re, threading
-from gettext import gettext as _
-
+import os, subprocess, pickle, time, locale, re
 from tkinter import *
 import tkinter.tix
 from tkinter.ttk import *
 import tkinter.filedialog
 import tkinter.messagebox, traceback
-
 from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
+import gettext
+
+import threading, queue
+
 from arelle import Cntlr
 from arelle import (DialogURL, 
                 ModelDocument,
@@ -36,8 +37,9 @@ from arelle.FileSource import openFileSource
 restartMain = True
 
 class CntlrWinMain (Cntlr.Cntlr):
+
     def __init__(self, parent):
-        super(CntlrWinMain, self).__init__()
+        super().__init__()
         self.parent = parent
         self.filename = None
         self.dirty = False
@@ -254,12 +256,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         window.rowconfigure(0, weight=1)
         
         priorState = self.config.get('windowState')
-        screenW = self.parent.winfo_screenwidth() - 16 # allow for window edge
-        screenH = self.parent.winfo_screenheight() - 64 # allow for caption and menus
         if priorState == "zoomed":
             self.parent.state("zoomed")
-            w = screenW
-            h = screenH
         else:
             priorGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
             if priorGeometry and priorGeometry.lastindex >= 4:
@@ -268,6 +266,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                     h = int(priorGeometry.group(2))
                     x = int(priorGeometry.group(3))
                     y = int(priorGeometry.group(4))
+                    screenW = self.parent.winfo_screenwidth() - 16 # allow for window edge
+                    screenH = self.parent.winfo_screenheight() - 64 # allow for caption and menus
                     if x + w > screenW:
                         if w < screenW:
                             x = screenW - w
@@ -291,12 +291,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                     self.parent.geometry("{0}x{1}+{2}+{3}".format(w,h,x,y))
                 except:
                     pass
-        # set top/btm divider
-        topLeftW, topLeftH = self.config.get('tabWinTopLeftSize',(250,300))
-        if 10 < topLeftW < w - 60:
-            self.tabWinTopLeft.config(width=topLeftW)
-        if 10 < topLeftH < h - 60:
-            self.tabWinTopLeft.config(height=topLeftH)
         
         self.parent.title(_("arelle - Unnamed"))
         
@@ -561,9 +555,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ViewWinRssFeed.viewRssFeed(modelXbrl, self.tabWinTopRt)
             else:
                 currentAction = "tree view of tests"
-                ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
+                ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft)
                 currentAction = "view of concepts"
-                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang, altTabWin=self.tabWinTopRt)
+                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang)
                 if modelXbrl.hasEuRendering:  # show rendering grid even without any facts
                     ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.lang)
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
@@ -711,9 +705,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowGeometry"] = self.parent.geometry()
             if state in ("normal", "zoomed"):
                 self.config["windowState"] = state
-            self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width(),
-                                                self.tabWinTopLeft.winfo_height())
-            super(CntlrWinMain, self).close()
             super().close()
             self.parent.unbind_all(())
             self.parent.destroy()
@@ -1013,7 +1004,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         widget.after(delayMsecs, lambda: self.uiThreadChecker(widget))
 
 def main():
-    # this is the entry called by arelleGUI.pyw for windows
     gettext.install("arelle")
     global restartMain
     while restartMain:
@@ -1024,12 +1014,4 @@ def main():
         application.mainloop()
 
 if __name__ == "__main__":
-    # this is the entry called by MacOS open and MacOS shell scripts
-    # check if ARELLE_ARGS are used to emulate command line operation
-    if os.getenv("ARELLE_ARGS"):
-        # command line mode
-        from arelle import CntlrCmdLine
-        CntlrCmdLine.main()
-    else:
-        # GUI mode
-        main()
+    main()

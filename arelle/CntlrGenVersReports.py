@@ -13,7 +13,6 @@ versioning reports, per Roland Hommes 2010-12-10
 
 '''
 import time, datetime, os, gettext, io, sys, traceback
-from gettext import gettext as _
 from lxml import etree
 from optparse import OptionParser
 from arelle import (Cntlr, ModelXbrl, ModelDocument, ModelVersReport, FileSource, XmlUtil, Version)
@@ -30,8 +29,8 @@ def main():
                              "Dir is a test directory, \n"
                              "fromURI is the fromDTS URI relative to test director, \n"
                              "toURI is the toDTS URI relative to test director, \n"
-                             "Description is the goal of the test for testcase description, \n"
-                             "Assignment is the business, technical, or errata classification, \n"
+                             "Intention is the goal of the test for testcase description, \n"
+                             "Reason is the business, technical, or errata classification, \n"
                              "Expected event is an event localName that is expected \n\n"
                              "Output files and testcases are located in filename's directory, \n"
                              "report files are generated in '/report' under fromURI's directory."))
@@ -44,14 +43,14 @@ def main():
         print (ex, traceback.format_tb(sys.exc_info()[2]))
         
 class CntlrGenVersReports(Cntlr.Cntlr):
+
     def __init__(self):
-        super(CntlrGenVersReports, self).__init__()
+        super().__init__()
         
     def runFromExcel(self, options):
         #testGenFileName = options.excelfilename
         testGenFileName = r"C:\Users\Herm Fischer\Documents\mvsl\projects\XBRL.org\conformance-versioning\trunk\versioningReport\conf\creation-index.xls"
         testGenDir = os.path.dirname(testGenFileName)
-        schemaDir = os.path.dirname(testGenDir) + os.sep + "schema"
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         if options.testfiledate:
             today = options.testfiledate
@@ -101,16 +100,14 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                 uriFrom = row[1].value
                 uriTo = row[2].value
                 overrideReport = row[3].value
-                description = row[4].value
-                if description is None or len(description) == 0:
+                intention = row[4].value
+                if intention is None or len(intention) == 0:
                     continue # test not ready to run
-                assignment = row[5].value
-                expectedEvents = row[6].value # comma space separated if multiple
-                note = row[7].value
-                useCase = row[8].value
+                reason = row[5].value
+                expectedEvent = row[6].value
                 base = os.path.join(os.path.dirname(testGenFileName),testDir) + os.sep
                 self.addToLog(_("[info] testcase uriFrom {0}").format(uriFrom))
-                if uriFrom and uriTo and assignment.lower() not in ("n.a.", "error") and expectedEvents != "N.A.":
+                if uriFrom and uriTo and reason.lower() not in ("n.a.", "error") and expectedEvent != "N.A.":
                     for URIs, msg, isFrom in ((uriFrom, _("loading from DTS"), True), (uriTo, _("loading to DTS"), False)):
                         if ',' not in URIs:
                             modelDTS = ModelXbrl.load(self.modelManager, URIs, msg, base=base)
@@ -186,18 +183,16 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         except WindowsError:
                             pass # dir already exists
                         modelVersReport = ModelVersReport.ModelVersReport(modelTestcases)
-                        modelVersReport.diffDTSes(reportFullPath, modelDTSfrom, modelDTSto, 
-                                                  assignment=assignment,
-                                                  schemaDir=schemaDir)
+                        modelVersReport.diffDTSes(reportFullPath,modelDTSfrom, modelDTSto)
                         
                         # check for expected elements
-                        if expectedEvents and expectedEvents not in (
+                        if expectedEvent and expectedEvent not in (
                                "No change", "N.A."):
-                            if len(modelVersReport.xmlDocument.findall('//{*}' + expectedEvents)) == 0:
+                            if len(modelVersReport.xmlDocument.findall('//{*}' + expectedEvent)) == 0:
                                 modelTestcases.error(
                                     "Generated test case {0} missing expected event {1}".format(
                                                reportName, 
-                                               expectedEvents), 
+                                               expectedEvent), 
                                     "wrn", "missingEvent")
                         
                         modelVersReport.close([])
@@ -205,20 +200,8 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                             variationElement = etree.SubElement(testcaseElt, "{http://xbrl.org/2008/conformance}variation", 
                                                                 attrib={"id": "_{0:02n}".format(variationID)})
                             nameElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}name")
-                            nameElement.text = description
-                            if note:
-                                paramElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}description")
-                                paramElement.text = "Note: " + note
-                            if useCase:
-                                paramElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}reference")
-                                paramElement.set("specification", "versioning-requirements")
-                                paramElement.set("useCase", useCase)
+                            nameElement.text = intention
                             dataElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}data")
-                            if i == 0:  # result is report
-                                if expectedEvents:
-                                    paramElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}parameter")
-                                    paramElement.set("name", "expectedEvents")
-                                    paramElement.text = expectedEvents.replace(", "," ")
                             for schemaURIs, dtsAttr in ((uriFrom,"from"), (uriTo,"to")):
                                 for schemaURI in schemaURIs.split(","): 
                                     schemaElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}schema")
@@ -229,9 +212,9 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                             resultElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}result")
                             reportElement = etree.SubElement(resultElement if i == 0 else dataElement, 
                                              "{http://xbrl.org/2008/conformance}versioningReport")
-                            if i == 1:
+                            if 1 == 1:
                                 reportElement.set("readMeFirst","true")
-                            reportElement.text = "report/" + reportName
+                                reportElement.text = "report/" + reportName
                         variationID += 1
             except Exception as err:
                 modelTestcases.error(
