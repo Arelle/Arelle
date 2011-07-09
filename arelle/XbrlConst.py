@@ -124,6 +124,7 @@ consistencyAssertionFormula = "http://xbrl.org/arcrole/2008/consistency-assertio
 consistencyAssertionParameter = "http://xbrl.org/arcrole/2008/consistency-assertion-parameter"
 validation = "http://xbrl.org/2008/validation"
 qnAssertion = qname("{http://xbrl.org/2008/validation}validation:assertion")
+qnVariableSetAssertion = qname("{http://xbrl.org/2008/validation}validation:variableSetAssertion")
 qnAssertionSet = qname("{http://xbrl.org/2008/validation}validation:assertionSet")
 assertionSet = "http://xbrl.org/arcrole/2008/assertion-set"
 

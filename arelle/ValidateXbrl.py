@@ -513,39 +513,40 @@ class ValidateXbrl:
                         _("Tuple {0} must not have balance").format(
                               concept.qname), 
                         "err", "xbrl.4.9:tupleBalance")
-                # check attribute declarations
-                for attributeQname in conceptType.attributes:
-                    if attributeQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
+                if conceptType is not None:
+                    # check attribute declarations
+                    for attributeQname in conceptType.attributes:
+                        if attributeQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
+                            self.modelXbrl.error(
+                                _("Tuple {0} must not have attribute in this namespace {1}").format(
+                                      concept.qname, attributeQname), 
+                                "err", "xbrl.4.9:tupleAttribute")
+                    # check for mixed="true" or simple content
+                    if XmlUtil.descendantAttr(conceptType, XbrlConst.xsd, ("complexType", "complexContent"), "mixed") == "true":
                         self.modelXbrl.error(
-                            _("Tuple {0} must not have attribute in this namespace {1}").format(
-                                  concept.qname, attributeQname), 
-                            "err", "xbrl.4.9:tupleAttribute")
-                # check for mixed="true" or simple content
-                if XmlUtil.descendantAttr(conceptType, XbrlConst.xsd, ("complexType", "complexContent"), "mixed") == "true":
-                    self.modelXbrl.error(
-                        _("Tuple {0} must not have mixed content").format(
-                              concept.qname), 
-                        "err", "xbrl.4.9:tupleMixedContent")
-                if XmlUtil.descendant(conceptType, XbrlConst.xsd, "simpleContent"):
-                    self.modelXbrl.error(
-                        _("Tuple {0} must not have simple content").format(
-                              concept.qname), 
-                        "err", "xbrl.4.9:tupleSimpleContent")
-                # child elements must be item or tuple
-                for elementQname in conceptType.elements:
-                    childConcept = self.modelXbrl.qnameConcepts.get(elementQname)
-                    if childConcept is None:
+                            _("Tuple {0} must not have mixed content").format(
+                                  concept.qname), 
+                            "err", "xbrl.4.9:tupleMixedContent")
+                    if XmlUtil.descendant(conceptType, XbrlConst.xsd, "simpleContent"):
                         self.modelXbrl.error(
-                            _("Tuple {0} element {1} not defined").format(
-                                  concept.qname, elementQname), 
-                            "err", "xbrl.4.9:tupleElementUndefined")
-                    elif not (childConcept.isItem or childConcept.isTuple or # isItem/isTuple do not include item or tuple itself
-                              childConcept.qname == XbrlConst.qnXbrliItem or # subs group includes item as member
-                              childConcept.qname == XbrlConst.qnXbrliTuple):
-                        self.modelXbrl.error(
-                            _("Tuple {0} must not have element {1} not an item or tuple").format(
-                                  concept.qname, elementQname), 
-                            "err", "xbrl.4.9:tupleElementItemOrTuple")
+                            _("Tuple {0} must not have simple content").format(
+                                  concept.qname), 
+                            "err", "xbrl.4.9:tupleSimpleContent")
+                    # child elements must be item or tuple
+                    for elementQname in conceptType.elements:
+                        childConcept = self.modelXbrl.qnameConcepts.get(elementQname)
+                        if childConcept is None:
+                            self.modelXbrl.error(
+                                _("Tuple {0} element {1} not defined").format(
+                                      concept.qname, elementQname), 
+                                "err", "xbrl.4.9:tupleElementUndefined")
+                        elif not (childConcept.isItem or childConcept.isTuple or # isItem/isTuple do not include item or tuple itself
+                                  childConcept.qname == XbrlConst.qnXbrliItem or # subs group includes item as member
+                                  childConcept.qname == XbrlConst.qnXbrliTuple):
+                            self.modelXbrl.error(
+                                _("Tuple {0} must not have element {1} not an item or tuple").format(
+                                      concept.qname, elementQname), 
+                                "err", "xbrl.4.9:tupleElementItemOrTuple")
             elif concept.isItem:
                 if concept.periodType not in periodTypeValues: #("instant","duration"):
                     self.modelXbrl.error(
