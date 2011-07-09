@@ -22,7 +22,7 @@ arcroleChecks = {
                                      XbrlConst.qnEqualityDefinition, 
                                      "xbrlve:info"),
     XbrlConst.assertionSet:          (XbrlConst.qnAssertionSet,
-                                      XbrlConst.qnAssertion,
+                                      (XbrlConst.qnAssertion, XbrlConst.qnVariableSetAssertion),
                                       "xbrlvalide:info"),
     XbrlConst.variableSet:           (XbrlConst.qnVariableSet,
                                       (XbrlConst.qnVariableVariable, XbrlConst.qnParameter),

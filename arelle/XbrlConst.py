@@ -126,6 +126,7 @@ consistencyAssertionFormula = six.u("http://xbrl.org/arcrole/2008/consistency-as
 consistencyAssertionParameter = six.u("http://xbrl.org/arcrole/2008/consistency-assertion-parameter")
 validation = six.u("http://xbrl.org/2008/validation")
 qnAssertion = qname("{http://xbrl.org/2008/validation}validation:assertion")
+qnVariableSetAssertion = qname("{http://xbrl.org/2008/validation}validation:variableSetAssertion")
 qnAssertionSet = qname("{http://xbrl.org/2008/validation}validation:assertionSet")
 assertionSet = six.u("http://xbrl.org/arcrole/2008/assertion-set")
 
