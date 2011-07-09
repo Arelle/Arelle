@@ -92,10 +92,13 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
                 qname = ModelValue.QName(None, attrNsURI, localName)
             else:
                 qname = ModelValue.QName(None, None, attrTag)
-            xValid, xValue, sValue = elt.xAttributes[attrTag]
-            if excludeIDs and xValid == XmlValidate.VALID_ID:
-                continue
-            attrs[qname] = sValue if equalMode == S_EQUAL2 else xValue
+            try:
+                xValid, xValue, sValue = elt.xAttributes[attrTag]
+                if excludeIDs and xValid == XmlValidate.VALID_ID:
+                    continue
+                attrs[qname] = sValue if equalMode == S_EQUAL2 else xValue
+            except KeyError:
+                pass  # what should be done if attribute failed to have psvi value
     return attrs
 
 def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False):
