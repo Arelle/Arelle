@@ -381,11 +381,15 @@ class ModelConcept(ModelSchemaObject):
         return self.isDimensionItem and not self.isTypedDimension
     
     @property
+    def typedDomainRef(self):
+        return self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef")
+
+    @property
     def typedDomainElement(self):
         try:
             return self._typedDomainElement
         except AttributeError:
-            self._typedDomainElement = self.resolveUri(uri=self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"))
+            self._typedDomainElement = self.resolveUri(uri=self.typedDomainRef)
             return self._typedDomainElement
         
     def substitutesForQname(self, subsQname):
@@ -406,12 +410,6 @@ class ModelConcept(ModelSchemaObject):
             subs = subNext
             subNext = subs.substitutionGroup
         return subs.qname
-    
-    @property
-    def typedDomainRefQname(self):
-        if self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"):
-            return self.prefixedNameQname(self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"))
-        return None
 
     @property
     def propertyView(self):
@@ -964,6 +962,11 @@ class ModelRelationship(ModelObject):
                 ("weight", self.weight) if self.arcrole == XbrlConst.summationItem else (),
                 ("preferredLabel", self.preferredLabel)  if self.arcrole == XbrlConst.parentChild and self.preferredLabel else (),
                 ("contextElement", self.contextElement)  if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
+                ("typedDomain", self.toModelObject.typedDomainElement.qname)  
+                  if self.arcrole == XbrlConst.hypercubeDimension and
+                     isinstance(self.toModelObject,ModelConcept) and
+                     self.toModelObject.isTypedDimension and 
+                     self.toModelObject.typedDomainElement is not None  else (),
                 ("closed", self.closed) if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
                 ("usable", self.usable) if self.arcrole == XbrlConst.domainMember  else (),
                 ("targetRole", self.targetRole) if self.arcrole.startswith(XbrlConst.dimStartsWith) else (),

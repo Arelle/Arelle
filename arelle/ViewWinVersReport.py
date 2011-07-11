@@ -124,7 +124,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
                     k = i + j
                     for aspects, name in ((event.fromAspects, "fromAspects"),
                                                   (event.toAspects, "toAspects")):
-                        if aspects:
+                        if aspects is not None:
                             k += 1
                             aspectsNode = self.treeView.insert(eventNode, "end", aspects.objectId(), text=aspects.localName, 
                                                                tags=("even" if k & 1 else "odd",))

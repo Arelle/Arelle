@@ -147,12 +147,12 @@ def checkDTS(val, modelDocument, visited):
                                     "err", "EFM.6.07.19", "GFM.1.03.21")
                             
                         # 6.7.20 no typed domain ref
-                        if modelConcept.typedDomainRefQname is not None:
+                        if modelConcept.isTypedDimension is not None:
                             val.modelXbrl.error(
                                 _("Taxonomy schema {0} element {1} has typedDomainRef {2}").format(
                                     os.path.basename(modelDocument.uri),
                                     name,
-                                    modelConcept.typedDomainRefQname),
+                                    modelConcept.typedDomainElement.qname if modelConcept.typedDomainElement is not None else modelConcept.typedDomainRef),
                                 "err", "EFM.6.07.20", "GFM.1.03.22")
                             
                         # 6.7.21 abstract must be duration
