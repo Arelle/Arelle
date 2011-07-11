@@ -189,7 +189,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ):
             if command is None:
                 tbControl = Separator(toolbar, orient=VERTICAL)
-                tbControl.grid(row=0, column=menubarColumn, padx=3)
+                tbControl.grid(row=0, column=menubarColumn, padx=6)
             elif isinstance(image, Combobox):
                 tbControl = image
                 tbControl.grid(row=0, column=menubarColumn)
@@ -198,7 +198,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 try:
                     image = PhotoImage(file=image)
                     self.toolbar_images.append(image)
-                    tbControl = Button(toolbar, image=image, command=command)
+                    tbControl = Button(toolbar, image=image, command=command, style="Toolbutton")
                     tbControl.grid(row=0, column=menubarColumn)
                 except TclError as err:
                     print(err)
