@@ -122,10 +122,7 @@ def conformance_test():
             yield(z)
             
 if __name__ == "__main__":
-<<<<<<< HEAD
     import nose
     """Main program."""
-=======
->>>>>>> herm/lxml
     argv = ["nosetests", "-v", "--with-xunit"]
     nose.main(argv=argv)
