@@ -8,9 +8,7 @@ from collections import defaultdict
 import sys, traceback, time
 from gettext import gettext as _
 from arelle.Locale import format_string
-from profilehooks import profile
 
-@profile
 def load(modelManager, url, nextaction, base=None):
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager)
