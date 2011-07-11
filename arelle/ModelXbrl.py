@@ -87,7 +87,7 @@ class ModelXbrl:
 
     def close(self):
         self.closeViews()
-        if self.modelDocument:
+        if hasattr(self,"modelDocument") and self.modelDocument:
             self.modelDocument.close([])
         self.modelDocument = None
         self.xbrlManager = None
