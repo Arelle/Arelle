@@ -333,6 +333,17 @@ class scrolledFrame(Frame):
             self.canvas.itemconfigure(self.interior_id, height=canvasH)
         '''
         
+    def clearGrid(self):
+        x,y = self.size()
+        for widget in self.winfo_children():
+            widget.destroy()
+        if x > 1 and y > 1: # not gridTblHdr
+            for x in range(x): self.tk.call( ('grid', 'columnconfigure', self._w, x, '-minsize', 0 ) )
+            for y in range(y): self.tk.call( ('grid', 'rowconfigure', self._w, y, '-minsize', 0 ) )
+            self.config(width=1,height=1)
+        self.update()
+        self.colsConfigured = False
+
 class scrolledHeaderedFrame(Frame):
     def __init__(self, parent, *args, **kw):
         Frame.__init__(self, parent, *args, **kw)            
