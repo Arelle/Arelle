@@ -252,25 +252,26 @@ class ModelVersReport(ModelDocument.ModelDocument):
         
         # determine namespaces
         schemaLocations = []
-        schemasRelPath = os.path.relpath(schemaDir, os.path.dirname(versReportFile)) + os.sep
-        for prefix in self.reportElement.nsmap.values():
-            if prefix  == XbrlConst.ver:
-                schemaLocations.append(XbrlConst.ver)
-                schemaLocations.append(schemasRelPath + "versioning-base.xsd")
-            elif prefix  == XbrlConst.vercb:
-                schemaLocations.append(XbrlConst.vercb)
-                schemaLocations.append(schemasRelPath + "versioning-concept-basic.xsd")
-            elif prefix  == XbrlConst.verce:
-                schemaLocations.append(XbrlConst.verce)
-                schemaLocations.append(schemasRelPath + "versioning-concept-extended.xsd")
-            elif prefix  == XbrlConst.verrels:
-                schemaLocations.append(XbrlConst.verrels)
-                schemaLocations.append(schemasRelPath + "versioning-relationship-sets.xsd")
-            elif prefix  == XbrlConst.veria:
-                schemaLocations.append(XbrlConst.veria)
-                schemaLocations.append(schemasRelPath + "versioning-instance-aspects.xsd")
-        self.reportElement.set("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation", 
-                               " ".join(schemaLocations))
+        if schemaDir is not None:
+            schemasRelPath = os.path.relpath(schemaDir, os.path.dirname(versReportFile)) + os.sep
+            for prefix in self.reportElement.nsmap.values():
+                if prefix  == XbrlConst.ver:
+                    schemaLocations.append(XbrlConst.ver)
+                    schemaLocations.append(schemasRelPath + "versioning-base.xsd")
+                elif prefix  == XbrlConst.vercb:
+                    schemaLocations.append(XbrlConst.vercb)
+                    schemaLocations.append(schemasRelPath + "versioning-concept-basic.xsd")
+                elif prefix  == XbrlConst.verce:
+                    schemaLocations.append(XbrlConst.verce)
+                    schemaLocations.append(schemasRelPath + "versioning-concept-extended.xsd")
+                elif prefix  == XbrlConst.verrels:
+                    schemaLocations.append(XbrlConst.verrels)
+                    schemaLocations.append(schemasRelPath + "versioning-relationship-sets.xsd")
+                elif prefix  == XbrlConst.veria:
+                    schemaLocations.append(XbrlConst.veria)
+                    schemaLocations.append(schemasRelPath + "versioning-instance-aspects.xsd")
+            self.reportElement.set("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation", 
+                                   " ".join(schemaLocations))
         
         self.modelXbrl.modelManager.showStatus(_("Checking report file"))
         self.modelXbrl.modelDocument = self # model document is now established
@@ -648,8 +649,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         for fromRel, toRel, fromAttrSet, toAttrSet in priItemDifferences:
                             if fromRel is not None:
                                 if toRel is not None: e = "aspectModelChange"
-                                else:                 e = "aspectModelAdd"
-                            else:                     e = "aspectModelDelete"
+                                else:                 e = "aspectModelDelete"
+                            else:                     e = "aspectModelAdd"
                             aspectMdlEvent = self.createInstanceAspectsEvent(e)
                             for rel, attrSet, e in ((fromRel, fromAttrSet-toAttrSet, "fromAspects"),
                                                     (toRel, toAttrSet-fromAttrSet, "toAspects")):
@@ -680,8 +681,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         for fromDimRel, toDimRel, isNotAll, mbrDiffs in dimsDifferences:
                             if fromDimRel is not None:
                                 if toDimRel is not None: e = "aspectModelChange"
-                                else:                    e = "aspectModelAdd"
-                            else:                        e = "aspectModelDelete"
+                                else:                    e = "aspectModelDelete"
+                            else:                        e = "aspectModelAdd"
                             aspectMdlEvent = self.createInstanceAspectsEvent(e)
                             for dimRel, e, isFrom in ((fromDimRel, "fromAspects", True),
                                                       (toDimRel, "toAspects", False)):
