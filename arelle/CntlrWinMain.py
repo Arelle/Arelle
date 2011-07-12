@@ -357,12 +357,11 @@ class CntlrWinMain (Cntlr.Cntlr):
     def fileSave(self, *ignore):
         if self.modelManager.modelXbrl:
             if self.modelManager.modelXbrl.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
-                filename = tkinter.filedialog.asksaveasfilename(
+                filename = self.uiFileDialog("save",
                         title=_("arelle - Save Test Results"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
                         filetypes=[(_("CSV file"), "*.csv")],
-                        defaultextension=".csv",
-                        parent=self.parent)
+                        defaultextension=".csv")
                 if not filename:
                     return False
                 try:
@@ -374,7 +373,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         parent=self.parent)
                 return True
             elif self.modelManager.modelXbrl.formulaOutputInstance:
-                filename = tkinter.filedialog.asksaveasfilename(
+                filename = self.uiFileDialog("save",
                         title=_("arelle - Save Formula Result Instance Document"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
                         filetypes=[(_("XBRL output instance .xml"), "*.xml"), (_("XBRL output instance .xbrl"), "*.xbrl")],
@@ -394,12 +393,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     parent=self.parent)
                 return True
         if self.filename is None:
-            filename = tkinter.filedialog.asksaveasfilename(
+            filename = self.uiFileDialog("save",
                     title=_("arelle - Save File"),
                     initialdir=".",
                     filetypes=[(_("Xbrl file"), "*.x*")],
-                    defaultextension=".xbrl",
-                    parent=self.parent)
+                    defaultextension=".xbrl")
             if not filename:
                 return False
             self.filename = filename
@@ -424,12 +422,11 @@ class CntlrWinMain (Cntlr.Cntlr):
     def fileOpen(self, *ignore):
         if not self.okayToContinue():
             return
-        filename = tkinter.filedialog.askopenfilename(
+        filename = self.uiFileDialog("open",
                             title=_("arelle - Open file"),
                             initialdir=self.config.setdefault("fileOpenDir","."),
-                            filetypes=[] if self.isMac else [(_("XBRL files"), "*.*")],
-                            defaultextension=".xbrl",
-                            parent=self.parent)
+                            filetypes=[(_("XBRL files"), "*.*")],
+                            defaultextension=".xbrl")
         if self.isMSW and "/Microsoft/Windows/Temporary Internet Files/Content.IE5/" in filename:
             tkinter.messagebox.showerror(_("Loading web-accessed files"),
                 _('Please open web-accessed files with the second toolbar button, "Open web file", or the File menu, second entry, "Open web..."'), parent=self.parent)
@@ -445,12 +442,11 @@ class CntlrWinMain (Cntlr.Cntlr):
             tkinter.messagebox.showwarning(_("arelle - Warning"),
                             _("Import requires an opened DTS"), parent=self.parent)
             return False
-        filename = tkinter.filedialog.askopenfilename(
+        filename = self.uiFileDialog("open",
                             title=_("arelle - Import file into opened DTS"),
                             initialdir=self.config.setdefault("importOpenDir","."),
-                            filetypes=[] if self.isMac else [(_("XBRL files"), "*.*")],
-                            defaultextension=".xml",
-                            parent=self.parent)
+                            filetypes=[(_("XBRL files"), "*.*")],
+                            defaultextension=".xml")
         if self.isMSW and "/Microsoft/Windows/Temporary Internet Files/Content.IE5/" in filename:
             tkinter.messagebox.showerror(_("Loading web-accessed files"),
                 _('Please open web-accessed files with the second toolbar button, "Open web file", or the File menu, second entry, "Open web..."'), parent=self.parent)
@@ -653,12 +649,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                             _("Two DTSes are required for the Compare DTSes operation, {0} found").format(countLoadedDTSes),
                             parent=self.parent)
             return False
-        versReportFile = tkinter.filedialog.asksaveasfilename(
+        versReportFile = self.uiFileDialog("save",
                 title=_("arelle - Save Versioning Report File"),
                 initialdir=self.config.setdefault("versioningReportDir","."),
                 filetypes=[(_("Versioning report file"), "*.xml")],
-                defaultextension=".xml",
-                parent=self.parent)
+                defaultextension=".xml")
         if not versReportFile:
             return False
         self.config["versioningReportDir"] = os.path.dirname(versReportFile)
@@ -935,12 +930,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.logView.select()
         
     def logSaveToFile(self, *ignore):
-        filename = tkinter.filedialog.asksaveasfilename(
+        filename = self.uiFileDialog("save",
                 title=_("arelle - Save Messages Log"),
                 initialdir=".",
                 filetypes=[(_("Txt file"), "*.txt")],
-                defaultextension=".txt",
-                parent=self.parent)
+                defaultextension=".txt")
         if not filename:
             return False
         try:
@@ -1012,6 +1006,32 @@ class CntlrWinMain (Cntlr.Cntlr):
             else:
                 callback(*args)
         widget.after(delayMsecs, lambda: self.uiThreadChecker(widget))
+        
+    def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None):
+        if self.hasWin32gui:
+            import win32gui
+            try:
+                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,
+                                           "save":win32gui.GetSaveFileNameW}[action](
+                            hwndOwner=self.parent.winfo_id(), 
+                            hInstance=win32gui.GetModuleHandle(None),
+                            Filter='\0'.join(e for t in filetypes+['\0'] for e in t),
+                            MaxFile=4096,
+                            InitialDir=initialdir,
+                            Title=title,
+                            DefExt=defaultextension)
+                return filename
+            except win32gui.error:
+                return ''
+        else:
+            return {"open":tkinter.filedialog.askopenfilename,
+                    "save":tkinter.filedialog.asksaveasfilename}[action](
+                            title=title,
+                            initialdir=initialdir,
+                            filetypes=[] if self.isMac else filetypes,
+                            defaultextension=defaultextension,
+                            parent=self.parent)
+
 
 def main():
     # this is the entry called by arelleGUI.pyw for windows
