@@ -12,6 +12,7 @@ class Cntlr:
     __version__ = "0.0.4"
     
     def __init__(self):
+        self.hasWin32gui = False
         if sys.platform == "darwin":
             self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             self.contextMenuClick = "<Button-2>"
@@ -28,6 +29,11 @@ class Cntlr:
                 self.hasClipboard = True
             except ImportError:
                 self.hasClipboard = False
+            try:
+                import win32gui
+                self.hasWin32gui = True # active state for open file dialogs
+            except ImportError:
+                pass
             self.contextMenuClick = "<Button-3>"
             if "64 bit" in sys.version:
                 self.updateURL = "http://arelle.org/downloads/9"
