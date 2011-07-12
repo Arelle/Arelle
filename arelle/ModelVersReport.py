@@ -624,6 +624,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         explDim = self.createInstanceAspectsEvent("typedDimension" if dimConcept.isTypedDimension else "explicitDimension", 
                                                                   (('name',dimConcept.qname),) + \
                                                                   ((('excluded','true'),) if isNotAll else ()),
+                                                                  comment=self.typedDomainElementComment(dimConcept),
                                                                   eventParent=aspectEvent)
                         for domRel in self.DRSdomRels(dts, dimRel):
                             domHasMemRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
@@ -668,6 +669,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                         explDim = self.createInstanceAspectsEvent("typedDimension" if dimConcept.isTypedDimension else "explicitDimension",
                                                                                   (('name',dimConcept.qname),) + \
                                                                                   ((('excluded','true'),) if isNotAll else ()),
+                                                                                  comment=self.typedDomainElementComment(dimConcept),
                                                                                   eventParent=aspectEvent)
                                         for domRel in self.DRSdomRels(dts, dimRel):
                                             domHasMemRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
@@ -699,6 +701,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                     explDim = self.createInstanceAspectsEvent("typedDimension" if dimConcept.isTypedDimension else "explicitDimension", 
                                                                               (('name',dimConcept.qname),) + \
                                                                               ((('excluded','true'),) if isNotAll else ()),
+                                                                              comment=self.typedDomainElementComment(dimConcept),
                                                                               eventParent=aspectEvent)
                                     if mbrDiffs:
                                         for fromRel, toRel, fromAttrSet, toAttrSet in mbrDiffs:
@@ -798,6 +801,13 @@ class ModelVersReport(ModelDocument.ModelDocument):
             self.typedDomainsCorrespond[fromDimConcept, toDimConcept] = isCorresponding
             return isCorresponding
 
+    def typedDomainElementComment(self, dimConcept):
+        if dimConcept.isTypedDimension:
+            if dimConcept.typedDomainElement is not None:
+                return _('typed domain element {0}').format(dimConcept.typedDomainElement.qname)
+            else:
+                return _('typedDomainRef={0} (element qname cannot be determined)').format(dimConcept.typedDomainRef)
+        return None
 
     def DRSdimsDiff(self, fromDTS, fromPriItemDRSrels, toDTS, toPriItemDRSrels):
         fromDims = {}
