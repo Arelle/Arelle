@@ -1,10 +1,12 @@
-'''
+"""
 Created on Jan 30, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
-'''
+"""
+
 import sys
+from distutils.core import setup
 
 setup_requires = []
 options = {}
