@@ -4,7 +4,7 @@ if [ -d ".virtualenv" ]; then
    echo "**> virtualenv exists"
 else
    echo "**> creating virtualenv"
-   virtualenv -p `which python3.2` .virtualenv
+   virtualenv --distribute --no-site-packages -p `which python3.2` .virtualenv
 fi
 
 source .virtualenv/bin/activate
