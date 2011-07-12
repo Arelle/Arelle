@@ -1,5 +1,9 @@
 __pycache__
 *.pyc
+*.dot
+*.stats
+*.class
+*.xml
 build
 dist
 buildRenameX64.bat
@@ -7,8 +11,11 @@ buildRenameX86.bat
 arelle/Version.py
 profile.dot
 profile.stats
+.virtualenv
+.coverage
 .DS_Store
 .project
 .pydevproject
 .settings
 gprof2dot.py
+top.py
