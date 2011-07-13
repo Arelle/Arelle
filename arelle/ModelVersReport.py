@@ -911,9 +911,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         return action
             
     def conceptHref(self, concept):
-        conceptId = concept.id
-        return (self.relativeUri(concept.modelDocument.uri) + "#" + 
-            (conceptId if conceptId else XmlUtil.elementFragmentIdentifier(concept)))  
+        return self.relativeUri(concept.modelDocument.uri) + "#" + XmlUtil.elementFragmentIdentifier(concept) 
         
     def createRelationshipSetEvent(self, eventName, linkrole=None, arcrole=None, fromConcept=None, toConcept=None, axis=None, attrValues=None, comment=None, eventParent=None):
         if eventParent is None:
