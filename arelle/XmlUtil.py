@@ -498,19 +498,22 @@ def xpointerElement(modelDocument, fragmentIdentifier):
 
 def elementFragmentIdentifier(element):
     if element.id:
-        location = element.id
+        return element.id  # "short hand pointer" for element fragment identifier
     else:
-        childSequence = [""] # "" represents document element for / on the join below
+        childSequence = [""] # "" represents document element for / (root) on the join below
         while element is not None:
             if isinstance(element,ModelObject):
-                siblingPosition = 0
+                if element.id:  # has ID, use as start of path instead of root
+                    childSequence[0] = element.id
+                    break
+                siblingPosition = 1
                 for sibling in element.itersiblings(preceding=True):
                     if isinstance(sibling,ModelObject):
                         siblingPosition += 1
                 childSequence.insert(1, str(siblingPosition))
             element = element.getparent()
         location = "/".join(childSequence)
-    return "element({0})".format(location)
+        return "element({0})".format(location)
 
 def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
     # customized from xml.minidom to provide correct indentation for data items
