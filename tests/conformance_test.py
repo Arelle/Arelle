@@ -74,20 +74,21 @@ class TestCntlr(Cntlr.Cntlr):
         self.modelManager.validate()
         modelDocument = modelXbrl.modelDocument
 
-        if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
-            index = os.path.basename(modelDocument.uri)
-            for tci in modelDocument.referencesDocument.keys():
-                tc = modelXbrl.modelObject(tci.objectId())
+        if modelDocument is not None:
+            if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+                index = os.path.basename(modelDocument.uri)
+                for tci in modelDocument.referencesDocument.keys():
+                    tc = modelXbrl.modelObject(tci.objectId())
+                    test_case = os.path.basename(tc.uri)
+                    if hasattr(tc, "testcaseVariations"):
+                        for mv in tc.testcaseVariations:
+                            self.outcomes.append((index, test_case, mv))
+            elif modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+                tc = modelDocument
                 test_case = os.path.basename(tc.uri)
                 if hasattr(tc, "testcaseVariations"):
                     for mv in tc.testcaseVariations:
-                        self.outcomes.append((index, test_case, mv))
-        elif modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
-            tc = modelDocument
-            test_case = os.path.basename(tc.uri)
-            if hasattr(tc, "testcaseVariations"):
-                for mv in tc.testcaseVariations:
-                    self.outcomes.append((None, test_case, mv))
+                        self.outcomes.append((None, test_case, mv))
 
         for msg in self.messages:
             print(msg.rstrip())
