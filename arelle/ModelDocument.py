@@ -71,7 +71,7 @@ def load(modelXbrl, uri, base=None, isEntry=False, isDiscovered=False, isInclude
         started = time.time()
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         ended = time.time()
-        modelXbrl.modelManager.cntlr.addToLog("[ElementTree] Parsing %.2f" % (ended-started))
+        #modelXbrl.modelManager.cntlr.addToLog("[ElementTree] Parsing %.2f" % (ended-started))
         file.close()
     except EnvironmentError as err:
         modelXbrl.error(
