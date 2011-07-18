@@ -197,9 +197,9 @@ class WebCache:
                     return None
                 
                 except Exception as err:
-                    self.cntlr.addToLog(_("------------------------- {0}\n\tretrieving {1}\n\tswitching to work offline").format(sys.exc_info(),url))
+                    self.cntlr.addToLog(_("'{0}'\n\tretrieving {1}\n\tswitching to work offline").format(err, url))
                     # try working offline
-                    # self.workOffline = True
+                    # self.workOffline = True - 2011-07-18 IRJ - commenting this out because it breaks EC2 (and the exception is a status exception with no status).
                     return filepath
                 
                 # rename temporarily named downloaded file to desired name                
