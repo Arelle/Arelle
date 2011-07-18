@@ -11,7 +11,8 @@ import six
 
 if six.PY3:
     from urllib.request import ProxyHandler, ProxyBasicAuthHandler, HTTPBasicAuthHandler, build_opener
-    import http.client
+    from urlib.error import HTTPError, URLError, ContentTooShortError
+    from http.client import BadStatusLine, ContentTooShort
 else:
     from urllib import ContentTooShortError, unquote
     from urllib2 import ProxyHandler, ProxyBasicAuthHandler, \
@@ -194,7 +195,7 @@ class WebCache:
                     self.cntlr.addToLog(_("{0} retrieving {1}").format(err,url))
                     return None
 
-                except http.client.BadStatusLine as err:
+                except BadStatusLine as err:
                     self.cntlr.addToLog(_("'{0}'\n\tretrieving {1}\n\tBad Status Line.").format(err, url))
                     return filepath
                 except Exception as err:
