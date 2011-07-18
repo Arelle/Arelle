@@ -197,7 +197,7 @@ class WebCache:
                     return None
                 
                 except Exception as err:
-                    self.cntlr.addToLog(_("------------------------- {0}\n\tretrieving {1}\n\tswitching to work offline").format(err,url))
+                    self.cntlr.addToLog(_("------------------------- {0}\n\tretrieving {1}\n\tswitching to work offline").format(sys.exc_info(),url))
                     # try working offline
                     # self.workOffline = True
                     return filepath
