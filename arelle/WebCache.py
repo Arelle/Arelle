@@ -11,8 +11,8 @@ import six
 
 if six.PY3:
     from urllib.request import ProxyHandler, ProxyBasicAuthHandler, HTTPBasicAuthHandler, build_opener
-    from urlib.error import HTTPError, URLError, ContentTooShortError
-    from http.client import BadStatusLine, ContentTooShort
+    from urllib.error import HTTPError, URLError, ContentTooShortError
+    from http.client import BadStatusLine
 else:
     from urllib import ContentTooShortError, unquote
     from urllib2 import ProxyHandler, ProxyBasicAuthHandler, \
