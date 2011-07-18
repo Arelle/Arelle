@@ -260,9 +260,13 @@ class ModelXbrl:
                 break
             else:
                 hasRejectedCode = True
+        #if code == "IOError":
+        #    print("%s | %s | %s | %s" % (message, severity, argCodes, code), file=sys.stderr)
         if code is not None:
             if severity in ('wrn','err'):
                 self.errors.append(code)
+                if code == "IOError":
+                    print(message, file=sys.stdout)
             elif severity in ('asrt','asrtNoLog'):
                 self.errors.append(code) # code is dict expression of id and counts successful/not successful
                 code = "assertion:trace" # replace with user friendly code for log

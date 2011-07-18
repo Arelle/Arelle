@@ -1,6 +1,7 @@
 """
 This script runs the conformance tests to validate the implementation.
 """
+import sys
 import os.path, gettext, nose
 from nose.tools import eq_
 from functools import partial
@@ -93,7 +94,7 @@ class TestCntlr(Cntlr.Cntlr):
                         self.outcomes.append((None, test_case, mv))
 
         for msg in self.messages:
-            print(msg.rstrip())
+            print(msg.rstrip(), file=sys.stderr)
 
         return self.outcomes
     
