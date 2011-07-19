@@ -64,7 +64,7 @@ def load(modelXbrl, uri, base=None, isEntry=False, isDiscovered=False, isInclude
             started = time.time()
             file = ValidateFilingText.checkfile(modelXbrl,filepath)
             ended = time.time()
-            modelXbrl.modelManager.cntlr.addToLog("[ValidateFilingText] File check %.2f" % (ended - started))
+            modelXbrl.modelManager.cntlr.addToLog("[ValidateFilingText] File check %.2f: %s" % ((ended - started), os.path.basename(filepath)))
         else:
             file = modelXbrl.fileSource.file(filepath)
         _parser = parser(modelXbrl,filepath)
