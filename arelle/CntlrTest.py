@@ -8,9 +8,10 @@ This module is Arelle's controller in command line non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 """
+import sys
 import gettext, time, datetime
 from optparse import OptionParser
-from arelle import Cntlr, FileSource, XmlUtil, Version
+from arelle import Cntlr, FileSource, XmlUtil, Version, traceit
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 
@@ -29,8 +30,15 @@ def main():
                              "a local file or a URI to a web located file."))
     parser.add_option("-p", "--profile", dest="profile_file",
                       help=_("PROFILE_FILE is a file to store profiling data in."))
-    
+
+    parser.add_option("-t", "--trace", dest="trace",
+                      action="store_true", default = False,
+                      help=_("Trace the execution for educational reasons."))
+
     (options, args) = parser.parse_args()
+    if options.trace:
+        sys.settrace(traceit)
+        
     if len(args) != 0 or options.filename is None:
         parser.error(_("incorrect arguments, please try\n  python CntlrTest.pyw --help"))
     else:
