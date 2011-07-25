@@ -8,14 +8,11 @@ This module is Arelle's controller in command line non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 """
-import sys
-import gettext, time, datetime
+import sys, threading, gettext, time, datetime, arelle, os
 from optparse import OptionParser
-from arelle import Cntlr, FileSource, XmlUtil, Version, traceit
+from arelle import Cntlr, FileSource, XmlUtil, Version, traceit, call_list
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
-
-import cProfile
 
 def main():
     """Testing program for speed."""
@@ -31,20 +28,37 @@ def main():
     parser.add_option("-p", "--profile", dest="profile_file",
                       help=_("PROFILE_FILE is a file to store profiling data in."))
 
-    parser.add_option("-t", "--trace", dest="trace",
-                      action="store_true", default = False,
-                      help=_("Trace the execution for educational reasons."))
+    parser.add_option("-t", "--trace", dest="trace_file",
+                      help=_("TRACE_FILE is a file to store the trace data."))
 
     (options, args) = parser.parse_args()
-    if options.trace:
+
+    if options.trace_file:
+        threading.settrace(traceit)
         sys.settrace(traceit)
         
     if len(args) != 0 or options.filename is None:
         parser.error(_("incorrect arguments, please try\n  python CntlrTest.pyw --help"))
+    elif options.profile_file:
+        import cProfile
+        cProfile.runctx('CntlrTest().run(options)', globals(),
+                        locals(), options.profile_file)
     else:
         # parse and run the FILENAME
         CntlrTest().run(options)
 
+    if options.trace_file:
+        tf = open(options.trace_file, "w")
+        prefix = ""
+        for action, method, fn, line in call_list:
+            if action == 'enter':
+                prefix += " "
+            if action == 'exit':
+                prefix = prefix[:-1]
+            print("%s %s %s %s" % (prefix, os.path.basename(fn), line, fn), 
+                  file=tf)
+        tf.close()
+        
 class CntlrTest(Cntlr.Cntlr):
     """CntlrTest Class to shim together arelle classes for testing."""
     def __init__(self):
@@ -72,10 +86,7 @@ class CntlrTest(Cntlr.Cntlr):
                                     (time.time() - startedAt, timeNow)))
         try:
             startedAt = time.time()
-            if options.profile_file:
-                cProfile.runctx('self.modelManager.validate()', globals(), locals(), options.profile_file)
-            else:
-                self.modelManager.validate()
+            self.modelManager.validate()
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("[info] validated in %.2f secs"), 
                                         time.time() - startedAt))
