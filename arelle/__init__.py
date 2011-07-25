@@ -1,4 +1,4 @@
-import six
+import six, string, os
 
 arelle_mods = [
     ["urllib_parse", "urlparse", "urllib.parse"],
@@ -9,45 +9,25 @@ arelle_mods = [
 for mod in arelle_mods:
     six.add_move(six.MovedModule(*mod))
 
-import os, sys, linecache, inspect, os.path
+import os, sys, linecache, inspect, os.path, threading, trace
+
+call_prefix = ""
+call_list = list()
 
 def traceit(frame, event, arg):
-    depth = len(inspect.stack())
-    lineno = frame.f_lineno
-    if '__file__' in frame.f_globals:
-        filename = frame.f_globals['__file__']
-        if (filename.endswith('.pyc') or
-            filename.endswith('.pyo')):
-            filename = filename[:-1]
-        name = frame.f_globals['__name__']
-        line = linecache.getline(filename, lineno)
-    else:
-        name = '[unknown]'
-        try:
-            src = inspect.getsourcelines(frame)
-            line = src[lineno]
-        except IOError:
-            line = 'Unknown code named [%s].  VM instruction #%d' % \
-                   (frame.f_code.co_name, frame.f_lasti)
-            
-    if event == 'call':
-        fi = inspect.getframeinfo(frame)
-        print("%s -> %s [%s:%s]" % (" "*depth, name, os.path.basename(fi[0]), lineno))
-    elif event == 'line':
-        # We don't want line level details
-        pass
-    elif event == 'return':
-        fi = inspect.getframeinfo(frame)
-        print("%s <- %s [%s:%s]" % (" "*depth, name, os.path.basename(fi[0]), lineno))
-    elif event == 'exception':
-        # We don't want exception details, yet
-        pass
-    elif event == 'c_call':
-        print("%s -> %s [%s:%s]" % (" "*depth, name, os.path.basename(fi[0]), lineno))
-    elif event == 'c_return':
-        print("%s <- %s [%s:%s]" % (" "*depth, name, os.path.basename(fi[0]), lineno))
-    elif event == 'c_exception':
-        # We don't want exception details, yet
-        pass
 
+    if (frame.f_code.co_filename.find("arelle/") == -1):
+        return traceit
+
+    global call_list
+    call_data = [frame.f_code.co_name, 
+                 frame.f_code.co_filename,
+                 frame.f_lineno]
+    if event == 'call':
+        call_data.insert(0, 'enter')
+        call_list.append(call_data)
+    if event == 'return':
+        call_data.insert(0, 'exit')
+        call_list.append(call_data)
+        
     return traceit
