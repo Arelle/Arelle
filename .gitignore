@@ -2,6 +2,9 @@ Arelle.egg-info
 __pycache__
 build
 dist
+*.out
+*.png
+*.kcg
 *.class
 *.pyc
 *.dot
