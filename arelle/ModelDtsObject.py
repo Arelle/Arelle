@@ -136,8 +136,8 @@ class ModelConcept(ModelSchemaObject):
             if self.get("type"):
                 self._typeQname = self.prefixedNameQname(self.get("type"))
             else:
-                # check if anonymous type exists
-                typeQname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
+                # check if anonymous type exists (clark qname tag + suffix)
+                typeQname = ModelValue.qname(self.tag + anonymousTypeSuffix)
                 if typeQname in self.modelXbrl.qnameTypes:
                     self._typeQname = typeQname
                 else:
@@ -763,12 +763,23 @@ class ModelRelationship(ModelObject):
         return self.arcElement.prefixedName
         
     @property
+    def sourceline(self):
+        return self.arcElement.sourceline
+        
+    @property
     def tag(self):
         return self.arcElement.tag
+    
+    @property
+    def elementQname(self):
+        return self.arcElement.elementQname
         
     @property
     def qname(self):
         return self.arcElement.qname
+    
+    def itersiblings(self, **kwargs):
+        return self.arcElement.itersiblings(**kwargs)
         
     @property
     def fromLabel(self):

@@ -303,7 +303,10 @@ class ModelInlineFact(ModelFact):
         num = 0
         negate = -1 if self.sign else 1
         try:
-            num = float(value) * 10 ** int(self.scale)
+            num = float(value)
+            scale = self.scale
+            if scale is not None:
+                num *= 10 ** int(self.scale)
         except ValueError:
             pass
         return "{0}".format(num * negate)

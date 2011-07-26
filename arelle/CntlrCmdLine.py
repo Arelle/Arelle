@@ -14,6 +14,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, ViewCsvRelationshipSet, ViewCsvTests)
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
+import logging
 
 def main():
     gettext.install("arelle")
@@ -131,6 +132,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.messages = None
         
+        CmdLineLogHandler(self) # start logger
+
         self.filename = options.filename
         filesource = FileSource.FileSource(self.filename,self)
         if options.validateEFM:
@@ -250,5 +253,18 @@ class CntlrCmdLine(Cntlr.Cntlr):
     def showStatus(self, message, clearAfter=None):
         pass
     
+class CmdLineLogHandler(logging.Handler):
+    def __init__(self, cntlr):
+        super().__init__()
+        self.cntlr = cntlr
+        self.level = logging.DEBUG
+        formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
+        self.setFormatter(formatter)
+        logging.getLogger("arelle").addHandler(self)
+    def flush(self):
+        ''' Nothing to flush '''
+    def emit(self, logRecord):
+        self.cntlr.addToLog(self.format(logRecord))      
+
 if __name__ == "__main__":
     main()

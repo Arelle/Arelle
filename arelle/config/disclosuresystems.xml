@@ -70,7 +70,7 @@
      labelCheckPattern="\s{2,}|&lt;"
      labelTrimPattern="\s"
      />
-  <!-- not read for use, still in testing
+  <!-- not read for use, still in testing -->
   <DisclosureSystem 
      names="SBR-NL|sbr-nl" 
      description="SBR Netherlands\n
@@ -89,7 +89,7 @@
      labelCheckPattern="^\s[^\s]+|[^\s]+\s$|\s{2,}|[\r\n\t]"
      labelTrimPattern="\s"
      />
-  -->
+<!--  -->
   <DisclosureSystem 
      names="UK HMRC (Joint Filing Validation Checks)|hmrc"
      description="UK HMRC Joint Filing Common Validation Checks\n

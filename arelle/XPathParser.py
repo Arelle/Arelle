@@ -78,15 +78,17 @@ def pushQName( sourceStr, loc, toks ):
     if xmlElement is not None:
         nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
         if nsLocalname is None:
-            modelXbrl.error(
-                _("QName prefix not defined for {0}").format(qname),
-                  "err","err:XPST0081")
+            modelXbrl.error("err:XPST0081",
+                "QName prefix not defined for %(name)s",
+                modelObject=xmlElement,
+                name=qname)
             return
         if (nsLocalname == (XbrlConst.xff,"uncovered-aspect") and
             xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion")):
-                modelXbrl.error(
-                    _("Function {0} cannot be used on an XPath expression associated with a {1}").format(qname, xmlElement.localName),
-                      "err","xffe:invalidFunctionUse")
+                modelXbrl.error("xffe:invalidFunctionUse",
+                    "Function %(name)s cannot be used on an XPath expression associated with a %(name2)s",
+                    modelObject=xmlElement,
+                    name=qname, name2=xmlElement.localName)
     else:
         nsLocalname = (None,qname)
     q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1])
@@ -143,9 +145,10 @@ class OperationDef:
                     prefix = toks1[:-2]
                     ns = XmlUtil.xmlns(xmlElement, prefix)
                     if ns is None:
-                        modelXbrl.error(
-                            _("wildcard prefix not defined for {0}").format(toks1),
-                              "err","err:XPST0081")
+                        modelXbrl.error("err:XPST0081",
+                            "wildcard prefix not defined for %(token)s",
+                            modelObject=xmlElement,
+                            token=toks1)
                     toks1 = QNameDef(loc,prefix,ns,'*')
                 self.args = [toks1] + toks[2:] # special case for wildcard path segment
             else:
@@ -241,9 +244,10 @@ class VariableRef:
 def pushVarRef( sourceStr, loc, toks ):
     qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)
     if qname is None:
-        modelXbrl.error(
-            _("QName prefix not defined for variable reference ${0}").format(toks[0][1:]),
-              "err","err:XPST0081")
+        modelXbrl.error("err:XPST0081",
+            "QName prefix not defined for variable reference $%(variable)s",
+            modelObject=xmlElement,
+            variable=toks[0][1:])
         qname = ModelValue.qname(XbrlConst.xpath2err,"XPST0081") # use as qname to allow parsing to complete
     varRef = VariableRef(loc, qname)
     exprStack.append( varRef )
@@ -565,7 +569,7 @@ def exceptionErrorIndication(exception):
         if len(source) > 0: source += '\n'
         if errorAt >= 0 and errorAt <= len(line):
             source += line[:errorAt] + '\u274b' + line[errorAt:]
-            source += '\n' + ' '*(errorAt-1) + '^'
+            source += '\n' + ' '*(errorAt-1) + '^ \n'
         else:
             source += line
         errorAt -= len(line) + 1
@@ -610,8 +614,10 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             if ((formulaOptions.traceVariableSetExpressionSource and traceType == Trace.VARIABLE_SET) or
                 (formulaOptions.traceVariableExpressionSource and traceType == Trace.VARIABLE) or
                 (formulaOptions.traceCallExpressionSource and traceType == Trace.CALL)):
-                modelXbrl.error( _("Source {0} {1}").format(name, normalizedExpr),
-                    "info", "formula:trace")
+                modelXbrl.info("formula:trace", "Source %(name)s %(source)s",
+                modelObject=element,
+                name=name,
+                source=normalizedExpr)
             exprStack.append( ProgHeader(modelObject,name,element,normalizedExpr,traceType) )
 
             L = xpathExpr.parseString( normalizedExpr, parseAll=True )
@@ -623,19 +629,25 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             if ((formulaOptions.traceVariableSetExpressionCode and traceType == Trace.VARIABLE_SET) or
                 (formulaOptions.traceVariableExpressionCode and traceType == Trace.VARIABLE) or
                 (formulaOptions.traceCallExpressionCode and traceType == Trace.CALL)):
-                modelXbrl.error( _("Code {0} {1}").format(name, exprStack),
-                    "info", "formula:trace")
-
+                modelXbrl.info("formula:trace", "Code %(name)s %(source)s",
+                modelObject=element,
+                name=name,
+                source=exprStack)
+                
         except (ParseException, ParseSyntaxException) as err:
-            modelXbrl.error(
-                _("Parse error in {0} error: {1} \n{2}").format(name,
-                     err, exceptionErrorIndication(err)), 
-                "err", "err:XPST0003")
+            modelXbrl.error("err:XPST0003",
+                "Parse error in %(name)s error: %(error)s \n%(source)s",
+                modelObject=element,
+                name=name,
+                error=err, 
+                source=exceptionErrorIndication(err))
         except (ValueError) as err:
-            modelXbrl.error(
-                _("Parsing terminated in {0} due to error: {1} \n{2}").format(name,
-                     err, normalizedExpr), 
-                "err", "parser:unableToParse")
+            modelXbrl.error("parser:unableToParse",
+                "Parsing terminated in %(name)s due to error: %(error)s \n%(source)s",
+                modelObject=element,
+                name=name,
+                error=err, 
+                source=normalizedExpr)
         
         '''
         code = []
