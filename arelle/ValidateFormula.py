@@ -53,31 +53,25 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             toMdlObj = modelRel.toModelObject
             if fromQname:
                 if fromMdlObj is None or not val.modelXbrl.isInSubstitutionGroup(fromMdlObj.elementQname, fromQname):
-                    val.modelXbrl.error(
-                        _("{0} relationship from {1} to {2} should have an {3} source").format(
-                              os.path.basename(arcrole), modelRel.fromLabel, modelRel.toLabel,
-                              fromQname), 
-                        "info", errCode)
+                    val.modelXbrl.info(errCode,
+                        "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s source",
+                        modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=fromQname)
             if toQname:
                 if toMdlObj is None or not val.modelXbrl.isInSubstitutionGroup(toMdlObj.elementQname, toQname):
-                    val.modelXbrl.error(
-                        _("{0} relationship from {1} to {2} should have an {3} target").format(
-                              os.path.basename(arcrole), modelRel.fromLabel, modelRel.toLabel,
-                              toQname), 
-                        "info", errCode)
+                    val.modelXbrl.info(errCode,
+                        "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s  target",
+                        modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=toQname)
     if arcrole == XbrlConst.functionImplementation:
         for relFrom, rels in relsSet.fromModelObjects().items():
             if len(rels) > 1:
-                val.modelXbrl.error(
-                    _("Function-implementation relationship from signature {0} has more than one implementation target").format(
-                          relFrom.name), 
-                    "err", "xbrlcfie:tooManyCFIRelationships")                
+                val.modelXbrl.error("xbrlcfie:tooManyCFIRelationships",
+                    "Function-implementation relationship from signature %(name)s has more than one implementation target",
+                     modelObject=modelRel, name=relFrom.name)
         for relTo, rels in relsSet.toModelObjects().items():
             if len(rels) > 1:
-                val.modelXbrl.error(
-                    _("Function implementation {0} must be the target of only one function-implementation relationship").format(
-                          relTo.xlinkLabel), 
-                    "err", "xbrlcfie:tooManyCFIRelationships")
+                val.modelXbrl.error("xbrlcfie:tooManyCFIRelationships",
+                    "Function implementation %(xlinkLabel)s must be the target of only one function-implementation relationship",
+                    modelObject=modelRel, xlinkLabel=relTo.xlinkLabel)
                 
 def executeCallTest(val, name, callTuple, testTuple):
     if callTuple:
@@ -89,23 +83,27 @@ def executeCallTest(val, name, callTuple, testTuple):
             xpathContext = XPathContext.create(val.modelXbrl, sourceElement=callTuple[1])
             result = xpathContext.evaluate(callExprStack)
             xpathContext.inScopeVars[qname('result',noPrefixIsNoNamespace=True)] = result 
-            val.modelXbrl.error( _("{0} result {1}").format( name, result),
-                "info", "formula:trace")
+            val.modelXbrl.info("formula:trace", 
+                               "%(name)s result %(result)s", 
+                               modelObject=callTuple[1], name=name, result=str(result))
             
             if testTuple:
                 val.modelXbrl.modelManager.showStatus(_("Executing test"))
                 testExprStack = XPathParser.parse(val, testTuple[0], testTuple[1], name + " test", Trace.CALL)
                 testResult = xpathContext.effectiveBooleanValue( None, xpathContext.evaluate(testExprStack) )
                 
-                val.modelXbrl.error(
-                    _("Test {0} result {1}").format( name, testResult), 
-                    "info" if testResult else "err", 
-                    "cfcn:testPass" if testResult else "cfcn:testFail")
+                if testResult:
+                    val.modelXbrl.info("cfcn:testPass",
+                                       "Test %(name)s result %(result)s", 
+                                       modelObject=testTuple[1], name=name, result=str(testResult))
+                else:
+                    val.modelXbrl.error("cfcn:testFail",
+                                        "Test %(name)s result %(result)s", 
+                                        modelObject=testTuple[1], name=name, result=str(testResult))
         except XPathContext.XPathException as err:
-            val.modelXbrl.error(
-                _("{0} evaluation error: {1} \n{2}").format(name,
-                     err.message, err.sourceErrorIndication), 
-                "err", err.code)
+            val.modelXbrl.error(err.code,
+                "%(name)s evaluation error: %(error)s \n%(errorSource)s",
+                modelObject=callTuple[1], name=name, error=err.message, errorSource=err.sourceErrorIndication)
 
         val.modelXbrl.modelManager.showStatus(_("ready"), 2000)
                 
@@ -149,39 +147,37 @@ def validate(val):
             undefinedVars = circularOrUndefDependencies - parameterQnames 
             paramsCircularDep = circularOrUndefDependencies - undefinedVars
             if len(undefinedVars) > 0:
-                val.modelXbrl.error(
-                    _("Undefined dependencies in parameter {0}, to names {1}").format(
-                          paramQname, ", ".join((str(v) for v in undefinedVars))), 
-                    "err", "xbrlve:unresolvedDependency")
+                val.modelXbrl.error("xbrlve:unresolvedDependency",
+                    "Undefined dependencies in parameter %(name)s, to names %(dependencies)s",
+                    modelObject=val.modelXbrl.qnameParameters[paramQname],
+                    name=paramQname, dependencies=", ".join((str(v) for v in undefinedVars)))
             if len(paramsCircularDep) > 0:
-                val.modelXbrl.error(
-                    _("Cyclic dependencies in parameter {0}, to names {1}").format(
-                          paramQname, ", ".join((str(d) for d in paramsCircularDep)) ), 
-                    "err", "xbrlve:parameterCyclicDependencies")
+                val.modelXbrl.error("xbrlve:parameterCyclicDependencies",
+                    "Cyclic dependencies in parameter %(name)s, to names %(dependencies)s",
+                    modelObject=val.modelXbrl.qnameParameters[paramQname],
+                    name=paramQname, dependencies=", ".join((str(d) for d in paramsCircularDep)) )
             
     for custFnSig in val.modelXbrl.modelCustomFunctionSignatures.values():
         custFnQname = custFnSig.qname
         if custFnQname.namespaceURI == "XbrlConst.xfi":
-            val.modelXbrl.error(
-                _("Custom function {0} has namespace reserved for functions in the function registry {1}").format(
-                      str(custFnQname), custFnQname.namespaceURI ), 
-                "err", "xbrlve:noProhibitedNamespaceForCustomFunction")
+            val.modelXbrl.error("xbrlve:noProhibitedNamespaceForCustomFunction",
+                "Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s",
+                modelObject=custFnSig, name=custFnQname, namespace=custFnQname.namespaceURI )
         # any custom function implementations?
         for modelRel in val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).fromModelObject(custFnSig):
             custFnImpl = modelRel.toModelObject
             custFnSig.customFunctionImplementation = custFnImpl
             if len(custFnImpl.inputNames) != len(custFnSig.inputTypes):
-                val.modelXbrl.error(
-                    _("Custom function {0} signature has {1} parameters but implementation has {2}, must be matching").format(
-                          str(custFnQname), len(custFnSig.inputTypes), len(custFnImpl.inputNames) ), 
-                    "err", "xbrlcfie:inputMismatch")
+                val.modelXbrl.error("xbrlcfie:inputMismatch",
+                    "Custom function %(name)s signature has %(parameterCountSignature)s parameters but implementation has %(parameterCountImplementation)s, must be matching",
+                    modelObject=custFnSig, name=custFnQname, 
+                    parameterCountSignature=len(custFnSig.inputTypes), parameterCountImplementation=len(custFnImpl.inputNames) )
         
     for custFnImpl in val.modelXbrl.modelCustomFunctionImplementations:
         if not val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).toModelObject(custFnImpl):
-            val.modelXbrl.error(
-                _("Custom function implementation {0} has no relationship from any custom function signature").format(
-                      custFnImpl.xlinkLabel), 
-                "err", "xbrlcfie:missingCFIRelationship")
+            val.modelXbrl.error("xbrlcfie:missingCFIRelationship",
+                "Custom function implementation %(xlinkLabel)s has no relationship from any custom function signature",
+                modelObject=custFnSig, xlinkLabel=custFnImpl.xlinkLabel)
         custFnImpl.compile()
             
     # xpathContext is needed for filter setup for expressions such as aspect cover filter
@@ -199,17 +195,20 @@ def validate(val):
                     value = FunctionXs.call(xpathContext, None, typeLocalName, [paramValue])
                     result = FunctionXs.call(xpathContext, None, asLocalName, [value])
                     if formulaOptions.traceParameterInputValue:
-                        val.modelXbrl.error( _("Parameter {0} input {1}").format( paramQname, result),
-                            "info", "formula:trace")
+                        val.modelXbrl.info("formula:trace",
+                            "Parameter %(name)s input value %(input)s", 
+                            modelObject=modelParameter, name=paramQname, input=result)
                 else:
                     result = modelParameter.evaluate(xpathContext, asType)
                     if formulaOptions.traceParameterExpressionResult:
-                        val.modelXbrl.error( _("Parameter {0} result {1}").format( paramQname, result),
-                            "info", "formula:trace")
+                        val.modelXbrl.info("formula:trace",
+                            "Parameter %(name)s select result %(result)s", 
+                            modelObject=modelParameter, name=paramQname, result=result)
                 xpathContext.inScopeVars[paramQname] = result    # make visible to subsequent parameter expression 
             except XPathContext.XPathException as err:
-                val.modelXbrl.error( _("Parameter \n{0} \nException: \n{1}").format( paramQname, err.message),
-                    "err", "xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code)
+                val.modelXbrl.error("xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
+                    "Parameter \n%(name)s \nException: \n%(error)s", 
+                    modelObject=modelParameter, name=paramQname, error=err.message)
 
     produceOutputXbrlInstance = False
     instanceProducingVariableSets = defaultdict(list)
@@ -224,19 +223,18 @@ def validate(val):
                     if instanceQname is None:
                         instanceQname = instance.qname
                     else:
-                        val.modelXbrl.error(
-                            _("Multiple output instances for formula {0}, to names {1}, {2}").format(
-                                  modelVariableSet.xlinkLabel, instanceQname, instance.qname ), 
-                            "info", "arelle:multipleOutputInstances")
+                        val.modelXbrl.info("arelle:multipleOutputInstances",
+                            "Multiple output instances for formula %(xlinkLabel)s, to names %(instanceTo)s, %(instanceTo2)s",
+                            modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, 
+                            instanceTo=instanceQname, instanceTo2=instance.qname)
             if instanceQname is None: 
                 instanceQname = XbrlConst.qnStandardOutputInstance
                 instanceQnames.add(instanceQname)
             modelVariableSet.outputInstanceQname = instanceQname
             if val.validateSBRNL:
-                val.modelXbrl.error(
-                    _("Formula linkbase {0} formula:formula {1} is not allowed").format(
-                        os.path.basename(modelVariableSet.modelDocument.uri), modelVariableSet.xlinkLabel), 
-                    "err", "SBR.NL.2.3.9.03")
+                val.modelXbrl.error("SBR.NL.2.3.9.03",
+                    "Formula:formula %(xlinkLabel)s is not allowed",
+                    modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel)
         else:
             instanceQname = None
             modelVariableSet.countSatisfied = 0
@@ -245,10 +243,9 @@ def validate(val):
         instanceProducingVariableSets[instanceQname].append(modelVariableSet)
         modelVariableSet.outputInstanceQname = instanceQname
         if modelVariableSet.aspectModel not in ("non-dimensional", "dimensional"):
-            val.modelXbrl.error(
-                _("Variable set {0}, aspect model {1} not recognized").format(
-                      modelVariableSet.xlinkLabel, modelVariableSet.aspectModel), 
-                "err", "xbrlve:unknownAspectModel")
+            val.modelXbrl.error("xbrlve:unknownAspectModel",
+                "Variable set %(xlinkLabel)s, aspect model %(aspectModel)s not recognized",
+                modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, aspectModel=modelVariableSet.aspectModel)
         modelVariableSet.compile()
         modelVariableSet.hasConsistencyAssertion = False
             
@@ -266,10 +263,9 @@ def validate(val):
                 if varqname not in nameVariables:
                     nameVariables[varqname] = toVariable
                 elif nameVariables[varqname] != toVariable:
-                    val.modelXbrl.error(
-                        _("Multiple variables named {1} in variable set {0}").format(
-                              modelVariableSet.xlinkLabel, varqname ), 
-                        "err", "xbrlve:duplicateVariableNames")
+                    val.modelXbrl.error("xbrlve:duplicateVariableNames",
+                        "Multiple variables named %(xlinkLabel)s in variable set %(name)s",
+                        modelObject=toVariable, xlinkLabel=modelVariableSet.xlinkLabel, name=varqname )
                 fromInstanceQnames = None
                 for instRel in val.modelXbrl.relationshipSet(XbrlConst.instanceVariable).toModelObject(toVariable):
                     fromInstance = instRel.fromModelObject
@@ -284,10 +280,9 @@ def validate(val):
                     if instanceQname: instanceDependencies[instanceQname].add(XbrlConst.qnStandardInputInstance)
                 toVariable.fromInstanceQnames = fromInstanceQnames
             else:
-                val.modelXbrl.error(
-                    _("Variables name {1} cannot be determined on arc from {0}").format(
-                          modelVariableSet.xlinkLabel, modelRel.variablename ), 
-                    "err", "xbrlve:variableNameResolutionFailure")
+                val.modelXbrl.error("xbrlve:variableNameResolutionFailure",
+                    "Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s",
+                    modelObject=modelRel, xlinkLabel=modelVariableSet.xlinkLabel, name=modelRel.variablename )
         definedNamesSet |= parameterQnames
                 
         variableDependencies = {}
@@ -298,17 +293,19 @@ def validate(val):
                 depVars = variable.variableRefs()
                 variableDependencies[varqname] = depVars
                 if len(depVars) > 0 and formulaOptions.traceVariablesDependencies:
-                    val.modelXbrl.error(_("Variable set {0}, variable {1}, dependences {2}").format(
-                                  modelVariableSet.xlinkLabel, varqname, depVars), 
-                                  "info", "formula:trace") 
+                    val.modelXbrl.info("formula:trace",
+                        "Variable set %(xlinkLabel)s, variable %(name)s, dependences %(dependencies)s",
+                        modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, 
+                        name=varqname, dependencies=depVars)
                 definedNamesSet.add(varqname)
                 # check for fallback value variable references
                 if isinstance(variable, ModelFactVariable):
                     for depVar in XPathParser.variableReferencesSet(variable.fallbackValueProg, variable):
                         if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
-                            val.modelXbrl.error(_("Variable set {0} fallbackValue '{1}' cannot refer to variable {2}").format(
-                                          modelVariableSet.xlinkLabel, variable.fallbackValue, depVar),
-                                          "err", "xbrlve:factVariableReferenceNotAllowed") 
+                            val.modelXbrl.error("xbrlve:factVariableReferenceNotAllowed",
+                                "Variable set %(xlinkLabel)s fallbackValue '%(fallbackValue)s' cannot refer to variable %(dependency)s",
+                                modelObject=variable, xlinkLabel=modelVariableSet.xlinkLabel, 
+                                fallbackValue=variable.fallbackValue, dependency=depVar)
                     # check for covering aspect not in variable set aspect model
                     checkFilterAspectModel(val, modelVariableSet, variable.filterRelationships, xpathContext)
 
@@ -337,23 +334,23 @@ def validate(val):
                 undefinedVars = circularOrUndefVars - definedNamesSet 
                 varsCircularDep = circularOrUndefVars - undefinedVars
                 if len(undefinedVars) > 0:
-                    val.modelXbrl.error(
-                        _("Undefined variable dependencies in variable st {0}, from variable {1} to {2}").format(
-                              modelVariableSet.xlinkLabel, varqname, undefinedVars), 
-                        "err", "xbrlve:unresolvedDependency")
+                    val.modelXbrl.error("xbrlve:unresolvedDependency",
+                        "Undefined variable dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s",
+                        modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, 
+                        nameFrom=varqname, nameTo=undefinedVars)
                 if len(varsCircularDep) > 0:
-                    val.modelXbrl.error(
-                        _("Cyclic dependencies in variable set {0}, from variable {1} to {2}").format(
-                              modelVariableSet.xlinkLabel, varqname, varsCircularDep ), 
-                        "err", "xbrlve:cyclicDependencies")
+                    val.modelXbrl.error("xbrlve:cyclicDependencies",
+                        "Cyclic dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s",
+                        modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, 
+                        nameFrom=varqname, nameTo=varsCircularDep )
                     
         # check unresolved variable set dependencies
         for varSetDepVarQname in modelVariableSet.variableRefs():
             if varSetDepVarQname not in orderedNameSet and varSetDepVarQname not in parameterQnames:
-                val.modelXbrl.error(
-                    _("Undefined variable dependency in variable set {0}, {1}").format(
-                          modelVariableSet.xlinkLabel, varSetDepVarQname), 
-                    "err", "xbrlve:unresolvedDependency")
+                val.modelXbrl.error("xbrlve:unresolvedDependency",
+                    "Undefined variable dependency in variable set %(xlinkLabel)s, %(name)s",
+                    modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel,
+                    name=varSetDepVarQname)
             if varSetDepVarQname in instanceQnames:
                 varSetInstanceDependencies.add(varSetDepVarQname)
                 instanceDependencies[instanceQname].add(varSetDepVarQname)
@@ -363,14 +360,15 @@ def validate(val):
                 instanceDependencies[instanceQname].add(instqname)
         
         if formulaOptions.traceVariablesOrder:
-            val.modelXbrl.error(_("Variable set {0}, variables order: {1}").format(
-                          modelVariableSet.xlinkLabel, orderedNameList), "info", "formula:trace") 
+            val.modelXbrl.info("formula:trace",
+                   "Variable set %(xlinkLabel)s, variables order: %(dependencies)s",
+                   modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, dependencies=orderedNameList)
         
         if (formulaOptions.traceVariablesDependencies and len(varSetInstanceDependencies) > 0 and
             varSetInstanceDependencies != {XbrlConst.qnStandardInputInstance}):
-            val.modelXbrl.error(_("Variable set {0}, instance dependences {1}").format(
-                          modelVariableSet.xlinkLabel, varSetInstanceDependencies), 
-                          "info", "formula:trace") 
+            val.modelXbrl.info("formula:trace",
+                   "Variable set %(xlinkLabel)s, instance dependences %(dependencies)s",
+                   modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, dependencies=varSetInstanceDependencies)
             
         modelVariableSet.orderedVariableRelationships = []
         for varqname in orderedNameList:
@@ -381,9 +379,9 @@ def validate(val):
         if isinstance(modelVariableSet, ModelExistenceAssertion):
             for depVar in modelVariableSet.variableRefs():
                 if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
-                    val.modelXbrl.error(_("Existence Assertion {0}, cannot refer to variable {1}").format(
-                                  modelVariableSet.xlinkLabel, depVar),
-                                  "err", "xbrleae:variableReferenceNotAllowed") 
+                    val.modelXbrl.error("xbrleae:variableReferenceNotAllowed",
+                        "Existence Assertion %(xlinkLabel)s, cannot refer to variable %(name)s",
+                        modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, name=depVar)
                     
         # check messages variable dependencies
         checkValidationMessageVariables(val, modelVariableSet, qnameRels)
@@ -399,15 +397,15 @@ def validate(val):
         for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(modelVariableSet):
             varSetFilter = modelRel.toModelObject
             if modelRel.isCovered:
-                val.modelXbrl.error(_("Variable set {0}, filter {1}, cannot be covered").format(
-                              modelVariableSet.xlinkLabel, varSetFilter.xlinkLabel),
-                              "wrn", "arelle:variableSetFilterCovered") 
+                val.modelXbrl.warning("arelle:variableSetFilterCovered",
+                    "Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered",
+                     modelObject=varSetFilter, xlinkLabel=modelVariableSet.xlinkLabel, filterLabel=varSetFilter.xlinkLabel)
                 modelRel._isCovered = False # block group filter from being able to covere
             for depVar in varSetFilter.variableRefs():
                 if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
-                    val.modelXbrl.error(_("Variable set {0}, filter {1}, cannot refer to variable {2}").format(
-                                  modelVariableSet.xlinkLabel, varSetFilter.xlinkLabel, depVar),
-                                  "err", "xbrlve:factVariableReferenceNotAllowed") 
+                    val.modelXbrl.error("xbrlve:factVariableReferenceNotAllowed",
+                        "Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot refer to variable %(name)s",
+                        modelObject=varSetFilter, xlinkLabel=modelVariableSet.xlinkLabel, filterLabel=varSetFilter.xlinkLabel, name=depVar)
                     
         # check aspects of formula
         if isinstance(modelVariableSet, ModelFormula):
@@ -440,24 +438,24 @@ def validate(val):
             if val.parameters: missingDependentInstances -= val.parameters.keys() 
             if instqname:
                 if missingDependentInstances:
-                    val.modelXbrl.error(
-                        _("Cyclic dependencies of instance {0} produced by a formula, with variables consuming instances {1}").format(
-                              instqname, missingDependentInstances ), 
-                        "err", "xbrlvarinste:instanceVariableRecursionCycle")
+                    val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
+                        "Cyclic dependencies of instance %(name)s produced by a formula, with variables consuming instances %(dependencies)s",
+                        modelObject=val.modelXbrl,
+                        name=instqname, dependencies=missingDependentInstances )
                 elif instqname == XbrlConst.qnStandardOutputInstance:
                     orderedInstancesSet.add(instqname)
                     orderedInstancesList.append(instqname) # standard output formula, all input dependencies in parameters
             ''' future check?  if instance has no external input or producing formula
             else:
-                val.modelXbrl.error(
-                    _("Unresolved dependencies of an assertion's variables on instances {0}").format(
-                          depInsts - stdInpInst ), 
-                    "err", "xbrlvarinste:instanceVariableRecursionCycle")
+                val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
+                    "Unresolved dependencies of an assertion's variables on instances %(dependencies)s",
+                    dependencies=str(depInsts - stdInpInst) )
             '''
 
     if formulaOptions.traceVariablesOrder and len(orderedInstancesList) > 1:
-        val.modelXbrl.error(_("Variable instances processing order: {0}").format(
-                            orderedInstancesList), "info", "formula:trace") 
+        val.modelXbrl.info("formula:trace",
+               "Variable instances processing order: %(dependencies)s",
+                modelObject=val.modelXbrl, dependencies=orderedInstancesList)
 
     # linked consistency assertions
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
@@ -467,15 +465,16 @@ def validate(val):
             consisAsser.countSatisfied = 0
             consisAsser.countNotSatisfied = 0
             if consisAsser.hasProportionalAcceptanceRadius and consisAsser.hasAbsoluteAcceptanceRadius:
-                val.modelXbrl.error( _("Consistency assertion {0} has both absolute and proportional acceptance radii").format( 
-                     consisAsser.xlinkLabel),
-                    "err", "xbrlcae:acceptanceRadiusConflict")
+                val.modelXbrl.error("xbrlcae:acceptanceRadiusConflict",
+                    "Consistency assertion %(xlinkLabel)s has both absolute and proportional acceptance radii", 
+                    modelObject=consisAsser, xlinkLabel=consisAsser.xlinkLabel)
             consisAsser.orderedVariableRelationships = []
             for consisParamRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionParameter).fromModelObject(consisAsser):
                 if isinstance(consisParamRel.toModelObject, ModelVariable):
-                    val.modelXbrl.error( _("Consistency assertion {0} has relationship to a {1} {2}").format( 
-                         consisAsser.xlinkLabel, consisParamRel.toModelObject.localName, consisParamRel.toModelObject.xlinkLabel),
-                        "err", "xbrlcae:variablesNotAllowed")
+                    val.modelXbrl.error("xbrlcae:variablesNotAllowed",
+                        "Consistency assertion %(xlinkLabel)s has relationship to a %(elementTo)s %(xlinkLabelTo)s",
+                        modelObject=consisAsser, xlinkLabel=consisAsser.xlinkLabel, 
+                        elementTo=consisParamRel.toModelObject.localName, xlinkLabelTo=consisParamRel.toModelObject.xlinkLabel)
                 else:
                     consisAsser.orderedVariableRelationships.append(consisParamRel)
             consisAsser.compile()
@@ -521,8 +520,9 @@ def validate(val):
             try:
                 evaluate(xpathContext, modelVariableSet)
             except XPathContext.XPathException as err:
-                val.modelXbrl.error( _("Variable set \n{0} \nException: \n{1}").format( modelVariableSet, err.message),
-                    "err", err.code)
+                val.modelXbrl.error(err.code,
+                    "Variable set \n%(variableSet)s \nException: \n%(error)s", 
+                    modelObject=modelVariableSet, variableSet=str(modelVariableSet), error=err.message)
             
     # log assertion result counts
     asserTests = {}
@@ -530,10 +530,11 @@ def validate(val):
         if isinstance(exisValAsser, ModelVariableSetAssertion):
             asserTests[exisValAsser.id] = (exisValAsser.countSatisfied, exisValAsser.countNotSatisfied)
             if formulaOptions.traceAssertionResultCounts:
-                val.modelXbrl.error( _("{0} Assertion {1} evaluations : {2} satisfied, {3} not satisfied").format(
-                    "Existence" if isinstance(exisValAsser, ModelExistenceAssertion) else "Value", 
-                    exisValAsser.id, exisValAsser.countSatisfied, exisValAsser.countNotSatisfied),
-                    "info", "formula:trace")
+                val.modelXbrl.info("formula:trace",
+                    "%(assertionType)s Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied",
+                    modelObject=exisValAsser,
+                    assertionType="Existence" if isinstance(exisValAsser, ModelExistenceAssertion) else "Value", 
+                    id=exisValAsser.id, satisfiedCount=exisValAsser.countSatisfied, notSatisfiedCount=exisValAsser.countNotSatisfied)
 
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
         if modelRel.fromModelObject is not None and modelRel.toModelObject is not None and \
@@ -541,13 +542,13 @@ def validate(val):
             consisAsser = modelRel.fromModelObject
             asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied)
             if formulaOptions.traceAssertionResultCounts:
-                val.modelXbrl.error( _("Consistency Assertion {0} evaluations : {1} satisfied, {2} not satisfied").format(
-                    consisAsser.id, consisAsser.countSatisfied, consisAsser.countNotSatisfied),
-                    "info", "formula:trace")
+                val.modelXbrl.info("formula:trace",
+                   "Consistency Assertion %(id)s evaluations : %(satisfiedCount) satisfied, %(notSatisfiedCount) not satisfied",
+                    modelObject=consisAsser, id=consisAsser.id, 
+                    satisfiedCount=consisAsser.countSatisfied, notSatisfiedCount=consisAsser.countNotSatisfied)
             
-    if asserTests:
-        val.modelXbrl.error( _("Assertion results {0}").format(asserTests),
-            "asrtNoLog", asserTests)
+    if asserTests: # pass assertion results to validation if appropriate
+        val.modelXbrl.info("asrtNoLog", None, assertionResults=asserTests);
 
     # display output instance
     if outputXbrlInstance:
@@ -572,12 +573,11 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
                 if aspect in acfAspectsCovering:
                     otherFilterCover, otherFilterLabel = acfAspectsCovering[aspect]
                     if otherFilterCover != varFilterRel.isCovered:
-                        val.modelXbrl.error(
-                            _("Variable set {0}, aspect cover filter {1}, aspect {2}, conflicts with {3} with inconsistent cover attribute").format(
-                                  variableSet.xlinkLabel, filter.xlinkLabel, 
-                                  str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect],
-                                  otherFilterLabel),
-                            "err", "xbrlacfe:inconsistentAspectCoverFilters")
+                        val.modelXbrl.error("xbrlacfe:inconsistentAspectCoverFilters",
+                            "Variable set %(xlinkLabel)s, aspect cover filter %(filterLabel)s, aspect %(aspect)s, conflicts with %(filterLabel2)s with inconsistent cover attribute",
+                            modelObject=variableSet, xlinkLabel=variableSet.xlinkLabel, filterLabel=filter.xlinkLabel, 
+                            aspect=str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect],
+                            filterLabel2=otherFilterLabel)
                 else:
                     acfAspectsCovering[aspect] = (varFilterRel.isCovered, filter.xlinkLabel)
             isAllAspectCoverFilter = filter.isAll
@@ -587,10 +587,10 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
                 if (not isAllAspectCoverFilter and 
                     (any(isinstance(aspect,QName) for aspect in aspectsCovered) and Aspect.DIMENSIONS in uncoverableAspects
                      or (aspectsCovered & uncoverableAspects))):
-                    val.modelXbrl.error(
-                        _("Variable set {0}, aspect model {1} filter {2} {3} can cover aspect not in aspect model").format(
-                              variableSet.xlinkLabel, variableSet.aspectModel, filter.localName, filter.xlinkLabel), 
-                        "err", "xbrlve:filterAspectModelMismatch")
+                    val.modelXbrl.error("xbrlve:filterAspectModelMismatch",
+                        "Variable set %(xlinkLabel)s, aspect model %(aspectModel)s filter %(filterName)s %(filterLabel)s can cover aspect not in aspect model",
+                        modelObject=variableSet, xlinkLabel=variableSet.xlinkLabel, aspectModel=variableSet.aspectModel, 
+                        filterName=filter.localName, filterLabel=filter.xlinkLabel)
             except Exception:
                 pass
             if hasattr(filter, "filterRelationships"): # check and & or filters
@@ -600,26 +600,32 @@ def checkFormulaRules(val, formula, nameVariables):
     from arelle.ModelFormulaObject import (Aspect)
     if not (formula.hasRule(Aspect.CONCEPT) or formula.source(Aspect.CONCEPT)):
         if XmlUtil.hasDescendant(formula, XbrlConst.formula, "concept"):
-            val.modelXbrl.error(_("Formula {0} concept rule does not have a nearest source and does not have a child element").format(formula.xlinkLabel),
-                                "err", "xbrlfe:incompleteConceptRule") 
+            val.modelXbrl.error("xbrlfe:incompleteConceptRule",
+                "Formula %(xlinkLabel)s concept rule does not have a nearest source and does not have a child element",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel)
         else:
-            val.modelXbrl.error(_("Formula {0} omits a rule for the concept aspect").format(formula.xlinkLabel),
-                                "err", "xbrlfe:missingConceptRule") 
+            val.modelXbrl.error("xbrlfe:missingConceptRule",
+                "Formula %(xlinkLabel)s omits a rule for the concept aspect",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel)
     if (not (formula.hasRule(Aspect.SCHEME) or formula.source(Aspect.SCHEME)) or
         not (formula.hasRule(Aspect.VALUE) or formula.source(Aspect.VALUE))):
         if XmlUtil.hasDescendant(formula, XbrlConst.formula, "entityIdentifier"):
-            val.modelXbrl.error(_("Formula {0} entity identifier rule does not have a nearest source and does not have either a @scheme or a @value attribute").format(formula.xlinkLabel),
-                                "err", "xbrlfe:incompleteEntityIdentifierRule") 
+            val.modelXbrl.error("xbrlfe:incompleteEntityIdentifierRule",
+                "Formula %(xlinkLabel)s entity identifier rule does not have a nearest source and does not have either a @scheme or a @value attribute",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel)
         else:
-            val.modelXbrl.error(_("Formula {0} omits a rule for the entity identifier aspect").format(formula.xlinkLabel),
-                                "err", "xbrlfe:missingEntityIdentifierRule") 
+            val.modelXbrl.error("xbrlfe:missingEntityIdentifierRule",
+                "Formula %(xlinkLabel)s omits a rule for the entity identifier aspect",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel)
     if not (formula.hasRule(Aspect.PERIOD_TYPE) or formula.source(Aspect.PERIOD_TYPE)):
         if XmlUtil.hasDescendant(formula, XbrlConst.formula, "period"):
-            val.modelXbrl.error(_("Formula {0} period rule does not have a nearest source and does not have a child element").format(formula.xlinkLabel),
-                                "err", "xbrlfe:incompletePeriodRule") 
+            val.modelXbrl.error("xbrlfe:incompletePeriodRule",
+                "Formula %(xlinkLabel)s period rule does not have a nearest source and does not have a child element",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel)
         else:
-            val.modelXbrl.error(_("Formula {0} omits a rule for the period aspect").format(formula.xlinkLabel),
-                                "err", "xbrlfe:missingPeriodRule") 
+            val.modelXbrl.error("xbrlfe:missingPeriodRule",
+                "Formula %(xlinkLabel)s omits a rule for the period aspect",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel)
     # for unit need to see if the qname is statically determinable to determine if numeric
     concept = val.modelXbrl.qnameConcepts.get(formula.evaluateRule(None, Aspect.CONCEPT))
     if concept is None: # is there a source with a static QName filter
@@ -637,20 +643,24 @@ def checkFormulaRules(val, formula, nameVariables):
         if concept.isNumeric:
             if not (formula.hasRule(Aspect.MULTIPLY_BY) or formula.hasRule(Aspect.DIVIDE_BY) or formula.source(Aspect.UNIT)):
                 if XmlUtil.hasDescendant(formula, XbrlConst.formula, "unit"):
-                    val.modelXbrl.error(_("Formula {0} unit rule does not have a source and does not have a child element").format(formula.xlinkLabel),
-                                        "err", "xbrlfe:missingSAVForUnitRule") 
+                    val.modelXbrl.error("xbrlfe:missingSAVForUnitRule",
+                        "Formula %(xlinkLabel)s unit rule does not have a source and does not have a child element",
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel)
                 else:
-                    val.modelXbrl.error(_("Formula {0} omits a rule for the unit aspect").format(formula.xlinkLabel),
-                                        "err", "xbrlfe:missingUnitRule") 
+                    val.modelXbrl.error("xbrlfe:missingUnitRule",
+                        "Formula %(xlinkLabel)s omits a rule for the unit aspect",
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel)
         elif (formula.hasRule(Aspect.MULTIPLY_BY) or formula.hasRule(Aspect.DIVIDE_BY) or 
               formula.source(Aspect.UNIT, acceptFormulaSource=False)):
-            val.modelXbrl.error(_("Formula {0} has a rule for the unit aspect of a non-numeric concept {1}").format(formula.xlinkLabel, str(concept.qname)),
-                                "err", "xbrlfe:conflictingAspectRules") 
+            val.modelXbrl.error("xbrlfe:conflictingAspectRules",
+                "Formula %(xlinkLabel)s has a rule for the unit aspect of a non-numeric concept %(concept)s",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=concept.qname)
         aspectPeriodType = formula.evaluateRule(None, Aspect.PERIOD_TYPE)
         if ((concept.periodType == "duration" and aspectPeriodType == "instant") or
             (concept.periodType == "instant" and aspectPeriodType in ("duration","forever"))):
-            val.modelXbrl.error(_("Formula {0} has a rule for the {2} period aspect of a {3} concept {1}").format(formula.xlinkLabel, str(concept.qname), aspectPeriodType, concept.periodType),
-                                "err", "xbrlfe:conflictingAspectRules") 
+            val.modelXbrl.error("xbrlfe:conflictingAspectRules",
+                "Formula %(xlinkLabel)s has a rule for the %(aspectPeriodType)s period aspect of a %(conceptPeriodType)s concept %(concept)s",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=concept.qname, aspectPeriodType=aspectPeriodType, conceptPeriodType=concept.periodType)
     
     # check dimension elements
     for eltName, dim, badUsageErr, missingSavErr in (("explicitDimension", "explicit", "xbrlfe:badUsageOfExplicitDimensionRule", "xbrlfe:missingSAVForExplicitDimensionRule"),
@@ -659,19 +669,21 @@ def checkFormulaRules(val, formula, nameVariables):
             dimQname = qname(dimElt, dimElt.get("dimension"))
             dimConcept = val.modelXbrl.qnameConcepts.get(dimQname)
             if dimQname and (dimConcept is None or (not dimConcept.isExplicitDimension if dim == "explicit" else not dimConcept.isTypedDimension)):
-                val.modelXbrl.error(_("Formula {0} dimension attribute {1} on the {2} dimension rule contains a QName that does not identify an {2} dimension.").format(formula.xlinkLabel, dimQname, dim),
-                                    "err", badUsageErr) 
+                val.modelXbrl.error(badUsageErr,
+                    "Formula %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension.",
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel, dimensionType=dim, dimension=dimQname)
             elif not XmlUtil.hasChild(dimElt, XbrlConst.formula, "*") and not formula.source(Aspect.DIMENSIONS, dimElt):
-                val.modelXbrl.error(_("Formula {0} {1} dimension rule does not have any child elements and does not have a SAV for the {2} dimension that is identified by its dimension attribute.").format(formula.xlinkLabel, dim, dimQname),
-                                    "err", missingSavErr) 
+                val.modelXbrl.error(missingSavErr,
+                    "Formula %(xlinkLabel)s %(dimension)s dimension rule does not have any child elements and does not have a SAV for the %(dimensionType)s dimension that is identified by its dimension attribute.",
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel, dimensionType=dim, dimension=dimQname)
     
     # check aspect model expectations
     if formula.aspectModel == "non-dimensional":
         unexpectedElts = XmlUtil.descendants(formula, XbrlConst.formula, ("explicitDimension", "typedDimension"))
         if unexpectedElts:
-            val.modelXbrl.error(_("Formula {0} aspect model, {1}, includes an rule for aspect not defined in this aspect model: {2}").format(
-                                formula.xlinkLabel, formula.aspectModel, ", ".join([elt.localName for elt in unexpectedElts])),
-                                "err", "xbrlfe:unrecognisedAspectRule") 
+            val.modelXbrl.error("xbrlfe:unrecognisedAspectRule",
+                "Formula %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s",
+                modelObject=formula, xlinkLabel=formula.xlinkLabel, aspectModel=formula.aspectModel, undefinedAspects=", ".join([elt.localName for elt in unexpectedElts]))
 
     # check source qnames
     for sourceElt in ([formula] + 
@@ -680,22 +692,27 @@ def checkFormulaRules(val, formula, nameVariables):
             qnSource = qname(sourceElt, sourceElt.get("source"), noPrefixIsNoNamespace=True)
             if qnSource == XbrlConst.qnFormulaUncovered:
                 if formula.implicitFiltering != "true":
-                    val.modelXbrl.error(_("Formula {0}, not implicit filtering element has formulaUncovered source: {1}").format(
-                                  formula.xlinkLabel, sourceElt.localName), "err", "xbrlfe:illegalUseOfUncoveredQName") 
+                    val.modelXbrl.error("xbrlfe:illegalUseOfUncoveredQName",
+                        "Formula %(xlinkLabel)s, not implicit filtering element has formulaUncovered source: %(name)s",
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel, name=sourceElt.localName) 
             elif qnSource not in nameVariables:
-                val.modelXbrl.error(_("Variable set {0}, source {1} is not in the variable set").format(
-                              formula.xlinkLabel, qnSource), "err", "xbrlfe:nonexistentSourceVariable")
+                val.modelXbrl.error("xbrlfe:nonexistentSourceVariable",
+                    "Variable set %(xlinkLabel)s, source %(name)s is not in the variable set",
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel, name=qnSource)
             else:
                 factVariable = nameVariables.get(qnSource)
                 if not isinstance(factVariable, ModelFactVariable):
-                    val.modelXbrl.error(_("Variable set {0}, source {1} not a factVariable but is a {2}").format(
-                                  formula.xlinkLabel, qnSource, factVariable.localName), "err", "xbrlfe:nonexistentSourceVariable")
+                    val.modelXbrl.error("xbrlfe:nonexistentSourceVariable",
+                        "Variable set %(xlinkLabel)s, source %(name)s not a factVariable but is a %(element)s",
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel, name=qnSource, element=factVariable.localName)
                 elif factVariable.fallbackValue is not None:
-                    val.modelXbrl.error(_("Formula {0}: source {1} is a fact variable that has a fallback value").format(formula.xlinkLabel, str(qnSource)),
-                                        "err", "xbrlfe:bindEmptySourceVariable")
+                    val.modelXbrl.error("xbrlfe:bindEmptySourceVariable",
+                        "Formula %(xlinkLabel)s: source %(name)s is a fact variable that has a fallback value",
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel, name=qnSource)
                 elif sourceElt.localName == "formula" and factVariable.bindAsSequence == "true":
-                    val.modelXbrl.error(_("Formula {0}: formula source {1} is a fact variable that binds as a sequence").format(formula.xlinkLabel, str(qnSource)),
-                                        "err", "xbrlfe:defaultAspectValueConflicts")
+                    val.modelXbrl.error("xbrlfe:defaultAspectValueConflicts",
+                        "Formula %(xlinkLabel)s: formula source %(name)s is a fact variable that binds as a sequence",
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel, name=qnSource)
                 
 def checkValidationMessages(val, modelVariableSet):
     for msgRelationship in (XbrlConst.assertionSatisfiedMessage, XbrlConst.assertionUnsatisfiedMessage):
@@ -739,9 +756,11 @@ def checkValidationMessages(val, modelVariableSet):
                 if lastC == '}':
                     bracketNesting -= 1
                 if bracketNesting:
-                    val.modelXbrl.error(_("Message {0}: unbalanced '{1}' character(s) in: {2}").format(
-                                        message.xlinkLabel, '{' if bracketNesting < 0 else '}', message.text),
-                                        "err", "xbrlmsge:missingLeftCurlyBracketInMessage" if bracketNesting < 0 else "xbrlmsge:missingRightCurlyBracketInMessage")
+                    val.modelXbrl.error("xbrlmsge:missingLeftCurlyBracketInMessage" if bracketNesting < 0 else "xbrlmsge:missingRightCurlyBracketInMessage",
+                        "Message %(xlinkLabel)s: unbalanced %(character)s character(s) in: %(text)s",
+                        modelObject=message, xlinkLabel=message.xlinkLabel, 
+                        character='{' if bracketNesting < 0 else '}', 
+                        text=message.text)
                 else:
                     message.expressions = expressions
                     message.formatString = ''.join( formatString )
@@ -762,7 +781,6 @@ def checkValidationMessageVariables(val, modelVariableSet, varNames):
             message.compile()
             for msgVarQname in message.variableRefs():
                 if msgVarQname not in varNames and msgVarQname not in varSetVars:
-                    val.modelXbrl.error(
-                        _("Undefined variable dependency in message {0}, {1}").format(
-                              message.xlinkLabel, msgVarQname), 
-                        "err", "err:XPST0008")
+                    val.modelXbrl.error("err:XPST0008",
+                        "Undefined variable dependency in message %(xlinkLabel), %(name)s",
+                        modelObject=message, xlinkLabel=message.xlinkLabel, name=msgVarQname)

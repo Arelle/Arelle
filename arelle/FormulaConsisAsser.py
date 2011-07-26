@@ -22,9 +22,9 @@ def evaluate(xpCtx, varSet, derivedFact):
             derivedFactInferredPrecision = inferredPrecision(derivedFact)
             if derivedFactInferredPrecision == 0 and not hasProportionalAcceptanceRadius and not hasAbsoluteAcceptanceRadius:
                 if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                    xpCtx.modelXbrl.error( _("Consistency assertion {0} formula {1} fact {2} has zero precision and no radius is defined, skipping consistency assertion").format(
-                         consisAsser.id, varSet.xlinkLabel, derivedFact),
-                        "info", "formula:trace")
+                    xpCtx.modelXbrl.info("formula:trace",
+                         "Consistency assertion %(id)s formula %(xlinkLabel)s fact %(derivedFact)s has zero precision and no radius is defined, skipping consistency assertion",
+                         modelObject=consisAsser, id=consisAsser.id, xlinkLabel=varSet.xlinkLabel, derivedFact=derivedFact)
                 continue
     
         # check xbrl validity of new fact
@@ -48,9 +48,9 @@ def evaluate(xpCtx, varSet, derivedFact):
                     isSatisfied = False
             else:
                 if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                    xpCtx.modelXbrl.error( _("Consistency assertion {0} Formula {1} no input facts matched to {2}, skipping consistency assertion").format( 
-                        consisAsser.id, varSet.xlinkLabel, derivedFact),
-                        "info", "formula:trace")
+                    xpCtx.modelXbrl.info("formula:trace",
+                         "Consistency assertion %(id)s formula %(xlinkLabel)s no input facts matched to %(derivedFact)s, skipping consistency assertion",
+                         modelObject=consisAsser, id=consisAsser.id, xlinkLabel=varSet.xlinkLabel, derivedFact=derivedFact)
                 continue
         elif derivedFact.isNil:
             isSatisfied = False
@@ -76,9 +76,9 @@ def evaluate(xpCtx, varSet, derivedFact):
                 factInferredPrecision = inferredPrecision(fact)
                 if factInferredPrecision == 0 and not hasProportionalAcceptanceRadius and not hasAbsoluteAcceptanceRadius:
                     if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                        xpCtx.modelXbrl.error( _("Consistency assertion {0} Formula {1} input fact matched to {2} has zero precision and no radius, skipping consistency assertion").format( 
-                            consisAsser.id, varSet.xlinkLabel, derivedFact),
-                            "info", "formula:trace")
+                        xpCtx.modelXbrl.info("formula:trace",
+                             "Consistency assertion %(id)s formula %(xlinkLabel)s input fact matched to %(derivedFact)s has zero precision and no radius, skipping consistency assertion",
+                             modelObject=consisAsser, id=consisAsser.id, xlinkLabel=varSet.xlinkLabel, derivedFact=derivedFact)
                         isSatisfied = None
                         break
                 if hasProportionalAcceptanceRadius or hasAbsoluteAcceptanceRadius:
@@ -102,10 +102,12 @@ def evaluate(xpCtx, varSet, derivedFact):
         if isSatisfied is None:
             continue    # no evaluation
         if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-            xpCtx.modelXbrl.error( _("Consistency Assertion {0} result {1}").format( consisAsser.id, isSatisfied),
-                "info", "formula:trace")
+            xpCtx.modelXbrl.info("formula:trace",
+                 "Consistency assertion %(id)s result %(result)s",
+                 modelObject=consisAsser, id=consisAsser.id, result=isSatisfied)
         message = consisAsser.message(isSatisfied)
         if message:
-            xpCtx.modelXbrl.error(message.evaluate(xpCtx), "info", "message:" + consisAsser.id)
+            xpCtx.modelXbrl.info("message:" + consisAsser.id, message.evaluate(xpCtx),
+                                 modelObject=message)
         if isSatisfied: consisAsser.countSatisfied += 1
         else: consisAsser.countNotSatisfied += 1

@@ -101,65 +101,63 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                              (unit is not None and f2.unit is not None and unit.isEqualTo(f2.unit))) and
                             f1.xmlLang == f2.xmlLang and 
                             f1.effectiveValue != f2.effectiveValue):
-                            modelXbrl.error(
-                                _("Inconsistent duplicate facts {0} context {1} and {2}.").format(
-                                          f1.qname, f1.contextID, f2.contextID), 
-                                "err", "HMRC.14")
+                            modelXbrl.error("HMRC.14",
+                                "Inconsistent duplicate facts %(fact)s context %(contextID)s and %(contextID2)s.",
+                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
 
             if isAccounts:
                 if "StartDateForPeriodCoveredByReport" not in busItems:
-                    modelXbrl.error(
-                        _("Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) is missing."), 
-                        "err", "HMRC.02")
+                    modelXbrl.error("HMRC.02",
+                        "Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) is missing.", 
+                        modelObject=modelXbrl)
                 elif busItems["StartDateForPeriodCoveredByReport"].value < "2008-04-06":
-                    modelXbrl.error(
-                        _("Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) must be 6 April 2008 or later."), 
-                        "err", "HMRC.02")
+                    modelXbrl.error("HMRC.02",
+                        "Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) must be 6 April 2008 or later.",
+                        modelObject=modelXbrl)
                 for items, name, msg, ref in (
                           (busItems,"EntityCurrentLegalOrRegisteredName",
-                           _("Company Name (uk-bus:EntityCurrentLegalOrRegisteredName) is missing."),
+                           "Company Name (uk-bus:EntityCurrentLegalOrRegisteredName) is missing.",
                            "01"),
                           (busItems,"EndDateForPeriodCoveredByReport",
-                           _("Period End Date (uk-bus:EndDateForPeriodCoveredByReport) is missing."), 
+                           "Period End Date (uk-bus:EndDateForPeriodCoveredByReport) is missing.", 
                            "03"),
                           (busItems,"BalanceSheetDate",
-                           _("Balance Sheet Date (uk-bus:BalanceSheetDate) is missing."), 
+                           "Balance Sheet Date (uk-bus:BalanceSheetDate) is missing.", 
                            "06"),
                           (busItems,"EntityDormant",
-                           _("Dormant/non-dormant indicator (uk-bus:EntityDormant) is missing."), 
+                           "Dormant/non-dormant indicator (uk-bus:EntityDormant) is missing.", 
                            "09"),
                           (busItems,"EntityTrading",
-                           _("Trading/non-trading indicator (uk-bus:EntityTrading) is missing."), 
+                           "Trading/non-trading indicator (uk-bus:EntityTrading) is missing.", 
                            "10"),
                           (direpItems,"DateSigningDirectorsReport",
-                           _("Date of signing Directors Report (uk-direp:DateSigningDirectorsReport) is missing."), 
+                           "Date of signing Directors Report (uk-direp:DateSigningDirectorsReport) is missing.", 
                            "12"),
                           (direpItems,"DirectorSigningReport",
-                           _("Name of Director signing Directors Report (uk-direp:DirectorSigningReport) is missing."), 
+                           "Name of Director signing Directors Report (uk-direp:DirectorSigningReport) is missing.", 
                            "13"),
                            ):
                     if name not in items:
-                        modelXbrl.error(msg, "err", "HMRC.{0}".format(ref))
+                        modelXbrl.error("HMRC.{0}".format(ref), msg, modelObject=modelXbrl)
                 if ("DateApprovalAccounts" not in gaapItems and
                     "DateAuthorisationFinancialStatementsForIssue" not in ifrsItems):
-                    modelXbrl.error(
-                        _("Name of Director Approving Balance Sheet (uk-gaap:NameDirectorSigningAccounts OR ifrs:ExplanationOfBodyOfAuthorisation) is missing."),
-                        "err", "HMRC.08")
+                    modelXbrl.error("HMRC.08",
+                        "Name of Director Approving Balance Sheet (uk-gaap:NameDirectorSigningAccounts OR ifrs:ExplanationOfBodyOfAuthorisation) is missing.",
+                        modelObject=modelXbrl)
                 if ("ProfitLossForPeriod" not in gaapItems and
                     "ProfitLoss" not in ifrsItems):
-                    modelXbrl.error(
-                        _("Profit or Loss for the period (uk-gaap:ProfitLossForPeriod OR ifrs:ProfitLoss) is missing."),
-                        "err", "HMRC.11")
+                    modelXbrl.error("HMRC.11",
+                        "Profit or Loss for the period (uk-gaap:ProfitLossForPeriod OR ifrs:ProfitLoss) is missing.",
+                        modelObject=modelXbrl)
                 if companyReferenceNumberContexts:
                     if "UKCompaniesHouseRegisteredNumber" not in busItems:
-                        modelXbrl.error(
-                            _("Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) is missing."), 
-                            "err", "HMRC.16.1")
+                        modelXbrl.error("HMRC.16.1",
+                            "Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) is missing.", 
+                            modelObject=modelXbrl)
                     else:
                         factCompNbr = busItems["UKCompaniesHouseRegisteredNumber"].value
                         for compRefNbr, contextIds in companyReferenceNumberContexts.items():
                             if compRefNbr != factCompNbr:
-                                modelXbrl.error(
-                                    _("Context entity identifier ({0}) does not match Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) Location: Accounts (context id {1}).").format(
-                                        compRefNbr, ",".join(contextIds)), 
-                                    "err", "HMRC.16.2")
+                                modelXbrl.error("HMRC.16.2",
+                                    "Context entity identifier (%(entityIdentifier)s) does not match Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(contextID)s).",
+                                    modelObject=modelXbrl, entityIdentifier=compRefNbr, contextID=",".join(contextIds))

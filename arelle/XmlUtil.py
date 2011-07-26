@@ -65,7 +65,13 @@ def clarkNotationToPrefixNsLocalname(element, clarkName, isAttribute=False):
             return (None, None, clarkName) # don't use default xmlns on unqualified attribute name
         return (prefix, ns, localName)
     return (None, None, clarkName)
-        
+
+def clarkNotationToPrefixedName(element, clarkName, isAttribute=False):
+    prefix, ns, localName = clarkNotationToPrefixNsLocalname(element, clarkName, isAttribute)
+    if prefix:
+        return prefix + ":" + localName
+    else:
+        return localName
 
 def prefixedNameToNamespaceLocalname(element, prefixedName, defaultNsmap=None):
     if prefixedName is None or prefixedName == "":

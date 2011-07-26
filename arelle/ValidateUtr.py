@@ -157,4 +157,6 @@ class ValidateUtr:
                             aInvalidUnits.append(f)
             # end for
             for fact in aInvalidUnits:
-                modelXbrl.error(_("Unit {0} disallowed on fact of type {1}").format(fact.unitID, fact.concept.type.name),"err","utr:invalid")
+                modelXbrl.error("utr:invalid",
+                                "Unit %(unitID)s disallowed on fact of type %(typeName)s",
+                                modelObject=fact, unitID=fact.unitID, typeName=fact.concept.type.name)

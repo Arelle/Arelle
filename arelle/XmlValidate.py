@@ -56,9 +56,9 @@ def xmlValidate(entryModelDocument):
                                         time.time() - startedAt))
     if not schema.validate(instDoc):
         for error in schema.error_log:
-            modelXbrl.error(
+            modelXbrl.error("xmlschema:error",
                     str(error),
-                    "err", "xmlschema:error")
+                    modelDocument=instDoc)
 
 def validate(modelXbrl, elt, recurse=True, attrQname=None):
     if not hasattr(elt,"xValid"):
@@ -132,20 +132,20 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value):
                 sValue = value
         except ValueError:
             if attrTag:
-                modelXbrl.error(
-                    _("Element {0} attribute {1} type {2} value error: {3}").format(
-                    elt.tag,
-                    attrTag,
-                    baseXsdType,
-                    value),
-                    "err", "xmlSchema:valueError")
+                modelXbrl.error("xmlSchema:valueError",
+                    "Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s",
+                    modelObject=elt,
+                    element=elt.elementQname,
+                    attribute=XmlUtil.clarkNotationToPrefixedName(elt,attrTag,isAttribute=True),
+                    typeName=baseXsdType,
+                    value=value)
             else:
-                modelXbrl.error(
-                    _("Element {0} type {1} value error: {2}").format(
-                    elt.tag,
-                    baseXsdType,
-                    value),
-                    "err", "xmlSchema:valueError")
+                modelXbrl.error("xmlSchema:valueError",
+                    "Element %(element)s type %(typeName)s value error: %(value)s",
+                    modelObject=elt,
+                    element=elt.elementQname,
+                    typeName=baseXsdType,
+                    value=value)
             xValue = None
             sValue = value
             xValid = INVALID

@@ -33,9 +33,8 @@ class ValidateXbrlCalcs:
         self.conceptsInRequiresElement = set()
         
     def validate(self):
-        self.modelXbrl.error(_("Validating calculations inferring {0}")
-                             .format(_("precision") if self.inferPrecision else _("decimals")))
-
+        self.modelXbrl.info("info","Validating calculations inferring %(inferMode)s",
+                            inferMode=_("precision") if self.inferPrecision else _("decimals"))
 
         # identify equal contexts
         self.modelXbrl.profileActivity()
@@ -118,10 +117,11 @@ class ValidateXbrlCalcs:
                                             roundedSum = self.roundFact(fact)
                                             roundedItemsSum = self.roundFact(fact, vFloat=boundSums[sumBindKey])
                                             if roundedItemsSum  != self.roundFact(fact):
-                                                self.modelXbrl.error(
-                                                    _("Calculation inconsistent from {0} in link role {1} reported sum {2} computed sum {3} context {4} unit {5}").format(
-                                                          sumConcept.qname, ELR, roundedSum, roundedItemsSum, context.id, unit.id), 
-                                                    "err", "xbrl.5.2.5.2:calcInconsistency")
+                                                self.modelXbrl.error("xbrl.5.2.5.2:calcInconsistency",
+                                                    "Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s",
+                                                    modelObject=sumConcept, concept=sumConcept.qname, linkrole=ELR, 
+                                                    reportedSum=roundedSum, computedSum=roundedItemsSum, 
+                                                    contextID=context.id, unitID=unit.id)
                     elif arcrole == XbrlConst.essenceAlias:
                         for modelRel in relsSet.modelRelationships:
                             essenceConcept = modelRel.fromModelObject
@@ -138,25 +138,28 @@ class ValidateXbrlCalcs:
                                             essenceUnit = self.mapUnit.get(eF.unit,eF.unit)
                                             aliasUnit = self.mapUnit.get(aF.unit,aF.unit)
                                             if essenceUnit != aliasUnit:
-                                                self.modelXbrl.error(
-                                                    _("Essence-Alias inconsistent units from {0} to {1} in link role {2} context {3}").format(
-                                                          essenceConcept.qname, aliasConcept.qname, ELR, context.id), 
-                                                    "err", "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency")
+                                                self.modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
+                                                    "Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s",
+                                                    modelObject=essenceConcept, 
+                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
+                                                    linkrole=ELR, contextID=context.id)
                                             if not XbrlUtil.vEqual(eF, aF):
-                                                self.modelXbrl.error(
-                                                    _("Essence-Alias inconsistent value from {0} to {1} in link role {2} context {3}").format(
-                                                          essenceConcept.qname, aliasConcept.qname, ELR, context.id), 
-                                                    "err", "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency")
+                                                self.modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
+                                                    "Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s",
+                                                    modelObject=essenceConcept, 
+                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
+                                                    linkrole=ELR, contextID=context.id)
                     elif arcrole == XbrlConst.requiresElement:
                         for modelRel in relsSet.modelRelationships:
                             sourceConcept = modelRel.fromModelObject
                             requiredConcept = modelRel.toModelObject
                             if sourceConcept in self.requiresElementFacts and \
                                not requiredConcept in self.requiresElementFacts:
-                                    self.modelXbrl.error(
-                                        _("Requies-Element {0} missing required fact for {1} in link role {2}").format(
-                                              sourceConcept.qname, requiredConcept.qname, ELR), 
-                                        "err", "xbrl.5.2.6.2.4:requiresElementInconsistency")
+                                    self.modelXbrl.error("xbrl.5.2.6.2.4:requiresElementInconsistency",
+                                        "Requires-Element %(requiringConcept)s missing required fact for %(requiredConcept)s in link role %(linkrole)s",
+                                        modelObject=sourceConcept, 
+                                        requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname, 
+                                        linkrole=ELR)
         self.modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
         self.modelXbrl.profileActivity() # reset
     

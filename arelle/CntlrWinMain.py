@@ -16,6 +16,7 @@ from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 import gettext
+import logging
 
 import threading, queue
 
@@ -226,6 +227,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
+        WinMainLogHandler(self.logView) # start logger
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
         logViewMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logViewMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
@@ -701,6 +703,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             
     def quit(self, event=None, restartAfterQuit=False):
         if self.okayToContinue():
+            logging.shutdown()
             global restartMain
             restartMain = restartAfterQuit
             state = self.parent.state()
@@ -1032,6 +1035,24 @@ class CntlrWinMain (Cntlr.Cntlr):
                             defaultextension=defaultextension,
                             parent=self.parent)
 
+class WinMainLogHandler(logging.Handler):
+    def __init__(self, logView):
+        super().__init__()
+        self.logView = logView
+        self.level = logging.DEBUG
+        #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
+        formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
+        self.setFormatter(formatter)
+        logging.getLogger("arelle").addHandler(self)
+    def flush(self):
+        ''' Nothing to flush '''
+    def emit(self, logRecord):
+         # add to logView        
+        msg = self.format(logRecord)        
+        try:            
+            self.logView.append(msg)
+        except:
+            pass
 
 def main():
     # this is the entry called by arelleGUI.pyw for windows

@@ -160,8 +160,10 @@ class ModelFormulaResource(ModelResource):
                 if isinstance(toModelObject,ModelFormulaResource):
                     toModelObject.compile()
                 else:
-                    self.modelXbrl.error( _("Invalid formula object {0}").format( toModelObject ),
-                                          "error", "formula:internalError")
+                    self.modelXbrl.error("formula:internalError",
+                         "Invalid formula object %(element)s",
+                         modelObject=self,
+                         element=toModelObject.elementQname)
 
         
     def variableRefs(self, progs=[], varRefSet=None):
@@ -518,9 +520,9 @@ class ModelParameter(ModelFormulaResource):
     def init(self, modelDocument):
         super().init(modelDocument)
         if self.qname in self.modelXbrl.qnameParameters:
-            self.modelXbrl.error(
-                _("Parameter name used on multiple parameters {0}").format(self.qname), 
-                "err", "xbrlve:parameterNameClash")
+            self.modelXbrl.error("xbrlve:parameterNameClash",
+                "Parameter name used on multiple parameters %(name)s",
+                modelObject=self, name=self.qname)
         else:
             self.modelXbrl.qnameParameters[self.qname] = self
     
@@ -1740,8 +1742,9 @@ class ModelExplicitDimension(ModelFilter):
             dimQname = self.evalDimQname(xpCtx, fact)
             dimConcept = xpCtx.modelXbrl.qnameConcepts.get(dimQname)
             if dimConcept is None or not dimConcept.isExplicitDimension:
-                self.modelXbrl.error(_("{0} is not an explicit dimension concept QName.").format(dimQname), 
-                                     "err", "xfie:invalidExplicitDimensionQName")
+                self.modelXbrl.error("xfie:invalidExplicitDimensionQName",
+                                     "%(dimension)s is not an explicit dimension concept QName.",
+                                     modelObject=self, dimension=dimQname)
                 return []
             if fact.isItem:
                 memQname = fact.context.dimMemberQname(dimQname)

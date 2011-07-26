@@ -5,7 +5,11 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import sys, traceback
+import os, sys, traceback
+import logging
+from arelle import UrlUtil, XmlUtil, ModelValue
+from arelle.ModelObject import ModelObject
+from arelle.Locale import format_string
 
 def load(modelManager, url, nextaction, base=None):
     from arelle import (ModelDocument, FileSource)
@@ -16,6 +20,7 @@ def load(modelManager, url, nextaction, base=None):
     else:
         modelXbrl.fileSource = FileSource.FileSource(url)
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
+    del modelXbrl.entryLoadingUrl
     if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
         modelDocumentsSchemaLocated = set()
@@ -84,6 +89,9 @@ class ModelXbrl:
         self.hasEuRendering = False
         self.hasFormulae = False
         self.formulaOutputInstance = None
+        self.log = logging.getLogger("arelle")
+        self.log.setLevel(logging.DEBUG)
+        self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):
         self.closeViews()
@@ -125,6 +133,8 @@ class ModelXbrl:
         self.hasEuRendering = False
         if self.formulaOutputInstance:
             self.formulaOutputInstance.close()
+        del self.log
+        del self.modelXbrl
             
     def reload(self,nextaction,reloadCache=False):
         from arelle import ModelDocument
@@ -239,38 +249,89 @@ class ModelXbrl:
             self.modelManager.addToLog(_("Exception viewing properties {0} {1} at {2}").format(
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
-        
-    def error(self, message, severity=None, *argCodes):
-        code = None
-        hasRejectedCode = False
-        for argCode in argCodes:
-            if (isinstance(argCode,dict) or
-                (self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
+
+    def logArguments(self, codes, msg, codedArgs):
+        # determine logCode
+        messageCode = None
+        for argCode in codes if isinstance(codes,tuple) else (codes,):
+            if ((self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
                 (self.modelManager.disclosureSystem.GFM and argCode.startswith("GFM")) or
                 (self.modelManager.disclosureSystem.HMRC and argCode.startswith("HMRC")) or
                 (self.modelManager.disclosureSystem.SBRNL and argCode.startswith("SBR.NL")) or
                 argCode[0:3] not in ("EFM", "GFM", "HMR", "SBR")):
-                code = argCode
+                messageCode = argCode
                 break
-            else:
-                hasRejectedCode = True
-        if code is not None:
-            if severity in ('wrn','err'):
-                self.errors.append(code)
-            elif severity in ('asrt','asrtNoLog'):
-                self.errors.append(code) # code is dict expression of id and counts successful/not successful
-                code = "assertion:trace" # replace with user friendly code for log
-            logString = "[{0}] {1}".format(code, message)
+        
+        # determine message and extra arguments
+        fmtArgs = {}
+        extras = {"messageCode":messageCode}
+        for argName, argValue in codedArgs.items():
+            if argName in ("modelObject", "modelXbrl", "modelDocument"):
+                try:
+                    entryUrl = self.modelDocument.uri
+                except AttributeError:
+                    entryUrl = self.entryLoadingUrl
+                try:
+                    objectUrl = argValue.modelDocument.uri
+                except AttributeError:
+                    objectUrl = self.entryLoadingUrl
+                file = UrlUtil.relativeUri(entryUrl, objectUrl)
+                extras["file"] = file
+                if isinstance(argValue,ModelObject):
+                    extras["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(argValue)
+                    extras["sourceLine"] = argValue.sourceline
+                    extras["objectId"] = argValue.objectId()
+                else:
+                    extras["href"] = file
+                    extras["sourceLine"] = ""
+            elif argName != "exc_info":
+                if isinstance(argValue, ModelValue.QName):
+                    fmtArgs[argName] = str(argValue)
+                elif isinstance(argValue,int):
+                    # need locale-dependent formatting
+                    fmtArgs[argName] = format_string(self.modelManager.locale, '%i', argValue)
+                elif isinstance(argValue,float):
+                    # need locale-dependent formatting
+                    fmtArgs[argName] = format_string(self.modelManager.locale, '%f', argValue)
+                else:
+                    fmtArgs[argName] = argValue
+        if "href" not in extras:
+            try:
+                file = os.path.basename(self.modelDocument.uri)
+            except AttributeError:
+                file = os.path.basename(self.entryLoadingUrl)
+            extras["file"] = file
+            extras["href"] = file
+            extras["sourceLine"] = ""
+        return (messageCode, 
+                (msg, fmtArgs) if fmtArgs else (msg,), 
+                extras)
+
+    def info(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        if messageCode == "asrtNoLog":
+            self.errors.append(args["assertionResults"])
         else:
-            if hasRejectedCode:
-                return # ignore if wrong disclosure system mode
-            logString = message
-        if severity != 'asrtNoLog':
-            self.modelManager.addToLog(logString)
-            
-        if severity == 'err': self.logCountErr += 1
-        elif severity == 'wrn': self.logCountWrn += 1
-        elif severity == 'info': self.logCountInfo += 1
+            self.logCountInfo += 1
+            self.log.info(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+                    
+    def warning(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, args)
+        if messageCode:
+            self.logCountWrn += 1
+            self.log.warning(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+                    
+    def error(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        if messageCode:
+            self.errors.append(messageCode)
+            self.logCountErr += 1
+            self.log.error(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+
+    def exception(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        self.log.exception(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+                    
         
     def profileActivity(self, activityCompleted=None, minTimeToShow=0):
         import time
