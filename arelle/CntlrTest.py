@@ -50,12 +50,12 @@ def main():
     if options.trace_file:
         tf = open(options.trace_file, "w")
         prefix = ""
-        for action, method, fn, line in call_list:
+        for action, fn, module, method, line in call_list:
             if action == 'enter':
                 prefix += " "
             if action == 'exit':
                 prefix = prefix[:-1]
-            print("%s %s %s %s" % (prefix, os.path.basename(fn), line, fn), 
+            print("%s %s.%s [%s:%s]" % (prefix, module, method, os.path.basename(fn), line), 
                   file=tf)
         tf.close()
         
