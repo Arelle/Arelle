@@ -84,7 +84,7 @@ class ModelRelationshipSet:
         relationships = {}
         isDimensionRel =  self.arcrole == "XBRL-dimensions" # all dimensional relationship arcroles
         isFormulaRel =  self.arcrole == "XBRL-formulae" # all formula relationship arcroles
-        isEuRenderingRel = self.arcrole == "EU-rendering"
+        isTableRenderingRel = self.arcrole == "Table-rendering"
         isFootnoteRel =  self.arcrole == "XBRL-footnotes" # all footnote relationship arcroles
         
         for modelLink in modelLinks:
@@ -103,8 +103,8 @@ class ModelRelationshipSet:
                     elif isFormulaRel:
                         if XbrlConst.isFormulaArcrole(linkChildArcrole):
                             arcs.append(linkChild)
-                    elif isEuRenderingRel:
-                        if XbrlConst.isEuRenderingArcrole(linkChildArcrole):
+                    elif isTableRenderingRel:
+                        if XbrlConst.isTableRenderingArcrole(linkChildArcrole):
                             arcs.append(linkChild)
                     elif arcrole == linkChildArcrole and \
                          (arcqname is None or arcqname == linkChildQname) and \

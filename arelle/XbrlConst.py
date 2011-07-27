@@ -214,11 +214,20 @@ qnNilFilter = qname("{http://xbrl.org/2008/filter/value}vf:nil")
 qnPrecisionFilter = qname("{http://xbrl.org/2008/filter/value}vf:precision")
 xpath2err = "http://www.w3.org/2005/xqt-errors"
 
+# 2010 table linkbase
 euRend = "http://www.eurofiling.info/2010/rendering"
 euTableAxis = "http://www.eurofiling.info/arcrole/2010/table-axis"
 euAxisMember = "http://www.eurofiling.info/arcrole/2010/axis-member"
 qnEuTable = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
 qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
+# 2011 table linkbase
+table = "http://xbrl.org/2011/table"
+tableAxis = "http://xbrl.org/arcrole/2011/table-axis"
+tableFilter = "http://xbrl.org/arcrole/2011/table-filter"
+qnTableTable = qname("{http://xbrl.org/2011/table}table:table")
+qnTableExplicitAxis = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxis")
+qnTableExplicitAxisMember = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxisMember")
+explicitAxisMember = "http://xbrl.org/arcrole/2011/axis/explicit-axis-member"
 
 errMsgPrefixNS = {
     "err": xpath2err,
@@ -241,7 +250,7 @@ errMsgPrefixNS = {
 def baseSetArcroleLabel(arcrole): # with sort char in first position
     if arcrole == "XBRL-dimensions": return _("1Dimension")
     if arcrole == "XBRL-formulae": return _("1Formula")
-    if arcrole == "EU-rendering": return _("1Rendering")
+    if arcrole == "Table-rendering": return _("1Rendering")
     if arcrole == parentChild: return _("1Presentation")
     if arcrole == summationItem: return _("1Calculation")
     return "2" + os.path.basename(arcrole).title()
@@ -384,8 +393,8 @@ def isStandardArcQname(qName):
 def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
-def isEuRenderingArcrole(arcrole):
-    return arcrole in (euTableAxis, euAxisMember)
+def isTableRenderingArcrole(arcrole):
+    return arcrole in (euTableAxis, euAxisMember, tableAxis, tableFilter, explicitAxisMember)
    
 def isFormulaArcrole(arcrole):
     return arcrole in {"http://xbrl.org/arcrole/2008/assertion-set",

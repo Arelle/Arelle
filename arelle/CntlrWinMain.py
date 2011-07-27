@@ -456,7 +456,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if os.sep == "\\":
             filename = filename.replace("/", "\\")
             
-        self.fileOpenFile(filename, attach=True)
+        self.fileOpenFile(filename, importToDTS=True)
     
         
     def updateFileHistory(self, url, importToDTS):
@@ -564,11 +564,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
                 currentAction = "view of concepts"
                 ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang, altTabWin=self.tabWinTopRt)
-                if modelXbrl.hasEuRendering:  # show rendering grid even without any facts
+                if modelXbrl.hasTableRendering:  # show rendering grid even without any facts
                     ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.lang)
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     currentAction = "table view of facts"
-                    if not modelXbrl.hasEuRendering: # table view only if not grid rendered view
+                    if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
                         ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
                     currentAction = "tree/list of facts"
                     ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
@@ -581,9 +581,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.lang)
                 currentAction = "dimensions relationships view"
                 ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.lang)
-                if modelXbrl.hasEuRendering:
+                if modelXbrl.hasTableRendering:
                     currentAction = "rendering view"
-                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "EU-rendering", lang=self.lang)
+                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.lang)
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"

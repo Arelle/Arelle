@@ -254,7 +254,7 @@ def uncovered_aspect(xc, p, args):
         
     # check function use after checking argument types
     if xc.progHeader is not None and xc.progHeader.element is not None:
-        if xc.progHeader.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message"):
+        if xc.progHeader.element.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message"):
             raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
         if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
             raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
