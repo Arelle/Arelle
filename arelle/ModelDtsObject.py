@@ -300,13 +300,14 @@ class ModelConcept(ModelSchemaObject):
     def isRoot(self):
         return self.getparent().localName == "schema"
     
-    def label(self,preferredLabel=None,fallbackToQname=True,lang=None):
+    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False):
         if preferredLabel is None: preferredLabel = XbrlConst.standardLabel
         if preferredLabel == XbrlConst.conceptNameLabelRole: return str(self.qname)
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if labelsRelationshipSet:
             label = labelsRelationshipSet.label(self, preferredLabel, lang)
             if label is not None:
+                if strip: return label.strip()
                 return label
         return str(self.qname) if fallbackToQname else None
     
@@ -933,6 +934,17 @@ class ModelRelationship(ModelObject):
             else:
                 self._usable = None
             return self._usable
+        
+    @property
+    def tableAxis(self):
+        try:
+            return self._tableAxis
+        except AttributeError:
+            try:
+                self._tableAxis = self.get({XbrlConst.euTableAxis:"axisType", XbrlConst.tableAxis:"cartesianRepr"}[self.arcrole])
+            except (KeyError, TypeError):
+                self._tableAxis = None
+            return self._tableAxis
         
     @property
     def equivalenceKey(self):

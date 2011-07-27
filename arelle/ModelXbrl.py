@@ -86,7 +86,7 @@ class ModelXbrl:
         from arelle.XbrlConst import standardLabel
         self.labelroles = {standardLabel}
         self.hasXDT = False
-        self.hasEuRendering = False
+        self.hasTableRendering = False
         self.hasFormulae = False
         self.formulaOutputInstance = None
         self.log = logging.getLogger("arelle")
@@ -130,7 +130,7 @@ class ModelXbrl:
             self.fileSource.close()
         self.hasXDT = False
         self.hasFormulae = False
-        self.hasEuRendering = False
+        self.hasTableRendering = False
         if self.formulaOutputInstance:
             self.formulaOutputInstance.close()
         del self.log
@@ -316,7 +316,7 @@ class ModelXbrl:
             self.log.info(*logArgs, exc_info=args.get("exc_info"), extra=extras)
                     
     def warning(self, codes, msg, **args):
-        messageCode, logArgs, extras = self.logArguments(codes, args)
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
         if messageCode:
             self.logCountWrn += 1
             self.log.warning(*logArgs, exc_info=args.get("exc_info"), extra=extras)

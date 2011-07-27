@@ -63,7 +63,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     modelXbrl.modelManager.showStatus(_("parsing {0}").format(uri))
     file = None
     try:
-        if modelXbrl.modelManager.disclosureSystem.validateFileText:
+        if (modelXbrl.modelManager.validateDisclosureSystem and 
+            modelXbrl.modelManager.disclosureSystem.validateFileText):
             file = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
             file = modelXbrl.fileSource.file(filepath)
@@ -521,13 +522,14 @@ class ModelDocument:
                                     modelObject=lbElement, linkbaseRefElement=lbLn)
                         else:
                             self.hrefObjects.append(href)
-                elif lbElement.get("{http://www.w3.org/1999/xlink}type") == "extended":
+                        continue
+                if lbElement.get("{http://www.w3.org/1999/xlink}type") == "extended":
                     if isinstance(lbElement, ModelLink):
                         self.schemalocateElementNamespace(lbElement)
                         arcrolesFound = set()
                         dimensionArcFound = False
                         formulaArcFound = False
-                        euRenderingArcFound = False
+                        tableRenderingArcFound = False
                         linkQn = qname(lbElement)
                         linkrole = lbElement.get("{http://www.w3.org/1999/xlink}role")
                         if inInstance:
@@ -570,11 +572,11 @@ class ModelDocument:
                                             baseSetKeys.append(("XBRL-formulae", None, None, None)) 
                                             baseSetKeys.append(("XBRL-formulae", linkrole, None, None))
                                             formulaArcFound = True
-                                        if XbrlConst.isEuRenderingArcrole(arcrole) and not euRenderingArcFound:
-                                            baseSetKeys.append(("EU-rendering", None, None, None)) 
-                                            baseSetKeys.append(("EU-rendering", linkrole, None, None)) 
-                                            euRenderingArcFound = True
-                                            self.modelXbrl.hasEuRendering = True
+                                        if XbrlConst.isTableRenderingArcrole(arcrole) and not tableRenderingArcFound:
+                                            baseSetKeys.append(("Table-rendering", None, None, None)) 
+                                            baseSetKeys.append(("Table-rendering", linkrole, None, None)) 
+                                            tableRenderingArcFound = True
+                                            self.modelXbrl.hasTableRendering = True
                                         for baseSetKey in baseSetKeys:
                                             self.modelXbrl.baseSets[baseSetKey].append(lbElement)
                                         arcrolesFound.add(arcrole)

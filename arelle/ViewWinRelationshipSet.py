@@ -76,7 +76,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.heading("closed", text="Closed")
                 self.treeView.column("usable", width=40, anchor="center", stretch=False)
                 self.treeView.heading("usable", text="Usable")
-            elif self.arcrole == "EU-rendering":    # add columns for dimensional information
+            elif self.arcrole == "Table-rendering":    # add columns for dimensional information
                 self.treeView["columns"] = ("axis", "priItem", "dims")
                 self.treeView.column("axis", width=50, anchor="center", stretch=False)
                 self.treeView.heading("axis", text="Axis")
@@ -121,8 +121,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 concept.isTypedDimension and 
                 concept.typedDomainElement is not None):
                 text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
-        elif self.arcrole == "EU-rendering":
-            text = concept.genLabel(lang=self.lang)
+        elif self.arcrole == "Table-rendering":
+            text = concept.genLabel(lang=self.lang,strip=True)
             if isRelation:
                 relArcrole = modelObject.arcrole
                 if text is None: 
@@ -151,7 +151,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.set(childnode, "closed", modelObject.closed)
             elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                 self.treeView.set(childnode, "usable", modelObject.usable)
-        elif self.arcrole == "EU-rendering" and isRelation: # extra columns
+        elif self.arcrole == "Table-rendering" and isRelation: # extra columns
             if relArcrole == XbrlConst.euTableAxis:
                 self.treeView.set(childnode, "axis", modelObject.get("axisType"))
             if isinstance(concept, ModelAxisCoord):
