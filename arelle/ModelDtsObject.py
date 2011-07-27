@@ -137,7 +137,8 @@ class ModelConcept(ModelSchemaObject):
                 self._typeQname = self.prefixedNameQname(self.get("type"))
             else:
                 # check if anonymous type exists (clark qname tag + suffix)
-                typeQname = ModelValue.qname(self.tag + anonymousTypeSuffix)
+                qn = self.qname
+                typeQname = ModelValue.QName(qn.prefix, qn.namespaceURI, qn.localName + anonymousTypeSuffix)
                 if typeQname in self.modelXbrl.qnameTypes:
                     self._typeQname = typeQname
                 else:
@@ -175,6 +176,8 @@ class ModelConcept(ModelSchemaObject):
         try:
             return self._baseXsdAttrType[attrName]
         except KeyError:
+            if self.type is None:
+                pass
             attrType = self.type.baseXsdAttrType(attrName)
             self._baseXsdAttrType[attrName] = attrType
             return attrType
