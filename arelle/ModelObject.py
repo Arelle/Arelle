@@ -25,16 +25,7 @@ class ModelObject(etree.ElementBase):
             modelDocument.idObjects[id] = self
                 
     def __del__(self):
-        try:
-            if self.modelDocument.modelXbrl is not None:
-                self.modelXbrl.modelObjects[self.objectIndex] = None
-            del self.modelDocument
-        except AttributeError:
-            pass
-        try:
-            del self.objectIndex
-        except AttributeError:
-            pass
+        self.__dict__.clear() # remove all local variables
         
     def objectId(self,refId=""):
         return "_{0}_{1}".format(refId, self.objectIndex)
