@@ -37,6 +37,12 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
         super().__init__(fallback)
         self.modelXbrl = modelXbrl
         self.type = None
+
+    def __del__(self):
+        try:
+            del self.modelXbrl
+        except AttributeError:
+            pass
         
     def lookup(self, node_type, document, ns, ln):
         # node_type is "element", "comment", "PI", or "entity"
@@ -98,6 +104,12 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         self.modelXbrl = modelXbrl
         self.baseUrl = baseUrl
         self.discoveryAttempts = set()
+        
+    def __del__(self):
+        try:
+            del self.modelXbrl
+        except AttributeError:
+            pass
         
     def lookup(self, document, proxyElement):
         # check if proxyElement's namespace is not known

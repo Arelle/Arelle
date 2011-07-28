@@ -285,7 +285,7 @@ class ModelXbrl:
                     extras["href"] = file
                     extras["sourceLine"] = ""
             elif argName != "exc_info":
-                if isinstance(argValue, ModelValue.QName):
+                if isinstance(argValue, (ModelValue.QName, ModelObject)):
                     fmtArgs[argName] = str(argValue)
                 elif isinstance(argValue,int):
                     # need locale-dependent formatting

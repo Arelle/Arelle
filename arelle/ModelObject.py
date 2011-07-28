@@ -28,7 +28,7 @@ class ModelObject(etree.ElementBase):
         try:
             if self.modelDocument.modelXbrl is not None:
                 self.modelXbrl.modelObjects[self.objectIndex] = None
-                del self.modelDocument
+            del self.modelDocument
         except AttributeError:
             pass
         try:
