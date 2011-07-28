@@ -328,25 +328,18 @@ class ModelDocument:
 
     def close(self, visited):
         visited.append(self)
-        for referencedDocument in self.referencesDocument.keys():
-            if referencedDocument not in visited:
-                referencedDocument.close(visited)
-        if self.type == Type.VERSIONINGREPORT:
-            if self.fromDTS:
-                self.fromDTS.close()
-                self.fromDTS = None
-            if self.toDTS:
-                self.toDTS.close()
-                self.toDTS = None
-        self.modelXbrl = None
-        self.referencesDocument = {}
-        self.idObjects = {}  # by id
-        self.modelObjects = []
-        self.hrefObjects = []
-        self.schemaLocationElements = set()
-        self.referencedNamespaces = set()
-        self.xmlRootElement = None
-        self.xmlDocument = None
+        try:
+            for referencedDocument in self.referencesDocument.keys():
+                if referencedDocument not in visited:
+                    referencedDocument.close(visited)
+            if self.type == Type.VERSIONINGREPORT:
+                if self.fromDTS:
+                    self.fromDTS.close()
+                if self.toDTS:
+                    self.toDTS.close()
+            self.__dict__.clear()
+        except AttributeError:
+            pass    # maybe already cloased
         visited.remove(self)
         
     def gettype(self):
