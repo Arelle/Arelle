@@ -337,6 +337,7 @@ class ModelDocument:
                     self.fromDTS.close()
                 if self.toDTS:
                     self.toDTS.close()
+            self.xmlRootElement.clear() # remove all xml elements in document
             self.__dict__.clear()
         except AttributeError:
             pass    # maybe already cloased
