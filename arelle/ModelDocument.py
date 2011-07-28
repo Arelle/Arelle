@@ -329,7 +329,7 @@ class ModelDocument:
     def close(self, visited):
         visited.append(self)
         for referencedDocument in self.referencesDocument.keys():
-            if visited.count(referencedDocument) == 0:
+            if referencedDocument not in visited:
                 referencedDocument.close(visited)
         if self.type == Type.VERSIONINGREPORT:
             if self.fromDTS:
@@ -345,6 +345,7 @@ class ModelDocument:
         self.hrefObjects = []
         self.schemaLocationElements = set()
         self.referencedNamespaces = set()
+        self.xmlRootElement = None
         self.xmlDocument = None
         visited.remove(self)
         
