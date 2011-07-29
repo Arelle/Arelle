@@ -326,7 +326,8 @@ class ModelDocument:
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
-    def close(self, visited):
+    def close(self, visited=None):
+        if visited is None: visited = []
         visited.append(self)
         try:
             for referencedDocument in self.referencesDocument.keys():
@@ -337,8 +338,9 @@ class ModelDocument:
                     self.fromDTS.close()
                 if self.toDTS:
                     self.toDTS.close()
-            self.xmlRootElement.clear() # remove all xml elements in document
-            self.__dict__.clear()
+            xmlRootElement = self.xmlRootElement
+            self.__dict__.clear() # dereference everything before clearing xml tree
+            xmlRootElement.clear() # remove all xml elements in document
         except AttributeError:
             pass    # maybe already cloased
         visited.remove(self)

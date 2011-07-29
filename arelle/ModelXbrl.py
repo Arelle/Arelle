@@ -95,18 +95,14 @@ class ModelXbrl:
 
     def close(self):
         self.closeViews()
-        try:
-            if hasattr(self,"modelDocument") and self.modelDocument:
-                self.modelDocument.close([])
-            if hasattr(self.xbrlManager,"modelXbrl") and self == self.xbrlManager.modelXbrl:
-                self.xbrlManager.modelXbrl = None
-            if hasattr(self,"fileSource"):
-                self.fileSource.close()
-            if self.formulaOutputInstance:
-                self.formulaOutputInstance.close()
-        except AttributeError:
-            pass  # already was closed
-        self.__dict__.clear()
+        if self.formulaOutputInstance:
+            self.formulaOutputInstance.close()
+        if hasattr(self,"fileSource"):
+            self.fileSource.close()
+        modelDocument = self.modelDocument if hasattr(self,"modelDocument") else None
+        self.__dict__.clear() # dereference everything before closing document
+        if modelDocument:
+            modelDocument.close()
             
     def reload(self,nextaction,reloadCache=False):
         from arelle import ModelDocument
