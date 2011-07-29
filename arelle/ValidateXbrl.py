@@ -35,7 +35,8 @@ class ValidateXbrl:
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl
         
-        # load edgartaxonomies
+    def __del__(self):
+        self.__dict__.clear()   # dereference everything
         
     def validate(self, modelXbrl, parameters=None):
         self.parameters = parameters

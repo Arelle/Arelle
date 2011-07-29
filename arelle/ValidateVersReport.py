@@ -16,6 +16,8 @@ class ValidateVersReport():
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl  # testcase or controlling validation object
 
+    def __del__(self):
+        self.__dict__.clear()   # dereference everything
         
     def validate(self, modelVersReport):
         self.modelVersReport = modelVersReport

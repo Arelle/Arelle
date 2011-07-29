@@ -39,10 +39,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
         self.type = None
 
     def __del__(self):
-        try:
-            del self.modelXbrl
-        except AttributeError:
-            pass
+        self.__dict__.clear()
         
     def lookup(self, node_type, document, ns, ln):
         # node_type is "element", "comment", "PI", or "entity"
@@ -78,6 +75,8 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             elif ns == XbrlConst.ver:
                 if self.type is None:
                     self.type = VERSIONINGREPORT
+            elif ns == "http://dummy":
+                return etree.ElementBase
             if self.type is None and ln == "rss":
                 self.type = RSSFEED
             elif self.type == RSSFEED:
@@ -106,10 +105,7 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         self.discoveryAttempts = set()
         
     def __del__(self):
-        try:
-            del self.modelXbrl
-        except AttributeError:
-            pass
+        self.__dict__.clear()
         
     def lookup(self, document, proxyElement):
         # check if proxyElement's namespace is not known
