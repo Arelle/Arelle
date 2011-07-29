@@ -9,7 +9,7 @@ from lxml import etree
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
-from arelle.ModelDtsObject import ModelLink, ModelResource
+from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
 
@@ -338,9 +338,13 @@ class ModelDocument:
                     self.fromDTS.close()
                 if self.toDTS:
                     self.toDTS.close()
-            xmlRootElement = self.xmlRootElement
+            xmlDocument = self.xmlDocument
+            parser = self.parser
+            for modelObject in self.modelObjects:
+                if not isinstance(modelObject, ModelRelationship):
+                    modelObject.clear() # clear children
             self.__dict__.clear() # dereference everything before clearing xml tree
-            xmlRootElement.clear() # remove all xml elements in document
+            xmlDocument._setroot(parser.makeelement("{http://dummy}dummy"))
         except AttributeError:
             pass    # maybe already cloased
         visited.remove(self)

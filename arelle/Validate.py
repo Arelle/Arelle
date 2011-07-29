@@ -34,6 +34,9 @@ class Validate:
         else:
             self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
             self.formulaValidator = self.instValidator
+            
+    def close(self):
+        self.__dict__.clear()   # dereference variables
         
     def validate(self):
         # sort test cases by uri
@@ -75,6 +78,7 @@ class Validate:
                     instance=self.modelXbrl.modelDocument.basename, error=err,
                     # traceback=traceback.format_tb(sys.exc_info()[2]),
                     exc_info=True)
+        self.close()
 
     def validateTestcase(self, testcase):
         self.modelXbrl.info("info", "Testcase", modelDocument=testcase)
