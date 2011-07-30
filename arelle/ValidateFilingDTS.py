@@ -4,12 +4,25 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, datetime
+import os, datetime, re
 from arelle import (ModelDocument, ModelValue, XmlUtil, XbrlConst, UrlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
 
+targetNamespaceDatePattern = None
+roleTypePattern = None
+arcroleTypePattern = None
+arcroleDefinitionPattern = None
+
 def checkDTS(val, modelDocument, visited):
+    global targetNamespaceDatePattern, roleTypePattern, arcroleTypePattern, arcroleDefinitionPattern
+    if targetNamespaceDatePattern is None:
+        targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
+                                            r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
+        roleTypePattern = re.compile(r".*/role/[^/]+")
+        arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
+        arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
+        
     visited.append(modelDocument)
     definesLabelLinkbase = False
     for referencedDocument in modelDocument.referencesDocument.items():
@@ -55,7 +68,7 @@ def checkDTS(val, modelDocument, visited):
             match = None
         elif val.validateEFMorGFM:
             targetNamespaceDate = modelDocument.targetNamespace[len(targetNamespaceAuthority):]
-            match = val.targetNamespaceDatePattern.match(targetNamespaceDate)
+            match = targetNamespaceDatePattern.match(targetNamespaceDate)
         else:
             match = None
         if match is not None:
@@ -127,7 +140,7 @@ def checkDTS(val, modelDocument, visited):
                                     modelObject=modelConcept, concept=modelConcept.qname)
                             
                         # 6.7.20 no typed domain ref
-                        if modelConcept.isTypedDimension is not None:
+                        if modelConcept.isTypedDimension:
                             val.modelXbrl.error(("EFM.6.07.20", "GFM.1.03.22"),
                                 "Concept %(concept)s has typedDomainRef %(typedDomainRef)s",
                                 modelObject=modelConcept, concept=modelConcept.qname,
@@ -291,7 +304,7 @@ def checkDTS(val, modelDocument, visited):
                         "RoleType %(roleType)s does not match authority %(targetNamespaceAuthority)s",
                         modelObject=e, roleType=roleURI, targetNamespaceAuthority=targetNamespaceAuthority)
                 # 6.7.9 end with .../role/lc3 name
-                if not val.roleTypePattern.match(roleURI):
+                if not roleTypePattern.match(roleURI):
                     val.modelXbrl.warning(("EFM.6.07.09", "GFM.1.03.09"),
                         "RoleType %(roleType)s should end with /role/{LC3name}",
                         modelObject=e, roleType=roleURI)
@@ -331,7 +344,7 @@ def checkDTS(val, modelDocument, visited):
                         "ArcroleType %(arcroleType)s does not match authority %(targetNamespaceAuthority)s",
                         modelObject=e, arcroleType=arcroleURI, targetNamespaceAuthority=targetNamespaceAuthority)
                 # 6.7.13 end with .../arcrole/lc3 name
-                if not val.arcroleTypePattern.match(arcroleURI):
+                if not arcroleTypePattern.match(arcroleURI):
                     val.modelXbrl.warning(("EFM.6.07.13", "GFM.1.03.15"),
                         "ArcroleType %(arcroleType)s should end with /arcrole/{LC3name}",
                         modelObject=e, arcroleType=arcroleURI)
@@ -345,7 +358,7 @@ def checkDTS(val, modelDocument, visited):
                     
                 # 6.7.15 definition match pattern
                 definition = modelRoleTypes[0].definition
-                if definition is None or not val.arcroleDefinitionPattern.match(definition):
+                if definition is None or not arcroleDefinitionPattern.match(definition):
                     val.modelXbrl.error(("EFM.6.07.15", "GFM.1.03.17"),
                         "ArcroleType %(arcroleType)s definition must be non-empty",
                         modelObject=e, arcroleType=arcroleURI)

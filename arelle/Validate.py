@@ -36,6 +36,8 @@ class Validate:
             self.formulaValidator = self.instValidator
             
     def close(self):
+        self.instValidator.close(reusable=False)
+        self.formulaValidator.close(reusable=False)
         self.__dict__.clear()   # dereference variables
         
     def validate(self):
@@ -59,8 +61,7 @@ class Validate:
                     exc_info=True)
         elif self.modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
             try:
-                ValidateVersReport.ValidateVersReport(self.modelXbrl) \
-                    .validate(self.modelXbrl)
+                ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(self.modelXbrl)
             except Exception as err:
                 self.modelXbrl.error("exception",
                     "Versioning report exception: %(error)s, testcase: %(reportFile)s",
@@ -71,6 +72,7 @@ class Validate:
         elif self.modelXbrl.modelDocument.type != ModelDocument.Type.Unknown:
             try:
                 self.instValidator.validate(self.modelXbrl)
+                self.instValidator.close()
             except Exception as err:
                 self.modelXbrl.error("exception",
                     "Instance validation exception: %(error)s, instance: %(instance)s",
@@ -132,8 +134,7 @@ class Validate:
                     elif resultIsVersioningReport:
                         inputDTSes[dtsName] = modelXbrl
                     elif modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
-                        ValidateVersReport.ValidateVersReport(self.modelXbrl) \
-                            .validate(modelXbrl)
+                        ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelXbrl)
                         self.determineTestStatus(modelTestcaseVariation, modelXbrl)
                         modelXbrl.close()
                     elif testcase.type == ModelDocument.Type.REGISTRYTESTCASE:
@@ -141,6 +142,7 @@ class Validate:
                         self.instValidator.executeCallTest(modelXbrl, modelTestcaseVariation.id, 
                                    modelTestcaseVariation.cfcnCall, modelTestcaseVariation.cfcnTest)
                         self.determineTestStatus(modelTestcaseVariation, modelXbrl)
+                        self.instValidator.close()
                         modelXbrl.close()
                     else:
                         inputDTSes[dtsName].append(modelXbrl)
@@ -173,6 +175,7 @@ class Validate:
                             parameters[dtsName] = (None, inputDTS)
                     self.instValidator.validate(modelXbrl, parameters)
                     self.determineTestStatus(modelTestcaseVariation, modelXbrl)
+                    self.instValidator.close()
                     if modelXbrl.formulaOutputInstance and len(modelTestcaseVariation.actual) == 0: 
                         # if an output instance is created, validate it
                         self.instValidator.validate(modelXbrl.formulaOutputInstance, modelTestcaseVariation.parameters)
@@ -180,6 +183,7 @@ class Validate:
                         if len(modelTestcaseVariation.actual) == 0: # if still 'clean' pass it forward for comparison to expected result instance
                             formulaOutputInstance = modelXbrl.formulaOutputInstance
                             modelXbrl.formulaOutputInstance = None # prevent it from being closed now
+                        self.instValidator.close()
                     for inputDTSlist in inputDTSes.values():
                         for inputDTS in inputDTSlist:
                             inputDTS.close()

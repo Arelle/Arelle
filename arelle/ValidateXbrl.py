@@ -35,8 +35,12 @@ class ValidateXbrl:
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl
         
-    def __del__(self):
+    def close(self, reusable=True):
+        if reusable:
+            testModelXbrl = self.testModelXbrl
         self.__dict__.clear()   # dereference everything
+        if reusable:
+            self.testModelXbrl = testModelXbrl
         
     def validate(self, modelXbrl, parameters=None):
         self.parameters = parameters

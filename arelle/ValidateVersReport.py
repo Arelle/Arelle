@@ -16,7 +16,7 @@ class ValidateVersReport():
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl  # testcase or controlling validation object
 
-    def __del__(self):
+    def close(self):
         self.__dict__.clear()   # dereference everything
         
     def validate(self, modelVersReport):
@@ -374,3 +374,5 @@ class ValidateVersReport():
                         if link is not None:
                             iaChange.hrefToModelObject(link, dts)
             '''
+            
+        self.close()
