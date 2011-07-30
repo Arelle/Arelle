@@ -49,6 +49,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.instanceAspectChanges = []
         self.typedDomainsCorrespond = {}
         
+    def close(self):
+        self.__dict__.clear()
+        
     def versioningReportDiscover(self, rootElement):
         actionRelatedFromMdlObjs = []
         actionRelatedToMdlObjs = []
@@ -282,6 +285,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.filepath = versReportFile
         self.modelXbrl.modelManager.showStatus(_("C report file"))
         self.modelXbrl.modelManager.showStatus(_("ready"), 2000)
+        self.close()
         
     def diffNamespaces(self):
         # build fomr and to lists based on namespaces

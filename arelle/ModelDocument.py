@@ -341,6 +341,7 @@ class ModelDocument:
             xmlDocument = self.xmlDocument
             parser = self.parser
             for modelObject in self.modelObjects:
+                modelObject.__dict__.clear() # remove all references
                 if not isinstance(modelObject, ModelRelationship):
                     modelObject.clear() # clear children
             self.__dict__.clear() # dereference everything before clearing xml tree

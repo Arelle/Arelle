@@ -24,9 +24,6 @@ class ModelObject(etree.ElementBase):
         if id:
             modelDocument.idObjects[id] = self
                 
-    def __del__(self):
-        self.__dict__.clear() # remove all local variables
-        
     def objectId(self,refId=""):
         return "_{0}_{1}".format(refId, self.objectIndex)
     

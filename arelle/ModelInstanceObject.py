@@ -15,10 +15,6 @@ class ModelFact(ModelObject):
         super().init(modelDocument)
         self.modelTupleFacts = []
         
-    def __del__(self):
-        super().__del__()
-        self.modelTupleFacts = []
-        
     @property
     def concept(self):
         concept = self.modelXbrl.qnameConcepts.get(self.qname)
@@ -349,16 +345,6 @@ class ModelContext(ModelObject):
         self.scenNonDimValues = []
         self._isEqualTo = {}
         
-    def __del__(self):
-        super().__del__()
-        self.segDimValues = None
-        self.scenDimValues = None
-        self.qnameDims = None
-        self.errorDimValues = None
-        self.segNonDimValues = None
-        self.scenNonDimValues = None
-        self._isEqualTo = None
-
     @property
     def isStartEndPeriod(self):
         try:

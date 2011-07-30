@@ -242,7 +242,10 @@ class ModelXbrl:
                 try:
                     objectUrl = argValue.modelDocument.uri
                 except AttributeError:
-                    objectUrl = self.entryLoadingUrl
+                    try:
+                        objectUrl = self.modelDocument.uri
+                    except AttributeError:
+                        objectUrl = self.entryLoadingUrl
                 file = UrlUtil.relativeUri(entryUrl, objectUrl)
                 extras["file"] = file
                 if isinstance(argValue,ModelObject):

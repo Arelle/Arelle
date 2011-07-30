@@ -13,19 +13,21 @@ from arelle import (ModelDocument, ModelValue, ValidateXbrl,
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 
+datePattern = None
+GFMcontextDatePattern = None
+signOrCurrencyPattern = None
+
+
 class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super().__init__(modelXbrl)
         
-        self.datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
-        self.GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
-        self.targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
-                                                r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
-        self.roleTypePattern = re.compile(r".*/role/[^/]+")
-        self.arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
-        self.arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
+        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern
         
-        self.signOrCurrency = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac£¥])")
+        if datePattern is None:
+            datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
+            GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
+            signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac£¥])")
 
         
     def validate(self, modelXbrl, parameters=None):
@@ -111,7 +113,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if self.validateGFM:
                     for dateElt in XmlUtil.children(context, XbrlConst.xbrli, ("startDate", "endDate", "instant")):
                         dateText = XmlUtil.text(dateElt)
-                        if not self.GFMcontextDatePattern.match(dateText):
+                        if not GFMcontextDatePattern.match(dateText):
                             modelXbrl.error("GFM.1.02.25",
                                 "Context id %(context)s %(elementName)s invalid content %(value)s",
                                 modelObject=dateElt, context=contextID, 
@@ -287,7 +289,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     
                 if validateInlineXbrlGFM:
                     if f.localName == "nonFraction" or f.localName == "fraction":
-                        syms = self.signOrCurrency.findall(f.text)
+                        syms = signOrCurrencyPattern.findall(f.text)
                         if syms:
                             modelXbrl.error(("EFM.N/A", "GFM.1.10.18"),
                                 'ix-numeric Fact %(fact)s of context %(contextID)s has a sign or currency symbol "%(value)s" in "%(text)s"',
@@ -502,7 +504,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         "%(elementName)s is required and was not found in the default context",
                         modelXbrl=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement)
                 else:
-                    dateMatch = self.datePattern.match(documentPeriodEndDate)
+                    dateMatch = datePattern.match(documentPeriodEndDate)
                     if not dateMatch or dateMatch.lastindex != 3:
                         modelXbrl.error(("EFM.6.05.20", "GFM.3.02.01"),
                             "%(elementName)s is in the default context is incorrect '%(date)s'",
@@ -514,7 +516,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if amendmentFlag == "true" and not amendmentDescription:
                     modelXbrl.warning("EFM.6.05.20",
                         "AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required",
-                        modelObject=amendmentFlagFact, conceptID=amendmentFlagFact.contextID)
+                        modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact else "unknown")
         
                 if amendmentDescription and ((not amendmentFlag) or amendmentFlag == "false"):
                     modelXbrl.warning("EFM.6.05.20",
