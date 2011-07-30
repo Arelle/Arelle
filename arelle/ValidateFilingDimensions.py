@@ -106,7 +106,7 @@ def checkDimensions(val, drsELRs):
                             if cycleCausingConcept is not None:
                                 val.modelXbrl.error(("EFM.6.16.04", "GFM.1.08.04"),
                                     "Dimension relationships have an undirected cycle in DRS role %(linkrole)s starting from table %(hypercube)s, axis %(dimension)s, at %(member)s",
-                                    modelObject=hcDimRel, linkrole=ELR, hyprecube=hc.qname, dimension=dim.qname, member=cycleCausingConcept.qname)
+                                    modelObject=hcDimRel, linkrole=ELR, hypercube=hc.qname, dimension=dim.qname, member=cycleCausingConcept.qname)
                             fromConceptELRs.clear()
                         elif val.validateSBRNL:
                             checkSBRNLMembers(val, hc, dim, domELR, dimDomRels, ELR, True)
@@ -137,7 +137,7 @@ def checkDimensions(val, drsELRs):
                 if toELR and len(
                     val.modelXbrl.relationshipSet(
                          XbrlConst.domainMember, toELR).fromModelObject(toMbr)) == 0:
-                    val.modelXbrl.error(
+                    val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
                         "Domain member %(concept)s in DRS role %(linkrole)s, missing targetrole consecutive relationship",
                         modelObject=rel, concept=fromMbr.qname, linkrole=ELR)
                     
