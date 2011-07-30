@@ -436,7 +436,7 @@ def validateTextBlockFacts(modelXbrl):
                 if not entity in xhtmlEntities:
                     modelXbrl.error(("EFM.6.05.16", "GFM.1.2.15"),
                         "Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s",
-                        modelObject=f1, fact=f1.qname, conceptID=f1.contextID, entity=entity)
+                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, entity=entity)
             # test html
             for xmltext in [f1.value] + CDATApattern.findall(f1.value):
                 try:
@@ -450,7 +450,7 @@ def validateTextBlockFacts(modelXbrl):
                     if not err.endswith("undefined entity"):
                         handler.modelXbrl.error(("EFM.6.05.15", "GFM.1.02.14"),
                             "Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s",
-                            modelObject=f1, fact=f1.qname, conceptID=f1.contextID, error=err)
+                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
             handler.fact = None
     handler.modelXbrl = None
     
@@ -518,21 +518,21 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
                 if not (item[0] in htmlAttributes and \
                     (name in htmlAttributes[item[0]] or '*' in htmlAttributes[item[0]])):
                     self.modelXbrl.error("EFM.6.05.16",
-                        "Fact %(fact)s of context %(contextID) has attribute '%(attributes)s' not allowed for <%(element)s>",
+                        "Fact %(fact)s of context %(contextID) has attribute '%(attribute)s' not allowed for <%(element)s>",
                         modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
                         attribute=item[0], element=name)
                 elif (item[0] == "href" and name == "a") or \
                      (item[0] == "src" and name == "img"):
                     if "javascript:" in item[1]:
                         self.modelXbrl.error("EFM.6.05.16",
-                            "Fact %(fact)s of context %(contextID) has javascript in '%(attributes)s' for <%(element)s>",
+                            "Fact %(fact)s of context %(contextID) has javascript in '%(attribute)s' for <%(element)s>",
                             modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
                             attribute=item[0], element=name)
                     elif item[1].startswith("http://www.sec.gov/Archives/edgar/data/") and name == "a":
                         pass
                     elif "http:" in item[1] or "https:" in item[1] or "ftp:" in item[1]:
                         self.modelXbrl.error("EFM.6.05.16",
-                            "Fact %(fact)s of context %(contextID) has an invalid external reference in '%(attributes)s' for <%(element)s>",
+                            "Fact %(fact)s of context %(contextID) has an invalid external reference in '%(attribute)s' for <%(element)s>",
                             modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
                             attribute=item[0], element=name)
 
