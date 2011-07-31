@@ -56,6 +56,8 @@ def main():
                       help=_("Write DTS tree into CSVFILE"))
     parser.add_option("--csvFacts", action="store", dest="csvFactList",
                       help=_("Write fact list into CSVFILE"))
+    parser.add_option("--csvFactCols", action="store", dest="csvFactListCols",
+                      help=_("Columns for CSVFILE"))
     parser.add_option("--csvConcepts", action="store", dest="csvConcepts",
                       help=_("Write concepts into CSVFILE"))
     parser.add_option("--csvPre", action="store", dest="csvPre",
@@ -224,7 +226,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if options.csvDTS:
                 ViewCsvDTS.viewDTS(modelXbrl, options.csvDTS)
             if options.csvFactList:
-                ViewCsvFactList.viewFacts(modelXbrl, options.csvFactList)
+                ViewCsvFactList.viewFacts(modelXbrl, options.csvFactList, cols=options.csvFactListCols)
             if options.csvConcepts:
                 ViewCsvConcepts.viewConcepts(modelXbrl, options.csvConcepts)
             if options.csvPre:
