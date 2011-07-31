@@ -161,7 +161,7 @@ class ModelFormulaResource(ModelResource):
                     toModelObject.compile()
                 else:
                     self.modelXbrl.error("formula:internalError",
-                         "Invalid formula object %(element)s",
+                         _("Invalid formula object %(element)s"),
                          modelObject=self,
                          element=toModelObject.elementQname)
 
@@ -521,7 +521,7 @@ class ModelParameter(ModelFormulaResource):
         super().init(modelDocument)
         if self.qname in self.modelXbrl.qnameParameters:
             self.modelXbrl.error("xbrlve:parameterNameClash",
-                "Parameter name used on multiple parameters %(name)s",
+                _("Parameter name used on multiple parameters %(name)s"),
                 modelObject=self, name=self.qname)
         else:
             self.modelXbrl.qnameParameters[self.qname] = self
@@ -1743,7 +1743,7 @@ class ModelExplicitDimension(ModelFilter):
             dimConcept = xpCtx.modelXbrl.qnameConcepts.get(dimQname)
             if dimConcept is None or not dimConcept.isExplicitDimension:
                 self.modelXbrl.error("xfie:invalidExplicitDimensionQName",
-                                     "%(dimension)s is not an explicit dimension concept QName.",
+                                     _("%(dimension)s is not an explicit dimension concept QName."),
                                      modelObject=self, dimension=dimQname)
                 return []
             if fact.isItem:

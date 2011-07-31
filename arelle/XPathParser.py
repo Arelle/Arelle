@@ -79,14 +79,14 @@ def pushQName( sourceStr, loc, toks ):
         nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
         if nsLocalname is None:
             modelXbrl.error("err:XPST0081",
-                "QName prefix not defined for %(name)s",
+                _("QName prefix not defined for %(name)s"),
                 modelObject=xmlElement,
                 name=qname)
             return
         if (nsLocalname == (XbrlConst.xff,"uncovered-aspect") and
             xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion")):
                 modelXbrl.error("xffe:invalidFunctionUse",
-                    "Function %(name)s cannot be used on an XPath expression associated with a %(name2)s",
+                    _("Function %(name)s cannot be used on an XPath expression associated with a %(name2)s"),
                     modelObject=xmlElement,
                     name=qname, name2=xmlElement.localName)
     else:
@@ -146,7 +146,7 @@ class OperationDef:
                     ns = XmlUtil.xmlns(xmlElement, prefix)
                     if ns is None:
                         modelXbrl.error("err:XPST0081",
-                            "wildcard prefix not defined for %(token)s",
+                            _("wildcard prefix not defined for %(token)s"),
                             modelObject=xmlElement,
                             token=toks1)
                     toks1 = QNameDef(loc,prefix,ns,'*')
@@ -245,7 +245,7 @@ def pushVarRef( sourceStr, loc, toks ):
     qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)
     if qname is None:
         modelXbrl.error("err:XPST0081",
-            "QName prefix not defined for variable reference $%(variable)s",
+            _("QName prefix not defined for variable reference $%(variable)s"),
             modelObject=xmlElement,
             variable=toks[0][1:])
         qname = ModelValue.qname(XbrlConst.xpath2err,"XPST0081") # use as qname to allow parsing to complete
@@ -629,21 +629,21 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             if ((formulaOptions.traceVariableSetExpressionCode and traceType == Trace.VARIABLE_SET) or
                 (formulaOptions.traceVariableExpressionCode and traceType == Trace.VARIABLE) or
                 (formulaOptions.traceCallExpressionCode and traceType == Trace.CALL)):
-                modelXbrl.info("formula:trace", "Code %(name)s %(source)s",
+                modelXbrl.info("formula:trace", _("Code %(name)s %(source)s"),
                 modelObject=element,
                 name=name,
                 source=exprStack)
                 
         except (ParseException, ParseSyntaxException) as err:
             modelXbrl.error("err:XPST0003",
-                "Parse error in %(name)s error: %(error)s \n%(source)s",
+                _("Parse error in %(name)s error: %(error)s \n%(source)s"),
                 modelObject=element,
                 name=name,
                 error=err, 
                 source=exceptionErrorIndication(err))
         except (ValueError) as err:
             modelXbrl.error("parser:unableToParse",
-                "Parsing terminated in %(name)s due to error: %(error)s \n%(source)s",
+                _("Parsing terminated in %(name)s due to error: %(error)s \n%(source)s"),
                 modelObject=element,
                 name=name,
                 error=err, 

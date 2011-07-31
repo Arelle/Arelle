@@ -133,7 +133,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value):
         except ValueError:
             if attrTag:
                 modelXbrl.error("xmlSchema:valueError",
-                    "Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s",
+                    _("Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s"),
                     modelObject=elt,
                     element=elt.elementQname,
                     attribute=XmlUtil.clarkNotationToPrefixedName(elt,attrTag,isAttribute=True),
@@ -141,7 +141,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value):
                     value=value)
             else:
                 modelXbrl.error("xmlSchema:valueError",
-                    "Element %(element)s type %(typeName)s value error: %(value)s",
+                    _("Element %(element)s type %(typeName)s value error: %(value)s"),
                     modelObject=elt,
                     element=elt.elementQname,
                     typeName=baseXsdType,
