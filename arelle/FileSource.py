@@ -130,11 +130,11 @@ class FileSource:
             self.isOpen = False
             self.isZip = False
         if self.isXfd and self.isOpen:
-            self.xfdDocument.unlink()
+            self.xfdDocument.getroot().clear() # unlink nodes
             self.xfdDocument = None
             self.isXfd = False
         if self.isRss and self.isOpen:
-            self.rssDocument.unlink()
+            self.rssDocument.getroot().clear() # unlink nodes
             self.rssDocument = None
             self.isRss = False
         self.filesDir = None
