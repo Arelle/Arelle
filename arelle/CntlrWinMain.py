@@ -711,8 +711,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowGeometry"] = self.parent.geometry()
             if state in ("normal", "zoomed"):
                 self.config["windowState"] = state
-            self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width(),
-                                                self.tabWinTopLeft.winfo_height())
+            self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - 4,   # remove border growth
+                                                self.tabWinTopLeft.winfo_height() - 6)
             super().close()
             self.parent.unbind_all(())
             self.parent.destroy()
