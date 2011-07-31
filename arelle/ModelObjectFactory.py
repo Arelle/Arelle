@@ -23,9 +23,10 @@ from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespace
 
 def parser(modelXbrl, baseUrl):
     parser = etree.XMLParser()
-    parser.set_element_class_lookup(KnownNamespacesModelObjectClassLookup(modelXbrl,
-                                    fallback=DiscoveringClassLookup(modelXbrl, baseUrl)))
-    return parser
+    classLookup = DiscoveringClassLookup(modelXbrl, baseUrl)
+    nsNameLookup = KnownNamespacesModelObjectClassLookup(modelXbrl, fallback=classLookup)
+    parser.set_element_class_lookup(nsNameLookup)
+    return (parser, nsNameLookup, classLookup)
 
 SCHEMA = 1
 LINKBASE = 2
@@ -38,9 +39,6 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
         self.modelXbrl = modelXbrl
         self.type = None
 
-    def __del__(self):
-        self.__dict__.clear()
-        
     def lookup(self, node_type, document, ns, ln):
         # node_type is "element", "comment", "PI", or "entity"
         if node_type == "element":
@@ -103,9 +101,6 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         self.modelXbrl = modelXbrl
         self.baseUrl = baseUrl
         self.discoveryAttempts = set()
-        
-    def __del__(self):
-        self.__dict__.clear()
         
     def lookup(self, document, proxyElement):
         # check if proxyElement's namespace is not known
