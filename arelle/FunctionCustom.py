@@ -45,23 +45,31 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
         stepQname, stepExpression = step
         stepProg = cfi.stepProgs[i]
         if traceSource:
-            xc.modelXbrl.error( _("{0} step {1} \nExpression: \n{2}").format( str(qname), str(stepQname), stepExpression),
-                "info", "formula:trace")
+            xc.modelXbrl.info("formula:trace",
+                                _("%(cfi)s step %(step)s \nExpression: \n%(expression)s"),
+                                modelObject=cfi,
+                                cfi=qname, step=stepQname, expression=stepExpression)
         result = xc.evaluate(stepProg)
         if traceEvaluation:
-            xc.modelXbrl.error( _("{0} step {1} \nResult: \n{2}").format( str(qname), str(stepQname), result),
-                "info", "formula:trace")
+            xc.modelXbrl.info("formula:trace",
+                                _("%(cfi)s step %(step)s \nResult: \n%(expression)s"),
+                                modelObject=cfi,
+                                cfi=qname, step=stepQname, expression=result)
         if stepQname in xc.inScopeVars:
             overriddenInScopeVars[stepQname] = xc.inScopeVars[stepQname]
         xc.inScopeVars[stepQname] = result
 
     if traceSource:
-        xc.modelXbrl.error( _("{0} output \nExpression: \n{1}").format( str(qname), cfi.outputExpression),
-            "info", "formula:trace")
+        xc.modelXbrl.info("formula:trace",
+                            _("%(cfi)s output \nExpression: \n%(expression)s"),
+                            modelObject=cfi,
+                            cfi=qname, expression=cfi.outputExpression)
     result = xc.evaluateAtomicValue(cfi.outputProg, cfSig.outputType)
     if traceEvaluation:
-        xc.modelXbrl.error( _("{0} output \nResult: \n{1}").format( str(qname), result),
-            "info", "formula:trace")
+        xc.modelXbrl.info("formula:trace",
+                            _("%(cfi)s output \nResult: \n%(expression)s"),
+                            modelObject=cfi,
+                            cfi=qname, expression=result)
 
     for step in cfi.stepExpressions:
         stepQname = step[0]

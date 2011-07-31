@@ -102,39 +102,39 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                             f1.xmlLang == f2.xmlLang and 
                             f1.effectiveValue != f2.effectiveValue):
                             modelXbrl.error("HMRC.14",
-                                "Inconsistent duplicate facts %(fact)s context %(contextID)s and %(contextID2)s.",
+                                _("Inconsistent duplicate facts %(fact)s context %(contextID)s and %(contextID2)s."),
                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
 
             if isAccounts:
                 if "StartDateForPeriodCoveredByReport" not in busItems:
                     modelXbrl.error("HMRC.02",
-                        "Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) is missing.", 
+                        _("Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) is missing."), 
                         modelObject=modelXbrl)
                 elif busItems["StartDateForPeriodCoveredByReport"].value < "2008-04-06":
                     modelXbrl.error("HMRC.02",
-                        "Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) must be 6 April 2008 or later.",
+                        _("Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) must be 6 April 2008 or later."),
                         modelObject=modelXbrl)
                 for items, name, msg, ref in (
                           (busItems,"EntityCurrentLegalOrRegisteredName",
-                           "Company Name (uk-bus:EntityCurrentLegalOrRegisteredName) is missing.",
+                           _("Company Name (uk-bus:EntityCurrentLegalOrRegisteredName) is missing."),
                            "01"),
                           (busItems,"EndDateForPeriodCoveredByReport",
-                           "Period End Date (uk-bus:EndDateForPeriodCoveredByReport) is missing.", 
+                           _("Period End Date (uk-bus:EndDateForPeriodCoveredByReport) is missing."), 
                            "03"),
                           (busItems,"BalanceSheetDate",
-                           "Balance Sheet Date (uk-bus:BalanceSheetDate) is missing.", 
+                           _("Balance Sheet Date (uk-bus:BalanceSheetDate) is missing."), 
                            "06"),
                           (busItems,"EntityDormant",
-                           "Dormant/non-dormant indicator (uk-bus:EntityDormant) is missing.", 
+                           _("Dormant/non-dormant indicator (uk-bus:EntityDormant) is missing."), 
                            "09"),
                           (busItems,"EntityTrading",
-                           "Trading/non-trading indicator (uk-bus:EntityTrading) is missing.", 
+                           _("Trading/non-trading indicator (uk-bus:EntityTrading) is missing."), 
                            "10"),
                           (direpItems,"DateSigningDirectorsReport",
-                           "Date of signing Directors Report (uk-direp:DateSigningDirectorsReport) is missing.", 
+                           _("Date of signing Directors Report (uk-direp:DateSigningDirectorsReport) is missing."), 
                            "12"),
                           (direpItems,"DirectorSigningReport",
-                           "Name of Director signing Directors Report (uk-direp:DirectorSigningReport) is missing.", 
+                           _("Name of Director signing Directors Report (uk-direp:DirectorSigningReport) is missing."), 
                            "13"),
                            ):
                     if name not in items:
@@ -142,22 +142,22 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                 if ("DateApprovalAccounts" not in gaapItems and
                     "DateAuthorisationFinancialStatementsForIssue" not in ifrsItems):
                     modelXbrl.error("HMRC.08",
-                        "Name of Director Approving Balance Sheet (uk-gaap:NameDirectorSigningAccounts OR ifrs:ExplanationOfBodyOfAuthorisation) is missing.",
+                        _("Name of Director Approving Balance Sheet (uk-gaap:NameDirectorSigningAccounts OR ifrs:ExplanationOfBodyOfAuthorisation) is missing."),
                         modelObject=modelXbrl)
                 if ("ProfitLossForPeriod" not in gaapItems and
                     "ProfitLoss" not in ifrsItems):
                     modelXbrl.error("HMRC.11",
-                        "Profit or Loss for the period (uk-gaap:ProfitLossForPeriod OR ifrs:ProfitLoss) is missing.",
+                        _("Profit or Loss for the period (uk-gaap:ProfitLossForPeriod OR ifrs:ProfitLoss) is missing."),
                         modelObject=modelXbrl)
                 if companyReferenceNumberContexts:
                     if "UKCompaniesHouseRegisteredNumber" not in busItems:
                         modelXbrl.error("HMRC.16.1",
-                            "Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) is missing.", 
+                            _("Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) is missing."), 
                             modelObject=modelXbrl)
                     else:
                         factCompNbr = busItems["UKCompaniesHouseRegisteredNumber"].value
                         for compRefNbr, contextIds in companyReferenceNumberContexts.items():
                             if compRefNbr != factCompNbr:
                                 modelXbrl.error("HMRC.16.2",
-                                    "Context entity identifier (%(entityIdentifier)s) does not match Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(contextID)s).",
+                                    _("Context entity identifier (%(entityIdentifier)s) does not match Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(contextID)s)."),
                                     modelObject=modelXbrl, entityIdentifier=compRefNbr, contextID=",".join(contextIds))
