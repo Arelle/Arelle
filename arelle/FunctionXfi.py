@@ -178,13 +178,19 @@ def identifier_value(xc, p, args):
     return parent_child(args, "identifier", "strip-text()")
 
 def identifier_scheme(xc, p, args):
-    return parent_child(args, "identifier", "@scheme")
+    scheme = parent_child(args, "identifier", "@scheme")
+    if scheme is None:
+        return None
+    return anyURI(scheme)
 
 def fact_identifier_value(xc, p, args):
     return XmlUtil.text(item_context_element(xc, args, "identifier")).strip()
 
 def fact_identifier_scheme(xc, p, args):
-    return item_context_element(xc, args, "identifier").get("scheme")
+    scheme = item_context_element(xc, args, "identifier").get("scheme")
+    if scheme is None:
+        return None
+    return anyURI(scheme)
 
 def segment(xc, p, args):
     return item_context_element(xc, args, "segment")
