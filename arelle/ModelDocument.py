@@ -221,7 +221,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
     if Xml:
         import io
         file = io.StringIO(Xml)
-        _parser = parser(modelXbrl,filepath)
+        _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         file.close()
     else:
@@ -233,6 +233,8 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         modelDocument = ModelDocument(modelXbrl, type, normalizedUri, filepath, xmlDocument)
     if Xml:
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
+        modelDocument.parserLookupName = _parserLookupName
+        modelDocument.parserLookupClass = _parserLookupClass
         rootNode = xmlDocument.getroot()
         rootNode.init(modelDocument)
         if xmlDocument:
