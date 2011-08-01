@@ -54,7 +54,7 @@ def evaluate(xpCtx, varSet):
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel)
         xpCtx.variableSet = None
     except XPathContext.XPathException as err:
-        xpCtx.modelXbrl.info("formula:trace",
+        xpCtx.modelXbrl.error(err.code,
                  _("Variable set %(xlinkLabel)s \nException: %(error)s"), 
                  modelObject=varSet, xlinkLabel=varSet.xlinkLabel, error=err.message)
         xpCtx.variableSet = None
@@ -105,7 +105,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
                 if result: varSet.countSatisfied += 1
                 else: varSet.countNotSatisfied += 1
                 msg = varSet.message(result)
-                if msg:
+                if msg is not None:
                     xpCtx.modelXbrl.info("message:" + varSet.id,
                         msg.evaluate(xpCtx),
                         modelObject=varSet)
