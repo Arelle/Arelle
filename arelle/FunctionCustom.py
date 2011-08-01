@@ -19,7 +19,7 @@ class fnFunctionNotAvailable(Exception):
 def call(xc, p, qname, contextItem, args):
     try:
         cfSig = xc.modelXbrl.modelCustomFunctionSignatures[qname]
-        if cfSig is not None and cfSig.customFunctionImplementation:
+        if cfSig is not None and cfSig.customFunctionImplementation is not None:
             return callCfi(xc, p, qname, cfSig, contextItem, args)
         elif qname not in customFunctions: 
             raise fnFunctionNotAvailable

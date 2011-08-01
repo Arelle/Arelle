@@ -782,5 +782,5 @@ def checkValidationMessageVariables(val, modelVariableSet, varNames):
             for msgVarQname in message.variableRefs():
                 if msgVarQname not in varNames and msgVarQname not in varSetVars:
                     val.modelXbrl.error("err:XPST0008",
-                        _("Undefined variable dependency in message %(xlinkLabel), %(name)s"),
+                        _("Undefined variable dependency in message %(xlinkLabel)s, %(name)s"),
                         modelObject=message, xlinkLabel=message.xlinkLabel, name=msgVarQname)
