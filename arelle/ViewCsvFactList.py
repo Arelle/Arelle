@@ -30,7 +30,8 @@ class ViewFacts(ViewCsv.View):
                                      _("Unrecognized columns: %(cols)s"),
                                      modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
             if "Period" in self.cols:
-                self.cols[self.cols.index("Period")] = ["Start", "End/Instant"]
+                i = self.cols.index("Period")
+                self.cols[i:i] = ["Start", "End/Instant"]
         else:
             self.cols = ("Label","contextRef","unitRef","Dec","Prec","Lang","Value")
         col0 = self.cols[0]
@@ -56,18 +57,18 @@ class ViewFacts(ViewCsv.View):
     def viewFacts(self, modelFacts, indent):
         for modelFact in modelFacts:
             concept = modelFact.concept
-            if concept and self.isCol0Label:
+            if concept is not None and self.isCol0Label:
                 lbl = concept.label(lang=self.lang)
             else:
                 lbl = modelFact.qname
             cols = indent + [lbl]
             for i in range(self.treeCols - len(cols)):
                 cols.append(None)
-            if concept and not modelFact.concept.isTuple:
+            if concept is not None and not modelFact.concept.isTuple:
                 for col in self.cols[1:]:
-                    if col == "contextID":
+                    if col == "contextRef":
                         cols.append( modelFact.contextID )
-                    elif col == "unitID":
+                    elif col == "unitRef":
                         cols.append( modelFact.unitID )
                     elif col == "Dec":
                         cols.append( modelFact.decimals )
@@ -82,12 +83,12 @@ class ViewFacts(ViewCsv.View):
                     elif col == "EntityIdentifier":
                         cols.append( modelFact.context.entityIdentifier[1] )
                     elif col == "Start":
-                        cols.append( XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, "startDate") )
+                        cols.append( XmlUtil.text(XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, "startDate")) )
                     elif col == "End/Instant":
-                        cols.append( XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, ("endDate","instant")) )
+                        cols.append( XmlUtil.text(XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, ("endDate","instant"))) )
                     elif col == "Dimensions":
                         for dimQname in sorted(modelFact.context.qnameDims.keys()):
                             cols.append( str(dimQname) )
-                            cols.append( str(modelFact.context.qnameDims[dimQname]) )
+                            cols.append( str(modelFact.context.dimMemberQname(dimQname)) )
             self.write(cols)
             self.viewFacts(modelFact.modelTupleFacts, indent + [None])
