@@ -227,7 +227,9 @@ tableFilter = "http://xbrl.org/arcrole/2011/table-filter"
 qnTableTable = qname("{http://xbrl.org/2011/table}table:table")
 qnTableExplicitAxis = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxis")
 qnTableExplicitAxisMember = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxisMember")
+qnTableFilterAxis = qname("{http://xbrl.org/2011/axis/filter}filaxis:filterAxis")
 explicitAxisMember = "http://xbrl.org/arcrole/2011/axis/explicit-axis-member"
+axisFilter = "http://xbrl.org/arcrole/2011/axis/axis-filter"
 
 errMsgPrefixNS = {
     "err": xpath2err,
@@ -394,7 +396,7 @@ def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
 def isTableRenderingArcrole(arcrole):
-    return arcrole in (euTableAxis, euAxisMember, tableAxis, tableFilter, explicitAxisMember)
+    return arcrole in (euTableAxis, euAxisMember, tableAxis, tableFilter, explicitAxisMember, axisFilter)
    
 def isFormulaArcrole(arcrole):
     return arcrole in {"http://xbrl.org/arcrole/2008/assertion-set",
