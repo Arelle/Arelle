@@ -11,11 +11,16 @@ from arelle import UrlUtil, XmlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 
-def load(modelManager, url, nextaction, base=None):
+def load(modelManager, url, nextaction, base=None, useFileSource=None):
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager)
-    if isinstance(url,FileSource.FileSource):
+    if useFileSource is not None:
+        modelXbrl.fileSource = useFileSource
+        modelXbrl.closeFileSource = False
+        url = url
+    elif isinstance(url,FileSource.FileSource):
         modelXbrl.fileSource = url
+        modelXbrl.closeFileSource= True
         url = modelXbrl.fileSource.url
     else:
         modelXbrl.fileSource = FileSource.FileSource(url)
@@ -97,7 +102,7 @@ class ModelXbrl:
         self.closeViews()
         if self.formulaOutputInstance:
             self.formulaOutputInstance.close()
-        if hasattr(self,"fileSource"):
+        if hasattr(self,"fileSource") and self.closeFileSource:
             self.fileSource.close()
         modelDocument = self.modelDocument if hasattr(self,"modelDocument") else None
         self.__dict__.clear() # dereference everything before closing document

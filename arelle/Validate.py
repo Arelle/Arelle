@@ -34,6 +34,10 @@ class Validate:
         else:
             self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
             self.formulaValidator = self.instValidator
+        if hasattr(modelXbrl,"fileSource"):
+            self.useFileSource = modelXbrl.fileSource
+        else:
+            self.useFileSource = None
             
     def close(self):
         self.instValidator.close(reusable=False)
@@ -124,7 +128,8 @@ class Validate:
                         modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    readMeFirstUri,
                                                    _("validating"), 
-                                                   base=baseForElement)
+                                                   base=baseForElement,
+                                                   useFileSource=self.useFileSource)
                     if modelXbrl.modelDocument is None:
                         self.modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),

@@ -10,6 +10,7 @@ from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
+from arelle.XmlValidate import VALID
 from lxml import etree
 
 class XPathException(Exception):
@@ -425,6 +426,12 @@ class XPathContext:
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
                     attrTag = p.localName if p.unprefixed else p.clarkNotation
+                    try:
+                        xValid, xValue, sValue = node.xAttributes[attrTag]
+                        if xValid == VALID:
+                            return xValue
+                    except (AttributeError, TypeError, IndexError):
+                        pass
                     if node.get(attrTag) is not None:
                         targetNodes.append(node.get(attrTag))
                 elif op == '/' or op is None:
@@ -486,6 +493,11 @@ class XPathContext:
             if e is not None:
                 if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
                     return []
+                try:
+                    if e.xValid == VALID:
+                        return e.xValue
+                except AttributeError:
+                    pass
                 modelXbrl = x.modelDocument.modelXbrl
                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                 if modelConcept is not None:
