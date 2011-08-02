@@ -78,7 +78,7 @@ class ModelExplicitAxisMember(ModelRenderingResource):
     def abstract(self):
         if self.localName == "explicitAxis":
             return 'false'
-        elif self.get("presentation") == 'false':
+        elif self.get("presentation") == 'true':
             return 'true'
         return 'false'
     
@@ -128,4 +128,5 @@ elementSubstitutionModelClass.update((
     (XbrlConst.qnEuAxisCoord, ModelAxisCoord),
     (XbrlConst.qnTableExplicitAxis, ModelExplicitAxisMember),
     (XbrlConst.qnTableExplicitAxisMember, ModelExplicitAxisMember),
+    (XbrlConst.qnTableFilterAxis, ModelExplicitAxisMember),
      ))
