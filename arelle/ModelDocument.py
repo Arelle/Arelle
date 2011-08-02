@@ -624,6 +624,7 @@ class ModelDocument:
         self.schemaLinkbaseRefsDiscover(xbrlElement)
         self.linkbaseDiscover(xbrlElement,inInstance=True) # for role/arcroleRefs and footnoteLinks
         self.instanceContentsDiscover(xbrlElement)
+        XmlValidate.validate(self.modelXbrl, xbrlElement) # validate instance elements
 
     def instanceContentsDiscover(self,xbrlElement):
         for instElement in xbrlElement.iterchildren():
@@ -650,7 +651,7 @@ class ModelDocument:
                 for sElt in containerElement.iterchildren():
                     if isinstance(sElt,ModelObject):
                         if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
-                            XmlValidate.validate(self.modelXbrl, sElt)
+                            #XmlValidate.validate(self.modelXbrl, sElt)
                             dimension = sElt.dimension
                             if dimension is not None and dimension not in containerDimValues:
                                 containerDimValues[dimension] = sElt

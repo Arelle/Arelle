@@ -5,15 +5,17 @@ Created on Feb 20, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
-import xml.dom.minidom, os
+import xml.dom.minidom, os, re
 from arelle import (XbrlConst, XmlUtil)
-from arelle.ModelValue import (qname, dateTime, DATE, DATETIME)
+from arelle.ModelValue import (qname, dateTime, DATE, DATETIME, DATEUNION, anyURI)
 
 UNKNOWN = 0
 INVALID = 1
 NONE = 2
 VALID = 3
 VALID_ID = 4
+
+normalizeWhitespacePattern = re.compile(r"\s+")
 
 def xmlValidate(entryModelDocument):
     # test of schema validation using lxml (trial experiment, commented out for production use)
@@ -114,13 +116,22 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value):
             elif baseXsdType == "QName":
                 xValue = qname(elt, value, castException=ValueError)
                 sValue = value
-            elif baseXsdType in ("normalizedString","token","language","NMTOKEN","Name","NCName","IDREF","ENTITY"):
+            elif baseXsdType == "normalizedString":
                 xValue = value.strip()
+                sValue = value
+            elif baseXsdType in ("token","language","NMTOKEN","Name","NCName","IDREF","ENTITY"):
+                xValue = normalizeWhitespacePattern.sub(' ', value.strip())
+                sValue = value
+            elif baseXsdType == "anyURI":
+                xValue = anyURI(value.strip())
                 sValue = value
             elif baseXsdType == "ID":
                 xValue = value.strip()
                 sValue = value
                 xValid = VALID_ID
+            elif baseXsdType == "XBRLI_DATEUNION":
+                xValue = dateTime(value, type=DATEUNION, castException=ValueError)
+                sValue = value
             elif baseXsdType == "dateTime":
                 xValue = dateTime(value, type=DATETIME, castException=ValueError)
                 sValue = value
