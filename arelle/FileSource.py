@@ -148,23 +148,29 @@ class FileSource:
     
     def fileSourceContainingFilepath(self, filepath):
         if self.isOpen:
-            archiveFiles = self.dir
+            # archiveFiles = self.dir
+            ''' change to return file source if archive would be in there (vs actually is in archive)
             if ((filepath.startswith(self.basefile) and 
                  filepath[len(self.basefile) + 1:] in archiveFiles) or
                 (filepath.startswith(self.baseurl) and 
                  filepath[len(self.baseurl) + 1:] in archiveFiles)):
+                return self
+            '''
+            if (filepath.startswith(self.basefile) or
+                filepath.startswith(self.baseurl)):
                 return self
         referencedFileParts = archiveFilenameParts(filepath)
         if referencedFileParts is not None:
             referencedArchiveFile, referencedSelection = referencedFileParts
             if referencedArchiveFile in self.referencedFileSources:
                 referencedFileSource = self.referencedFileSources[referencedArchiveFile]
-            else:
+                if referencedFileSource.isInArchive(filepath):
+                    return referencedFileSource
+            elif (not self.isOpen or 
+                  (referencedArchiveFile != self.basefile and referencedArchiveFile != self.baseurl)):
                 referencedFileSource = openFileSource(filepath, self.cntlr)
                 if referencedFileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
-            if referencedFileSource.isInArchive(filepath):
-                return referencedFileSource
         return None
     
     def file(self,filepath):
