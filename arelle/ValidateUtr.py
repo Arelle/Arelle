@@ -129,8 +129,8 @@ class ValidateUtr:
                 if concept is not None:
                     if concept.isNumeric:
                         unit = f.unit
+                        bConstrained = False
                         if f.unitID != None and unit != None:  # Would have failed XBRL validation otherwise
-                            bConstrained = False
                             bSatisfied = True
                             type = concept.type
                             while type != None:
