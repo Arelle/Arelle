@@ -69,14 +69,17 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         if modelConcept is not None:
             baseXsdType = modelConcept.baseXsdType
+            isNillable = modelConcept.isNillable
             if len(text) == 0 and modelConcept.default is not None:
                 text = modelConcept.default
         elif qnElt == XbrlConst.qnXbrldiExplicitMember: # not in DTS
             baseXsdType = "QName"
+            isNillable = False
         else:
             baseXsdType = None
+            isNillable = False
         if attrQname is None:
-            validateValue(modelXbrl, elt, None, baseXsdType, text)
+            validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable)
         if not hasattr(elt, "xAttributes"):
             elt.xAttributes = {}
         # validate attributes
@@ -99,14 +102,16 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
         for child in elt.getchildren():
             validate(modelXbrl, child)
 
-def validateValue(modelXbrl, elt, attrTag, baseXsdType, value):
+def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False):
     if baseXsdType:
         try:
+            if len(value) == 0 and not isNillable and baseXsdType != "anyType":
+                raise ValueError("missing value for not nillable element")
             xValid = VALID
             if baseXsdType in ("decimal", "float", "double"):
-                xValue = sValue = float(value)
+                xValue = sValue = float(value) if value else None
             elif baseXsdType in ("integer",):
-                xValue = sValue = int(value)
+                xValue = sValue = int(value) if value else None
             elif baseXsdType == "boolean":
                 if value in ("true", "1"):  
                     xValue = sValue = True
@@ -129,6 +134,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value):
                 xValue = value.strip()
                 sValue = value
                 xValid = VALID_ID
+            elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
+                xValue = value if value == "INF" else int(value)
+                sValue = value
             elif baseXsdType == "XBRLI_DATEUNION":
                 xValue = dateTime(value, type=DATEUNION, castException=ValueError)
                 sValue = value
