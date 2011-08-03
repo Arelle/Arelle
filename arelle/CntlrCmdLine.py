@@ -137,7 +137,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         CmdLineLogHandler(self) # start logger
 
         self.filename = options.filename
-        filesource = FileSource.FileSource(self.filename,self)
+        filesource = FileSource.openFileSource(self.filename,self)
         if options.validateEFM:
             if options.gfmName:
                 self.addToLog(_("[info] both --efm and --gfm validation are requested, proceeding with --efm only"))
