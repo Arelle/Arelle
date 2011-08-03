@@ -298,6 +298,19 @@ def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name)
                     return child
     return None
 
+def schemaBaseTypeDerivedFrom(element):
+    for child in element.iterchildren():
+        if child.tag in ("{http://www.w3.org/2001/XMLSchema}extension","{http://www.w3.org/2001/XMLSchema}restriction"):
+            return child.get("base") 
+        elif child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
+                           "{http://www.w3.org/2001/XMLSchema}simpleType",
+                           "{http://www.w3.org/2001/XMLSchema}complexContent",
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent"):
+            qn = schemaBaseTypeDerivedFrom(child)
+            if qn is not None:
+                return qn
+    return None
+
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
 def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None):

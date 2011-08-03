@@ -176,9 +176,10 @@ class ModelConcept(ModelSchemaObject):
         try:
             return self._baseXsdAttrType[attrName]
         except KeyError:
-            if self.type is None:
-                pass
-            attrType = self.type.baseXsdAttrType(attrName)
+            if self.type is not None:
+                attrType = self.type.baseXsdAttrType(attrName)
+            else:
+                attrType = "anyType"
             self._baseXsdAttrType[attrName] = attrType
             return attrType
     
@@ -279,6 +280,10 @@ class ModelConcept(ModelSchemaObject):
     @property
     def nillable(self):
         return self.get("nillable") if self.get("nillable") else 'false'
+    
+    @property
+    def isNillable(self):
+        return self.get("nillable") == 'true'
         
     @property
     def block(self):
@@ -516,7 +521,7 @@ class ModelType(ModelSchemaObject):
     
     @property
     def qnameDerivedFrom(self):
-        return self.prefixedNameQname(XmlUtil.descendantAttr(self, XbrlConst.xsd, ("extension","restriction"), "base"))
+        return self.prefixedNameQname(XmlUtil.schemaBaseTypeDerivedFrom(self))
     
     @property
     def typeDerivedFrom(self):
@@ -532,6 +537,10 @@ class ModelType(ModelSchemaObject):
         except AttributeError:
             if self.qname == XbrlConst.qnXbrliDateUnion:
                 return "XBRLI_DATEUNION"
+            elif self.qname == XbrlConst.qnXbrliDecimalsUnion:
+                return "XBRLI_DECIMALSUNION"
+            elif self.qname == XbrlConst.qnXbrliPrecisionUnion:
+                return "XBRLI_PRECISIONUNION"
             qnameDerivedFrom = self.qnameDerivedFrom
             if qnameDerivedFrom is None:
                 self._baseXsdType =  "anyType"
