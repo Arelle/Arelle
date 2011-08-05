@@ -10,7 +10,7 @@ from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
-from arelle.XmlValidate import VALID
+from arelle.XmlValidate import UNKNOWN, VALID
 from lxml import etree
 
 class XPathException(Exception):
@@ -426,14 +426,17 @@ class XPathContext:
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
                     attrTag = p.localName if p.unprefixed else p.clarkNotation
+                    xValid = UNKNOWN
                     try:
                         xValid, xValue, sValue = node.xAttributes[attrTag]
                         if xValid == VALID:
-                            return xValue
-                    except (AttributeError, TypeError, IndexError):
+                            targetNodes.append(xValue)
+                    except (AttributeError, TypeError, IndexError, KeyError):
                         pass
-                    if node.get(attrTag) is not None:
-                        targetNodes.append(node.get(attrTag))
+                    if xValid == UNKNOWN:
+                        value = node.get(attrTag)
+                        if value is not None:
+                            targetNodes.append(value)
                 elif op == '/' or op is None:
                     targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
