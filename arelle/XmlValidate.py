@@ -105,7 +105,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
 def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False):
     if baseXsdType:
         try:
-            if len(value) == 0 and not isNillable and baseXsdType != "anyType":
+            if len(value) == 0 and not isNillable and baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN"):
                 raise ValueError("missing value for not nillable element")
             xValid = VALID
             if baseXsdType in ("decimal", "float", "double"):
