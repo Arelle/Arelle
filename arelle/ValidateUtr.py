@@ -49,7 +49,7 @@ def MeasureQName(node): # Return the qame of the content of the measure element
 
 def UnitSatisfies(aRegEntry, unit, modelXbrl): # Return true if entry is satisfied by unit
     # aRegEntry is [unitId, nsUnit, nsNumeratorItemType, numeratorItemType, nsDenominatorItemType, denominatorItemType]
-    if aRegEntry[1] != None: # Entry requires a measure
+    if aRegEntry[1]: # Entry requires a measure
         if unit.measures[1] != [] or len(unit.measures[0])>1:
             return False # and only one measure
         else:
@@ -158,5 +158,5 @@ class ValidateUtr:
             # end for
             for fact in aInvalidUnits:
                 modelXbrl.error("utr:invalid",
-                                _("Unit %(unitID)s disallowed on fact of type %(typeName)s"),
-                                modelObject=fact, unitID=fact.unitID, typeName=fact.concept.type.name)
+                                _("Unit %(unitID)s disallowed on fact %(element)s of type %(typeName)s"),
+                                modelObject=fact, unitID=fact.unitID, element=fact.qname, typeName=fact.concept.type.name)
