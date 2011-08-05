@@ -24,6 +24,7 @@ def load(modelManager, url, nextaction, base=None, useFileSource=None):
         url = modelXbrl.fileSource.url
     else:
         modelXbrl.fileSource = FileSource.FileSource(url)
+        modelXbrl.closeFileSource= True
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
     del modelXbrl.entryLoadingUrl
     if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
@@ -50,6 +51,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
         modelXbrl.fileSource = FileSource.FileSource(url)
+        modelXbrl.closeFileSource= True
         if createModelDocument:
             modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, url, schemaRefs=schemaRefs, isEntry=isEntry)
     return modelXbrl
