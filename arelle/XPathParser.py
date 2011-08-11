@@ -337,7 +337,7 @@ ltGeneralOp = Literal("<")
 geGeneralOp = Literal(">=")
 gtGeneralOp = Literal(">")
 eqGeneralOp = Literal("=")
-generalCompOp = neGeneralOp | ltGeneralOp | leGeneralOp | gtGeneralOp | geGeneralOp | eqGeneralOp
+generalCompOp = neGeneralOp | leGeneralOp | ltGeneralOp | geGeneralOp | gtGeneralOp | eqGeneralOp
 comparisonOp = ( nodeCompOp | valueCompOp | generalCompOp ).setParseAction(pushOp)
 toOp = Keyword("to").setParseAction(pushOp)
 plusOp  = Literal("+")
