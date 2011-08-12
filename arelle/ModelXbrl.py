@@ -73,6 +73,7 @@ class ModelXbrl:
         self.roleTypes = defaultdict(list)
         self.qnameConcepts = {} # contains ModelConcepts by Py key {ns}}localname of schema elements
         self.qnameAttributes = {}
+        self.qnameAttributeGroups = {}
         self.nameConcepts = defaultdict(list) # contains ModelConcepts by name 
         self.qnameTypes = {} # contains ModelTypes by Py key {ns}localname of type
         self.baseSets = defaultdict(list) # contains ModelLinks for keys arcrole, arcrole#linkrole

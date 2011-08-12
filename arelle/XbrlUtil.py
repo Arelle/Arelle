@@ -79,6 +79,7 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
     if not hasattr(elt,"xValid"):
         XmlValidate.validate(modelXbrl, elt)
     attrs = {}
+    # TBD: replace with validated attributes
     for attrTag, attrValue in elt.items():
         ns, sep, localName = attrTag.partition('}')
         attrNsURI = ns[1:] if sep else None

@@ -63,41 +63,60 @@ def xmlValidate(entryModelDocument):
                     modelDocument=instDoc)
 
 def validate(modelXbrl, elt, recurse=True, attrQname=None):
+    # attrQname can be provided for attributes that are global and LAX
     if not hasattr(elt,"xValid"):
         text = XmlUtil.text(elt)
         qnElt = qname(elt)
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         if modelConcept is not None:
+            type = modelConcept.type
             baseXsdType = modelConcept.baseXsdType
             isNillable = modelConcept.isNillable
             if len(text) == 0 and modelConcept.default is not None:
                 text = modelConcept.default
         elif qnElt == XbrlConst.qnXbrldiExplicitMember: # not in DTS
             baseXsdType = "QName"
+            type = None
             isNillable = False
         else:
             baseXsdType = None
+            type = None
             isNillable = False
         if attrQname is None:
             validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable)
+            if type is not None:
+                definedAttributes = type.attributes
+            presentAttributes = set()
         if not hasattr(elt, "xAttributes"):
             elt.xAttributes = {}
         # validate attributes
         # find missing attributes for default values
         for attrTag, attrValue in elt.items():
             qn = qname(attrTag)
-            if attrQname and attrQname != qn:
-                continue
             baseXsdAttrType = None
-            if modelConcept is not None:
-                baseXsdAttrType = modelConcept.baseXsdAttrType(qn)
-            if baseXsdAttrType is None:
+            if attrQname is not None: # validate all attributes and element
+                if attrQname != qn:
+                    continue
+            elif type is not None:
+                presentAttributes.add(qn)
+                if qn in definedAttributes: # look for concept-type-specific attribute definition
+                    baseXsdAttrType = definedAttributes[qn].baseXsdType
+            if baseXsdAttrType is None: # look for global attribute definition
                 attrObject = modelXbrl.qnameAttributes.get(qn)
                 if attrObject is not None:
                     baseXsdAttrType = attrObject.baseXsdType
-                elif attrTag == "{http://xbrl.org/2006/xbrldi}dimension":
+                elif attrTag == "{http://xbrl.org/2006/xbrldi}dimension": # some fallbacks?
                     baseXsdAttrType = "QName"
             validateValue(modelXbrl, elt, attrTag, baseXsdAttrType, attrValue)
+        if type is not None and attrQname is None:
+            missingAttributes = type.requiredAttributeQnames - presentAttributes
+            if missingAttributes:
+                modelXbrl.error("xmlSchema:attributesRequired",
+                    _("Element %(element)s type %(typeName)s missing required attributes: %(attributes)s"),
+                    modelObject=elt,
+                    element=elt.elementQname,
+                    typeName=baseXsdType,
+                    attributes=','.join(str(a) for a in missingAttributes))
     if recurse:
         for child in elt.getchildren():
             validate(modelXbrl, child)
@@ -108,10 +127,27 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False)
             if len(value) == 0 and not isNillable and baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN"):
                 raise ValueError("missing value for not nillable element")
             xValid = VALID
-            if baseXsdType in ("decimal", "float", "double"):
-                xValue = sValue = float(value) if value else None
+            if baseXsdType == "string":
+                xValue = sValue = value
+            elif baseXsdType == "normalizedString":
+                xValue = value.strip()
+                sValue = value
+            elif baseXsdType in ("token","language","NMTOKEN","Name","NCName","IDREF","ENTITY"):
+                xValue = normalizeWhitespacePattern.sub(' ', value.strip())
+                sValue = value
+            elif baseXsdType == "ID":
+                xValue = value.strip()
+                sValue = value
+                xValid = VALID_ID
+            elif baseXsdType == "anyURI":
+                xValue = anyURI(value.strip())
+                sValue = value
+            elif not value: # rest of types get None if nil/empty value
+                xValue = sValue = None
+            elif baseXsdType in ("decimal", "float", "double"):
+                xValue = sValue = float(value)
             elif baseXsdType in ("integer",):
-                xValue = sValue = int(value) if value else None
+                xValue = sValue = int(value)
             elif baseXsdType == "boolean":
                 if value in ("true", "1"):  
                     xValue = sValue = True
@@ -121,19 +157,6 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False)
             elif baseXsdType == "QName":
                 xValue = qname(elt, value, castException=ValueError)
                 sValue = value
-            elif baseXsdType == "normalizedString":
-                xValue = value.strip()
-                sValue = value
-            elif baseXsdType in ("token","language","NMTOKEN","Name","NCName","IDREF","ENTITY"):
-                xValue = normalizeWhitespacePattern.sub(' ', value.strip())
-                sValue = value
-            elif baseXsdType == "anyURI":
-                xValue = anyURI(value.strip())
-                sValue = value
-            elif baseXsdType == "ID":
-                xValue = value.strip()
-                sValue = value
-                xValid = VALID_ID
             elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
                 xValue = value if value == "INF" else int(value)
                 sValue = value

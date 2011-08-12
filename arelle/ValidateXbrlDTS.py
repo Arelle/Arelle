@@ -376,6 +376,15 @@ def checkElements(val, modelDocument, parent):
                         val.modelXbrl.error("xbrl.5.6.1:Redefine",
                             "Redefine is not allowed",
                             modelObject=elt)
+                    if elt.localName in {"attribute", "element", "attributeGroup"}:
+                        ref = elt.get("ref")
+                        if ref is not None:
+                            if qname(elt, ref) not in {"attribute":val.modelXbrl.qnameAttributes, 
+                                                       "element":val.modelXbrl.qnameConcepts, 
+                                                       "attributeGroup":val.modelXbrl.qnameAttributeGroups}[elt.localName]:
+                                val.modelXbrl.error("xmlschema:refNotFound",
+                                    _("%(element)s ref %(ref)s not found"),
+                                    modelObject=elt, element=elt.localName, ref=ref)
                     if elt.localName == "appinfo":
                         if val.validateSBRNL:
                             if (parent.localName != "annotation" or parent.namespaceURI != XbrlConst.xsd or

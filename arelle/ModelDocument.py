@@ -248,6 +248,8 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)
     elif type == Type.SCHEMA:
         modelDocument.targetNamespace = None
+        modelDocument.isQualifiedElementFormDefault = False
+        modelDocument.isQualifiedAttributeFormDefault = False
     return modelDocument
 
     
@@ -387,6 +389,8 @@ class ModelDocument:
         if targetNamespace == XbrlConst.xbrldt:
             # BUG: should not set this if obtained from schemaLocation instead of import (but may be later imported)
             self.modelXbrl.hasXDT = True
+        self.isQualifiedElementFormDefault = rootElement.get("elementFormDefault") == "qualified"
+        self.isQualifiedAttributeFormDefault = rootElement.get("attributeFormDefault") == "qualified"
         try:
             self.schemaImportElements(rootElement)
             if self.inDTS:
@@ -608,7 +612,7 @@ class ModelDocument:
                 doc = self
             else:
                 # href discovery only can happein within a DTS
-                doc = load(self.modelXbrl, url, isDiscovered=True, base=self.baseForElement(element), referringElement=element)
+                doc = load(self.modelXbrl, url, isDiscovered=not nonDTS, base=self.baseForElement(element), referringElement=element)
                 if not nonDTS and doc is not None and self.referencesDocument.get(doc) is None:
                     self.referencesDocument[doc] = "href"
                     if not doc.inDTS and doc.type != Type.Unknown:    # non-XBRL document is not in DTS
