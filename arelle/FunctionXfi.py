@@ -551,7 +551,7 @@ def fact_has_explicit_dimension(xc, p, args):
 
 def fact_has_typed_dimension(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    dimValue = fact_dim_value(xc, p, args, "Explicit")
+    dimValue = fact_dim_value(xc, p, args, "Typed")
     return dimValue is not None and not isinstance(dimValue,QName) and dimValue.isTyped
 
 def fact_explicit_dimension_value_value(xc, p, args):
@@ -813,7 +813,7 @@ def element_name(xc, p, args, elementParent=False):
     modelRel = anytypeArg(xc, args, 0, "arelle:ModelRelationship", None)
     if modelRel is None: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
     element = modelRel.arcElement
-    if elementParent is not None: element = element.getparent()
+    if elementParent: element = element.getparent()
     return qname(element)
 
 def relationship_name(xc, p, args):
