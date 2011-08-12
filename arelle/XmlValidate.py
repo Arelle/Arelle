@@ -12,7 +12,7 @@ from arelle.ModelValue import (qname, dateTime, DATE, DATETIME, DATEUNION, anyUR
 UNKNOWN = 0
 INVALID = 1
 NONE = 2
-VALID = 3
+VALID = 3 # values >= VALID are valid
 VALID_ID = 4
 
 normalizeWhitespacePattern = re.compile(r"\s+")
