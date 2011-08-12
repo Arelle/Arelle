@@ -336,7 +336,7 @@ def checkDTS(val, modelDocument, visited):
                         definesLinkroles = True
 
         # 6.7.13 arcrole types authority
-        for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xlink}arcroleType"):
+        for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}arcroleType"):
             if isinstance(e,ModelObject):
                 arcroleURI = e.get("arcroleURI")
                 if targetNamespaceAuthority != UrlUtil.authority(arcroleURI):
