@@ -311,6 +311,23 @@ def schemaBaseTypeDerivedFrom(element):
                 return qn
     return None
 
+def schemaAttributesGroups(element, attributes=None, attributeGroups=None):
+    if attributes is None: attributes = []; attributeGroups = []
+    for child in element.iterchildren():
+        if child.tag == "{http://www.w3.org/2001/XMLSchema}attribute":
+            attributes.append(child) 
+        elif child.tag == "{http://www.w3.org/2001/XMLSchema}attributeGroup":
+            attributeGroups.append(child) 
+        elif child.tag in {"{http://www.w3.org/2001/XMLSchema}complexType",
+                           "{http://www.w3.org/2001/XMLSchema}simpleType",
+                           "{http://www.w3.org/2001/XMLSchema}complexContent",
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent",
+                           "{http://www.w3.org/2001/XMLSchema}restriction",
+                           "{http://www.w3.org/2001/XMLSchema}extension"
+                           }:
+            schemaAttributesGroups(child, attributes=attributes, attributeGroups=attributeGroups)
+    return (attributes, attributeGroups)
+
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
 def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None):

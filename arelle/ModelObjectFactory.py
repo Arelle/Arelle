@@ -12,7 +12,7 @@ elementSubstitutionModelClass = {}
 from lxml import etree
 from arelle import XbrlConst
 from arelle.ModelValue import qname
-from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelType, ModelEnumeration,
+from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType, ModelEnumeration,
                                    ModelRoleType, ModelLocator, ModelLink)
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
@@ -49,6 +49,8 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelConcept
                 elif ln == "attribute":
                     return ModelAttribute
+                elif ln == "attributeGroup":
+                    return ModelAttributeGroup
                 elif ln == "complexType" or ln == "simpleType":
                     return ModelType
                 elif ln == "enumeration":

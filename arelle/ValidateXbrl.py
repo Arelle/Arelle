@@ -480,11 +480,11 @@ class ValidateXbrl:
                         modelObject=concept, concept=concept.qname)
                 if conceptType is not None:
                     # check attribute declarations
-                    for attributeQname in conceptType.attributes:
-                        if attributeQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
+                    for attribute in conceptType.attributes.values():
+                        if attribute.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
                             self.modelXbrl.error("xbrl.4.9:tupleAttribute",
                                 _("Tuple %(concept)s must not have attribute in this namespace %(attribute)s"),
-                                modelObject=concept, concept=concept.qname, attribute=attributeQname)
+                                modelObject=concept, concept=concept.qname, attribute=attribute.qname)
                     # check for mixed="true" or simple content
                     if XmlUtil.descendantAttr(conceptType, XbrlConst.xsd, ("complexType", "complexContent"), "mixed") == "true":
                         self.modelXbrl.error("xbrl.4.9:tupleMixedContent",
