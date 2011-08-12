@@ -429,7 +429,7 @@ class XPathContext:
                     xValid = UNKNOWN
                     try:
                         xValid, xValue, sValue = node.xAttributes[attrTag]
-                        if xValid == VALID:
+                        if xValid >= VALID:
                             targetNodes.append(xValue)
                     except (AttributeError, TypeError, IndexError, KeyError):
                         pass
@@ -497,7 +497,7 @@ class XPathContext:
                 if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
                     return []
                 try:
-                    if e.xValid == VALID:
+                    if e.xValid >= VALID:
                         return e.xValue
                 except AttributeError:
                     pass

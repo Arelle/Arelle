@@ -130,10 +130,10 @@ def typedValue(dts, element, attrQname=None):
     try:
         if attrQname: # PSVI attribute value
             valid, xValue, sValue = element.xAttributes[attrQname.clarkNotation]
-            if valid == XmlValidate.VALID:
+            if valid >= XmlValidate.VALID:
                 return xValue
         else: # PSVI element value (of text)
-            if element.xValid == XmlValidate.VALID:
+            if element.xValid >= XmlValidate.VALID:
                 return element.xValue
     except (AttributeError, KeyError):
         if dts:
