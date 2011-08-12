@@ -10,7 +10,7 @@ from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
-from arelle.XmlValidate import UNKNOWN, VALID
+from arelle.XmlValidate import UNKNOWN, VALID, validate
 from lxml import etree
 
 class XPathException(Exception):
@@ -432,7 +432,14 @@ class XPathContext:
                         if xValid >= VALID:
                             targetNodes.append(xValue)
                     except (AttributeError, TypeError, IndexError, KeyError):
-                        pass
+                        # may be lax or deferred validated
+                        try:
+                            validate(node.modelXbrl, node, p)
+                            xValid, xValue, sValue = node.xAttributes[attrTag]
+                            if xValid >= VALID:
+                                targetNodes.append(xValue)
+                        except (AttributeError, TypeError, IndexError, KeyError):
+                            pass
                     if xValid == UNKNOWN:
                         value = node.get(attrTag)
                         if value is not None:

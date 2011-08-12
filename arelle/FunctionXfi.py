@@ -11,6 +11,7 @@ from arelle.ModelValue import (qname, QName, dateTime, DATE, DATETIME, DATEUNION
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.ModelDtsObject import anonymousTypeSuffix
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
+from arelle.XmlValidate import UNKNOWN, VALID, validate
 from math import (isnan,isinf)
 
 class xfiFunctionNotAvailable(Exception):
@@ -798,9 +799,26 @@ def element_attribute(xc, p, args, elementParent=False):
     if qnAttr is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = modelRel.arcElement
     if elementParent: element = element.getparent()
-    if element.get(qnAttr.clarkNotation) is None:
-        return ()
-    return xc.atomize(p, element.get(qnAttr.clarkNotation))
+    attrTag = qnAttr.clarkNotation
+    xValid = UNKNOWN
+    try:
+        xValid, xValue, sValue = element.xAttributes[attrTag]
+        if xValid >= VALID:
+            return xValue
+    except (AttributeError, TypeError, IndexError, KeyError):
+        # may be lax or deferred validated
+        try:
+            validate(element.modelXbrl, element, qnAttr)
+            xValid, xValue, sValue = element.xAttributes[attrTag]
+            if xValid >= VALID:
+                return xValue
+        except (AttributeError, TypeError, IndexError, KeyError):
+            pass
+    if xValid == UNKNOWN:
+        value = element.get(attrTag)
+        if value is not None:
+            return value
+    return ()
    
 def relationship_attribute(xc, p, args):
     return element_attribute(xc, p, args)
