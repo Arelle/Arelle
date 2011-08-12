@@ -244,14 +244,6 @@ class ModelInlineFact(ModelFact):
         return self.prefixedNameQname(self.get("name")) if self.get("name") else None
 
     @property
-    def contextID(self):
-        return self.get("contextRef")
-
-    @property
-    def unitID(self):
-        return self.get("unitRef")
-
-    @property
     def sign(self):
         return self.get("sign")
     
