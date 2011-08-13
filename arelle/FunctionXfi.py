@@ -46,6 +46,7 @@ def item_context_element(xc, args, name):
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
 def context(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return item_context(xc, args)
 
 def unit(xc, p, args):
