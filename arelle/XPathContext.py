@@ -570,7 +570,6 @@ class XPathContext:
         return [e for h,e in sorted(l, key=lambda h: h[0])]
     
     def modelItem(self, x):
-        modelItem = None
         if isinstance(x, (ModelFact, ModelInlineFact)) and x.isItem:
             return x
         return None
