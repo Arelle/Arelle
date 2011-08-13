@@ -219,17 +219,19 @@ def infer_precision_decimals(xc, p, args, attrName):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:item")
     modelItem = xc.modelItem(args[0][0])
-    if modelItem is not None: 
-        modelConcept = modelItem.concept
-        if modelConcept.isNumeric:
-            if modelConcept.isFraction: return 'INF'
-            from arelle.ValidateXbrlCalcs import (inferredDecimals,inferredPrecision)
-            p = inferredPrecision(modelItem) if attrName == "precision" else inferredDecimals(modelItem)
-            if isinf(p):
-                return 'INF'
-            if isnan(p):
-                raise XPathContext.XPathException(p, 'xfie:ItemIsNotNumeric', _('Argument 1 {0} is not inferrable.').format(attrName))
-            return p
+    if modelItem is None: 
+        raise XPathContext.FunctionArgType(1,"xbrl:item")
+    modelConcept = modelItem.concept
+    if modelConcept.isFraction: 
+        return 'INF'
+    if modelConcept.isNumeric:
+        from arelle.ValidateXbrlCalcs import (inferredDecimals,inferredPrecision)
+        p = inferredPrecision(modelItem) if attrName == "precision" else inferredDecimals(modelItem)
+        if isinf(p):
+            return 'INF'
+        if isnan(p):
+            raise XPathContext.XPathException(p, 'xfie:ItemIsNotNumeric', _('Argument 1 {0} is not inferrable.').format(attrName))
+        return p
     raise XPathContext.XPathException(p, 'xfie:ItemIsNotNumeric', _('Argument 1 is not reported with {0}.').format(attrName))
 
 def numeric(xc, p, args):

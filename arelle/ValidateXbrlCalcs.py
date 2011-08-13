@@ -276,6 +276,8 @@ def inferredPrecision(fact):
                 p = (len(nonZeroInt) if nonZeroInt and (len(nonZeroInt)) > 0 else -len(zeroDec)) + \
                     (int(exp) if exp and (len(exp) > 0) else 0) + \
                     (int(dStr))
+                if p < 0:
+                    p = 0 # "pathological case" 2.1 spec example 13 line 7
             else:
                 p = 0
         else:
