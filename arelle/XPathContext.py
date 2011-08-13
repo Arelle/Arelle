@@ -543,7 +543,7 @@ class XPathContext:
     
     def effectiveBooleanValue(self, p, x):
         from arelle.FunctionFn import boolean
-        return boolean( self, p, None, (self.atomize( p, x ),) )
+        return boolean( self, p, None, (self.flattenSequence(x),) )
 
     # flatten into a sequence
     def flattenSequence(self, x, sequence=None):
