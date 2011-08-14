@@ -9,6 +9,7 @@ import xml.dom.minidom, os, re
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI
 from arelle.ModelObject import ModelAttribute
+from arelle import UrlUtil
 
 UNKNOWN = 0
 INVALID = 1
@@ -18,50 +19,73 @@ VALID_ID = 4
 
 normalizeWhitespacePattern = re.compile(r"\s+")
 
-def xmlValidate(entryModelDocument):
+def schemaValidate(modelXbrl):
+    class schemaResolver(etree.Resolver):
+        def resolve(self, url, id, context): 
+            if url.startswith("file:///__"):
+                url = importedFilepaths[int(url[10:])]
+            filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(url)
+            return self.resolve_filename(filepath, context)
+          
+    entryDocument = modelXbrl.modelDocument
     # test of schema validation using lxml (trial experiment, commented out for production use)
-    modelXbrl = entryModelDocument.modelXbrl
     from arelle import ModelDocument
     imports = []
     importedNamespaces = set()
-    for modelDocument in modelXbrl.urlDocs.values():
-        if (modelDocument.type == ModelDocument.Type.SCHEMA and 
-            modelDocument.targetNamespace not in importedNamespaces):
-            imports.append('<xsd:import namespace="{0}" schemaLocation="{1}"/>'.format(
-                modelDocument.targetNamespace, modelDocument.filepath.replace("\\","/")))
-            importedNamespaces.add(modelDocument.targetNamespace)
-    if entryModelDocument.xmlRootElement.get(XbrlConst.xsi, "schemaLocation") is not None:
+    importedFilepaths = []
+    for mdlSchemaDoc in entryDocument.referencesDocument.keys():
+        if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and 
+            mdlSchemaDoc.targetNamespace not in importedNamespaces):
+            # actual file won't pass through properly, fake with table reference
+            imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
+                mdlSchemaDoc.targetNamespace, len(importedFilepaths)))
+            importedNamespaces.add(mdlSchemaDoc.targetNamespace)
+            importedFilepaths.append(mdlSchemaDoc.filepath)
+    # add schemas used in xml validation but not DTS discovered
+    schemaLocation = entryDocument.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
+    if schemaLocation:
         ns = None
-        for entry in entryModelDocument.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation").split():
+        for entry in schemaLocation.split():
             if ns is None:
                 ns = entry
             else:
                 if ns not in importedNamespaces:
-                    imports.append('<xsd:import namespace="{0}" schemaLocation="{1}"/>'.format(
-                        ns, entry))
+                    imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
+                        ns, len(importedFilepaths)))
                     importedNamespaces.add(ns)
+                    importedFilepaths.append(entry)
                 ns = None
-    schema_root = etree.XML(
-        '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">{0}</xsd:schema>'.format(
-        ''.join(imports))
-        )
+    schemaXml = '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">{0}</xsd:schema>'.format(
+                   ''.join(imports))
+    modelXbrl.modelManager.showStatus(_("lxml validator loading xml schema"))
+    schema_root = etree.XML(schemaXml)
     import time
     startedAt = time.time()
-    schema = etree.XMLSchema(schema_root)
+    parser = etree.XMLParser()
+    parser.resolvers.add(schemaResolver())
+    schemaDoc = etree.fromstring(schemaXml, parser=parser, base_url=entryDocument.filepath+"-dummy-import.xsd")
+    schema = etree.XMLSchema(schemaDoc)
     from arelle.Locale import format_string
-    modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
-                                        _("schema loaded in %.2f secs"), 
+    modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
+                                 _("schema loaded in %.2f secs"), 
                                         time.time() - startedAt))
-    startedAt = time.time()
-    instDoc = etree.parse(entryModelDocument.filepath)
-    modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
-                                        _("instance parsed in %.2f secs"), 
-                                        time.time() - startedAt))
-    if not schema.validate(instDoc):
-        for error in schema.error_log:
-            modelXbrl.error("xmlschema:error",
-                    str(error),
-                    modelDocument=instDoc)
+    modelXbrl.modelManager.showStatus(_("lxml schema validating"))
+    # check instance documents and linkbases (sort for inst doc before linkbases, and in file name order)
+    for mdlDoc in sorted(modelXbrl.urlDocs.values(), key=lambda mdlDoc: (-mdlDoc.type, mdlDoc.filepath)):
+        if mdlDoc.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.LINKBASE):
+            startedAt = time.time()
+            docXmlTree = etree.parse(mdlDoc.filepath)
+            modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
+                                                _("schema validated in %.3f secs"), 
+                                                time.time() - startedAt),
+                                                modelDocument=mdlDoc)
+            if not schema.validate(docXmlTree):
+                for error in schema.error_log:
+                    modelXbrl.error("lxmlSchema:{0}".format(error.type_name.lower()),
+                            error.message,
+                            modelDocument=mdlDoc,
+                            sourceLine=error.line)
+    modelXbrl.modelManager.showStatus(_("lxml validation done"), clearAfter=3000)
 
 def validate(modelXbrl, elt, recurse=True, attrQname=None):
     # attrQname can be provided for attributes that are global and LAX
@@ -152,6 +176,8 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False)
             elif baseXsdType == "anyURI":
                 xValue = anyURI(value.strip())
                 sValue = value
+                if not UrlUtil.isValid(xValue):
+                    raise ValueError("invalid anyURI value")
             elif not value: # rest of types get None if nil/empty value
                 xValue = sValue = None
             elif baseXsdType in ("decimal", "float", "double"):

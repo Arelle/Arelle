@@ -95,6 +95,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         validateMenu = Menu(self.menubar, tearoff=0)
         toolsMenu.add_cascade(label=_("Validation"), menu=validateMenu, underline=0)
         validateMenu.add_command(label=_("Validate"), underline=0, command=self.validate)
+        validateMenu.add_command(label=_("Schema validate (experimental)"), underline=0, command=self.schemaValidate)
         self.modelManager.validateDisclosureSystem = self.config.setdefault("validateDisclosureSystem",False)
         self.validateDisclosureSystem = BooleanVar(value=self.modelManager.validateDisclosureSystem)
         self.validateDisclosureSystem.trace("w", self.setValidateDisclosureSystem)
@@ -643,6 +644,16 @@ class CntlrWinMain (Cntlr.Cntlr):
             
         self.uiThreadQueue.put((self.logSelect, []))
 
+    def schemaValidate(self):
+        if self.modelManager.modelXbrl:
+            thread = threading.Thread(target=lambda: self.backgroundSchemaValidate())
+            thread.daemon = True
+            thread.start()
+            
+    def backgroundSchemaValidate(self):
+        from arelle.XmlValidate import schemaValidate
+        schemaValidate(self.modelManager.modelXbrl)
+        self.uiThreadQueue.put((self.logSelect, []))
 
     def compareDTSes(self):
         countLoadedDTSes = len(self.modelManager.loadedModelXbrls)
