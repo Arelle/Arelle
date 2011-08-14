@@ -6,8 +6,9 @@ Created on Feb 20, 2011
 '''
 from lxml import etree
 import xml.dom.minidom, os, re
-from arelle import (XbrlConst, XmlUtil)
-from arelle.ModelValue import (qname, dateTime, DATE, DATETIME, DATEUNION, anyURI)
+from arelle import XbrlConst, XmlUtil
+from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI
+from arelle.ModelObject import ModelAttribute
 
 UNKNOWN = 0
 INVALID = 1
@@ -107,6 +108,15 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                     baseXsdAttrType = attrObject.baseXsdType
                 elif attrTag == "{http://xbrl.org/2006/xbrldi}dimension": # some fallbacks?
                     baseXsdAttrType = "QName"
+                elif attrTag == "id":
+                    baseXsdAttrType = "ID"
+                elif elt.namespaceURI == "http://www.w3.org/2001/XMLSchema":
+                    if attrTag in ("type", "ref", "base", "refer", "itemType"):
+                        baseXsdAttrType = "QName"
+                    elif attrTag in ("name"):
+                        baseXsdAttrType = "NCName"
+                    elif attrTag in ("default", "fixed", "form"):
+                        baseXsdAttrType = "string"
             validateValue(modelXbrl, elt, attrTag, baseXsdAttrType, attrValue)
         if type is not None and attrQname is None:
             missingAttributes = type.requiredAttributeQnames - presentAttributes
@@ -195,7 +205,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False)
         xValue = sValue = None
         xValid = UNKNOWN
     if attrTag:
-        elt.xAttributes[attrTag] = (xValid, xValue, sValue)
+        elt.xAttributes[attrTag] = ModelAttribute(elt, attrTag, xValid, xValue, sValue, value)
     else:
         elt.xValid = xValid
         elt.xValue = xValue

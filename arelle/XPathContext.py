@@ -7,7 +7,7 @@ Created on Dec 30, 2010
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                           exceptionErrorIndication)
 from arelle import (ModelXbrl, XbrlConst, XmlUtil)
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
 from arelle.XmlValidate import UNKNOWN, VALID, validate
@@ -419,37 +419,38 @@ class XPathContext:
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,(ModelObject, etree._ElementTree)):
+            if not isinstance(node,(ModelObject, etree._ElementTree, ModelAttribute)):
                 raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
             if isinstance(p,QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
                     attrTag = p.localName if p.unprefixed else p.clarkNotation
-                    xValid = UNKNOWN
+                    modelAttribute = None
                     try:
-                        xValid, xValue, sValue = node.xAttributes[attrTag]
-                        if xValid >= VALID:
-                            targetNodes.append(xValue)
+                        modelAttribute = node.xAttributes[attrTag]
                     except (AttributeError, TypeError, IndexError, KeyError):
                         # may be lax or deferred validated
                         try:
                             validate(node.modelXbrl, node, p)
-                            xValid, xValue, sValue = node.xAttributes[attrTag]
-                            if xValid >= VALID:
-                                targetNodes.append(xValue)
+                            modelAttribute = node.xAttributes[attrTag]
                         except (AttributeError, TypeError, IndexError, KeyError):
                             pass
-                    if xValid == UNKNOWN:
+                    if modelAttribute is None:
                         value = node.get(attrTag)
                         if value is not None:
-                            targetNodes.append(value)
+                            targetNodes.append(ModelAttribute(node,p.clarkNotation,UNKNOWN,value,value,value))
+                    elif modelAttribute.xValid >= VALID:
+                            targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
                     targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
                     targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
-                    targetNodes = [ XmlUtil.parent(node) ]
+                    if isinstance(node,ModelAttribute):
+                        targetNodes = [ node.modelElement ]
+                    else:
+                        targetNodes = [ XmlUtil.parent(node) ]
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
                 if p.name.localName == "text":
                     targetNodes = [XmlUtil.text(node)]
@@ -497,6 +498,8 @@ class XPathContext:
             baseXsdType = x.concept.baseXsdType
             v = x.value # resolves default value
             e = x
+        elif isinstance(x, ModelAttribute): # ModelAttribute is a tuple (below), check this first!
+            return x.xValue
         else:
             if isinstance(x, ModelObject):
                 e = x
@@ -564,6 +567,8 @@ class XPathContext:
         for e in x:
             if isinstance(e,ModelObject):
                 h = e.sourceline
+            elif isinstance(e,ModelAttribute):
+                h = e.modelElement.sourceline
             else:
                 h = 0
             l.add((h,e))

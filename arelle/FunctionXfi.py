@@ -6,7 +6,7 @@ Created on Dec 20, 2010
 '''
 import xml.dom
 from arelle import (XPathContext, XbrlConst, XbrlUtil, XmlUtil)
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, QName, dateTime, DATE, DATETIME, DATEUNION, anyURI)
 from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.ModelDtsObject import anonymousTypeSuffix
@@ -249,8 +249,8 @@ def conceptProperty(xc, p, args, property):
     if qn:
         modelConcept = xc.modelXbrl.qnameConcepts.get(qn)
         if modelConcept is not None:
-            if property == "numeric": return modelConcept.isNumeric
-            if property == "non-numeric": return not modelConcept.isNumeric
+            if property == "numeric": return modelConcept.isNumeric or modelConcept.isFraction
+            if property == "non-numeric": return not (modelConcept.isNumeric or modelConcept.isFraction)
             if property == "fraction": return modelConcept.isFraction
     return False
 
@@ -803,24 +803,22 @@ def element_attribute(xc, p, args, elementParent=False):
     element = modelRel.arcElement
     if elementParent: element = element.getparent()
     attrTag = qnAttr.clarkNotation
-    xValid = UNKNOWN
+    modelAttribute = None
     try:
-        xValid, xValue, sValue = element.xAttributes[attrTag]
-        if xValid >= VALID:
-            return xValue
+        modelAttribute = element.xAttributes[attrTag]
     except (AttributeError, TypeError, IndexError, KeyError):
         # may be lax or deferred validated
         try:
             validate(element.modelXbrl, element, qnAttr)
-            xValid, xValue, sValue = element.xAttributes[attrTag]
-            if xValid >= VALID:
-                return xValue
+            modelAttribute = element.xAttributes[attrTag]
         except (AttributeError, TypeError, IndexError, KeyError):
             pass
-    if xValid == UNKNOWN:
+    if modelAttribute is None:
         value = element.get(attrTag)
         if value is not None:
             return value
+    elif modelAttribute.xValid >= VALID:
+        return modelAttribute.xValue
     return ()
    
 def relationship_attribute(xc, p, args):
