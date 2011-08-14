@@ -263,6 +263,8 @@ class ModelXbrl:
                 else:
                     extras["href"] = file
                     extras["sourceLine"] = ""
+            elif argName == "sourceLine":
+                extras["sourceLine"] = argValue
             elif argName != "exc_info":
                 if isinstance(argValue, (ModelValue.QName, ModelObject)):
                     fmtArgs[argName] = str(argValue)
