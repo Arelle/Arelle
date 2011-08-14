@@ -68,6 +68,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     return QName(prefix, namespaceURI, localName)
 
 class QName:
+    __slots__ = ("prefix", "namespaceURI", "localName", "hash")
     def __init__(self,prefix,namespaceURI,localName):
         self.prefix = prefix
         self.namespaceURI = namespaceURI
