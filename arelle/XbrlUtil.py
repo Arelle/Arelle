@@ -6,7 +6,7 @@ Created on Nov 26, 2010
 '''
 import xml.dom.minidom
 from arelle import (ModelValue, XbrlConst, XmlUtil, XmlValidate)
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelAttribute
 
 S_EQUAL = 0 # ordinary S-equality from 2.1 spec
 S_EQUAL2 = 1 # XDT definition adds QName comparisions
@@ -17,6 +17,15 @@ def nodesCorrespond(dts1, elt1, elt2, dts2=None):
         return elt2 is None #both can be empty sequences (no element) and true
     elif elt2 is None:
         return False
+    # can accept either modelElements or modelAttributes
+    if isinstance(elt1,ModelAttribute):
+        if isinstance(elt2,ModelAttribute):
+            return elt1.attrTag == elt2.attrTag and elt1.xValue == elt2.xValue
+        else:
+            return False
+    elif isinstance(elt2,ModelAttribute):
+        return False
+    # sEqual only accepts modelElements
     return sEqual(dts1, elt1, elt2, equalMode=XPATH_EQ, dts2=dts2, excludeIDs=True)
 
 # dts1 is modelXbrl for first element
@@ -94,10 +103,10 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
             else:
                 qname = ModelValue.QName(None, None, attrTag)
             try:
-                xValid, xValue, sValue = elt.xAttributes[attrTag]
-                if excludeIDs and xValid == XmlValidate.VALID_ID:
+                modelAttribute = elt.xAttributes[attrTag]
+                if excludeIDs and modelAttribute.xValid == XmlValidate.VALID_ID:
                     continue
-                attrs[qname] = sValue if equalMode == S_EQUAL2 else xValue
+                attrs[qname] = modelAttribute.sValue if equalMode == S_EQUAL2 else modelAttribute.xValue
             except KeyError:
                 pass  # what should be done if attribute failed to have psvi value
     return attrs
@@ -129,9 +138,9 @@ def vEqual(elt1, elt2):
 def typedValue(dts, element, attrQname=None):
     try:
         if attrQname: # PSVI attribute value
-            valid, xValue, sValue = element.xAttributes[attrQname.clarkNotation]
-            if valid >= XmlValidate.VALID:
-                return xValue
+            modelAttribute = element.xAttributes[attrQname.clarkNotation]
+            if modelAttribute.xValid >= XmlValidate.VALID:
+                return modelAttribute.xValue
         else: # PSVI element value (of text)
             if element.xValid >= XmlValidate.VALID:
                 return element.xValue

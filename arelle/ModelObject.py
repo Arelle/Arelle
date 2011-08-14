@@ -6,6 +6,7 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
+from collections import namedtuple
 
 class ModelObject(etree.ElementBase):
     
@@ -210,6 +211,14 @@ class ModelComment(etree.CommentBase):
 class ModelProcessingInstruction(etree.PIBase):
     def _init(self):
         pass
-            
-            
+
+class ModelAttribute:
+    __slots__ = ("modelElement", "attrTag", "xValid", "xValue", "sValue", "text")
+    def __init__(self, modelElement, attrTag, xValid, xValue, sValue, text):
+        self.modelElement = modelElement
+        self.attrTag = attrTag
+        self.xValid = xValid
+        self.xValue = xValue
+        self.sValue = sValue
+        self.text = text
 

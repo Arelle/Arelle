@@ -6,7 +6,7 @@ Created on Dec 31, 2010
 '''
 import xml.dom, datetime
 from arelle import (ModelValue, XmlUtil)
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XPathContext import (XPathException, FunctionArgType)
 
 def anytypeArg(xc, args, i, type, missingArgFallback=None):
@@ -28,7 +28,7 @@ def atomicArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
 def stringArg(xc, args, i, type, missingArgFallback=None, emptyFallback=''):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
-    if isinstance(item, ModelObject):
+    if isinstance(item, (ModelObject,ModelAttribute)):
         return item.text
     return str(item)
 
@@ -55,7 +55,7 @@ def qnameArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
 def nodeArg(xc, args, i, type, missingArgFallback=None, emptyFallback=None):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
-    if not isinstance(item, ModelObject): raise FunctionArgType(i,type)
+    if not isinstance(item, (ModelObject,ModelAttribute)): raise FunctionArgType(i,type)
     return item
 
 def testTypeCompatiblity(xc, p, op, a1, a2):
