@@ -541,15 +541,17 @@ class ModelAttributeGroup(ModelSchemaObject):
         except AttributeError:
             self._attributes = {}
             attrs, attrGroups = XmlUtil.schemaAttributesGroups(self)
-            for attrGroup in attrGroups:
-                for attr in attrGroup.dereference().attributes:
-                    attr = attr.dereference()
-                    if attr:
-                        self._attributes[attr.qname] = attr
-            for attr in attrs:
-                attr = attr.dereference()
-                if attr:
-                    self._attributes[attr.qname] = attr
+            for attrGroupRef in attrGroups:
+                attrGroupDecl = attrGroupRef.dereference()
+                if attrGroupDecl is not None:
+                    for attrRef in attrGroupDecl.attributes.values():
+                        attrDecl = attrRef.dereference()
+                        if attrDecl is not None:
+                            self._attributes[attrDecl.qname] = attrDecl
+            for attrRef in attrs:
+                attrDecl = attrRef.dereference()
+                if attrDecl is not None:
+                    self._attributes[attrDecl.qname] = attrDecl
             return self._attributes
         
     def dereference(self):
@@ -676,13 +678,17 @@ class ModelType(ModelSchemaObject):
         except AttributeError:
             self._attributes = {}
             attrs, attrGroups = XmlUtil.schemaAttributesGroups(self)
-            for attr in attrs:
-                attr = attr.dereference()
-                if attr is not None:
-                    self._attributes[attr.qname] = attr
-            for attrGroup in attrGroups:
-                for attr in attrGroup.attributes:
-                    self._attributes[attr.qname] = attr
+            for attrRef in attrs:
+                attrDecl = attrRef.dereference()
+                if attrDecl is not None:
+                    self._attributes[attrDecl.qname] = attrDecl
+            for attrGroupRef in attrGroups:
+                attrGroupDecl = attrGroupRef.dereference()
+                if attrGroupDecl is not None:
+                    for attrRef in attrGroupDecl.attributes.values():
+                        attrDecl = attrRef.dereference()
+                        if attrDecl is not None:
+                            self._attributes[attrDecl.qname] = attrDecl
             return self._attributes
 
     @property
