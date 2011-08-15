@@ -228,7 +228,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
-        WinMainLogHandler(self.logView) # start logger
+        WinMainLogHandler(self) # start logger
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
         logViewMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logViewMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
@@ -1047,9 +1047,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                             parent=self.parent)
 
 class WinMainLogHandler(logging.Handler):
-    def __init__(self, logView):
+    def __init__(self, cntlr):
         super().__init__()
-        self.logView = logView
+        self.cntlr = cntlr
         self.level = logging.DEBUG
         #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
         formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
@@ -1061,7 +1061,7 @@ class WinMainLogHandler(logging.Handler):
          # add to logView        
         msg = self.format(logRecord)        
         try:            
-            self.logView.append(msg)
+            self.cntlr.addToLog(msg)
         except:
             pass
 
