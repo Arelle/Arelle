@@ -449,7 +449,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         else:
                             toLabel = toResources[key]
                             toText = XmlUtil.innerText(toLabel)
-                            if not XbrlUtil.sEqual(self.fromDTS, label, toLabel, excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI):
+                            if not XbrlUtil.sEqual(self.fromDTS, label, toLabel, excludeIDs=XbrlUtil.ALL_IDs_EXCLUDED, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI):
                                 action = self.createConceptEvent(verce, event + "Change", fromConcept, toConcept, action, fromResource=label, toResource=toResources[key], fromResourceText=fromText, toResourceText=toText)
                     for key,label in toResources.items():
                         toText = XmlUtil.innerText(label)
@@ -801,7 +801,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             toTypedDomain = toDimConcept.typedDomainElement
             isCorresponding = (fromTypedDomain is not None and toTypedDomain is not None and
                                XbrlUtil.sEqual(self.fromDTS, fromTypedDomain, toTypedDomain, 
-                                              excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI))
+                                              excludeIDs=XbrlUtil.ALL_IDs_EXCLUDED, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI))
             self.typedDomainsCorrespond[fromDimConcept, toDimConcept] = isCorresponding
             return isCorresponding
 

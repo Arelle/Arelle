@@ -12,6 +12,10 @@ S_EQUAL = 0 # ordinary S-equality from 2.1 spec
 S_EQUAL2 = 1 # XDT definition adds QName comparisions
 XPATH_EQ = 2 # XPath EQ on all types
 
+NO_IDs_EXCLUDED = 0
+ALL_IDs_EXCLUDED = 1
+TOP_IDs_EXCLUDED = 2 # only ancestor IDs are excluded
+
 def nodesCorrespond(dts1, elt1, elt2, dts2=None):
     if elt1 is None:
         return elt2 is None #both can be empty sequences (no element) and true
@@ -26,13 +30,13 @@ def nodesCorrespond(dts1, elt1, elt2, dts2=None):
     elif isinstance(elt2,ModelAttribute):
         return False
     # sEqual only accepts modelElements
-    return sEqual(dts1, elt1, elt2, equalMode=XPATH_EQ, dts2=dts2, excludeIDs=True)
+    return sEqual(dts1, elt1, elt2, equalMode=XPATH_EQ, dts2=dts2, excludeIDs=ALL_IDs_EXCLUDED)
 
 # dts1 is modelXbrl for first element
 # dts2 is for second element assumed same unless dts2 and ns2 to ns1 maping table provided
 #   (as used in versioning reports and multi instance
 
-def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=False):
+def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED):
     if isinstance(elt, ModelObject):
         try:
             if equalMode == S_EQUAL:
@@ -58,7 +62,7 @@ def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=False):
     else:
         return hash(None)
 
-def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=False, dts2=None, ns2ns1Tbl=None):
+def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, dts2=None, ns2ns1Tbl=None):
     if dts2 is None: dts2 = dts1
     if elt1.localName != elt2.localName:
         return False
@@ -79,12 +83,13 @@ def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=False, dts2=None, ns2
     children2 = childElements(elt2)
     if len(children1) != len(children2):
         return False
+    excludeChildIDs = excludeIDs if excludeIDs != TOP_IDs_EXCLUDED else NO_IDs_EXCLUDED
     for i in range( len(children1) ):
-        if not sEqual(dts1, children1[i], children2[i], equalMode, excludeIDs, dts2, ns2ns1Tbl):
+        if not sEqual(dts1, children1[i], children2[i], equalMode, excludeChildIDs, dts2, ns2ns1Tbl):
             return False
     return True
 
-def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeIDs=False, ns2ns1Tbl=None, keyByTag=False):
+def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, ns2ns1Tbl=None, keyByTag=False):
     if not hasattr(elt,"xValid"):
         XmlValidate.validate(modelXbrl, elt)
     attrs = {}

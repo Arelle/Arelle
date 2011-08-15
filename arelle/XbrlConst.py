@@ -8,6 +8,7 @@ xsi = "http://www.w3.org/2001/XMLSchema-instance"
 qnXsiNil = qname(xsi,"xsi:nil") # need default prefix in qname
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
+qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
 qnXbrliItem = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
 qnXbrliTuple = qname("{http://www.xbrl.org/2003/instance}xbrli:tuple")
 qnXbrliContext = qname("{http://www.xbrl.org/2003/instance}xbrli:context")

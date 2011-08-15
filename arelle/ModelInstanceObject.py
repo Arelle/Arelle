@@ -7,7 +7,8 @@ Refactored from ModelObject on Jun 11, 2011
 '''
 from collections import defaultdict
 from lxml import etree
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
+from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
+from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
 from arelle.ModelObject import ModelObject
 
 class ModelFact(ModelObject):
@@ -198,7 +199,11 @@ class ModelFact(ModelObject):
             if other.concept.isNumeric:
                 if not self.unit.isEqualTo(other.unit):
                     return False
-                return float(self.value) == float(other.value)
+                if self.modelXbrl.modelManager.validateInferDecimals:
+                    d = min((inferredDecimals(self), inferredDecimals(other))); p = None
+                else:
+                    d = None; p = min((inferredPrecision(self), inferredPrecision(other)))
+                return roundValue(float(self.value),precision=p,decimals=d) == roundValue(float(other.value),precision=p,decimals=d)
             else:
                 return False
         selfValue = self.value
