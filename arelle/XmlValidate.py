@@ -42,19 +42,21 @@ def schemaValidate(modelXbrl):
             importedNamespaces.add(mdlSchemaDoc.targetNamespace)
             importedFilepaths.append(mdlSchemaDoc.filepath)
     # add schemas used in xml validation but not DTS discovered
-    schemaLocation = entryDocument.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
-    if schemaLocation:
-        ns = None
-        for entry in schemaLocation.split():
-            if ns is None:
-                ns = entry
-            else:
-                if ns not in importedNamespaces:
-                    imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
-                        ns, len(importedFilepaths)))
-                    importedNamespaces.add(ns)
-                    importedFilepaths.append(entry)
+    for mdlDoc in modelXbrl.urlDocs.values():
+        if mdlDoc.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.LINKBASE):
+            schemaLocation = mdlDoc.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
+            if schemaLocation:
                 ns = None
+                for entry in schemaLocation.split():
+                    if ns is None:
+                        ns = entry
+                    else:
+                        if ns not in importedNamespaces:
+                            imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
+                                ns, len(importedFilepaths)))
+                            importedNamespaces.add(ns)
+                            importedFilepaths.append(entry)
+                        ns = None
     schemaXml = '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">{0}</xsd:schema>'.format(
                    ''.join(imports))
     modelXbrl.modelManager.showStatus(_("lxml validator loading xml schema"))
