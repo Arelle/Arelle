@@ -14,11 +14,15 @@ class Cntlr:
     def __init__(self):
         self.hasWin32gui = False
         if sys.platform == "darwin":
+            self.isMac = True
+            self.isMSW = False
             self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = True
             self.updateURL = "http://arelle.org/downloads/8"
         elif sys.platform.startswith("win"):
+            self.isMac = False
+            self.isMSW = True
             tempDir = tempfile.gettempdir()
             if tempDir.endswith('local\\temp'):
                 self.userAppDir = tempDir[:-10] + 'local\\Arelle'
@@ -40,6 +44,8 @@ class Cntlr:
             else: # 32 bit
                 self.updateURL = "http://arelle.org/downloads/10"
         else: # Unix/Linux
+            self.isMac = False
+            self.isMSW = False
             self.userAppDir = os.path.join(
                    os.getenv('XDG_CONFIG_HOME', os.path.expanduser("~/.config")),
                    "arelle")

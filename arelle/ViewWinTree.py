@@ -22,7 +22,10 @@ class ViewTree:
         self.treeView.tag_configure("ELR", background="#E0F0FF")
         self.treeView.tag_configure("even", background="#F0F0F0")
         self.treeView.tag_configure("odd", background="#FFFFFF")
-        highlightColor = "#%04x%04x%04x" % self.treeView.winfo_rgb("SystemHighlight")
+        if modelXbrl.modelManager.cntlr.isMac or modelXbrl.modelManager.cntlr.isMSW:
+            highlightColor = "#%04x%04x%04x" % self.treeView.winfo_rgb("SystemHighlight")
+        else:
+            highlightColor = "#33339999ffff"  # using MSW value for Unix/Linux which has no named colors
         self.treeView.tag_configure("selected-ELR", background=highlightColor)
         self.treeView.tag_configure("selected-even", background=highlightColor)
         self.treeView.tag_configure("selected-odd", background=highlightColor)

@@ -50,8 +50,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         
         imgpath = self.imagesDir + os.sep
 
-        self.isMac = sys.platform == "darwin"
-        self.isMSW = sys.platform.startswith("win")
         if self.isMSW:
             icon = imgpath + "arelle.ico"
             parent.iconbitmap(icon, default=icon)
