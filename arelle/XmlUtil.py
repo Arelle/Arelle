@@ -102,7 +102,11 @@ def prefixedNameToClarkNotation(element, prefixedName):
 
 def encoding(xml):
     if isinstance(xml,bytes):
-        str = xml[0:80].decode("latin-1")
+        s = xml[0:120]
+        if b"x\0m\0l" in s:
+            str = s.decode("utf-16")
+        else:
+            str = s.decode("latin-1")
     else:
         str = xml[0:80]
     match = xmlEncodingPattern.match(str)
