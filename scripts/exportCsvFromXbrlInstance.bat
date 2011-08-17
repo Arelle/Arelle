@@ -16,3 +16,5 @@ rem @set ARELLE=c:\python32\python -marelle.CntlrCmdLine
 rem @set PYTHONPATH=..
 
 %ARELLE% --file "%INSTANCEFILE%" --csvFactCols "Label unitRef Dec Value EntityScheme EntityIdentifier Period Dimensions" --csvFacts "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1
+
+rem %ARELLE% --file "%INSTANCEFILE%" --csvPre "%XBRLINSTANCEROOT%\converted-pre.csv" 1>  "%OUTPUTLOGFILE%" 2>&1
