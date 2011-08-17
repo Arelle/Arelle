@@ -197,11 +197,11 @@ def checkDTS(val, modelDocument, visited):
                             _('%(docType)s xml version must be "1.0" but is "%(xmlVersion)s"'),
                             modelObject=modelDocument, docType=modelDocument.gettype().title(), 
                             xmlVersion=docinfo.xml_version)
-                if docinfo.encoding.lower() != "utf-8":
+                if modelDocument.documentEncoding.lower() != "utf-8":
                     val.modelXbrl.error("SBR.NL.2.2.0.03" if isSchema else "SBR.NL.2.3.0.03",
                             _('%(docType)s encoding must be "utf-8" but is "%(xmlEncoding)s"'),
                             modelObject=modelDocument, docType=modelDocument.gettype().title(), 
-                            xmlEncoding=docinfo.encoding)
+                            xmlEncoding=modelDocument.documentEncoding)
                 lookingForPrecedingComment = True
                 for commentNode in modelDocument.xmlRootElement.itersiblings(preceding=True):
                     if isinstance(commentNode,etree._Comment):
@@ -260,7 +260,7 @@ def checkElements(val, modelDocument, parent):
             parent.get("http-equiv").lower() == "content-type":
                 val.metaContentTypeEncoding = HtmlUtil.attrValue(parent.get("content"), "charset")
         elif isinstance(parent,etree._ElementTree): # documentNode
-            val.documentTypeEncoding = parent.docinfo.encoding
+            val.documentTypeEncoding = modelDocument.documentEncoding # parent.docinfo.encoding
             val.metaContentTypeEncoding = ""
 
     instanceOrder = 0
