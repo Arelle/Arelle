@@ -13,11 +13,11 @@ class ModelRssObject(ModelDocument):
                  type=Type.RSSFEED, 
                  uri=None, filepath=None, xmlDocument=None):
         super().__init__(modelXbrl, type, uri, filepath, xmlDocument)
-        self.items = []
+        self.rssItems = []
         
     def rssFeedDiscover(self, rootElement):
         # add self to namespaced document
         self.xmlRootElement = rootElement
         for itemElt in XmlUtil.descendants(rootElement, None, "item"):
-            self.items.append(itemElt)
+            self.rssItems.append(itemElt)
             
