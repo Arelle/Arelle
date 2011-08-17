@@ -263,7 +263,7 @@ def conceptProperty(xc, p, args, property):
         modelConcept = xc.modelXbrl.qnameConcepts.get(qn)
         if modelConcept is not None:
             if property == "numeric": return modelConcept.isNumeric or modelConcept.isFraction
-            if property == "non-numeric": return not (modelConcept.isNumeric or modelConcept.isFraction)
+            if property == "non-numeric": return modelConcept.isItem and not (modelConcept.isNumeric or modelConcept.isFraction)
             if property == "fraction": return modelConcept.isFraction
     return False
 
@@ -356,7 +356,14 @@ def s_equal(xc, p, args):
     return nodesEqual(xc, args, s_equal_test)
 
 def s_equal_test(node1, node2):
-    if isinstance(node1, ModelObject):
+    if (isinstance(node1, (ModelFact, ModelInlineFact)) and node1.isItem and
+        isinstance(node2, (ModelFact, ModelInlineFact)) and node2.isItem):
+        return (c_equal_test(node1, node2) and u_equal_test(node1, node2) and
+                XbrlUtil.xEqual(node1, node2) and 
+                # must be validated (by xEqual) before precision tests to assure xAttributes is set
+                node1.xAttributes.get("precision") == node2.xAttributes.get("precision") and
+                node1.xAttributes.get("decimals") == node2.xAttributes.get("decimals"))
+    elif isinstance(node1, ModelObject):
         if isinstance(node2, ModelObject):
             return XbrlUtil.sEqual(node1.modelXbrl, node1, node2, excludeIDs=XbrlUtil.TOP_IDs_EXCLUDED, dts2=node2.modelXbrl)
         else:
@@ -564,9 +571,7 @@ def concept_custom_attribute(xc, p, args):
     qnAttr = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
     if qnAttr is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = concept(xc,p,args)
-    if element.get(qnAttr.clarkNotation) is None:
-        return ()
-    return xc.atomize(p, element.get(qnAttr.clarkNotation))
+    return element_attribute(element, qnAttr)
 
 def concept_data_type(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -715,7 +720,7 @@ def fact_typed_dimension_value(xc, p, args):
         if modelConcept is None or not modelConcept.isTypedDimension:
             raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
         result = context.dimValue(qn)
-        return result.typedMember if result is not None else ()
+        return result if result is not None else ()
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
 def fact_dimension_s_equal2(xc, p, args):
@@ -727,15 +732,15 @@ def fact_dimension_s_equal2(xc, p, args):
             qn = qnameArg(xc, p, args, 2, 'QName', emptyFallback=())
             if qn == (): raise XPathContext.FunctionArgType(3,"xbrl:QName")
             modelConcept = xc.modelXbrl.qnameConcepts.get(qn) # check qname is explicit dimension
-            if modelConcept is None or not modelConcept.isTypedDimension:
+            if modelConcept is None or not modelConcept.isDimensionItem:
                 # raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
                 return False
             dimValue1 = context1.dimValue(qn)
-            dimValue2 = context1.dimValue(qn)
+            dimValue2 = context2.dimValue(qn)
             if dimValue1 is not None and isinstance(dimValue1,ModelDimensionValue):
-                    return dimValue1.isEqualTo(dimValue2)
+                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)
             elif dimValue2 is not None and isinstance(dimValue2,ModelDimensionValue):
-                    return dimValue2.isEqualTo(dimValue1)
+                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)
             return dimValue1 == dimValue2
         raise XPathContext.FunctionArgType(2,"xbrl:item")
     raise XPathContext.FunctionArgType(1,"xbrl:item")
@@ -908,7 +913,7 @@ def relationship_to_concept(xc, p, args):
 def distinct_nonAbstract_parent_concepts(xc, p, args):
     raise xfiFunctionNotAvailable()
 
-def element_attribute(xc, p, args, elementParent=False):
+def relationship_element_attribute(xc, p, args, elementParent=False):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     modelRel = anytypeArg(xc, args, 0, "arelle:ModelRelationship", None)
     if modelRel is None: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
@@ -916,14 +921,17 @@ def element_attribute(xc, p, args, elementParent=False):
     if qnAttr is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = modelRel.arcElement
     if elementParent: element = element.getparent()
-    attrTag = qnAttr.clarkNotation
+    return element_attribute(element, qnAttr)
+
+def element_attribute(element, attrQname):
+    attrTag = attrQname.clarkNotation
     modelAttribute = None
     try:
         modelAttribute = element.xAttributes[attrTag]
     except (AttributeError, TypeError, IndexError, KeyError):
         # may be lax or deferred validated
         try:
-            validate(element.modelXbrl, element, qnAttr)
+            validate(element.modelXbrl, element, attrQname)
             modelAttribute = element.xAttributes[attrTag]
         except (AttributeError, TypeError, IndexError, KeyError):
             pass
@@ -936,10 +944,10 @@ def element_attribute(xc, p, args, elementParent=False):
     return ()
    
 def relationship_attribute(xc, p, args):
-    return element_attribute(xc, p, args)
+    return relationship_element_attribute(xc, p, args)
 
 def relationship_link_attribute(xc, p, args):
-    return element_attribute(xc, p, args, elementParent=True)
+    return relationship_element_attribute(xc, p, args, elementParent=True)
 
 def element_name(xc, p, args, elementParent=False):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()

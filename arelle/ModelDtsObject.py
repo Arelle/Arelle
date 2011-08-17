@@ -81,24 +81,20 @@ class ModelSchemaObject(ModelObject):
         return self.getStripped("name")
     
     @property
-    def namespaceURI(self):
-        return self.modelDocument.targetNamespace
-        
-    @property
     def qname(self):
         try:
-            return self._qname
+            return self._xsdQname
         except AttributeError:
             name = self.name
             if self.name:
                 if self.parentQname == XbrlConst.qnXsdSchema or self.isQualifiedForm:
                     prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
-                    self._qname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
+                    self._xsdQname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
                 else:
-                    self._qname = ModelValue.QName(None, None, name)
+                    self._xsdQname = ModelValue.QName(None, None, name)
             else:
-                self._qname = None
-            return self._qname
+                self._xsdQname = None
+            return self._xsdQname
     
     @property
     def isGlobalDeclaration(self):
@@ -605,9 +601,13 @@ class ModelType(ModelSchemaObject):
                 return "XBRLI_DECIMALSUNION"
             elif self.qname == XbrlConst.qnXbrliPrecisionUnion:
                 return "XBRLI_PRECISIONUNION"
+            elif self.qname == XbrlConst.qnXbrliNonZeroDecimalUnion:
+                return "XBRLI_NONZERODECIMAL"
             qnameDerivedFrom = self.qnameDerivedFrom
             if qnameDerivedFrom is None:
-                self._baseXsdType =  "anyType"
+                # want None if base type has no content (not mixed content, TBD)
+                #self._baseXsdType =  "anyType"
+                self._baseXsdType =  "noContent"
             elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:
                 self._baseXsdType = qnameDerivedFrom.localName
             else:

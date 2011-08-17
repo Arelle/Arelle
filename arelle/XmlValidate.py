@@ -92,15 +92,18 @@ def schemaValidate(modelXbrl):
 def validate(modelXbrl, elt, recurse=True, attrQname=None):
     # attrQname can be provided for attributes that are global and LAX
     if not hasattr(elt,"xValid"):
-        text = XmlUtil.text(elt)
+        text = XmlUtil.textNotStripped(elt)
         qnElt = qname(elt)
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         if modelConcept is not None:
-            type = modelConcept.type
-            baseXsdType = modelConcept.baseXsdType
-            isNillable = modelConcept.isNillable
-            if len(text) == 0 and modelConcept.default is not None:
-                text = modelConcept.default
+            if modelConcept.isAbstract:
+                baseXsdType = "noContent"
+            else:
+                type = modelConcept.type
+                baseXsdType = modelConcept.baseXsdType
+                isNillable = modelConcept.isNillable
+                if len(text) == 0 and modelConcept.default is not None:
+                    text = modelConcept.default
         elif qnElt == XbrlConst.qnXbrldiExplicitMember: # not in DTS
             baseXsdType = "QName"
             type = None
@@ -160,10 +163,15 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
 def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False):
     if baseXsdType:
         try:
-            if len(value) == 0 and not isNillable and baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN"):
+            if len(value) == 0 and not isNillable and baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN", "noContent"):
                 raise ValueError("missing value for not nillable element")
             xValid = VALID
-            if baseXsdType == "string":
+            if baseXsdType == "noContent":
+                content = value.strip()
+                if content:
+                    raise ValueError("value content not permitted")
+                xValue = sValue = None
+            elif baseXsdType == "string":
                 xValue = sValue = value
             elif baseXsdType == "normalizedString":
                 xValue = value.strip()
@@ -196,8 +204,11 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False)
                 xValue = qname(elt, value, castException=ValueError)
                 sValue = value
             elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
-                xValue = value if value == "INF" else int(value)
-                sValue = value
+                xValue = sValue = value if value == "INF" else int(value)
+            elif baseXsdType in ("XBRLI_NONZERODECIMAL"):
+                xValue = sValue = int(value)
+                if xValue == 0:
+                    raise ValueError("invalid value")
             elif baseXsdType == "XBRLI_DATEUNION":
                 xValue = dateTime(value, type=DATEUNION, castException=ValueError)
                 sValue = value

@@ -661,7 +661,10 @@ class ModelDimensionValue(ModelObject):
     
     @property
     def typedMember(self):
-        return self
+        # to get <typedMember> element use 'self'; this get's its contents
+        for child in self.iterchildren():
+            return child
+        return None
 
     @property
     def isTyped(self):
@@ -679,7 +682,7 @@ class ModelDimensionValue(ModelObject):
             self._member = self.modelXbrl.qnameConcepts.get(self.memberQname)
             return  self._member
         
-    def isEqualTo(self, other):
+    def isEqualTo(self, other, equalMode=XbrlUtil.XPATH_EQ):
         if isinstance(other, ModelValue.QName):
             return self.isExplicit and self.memberQname == other
         elif other is None:
@@ -687,7 +690,8 @@ class ModelDimensionValue(ModelObject):
         elif self.isExplicit:
             return self.memberQname == other.memberQname
         else:
-            return XbrlUtil.nodesCorrespond(self.modelXbrl, self.typedMember, other.typedMember)
+            return XbrlUtil.nodesCorrespond(self.modelXbrl, self.typedMember, other.typedMember, 
+                                            equalMode=equalMode, excludeIDs=XbrlUtil.NO_IDs_EXCLUDED)
         
     @property
     def contextElement(self):

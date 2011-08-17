@@ -194,6 +194,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, None)
     if isEntry:
         modelXbrl.uri = normalizedUri
+        modelXbrl.entryLoadingUrl = normalizedUri
         modelXbrl.uriDir = os.path.dirname(normalizedUri)
         for i in range(modelXbrl.modelManager.disclosureSystem.maxSubmissionSubdirectoryEntryNesting):
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir)
@@ -393,8 +394,8 @@ class ModelDocument:
         self.isQualifiedAttributeFormDefault = rootElement.get("attributeFormDefault") == "qualified"
         try:
             self.schemaImportElements(rootElement)
-            if self.inDTS:
-                self.schemaDiscoverChildElements(rootElement)
+            # if self.inDTS: (need all elements defined, even if not in DTS
+            self.schemaDiscoverChildElements(rootElement)
         except (ValueError, LookupError) as err:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
                         self.basename,
@@ -417,7 +418,7 @@ class ModelDocument:
             if isinstance(modelObject,ModelObject):
                 ln = modelObject.localName
                 ns = modelObject.namespaceURI
-                if ns == XbrlConst.link:
+                if self.inDTS and ns == XbrlConst.link:
                     if ln == "roleType":
                         self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)
                     elif ln == "arcroleType":
@@ -599,8 +600,8 @@ class ModelDocument:
                                     lbElement.labeledResources[linkElement.get("{http://www.w3.org/1999/xlink}label")] \
                                         .append(modelResource)
                     else:
-                        self.modelXbrl.error("xbrl:schemaImportMissing",
-                                _("Linkbase extended link %(element)s missing schema import"),
+                        self.modelXbrl.error("xbrl:schemaDefinitionMissing",
+                                _("Linkbase extended link %(element)s missing schema definition"),
                                 modelObject=lbElement, element=lbElement.prefixedName)
                         
                 
