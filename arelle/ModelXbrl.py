@@ -54,6 +54,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
         modelXbrl.closeFileSource= True
         if createModelDocument:
             modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, url, schemaRefs=schemaRefs, isEntry=isEntry)
+            del modelXbrl.entryLoadingUrl
     return modelXbrl
     
 class ModelXbrl:

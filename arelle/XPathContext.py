@@ -511,7 +511,7 @@ class XPathContext:
                         return e.xValue
                 except AttributeError:
                     pass
-                modelXbrl = x.modelDocument.modelXbrl
+                modelXbrl = x.modelXbrl
                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                 if modelConcept is not None:
                     baseXsdType = modelConcept.baseXsdType

@@ -16,7 +16,7 @@ NO_IDs_EXCLUDED = 0
 ALL_IDs_EXCLUDED = 1
 TOP_IDs_EXCLUDED = 2 # only ancestor IDs are excluded
 
-def nodesCorrespond(dts1, elt1, elt2, dts2=None):
+def nodesCorrespond(dts1, elt1, elt2, dts2=None, equalMode=XPATH_EQ, excludeIDs=ALL_IDs_EXCLUDED):
     if elt1 is None:
         return elt2 is None #both can be empty sequences (no element) and true
     elif elt2 is None:
@@ -30,7 +30,7 @@ def nodesCorrespond(dts1, elt1, elt2, dts2=None):
     elif isinstance(elt2,ModelAttribute):
         return False
     # sEqual only accepts modelElements
-    return sEqual(dts1, elt1, elt2, equalMode=XPATH_EQ, dts2=dts2, excludeIDs=ALL_IDs_EXCLUDED)
+    return sEqual(dts1, elt1, elt2, equalMode=equalMode, dts2=dts2, excludeIDs=ALL_IDs_EXCLUDED)
 
 # dts1 is modelXbrl for first element
 # dts2 is for second element assumed same unless dts2 and ns2 to ns1 maping table provided
@@ -128,7 +128,7 @@ def xEqual(elt1, elt2, equalMode=S_EQUAL):
         XmlValidate.validate(elt1.modelXbrl, elt1)
     if not hasattr(elt2,"xValid"):
         XmlValidate.validate(elt2.modelXbrl, elt2)
-    if equalMode == S_EQUAL:
+    if equalMode == S_EQUAL or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, ModelValue.QName)):
         return elt1.sValue == elt2.sValue
     else:
         return elt1.xValue == elt2.xValue

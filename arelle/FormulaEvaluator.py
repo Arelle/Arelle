@@ -513,7 +513,7 @@ def produceOutputFact(xpCtx, formula, result):
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
                                               attributes=dimAttr)
                     if isinstance(dimValue, ModelDimensionValue) and dimValue.isTyped:
-                        XmlUtil.copyChildren(dimElt, dimValue.typedMember)
+                        XmlUtil.copyChildren(dimElt, dimValue)
                 elif dimMemberQname:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
                                               attributes=dimAttr,

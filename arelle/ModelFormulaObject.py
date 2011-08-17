@@ -1895,7 +1895,8 @@ class ModelTypedDimension(ModelTestFilter):
             if cmplmt ^ (not fact.isItem or(
                          dim is not None and
                          (not self.test or
-                          self.evalTest(xpCtx, dim.typedMember)))):
+                          # typed dimension test item is the <typedMember> element, not its contents, e.g. dim
+                          self.evalTest(xpCtx, dim)))):
                 outFacts.append(fact)
         return outFacts 
     

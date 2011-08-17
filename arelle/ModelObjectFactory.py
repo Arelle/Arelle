@@ -13,7 +13,7 @@ from lxml import etree
 from arelle import XbrlConst
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType, ModelEnumeration,
-                                   ModelRoleType, ModelLocator, ModelLink)
+                                   ModelRoleType, ModelLocator, ModelLink, ModelResource)
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
 from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespaceRename,
@@ -129,4 +129,8 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         if modelObjectClass is not None:
             return modelObjectClass
         else:
+            xlinkType = proxyElement.get("{http://www.w3.org/1999/xlink}type")
+            if xlinkType == "extended": return ModelLink
+            elif xlinkType == "locator": return ModelLocator
+            elif xlinkType == "resource": return ModelResource
             return ModelObject
