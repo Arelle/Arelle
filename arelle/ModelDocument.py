@@ -65,9 +65,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     try:
         if (modelXbrl.modelManager.validateDisclosureSystem and 
             modelXbrl.modelManager.disclosureSystem.validateFileText):
-            file = ValidateFilingText.checkfile(modelXbrl,filepath)
+            file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
-            file = modelXbrl.fileSource.file(filepath)
+            file, _encoding = modelXbrl.fileSource.file(filepath)
         _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         file.close()
@@ -156,6 +156,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         modelDocument.parserLookupClass = _parserLookupClass
         modelDocument.xmlRootElement = rootNode
         modelDocument.schemaLocationElements.add(rootNode)
+        modelDocument.documentEncoding = _encoding
 
         if isEntry or isDiscovered:
             modelDocument.inDTS = True
@@ -236,6 +237,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
         modelDocument.parserLookupName = _parserLookupName
         modelDocument.parserLookupClass = _parserLookupClass
+        modelDocument.documentEncoding = "utf-8"
         rootNode = xmlDocument.getroot()
         rootNode.init(modelDocument)
         if xmlDocument:
