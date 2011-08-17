@@ -88,7 +88,7 @@ class WatchRss:
                 rssWatchOptions.alertMatchedFactText):
                 # form keys in ascending order of pubdate
                 pubDateRssItems = []
-                for rssItem in self.rssModelXbrl.modelDocument.items:
+                for rssItem in self.rssModelXbrl.modelDocument.rssItems:
                     pubDateRssItems.append((rssItem.pubDate,rssItem.objectId()))
                 
                 for pubDate, rssItemObjectId in sorted(pubDateRssItems):
@@ -129,16 +129,18 @@ class WatchRss:
                             # check match expression
                             if matchPattern:
                                 for fact in modelXbrl.factsInInstance:
-                                    m = matchPattern.search(fact.value)
-                                    if m:
-                                        fr, to = m.span()
-                                        msg = _("Fact Variable {0}\n context {1}\n matched text: {2}").format( 
-                                                fact.qname, fact.contextID, fact.value[max(0,fr-20):to+20])
-                                        modelXbrl.info("arelle.rssInfo",
-                                                       msg,
-                                                       modelXbrl=modelXbrl) # msg as code passes it through to the status
-                                        if rssWatchOptions.alertMatchedFactText:
-                                            emailAlert = True
+                                    v = fact.value
+                                    if v is not None:
+                                        m = matchPattern.search(v)
+                                        if m:
+                                            fr, to = m.span()
+                                            msg = _("Fact Variable {0}\n context {1}\n matched text: {2}").format( 
+                                                    fact.qname, fact.contextID, v[max(0,fr-20):to+20])
+                                            modelXbrl.info("arelle.rssInfo",
+                                                           msg,
+                                                           modelXbrl=modelXbrl) # msg as code passes it through to the status
+                                            if rssWatchOptions.alertMatchedFactText:
+                                                emailAlert = True
                                         
                             if (rssWatchOptions.formulaFileUri and rssWatchOptions.validateFormulaAssertions and
                                 self.instValidator): 
@@ -148,6 +150,7 @@ class WatchRss:
                                 
                         rssItem.setResults(modelXbrl)
                         modelXbrl.close()
+                        del modelXbrl  # completely dereference
                         self.rssModelXbrl.modelManager.viewModelObject(self.rssModelXbrl, rssItem.objectId())
                         if rssItem.assertionUnsuccessful and rssWatchOptions.alertAssertionUnsuccessful:
                             emailAlert = True
