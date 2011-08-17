@@ -372,7 +372,8 @@ def checkfile(modelXbrl, filepath):
     result = []
     lineNum = 1
     foundXmlDeclaration = False
-    with modelXbrl.fileSource.file(filepath) as f:
+    file, encoding = modelXbrl.fileSource.file(filepath)
+    with file as f:
         while True:
             line = f.readline()
             if line == "":
@@ -404,7 +405,7 @@ def checkfile(modelXbrl, filepath):
             start,end = xmlDeclarationMatch.span()
             result = result[0:start] + result[end:]
             foundXmlDeclaration = True
-    return io.StringIO(initial_value=result)
+    return (io.StringIO(initial_value=result), encoding)
         
 def removeEntities(text):
     entitylessText = []
