@@ -231,7 +231,7 @@ def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType):
                 if xpCtx.formulaOptions.traceVariableFilterWinnowing:
                     a = str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect]
                     xpCtx.modelXbrl.info("formula:trace",
-                        _("Fact Variable %(variable)s %(filter)s filter $(aspect)s passes %(factCount)s facts"), 
+                        _("Fact Variable %(variable)s %(filter)s filter %(aspect)s passes %(factCount)s facts"), 
                         modelObject=vb.var, variable=vb.qname, filter=filterType, aspect=a, factCount=len(facts)),
                 if len(facts) == 0: break
     return facts
