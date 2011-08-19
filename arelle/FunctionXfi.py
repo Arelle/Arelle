@@ -294,7 +294,7 @@ def uncovered_aspect(xc, p, args):
                 if dimValue.isExplicit: 
                     return dimValue.memberQname
                 elif dimValue.isTyped:
-                    return dimValue.typedMember
+                    return dimValue     # return the typedMember element, not its contents
             elif isinstance(dimValue, QName): # qname for explicit or node for typed
                 return dimValue
             return ()
