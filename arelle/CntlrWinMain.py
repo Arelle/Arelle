@@ -378,8 +378,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                         title=_("arelle - Save Formula Result Instance Document"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
                         filetypes=[(_("XBRL output instance .xml"), "*.xml"), (_("XBRL output instance .xbrl"), "*.xbrl")],
-                        defaultextension=".xml",
-                        parent=self.parent)
+                        defaultextension=".xml")
                 if not filename:
                     return False
                 try:
