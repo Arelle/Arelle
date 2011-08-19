@@ -108,6 +108,10 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
             baseXsdType = "QName"
             type = None
             isNillable = False
+        elif qnElt == XbrlConst.qnXbrldiTypedMember: # not in DTS
+            baseXsdType = "noContent"
+            type = None
+            isNillable = False
         else:
             baseXsdType = None
             type = None
@@ -167,8 +171,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False)
                 raise ValueError("missing value for not nillable element")
             xValid = VALID
             if baseXsdType == "noContent":
-                content = value.strip()
-                if content:
+                if len(value) > 0 and not value.isspace():
                     raise ValueError("value content not permitted")
                 xValue = sValue = None
             elif baseXsdType == "string":
