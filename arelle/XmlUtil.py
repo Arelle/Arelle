@@ -332,6 +332,19 @@ def schemaAttributesGroups(element, attributes=None, attributeGroups=None):
             schemaAttributesGroups(child, attributes=attributes, attributeGroups=attributeGroups)
     return (attributes, attributeGroups)
 
+def emptyContentModel(element):
+    for child in element.iterchildren():
+        if child.tag == "{http://www.w3.org/2001/XMLSchema}complexType" and child.get("mixed") == "true":
+            return False
+        elif child.tag in ("{http://www.w3.org/2001/XMLSchema}simpleType",
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent",
+                           "{http://www.w3.org/2001/XMLSchema}sequence",
+                           "{http://www.w3.org/2001/XMLSchema}choice",
+                           "{http://www.w3.org/2001/XMLSchema}all"):
+            return False
+    return True
+
+
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
 def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None):

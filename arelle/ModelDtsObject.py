@@ -614,6 +614,8 @@ class ModelType(ModelSchemaObject):
                 typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
                 #assert typeDerivedFrom is not None, _("Unable to determine derivation of {0}").format(qnameDerivedFrom)
                 self._baseXsdType = typeDerivedFrom.baseXsdType if typeDerivedFrom is not None else "anyType"
+            if self._baseXsdType == "anyType" and XmlUtil.emptyContentModel(self):
+                self._baseXsdType = "noContent"
             return self._baseXsdType
     
     @property
