@@ -242,7 +242,7 @@ class ModelFormula(ModelVariableSet):
                 if isinstance(ruleElt,ModelObject):
                     name = ruleElt.localName
                     if name == "qname":
-                        value = qname(ruleElt, ruleElt.text)
+                        value = qname(ruleElt, XmlUtil.text(ruleElt))
                         if ruleElt.getparent().localName == "concept":
                             self.aspectValues[Aspect.CONCEPT] = value
                         elif ruleElt.getparent().getparent().get("dimension") is not None:
