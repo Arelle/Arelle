@@ -667,7 +667,7 @@ def aspectValue(xpCtx, formula, aspect, srcMissingErr):
         return aspectSourceValue
     elif aspect == Aspect.UNIT_MEASURES:
         augment = formula.evaluateRule(xpCtx, Aspect.AUGMENT)
-        if aspectSourceValue and (not augment or augment == "true"):
+        if aspectSourceValue and (not augment or augment == "true"): # true is the default behavior
             return aspectSourceValue
         else:
             return ([],[])
