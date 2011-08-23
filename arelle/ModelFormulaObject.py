@@ -1764,6 +1764,7 @@ class ModelExplicitDimension(ModelFilter):
                                 matchMemQname = memberModel.qname
                             elif memberModel.variable:
                                 otherFact = xpCtx.inScopeVars.get(memberModel.variable)
+                                # BUG: could be bound to a sequence!!!
                                 if otherFact is not None and isinstance(otherFact,ModelFact) and otherFact.isItem:
                                     matchMemQname = otherFact.context.dimMemberQname(dimQname)
                             elif memberModel.qnameExprProg:
