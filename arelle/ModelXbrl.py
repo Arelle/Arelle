@@ -282,7 +282,10 @@ class ModelXbrl:
             try:
                 file = os.path.basename(self.modelDocument.uri)
             except AttributeError:
-                file = os.path.basename(self.entryLoadingUrl)
+                try:
+                    file = os.path.basename(self.entryLoadingUrl)
+                except:
+                    file = ""
             extras["file"] = file
             extras["href"] = file
             extras["sourceLine"] = ""
