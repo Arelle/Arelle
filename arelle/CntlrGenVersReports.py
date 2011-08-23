@@ -17,6 +17,7 @@ from lxml import etree
 from optparse import OptionParser
 from arelle import (Cntlr, ModelXbrl, ModelDocument, ModelVersReport, FileSource, XmlUtil, Version)
 from arelle import xlrd
+import logging
 
 conformanceNS = "http://xbrl.org/2008/conformance"
 
@@ -59,10 +60,12 @@ class CntlrGenVersReports(Cntlr.Cntlr):
             today = XmlUtil.dateunionValue(datetime.date.today())
         startedAt = time.time()
         
+        LogHandler(self) # start logger
+
         self.logMessages = []
         logMessagesFile = testGenDir + os.sep + 'log-generation-messages.txt'
 
-        modelTestcases = ModelXbrl.create(self.modelManager)
+        modelTestcases = ModelXbrl.create(self.modelManager, url=testGenFileName, isEntry=True)
         testcaseIndexBook = xlrd.open_workbook(testGenFileName)
         testcaseIndexSheet = testcaseIndexBook.sheet_by_index(0)
         self.addToLog(_("[info] xls loaded in {0:.2} secs at {1}").format(time.time() - startedAt, timeNow))
@@ -111,6 +114,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                 base = os.path.join(os.path.dirname(testGenFileName),testDir) + os.sep
                 self.addToLog(_("[info] testcase uriFrom {0}").format(uriFrom))
                 if uriFrom and uriTo and assignment.lower() not in ("n.a.", "error") and expectedEvents != "N.A.":
+                    modelDTSfrom = modelDTSto = None
                     for URIs, msg, isFrom in ((uriFrom, _("loading from DTS"), True), (uriTo, _("loading to DTS"), False)):
                         if ',' not in URIs:
                             modelDTS = ModelXbrl.load(self.modelManager, URIs, msg, base=base)
@@ -129,7 +133,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                                     doc.inDTS = True
                         if isFrom: modelDTSfrom = modelDTS
                         else: modelDTSto = modelDTS
-                    if modelDTSfrom and modelDTSto:
+                    if modelDTSfrom is not None and modelDTSto is not None:
                         # generate differences report
                         reportUri = uriFrom.partition(',')[0]  # first file
                         reportDir = os.path.dirname(reportUri)
@@ -194,13 +198,12 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         if expectedEvents and expectedEvents not in (
                                "No change", "N.A."):
                             if len(modelVersReport.xmlDocument.findall('//{*}' + expectedEvents)) == 0:
-                                modelTestcases.error(
-                                    "Generated test case {0} missing expected event {1}".format(
-                                               reportName, 
-                                               expectedEvents), 
-                                    "wrn", "missingEvent")
+                                modelTestcases.warning("warning",
+                                    "Generated test case %(reportName)s missing expected event %(events)s",
+                                    reportName=reportName, 
+                                    events=expectedEvents)
                         
-                        modelVersReport.close([])
+                        modelVersReport.close()
                         for i,testcaseElt in enumerate(testcaseElements):
                             variationElement = etree.SubElement(testcaseElt, "{http://xbrl.org/2008/conformance}variation", 
                                                                 attrib={"id": "_{0:02n}".format(variationID)})
@@ -234,12 +237,11 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                             reportElement.text = "report/" + reportName
                         variationID += 1
             except Exception as err:
-                modelTestcases.error(
-                    _("Exception: {0}, Excel row: {1}, at {2}").format(
-                         err,
-                         iRow,
-                         traceback.format_tb(sys.exc_info()[2])), 
-                    "err", "exception")
+                modelTestcases.error("exception",
+                    _("Exception: %(error)s, Excel row: %(excelRow)s"),
+                    error=err,
+                    excelRow=iRow, 
+                    exc_info=True)
         
         # add tests-error-code index files to consumption
         for testcaseFile in self.testcaseFiles(testGenDir + os.sep + "tests-error-code"):
@@ -274,6 +276,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
         testGenFileName = r"C:\Users\Herm Fischer\Documents\mvsl\projects\Arelle\roland test cases\1000-Concepts\index.xml"
         filesource = FileSource.FileSource(testGenFileName)
         startedAt = time.time()
+        LogHandler(self) # start logger
         modelTestcases = self.modelManager.load(filesource, _("views loading"))
         self.addToLog(_("[info] loaded in {0:.2} secs").format(time.time() - startedAt))
         if modelTestcases.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
@@ -288,6 +291,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                 for testcaseElement in testcasesElement.iterchildren(tag="testcase"):
                     uriFrom = testcaseElement.get("uriFrom")
                     uriTo = testcaseElement.get("uriTo")
+                    modelDTSfrom = modelDTSto = None
                     self.addToLog(_("[info] testcase uriFrom {0}").format(uriFrom))
                     if uriFrom is not None and uriTo is not None:
                         modelDTSfrom = ModelXbrl.load(modelTestcases.modelManager, 
@@ -319,6 +323,19 @@ class CntlrGenVersReports(Cntlr.Cntlr):
     
     def showStatus(self, message, clearAfter=None):
         pass
+
+class LogHandler(logging.Handler):
+    def __init__(self, cntlr):
+        super().__init__()
+        self.cntlr = cntlr
+        self.level = logging.DEBUG
+        formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
+        self.setFormatter(formatter)
+        logging.getLogger("arelle").addHandler(self)
+    def flush(self):
+        ''' Nothing to flush '''
+    def emit(self, logRecord):
+        self.cntlr.addToLog(self.format(logRecord))      
 
 if __name__ == "__main__":
     main()

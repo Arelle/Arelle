@@ -50,7 +50,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.typedDomainsCorrespond = {}
         
     def close(self):
-        self.__dict__.clear()
+        super().close()
         
     def versioningReportDiscover(self, rootElement):
         actionRelatedFromMdlObjs = []
@@ -228,7 +228,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 categoryType)
              )
         from arelle.ModelObjectFactory import parser
-        self.parser = parser(self.modelXbrl,None)
+        self.parser, self.parserLookupName, self.parserLookupClass = parser(self.modelXbrl,None)
         from lxml import etree
         self.xmlDocument = etree.parse(file,parser=self.parser,base_url=self.uri)
         file.close()
@@ -285,7 +285,6 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.filepath = versReportFile
         self.modelXbrl.modelManager.showStatus(_("C report file"))
         self.modelXbrl.modelManager.showStatus(_("ready"), 2000)
-        self.close()
         
     def diffNamespaces(self):
         # build fomr and to lists based on namespaces
@@ -598,7 +597,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
         for dts, DRSrels in ((self.fromDTS, fromDRSrels), (self.toDTS, toDRSrels)):
             for hasHcArcrole in (XbrlConst.all, XbrlConst.notAll):
                 for DRSrel in dts.relationshipSet(hasHcArcrole).modelRelationships:
-                    DRSrels[DRSrel.fromModelObject.qname,DRSrel.linkrole].append( DRSrel )
+                    if DRSrel.fromModelObject is not None:
+                        DRSrels[DRSrel.fromModelObject.qname,DRSrel.linkrole].append( DRSrel )
         # removed, added pri item dimensions
         for dts, DRSrels, otherDTS, otherDRSrels, otherDTSqname, roleChanges, e1, e2, isFrom in (
                         (self.fromDTS, fromDRSrels, self.toDTS, toDRSrels, self.toDTSqname, self.roleChangeFromURI, "aspectModelDelete", "fromAspects", True),
