@@ -334,13 +334,17 @@ def schemaAttributesGroups(element, attributes=None, attributeGroups=None):
 
 def emptyContentModel(element):
     for child in element.iterchildren():
-        if child.tag == "{http://www.w3.org/2001/XMLSchema}complexType" and child.get("mixed") == "true":
-            return False
+        if child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
+                         "{http://www.w3.org/2001/XMLSchema}complexContent"):
+            if child.get("mixed") == "true":
+                return False
+            for contentChild in child.iterdescendants():
+                if contentChild.tag in ("{http://www.w3.org/2001/XMLSchema}sequence",
+                                        "{http://www.w3.org/2001/XMLSchema}choice",
+                                        "{http://www.w3.org/2001/XMLSchema}all"):
+                    return True
         elif child.tag in ("{http://www.w3.org/2001/XMLSchema}simpleType",
-                           "{http://www.w3.org/2001/XMLSchema}simpleContent",
-                           "{http://www.w3.org/2001/XMLSchema}sequence",
-                           "{http://www.w3.org/2001/XMLSchema}choice",
-                           "{http://www.w3.org/2001/XMLSchema}all"):
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent"):
             return False
     return True
 
