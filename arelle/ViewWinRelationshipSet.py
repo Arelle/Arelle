@@ -117,6 +117,10 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         isRelation = isinstance(modelObject, ModelDtsObject.ModelRelationship)
         if isinstance(concept, ModelDtsObject.ModelConcept):
             text = labelPrefix + concept.label(preferredLabel,lang=self.lang)
+            if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
+                concept.isTypedDimension and 
+                concept.typedDomainElement is not None):
+                text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
         elif self.arcrole == "EU-rendering":
             text = concept.genLabel(lang=self.lang)
             if isRelation:
