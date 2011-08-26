@@ -49,6 +49,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.instanceAspectChanges = []
         self.typedDomainsCorrespond = {}
         
+    def close(self):
+        super().close()
+        
     def versioningReportDiscover(self, rootElement):
         actionRelatedFromMdlObjs = []
         actionRelatedToMdlObjs = []
@@ -225,7 +228,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 categoryType)
              )
         from arelle.ModelObjectFactory import parser
-        self.parser = parser(self.modelXbrl,None)
+        self.parser, self.parserLookupName, self.parserLookupClass = parser(self.modelXbrl,None)
         from lxml import etree
         self.xmlDocument = etree.parse(file,parser=self.parser,base_url=self.uri)
         file.close()
@@ -445,7 +448,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         else:
                             toLabel = toResources[key]
                             toText = XmlUtil.innerText(toLabel)
-                            if not XbrlUtil.sEqual(self.fromDTS, label, toLabel, excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI):
+                            if not XbrlUtil.sEqual(self.fromDTS, label, toLabel, excludeIDs=XbrlUtil.ALL_IDs_EXCLUDED, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI):
                                 action = self.createConceptEvent(verce, event + "Change", fromConcept, toConcept, action, fromResource=label, toResource=toResources[key], fromResourceText=fromText, toResourceText=toText)
                     for key,label in toResources.items():
                         toText = XmlUtil.innerText(label)
@@ -594,7 +597,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
         for dts, DRSrels in ((self.fromDTS, fromDRSrels), (self.toDTS, toDRSrels)):
             for hasHcArcrole in (XbrlConst.all, XbrlConst.notAll):
                 for DRSrel in dts.relationshipSet(hasHcArcrole).modelRelationships:
-                    DRSrels[DRSrel.fromModelObject.qname,DRSrel.linkrole].append( DRSrel )
+                    if DRSrel.fromModelObject is not None:
+                        DRSrels[DRSrel.fromModelObject.qname,DRSrel.linkrole].append( DRSrel )
         # removed, added pri item dimensions
         for dts, DRSrels, otherDTS, otherDRSrels, otherDTSqname, roleChanges, e1, e2, isFrom in (
                         (self.fromDTS, fromDRSrels, self.toDTS, toDRSrels, self.toDTSqname, self.roleChangeFromURI, "aspectModelDelete", "fromAspects", True),
@@ -624,6 +628,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                         explDim = self.createInstanceAspectsEvent("typedDimension" if dimConcept.isTypedDimension else "explicitDimension", 
                                                                   (('name',dimConcept.qname),) + \
                                                                   ((('excluded','true'),) if isNotAll else ()),
+                                                                  comment=self.typedDomainElementComment(dimConcept),
                                                                   eventParent=aspectEvent)
                         for domRel in self.DRSdomRels(dts, dimRel):
                             domHasMemRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
@@ -668,6 +673,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                         explDim = self.createInstanceAspectsEvent("typedDimension" if dimConcept.isTypedDimension else "explicitDimension",
                                                                                   (('name',dimConcept.qname),) + \
                                                                                   ((('excluded','true'),) if isNotAll else ()),
+                                                                                  comment=self.typedDomainElementComment(dimConcept),
                                                                                   eventParent=aspectEvent)
                                         for domRel in self.DRSdomRels(dts, dimRel):
                                             domHasMemRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
@@ -699,6 +705,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                     explDim = self.createInstanceAspectsEvent("typedDimension" if dimConcept.isTypedDimension else "explicitDimension", 
                                                                               (('name',dimConcept.qname),) + \
                                                                               ((('excluded','true'),) if isNotAll else ()),
+                                                                              comment=self.typedDomainElementComment(dimConcept),
                                                                               eventParent=aspectEvent)
                                     if mbrDiffs:
                                         for fromRel, toRel, fromAttrSet, toAttrSet in mbrDiffs:
@@ -794,10 +801,17 @@ class ModelVersReport(ModelDocument.ModelDocument):
             toTypedDomain = toDimConcept.typedDomainElement
             isCorresponding = (fromTypedDomain is not None and toTypedDomain is not None and
                                XbrlUtil.sEqual(self.fromDTS, fromTypedDomain, toTypedDomain, 
-                                              excludeIDs=True, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI))
+                                              excludeIDs=XbrlUtil.ALL_IDs_EXCLUDED, dts2=self.toDTS, ns2ns1Tbl=self.namespaceRenameToURI))
             self.typedDomainsCorrespond[fromDimConcept, toDimConcept] = isCorresponding
             return isCorresponding
 
+    def typedDomainElementComment(self, dimConcept):
+        if dimConcept.isTypedDimension:
+            if dimConcept.typedDomainElement is not None:
+                return _('typed domain element {0}').format(dimConcept.typedDomainElement.qname)
+            else:
+                return _('typedDomainRef={0} (element qname cannot be determined)').format(dimConcept.typedDomainRef)
+        return None
 
     def DRSdimsDiff(self, fromDTS, fromPriItemDRSrels, toDTS, toPriItemDRSrels):
         fromDims = {}
@@ -901,9 +915,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         return action
             
     def conceptHref(self, concept):
-        conceptId = concept.id
-        return (self.relativeUri(concept.modelDocument.uri) + "#" + 
-            (conceptId if conceptId else XmlUtil.elementFragmentIdentifier(concept)))  
+        return self.relativeUri(concept.modelDocument.uri) + "#" + XmlUtil.elementFragmentIdentifier(concept) 
         
     def createRelationshipSetEvent(self, eventName, linkrole=None, arcrole=None, fromConcept=None, toConcept=None, axis=None, attrValues=None, comment=None, eventParent=None):
         if eventParent is None:

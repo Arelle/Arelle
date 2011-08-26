@@ -4,12 +4,13 @@ Created on Oct 6, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ModelObject, XbrlConst, ViewCsv)
+from arelle import ModelObject, XbrlConst, ViewCsv
+from arelle.ModelDtsObject import ModelRelationship
 import os
 
 def viewRelationshipSet(modelXbrl, csvfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
-    view = ViewRelationshipSet(modelXbrl, csvfile, header)
+    view = ViewRelationshipSet(modelXbrl, csvfile, header, lang)
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
     
@@ -76,7 +77,7 @@ class ViewRelationshipSet(ViewCsv.View):
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, indent, arcrole, relationshipSet, visited):
         if concept is None:
             return
-        isRelation = isinstance(modelObject, ModelObject.ModelRelationship)
+        isRelation = isinstance(modelObject, ModelRelationship)
         cols = indent + [labelPrefix + concept.label(preferredLabel,lang=self.lang)]
         if arcrole == "XBRL-dimensions" and isRelation: # extra columns
             for i in range(self.treeCols - len(indent)):

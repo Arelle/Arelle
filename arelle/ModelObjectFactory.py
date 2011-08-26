@@ -12,8 +12,8 @@ elementSubstitutionModelClass = {}
 from lxml import etree
 from arelle import XbrlConst
 from arelle.ModelValue import qname
-from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelType, ModelEnumeration,
-                                   ModelRoleType, ModelLocator, ModelLink)
+from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType, ModelEnumeration,
+                                   ModelRoleType, ModelLocator, ModelLink, ModelResource)
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
 from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespaceRename,
@@ -23,9 +23,10 @@ from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespace
 
 def parser(modelXbrl, baseUrl):
     parser = etree.XMLParser()
-    parser.set_element_class_lookup(KnownNamespacesModelObjectClassLookup(modelXbrl,
-                                    fallback=DiscoveringClassLookup(modelXbrl, baseUrl)))
-    return parser
+    classLookup = DiscoveringClassLookup(modelXbrl, baseUrl)
+    nsNameLookup = KnownNamespacesModelObjectClassLookup(modelXbrl, fallback=classLookup)
+    parser.set_element_class_lookup(nsNameLookup)
+    return (parser, nsNameLookup, classLookup)
 
 SCHEMA = 1
 LINKBASE = 2
@@ -37,7 +38,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
         super(KnownNamespacesModelObjectClassLookup, self).__init__(fallback)
         self.modelXbrl = modelXbrl
         self.type = None
-        
+
     def lookup(self, node_type, document, ns, ln):
         # node_type is "element", "comment", "PI", or "entity"
         if node_type == "element":
@@ -48,6 +49,8 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelConcept
                 elif ln == "attribute":
                     return ModelAttribute
+                elif ln == "attributeGroup":
+                    return ModelAttributeGroup
                 elif ln == "complexType" or ln == "simpleType":
                     return ModelType
                 elif ln == "enumeration":
@@ -72,6 +75,8 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             elif ns == XbrlConst.ver:
                 if self.type is None:
                     self.type = VERSIONINGREPORT
+            elif ns == "http://dummy":
+                return etree.ElementBase
             if self.type is None and ln == "rss":
                 self.type = RSSFEED
             elif self.type == RSSFEED:
@@ -124,4 +129,8 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         if modelObjectClass is not None:
             return modelObjectClass
         else:
+            xlinkType = proxyElement.get("{http://www.w3.org/1999/xlink}type")
+            if xlinkType == "extended": return ModelLink
+            elif xlinkType == "locator": return ModelLocator
+            elif xlinkType == "resource": return ModelResource
             return ModelObject

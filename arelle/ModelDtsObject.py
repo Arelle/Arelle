@@ -80,21 +80,20 @@ class ModelSchemaObject(ModelObject):
         return self.getStripped("name")
     
     @property
-    def namespaceURI(self):
-        return self.modelDocument.targetNamespace
-        
-    @property
     def qname(self):
         try:
-            return self._qname
+            return self._xsdQname
         except AttributeError:
             name = self.name
             if self.name:
-                prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
-                self._qname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
+                if self.parentQname == XbrlConst.qnXsdSchema or self.isQualifiedForm:
+                    prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
+                    self._xsdQname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
+                else:
+                    self._xsdQname = ModelValue.QName(None, None, name)
             else:
-                self._qname = None
-            return self._qname
+                self._xsdQname = None
+            return self._xsdQname
     
     @property
     def isGlobalDeclaration(self):
@@ -135,8 +134,9 @@ class ModelConcept(ModelSchemaObject):
             if self.get("type"):
                 self._typeQname = self.prefixedNameQname(self.get("type"))
             else:
-                # check if anonymous type exists
-                typeQname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
+                # check if anonymous type exists (clark qname tag + suffix)
+                qn = self.qname
+                typeQname = ModelValue.QName(qn.prefix, qn.namespaceURI, qn.localName + anonymousTypeSuffix)
                 if typeQname in self.modelXbrl.qnameTypes:
                     self._typeQname = typeQname
                 else:
@@ -174,7 +174,10 @@ class ModelConcept(ModelSchemaObject):
         try:
             return self._baseXsdAttrType[attrName]
         except KeyError:
-            attrType = self.type.baseXsdAttrType(attrName)
+            if self.type is not None:
+                attrType = self.type.baseXsdAttrType(attrName)
+            else:
+                attrType = "anyType"
             self._baseXsdAttrType[attrName] = attrType
             return attrType
     
@@ -273,8 +276,18 @@ class ModelConcept(ModelSchemaObject):
         return qnames
     
     @property
+    def isQualifiedForm(self): # used only in determining qname, which itself is cached
+        if self.get("form") is not None: # form is almost never used
+            return self.get("form") == "qualified"
+        return self.modelDocument.isQualifiedElementFormDefault
+        
+    @property
     def nillable(self):
         return self.get("nillable") if self.get("nillable") else 'false'
+    
+    @property
+    def isNillable(self):
+        return self.get("nillable") == 'true'
         
     @property
     def block(self):
@@ -296,13 +309,14 @@ class ModelConcept(ModelSchemaObject):
     def isRoot(self):
         return self.getparent().localName == "schema"
     
-    def label(self,preferredLabel=None,fallbackToQname=True,lang=None):
+    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False):
         if preferredLabel is None: preferredLabel = XbrlConst.standardLabel
         if preferredLabel == XbrlConst.conceptNameLabelRole: return str(self.qname)
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if labelsRelationshipSet:
             label = labelsRelationshipSet.label(self, preferredLabel, lang)
             if label is not None:
+                if strip: return label.strip()
                 return label
         return str(self.qname) if fallbackToQname else None
     
@@ -431,8 +445,8 @@ class ModelConcept(ModelSchemaObject):
 class ModelAttribute(ModelSchemaObject):
     def init(self, modelDocument):
         super(ModelAttribute, self).init(modelDocument)
-        self.modelXbrl.qnameAttributes[self.qname] = self
-        self._baseXsdAttrType = {}
+        if self.isGlobalDeclaration:
+            self.modelXbrl.qnameAttributes[self.qname] = self
         
     @property
     def typeQname(self):
@@ -482,6 +496,16 @@ class ModelAttribute(ModelSchemaObject):
             return self._isNumeric
     
     @property
+    def isQualifiedForm(self): # used only in determining qname, which itself is cached
+        if self.get("form") is not None: # form is almost never used
+            return self.get("form") == "qualified"
+        return self.modelDocument.isQualifiedAttributeFormDefault
+        
+    @property
+    def isRequired(self):
+        return self.get("use") == "required"
+    
+    @property
     def default(self):
         return self.get("default")
     
@@ -489,7 +513,48 @@ class ModelAttribute(ModelSchemaObject):
     def fixed(self):
         return self.get("fixed")
     
-            
+    def dereference(self):
+        ref = self.get("ref")
+        if ref:
+            return self.modelXbrl.qnameAttributes.get(ModelValue.qname(self, ref))
+        return self
+
+class ModelAttributeGroup(ModelSchemaObject):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        if self.isGlobalDeclaration:
+            self.modelXbrl.qnameAttributeGroups[self.qname] = self
+        
+    @property
+    def isQualifiedForm(self): # always qualified
+        return True
+    
+    @property
+    def attributes(self):
+        try:
+            return self._attributes
+        except AttributeError:
+            self._attributes = {}
+            attrs, attrGroups = XmlUtil.schemaAttributesGroups(self)
+            for attrGroupRef in attrGroups:
+                attrGroupDecl = attrGroupRef.dereference()
+                if attrGroupDecl is not None:
+                    for attrRef in attrGroupDecl.attributes.values():
+                        attrDecl = attrRef.dereference()
+                        if attrDecl is not None:
+                            self._attributes[attrDecl.qname] = attrDecl
+            for attrRef in attrs:
+                attrDecl = attrRef.dereference()
+                if attrDecl is not None:
+                    self._attributes[attrDecl.qname] = attrDecl
+            return self._attributes
+        
+    def dereference(self):
+        ref = self.get("ref")
+        if ref:
+            return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
+        return self
+        
 class ModelType(ModelSchemaObject):
     def init(self, modelDocument):
         super(ModelType, self).init(modelDocument)     
@@ -512,8 +577,12 @@ class ModelType(ModelSchemaObject):
         return None
     
     @property
+    def isQualifiedForm(self): # always qualified
+        return True
+    
+    @property
     def qnameDerivedFrom(self):
-        return self.prefixedNameQname(XmlUtil.descendantAttr(self, XbrlConst.xsd, ("extension","restriction"), "base"))
+        return self.prefixedNameQname(XmlUtil.schemaBaseTypeDerivedFrom(self))
     
     @property
     def typeDerivedFrom(self):
@@ -529,15 +598,25 @@ class ModelType(ModelSchemaObject):
         except AttributeError:
             if self.qname == XbrlConst.qnXbrliDateUnion:
                 return "XBRLI_DATEUNION"
+            elif self.qname == XbrlConst.qnXbrliDecimalsUnion:
+                return "XBRLI_DECIMALSUNION"
+            elif self.qname == XbrlConst.qnXbrliPrecisionUnion:
+                return "XBRLI_PRECISIONUNION"
+            elif self.qname == XbrlConst.qnXbrliNonZeroDecimalUnion:
+                return "XBRLI_NONZERODECIMAL"
             qnameDerivedFrom = self.qnameDerivedFrom
             if qnameDerivedFrom is None:
-                self._baseXsdType =  "anyType"
+                # want None if base type has no content (not mixed content, TBD)
+                #self._baseXsdType =  "anyType"
+                self._baseXsdType =  "noContent"
             elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:
                 self._baseXsdType = qnameDerivedFrom.localName
             else:
                 typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
                 #assert typeDerivedFrom is not None, _("Unable to determine derivation of {0}").format(qnameDerivedFrom)
                 self._baseXsdType = typeDerivedFrom.baseXsdType if typeDerivedFrom is not None else "anyType"
+            if self._baseXsdType == "anyType" and XmlUtil.emptyContentModel(self):
+                self._baseXsdType = "noContent"
             return self._baseXsdType
     
     @property
@@ -597,8 +676,32 @@ class ModelType(ModelSchemaObject):
     
     @property
     def attributes(self):
-        return XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "attribute")
+        try:
+            return self._attributes
+        except AttributeError:
+            self._attributes = {}
+            attrs, attrGroups = XmlUtil.schemaAttributesGroups(self)
+            for attrRef in attrs:
+                attrDecl = attrRef.dereference()
+                if attrDecl is not None:
+                    self._attributes[attrDecl.qname] = attrDecl
+            for attrGroupRef in attrGroups:
+                attrGroupDecl = attrGroupRef.dereference()
+                if attrGroupDecl is not None:
+                    for attrRef in attrGroupDecl.attributes.values():
+                        attrDecl = attrRef.dereference()
+                        if attrDecl is not None:
+                            self._attributes[attrDecl.qname] = attrDecl
+            return self._attributes
 
+    @property
+    def requiredAttributeQnames(self):
+        try:
+            return self._requiredAttributeQnames
+        except AttributeError:
+            self._requiredAttributeQnames = set(a.qname for a in self.attributes.values() if a.isRequired)
+            return self._requiredAttributeQnames
+            
     @property
     def elements(self):
         return XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "element")
@@ -627,29 +730,6 @@ class ModelType(ModelSchemaObject):
             typeDerivedFrom.constrainingFacets(facetValues)
         return facetValues
                 
-        
-    
-    def baseXsdAttrType(self, attrName):
-        attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
-        if attr is not None:
-            qnameAttrType = None
-            if attr.get("type"):
-                qnameAttrType = ModelValue.qname(attr, attr.get("type"))
-            else:
-                restriction = XmlUtil.descendant(self, XbrlConst.xsd, "restriction")
-                if restriction is not None:
-                    if restriction.get("base"):
-                        qnameAttrType = ModelValue.qname(restriction, restriction.get("base"))
-            if qnameAttrType and qnameAttrType.namespaceURI == XbrlConst.xsd:
-                return qnameAttrType.localName
-            if qnameAttrType is None:
-                return "anyType"
-            typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameAttrType)
-            if typeDerivedFrom is not None:
-                return typeDerivedFrom.baseXsdType
-            return "anyType"
-        return None
-
     def fixedOrDefaultAttrValue(self, attrName):
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
         if attr is not None:
@@ -764,12 +844,23 @@ class ModelRelationship(ModelObject):
         return self.arcElement.prefixedName
         
     @property
+    def sourceline(self):
+        return self.arcElement.sourceline
+        
+    @property
     def tag(self):
         return self.arcElement.tag
+    
+    @property
+    def elementQname(self):
+        return self.arcElement.elementQname
         
     @property
     def qname(self):
         return self.arcElement.qname
+    
+    def itersiblings(self, **kwargs):
+        return self.arcElement.itersiblings(**kwargs)
         
     @property
     def fromLabel(self):
@@ -922,6 +1013,17 @@ class ModelRelationship(ModelObject):
             else:
                 self._usable = None
             return self._usable
+        
+    @property
+    def tableAxis(self):
+        try:
+            return self._tableAxis
+        except AttributeError:
+            try:
+                self._tableAxis = self.get({XbrlConst.euTableAxis:"axisType", XbrlConst.tableAxis:"cartesianRepr"}[self.arcrole])
+            except (KeyError, TypeError):
+                self._tableAxis = None
+            return self._tableAxis
         
     @property
     def equivalenceKey(self):

@@ -4,8 +4,10 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re
-import six
+
+import re, os, six
+from urllib.parse import urldefrag
+from urllib.parse import unquote
 
 if six.PY3:
     from urllib.parse import unquote, urldefrag
@@ -21,7 +23,7 @@ def authority(url):
     return url  #no path part of url
 
 absoluteUrlPattern = None
-relativeUrlPattern = re.compile(r"^[/:\.+-_@?&=!~\*'\(\)\w]+(#\w+)?$")
+relativeUrlPattern = re.compile(r"(^[/:\.+-_@?&=!~\*'\(\)\w]+(#[\w_\-\.]+)?$)|(^#[\w_\-\.]+$)")
 
 def splitDecodeFragment(url):
     urlPart, fragPart = urldefrag(url)
@@ -155,4 +157,9 @@ def parseRfcDatetime(rfc2822date):
             return datetime(d[0],d[1],d[2],d[3],d[4],d[5])
     return None
        
-        
+def relativeUri(baseUri, relativeUri): # return uri relative to this modelDocument uri
+    if relativeUri.startswith('http://'):
+        return relativeUri
+    else:
+        return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')
+

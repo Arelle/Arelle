@@ -9,6 +9,7 @@ Created on Oct 5, 2010
 from collections import defaultdict
 from arelle import (ModelDtsObject, XbrlConst, XmlUtil, ModelValue)
 from arelle.ModelObject import ModelObject
+from arelle.ModelDtsObject import ModelResource
 import os
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
@@ -84,16 +85,15 @@ class ModelRelationshipSet:
         relationships = {}
         isDimensionRel =  self.arcrole == "XBRL-dimensions" # all dimensional relationship arcroles
         isFormulaRel =  self.arcrole == "XBRL-formulae" # all formula relationship arcroles
-        isEuRenderingRel = self.arcrole == "EU-rendering"
+        isTableRenderingRel = self.arcrole == "Table-rendering"
         isFootnoteRel =  self.arcrole == "XBRL-footnotes" # all footnote relationship arcroles
         
         for modelLink in modelLinks:
             arcs = []
             linkEltQname = modelLink.qname
             for linkChild in modelLink.getchildren():
-                if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and \
-                   linkChild.get("{http://www.w3.org/1999/xlink}arcrole"):
-                    linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
+                linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
+                if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and linkChildArcrole:
                     linkChildQname = linkChild
                     if isFootnoteRel:
                         arcs.append(linkChild)
@@ -103,8 +103,8 @@ class ModelRelationshipSet:
                     elif isFormulaRel:
                         if XbrlConst.isFormulaArcrole(linkChildArcrole):
                             arcs.append(linkChild)
-                    elif isEuRenderingRel:
-                        if XbrlConst.isEuRenderingArcrole(linkChildArcrole):
+                    elif isTableRenderingRel:
+                        if XbrlConst.isTableRenderingArcrole(linkChildArcrole):
                             arcs.append(linkChild)
                     elif arcrole == linkChildArcrole and \
                          (arcqname is None or arcqname == linkChildQname) and \
@@ -118,11 +118,12 @@ class ModelRelationshipSet:
                 toLabel = arcElement.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
-                        modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
-                        if modelRelEquivalenceKey not in relationships or \
-                           modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
-                            relationships[modelRelEquivalenceKey] = modelRel
+                        if isinstance(fromResource,ModelResource) and isinstance(toResource,ModelResource):
+                            modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
+                            modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
+                            if modelRelEquivalenceKey not in relationships or \
+                               modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
+                                relationships[modelRelEquivalenceKey] = modelRel
 
         #reduce effective arcs and order relationships...
         self.modelRelationships = []

@@ -77,14 +77,13 @@ class ModelManager:
     def close(self, modelXbrl=None):
         if modelXbrl is None: modelXbrl = self.modelXbrl
         if modelXbrl:
-            closeTopXbrl = (modelXbrl == self.modelXbrl)
             while modelXbrl in self.loadedModelXbrls:
                 self.loadedModelXbrls.remove(modelXbrl)
-            modelXbrl.close()
-            if closeTopXbrl:
+            if (modelXbrl == self.modelXbrl): # dereference modelXbrl from this instance
                 if len(self.loadedModelXbrls) > 0:
                     self.modelXbrl = self.loadedModelXbrls[0]
                 else:
                     self.modelXbrl = None
+            modelXbrl.close()
             gc.collect()
 

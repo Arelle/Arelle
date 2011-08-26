@@ -4,11 +4,13 @@ from gettext import gettext as _
 from arelle.ModelValue import qname
 
 xsd = six.u("http://www.w3.org/2001/XMLSchema")
+qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
 qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
 xsi = six.u("http://www.w3.org/2001/XMLSchema-instance")
 qnXsiNil = qname(xsi,"xsi:nil") # need default prefix in qname
 xml = six.u("http://www.w3.org/XML/1998/namespace")
 xbrli = six.u("http://www.xbrl.org/2003/instance")
+qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
 qnXbrliItem = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
 qnXbrliTuple = qname("{http://www.xbrl.org/2003/instance}xbrli:tuple")
 qnXbrliContext = qname("{http://www.xbrl.org/2003/instance}xbrli:context")
@@ -19,6 +21,9 @@ qnXbrliPure = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
 qnXbrliShares = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
 qnXbrliDateUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:dateUnion")
 link = six.u("http://www.xbrl.org/2003/linkbase")
+qnXbrliDecimalsUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsType")
+qnXbrliPrecisionUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:precisionType")
+qnXbrliNonZeroDecimalUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")
 qnLinkLabelLink = qname("{http://www.xbrl.org/2003/linkbase}link:labelLink")
 qnLinkLabelArc = qname("{http://www.xbrl.org/2003/linkbase}link:labelArc")
 qnLinkLabel = qname("{http://www.xbrl.org/2003/linkbase}link:label")
@@ -53,6 +58,9 @@ qnXlLocator = qname("{http://www.xbrl.org/2003/XLink}xl:locator")
 qnXlResource = qname("{http://www.xbrl.org/2003/XLink}xl:resource")
 xhtml = six.u("http://www.w3.org/1999/xhtml")
 ixbrl = six.u("http://www.xbrl.org/2008/inlineXBRL")
+qnXlExtendedType = qname("{http://www.xbrl.org/2003/XLink}xl:extendedType")
+qnXlLocatorType = qname("{http://www.xbrl.org/2003/XLink}xl:locatorType")
+qnXlResourceType = qname("{http://www.xbrl.org/2003/XLink}xl:resourceType")
 qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
 qnIXbrlNonNumeric = qname("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric")
 qnIXbrlNonFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}nonFraction")
@@ -216,11 +224,23 @@ qnNilFilter = qname("{http://xbrl.org/2008/filter/value}vf:nil")
 qnPrecisionFilter = qname("{http://xbrl.org/2008/filter/value}vf:precision")
 xpath2err = six.u("http://www.w3.org/2005/xqt-errors")
 
+# 2010 table linkbase
 euRend = six.u("http://www.eurofiling.info/2010/rendering")
 euTableAxis = six.u("http://www.eurofiling.info/arcrole/2010/table-axis")
 euAxisMember = six.u("http://www.eurofiling.info/arcrole/2010/axis-member")
 qnEuTable = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
 qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
+
+# 2011 table linkbase
+table = six.u("http://xbrl.org/2011/table")
+tableAxis = six.u("http://xbrl.org/arcrole/2011/table-axis")
+tableFilter = six.u("http://xbrl.org/arcrole/2011/table-filter")
+qnTableTable = qname("{http://xbrl.org/2011/table}table:table")
+qnTableExplicitAxis = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxis")
+qnTableExplicitAxisMember = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxisMember")
+qnTableFilterAxis = qname("{http://xbrl.org/2011/axis/filter}filaxis:filterAxis")
+explicitAxisMember = six.u("http://xbrl.org/arcrole/2011/axis/explicit-axis-member")
+axisFilter = six.u("http://xbrl.org/arcrole/2011/axis/axis-filter")
 
 errMsgPrefixNS = {
     "err": xpath2err,
@@ -386,8 +406,8 @@ def isStandardArcQname(qName):
 def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
-def isEuRenderingArcrole(arcrole):
-    return arcrole in (euTableAxis, euAxisMember)
+def isTableRenderingArcrole(arcrole):
+    return arcrole in (euTableAxis, euAxisMember, tableAxis, tableFilter, explicitAxisMember, axisFilter)
    
 def isFormulaArcrole(arcrole):
     return arcrole in {"http://xbrl.org/arcrole/2008/assertion-set",

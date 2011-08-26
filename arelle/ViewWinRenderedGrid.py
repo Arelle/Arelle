@@ -56,20 +56,21 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     
     def loadTablesMenu(self):
         tblMenuEntries = {}             
-        tblRelSet = self.modelXbrl.relationshipSet("EU-rendering")
+        tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
         for tblLinkroleUri in tblRelSet.linkRoleUris:
-            tblAxisRelSet = self.modelXbrl.relationshipSet(XbrlConst.euTableAxis, tblLinkroleUri)
-            if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
-                # table name
-                modelRoleTypes = self.modelXbrl.roleTypes.get(tblLinkroleUri)
-                if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-                    roledefinition = modelRoleTypes[0].definition
-                    if roledefinition is None or roledefinition == "":
-                        roledefinition = os.path.basename(tblLinkroleUri)       
-                    for table in tblAxisRelSet.rootConcepts:
-                        # add table to menu if there's any entry
-                        tblMenuEntries[roledefinition] = tblLinkroleUri
-                        break
+            for tableAxisArcrole in (XbrlConst.euTableAxis, XbrlConst.tableAxis):
+                tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, tblLinkroleUri)
+                if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
+                    # table name
+                    modelRoleTypes = self.modelXbrl.roleTypes.get(tblLinkroleUri)
+                    if modelRoleTypes is not None and len(modelRoleTypes) > 0:
+                        roledefinition = modelRoleTypes[0].definition
+                        if roledefinition is None or roledefinition == "":
+                            roledefinition = os.path.basename(tblLinkroleUri)       
+                        for table in tblAxisRelSet.rootConcepts:
+                            # add table to menu if there's any entry
+                            tblMenuEntries[roledefinition] = tblLinkroleUri
+                            break
         self.tablesMenu.delete(0, self.tablesMenuLength)
         self.tablesMenuLength = 0
         for tblMenuEntry in sorted(tblMenuEntries.items()):
@@ -90,7 +91,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             viewTblELR = self.tblELR
 
         tblAxisRelSet = self.modelXbrl.relationshipSet(XbrlConst.euTableAxis, viewTblELR)
-        self.axisMbrRelSet = self.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
+        if len(tblAxisRelSet.modelRelationships) > 0:
+            self.axisMbrRelSet = self.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
+        else: # try 2011 roles
+            tblAxisRelSet = self.modelXbrl.relationshipSet(XbrlConst.tableAxis, viewTblELR)
+            self.axisMbrRelSet = self.modelXbrl.relationshipSet(XbrlConst.explicitAxisMember, viewTblELR)
         if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
             self.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(self.arcrole))
             return False
@@ -118,7 +123,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             
             xAxisObj = yAxisObj = zAxisObj = None
             for tblAxisRel in tblAxisRelSet.fromModelObject(table):
-                axisType = tblAxisRel.get("axisType")
+                axisType = tblAxisRel.tableAxis
                 axisObj = tblAxisRel.toModelObject
                 if axisType == "xAxis": xAxisObj = axisObj
                 elif axisType == "yAxis": yAxisObj = axisObj

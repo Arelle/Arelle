@@ -16,6 +16,7 @@ from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 import gettext
+import logging
 
 import threading, queue
 
@@ -49,8 +50,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         
         imgpath = self.imagesDir + os.sep
 
-        self.isMac = sys.platform == "darwin"
-        self.isMSW = sys.platform.startswith("win")
         if self.isMSW:
             icon = imgpath + "arelle.ico"
             parent.iconbitmap(icon, default=icon)
@@ -94,6 +93,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         validateMenu = Menu(self.menubar, tearoff=0)
         toolsMenu.add_cascade(label=_("Validation"), menu=validateMenu, underline=0)
         validateMenu.add_command(label=_("Validate"), underline=0, command=self.validate)
+        validateMenu.add_command(label=_("Schema validate (experimental)"), underline=0, command=self.schemaValidate)
         self.modelManager.validateDisclosureSystem = self.config.setdefault("validateDisclosureSystem",False)
         self.validateDisclosureSystem = BooleanVar(value=self.modelManager.validateDisclosureSystem)
         self.validateDisclosureSystem.trace("w", self.setValidateDisclosureSystem)
@@ -226,6 +226,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
+        WinMainLogHandler(self) # start logger
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
         logViewMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logViewMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
@@ -349,12 +350,11 @@ class CntlrWinMain (Cntlr.Cntlr):
     def fileSave(self, *ignore):
         if self.modelManager.modelXbrl:
             if self.modelManager.modelXbrl.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
-                filename = tkinter.filedialog.asksaveasfilename(
+                filename = self.uiFileDialog("save",
                         title=_("arelle - Save Test Results"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
                         filetypes=[(_("CSV file"), "*.csv")],
-                        defaultextension=".csv",
-                        parent=self.parent)
+                        defaultextension=".csv")
                 if not filename:
                     return False
                 try:
@@ -366,12 +366,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         parent=self.parent)
                 return True
             elif self.modelManager.modelXbrl.formulaOutputInstance:
-                filename = tkinter.filedialog.asksaveasfilename(
+                filename = self.uiFileDialog("save",
                         title=_("arelle - Save Formula Result Instance Document"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
                         filetypes=[(_("XBRL output instance .xml"), "*.xml"), (_("XBRL output instance .xbrl"), "*.xbrl")],
-                        defaultextension=".xml",
-                        parent=self.parent)
+                        defaultextension=".xml")
                 if not filename:
                     return False
                 try:
@@ -386,12 +385,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     parent=self.parent)
                 return True
         if self.filename is None:
-            filename = tkinter.filedialog.asksaveasfilename(
+            filename = self.uiFileDialog("save",
                     title=_("arelle - Save File"),
                     initialdir=".",
                     filetypes=[(_("Xbrl file"), "*.x*")],
-                    defaultextension=".xbrl",
-                    parent=self.parent)
+                    defaultextension=".xbrl")
             if not filename:
                 return False
             self.filename = filename
@@ -416,12 +414,11 @@ class CntlrWinMain (Cntlr.Cntlr):
     def fileOpen(self, *ignore):
         if not self.okayToContinue():
             return
-        filename = tkinter.filedialog.askopenfilename(
+        filename = self.uiFileDialog("open",
                             title=_("arelle - Open file"),
                             initialdir=self.config.setdefault("fileOpenDir","."),
-                            filetypes=[] if self.isMac else [(_("XBRL files"), "*.*")],
-                            defaultextension=".xbrl",
-                            parent=self.parent)
+                            filetypes=[(_("XBRL files"), "*.*")],
+                            defaultextension=".xbrl")
         if self.isMSW and "/Microsoft/Windows/Temporary Internet Files/Content.IE5/" in filename:
             tkinter.messagebox.showerror(_("Loading web-accessed files"),
                 _('Please open web-accessed files with the second toolbar button, "Open web file", or the File menu, second entry, "Open web..."'), parent=self.parent)
@@ -437,12 +434,11 @@ class CntlrWinMain (Cntlr.Cntlr):
             tkinter.messagebox.showwarning(_("arelle - Warning"),
                             _("Import requires an opened DTS"), parent=self.parent)
             return False
-        filename = tkinter.filedialog.askopenfilename(
+        filename = self.uiFileDialog("open",
                             title=_("arelle - Import file into opened DTS"),
                             initialdir=self.config.setdefault("importOpenDir","."),
-                            filetypes=[] if self.isMac else [(_("XBRL files"), "*.*")],
-                            defaultextension=".xml",
-                            parent=self.parent)
+                            filetypes=[(_("XBRL files"), "*.*")],
+                            defaultextension=".xml")
         if self.isMSW and "/Microsoft/Windows/Temporary Internet Files/Content.IE5/" in filename:
             tkinter.messagebox.showerror(_("Loading web-accessed files"),
                 _('Please open web-accessed files with the second toolbar button, "Open web file", or the File menu, second entry, "Open web..."'), parent=self.parent)
@@ -450,7 +446,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if os.sep == "\\":
             filename = filename.replace("/", "\\")
             
-        self.fileOpenFile(filename, attach=True)
+        self.fileOpenFile(filename, importToDTS=True)
     
         
     def updateFileHistory(self, url, importToDTS):
@@ -557,12 +553,12 @@ class CntlrWinMain (Cntlr.Cntlr):
                 currentAction = "tree view of tests"
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft)
                 currentAction = "view of concepts"
-                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang)
-                if modelXbrl.hasEuRendering:  # show rendering grid even without any facts
+                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang, altTabWin=self.tabWinTopRt)
+                if modelXbrl.hasTableRendering:  # show rendering grid even without any facts
                     ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.lang)
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     currentAction = "table view of facts"
-                    if not modelXbrl.hasEuRendering: # table view only if not grid rendered view
+                    if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
                         ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
                     currentAction = "tree/list of facts"
                     ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
@@ -575,9 +571,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.lang)
                 currentAction = "dimensions relationships view"
                 ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.lang)
-                if modelXbrl.hasEuRendering:
+                if modelXbrl.hasTableRendering:
                     currentAction = "rendering view"
-                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "EU-rendering", lang=self.lang)
+                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.lang)
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"
@@ -637,6 +633,16 @@ class CntlrWinMain (Cntlr.Cntlr):
             
         self.uiThreadQueue.put((self.logSelect, []))
 
+    def schemaValidate(self):
+        if self.modelManager.modelXbrl:
+            thread = threading.Thread(target=lambda: self.backgroundSchemaValidate())
+            thread.daemon = True
+            thread.start()
+            
+    def backgroundSchemaValidate(self):
+        from arelle.XmlValidate import schemaValidate
+        schemaValidate(self.modelManager.modelXbrl)
+        self.uiThreadQueue.put((self.logSelect, []))
 
     def compareDTSes(self):
         countLoadedDTSes = len(self.modelManager.loadedModelXbrls)
@@ -645,12 +651,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                             _("Two DTSes are required for the Compare DTSes operation, {0} found").format(countLoadedDTSes),
                             parent=self.parent)
             return False
-        versReportFile = tkinter.filedialog.asksaveasfilename(
+        versReportFile = self.uiFileDialog("save",
                 title=_("arelle - Save Versioning Report File"),
                 initialdir=self.config.setdefault("versioningReportDir","."),
                 filetypes=[(_("Versioning report file"), "*.xml")],
-                defaultextension=".xml",
-                parent=self.parent)
+                defaultextension=".xml")
         if not versReportFile:
             return False
         self.config["versioningReportDir"] = os.path.dirname(versReportFile)
@@ -698,6 +703,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             
     def quit(self, event=None, restartAfterQuit=False):
         if self.okayToContinue():
+            logging.shutdown()
             global restartMain
             restartMain = restartAfterQuit
             state = self.parent.state()
@@ -705,6 +711,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowGeometry"] = self.parent.geometry()
             if state in ("normal", "zoomed"):
                 self.config["windowState"] = state
+            self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - 4,   # remove border growth
+                                                self.tabWinTopLeft.winfo_height() - 6)
             super().close()
             self.parent.unbind_all(())
             self.parent.destroy()
@@ -925,12 +933,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.logView.select()
         
     def logSaveToFile(self, *ignore):
-        filename = tkinter.filedialog.asksaveasfilename(
+        filename = self.uiFileDialog("save",
                 title=_("arelle - Save Messages Log"),
                 initialdir=".",
                 filetypes=[(_("Txt file"), "*.txt")],
-                defaultextension=".txt",
-                parent=self.parent)
+                defaultextension=".txt")
         if not filename:
             return False
         try:
@@ -1002,6 +1009,50 @@ class CntlrWinMain (Cntlr.Cntlr):
             else:
                 callback(*args)
         widget.after(delayMsecs, lambda: self.uiThreadChecker(widget))
+        
+    def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None):
+        if self.hasWin32gui:
+            import win32gui
+            try:
+                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,
+                                           "save":win32gui.GetSaveFileNameW}[action](
+                            hwndOwner=self.parent.winfo_id(), 
+                            hInstance=win32gui.GetModuleHandle(None),
+                            Filter='\0'.join(e for t in filetypes+['\0'] for e in t),
+                            MaxFile=4096,
+                            InitialDir=initialdir,
+                            Title=title,
+                            DefExt=defaultextension)
+                return filename
+            except win32gui.error:
+                return ''
+        else:
+            return {"open":tkinter.filedialog.askopenfilename,
+                    "save":tkinter.filedialog.asksaveasfilename}[action](
+                            title=title,
+                            initialdir=initialdir,
+                            filetypes=[] if self.isMac else filetypes,
+                            defaultextension=defaultextension,
+                            parent=self.parent)
+
+class WinMainLogHandler(logging.Handler):
+    def __init__(self, cntlr):
+        super().__init__()
+        self.cntlr = cntlr
+        self.level = logging.DEBUG
+        #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
+        formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
+        self.setFormatter(formatter)
+        logging.getLogger("arelle").addHandler(self)
+    def flush(self):
+        ''' Nothing to flush '''
+    def emit(self, logRecord):
+         # add to logView        
+        msg = self.format(logRecord)        
+        try:            
+            self.cntlr.addToLog(msg)
+        except:
+            pass
 
 def main():
     gettext.install("arelle")

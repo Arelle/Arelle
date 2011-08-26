@@ -7,9 +7,10 @@ Created on Dec 30, 2010
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                           exceptionErrorIndication)
 from arelle import (ModelXbrl, XbrlConst, XmlUtil)
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
+from arelle.XmlValidate import UNKNOWN, VALID, validate
 from lxml import etree
 
 class XPathException(Exception):
@@ -418,21 +419,38 @@ class XPathContext:
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,(ModelObject, etree._ElementTree)):
+            if not isinstance(node,(ModelObject, etree._ElementTree, ModelAttribute)):
                 raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
             if isinstance(p,QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
                     attrTag = p.localName if p.unprefixed else p.clarkNotation
-                    if node.get(attrTag) is not None:
-                        targetNodes.append(node.get(attrTag))
+                    modelAttribute = None
+                    try:
+                        modelAttribute = node.xAttributes[attrTag]
+                    except (AttributeError, TypeError, IndexError, KeyError):
+                        # may be lax or deferred validated
+                        try:
+                            validate(node.modelXbrl, node, p)
+                            modelAttribute = node.xAttributes[attrTag]
+                        except (AttributeError, TypeError, IndexError, KeyError):
+                            pass
+                    if modelAttribute is None:
+                        value = node.get(attrTag)
+                        if value is not None:
+                            targetNodes.append(ModelAttribute(node,p.clarkNotation,UNKNOWN,value,value,value))
+                    elif modelAttribute.xValid >= VALID:
+                            targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
                     targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
                     targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
-                    targetNodes = [ XmlUtil.parent(node) ]
+                    if isinstance(node,ModelAttribute):
+                        targetNodes = [ node.modelElement ]
+                    else:
+                        targetNodes = [ XmlUtil.parent(node) ]
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
                 if p.name.localName == "text":
                     targetNodes = [XmlUtil.text(node)]
@@ -480,13 +498,20 @@ class XPathContext:
             baseXsdType = x.concept.baseXsdType
             v = x.value # resolves default value
             e = x
+        elif isinstance(x, ModelAttribute): # ModelAttribute is a tuple (below), check this first!
+            return x.xValue
         else:
             if isinstance(x, ModelObject):
                 e = x
             if e is not None:
                 if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
                     return []
-                modelXbrl = x.modelDocument.modelXbrl
+                try:
+                    if e.xValid >= VALID:
+                        return e.xValue
+                except AttributeError:
+                    pass
+                modelXbrl = x.modelXbrl
                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                 if modelConcept is not None:
                     baseXsdType = modelConcept.baseXsdType
@@ -521,7 +546,7 @@ class XPathContext:
     
     def effectiveBooleanValue(self, p, x):
         from arelle.FunctionFn import boolean
-        return boolean( self, p, None, (self.atomize( p, x ),) )
+        return boolean( self, p, None, (self.flattenSequence(x),) )
 
     # flatten into a sequence
     def flattenSequence(self, x, sequence=None):
@@ -542,13 +567,14 @@ class XPathContext:
         for e in x:
             if isinstance(e,ModelObject):
                 h = e.sourceline
+            elif isinstance(e,ModelAttribute):
+                h = e.modelElement.sourceline
             else:
                 h = 0
             l.add((h,e))
         return [e for h,e in sorted(l, key=lambda h: h[0])]
     
     def modelItem(self, x):
-        modelItem = None
         if isinstance(x, (ModelFact, ModelInlineFact)) and x.isItem:
             return x
         return None

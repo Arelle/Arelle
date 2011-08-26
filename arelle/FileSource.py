@@ -4,13 +4,15 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, os, io, base64, gzip, six
+import zipfile, os, io, base64, gzip, six, re
 from lxml import etree
 
 from arelle import XmlUtil
 
 archivePathSeparators = (".zip" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
                         ((".zip/", ".xfd/", ".frm/") if os.sep != "/" else ()) #acomodate windows and http styles
+
+XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
 def openFileSource(filename, cntlr=None):
     archivepathSelection = archiveFilenameParts(filename)
@@ -130,11 +132,11 @@ class FileSource:
             self.isOpen = False
             self.isZip = False
         if self.isXfd and self.isOpen:
-            self.xfdDocument.unlink()
+            self.xfdDocument.getroot().clear() # unlink nodes
             self.xfdDocument = None
             self.isXfd = False
         if self.isRss and self.isOpen:
-            self.rssDocument.unlink()
+            self.rssDocument.getroot().clear() # unlink nodes
             self.rssDocument = None
             self.isRss = False
         self.filesDir = None
@@ -148,23 +150,29 @@ class FileSource:
     
     def fileSourceContainingFilepath(self, filepath):
         if self.isOpen:
-            archiveFiles = self.dir
+            # archiveFiles = self.dir
+            ''' change to return file source if archive would be in there (vs actually is in archive)
             if ((filepath.startswith(self.basefile) and 
                  filepath[len(self.basefile) + 1:] in archiveFiles) or
                 (filepath.startswith(self.baseurl) and 
                  filepath[len(self.baseurl) + 1:] in archiveFiles)):
+                return self
+            '''
+            if (filepath.startswith(self.basefile) or
+                filepath.startswith(self.baseurl)):
                 return self
         referencedFileParts = archiveFilenameParts(filepath)
         if referencedFileParts is not None:
             referencedArchiveFile = referencedFileParts[0]
             if referencedArchiveFile in self.referencedFileSources:
                 referencedFileSource = self.referencedFileSources[referencedArchiveFile]
-            else:
+                if referencedFileSource.isInArchive(filepath):
+                    return referencedFileSource
+            elif (not self.isOpen or 
+                  (referencedArchiveFile != self.basefile and referencedArchiveFile != self.baseurl)):
                 referencedFileSource = openFileSource(filepath, self.cntlr)
                 if referencedFileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
-            if referencedFileSource.isInArchive(filepath):
-                return referencedFileSource
         return None
     
     def file(self,filepath):
@@ -176,9 +184,10 @@ class FileSource:
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
                 b = archiveFileSource.fs.read(archiveFileName)
-                return io.TextIOWrapper(
+                encoding = XmlUtil.encoding(b)
+                return (io.TextIOWrapper(
                         io.BytesIO(b), 
-                        encoding=XmlUtil.encoding(b))
+                        encoding=encoding), encoding)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
                     outfn = data.findtext("filename")
@@ -192,14 +201,37 @@ class FileSource:
                                 length = len(b) - 3
                                 b = b[start:start + length]
                             else:
-                                start = 0
-                                length = len(b)
-                            return io.TextIOWrapper(
+                                start = 0;
+                                length = len(b);
+                            # pass back as ascii
+                            #str = ""
+                            #for bChar in b[start:start + length]:
+                            #    str += chr( bChar )
+                            #return str
+                            return (io.TextIOWrapper(
                                 io.BytesIO(b), 
-                                encoding=XmlUtil.encoding(b))
-                return None
-        return open(filepath, 'rU', encoding="utf-8")
-    
+                                encoding=XmlUtil.encoding(b)), "latin-1")
+                return (None,None)
+        # check encoding
+        with open(filepath, 'rb') as fb:
+            hdrBytes = fb.peek(512)
+            encoding = XmlUtil.encoding(hdrBytes)
+            if encoding.lower() in ('utf-8','utf8'):
+                text = None
+            else:
+                text = fb.read().decode(encoding)
+            # allow filepath to close
+        # this may not be needed for Mac or Linux, needs confirmation!!!
+        if text is None:  # ok to read as utf-8
+            return (open(filepath, 'rt', encoding='utf-8'), encoding)
+        else:
+            # strip XML declaration
+            xmlDeclarationMatch = XMLdeclaration.search(text)
+            if xmlDeclarationMatch: # remove it for lxml
+                start,end = xmlDeclarationMatch.span()
+                text = text[0:start] + text[end:]
+            return (io.StringIO(initial_value=text), encoding)
+
     @property
     def dir(self):
         self.open()

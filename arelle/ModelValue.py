@@ -1,9 +1,9 @@
-'''
+"""
 Created on Jan 4, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
-'''
+"""
 import re, datetime
 import six
 
@@ -69,6 +69,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     return QName(prefix, namespaceURI, localName)
 
 class QName(object):
+    __slots__ = ("prefix", "namespaceURI", "localName", "hash")
     def __init__(self,prefix,namespaceURI,localName):
         self.prefix = prefix
         self.namespaceURI = namespaceURI

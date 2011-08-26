@@ -4,14 +4,16 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom
-from arelle import (XPathContext, XbrlConst, XbrlUtil, XmlUtil)
-from arelle.ModelObject import ModelObject
-from arelle.ModelValue import (qname, QName, dateTime, DATE, DATETIME, DATEUNION, anyURI)
-from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
+import xml.dom, datetime
+from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
+from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.ModelValue import qname, QName, dateTime, DATE, DATETIME, DATEUNION, DateTime, dateUnionEqual, anyURI
+from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg, atomicArg
 from arelle.ModelDtsObject import anonymousTypeSuffix
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
-from math import (isnan,isinf)
+from arelle.XmlValidate import UNKNOWN, VALID, validate
+from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
+from math import isnan, isinf
 
 class xfiFunctionNotAvailable(Exception):
     def __init__(self):
@@ -26,13 +28,26 @@ def call(xc, p, localname, args):
     except xfiFunctionNotAvailable:
         raise XPathContext.FunctionNotAvailable("xfi:{0}".format(localname))
 
+def instance(xc, p, args, i=0):
+    if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
+    xbrliXbrl = anytypeArg(xc, args, i, "xbrli:xbrl")
+    if isinstance(xbrliXbrl, ModelObject) and xbrliXbrl.elementQname == XbrlConst.qnXbrliXbrl:
+        return xbrliXbrl.modelXbrl
+    raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
+
 def item(xc, args, i=0):
     if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:item")
-    if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:item")
     modelItem = xc.modelItem(args[i][0])
     if modelItem is not None: 
         return modelItem
     raise XPathContext.FunctionArgType(i+1,"xbrl:item")
+
+def tuple(xc, args, i=0):
+    if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:tuple")
+    modelTuple = args[i][0]
+    if isinstance(modelTuple, (ModelFact, ModelInlineFact)) and modelTuple.isTuple:
+        return modelTuple
+    raise XPathContext.FunctionArgType(i+1,"xbrl:tuple")
 
 def item_context(xc, args, i=0):
     return item(xc, args, i).context
@@ -45,6 +60,7 @@ def item_context_element(xc, args, name):
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
 def context(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return item_context(xc, args)
 
 def unit(xc, p, args):
@@ -178,13 +194,19 @@ def identifier_value(xc, p, args):
     return parent_child(args, "identifier", "strip-text()")
 
 def identifier_scheme(xc, p, args):
-    return parent_child(args, "identifier", "@scheme")
+    scheme = parent_child(args, "identifier", "@scheme")
+    if scheme is None:
+        return None
+    return anyURI(scheme)
 
 def fact_identifier_value(xc, p, args):
     return XmlUtil.text(item_context_element(xc, args, "identifier")).strip()
 
 def fact_identifier_scheme(xc, p, args):
-    return item_context_element(xc, args, "identifier").get("scheme")
+    scheme = item_context_element(xc, args, "identifier").get("scheme")
+    if scheme is None:
+        return None
+    return anyURI(scheme)
 
 def segment(xc, p, args):
     return item_context_element(xc, args, "segment")
@@ -211,17 +233,18 @@ def infer_precision_decimals(xc, p, args, attrName):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:item")
     modelItem = xc.modelItem(args[0][0])
-    if modelItem is not None: 
-        modelConcept = modelItem.concept
-        if modelConcept.isNumeric:
-            if modelConcept.isFraction: return 'INF'
-            from arelle.ValidateXbrlCalcs import (inferredDecimals,inferredPrecision)
-            p = inferredPrecision(modelItem) if attrName == "precision" else inferredDecimals(modelItem)
-            if isinf(p):
-                return 'INF'
-            if isnan(p):
-                raise XPathContext.XPathException(p, 'xfie:ItemIsNotNumeric', _('Argument 1 {0} is not inferrable.').format(attrName))
-            return p
+    if modelItem is None: 
+        raise XPathContext.FunctionArgType(1,"xbrl:item")
+    modelConcept = modelItem.concept
+    if modelConcept.isFraction: 
+        return 'INF'
+    if modelConcept.isNumeric:
+        p = inferredPrecision(modelItem) if attrName == "precision" else inferredDecimals(modelItem)
+        if isinf(p):
+            return 'INF'
+        if isnan(p):
+            raise XPathContext.XPathException(p, 'xfie:ItemIsNotNumeric', _('Argument 1 {0} is not inferrable.').format(attrName))
+        return p
     raise XPathContext.XPathException(p, 'xfie:ItemIsNotNumeric', _('Argument 1 is not reported with {0}.').format(attrName))
 
 def numeric(xc, p, args):
@@ -239,8 +262,8 @@ def conceptProperty(xc, p, args, property):
     if qn:
         modelConcept = xc.modelXbrl.qnameConcepts.get(qn)
         if modelConcept is not None:
-            if property == "numeric": return modelConcept.isNumeric
-            if property == "non-numeric": return not modelConcept.isNumeric
+            if property == "numeric": return modelConcept.isNumeric or modelConcept.isFraction
+            if property == "non-numeric": return modelConcept.isItem and not (modelConcept.isNumeric or modelConcept.isFraction)
             if property == "fraction": return modelConcept.isFraction
     return False
 
@@ -271,7 +294,7 @@ def uncovered_aspect(xc, p, args):
                 if dimValue.isExplicit: 
                     return dimValue.memberQname
                 elif dimValue.isTyped:
-                    return dimValue.typedMember
+                    return dimValue     # return the typedMember element, not its contents
             elif isinstance(dimValue, QName): # qname for explicit or node for typed
                 return dimValue
             return ()
@@ -280,35 +303,78 @@ def uncovered_aspect(xc, p, args):
         return ()
     return aspectValue
 
-def identical_nodes(xc, p, args):
-    raise xfiFunctionNotAvailable()
-
-def s_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
-
-def itemsEqual(xc, args, test):
+def nodesEqual(xc, args, test, mustBeItems=False, nonItemErrCode=None):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
     seq2 = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
-    for i, modelItem1 in enumerate(seq1):
+    for i, node1 in enumerate(seq1):
         try:
-            modelItem2 = seq2[i]
-            if not isinstance(modelItem1, ModelObject): 
-                raise XPathContext.FunctionArgType(1,"xbrl:item*")
-            if not isinstance(modelItem2, ModelObject): 
-                raise XPathContext.FunctionArgType(2,"xbrl:item*")
-            if not isinstance(modelItem1, (ModelFact, ModelInlineFact)) or not modelItem1.isItem: 
-                raise XPathContext.FunctionArgType(1,"xbrl:item*", errCode="xfie:NodeIsNotXbrlItem")
-            if not isinstance(modelItem2, (ModelFact, ModelInlineFact)) or not modelItem2.isItem: 
-                raise XPathContext.FunctionArgType(2,"xbrl:item*", errCode="xfie:NodeIsNotXbrlItem")
-            if not test(modelItem1, modelItem2):
+            node2 = seq2[i]
+            if not isinstance(node1, (ModelObject,ModelAttribute)): 
+                raise XPathContext.FunctionArgType(1,"node()*")
+            if not isinstance(node2, (ModelObject,ModelAttribute)): 
+                raise XPathContext.FunctionArgType(2,"node()*")
+            if mustBeItems:
+                if not isinstance(node1, (ModelFact, ModelInlineFact)) or not node1.isItem: 
+                    raise XPathContext.FunctionArgType(1,"xbrl:item*", errCode=nonItemErrCode)
+                if not isinstance(node2, (ModelFact, ModelInlineFact)) or not node2.isItem: 
+                    raise XPathContext.FunctionArgType(2,"xbrl:item*", errCode=nonItemErrCode)
+            if not test(node1, node2):
                 return False
         except IndexError:
             return False
     return True
 
+def setsEqual(xc, args, test, mustBeItems=False):
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
+    seq2 = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    for node1 in seq1:
+        if not isinstance(node1, ModelObject): 
+            raise XPathContext.FunctionArgType(1,"node()*")
+        if mustBeItems and (not isinstance(node1, (ModelFact, ModelInlineFact)) or not node1.isItem): 
+            raise XPathContext.FunctionArgType(1,"xbrl:item*", errCode="xfie:NodeIsNotXbrlItem")
+    for node2 in seq2:
+        if not isinstance(node2, ModelObject): 
+            raise XPathContext.FunctionArgType(2,"node()*")
+        if mustBeItems and (not isinstance(node2, (ModelFact, ModelInlineFact)) or not node2.isItem): 
+            raise XPathContext.FunctionArgType(2,"xbrl:item*", errCode="xfie:NodeIsNotXbrlItem")
+    if len(set(seq1)) != len(set(seq2)): # sequences can have nondistinct duplicates, just same set lengths needed
+        return False
+    for node1 in seq1:
+        if not any(test(node1, node2) for node2 in seq2):
+            return False
+    return True
+
+def identical_nodes(xc, p, args):
+    return nodesEqual(xc, args, identical_nodes_test)
+
+def identical_nodes_test(node1, node2):
+    return node1 == node2
+
+def s_equal(xc, p, args):
+    return nodesEqual(xc, args, s_equal_test)
+
+def s_equal_test(node1, node2):
+    if (isinstance(node1, (ModelFact, ModelInlineFact)) and node1.isItem and
+        isinstance(node2, (ModelFact, ModelInlineFact)) and node2.isItem):
+        return (c_equal_test(node1, node2) and u_equal_test(node1, node2) and
+                XbrlUtil.xEqual(node1, node2) and 
+                # must be validated (by xEqual) before precision tests to assure xAttributes is set
+                node1.xAttributes.get("precision") == node2.xAttributes.get("precision") and
+                node1.xAttributes.get("decimals") == node2.xAttributes.get("decimals"))
+    elif isinstance(node1, ModelObject):
+        if isinstance(node2, ModelObject):
+            return XbrlUtil.sEqual(node1.modelXbrl, node1, node2, excludeIDs=XbrlUtil.TOP_IDs_EXCLUDED, dts2=node2.modelXbrl)
+        else:
+            return False
+    elif isinstance(node1, ModelAttribute):
+        if isinstance(node2, ModelAttribute):
+            return node1.text == node2.text
+    return False
+
 def u_equal(xc, p, args):
-    return itemsEqual(xc, args, u_equal_test)
+    return nodesEqual(xc, args, u_equal_test, mustBeItems=True, nonItemErrCode="xfie:NodeIsNotXbrlItem")
 
 def u_equal_test(modelItem1, modelItem2):
     modelUnit1 = modelItem1.unit
@@ -319,13 +385,13 @@ def u_equal_test(modelItem1, modelItem2):
         return modelUnit1.isEqualTo(modelUnit2)
 
 def v_equal(xc, p, args):
-    return itemsEqual(xc, args, u_equal_test)
+    return nodesEqual(xc, args, v_equal_test, mustBeItems=True, nonItemErrCode="xfie:NodeIsNotXbrlItem")
 
 def v_equal_test(modelItem1, modelItem2):
     return modelItem1.isVEqualTo(modelItem2)
 
 def c_equal(xc, p, args):
-    return itemsEqual(xc, args, c_equal_test)
+    return nodesEqual(xc, args, c_equal_test, mustBeItems=True, nonItemErrCode="xfie:NodeIsNotXbrlItem")
 
 def c_equal_test(modelItem1, modelItem2):
     modelCntx1 = modelItem1.context
@@ -336,46 +402,111 @@ def c_equal_test(modelItem1, modelItem2):
         return modelCntx1.isEqualTo(modelCntx2,dimensionalAspectModel=False)
 
 def identical_node_set(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return setsEqual(xc, args, identical_nodes_test)
 
 def s_equal_set(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return setsEqual(xc, args, s_equal_test)
 
 def v_equal_set(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return setsEqual(xc, args, v_equal_test, mustBeItems=True)
 
 def c_equal_set(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return setsEqual(xc, args, c_equal_test, mustBeItems=True)
 
 def u_equal_set(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return setsEqual(xc, args, u_equal_test, mustBeItems=True)
 
 def x_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return nodesEqual(xc, args, x_equal_test)
+
+def x_equal_test(node1, node2):
+    if isinstance(node1, ModelObject):
+        if isinstance(node2, ModelObject):
+            return XbrlUtil.xEqual(node1, node2)
+        else:
+            return False
+    elif isinstance(node1, ModelAttribute):
+        if isinstance(node2, ModelAttribute):
+            return node1.sValue == node2.sValue
+    return False
+
 
 def duplicate_item(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    node1 = item(xc, args, 0)
+    node2 = item(xc, args, 1)
+    if (node1 == node2 or
+        node1.concept != node2.concept or
+        node1.parentElement != node2.parentElement):
+        return False    # can't be identical
+    return  (node1.context.isEqualTo(node2.context,dimensionalAspectModel=False) and
+             (not node1.isNumeric or node1.unit.isEqualTo(node2.unit)))
 
 def duplicate_tuple(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    node1 = tuple(xc, args, 0)
+    node2 = tuple(xc, args, 1)
+    return duplicate_tuple_test(node1, node2)
+
+def duplicate_tuple_test(node1, node2, topLevel=True):
+    if (node1 == node2 or
+        node1.concept != node2.concept or
+        (topLevel and node1.parentElement != node2.parentElement)):
+        return False    # can't be identical
+    if node1.isTuple:
+        if len(node1.modelTupleFacts) == len(node2.modelTupleFacts):
+            for child1 in node1.modelTupleFacts:
+                if child1.isItem:
+                    if not any(child1.isVEqualTo(child2) for child2 in node2.modelTupleFacts):
+                        return False
+                elif child1.isTuple:
+                    if not any(duplicate_tuple_test(child1, child2, topLevel=False) 
+                               for child2 in node2.modelTupleFacts):
+                        return False
+            return True
+    return False
 
 def p_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return nodesEqual(xc, args, p_equal_test)
+
+def p_equal_test(node1, node2):
+    if not isinstance(node1, (ModelFact, ModelInlineFact)) or not (node1.isItem or node1.isTuple): 
+        raise XPathContext.FunctionArgType(1,"xbrli:item or xbrli:tuple", errCode="xfie:ElementIsNotXbrlConcept")
+    if not isinstance(node2, (ModelFact, ModelInlineFact)) or not (node1.isItem or node1.isTuple): 
+        raise XPathContext.FunctionArgType(2,"xbrli:item or xbrli:tuple", errCode="xfie:ElementIsNotXbrlConcept")
+    return node1.parentElement == node2.parentElement
 
 def cu_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return nodesEqual(xc, args, cu_equal_test, mustBeItems=True, nonItemErrCode="xfie:NodeIsNotXbrlItem")
+
+def cu_equal_test(modelItem1, modelItem2):
+    return c_equal_test(modelItem1, modelItem2) and u_equal_test(modelItem1, modelItem2)
 
 def pc_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return nodesEqual(xc, args, pc_equal_test, mustBeItems=True, nonItemErrCode="xfie:NodeIsNotXbrlItem")
+
+def pc_equal_test(modelItem1, modelItem2):
+    return p_equal_test(modelItem1, modelItem2) and c_equal_test(modelItem1, modelItem2)
 
 def pcu_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return nodesEqual(xc, args, pcu_equal_test, mustBeItems=True, nonItemErrCode="xfie:NodeIsNotXbrlItem")
+
+def pcu_equal_test(modelItem1, modelItem2):
+    return p_equal_test(modelItem1, modelItem2) and c_equal_test(modelItem1, modelItem2) and u_equal_test(modelItem1, modelItem2)
 
 def start_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return date_equal_test(xc, p, args, False)
 
 def end_equal(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    return date_equal_test(xc, p, args, True)
+
+def date_equal_test(xc, p, args, instantEndDate):
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    date1 = atomicArg(xc, p, args, 0, "xbrldi:dateUnion", missingArgFallback=(), emptyFallback=None)
+    if not isinstance(date1, (DateTime,datetime.date)): 
+        raise XPathContext.FunctionArgType(1,"xbrldi:dateUnion")
+    date2 = atomicArg(xc, p, args, 1, "xbrldi:dateUnion", missingArgFallback=(), emptyFallback=None)
+    if not isinstance(date1, (DateTime,datetime.date)): 
+        raise XPathContext.FunctionArgType(2,"xbrldi:dateUnion")
+    return dateUnionEqual(date1, date2, instantEndDate)
 
 def nodes_correspond(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
@@ -386,13 +517,6 @@ def nodes_correspond(xc, p, args):
         return False
     if node2 == (): return False
     return XbrlUtil.nodesCorrespond(xc.modelXbrl, node1, node2, xc.modelXbrl)
-
-def instance(xc, p, args, i=0):
-    if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
-    modelXbrl = xc.modelInstance(anytypeArg(xc, args, i, "xbrli:xbrl"))
-    if modelXbrl:
-        return modelXbrl
-    raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
 
 def facts_in_instance(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -410,15 +534,19 @@ def tuples_in_instance(xc, p, args):
     return [f for f in inst.factsInInstance if f.isTuple]
 
 def items_in_tuple(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    parentTuple = tuple(xc, args, 0)
+    return [f for f in parentTuple.modelTupleFacts if f.isItem]
 
 def tuples_in_tuple(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    parentTuple = tuple(xc, args, 0)
+    return [f for f in parentTuple.modelTupleFacts if f.isTuple]
 
 def non_nil_facts_in_instance(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     inst = instance(xc, p, args)
-    return [f for f in inst.factsInInstance if f.isItem and not f.isNil]
+    return [f for f in inst.factsInInstance if (f.isItem or f.isTuple) and not f.isNil]
 
 def concept(xc, p, args):
     qnConcept = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
@@ -429,7 +557,10 @@ def concept(xc, p, args):
 
 def concept_balance(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return concept(xc,p,args).get("{http://www.xbrl.org/2003/instance}balance")
+    balance = concept(xc,p,args).get("{http://www.xbrl.org/2003/instance}balance")
+    if balance is None:
+        balance = ""
+    return balance
 
 def concept_period_type(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -440,9 +571,7 @@ def concept_custom_attribute(xc, p, args):
     qnAttr = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
     if qnAttr is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = concept(xc,p,args)
-    if element.get(qnAttr.clarkNotation) is None:
-        return ()
-    return xc.atomize(p, element.get(qnAttr.clarkNotation))
+    return element_attribute(element, qnAttr)
 
 def concept_data_type(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -545,7 +674,7 @@ def fact_has_explicit_dimension(xc, p, args):
 
 def fact_has_typed_dimension(xc, p, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    dimValue = fact_dim_value(xc, p, args, "Explicit")
+    dimValue = fact_dim_value(xc, p, args, "Typed")
     return dimValue is not None and not isinstance(dimValue,QName) and dimValue.isTyped
 
 def fact_explicit_dimension_value_value(xc, p, args):
@@ -591,7 +720,7 @@ def fact_typed_dimension_value(xc, p, args):
         if modelConcept is None or not modelConcept.isTypedDimension:
             raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
         result = context.dimValue(qn)
-        return result.typedMember if result is not None else ()
+        return result if result is not None else ()
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
 def fact_dimension_s_equal2(xc, p, args):
@@ -603,15 +732,15 @@ def fact_dimension_s_equal2(xc, p, args):
             qn = qnameArg(xc, p, args, 2, 'QName', emptyFallback=())
             if qn == (): raise XPathContext.FunctionArgType(3,"xbrl:QName")
             modelConcept = xc.modelXbrl.qnameConcepts.get(qn) # check qname is explicit dimension
-            if modelConcept is None or not modelConcept.isTypedDimension:
+            if modelConcept is None or not modelConcept.isDimensionItem:
                 # raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
                 return False
             dimValue1 = context1.dimValue(qn)
-            dimValue2 = context1.dimValue(qn)
+            dimValue2 = context2.dimValue(qn)
             if dimValue1 is not None and isinstance(dimValue1,ModelDimensionValue):
-                    return dimValue1.isEqualTo(dimValue2)
+                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)
             elif dimValue2 is not None and isinstance(dimValue2,ModelDimensionValue):
-                    return dimValue2.isEqualTo(dimValue1)
+                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)
             return dimValue1 == dimValue2
         raise XPathContext.FunctionArgType(2,"xbrl:item")
     raise XPathContext.FunctionArgType(1,"xbrl:item")
@@ -784,7 +913,7 @@ def relationship_to_concept(xc, p, args):
 def distinct_nonAbstract_parent_concepts(xc, p, args):
     raise xfiFunctionNotAvailable()
 
-def element_attribute(xc, p, args, elementParent=False):
+def relationship_element_attribute(xc, p, args, elementParent=False):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     modelRel = anytypeArg(xc, args, 0, "arelle:ModelRelationship", None)
     if modelRel is None: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
@@ -792,22 +921,40 @@ def element_attribute(xc, p, args, elementParent=False):
     if qnAttr is None: raise XPathContext.FunctionArgType(2,"xs:QName")
     element = modelRel.arcElement
     if elementParent: element = element.getparent()
-    if element.get(qnAttr.clarkNotation) is None:
-        return ()
-    return xc.atomize(p, element.get(qnAttr.clarkNotation))
+    return element_attribute(element, qnAttr)
+
+def element_attribute(element, attrQname):
+    attrTag = attrQname.clarkNotation
+    modelAttribute = None
+    try:
+        modelAttribute = element.xAttributes[attrTag]
+    except (AttributeError, TypeError, IndexError, KeyError):
+        # may be lax or deferred validated
+        try:
+            validate(element.modelXbrl, element, attrQname)
+            modelAttribute = element.xAttributes[attrTag]
+        except (AttributeError, TypeError, IndexError, KeyError):
+            pass
+    if modelAttribute is None:
+        value = element.get(attrTag)
+        if value is not None:
+            return value
+    elif modelAttribute.xValid >= VALID:
+        return modelAttribute.xValue
+    return ()
    
 def relationship_attribute(xc, p, args):
-    return element_attribute(xc, p, args)
+    return relationship_element_attribute(xc, p, args)
 
 def relationship_link_attribute(xc, p, args):
-    return element_attribute(xc, p, args, elementParent=True)
+    return relationship_element_attribute(xc, p, args, elementParent=True)
 
 def element_name(xc, p, args, elementParent=False):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     modelRel = anytypeArg(xc, args, 0, "arelle:ModelRelationship", None)
     if modelRel is None: raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
     element = modelRel.arcElement
-    if elementParent is not None: element = element.getparent()
+    if elementParent: element = element.getparent()
     return qname(element)
 
 def relationship_name(xc, p, args):

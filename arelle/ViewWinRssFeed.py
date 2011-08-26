@@ -58,7 +58,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
         
     def viewRssFeed(self, modelDocument, parentNode):
         self.id = 1
-        for rssItem in modelDocument.items:
+        for rssItem in modelDocument.rssItems:
             node = self.treeView.insert(parentNode, "end", rssItem.objectId(),
                                         text=rssItem.companyName,
                                         tags=("odd" if self.id & 1 else "even",))

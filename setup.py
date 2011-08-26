@@ -26,7 +26,8 @@ if sys.platform == 'darwin':
     dataFiles = [
 	'--iconfile',
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
-	('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+    ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+    ('scripts',['arelle/scripts/' + f for f in os.listdir('arelle/scripts-macOS')]),
       ]
     cx_FreezeExecutables = None
 elif sys.platform == 'win32':
@@ -35,18 +36,12 @@ elif sys.platform == 'win32':
     # py2exe is not ported to Python 3 yet
     # setup_requires.append('py2exe')
     # FIXME: this should use the entry_points mechanism
-    scripts.extend(
-        ['scripts/runEFMTests.bat',
-         'scripts/runUS-GFMTests.bat',
-         'scripts/runUTRTests.bat',
-         'scripts/runVersioningConsumptionTests.bat',
-         'scripts/runXDTTests.bat',
-        ])
     packages = find_packages('.')
     dataFiles = None
     options = dict( build_exe =  {
         "include_files": [('arelle\\config','config'),
-                          ('arelle\\images','images')],
+                          ('arelle\\images','images'),
+                          ('arelle\\scripts-windows','scripts')],
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
         } )

@@ -65,7 +65,13 @@ def clarkNotationToPrefixNsLocalname(element, clarkName, isAttribute=False):
             return (None, None, clarkName) # don't use default xmlns on unqualified attribute name
         return (prefix, ns, localName)
     return (None, None, clarkName)
-        
+
+def clarkNotationToPrefixedName(element, clarkName, isAttribute=False):
+    prefix, ns, localName = clarkNotationToPrefixNsLocalname(element, clarkName, isAttribute)
+    if prefix:
+        return prefix + ":" + localName
+    else:
+        return localName
 
 def prefixedNameToNamespaceLocalname(element, prefixedName, defaultNsmap=None):
     if prefixedName is None or prefixedName == "":
@@ -96,7 +102,11 @@ def prefixedNameToClarkNotation(element, prefixedName):
 
 def encoding(xml):
     if isinstance(xml,bytes):
-        str = xml[0:80].decode("latin-1")
+        s = xml[0:120]
+        if b"x\0m\0l" in s:
+            str = s.decode("utf-16")
+        else:
+            str = s.decode("latin-1")
     else:
         str = xml[0:80]
     match = xmlEncodingPattern.match(str)
@@ -289,6 +299,53 @@ def schemaDescendant(element, descendantNamespaceURI, descendantLocalName, name)
                 if qname(child, child.get("name")) == name:
                     return child
     return None
+
+def schemaBaseTypeDerivedFrom(element):
+    for child in element.iterchildren():
+        if child.tag in ("{http://www.w3.org/2001/XMLSchema}extension","{http://www.w3.org/2001/XMLSchema}restriction"):
+            return child.get("base") 
+        elif child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
+                           "{http://www.w3.org/2001/XMLSchema}simpleType",
+                           "{http://www.w3.org/2001/XMLSchema}complexContent",
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent"):
+            qn = schemaBaseTypeDerivedFrom(child)
+            if qn is not None:
+                return qn
+    return None
+
+def schemaAttributesGroups(element, attributes=None, attributeGroups=None):
+    if attributes is None: attributes = []; attributeGroups = []
+    for child in element.iterchildren():
+        if child.tag == "{http://www.w3.org/2001/XMLSchema}attribute":
+            attributes.append(child) 
+        elif child.tag == "{http://www.w3.org/2001/XMLSchema}attributeGroup":
+            attributeGroups.append(child) 
+        elif child.tag in {"{http://www.w3.org/2001/XMLSchema}complexType",
+                           "{http://www.w3.org/2001/XMLSchema}simpleType",
+                           "{http://www.w3.org/2001/XMLSchema}complexContent",
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent",
+                           "{http://www.w3.org/2001/XMLSchema}restriction",
+                           "{http://www.w3.org/2001/XMLSchema}extension"
+                           }:
+            schemaAttributesGroups(child, attributes=attributes, attributeGroups=attributeGroups)
+    return (attributes, attributeGroups)
+
+def emptyContentModel(element):
+    for child in element.iterchildren():
+        if child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
+                         "{http://www.w3.org/2001/XMLSchema}complexContent"):
+            if child.get("mixed") == "true":
+                return False
+            for contentChild in child.iterdescendants():
+                if contentChild.tag in ("{http://www.w3.org/2001/XMLSchema}sequence",
+                                        "{http://www.w3.org/2001/XMLSchema}choice",
+                                        "{http://www.w3.org/2001/XMLSchema}all"):
+                    return True
+        elif child.tag in ("{http://www.w3.org/2001/XMLSchema}simpleType",
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent"):
+            return False
+    return True
+
 
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
@@ -496,19 +553,22 @@ def xpointerElement(modelDocument, fragmentIdentifier):
 
 def elementFragmentIdentifier(element):
     if element.id:
-        location = element.id
+        return element.id  # "short hand pointer" for element fragment identifier
     else:
-        childSequence = [""] # "" represents document element for / on the join below
+        childSequence = [""] # "" represents document element for / (root) on the join below
         while element is not None:
             if isinstance(element,ModelObject):
-                siblingPosition = 0
+                if element.id:  # has ID, use as start of path instead of root
+                    childSequence[0] = element.id
+                    break
+                siblingPosition = 1
                 for sibling in element.itersiblings(preceding=True):
                     if isinstance(sibling,ModelObject):
                         siblingPosition += 1
                 childSequence.insert(1, str(siblingPosition))
             element = element.getparent()
         location = "/".join(childSequence)
-    return "element({0})".format(location)
+        return "element({0})".format(location)
 
 def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
     # customized from xml.minidom to provide correct indentation for data items

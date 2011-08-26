@@ -14,6 +14,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, ViewCsvRelationshipSet, ViewCsvTests)
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
+import logging
 
 def main():
     gettext.install("arelle")
@@ -55,6 +56,8 @@ def main():
                       help=_("Write DTS tree into CSVFILE"))
     parser.add_option("--csvFacts", action="store", dest="csvFactList",
                       help=_("Write fact list into CSVFILE"))
+    parser.add_option("--csvFactCols", action="store", dest="csvFactListCols",
+                      help=_("Columns for CSVFILE"))
     parser.add_option("--csvConcepts", action="store", dest="csvConcepts",
                       help=_("Write concepts into CSVFILE"))
     parser.add_option("--csvPre", action="store", dest="csvPre",
@@ -131,8 +134,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.messages = None
         
+        CmdLineLogHandler(self) # start logger
+
         self.filename = options.filename
-        filesource = FileSource.FileSource(self.filename,self)
+        filesource = FileSource.openFileSource(self.filename,self)
         if options.validateEFM:
             if options.gfmName:
                 self.addToLog(_("[info] both --efm and --gfm validation are requested, proceeding with --efm only"))
@@ -221,7 +226,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if options.csvDTS:
                 ViewCsvDTS.viewDTS(modelXbrl, options.csvDTS)
             if options.csvFactList:
-                ViewCsvFactList.viewFacts(modelXbrl, options.csvFactList)
+                ViewCsvFactList.viewFacts(modelXbrl, options.csvFactList, cols=options.csvFactListCols)
             if options.csvConcepts:
                 ViewCsvConcepts.viewConcepts(modelXbrl, options.csvConcepts)
             if options.csvPre:
@@ -250,5 +255,18 @@ class CntlrCmdLine(Cntlr.Cntlr):
     def showStatus(self, message, clearAfter=None):
         pass
     
+class CmdLineLogHandler(logging.Handler):
+    def __init__(self, cntlr):
+        super().__init__()
+        self.cntlr = cntlr
+        self.level = logging.DEBUG
+        formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
+        self.setFormatter(formatter)
+        logging.getLogger("arelle").addHandler(self)
+    def flush(self):
+        ''' Nothing to flush '''
+    def emit(self, logRecord):
+        self.cntlr.addToLog(self.format(logRecord))      
+
 if __name__ == "__main__":
     main()

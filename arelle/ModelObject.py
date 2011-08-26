@@ -1,11 +1,12 @@
-'''
+"""
 Created on Oct 5, 2010
 Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcaseObject
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
-'''
+"""
 from lxml import etree
+from collections import namedtuple
 
 class ModelObject(etree.ElementBase):
     def _init(self):
@@ -23,18 +24,15 @@ class ModelObject(etree.ElementBase):
         if id:
             modelDocument.idObjects[id] = self
                 
-    def __del__(self):
-        if hasattr(self, "modelDocument") and self.modelDocument.modelXbrl is not None:
-            self.modelXbrl.modelObjects[self.objectIndex] = None
-        del self.modelDocument
-        del self.objectIndex
-        
     def objectId(self,refId=""):
         return "_{0}_{1}".format(refId, self.objectIndex)
     
     @property
     def modelXbrl(self):
-        return self.modelDocument.modelXbrl
+        try:
+            return self.modelDocument.modelXbrl
+        except AttributeError:
+            return None
         
     def attr(self, attrname):
         return self.get(attrname)
@@ -171,7 +169,7 @@ class ModelObject(etree.ElementBase):
                         return docModelObject
         return None
 
-    def genLabel(self,role=None,fallbackToQname=False,fallbackToXlinkLabel=False,lang=None):
+    def genLabel(self,role=None,fallbackToQname=False,fallbackToXlinkLabel=False,lang=None,strip=False):
         from arelle import XbrlConst
         if role is None: role = XbrlConst.genStandardLabel
         if role == XbrlConst.conceptNameLabelRole: return str(self.qname)
@@ -179,6 +177,7 @@ class ModelObject(etree.ElementBase):
         if labelsRelationshipSet:
             label = labelsRelationshipSet.label(self, role, lang)
             if label is not None:
+                if strip: return label.strip()
                 return label
         if fallbackToQname:
             return str(self.qname)
@@ -211,4 +210,13 @@ class ModelComment(etree.CommentBase):
 class ModelProcessingInstruction(etree.PIBase):
     def _init(self):
         pass
-            
+
+class ModelAttribute:
+    __slots__ = ("modelElement", "attrTag", "xValid", "xValue", "sValue", "text")
+    def __init__(self, modelElement, attrTag, xValid, xValue, sValue, text):
+        self.modelElement = modelElement
+        self.attrTag = attrTag
+        self.xValid = xValid
+        self.xValue = xValue
+        self.sValue = sValue
+        self.text = text

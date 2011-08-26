@@ -15,7 +15,7 @@ def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
     if modelTuple:
         parentFacts = modelXbrl.facts
         # try to get parent Items from the parent fact if any
-        parentElement = modelTuple.element.parentNode
+        parentElement = modelTuple.parentNode
         for docModelObject in modelXbrl.modelDocument.modelObjects:
             if docModelObject.element == parentElement:
                 parentFacts = docModelObject.modelTupleFacts
