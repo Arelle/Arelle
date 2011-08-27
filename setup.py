@@ -14,15 +14,22 @@ if sys.platform == 'darwin':
     from setuptools import os, setup, find_packages
     
     setup_requires.append('py2app')
+
+    plist = dict(CFBundleIconFile='arelle.icns',
+                 NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited')
+
     # Cross-platform applications generally expect sys.argv to
     # be used for opening files.
-    options['py2app'] =  dict(app=['arelle/CntlrWinMain.py'],
-                              iconfile='arelle/images/arelle.icns',
-                              plist=dict(CFBundleIconFile='arelle.icns',
-                                         NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited'))
+    options = dict(py2app=dict(app=['arelle/CntlrWinMain.py'],
+                               iconfile='arelle/images/arelle.icns',
+                               plist=plist,
+                               includes=['lxml', 'lxml.etree', 
+                                         'lxml._elementpath', 'gzip']))
+
     packages = find_packages('.')
     dataFiles = [
-	'--iconfile',
+        #XXX: this breaks build on Lion/Py3.2  --mike
+	#'--iconfile',
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
 	('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
       ]
@@ -48,7 +55,7 @@ elif sys.platform == 'win32':
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
         } )
-   
+
     cx_FreezeExecutables = [
         Executable(
                 script="runGUI.pyw",
