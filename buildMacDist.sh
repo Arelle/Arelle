@@ -1,11 +1,20 @@
 #!/bin/sh
 
+# a little more robust script
+set -o nounset
+set -o errexit
+
 # remove old build
 /bin/rm -rf build
 /bin/rm -rf dist
 
 # set the build date in version.py
 python3.2 buildVersion.py > arelle/Version.py
+
+# prepare icons
+pushd arelle/images
+unzip -u arelle.icns.zip
+popd
 
 # create new app
 python3.2 setup.py py2app
