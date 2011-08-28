@@ -99,4 +99,3 @@ class ViewWinDiffs:
             except Exception:
                 pass
             self.blockViewModelObject -= 1  # unblock
- 

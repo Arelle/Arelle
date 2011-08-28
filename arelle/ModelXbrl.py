@@ -11,7 +11,8 @@ from arelle import UrlUtil, XmlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 
-def load(modelManager, url, nextaction, base=None, useFileSource=None):
+def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
+    if nextaction is None: nextaction = _("loading")
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager)
     if useFileSource is not None:
@@ -73,11 +74,11 @@ class ModelXbrl:
         self.logCountInfo = 0
         self.arcroleTypes = defaultdict(list)
         self.roleTypes = defaultdict(list)
-        self.qnameConcepts = {} # contains ModelConcepts by Py key {ns}}localname of schema elements
+        self.qnameConcepts = {} # indexed by qname of element
+        self.nameConcepts = defaultdict(list) # contains ModelConcepts by name 
         self.qnameAttributes = {}
         self.qnameAttributeGroups = {}
-        self.nameConcepts = defaultdict(list) # contains ModelConcepts by name 
-        self.qnameTypes = {} # contains ModelTypes by Py key {ns}localname of type
+        self.qnameTypes = {} # contains ModelTypes by qname key of type
         self.baseSets = defaultdict(list) # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets = {} # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults = {} # contains qname of dimension (index) and default member(value)
@@ -213,7 +214,6 @@ class ModelXbrl:
     
     # UI thread viewModelObject
     def viewModelObject(self, objectId):
-        from arelle.ModelObject import ModelObject
         modelObject = ""
         try:
             if isinstance(objectId, ModelObject):

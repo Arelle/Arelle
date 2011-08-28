@@ -124,8 +124,8 @@ class QName:
 from arelle.ModelObject import ModelObject
     
 def anyURI(value):
-	return AnyURI(value)
-	
+    return AnyURI(value)
+
 class AnyURI(str):
     def __new__(cls, value):
         return super().__new__(cls, value)

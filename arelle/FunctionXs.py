@@ -384,4 +384,3 @@ xsFunctions = {
     'QName': QName,
     'NOTATION': NOTATION,
     }
-  
