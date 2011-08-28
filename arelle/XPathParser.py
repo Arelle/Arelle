@@ -67,7 +67,7 @@ class QNameDef(ModelValue.QName):
         else:
             return super().__eq__(other)
     def __ne__(self,other):
-    	return not self.__eq__(other)
+        return not self.__eq__(other)
 
 defaultNsmap = {
     "fn":"http://www.w3.org/2005/xpath-functions",
@@ -119,7 +119,7 @@ class OpDef:
     def __eq__(self,other):
         return isinstance(other,OpDef) and other.name == self.name and other.loc == self.loc
     def __ne__(self,other):
-    	return not self.__eq__(other)
+        return not self.__eq__(other)
 
 def pushOp( sourceStr, loc, toks ):
     op = OpDef(loc, toks)
