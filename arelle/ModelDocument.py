@@ -473,14 +473,17 @@ class ModelDocument:
                         modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation)
                 return
             doc = None
+            # is there an exact match for importNamespace and uri?
             for otherDoc in self.modelXbrl.namespaceDocs[importNamespace]:
+                doc = otherDoc
                 if otherDoc.uri == importSchemaLocation:
-                    doc = otherDoc
-                    if self.inDTS and not doc.inDTS:
-                        doc.inDTS = True    # now known to be discovered
-                        doc.schemaDiscoverChildElements(doc.xmlRootElement)
                     break
-            if doc is None:
+            # if no uri match, doc will be some other that matched targetNamespace
+            if doc is not None:
+                if self.inDTS and not doc.inDTS:
+                    doc.inDTS = True    # now known to be discovered
+                    doc.schemaDiscoverChildElements(doc.xmlRootElement)
+            else:
                 doc = load(self.modelXbrl, importSchemaLocation, isDiscovered=self.inDTS, 
                            isIncluded=isIncluded, namespace=importNamespace, referringElement=element)
             if doc is not None and self.referencesDocument.get(doc) is None:
