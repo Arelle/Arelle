@@ -11,7 +11,7 @@ options = {}
 scripts = []
 
 if sys.platform == 'darwin':
-    from setuptools import os, setup, find_packages
+    from setuptools import setup, find_packages
     
     setup_requires.append('py2app')
     # Cross-platform applications generally expect sys.argv to
