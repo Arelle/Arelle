@@ -721,7 +721,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowState"] = state
             self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - 4,   # remove border growth
                                                 self.tabWinTopLeft.winfo_height() - 6)
-            super().close()
+            super().close(saveConfig=True)
             self.parent.unbind_all(())
             self.parent.destroy()
             if self.logFile:
@@ -779,7 +779,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.setValidateTooltipText()
         
     def formulaParametersDialog(self, *args):
-        from arelle import DialogFormulaParameters
         DialogFormulaParameters.getParameters(self)
         self.setValidateTooltipText()
         
@@ -1043,6 +1042,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                             defaultextension=defaultextension,
                             parent=self.parent)
 
+from arelle import DialogFormulaParameters
+
 class WinMainLogHandler(logging.Handler):
     def __init__(self, cntlr):
         super().__init__()
@@ -1055,7 +1056,7 @@ class WinMainLogHandler(logging.Handler):
     def flush(self):
         ''' Nothing to flush '''
     def emit(self, logRecord):
-         # add to logView        
+        # add to logView        
         msg = self.format(logRecord)        
         try:            
             self.cntlr.addToLog(msg)
