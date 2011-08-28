@@ -209,19 +209,34 @@ def fact_identifier_scheme(xc, p, args):
     return anyURI(scheme)
 
 def segment(xc, p, args):
-    return item_context_element(xc, args, "segment")
+    seg = item_context_element(xc, args, "segment")
+    if seg is None:
+        return () # no segment
+    return seg
 
 def entity_segment(xc, p, args):
-    return parent_child(args, "entity", "segment")
+    seg = parent_child(args, "entity", "segment")
+    if seg is None:
+        return () # no segment
+    return seg
 
 def context_segment(xc, p, args):
-    return parent_child(args, "context", "segment", True)
+    seg = parent_child(args, "context", "segment", True)
+    if seg is None:
+        return () # no segment
+    return seg
 
 def scenario(xc, p, args):
-    return item_context_element(xc, args, "scenario")
+    scen = item_context_element(xc, args, "scenario")
+    if scen is None:
+        return () # no segment
+    return scen
 
 def context_scenario(xc, p, args):
-    return parent_child(args, "context", "scenario")
+    scen = parent_child(args, "context", "scenario")
+    if scen is None:
+        return () # no segment
+    return scen
 
 def precision(xc, p, args):
     return infer_precision_decimals(xc, p, args, "precision")
