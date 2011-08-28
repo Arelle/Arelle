@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- linkbase with prefix declarations used below, including us-gaap's of 2008-2011 -->
+<link:linkbase
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:validation="http://xbrl.org/2008/validation"
+  xmlns:va="http://xbrl.org/2008/assertion/value"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:msg="http://xbrl.org/2010/message"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:dei-08="http://xbrl.us/dei/2008-03-31"
+  xmlns:dei-09="http://xbrl.us/dei/2009-01-31"
+  xmlns:dei-11="http://xbrl.sec.gov/dei/2011-01-31"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt" 
+xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic http://www.xbrl.org/2008/generic-link.xsd
+  http://xbrl.org/2008/assertion/value http://www.xbrl.org/2008/value-assertion.xsd
+  http://xbrl.org/2008/variable http://www.xbrl.org/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept http://www.xbrl.org/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/general http://www.xbrl.org/2008/general-filter.xsd
+  http://xbrl.org/2010/message http://www.xbrl.org/2010/generic-message.xsd
+  ">
+  
+  <!-- arcroleRef's for arcroles used in the example -->
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="http://www.xbrl.org/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="http://www.xbrl.org/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2010/assertion-satisfied-message" xlink:href="http://www.xbrl.org/2010/validation-message.xsd#assertion-satisfied-message" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2010/assertion-unsatisfied-message" xlink:href="http://www.xbrl.org/2010/validation-message.xsd#assertion-unsatisfied-message" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="http://www.xbrl.org/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- a value assertion that is always true, so that every filing will match
+         and produce an assertion message with the DEI document type found -->
+    <va:valueAssertion xlink:type="resource"
+      xlink:label="extract-DEI-DocumentType"
+      id="extract-Document-Type"
+      test="true()"
+      aspectModel="dimensional" implicitFiltering="true"/>
+
+    <!-- the message, providing the DEI document type, for each filing that has one -->
+    <msg:message xlink:type="resource" xlink:label="DEI-document-type-message" 
+      xlink:role="http://www.xbrl.org/2010/role/message" 
+      xml:lang="en">DEI document type is {
+          $docType
+      }</msg:message>   
+         
+    <!-- arc from value assertion to the message -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2010/assertion-satisfied-message"
+      xlink:from="extract-DEI-DocumentType" xlink:to="DEI-document-type-message" order="1.0"/>
+      
+    <!-- arc from the value assertion to the variable which is the document type -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="docType" xlink:from="extract-DEI-DocumentType" xlink:to="vDocType"/>
+    
+    <!-- filter for document type, by concept name, and 'required context' (all dimensions defaulted) -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        complement="false" cover="true" xlink:from="vDocType" xlink:to="fDocType"/>
+                
+    <variable:factVariable xlink:type="resource" bindAsSequence="false"
+       xlink:label="vDocType"  />
+    
+    <!-- filter accepts 2009, 2009, or 2011 document type concept -->
+    <cf:conceptName xlink:type="resource" xlink:label="fDocType">
+       <cf:concept>
+          <cf:qname>dei-08:DocumentType</cf:qname>
+       </cf:concept>
+       <cf:concept>
+          <cf:qname>dei-09:DocumentType</cf:qname>
+       </cf:concept>
+       <cf:concept>
+          <cf:qname>dei-11:DocumentType</cf:qname>
+       </cf:concept>
+    </cf:conceptName>
+    
+    <!-- EFM's required context means all dimensions absent (defaulted, segment must be empty -->
+    <gf:general xlink:type="resource" xlink:label="fDocType"
+     test="empty( xfi:segment(.) )" />
+       
+  </generic:link>
+
+</link:linkbase>

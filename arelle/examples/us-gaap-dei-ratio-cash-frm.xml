@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<link:linkbase
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:va="http://xbrl.org/2008/assertion/value"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:acf="http://xbrl.org/2010/filter/aspect-cover" 
+  xmlns:msg="http://xbrl.org/2010/message"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:dei-11="http://xbrl.sec.gov/dei/2011-01-31"
+  xmlns:us-gaap-11="http://fasb.org/us-gaap/2011-01-31"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt" 
+xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic http://www.xbrl.org/2008/generic-link.xsd
+  http://xbrl.org/2008/assertion/value http://www.xbrl.org/2008/value-assertion.xsd
+  http://xbrl.org/2008/variable http://www.xbrl.org/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept http://www.xbrl.org/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/general http://www.xbrl.org/2008/general-filter.xsd
+  http://xbrl.org/2008/filter/period http://www.xbrl.org/2008/period-filter.xsd
+  http://xbrl.org/2010/filter/aspect-cover http://www.xbrl.org/2010/aspect-cover-filter.xsd
+  http://xbrl.org/2010/message http://www.xbrl.org/2010/generic-message.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="http://www.xbrl.org/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="http://www.xbrl.org/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2010/assertion-satisfied-message" xlink:href="http://www.xbrl.org/2010/validation-message.xsd#assertion-satisfied-message" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2010/assertion-unsatisfied-message" xlink:href="http://www.xbrl.org/2010/validation-message.xsd#assertion-unsatisfied-message" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="http://www.xbrl.org/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <va:valueAssertion xlink:type="resource"
+      xlink:label="cash-ratio"
+      id="cash-ratio"
+      test="true()"
+      aspectModel="dimensional" implicitFiltering="true"/>
+
+    <msg:message xlink:type="resource" xlink:label="cash-ratio-message" 
+      xlink:role="http://www.xbrl.org/2010/role/message" 
+      xml:lang="en">Cash ratio {
+          if ($currentLiabilities ne 0) then
+             (($cash + $marketableSecurities) div $currentLiabilities)
+          else
+             'not available'
+      }, Current ratio {
+          if ($currentLiabilities ne 0) then
+             ($currentAssets div $currentLiabilities)
+          else
+             'not available'
+          
+      }</msg:message>   
+         
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2010/assertion-satisfied-message"
+      xlink:from="cash-ratio" xlink:to="cash-ratio-message" order="1.0"/>
+      
+    <!-- fact variable, arcs, and filters for document type, restricted to 10-K or 10-Q -->           
+    <variable:factVariable xlink:type="resource" bindAsSequence="false"
+       xlink:label="vDocType"  />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="docType" xlink:from="cash-ratio" xlink:to="vDocType"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        complement="false" cover="true" xlink:from="vDocType" xlink:to="fDocType"/>
+    <cf:conceptName xlink:type="resource" xlink:label="fDocType">
+       <cf:concept>
+          <cf:qname>dei-11:DocumentType</cf:qname>
+       </cf:concept>
+    </cf:conceptName>
+    
+    <!-- EFM's required context means all dimensions absent (defaulted)
+         and only bind for a 10-K/10-Q filing (don't bind for other form types) -->
+    <gf:general xlink:type="resource" xlink:label="fDocType"
+     test="empty( xfi:segment(.) ) and index-of(('10-K', '10-Q'), .) " />
+
+    <!-- must cover unit because this variable is a string type -->
+    <acf:aspectCover xlink:type="resource" xlink:label="fDocType">
+      <acf:aspect>unit</acf:aspect>
+    </acf:aspectCover>
+
+    <!-- cash -->
+    <variable:factVariable xlink:type="resource" bindAsSequence="false"
+       xlink:label="vCash"  />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="cash" xlink:from="cash-ratio" xlink:to="vCash"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        complement="false" cover="true" xlink:from="vCash" xlink:to="fCash"/>
+    <cf:conceptName xlink:type="resource" xlink:label="fCash">
+       <cf:concept>
+          <cf:qname>us-gaap-11:Cash</cf:qname>
+       </cf:concept>
+       <cf:concept>
+          <cf:qname>us-gaap-11:CashAndCashEquivalentsAtCarryingValue</cf:qname>
+       </cf:concept>
+    </cf:conceptName>
+    <!--  Must match period-end of documentType period -->
+    <pf:instantDuration xlink:type="resource" xlink:label="fCash" boundary="end" variable="docType" />
+     
+    <!-- marketable securities -->
+    <variable:factVariable xlink:type="resource" bindAsSequence="false" fallbackValue="0"
+       xlink:label="vMarketableSecurities"  />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="marketableSecurities" xlink:from="cash-ratio" xlink:to="vMarketableSecurities"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        complement="false" cover="true" xlink:from="vMarketableSecurities" xlink:to="fMarketableSecurities"/>
+    <cf:conceptName xlink:type="resource" xlink:label="fMarketableSecurities">
+       <cf:concept>
+          <cf:qname>us-gaap-11:MarketableSecuritiesCurrent</cf:qname>
+       </cf:concept>
+    </cf:conceptName>
+    <pf:instantDuration xlink:type="resource" xlink:label="fCash" boundary="end" variable="docType" />
+     
+    <!-- current liabilities -->
+    <variable:factVariable xlink:type="resource" bindAsSequence="false" fallbackValue="0"
+       xlink:label="vCurrentLiabilities"  />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="currentLiabilities" xlink:from="cash-ratio" xlink:to="vCurrentLiabilities"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        complement="false" cover="true" xlink:from="vCurrentLiabilities" xlink:to="fCurrentLiabilities"/>
+    <cf:conceptName xlink:type="resource" xlink:label="fCurrentLiabilities">
+       <cf:concept>
+          <cf:qname>us-gaap-11:LiabilitiesCurrent</cf:qname>
+       </cf:concept>
+    </cf:conceptName>
+    <pf:instantDuration xlink:type="resource" xlink:label="fCurrentLiabilities" boundary="end" variable="docType" />
+     
+    <!-- current assets -->
+    <variable:factVariable xlink:type="resource" bindAsSequence="false" fallbackValue="0"
+       xlink:label="vCurrentAssets"  />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="currentAssets" xlink:from="cash-ratio" xlink:to="vCurrentAssets"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        complement="false" cover="true" xlink:from="vCurrentAssets" xlink:to="fCurrentAssets"/>
+    <cf:conceptName xlink:type="resource" xlink:label="fCurrentAssets">
+       <cf:concept>
+          <cf:qname>us-gaap-11:AssetsCurrent</cf:qname>
+       </cf:concept>
+    </cf:conceptName>
+    <pf:instantDuration xlink:type="resource" xlink:label="fCurrentAssets" boundary="end" variable="docType" />
+       
+  </generic:link>
+
+</link:linkbase>
