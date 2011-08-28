@@ -602,7 +602,7 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
                     writer.write('<?xml version="1.0"?>\n')
                 parentNsmap = {}
         if isinstance(node,ModelObject):
-        	tag = node.prefixedName
+            tag = node.prefixedName
         else:
             ns, sep, localName = node.tag.partition('}')
             if sep:
