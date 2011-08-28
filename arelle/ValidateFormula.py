@@ -597,7 +597,6 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
                 checkFilterAspectModel(val, variableSet, filter.filterRelationships, xpathContext, uncoverableAspects)
         
 def checkFormulaRules(val, formula, nameVariables):
-    from arelle.ModelFormulaObject import (Aspect)
     if not (formula.hasRule(Aspect.CONCEPT) or formula.source(Aspect.CONCEPT)):
         if XmlUtil.hasDescendant(formula, XbrlConst.formula, "concept"):
             val.modelXbrl.error("xbrlfe:incompleteConceptRule",
