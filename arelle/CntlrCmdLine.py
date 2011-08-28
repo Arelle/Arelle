@@ -121,26 +121,21 @@ def main():
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
     else:
         # parse and run the FILENAME
-        CntlrCmdLine().run(options)
+        CntlrCmdLine(logFileName=options.logFile).run(options)
         
 class CntlrCmdLine(Cntlr.Cntlr):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, logFileName=None):
+        super().__init__(logFileName=logFileName if logFileName else "logToPrint",
+                         logFormat="[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
         
     def run(self, options):
-        if options.logFile:
-            self.messages = []
-        else:
-            self.messages = None
-        
-        CmdLineLogHandler(self) # start logger
-
         self.filename = options.filename
         filesource = FileSource.openFileSource(self.filename,self)
         if options.validateEFM:
             if options.gfmName:
-                self.addToLog(_("[info] both --efm and --gfm validation are requested, proceeding with --efm only"))
+                self.addToLog(_("both --efm and --gfm validation are requested, proceeding with --efm only"),
+                              messageCode="info", file=self.filename)
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select("efm")
         elif options.gfmName:
@@ -150,7 +145,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
         if options.calcDecimals:
             if options.calcPrecision:
-                self.addToLog(_("[info] both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"))
+                self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
+                              messageCode="info", file=self.filename)
             self.modelManager.validateInferDecimals = True
             self.modelManager.validateCalcLB = True
         elif options.calcPrecision:
@@ -196,28 +192,32 @@ class CntlrCmdLine(Cntlr.Cntlr):
         startedAt = time.time()
         modelXbrl = self.modelManager.load(filesource, _("views loading"))
         self.addToLog(format_string(self.modelManager.locale, 
-                                    _("[info] loaded in %.2f secs at %s"), 
-                                    (time.time() - startedAt, timeNow)))
+                                    _("loaded in %.2f secs at %s"), 
+                                    (time.time() - startedAt, timeNow)), 
+                                    messageCode="info", file=self.filename)
         
         if options.diffFilename and options.versReportFilename:
             diffFilesource = FileSource.FileSource(self.diffFilename,self)
             startedAt = time.time()
             modelXbrl = self.modelManager.load(diffFilesource, _("views loading"))
             self.addToLog(format_string(self.modelManager.locale, 
-                                        _("[info] diff comparison DTS loaded in %.2f secs"), 
-                                        time.time() - startedAt))
+                                        _("diff comparison DTS loaded in %.2f secs"), 
+                                        time.time() - startedAt), 
+                                        messageCode="info", file=self.filename)
             startedAt = time.time()
             self.modelManager.compareDTSes(options.versReportFilename)
             self.addToLog(format_string(self.modelManager.locale, 
-                                        _("[info] compared in %.2f secs"), 
-                                        time.time() - startedAt))
+                                        _("compared in %.2f secs"), 
+                                        time.time() - startedAt), 
+                                        messageCode="info", file=self.filename)
         try:
             if options.validate:
                 startedAt = time.time()
                 self.modelManager.validate()
                 self.addToLog(format_string(self.modelManager.locale, 
-                                            _("[info] validated in %.2f secs"), 
-                                            time.time() - startedAt))
+                                            _("validated in %.2f secs"), 
+                                            time.time() - startedAt),
+                                            messageCode="info", file=self.filename)
                 if (options.csvTestReport and 
                     self.modelManager.modelXbrl.modelDocument.type in 
                         (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY)):
@@ -237,36 +237,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvDim, "Dimension", "XBRL-dimensions")
         except (IOError, EnvironmentError) as err:
             self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
-
-
-        if self.messages:
-            try:
-                with open(options.logFile, "w", encoding="utf-8") as fh:
-                    fh.writelines(self.messages)
-            except (IOError, EnvironmentError) as err:
-                print("Unable to save log to file: " + err)
-            
-    def addToLog(self, message):
-        if self.messages is not None:
-            self.messages.append(message + '\n')
-        else:
-            print(message) # allows printing on standard out
-    
-    def showStatus(self, message, clearAfter=None):
-        pass
-    
-class CmdLineLogHandler(logging.Handler):
-    def __init__(self, cntlr):
-        super().__init__()
-        self.cntlr = cntlr
-        self.level = logging.DEBUG
-        formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
-        self.setFormatter(formatter)
-        logging.getLogger("arelle").addHandler(self)
-    def flush(self):
-        ''' Nothing to flush '''
-    def emit(self, logRecord):
-        self.cntlr.addToLog(self.format(logRecord))      
 
 if __name__ == "__main__":
     main()
