@@ -500,7 +500,7 @@ class ValidateXbrl:
                         if childConcept is None:
                             self.modelXbrl.error("xbrl.4.9:tupleElementUndefined",
                                 _("Tuple %(concept)s element %(tupleElement)s not defined"),
-                                modelObject=concept, concept=str(concept.qname), tupleElemen=elementQname)
+                                modelObject=concept, concept=str(concept.qname), tupleElement=elementQname)
                         elif not (childConcept.isItem or childConcept.isTuple or # isItem/isTuple do not include item or tuple itself
                                   childConcept.qname == XbrlConst.qnXbrliItem or # subs group includes item as member
                                   childConcept.qname == XbrlConst.qnXbrliTuple):
