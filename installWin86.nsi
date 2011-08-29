@@ -119,6 +119,8 @@ Section "Uninstall"
 
   RMDir /r "$INSTDIR\config"
   RMDir /r "$INSTDIR\images"
+  RMDir /r "$INSTDIR\examples"
+  RMDir /r "$INSTDIR\scripts"
   RMDir /r "$INSTDIR\tcl"
   RMDir /r "$INSTDIR\tk"
   RMDir "$INSTDIR"
