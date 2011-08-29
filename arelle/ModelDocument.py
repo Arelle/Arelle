@@ -478,6 +478,8 @@ class ModelDocument:
                 doc = otherDoc
                 if otherDoc.uri == importSchemaLocation:
                     break
+                elif isIncluded:
+                    doc = None  # don't allow matching namespace lookup on include (NS is already loaded!)
             # if no uri match, doc will be some other that matched targetNamespace
             if doc is not None:
                 if self.inDTS and not doc.inDTS:
