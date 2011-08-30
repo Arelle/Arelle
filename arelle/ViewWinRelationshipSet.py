@@ -121,8 +121,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 concept.isTypedDimension and 
                 concept.typedDomainElement is not None):
                 text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
-        elif self.arcrole == "EU-rendering":
-            text = concept.genLabel(lang=self.lang)
+        elif self.arcrole == "Table-rendering":
+            text = concept.genLabel(lang=self.lang,strip=True)
             if isRelation:
                 relArcrole = modelObject.arcrole
                 if text is None: 
