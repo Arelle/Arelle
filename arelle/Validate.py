@@ -73,7 +73,7 @@ class Validate:
                     reportFile=self.modelXbrl.modelDocument.basename, error=err,
                     #traceback=traceback.format_tb(sys.exc_info()[2]),
                     exc_info=True)
-        elif self.modelXbrl.modelDocument.type != ModelDocument.Type.Unknown:
+        else:
             try:
                 self.instValidator.validate(self.modelXbrl)
                 self.instValidator.close()
@@ -245,7 +245,9 @@ class Validate:
                 if isinstance(expected,QName) and isinstance(testErr,str):
                     errPrefix, sep, errLocalName = testErr.partition(":")
                     if ((not sep and errPrefix == expected.localName) or
-                        (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName))):
+                        (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName)) or
+                        # XDT xml schema tests expected results 
+                        (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                         status = "pass"
                         break
                 elif type(testErr) == type(expected) and testErr == expected:
