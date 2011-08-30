@@ -3,6 +3,7 @@ import os
 
 xsd = "http://www.w3.org/2001/XMLSchema"
 qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
+qnXsdAppinfo = qname("{http://www.w3.org/2001/XMLSchema}xsd:appinfo")
 qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
 xsi = "http://www.w3.org/2001/XMLSchema-instance"
 qnXsiNil = qname(xsi,"xsi:nil") # need default prefix in qname
@@ -239,6 +240,7 @@ qnTableFilterAxis = qname("{http://xbrl.org/2011/axis/filter}filaxis:filterAxis"
 explicitAxisMember = "http://xbrl.org/arcrole/2011/axis/explicit-axis-member"
 axisFilter = "http://xbrl.org/arcrole/2011/axis/axis-filter"
 
+xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
 errMsgPrefixNS = {
     "err": xpath2err,
     "xbrldte": "http://xbrl.org/2005/xbrldt/errors",
