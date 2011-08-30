@@ -16,7 +16,7 @@ def authority(url):
     return url  #no path part of url
 
 absoluteUrlPattern = None
-relativeUrlPattern = re.compile(r"(^[/:\.+-_@?&=!~\*'\(\)\w]+(#[\w_\-\.]+)?$)|(^#[\w_\-\.]+$)")
+relativeUrlPattern = re.compile(r"(^[/:\.+-_@?&=!~\*'\(\)\w ]+(#[\w_\-\.\(/\)]+)?$)|(^#[\w_\-\.\(/\)]+$)")
 
 def splitDecodeFragment(url):
     urlPart, fragPart = urldefrag(url)
