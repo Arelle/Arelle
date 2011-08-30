@@ -4,7 +4,8 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst)
+from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst,
+                    XmlValidate)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from lxml import etree
@@ -287,6 +288,9 @@ def checkElements(val, modelDocument, parent):
             # checks for elements in schemas only
             if isSchema:
                 if elt.namespaceURI == XbrlConst.xsd:
+                    if elt.localName in ("element","appinfo"):
+                        # validate lax contents of appinfo and element attributes
+                        XmlValidate.validate(val.modelXbrl, elt)
                     if elt.localName == "schema":
                         if elt.get("targetNamespace") is not None and elt.get("targetNamespace") == "":
                             val.modelXbrl.error("xbrl.5.1:emptyTargetNamespace",
@@ -479,57 +483,64 @@ def checkElements(val, modelDocument, parent):
                             _('Linkbase element is not prefixed: "%(element)s"'),
                             modelObject=elt, element=elt.qname)
             # check of roleRefs when parent is linkbase or instance element
-            if elt.localName in ("roleRef","arcroleRef") and elt.namespaceURI == XbrlConst.link:
-                uriAttr, xbrlSection, roleTypeDefs, refs = {
-                       "roleRef":("roleURI","3.5.2.4",val.modelXbrl.roleTypes,val.roleRefURIs), 
-                       "arcroleRef":("arcroleURI","3.5.2.5",val.modelXbrl.arcroleTypes,val.arcroleRefURIs)
-                       }[elt.localName]
-                if parentIsAppinfo:
-                    pass    #ignore roleTypes in appinfo (test case 160 v05)
-                elif not (parentIsLinkbase or isInstance):
-                    val.modelXbrl.info("info:{1}Location".format(xbrlSection,elt.localName),
-                        _("Link:%(elementName)s not child of link:linkbase or xbrli:instance"),
-                        modelObject=elt, elementName=elt.localName)
-                else: # parent is linkbase or instance, element IS in the right location
-    
-                    # check for duplicate roleRefs when parent is linkbase or instance element
-                    refUri = elt.get(uriAttr)
-                    hrefAttr = elt.get("{http://www.w3.org/1999/xlink}href")
-                    hrefUri, hrefId = UrlUtil.splitDecodeFragment(hrefAttr)
-                    if refUri == "":
-                        val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Missing".format(elt.localName),
-                            _("%(element)s %(refURI)s missing"),
-                            modelObject=elt, element=elt.qname, refURI=refUri)
-                    elif refUri in refs:
-                        val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Duplicate".format(elt.localName),
-                            _("%(element)s is duplicated for %(refURI)s"),
-                            modelObject=elt, element=elt.qname, refURI=refUri)
-                    elif refUri not in roleTypeDefs:
-                        val.modelXbrl.error("xbrl.3.5.2.4.5:{0}NotDefined".format(elt.localName),
-                            _("%(element)s %(refURI)s is not defined"),
-                            modelObject=elt, element=elt.qname, refURI=refUri)
-                    else:
-                        refs[refUri] = hrefUri
-                    
-                    if val.validateDisclosureSystem:
-                        if elt.localName == "arcroleRef":
-                            if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
-                                val.modelXbrl.error(("EFM.6.09.06", "GFM.1.04.06"),
-                                    _("Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard taxonomy"),
-                                    modelObject=elt, refURI=refUri, xlinkHref=hrefUri)
-                            if val.validateSBRNL:
-                                for attrName, errCode in (("{http://www.w3.org/1999/xlink}arcrole","SBR.NL.2.3.2.05"),("{http://www.w3.org/1999/xlink}role","SBR.NL.2.3.2.06")):
-                                    if elt.get(attrName):
-                                        val.modelXbrl.error(errCode,
-                                            _("Arcrole %(refURI)s arcroleRef %(xlinkHref)s must not have an %(attribute)s attribute"),
-                                            modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName)
-                        elif elt.localName == "roleRef":
-                            if val.validateSBRNL:
-                                for attrName, errCode in (("{http://www.w3.org/1999/xlink}arcrole","SBR.NL.2.3.10.09"),("{http://www.w3.org/1999/xlink}role","SBR.NL.2.3.10.10")):
-                                    if elt.get(attrName):
-                                        val.modelXbrl.error(errCode,
-                                            _("Role %(refURI)s roleRef %(xlinkHref)s must not have an %(attribute)s attribute"),
-                                            modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName)
+            if elt.namespaceURI == XbrlConst.link:
+                if elt.localName == "linkbase":
+                    if elt.parentQname not in (None, XbrlConst.qnXsdAppinfo):
+                        val.modelXbrl.error("xbrl.5.2:linkbaseRootElement",
+                            "Linkbase must be a root element or child of appinfo, and may not be nested in %(parent)s",
+                            parent=elt.parentQname,
+                            modelObject=elt)
+                elif elt.localName in ("roleRef","arcroleRef"):
+                    uriAttr, xbrlSection, roleTypeDefs, refs = {
+                           "roleRef":("roleURI","3.5.2.4",val.modelXbrl.roleTypes,val.roleRefURIs), 
+                           "arcroleRef":("arcroleURI","3.5.2.5",val.modelXbrl.arcroleTypes,val.arcroleRefURIs)
+                           }[elt.localName]
+                    if parentIsAppinfo:
+                        pass    #ignore roleTypes in appinfo (test case 160 v05)
+                    elif not (parentIsLinkbase or isInstance):
+                        val.modelXbrl.info("info:{1}Location".format(xbrlSection,elt.localName),
+                            _("Link:%(elementName)s not child of link:linkbase or xbrli:instance"),
+                            modelObject=elt, elementName=elt.localName)
+                    else: # parent is linkbase or instance, element IS in the right location
+        
+                        # check for duplicate roleRefs when parent is linkbase or instance element
+                        refUri = elt.get(uriAttr)
+                        hrefAttr = elt.get("{http://www.w3.org/1999/xlink}href")
+                        hrefUri, hrefId = UrlUtil.splitDecodeFragment(hrefAttr)
+                        if refUri == "":
+                            val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Missing".format(elt.localName),
+                                _("%(element)s %(refURI)s missing"),
+                                modelObject=elt, element=elt.qname, refURI=refUri)
+                        elif refUri in refs:
+                            val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Duplicate".format(elt.localName),
+                                _("%(element)s is duplicated for %(refURI)s"),
+                                modelObject=elt, element=elt.qname, refURI=refUri)
+                        elif refUri not in roleTypeDefs:
+                            val.modelXbrl.error("xbrl.3.5.2.4.5:{0}NotDefined".format(elt.localName),
+                                _("%(element)s %(refURI)s is not defined"),
+                                modelObject=elt, element=elt.qname, refURI=refUri)
+                        else:
+                            refs[refUri] = hrefUri
+                        
+                        if val.validateDisclosureSystem:
+                            if elt.localName == "arcroleRef":
+                                if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
+                                    val.modelXbrl.error(("EFM.6.09.06", "GFM.1.04.06"),
+                                        _("Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard taxonomy"),
+                                        modelObject=elt, refURI=refUri, xlinkHref=hrefUri)
+                                if val.validateSBRNL:
+                                    for attrName, errCode in (("{http://www.w3.org/1999/xlink}arcrole","SBR.NL.2.3.2.05"),("{http://www.w3.org/1999/xlink}role","SBR.NL.2.3.2.06")):
+                                        if elt.get(attrName):
+                                            val.modelXbrl.error(errCode,
+                                                _("Arcrole %(refURI)s arcroleRef %(xlinkHref)s must not have an %(attribute)s attribute"),
+                                                modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName)
+                            elif elt.localName == "roleRef":
+                                if val.validateSBRNL:
+                                    for attrName, errCode in (("{http://www.w3.org/1999/xlink}arcrole","SBR.NL.2.3.10.09"),("{http://www.w3.org/1999/xlink}role","SBR.NL.2.3.10.10")):
+                                        if elt.get(attrName):
+                                            val.modelXbrl.error(errCode,
+                                                _("Role %(refURI)s roleRef %(xlinkHref)s must not have an %(attribute)s attribute"),
+                                                modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName)
     
             # checks for elements in linkbases
             xlinkType = elt.get("{http://www.w3.org/1999/xlink}type")
@@ -721,6 +732,20 @@ def checkElements(val, modelDocument, parent):
                         modelObject=elt, element=elt.qname)
                 else:
                     instanceOrder = expectedSequence
+
+            if modelDocument.type == ModelDocument.Type.Unknown:
+                if elt.localName == "xbrl" and elt.namespaceURI == XbrlConst.xbrli:
+                    if elt.getparent() is not None:
+                        val.modelXbrl.error("xbrl.4:xbrlRootElement",
+                            "Xbrl must be a root element, and may not be nested in %(parent)s",
+                            parent=elt.parentQname,
+                            modelObject=elt)
+                elif elt.localName == "schema" and elt.namespaceURI == XbrlConst.xsd:
+                    if elt.getparent() is not None:
+                        val.modelXbrl.error("xbrl.5.1:schemaRootElement",
+                            "Schema must be a root element, and may not be nested in %(parent)s",
+                            parent=elt.parentQname,
+                            modelObject=elt)
                     
             if modelDocument.type == ModelDocument.Type.INLINEXBRL:
                 if elt.namespaceURI == XbrlConst.ixbrl and val.validateGFM:
