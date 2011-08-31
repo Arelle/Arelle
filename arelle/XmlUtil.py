@@ -315,6 +315,19 @@ def schemaBaseTypeDerivedFrom(element):
                 return qn
     return None
 
+def schemaFacets(element, facetTags, facets=None):
+    if facets is None: facets = []
+    for child in element.iterchildren():
+        if child.tag in facetTags:
+            facets.append(child) 
+        elif child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
+                           "{http://www.w3.org/2001/XMLSchema}simpleType",
+                           "{http://www.w3.org/2001/XMLSchema}restriction",
+                           "{http://www.w3.org/2001/XMLSchema}complexContent",
+                           "{http://www.w3.org/2001/XMLSchema}simpleContent"):
+            schemaFacets(child, facetTags, facets)
+    return facets
+
 def schemaAttributesGroups(element, attributes=None, attributeGroups=None):
     if attributes is None: attributes = []; attributeGroups = []
     for child in element.iterchildren():

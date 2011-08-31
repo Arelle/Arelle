@@ -275,10 +275,12 @@ def checkElements(val, modelDocument, parent):
             for name, errCode in ncnameTests:
                 if elt.get(name) is not None:
                     attrValue = elt.get(name)
+                    ''' done in XmlValidate now
                     if not val.NCnamePattern.match(attrValue):
                         val.modelXbrl.error(errCode,
                             _("Element %(element)s attribute %(attribute)s '%(value)s' is not an NCname"),
                             modelObject=elt, element=elt.prefixedName, attribute=name, value=attrValue)
+                    '''
                     if name == "id" and attrValue in val.elementIDs:
                         val.modelXbrl.error("xmlschema2.3.2.10:idDuplicated",
                             _("Element %(element)s id %(value)s is duplicated"),
@@ -288,10 +290,8 @@ def checkElements(val, modelDocument, parent):
             # checks for elements in schemas only
             if isSchema:
                 if elt.namespaceURI == XbrlConst.xsd:
-                    if elt.localName in ("element","appinfo"):
-                        # validate lax contents of appinfo and element attributes
-                        XmlValidate.validate(val.modelXbrl, elt)
                     if elt.localName == "schema":
+                        XmlValidate.validate(val.modelXbrl, elt)
                         if elt.get("targetNamespace") is not None and elt.get("targetNamespace") == "":
                             val.modelXbrl.error("xbrl.5.1:emptyTargetNamespace",
                                 "Schema element has an empty targetNamespace",
@@ -478,6 +478,8 @@ def checkElements(val, modelDocument, parent):
                                         _("%(element)s usedOn must not be link:calculationLink"),
                                         modelObject=elt, element=parent.qname, value=qName)
             elif modelDocument.type == ModelDocument.Type.LINKBASE:
+                if elt.localName == "linkbase":
+                    XmlValidate.validate(val.modelXbrl, elt)
                 if val.validateSBRNL and not elt.prefix:
                         val.modelXbrl.error("SBR.NL.2.3.0.06",
                             _('Linkbase element is not prefixed: "%(element)s"'),

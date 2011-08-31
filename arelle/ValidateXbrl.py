@@ -44,9 +44,6 @@ class ValidateXbrl:
         
     def validate(self, modelXbrl, parameters=None):
         self.parameters = parameters
-        self.NCnamePattern = re.compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                                        r"[_\-\." 
-                                           "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
         self.precisionPattern = re.compile("^([0-9]+|INF)$")
         self.decimalsPattern = re.compile("^(-?[0-9]+|INF)$")
         self.isoCurrencyPattern = re.compile(r"^[A-Z]{3}$")
@@ -127,17 +124,6 @@ class ValidateXbrl:
                         modelXbrl.error("xlink:show",
                             _("Show %(xlinkShow)s invalid in extended link %(linkrole)s"),
                             modelObject=arcElt, linkrole=modelLink.role, xlinkShow=xlinkShow)
-                    # values of label, from, to (not needed for validating parsers)
-                    for name in xlinkLabelAttributes: # ("label", "from", "to"):
-                        value = arcElt.get(name)
-                        if value is not None and not self.NCnamePattern.match(value):
-                            modelXbrl.error("xlink:{0}".format(name),
-                                _("Element %(element)s $(attribute)s '%(value)' not an NCname in extended link %(linkrole)s"),
-                                modelObject=arcElt, 
-                                linkrole=modelLink.role, 
-                                element=arcElt.prefixedName,
-                                attribute=name,
-                                value=value)
             # check from, to of arcs have a resource or loc
             for fromTo, arcElt in fromToArcs.items():
                 fromLabel, toLabel in fromTo

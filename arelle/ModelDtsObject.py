@@ -7,7 +7,7 @@ Refactored from ModelObject on Jun 11, 2011
 '''
 from collections import defaultdict
 from lxml import etree
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue)
+from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
 from arelle.ModelObject import ModelObject
 
 class ModelRoleType(ModelObject):
@@ -170,6 +170,10 @@ class ModelConcept(ModelSchemaObject):
                 type = self.type
                 self._baseXsdType = type.baseXsdType if type is not None else "anyType"
             return self._baseXsdType
+        
+    @property
+    def facets(self):
+        return self.type.facets if self.type is not None else None
     
     def baseXsdAttrType(self,attrName):
         try:
@@ -489,6 +493,15 @@ class ModelAttribute(ModelSchemaObject):
             return self._baseXsdType
     
     @property
+    def facets(self):
+        try:
+            return self._facets
+        except AttributeError:
+            type = self.type
+            self._facets = type.facets if type is not None else None
+            return self._facets
+    
+    @property
     def isNumeric(self):
         try:
             return self._isNumeric
@@ -710,19 +723,26 @@ class ModelType(ModelSchemaObject):
         try:
             return self._facets
         except AttributeError:
-            self._facets = self.constrainingFacets()
+            facets = self.constrainingFacets()
+            self._facets = facets if facets else None
             return self._facets
     
     def constrainingFacets(self, facetValues=None):
         facetValues = facetValues if facetValues else {}
-        for facetElt in XmlUtil.descendants(self, XbrlConst.xsd, (
-                    "length", "minLength", "maxLength", "pattern", "whiteSpace",  
-                    "maxInclusive", "maxExclusive", "minExclusive", "totalDigits", "fractionDigits")):
+        for facetElt in XmlUtil.schemaFacets(self, (
+                    "{http://www.w3.org/2001/XMLSchema}length", "{http://www.w3.org/2001/XMLSchema}minLength", 
+                    "{http://www.w3.org/2001/XMLSchema}maxLength", 
+                    "{http://www.w3.org/2001/XMLSchema}pattern", "{http://www.w3.org/2001/XMLSchema}whiteSpace",  
+                    "{http://www.w3.org/2001/XMLSchema}maxInclusive", "{http://www.w3.org/2001/XMLSchema}maxExclusive", "{http://www.w3.org/2001/XMLSchema}minExclusive", 
+                    "{http://www.w3.org/2001/XMLSchema}totalDigits", "{http://www.w3.org/2001/XMLSchema}fractionDigits")):
+            XmlValidate.validateFacet(self, facetElt)
             facetName = facetElt.localName
             if facetName not in facetValues:
-                facetValues[facetName] = facetElt.get("value")
+                facetValue = XmlValidate.validateFacet(self, facetElt)
+                if facetValue:
+                    facetValues[facetName] = facetValue
         if "enumeration" not in facetValues:
-            for facetElt in XmlUtil.descendants(self, XbrlConst.xsd, "enumeration"):
+            for facetElt in XmlUtil.schemaFacets(self, ("{http://www.w3.org/2001/XMLSchema}enumeration",)):
                 facetValues.setdefault("enumeration",set()).add(facetElt.get("value"))
         typeDerivedFrom = self.typeDerivedFrom
         if typeDerivedFrom is not None:

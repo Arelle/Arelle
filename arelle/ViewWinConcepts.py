@@ -102,7 +102,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     conceptType = concept.type
                     if conceptType is not None:
                         facets = conceptType.facets
-                        if len(facets) > 0:
+                        if facets:
                             self.treeView.set(node, "facets",
                                 "\n".join("{0}={1}".format(
                                        name,
