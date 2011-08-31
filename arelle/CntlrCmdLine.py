@@ -86,6 +86,7 @@ def main():
     parser.add_option("--formulaVarExpressionEvaluation", action="store_true", dest="formulaVarExpressionEvaluation", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--validateSchema", action="store_true", dest="validateSchema", help=_("Validate the schema"))
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
@@ -212,6 +213,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                         _("[info] compared in %.2f secs"), 
                                         time.time() - startedAt))
         try:
+            if options.validateSchema:
+                from arelle.XmlValidate import schemaValidate
+                schemaValidate(self.modelManager.modelXbrl)
+
             if options.validate:
                 startedAt = time.time()
                 self.modelManager.validate()
