@@ -5,10 +5,9 @@ Created on Apr 21, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import xml.dom, math, re
-from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
-                         YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
-from arelle import (XPathContext, ModelObject, XbrlUtil, XmlUtil)
+from arelle.ModelValue import qname
+from arelle import XPathContext, XbrlUtil
+from arelle.ModelInstanceObject import ModelDimensionValue
     
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
@@ -83,6 +82,32 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
             del xc.inScopeVars[argName]
 
     return result
-        
+
+# for test case 22015 v01        
+def  my_fn_PDxEV(xc, p, contextItem, args):
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    PDseq = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
+    EVseq = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    dimQname = qname("{http://www.example.com/wgt-avg}ExposuresDimension")
+    PDxEV = []
+    for pd in PDseq:
+        if pd.context is not None:
+            pdDim = pd.context.dimValue(dimQname)
+            for ev in EVseq:
+                if ev.context is not None:
+                    evDim = ev.context.dimValue(dimQname)
+                    if pdDim is not None and isinstance(pdDim,ModelDimensionValue):
+                        dimEqual =  pdDim.isEqualTo(evDim, equalMode=XbrlUtil.S_EQUAL2)
+                    elif evDim is not None and isinstance(evDim,ModelDimensionValue):
+                        dimEqual =  evDim.isEqualTo(pdDim, equalMode=XbrlUtil.S_EQUAL2)
+                    else:
+                        dimEqual = (pdDim == evDim)
+                    if dimEqual:
+                        PDxEV.append(pd.xValue * ev.xValue)
+                        break
+    return PDxEV
+
+
 customFunctions = {
+    qname("{http://www.example.com/wgt-avg/function}my-fn:PDxEV"): my_fn_PDxEV
 }
