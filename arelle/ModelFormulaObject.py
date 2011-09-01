@@ -166,17 +166,16 @@ class ModelFormulaResource(ModelResource):
                          element=toModelObject.elementQname)
 
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if varRefSet is None: varRefSet = set()
-        if cfnRefSet is None: cfnRefSet = set()
         if progs:
-            XPathParser.variableReferences(progs, varRefSet, cfnRefSet, self)
+            XPathParser.variableReferences(progs, varRefSet, self)
         for arcrole in self.descendantArcroles:
             for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(self):
                 toModelObject = modelRel.toModelObject
                 if isinstance(toModelObject,ModelFormulaResource):
-                    modelRel.toModelObject.variableRefs(varRefSet=varRefSet, cfnRefSet=cfnRefSet)
-        return (varRefSet, cfnRefSet)
+                    modelRel.toModelObject.variableRefs(varRefSet=varRefSet)
+        return varRefSet
     
 class ModelAssertionSet(ModelFormulaResource):
     def init(self, modelDocument):
@@ -319,8 +318,8 @@ class ModelFormula(ModelVariableSet):
                         exprs = []
             super().compile()
 
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet)
 
     def evaluate(self, xpCtx):
         return xpCtx.atomize( xpCtx.progHeader, xpCtx.evaluate( self.valueProg ) )
@@ -408,8 +407,8 @@ class ModelVariableSetAssertion(ModelVariableSet):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE_SET)
             super().compile()
 
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.testProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.testProg, varRefSet)
 
     @property
     def test(self):
@@ -532,8 +531,8 @@ class ModelParameter(ModelFormulaResource):
             self.selectProg = XPathParser.parse(self, self.select, self, "select", Trace.PARAMETER)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.selectProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.selectProg, varRefSet)
         
     def evaluate(self, xpCtx, typeQname):
         try:
@@ -610,11 +609,11 @@ class ModelFactVariable(ModelVariable):
             self.fallbackValueProg = XPathParser.parse(self, self.fallbackValue, self, "fallbackValue", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         try:
             return self._variableRefs
         except AttributeError:
-            self._variableRefs = super().variableRefs(self.fallbackValueProg, varRefSet, cfnRefSet)
+            self._variableRefs = super().variableRefs(self.fallbackValueProg, varRefSet)
             return self._variableRefs
         
     @property
@@ -661,8 +660,8 @@ class ModelGeneralVariable(ModelVariable):
             self.selectProg = XPathParser.parse(self, self.select, self, "select", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.selectProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.selectProg, varRefSet)
         
     @property
     def select(self):
@@ -690,8 +689,8 @@ class ModelPrecondition(ModelFormulaResource):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.testProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.testProg, varRefSet)
         
     @property
     def test(self):
@@ -741,8 +740,8 @@ class ModelTestFilter(ModelFilter):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.testProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.testProg, varRefSet)
         
     @property
     def test(self):
@@ -914,8 +913,8 @@ class ModelConceptName(ModelFilter):
                 i += 1
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.qnameExpressionProgs, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.qnameExpressionProgs, varRefSet)
 
     @property
     def conceptQnames(self):
@@ -1039,8 +1038,8 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
             return self.filterQname
         return xpCtx.evaluateAtomicValue(self.qnameExpressionProg, 'xs:QName', fact)
 
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.qnameExpressionProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.qnameExpressionProg, varRefSet)
 
 class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
     def init(self, modelDocument):
@@ -1238,14 +1237,14 @@ class ModelConceptRelation(ModelFilter):
             self.testExpressionProg = XPathParser.parse(self, self.test, self, "testExpressionProg", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if self.variable and self.variable != XbrlConst.qnXfiRoot:
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
         return super().variableRefs([p for p in (self.sourceQnameExpressionProg,
                                                  self.linkroleExpressionProg, self.linknameExpressionProg,
                                                  self.arcroleExpressionProg, self.arcnameExpressionProg)
-                                        if p], varRefSet, cfnRefSet)
+                                        if p], varRefSet)
 
     def evalSourceQname(self, xpCtx, fact):
         try:
@@ -1503,11 +1502,11 @@ class ModelMatchFilter(ModelFilter):
     def variable(self):
         return qname( self, self.get("variable"), noPrefixIsNoNamespace=True ) if self.get("variable") else None
     
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet, cfnRefSet)
+        return super().variableRefs(None, varRefSet)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         from arelle.FormulaEvaluator import aspectMatches
@@ -1637,11 +1636,11 @@ class ModelInstantDuration(ModelFilter):
     def variable(self):
         return qname( self, self.get("variable"), noPrefixIsNoNamespace=True ) if self.get("variable") else None
     
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet, cfnRefSet)
+        return super().variableRefs(None, varRefSet)
 
     @property
     def boundary(self):
@@ -1724,7 +1723,7 @@ class ModelExplicitDimension(ModelFilter):
                 self.memberProgs.append(memberModel)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if varRefSet is None: varRefSet = set()
         memberModelMemberProgs = []
         for memberModel in self.memberProgs:
@@ -1732,7 +1731,7 @@ class ModelExplicitDimension(ModelFilter):
                 varRefSet.add(memberModel.variable)
             elif memberModel.qnameExprProg:
                 memberModelMemberProgs.append(memberModel.qnameExprProg)
-        return super().variableRefs(memberModelMemberProgs, varRefSet, cfnRefSet)
+        return super().variableRefs(memberModelMemberProgs, varRefSet)
 
     def evalDimQname(self, xpCtx, fact):
         try:
@@ -1920,11 +1919,11 @@ class ModelRelativeFilter(ModelFilter):
     def variable(self):
         return qname(self, self.get("variable"), noPrefixIsNoNamespace=True) if self.get("variable") else None
     
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet, cfnRefSet)
+        return super().variableRefs(None, varRefSet)
 
     def aspectsCovered(self, varBinding):
         return varBinding.aspectsDefined
@@ -1999,8 +1998,8 @@ class ModelAncestorFilter(ModelFilter):
             self.qnameExpressionProg = XPathParser.parse(self, self.qnameExpression, self, "qnameExpressionProg", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.qnameExpressionProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.qnameExpressionProg, varRefSet)
 
     def evalQname(self, xpCtx, fact):
         ancestorQname = self.ancestorQname
@@ -2053,8 +2052,8 @@ class ModelParentFilter(ModelFilter):
             self.qnameExpressionProg = XPathParser.parse(self, self.qnameExpression, self, "qnameExpressionProg", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs(self.qnameExpressionProg, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs(self.qnameExpressionProg, varRefSet)
 
     def evalQname(self, xpCtx, fact):
         parentQname = self.parentQname
@@ -2102,11 +2101,11 @@ class ModelLocationFilter(ModelFilter):
             self.locationProg = XPathParser.parse(self, self.location, self, "locationProg", Trace.VARIABLE)
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet, cfnRefSet)
+        return super().variableRefs(None, varRefSet)
 
     def evalLocation(self, xpCtx, fact):
         try:
@@ -2147,11 +2146,11 @@ class ModelSiblingFilter(ModelFilter):
     def variable(self):
         return qname(self, self.get("variable"), noPrefixIsNoNamespace=True) if self.get("variable") else None
     
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet, cfnRefSet)
+        return super().variableRefs(None, varRefSet)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         otherFact = xpCtx.inScopeVars.get(self.variable)
@@ -2298,9 +2297,9 @@ class ModelMessage(ModelFormulaResource):
                 i += 1
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
+    def variableRefs(self, progs=[], varRefSet=None):
         try:
-            return super().variableRefs(self.expressionProgs, varRefSet, cfnRefSet)
+            return super().variableRefs(self.expressionProgs, varRefSet)
         except AttributeError:
             return set()    # no expressions
 
@@ -2420,8 +2419,8 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
                 self.stepProgs.append( XPathParser.parse( self, elt.text, elt, name, Trace.CUSTOM_FUNCTION ) )
             super().compile()
         
-    def variableRefs(self, progs=[], varRefSet=None, cfnRefSet=None):
-        return super().variableRefs([self.outputProg] + self.stepProgs, varRefSet, cfnRefSet)
+    def variableRefs(self, progs=[], varRefSet=None):
+        return super().variableRefs([self.outputProg] + self.stepProgs, varRefSet)
 
     @property
     def propertyView(self):

@@ -124,17 +124,11 @@ def validate(val):
     for paramQname, modelParameter in val.modelXbrl.qnameParameters.items():
         if isinstance(modelParameter, ModelParameter):
             modelParameter.compile()
-            parameterDependencies[paramQname], custFns = modelParameter.variableRefs()
+            parameterDependencies[paramQname] = modelParameter.variableRefs()
             parameterQnames.add(paramQname)
             if isinstance(modelParameter, ModelInstance):
                 instanceQnames.add(paramQname)
             # duplicates checked on loading modelDocument
-            for custFn in custFns:
-                if custFn not in val.modelXbrl.modelCustomFunctionSignatures:
-                    val.modelXbrl.error("xbrlve:noCustomFunctionSignature",
-                        _("No custom function signature for %(custFunction)s in parameter %(name)s"),
-                        modelObject=modelParameter,
-                        name=paramQname, custFunction=custFn)
             
     #resolve dependencies
     resolvedAParameter = True
@@ -296,7 +290,7 @@ def validate(val):
             variable = modelRel.toModelObject
             if isinstance(variable, (ModelParameter,ModelVariable)):    # ignore anything not parameter or variable
                 varqname = modelRel.variableQname
-                depVars, custFns = variable.variableRefs()
+                depVars = variable.variableRefs()
                 variableDependencies[varqname] = depVars
                 if len(depVars) > 0 and formulaOptions.traceVariablesDependencies:
                     val.modelXbrl.info("formula:trace",
@@ -304,12 +298,6 @@ def validate(val):
                         modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, 
                         name=varqname, dependencies=depVars)
                 definedNamesSet.add(varqname)
-                for custFn in custFns: # check custom functions for signature
-                    if custFn not in val.modelXbrl.modelCustomFunctionSignatures:
-                        val.modelXbrl.error("xbrlve:noCustomFunctionSignature",
-                            _("No custom function signature for %(custFunction)s in variable %(name)s"),
-                            modelObject=variable,
-                            name=varqname, custFunction=custFn)
                 # check for fallback value variable references
                 if isinstance(variable, ModelFactVariable):
                     for depVar in XPathParser.variableReferencesSet(variable.fallbackValueProg, variable):
@@ -357,8 +345,7 @@ def validate(val):
                         nameFrom=varqname, nameTo=varsCircularDep )
                     
         # check unresolved variable set dependencies
-        varSetDepVars, custFns = modelVariableSet.variableRefs()
-        for varSetDepVarQname in varSetDepVars:
+        for varSetDepVarQname in modelVariableSet.variableRefs():
             if varSetDepVarQname not in orderedNameSet and varSetDepVarQname not in parameterQnames:
                 val.modelXbrl.error("xbrlve:unresolvedDependency",
                     _("Undefined variable dependency in variable set %(xlinkLabel)s, %(name)s"),
@@ -371,11 +358,6 @@ def validate(val):
                 instqname = nameVariables[varSetDepVarQname].qname
                 varSetInstanceDependencies.add(instqname)
                 instanceDependencies[instanceQname].add(instqname)
-        for custFn in custFns: # check custom functions for signature
-            if custFn not in val.modelXbrl.modelCustomFunctionSignatures:
-                val.modelXbrl.error("xbrlve:noCustomFunctionSignature",
-                    _("No custom function signature for %(custFunction)s in variable set %(xlinkLabel)s"),
-                    modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, custFunction=custFn)
         
         if formulaOptions.traceVariablesOrder:
             val.modelXbrl.info("formula:trace",
@@ -395,17 +377,11 @@ def validate(val):
                 
         # check existence assertion variable dependencies
         if isinstance(modelVariableSet, ModelExistenceAssertion):
-            depVars, custFns = modelVariableSet.variableRefs()
-            for depVar in depVars:
+            for depVar in modelVariableSet.variableRefs():
                 if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
                     val.modelXbrl.error("xbrleae:variableReferenceNotAllowed",
                         _("Existence Assertion %(xlinkLabel)s, cannot refer to variable %(name)s"),
                         modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, name=depVar)
-            for custFn in custFns: # check custom functions for signature
-                if custFn not in val.modelXbrl.modelCustomFunctionSignatures:
-                    val.modelXbrl.error("xbrlve:noCustomFunctionSignature",
-                        _("No custom function signature for %(custFunction)s in existence asserton %(xlinkLabel)s"),
-                        modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, custFunction=custFn)
                     
         # check messages variable dependencies
         checkValidationMessageVariables(val, modelVariableSet, qnameRels)
@@ -425,17 +401,11 @@ def validate(val):
                     _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered"),
                      modelObject=varSetFilter, xlinkLabel=modelVariableSet.xlinkLabel, filterLabel=varSetFilter.xlinkLabel)
                 modelRel._isCovered = False # block group filter from being able to covere
-            depVars, custFns = varSetFilter.variableRefs()
-            for depVar in depVars:
+            for depVar in varSetFilter.variableRefs():
                 if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
                     val.modelXbrl.error("xbrlve:factVariableReferenceNotAllowed",
                         _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot refer to variable %(name)s"),
                         modelObject=varSetFilter, xlinkLabel=modelVariableSet.xlinkLabel, filterLabel=varSetFilter.xlinkLabel, name=depVar)
-            for custFn in custFns: # check custom functions for signature
-                if custFn not in val.modelXbrl.modelCustomFunctionSignatures:
-                    val.modelXbrl.error("xbrlve:noCustomFunctionSignature",
-                        _("No custom function signature for %(custFunction)s in variableSetFilter %(xlinkLabel)s"),
-                        modelObject=varSetFilter, xlinkLabel=varSetFilter.xlinkLabel, custFunction=custFn)
                     
         # check aspects of formula
         if isinstance(modelVariableSet, ModelFormula):
@@ -808,14 +778,8 @@ def checkValidationMessageVariables(val, modelVariableSet, varNames):
         for modelRel in val.modelXbrl.relationshipSet(msgRelationship).fromModelObject(modelVariableSet):
             message = modelRel.toModelObject
             message.compile()
-            msgVars, custFns = message.variableRefs()
-            for msgVarQname in msgVars:
+            for msgVarQname in message.variableRefs():
                 if msgVarQname not in varNames and msgVarQname not in varSetVars:
                     val.modelXbrl.error("err:XPST0008",
                         _("Undefined variable dependency in message %(xlinkLabel)s, %(name)s"),
                         modelObject=message, xlinkLabel=message.xlinkLabel, name=msgVarQname)
-            for custFn in custFns: # check custom functions for signature
-                if custFn not in val.modelXbrl.modelCustomFunctionSignatures:
-                    val.modelXbrl.error("xbrlve:noCustomFunctionSignature",
-                        _("No custom function signature for %(custFunction)s in message %(xlinkLabel)s"),
-                        modelObject=message, xlinkLabel=message.xlinkLabel, custFunction=custFn)

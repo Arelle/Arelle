@@ -198,6 +198,17 @@ def pushFunction( sourceStr, loc, toks ):
     name = toks[0]
     operation = OperationDef(sourceStr, loc, name, toks, True)
     exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
+    if isinstance(name, QNameDef): # function call
+        ns = name.namespaceURI
+        if (not name.unprefixed and 
+            ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
+            not ns.startswith("http://www.xbrl.org/inlineXBRL/transformation")):
+            if name not in modelXbrl.modelCustomFunctionSignatures:
+                modelXbrl.error("xbrlve:noCustomFunctionSignature",
+                    _("No custom function signature for %(custFunction)s in %(resource)s"),
+                    modelObject=xmlElement,
+                    resource=xmlElement.localName,
+                    custFunction=name)
     return operation
 
 def pushSequence( sourceStr, loc, toks ):
@@ -665,12 +676,11 @@ def parse(modelObject, xpathExpression, element, name, traceType):
 
 def variableReferencesSet(exprStack, element):
     varRefSet = set()
-    cfnRefSet = set()
     if exprStack:
-        variableReferences(exprStack, varRefSet, cfnRefSet, element)
+        variableReferences(exprStack, varRefSet, element)
     return varRefSet
 
-def variableReferences(exprStack, varRefSet, cfnRefSet, element, rangeVars=None):
+def variableReferences(exprStack, varRefSet, element, rangeVars=None):
     localRangeVars = []
     if rangeVars is None: rangeVars = []
     from arelle.ModelValue import qname
@@ -682,24 +692,16 @@ def variableReferences(exprStack, varRefSet, cfnRefSet, element, rangeVars=None)
             if var not in rangeVars:
                 varRefSet.add(var)
         elif isinstance(p,OperationDef):
-            # is p a custom function reference?
-            op = p.name
-            if isinstance(op, QNameDef): # function call
-                ns = op.namespaceURI
-                if (not op.unprefixed and 
-                    ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
-                    not ns.startswith("http://www.xbrl.org/inlineXBRL/transformation")):
-                    cfnRefSet.add(op) # must be a custom function
-            variableReferences(p.args, varRefSet, cfnRefSet, element, rangeVars)
+            variableReferences(p.args, varRefSet, element, rangeVars)
         elif isinstance(p,Expr):
-            variableReferences(p.expr, varRefSet, cfnRefSet, element, rangeVars)
+            variableReferences(p.expr, varRefSet, element, rangeVars)
         elif isinstance(p,RangeDecl):
             var = p.rangeVar.name
             rangeVars.append(var)
             localRangeVars.append(var)
-            variableReferences(p.bindingSeq, varRefSet, cfnRefSet, element, rangeVars)
+            variableReferences(p.bindingSeq, varRefSet, element, rangeVars)
         elif hasattr(p, '__iter__') and not isinstance(p, str):
-            variableReferences(p, varRefSet, cfnRefSet, element, rangeVars)
+            variableReferences(p, varRefSet, element, rangeVars)
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)

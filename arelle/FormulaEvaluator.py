@@ -810,7 +810,7 @@ class VariableBinding:
     def matchableBoundFact(self, fbVars):
         if (self.isFallback or self.isParameter 
             # remove to allow different gen var evaluations: or self.isGeneralVar
-            or not fbVars.isdisjoint(self.var.variableRefs()[0])):
+            or not fbVars.isdisjoint(self.var.variableRefs())):
             return None
         return self.yieldedEvaluation
         
