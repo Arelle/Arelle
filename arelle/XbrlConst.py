@@ -110,6 +110,9 @@ qnParameter = qname("{http://xbrl.org/2008/variable}variable:parameter")
 qnFactVariable = qname("{http://xbrl.org/2008/variable}variable:factVariable")
 qnGeneralVariable = qname("{http://xbrl.org/2008/variable}variable:generalVariable")
 qnPrecondition = qname("{http://xbrl.org/2008/variable}variable:precondition")
+qnEqualityDefinition = qname("{http://xbrl.org/2008/variable}variable:equalityDefinition")
+qnEqualityTestA = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:a")
+qnEqualityTestB = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:b")
 formula = "http://xbrl.org/2008/formula"
 qnFormula = qname("{http://xbrl.org/2008/formula}formula:formula")
 qnFormulaUncovered = qname("{http://xbrl.org/2008/formula}formula:uncovered")
@@ -129,6 +132,7 @@ variableSet = "http://xbrl.org/arcrole/2008/variable-set"
 variableSetFilter = "http://xbrl.org/arcrole/2008/variable-set-filter"
 variableFilter = "http://xbrl.org/arcrole/2008/variable-filter"
 variableSetPrecondition = "http://xbrl.org/arcrole/2008/variable-set-precondition"
+equalityDefinition = "http://xbrl.org/arcrole/2008/equality-definition"
 consistencyAssertionFormula = "http://xbrl.org/arcrole/2008/consistency-assertion-formula"
 consistencyAssertionParameter = "http://xbrl.org/arcrole/2008/consistency-assertion-parameter"
 validation = "http://xbrl.org/2008/validation"
@@ -337,12 +341,12 @@ standardArcroleCyclesAllowed = {
                     "http://www.xbrl.org/2003/arcrole/concept-label":("any", None),
                     "http://www.xbrl.org/2003/arcrole/concept-reference":("any", None),
                     "http://www.xbrl.org/2003/arcrole/fact-footnote":("any",None),
-                    "http://www.xbrl.org/2003/arcrole/parent-child":("undirected", "5.2.4.2"),
-                    "http://www.xbrl.org/2003/arcrole/summation-item":("any", "5.2.5.2"),
-                    "http://www.xbrl.org/2003/arcrole/general-special":("undirected", "5.2.6.2.1"),
-                    "http://www.xbrl.org/2003/arcrole/essence-alias":("undirected", "5.2.6.2.1"),
-                    "http://www.xbrl.org/2003/arcrole/similar-tuples":("any", "5.2.6.2.3"),
-                    "http://www.xbrl.org/2003/arcrole/requires-element":("any", "5.2.6.2.4")}
+                    "http://www.xbrl.org/2003/arcrole/parent-child":("undirected", "xbrl.5.2.4.2"),
+                    "http://www.xbrl.org/2003/arcrole/summation-item":("any", "xbrl.5.2.5.2"),
+                    "http://www.xbrl.org/2003/arcrole/general-special":("undirected", "xbrl.5.2.6.2.1"),
+                    "http://www.xbrl.org/2003/arcrole/essence-alias":("undirected", "xbrl.5.2.6.2.1"),
+                    "http://www.xbrl.org/2003/arcrole/similar-tuples":("any", "xbrl.5.2.6.2.3"),
+                    "http://www.xbrl.org/2003/arcrole/requires-element":("any", "xbrl.5.2.6.2.4")}
 
 def standardArcroleArcElement(arcrole):
     return {"http://www.xbrl.org/2003/arcrole/concept-label":"labelArc",
