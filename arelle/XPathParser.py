@@ -665,11 +665,12 @@ def parse(modelObject, xpathExpression, element, name, traceType):
 
 def variableReferencesSet(exprStack, element):
     varRefSet = set()
+    cfnRefSet = set()
     if exprStack:
-        variableReferences(exprStack, varRefSet, element)
+        variableReferences(exprStack, varRefSet, cfnRefSet, element)
     return varRefSet
 
-def variableReferences(exprStack, varRefSet, element, rangeVars=None):
+def variableReferences(exprStack, varRefSet, cfnRefSet, element, rangeVars=None):
     localRangeVars = []
     if rangeVars is None: rangeVars = []
     from arelle.ModelValue import qname
@@ -681,16 +682,24 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
             if var not in rangeVars:
                 varRefSet.add(var)
         elif isinstance(p,OperationDef):
-            variableReferences(p.args, varRefSet, element, rangeVars)
+            # is p a custom function reference?
+            op = p.name
+            if isinstance(op, QNameDef): # function call
+                ns = op.namespaceURI
+                if (not op.unprefixed and 
+                    ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
+                    not ns.startswith("http://www.xbrl.org/inlineXBRL/transformation")):
+                    cfnRefSet.add(op) # must be a custom function
+            variableReferences(p.args, varRefSet, cfnRefSet, element, rangeVars)
         elif isinstance(p,Expr):
-            variableReferences(p.expr, varRefSet, element, rangeVars)
+            variableReferences(p.expr, varRefSet, cfnRefSet, element, rangeVars)
         elif isinstance(p,RangeDecl):
             var = p.rangeVar.name
             rangeVars.append(var)
             localRangeVars.append(var)
-            variableReferences(p.bindingSeq, varRefSet, element, rangeVars)
+            variableReferences(p.bindingSeq, varRefSet, cfnRefSet, element, rangeVars)
         elif hasattr(p, '__iter__') and not isinstance(p, str):
-            variableReferences(p, varRefSet, element, rangeVars)
+            variableReferences(p, varRefSet, cfnRefSet, element, rangeVars)
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)
