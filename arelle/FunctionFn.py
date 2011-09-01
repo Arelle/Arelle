@@ -5,11 +5,12 @@ Created on Dec 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import math, re
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
-from arelle import (FunctionXs, XPathContext, XbrlUtil, XmlUtil)
+from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg
+from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
+from lxml import etree
     
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
@@ -507,7 +508,7 @@ def boolean(xc, p, contextItem, args):
     if inputSequence is None or len(inputSequence) == 0:
         return False
     item = inputSequence[0]
-    if isinstance(item, ModelObject):
+    if isinstance(item, (ModelObject, ModelAttribute, etree._ElementTree)):
         return True
     if len(inputSequence) == 1:
         if isinstance(item, bool):
@@ -620,10 +621,28 @@ def idref(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
 
 def doc(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    uri = stringArg(xc, args, 0, "xs:string", emptyFallback=None)
+    if uri is None:
+        return ()
+    if xc.progHeader is None or xc.progHeader.element is None:
+        raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc no formula resource element for {0}').format(uri))
+    if not UrlUtil.isValid(uri):
+        raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc $uri is not valid {0}').format(uri))
+    normalizedUri = xc.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
+                                uri, 
+                                xc.progHeader.element.modelDocument.baseForElement(xc.progHeader.element))
+    if normalizedUri in xc.modelXbrl.urlDocs:
+        return xc.modelXbrl.urlDocs[normalizedUri].xmlDocument
+    modelDocument = ModelDocument.load(xc.modelXbrl, normalizedUri)
+    if modelDocument is None:
+        raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc $uri not successfully loaded {0}').format(uri))
+    # assure that document is validated
+    XmlValidate.validate(xc.modelXbrl, modelDocument.xmlRootElement)
+    return modelDocument.xmlDocument
 
 def doc_available(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    return isinstance(doc(xc, p, contextItem, args), etree._ElementTree)
 
 def collection(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -651,7 +670,8 @@ def implicit_timezone(xc, p, contextItem, args):
     return datetime.now().tzinfo
 
 def default_collation(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    # only unicode is supported
+    return "http://www.w3.org/2005/xpath-functions/collation/codepoint"
 
 def static_base_uri(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
