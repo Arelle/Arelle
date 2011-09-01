@@ -280,12 +280,14 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             elif baseXsdType == "QName":
                 xValue = qname(elt, value, castException=ValueError)
                 sValue = value
+                ''' not sure here, how are explicitDimensions validated, but bad units not?
                 if xValue.namespaceURI in modelXbrl.namespaceDocs:
                     if (xValue not in modelXbrl.qnameConcepts and 
                         xValue not in modelXbrl.qnameTypes and
                         xValue not in modelXbrl.qnameAttributes and
                         xValue not in modelXbrl.qnameAttributeGroups):
                         raise ValueError("qname not defined " + str(xValue))
+                '''
             elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
                 xValue = sValue = value if value == "INF" else int(value)
             elif baseXsdType in ("XBRLI_NONZERODECIMAL"):
