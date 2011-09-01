@@ -122,7 +122,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
     else:
         # produce variable bindings
         varRel = varSet.orderedVariableRelationships[varIndex]
-        vb = VariableBinding(varRel)
+        vb = VariableBinding(xpCtx, varRel)
         if vb.isFactVar:
             vb.aspectsDefined = aspectModels[varSet.aspectModel]
             vb.values = None
@@ -227,7 +227,7 @@ def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType):
     for aspect in aspects:
         for vb in (varBindings if hasattr(varBindings, '__iter__') else (varBindings,)):
             if not vb.isFallback and vb.hasAspectValueUncovered(aspect):
-                facts = [fact for fact in facts if aspectMatches(vb.yieldedFact, fact, aspect)]
+                facts = [fact for fact in facts if aspectMatches(xpCtx, vb.yieldedFact, fact, aspect)]
                 if xpCtx.formulaOptions.traceVariableFilterWinnowing:
                     a = str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect]
                     xpCtx.modelXbrl.info("formula:trace",
@@ -236,7 +236,7 @@ def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType):
                 if len(facts) == 0: break
     return facts
     
-def aspectMatches(fact1, fact2, aspects):
+def aspectMatches(xpCtx, fact1, fact2, aspects):
     matches = True
     for aspect in (aspects if hasattr(aspects,'__iter__') else (aspects,)):
         if aspect == Aspect.LOCATION:
@@ -306,6 +306,9 @@ def aspectMatches(fact1, fact2, aspects):
                     elif isinstance(dimValue2, ModelDimensionValue):
                         if dimValue2.isExplicit:
                             matches = False
+                        elif dimValue1.dimension.typedDomainElement in xpCtx.modelXbrl.modelFormulaEqualityDefinitions:
+                            equalityDefinition = xpCtx.modelXbrl.modelFormulaEqualityDefinitions[dimValue1.dimension.typedDomainElement]
+                            matches = equalityDefinition.evalTest(xpCtx, fact1, fact2)
                         elif not XbrlUtil.nodesCorrespond(fact1.modelXbrl, dimValue1.typedMember, dimValue2.typedMember, dts2=fact2.modelXbrl):
                             matches = False
             elif isinstance(dimValue1,QName):
@@ -713,7 +716,8 @@ class VariableBindingError:
 xbrlfe_undefinedSAV = VariableBindingError("xbrlfe:undefinedSAV")
          
 class VariableBinding:
-    def __init__(self, varRel):
+    def __init__(self, xpCtx, varRel):
+        self.xpCtx = xpCtx
         self.qname = varRel.variableQname
         self.var = varRel.toModelObject
         self.aspectsDefined = set()
@@ -737,7 +741,7 @@ class VariableBinding:
         for fact in self.facts:
             matched = False
             for partition in factsPartitions:
-                if aspectMatches(fact, partition[0], aspects):
+                if aspectMatches(self.xpCtx, fact, partition[0], aspects):
                     partition.append(fact)
                     matched = True
                     break
@@ -754,7 +758,7 @@ class VariableBinding:
             for subPartition in subPartitions:
                 matchedInSubPartition = False
                 for fact2 in subPartition:
-                    if aspectMatches(fact, fact2, aspects):
+                    if aspectMatches(self.xpCtx, fact, fact2, aspects):
                         matchedInSubPartition = True
                         break
                 if not matchedInSubPartition:

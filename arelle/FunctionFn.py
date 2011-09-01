@@ -550,13 +550,27 @@ def distinct_values(xc, p, contextItem, args):
     return list(set(sequence))
 
 def insert_before(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 3: raise XPathContext.FunctionNumArgs()
+    sequence = args[0]
+    if isinstance(sequence, tuple): sequence = list(sequence)
+    elif not isinstance(sequence, list): sequence = [sequence]
+    index = numericArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
+    insertion = args[2]
+    if isinstance(insertion, tuple): insertion = list(insertion)
+    elif not isinstance(insertion, list): insertion = [insertion]
+    return sequence[:index] + insertion + sequence[index:]
 
 def remove(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    sequence = args[0]
+    index = numericArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
+    return sequence[:index] + sequence[index+1:]
 
 def reverse(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    sequence = args[0]
+    if len(sequence) == 0: return []
+    return list( reversed(sequence) )
 
 def subsequence(xc, p, contextItem, args):
     if len(args) not in (2,3): raise XPathContext.FunctionNumArgs()

@@ -393,6 +393,21 @@ def validate(val):
             if isinstance(precondition, ModelPrecondition):
                 modelVariableSet.preconditions.append(precondition)
                 
+        # check typed dimension equality test
+        val.modelXbrl.modelFormulaEqualityDefinitions = {}
+        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.equalityDefinition).modelRelationships:
+            typedDomainElt = modelRel.fromModelObject
+            modelEqualityDefinition = modelRel.toModelObject
+            if typedDomainElt in val.modelXbrl.modelFormulaEqualityDefinitions:
+                val.modelXbrl.error("xbrlve:multipleTypedDimensionEqualityDefinitions",
+                    _("Multiple typed domain definitions from %(typedDomain)s to %(equalityDefinition1)s and %(equalityDefinition2)s"),
+                     modelObject=modelRel.arcElement, typedDomain=typedDomainElt.qname,
+                     equalityDefinition1=modelEqualityDefinition.xlinkLabel,
+                     equalityDefinition2=val.modelXbrl.modelFormulaEqualityDefinitions[typedDomainElt].xlinkLabel)
+            else:
+                modelEqualityDefinition.compile()
+                val.modelXbrl.modelFormulaEqualityDefinitions[typedDomainElt] = modelEqualityDefinition
+                
         # check for variable sets referencing fact or general variables
         for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(modelVariableSet):
             varSetFilter = modelRel.toModelObject

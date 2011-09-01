@@ -189,6 +189,7 @@ class ValidateXbrl:
                 linkqname is None or arcqname is None:
                 continue
             elif arcrole in XbrlConst.standardArcroleCyclesAllowed:
+                # TODO: table should be in this module, where it is used
                 cyclesAllowed, specSect = XbrlConst.standardArcroleCyclesAllowed[arcrole]
             elif arcrole in self.modelXbrl.arcroleTypes and len(self.modelXbrl.arcroleTypes[arcrole]) > 0:
                 cyclesAllowed = self.modelXbrl.arcroleTypes[arcrole][0].cyclesAllowed

@@ -1513,7 +1513,7 @@ class ModelMatchFilter(ModelFilter):
         aspect = self.aspect
         otherFact = xpCtx.inScopeVars.get(self.variable)
         return [fact for fact in facts 
-                if cmplmt ^ (aspectMatches(fact, otherFact, aspect))] 
+                if cmplmt ^ (aspectMatches(xpCtx, fact, otherFact, aspect))] 
 
     @property
     def propertyView(self):
@@ -2279,6 +2279,18 @@ class ModelPrecisionFilter(ModelFilter):
     def viewExpression(self):
         return self.minimum
 
+class ModelEqualityDefinition(ModelTestFilter):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        
+    def evalTest(self, xpCtx, facta, factb):
+        xpCtx.inScopeVars[XbrlConst.qnEqualityTestA] = facta
+        xpCtx.inScopeVars[XbrlConst.qnEqualityTestB] = factb
+        result = super().evalTest(xpCtx, facta.modelXbrl)
+        xpCtx.inScopeVars.pop(XbrlConst.qnEqualityTestB)
+        xpCtx.inScopeVars.pop(XbrlConst.qnEqualityTestA)
+        return result
+
 class ModelMessage(ModelFormulaResource):
     def init(self, modelDocument):
         super().init(modelDocument)
@@ -2495,6 +2507,7 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnGeneralMeasures, ModelGeneralMeasures),
      (XbrlConst.qnNilFilter, ModelNilFilter),
      (XbrlConst.qnPrecisionFilter, ModelPrecisionFilter),
+     (XbrlConst.qnEqualityDefinition, ModelEqualityDefinition),
      (XbrlConst.qnMessage, ModelMessage),
      (XbrlConst.qnCustomFunctionSignature, ModelCustomFunctionSignature),
      (XbrlConst.qnCustomFunctionImplementation, ModelCustomFunctionImplementation),
