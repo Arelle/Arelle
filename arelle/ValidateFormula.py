@@ -558,7 +558,7 @@ def validate(val):
             asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied)
             if formulaOptions.traceAssertionResultCounts:
                 val.modelXbrl.info("formula:trace",
-                   _("Consistency Assertion %(id)s evaluations : %(satisfiedCount) satisfied, %(notSatisfiedCount) not satisfied"),
+                   _("Consistency Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"),
                     modelObject=consisAsser, id=consisAsser.id, 
                     satisfiedCount=consisAsser.countSatisfied, notSatisfiedCount=consisAsser.countNotSatisfied)
             

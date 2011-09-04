@@ -181,11 +181,12 @@ class Validate:
                     self.instValidator.validate(modelXbrl, parameters)
                     self.determineTestStatus(modelTestcaseVariation, modelXbrl)
                     self.instValidator.close()
-                    if modelXbrl.formulaOutputInstance and len(modelTestcaseVariation.actual) == 0: 
-                        # if an output instance is created, validate it
+                    if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 
+                        # if an output instance is created, and no string error codes, ignoring dict of assertion results, validate it
+                        modelXbrl.formulaOutputInstance.hasFormulae = False #  block formulae on output instance (so assertion of input is not lost)
                         self.instValidator.validate(modelXbrl.formulaOutputInstance, modelTestcaseVariation.parameters)
                         self.determineTestStatus(modelTestcaseVariation, modelXbrl.formulaOutputInstance)
-                        if len(modelTestcaseVariation.actual) == 0: # if still 'clean' pass it forward for comparison to expected result instance
+                        if self.noErrorCodes(modelTestcaseVariation.actual): # if still 'clean' pass it forward for comparison to expected result instance
                             formulaOutputInstance = modelXbrl.formulaOutputInstance
                             modelXbrl.formulaOutputInstance = None # prevent it from being closed now
                         self.instValidator.close()
@@ -224,6 +225,9 @@ class Validate:
                     
             self.modelXbrl.modelManager.showStatus(_("ready"), 2000)
             
+    def noErrorCodes(self, modelTestcaseVariation):
+        return not any(not isinstance(actual,dict) for actual in modelTestcaseVariation)
+                
     def determineTestStatus(self, modelTestcaseVariation, modelUnderTest):
         numErrors = len(modelUnderTest.errors)
         expected = modelTestcaseVariation.expected
