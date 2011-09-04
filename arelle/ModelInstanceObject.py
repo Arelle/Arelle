@@ -640,8 +640,8 @@ class ModelDimensionValue(ModelObject):
     def __hash__(self):
         if self.isExplicit:
             return hash( (self.dimensionQname, self.memberQname) )
-        else:
-            return hash( (self.dimensionQname, XbrlUtil.equalityHash(XmlUtil.child(self))) )
+        else: # need XPath equal so that QNames aren't lexically compared (for fact and context equality in comparing formula results)
+            return hash( (self.dimensionQname, XbrlUtil.equalityHash(XmlUtil.child(self), equalMode=XbrlUtil.XPATH_EQ)) )
        
     @property
     def dimensionQname(self):
