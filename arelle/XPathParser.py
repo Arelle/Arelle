@@ -297,13 +297,17 @@ exponentLiteral = CaselessLiteral('e')
 plusorminusLiteral = Literal('+') | Literal('-')
 digits = Word(nums) 
 integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
+decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
 infLiteral = Combine( Optional(plusorminusLiteral) + Literal("INF") )
 nanLiteral = Literal("NaN")
 floatLiteral = ( Combine( integerLiteral +
                      ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
                        ( exponentLiteral + integerLiteral ) |
                        ( decimalPoint + Optional(digits) ) )
-                     ) | infLiteral | nanLiteral ) 
+                     ) | 
+                 Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
+                 decimalFractionLiteral |
+                 infLiteral | nanLiteral ) 
 
 
 variableRef = Word( '$', alphanums + ':_-')
@@ -919,6 +923,9 @@ def parser_unit_test():
     #tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
     tests = [test1, test1a, test1b, test2a, test2b, test3, test3a]
     for test in (
+                 "123",
+                 "0.005",
+                 ".005",
                  "./*[local-name() eq 'a']",
                  ".",
                  "..",
