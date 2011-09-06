@@ -214,7 +214,7 @@ class ValidateXbrl:
                     if cycleFound is not None:
                         path = str(relFrom.qname) + " " + " - ".join(
                             "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
-                            for rel in cycleFound[1:])
+                            for rel in reversed(cycleFound[1:]))
                         modelXbrl.error(specSect,
                             _("Relationships have a %(cycle)s cycle in arcrole %(arcrole)s \nlink role %(linkrole)s \nlink %(linkname)s, \narc %(arcname)s, \npath %(path)s"),
                             modelObject=cycleFound[1], cycle=cycleFound[0], path=path,
