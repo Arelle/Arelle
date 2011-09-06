@@ -533,7 +533,7 @@ class ModelContext(ModelObject):
         try:
             return self._contextNonDimAwareHash
         except AttributeError:
-            self._contextNonDimAwareHash = hash( (tuple(self.periodHash, self.entityIdentifierHash, self.segmentHash, self.scenarioHash)) )
+            self._contextNonDimAwareHash = hash( (self.periodHash, self.entityIdentifierHash, self.segmentHash, self.scenarioHash) )
             return self._contextNonDimAwareHash
         
     
