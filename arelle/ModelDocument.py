@@ -552,6 +552,7 @@ class ModelDocument:
                         tableRenderingArcFound = False
                         linkQn = qname(lbElement)
                         linkrole = lbElement.get("{http://www.w3.org/1999/xlink}role")
+                        isStandardExtLink = XbrlConst.isStandardResourceOrExtLinkElement(lbElement)
                         if inInstance:
                             #index footnote links even if no arc children
                             baseSetKeys = (("XBRL-footnotes",None,None,None), 
@@ -568,9 +569,14 @@ class ModelDocument:
                                     # only link:loc elements are discovered or processed
                                     href = self.discoverHref(linkElement, nonDTS=nonDTS)
                                     if href is None:
-                                        self.modelXbrl.error("xbrl:hrefMissing",
-                                                _("Locator href attribute missing or malformed"),
-                                                modelObejct=linkElement)
+                                        if isStandardExtLink:
+                                            self.modelXbrl.error("xbrl:hrefMissing",
+                                                    _("Locator href attribute missing or malformed in standard extended link"),
+                                                    modelObejct=linkElement)
+                                        else:
+                                            self.modelXbrl.warning("arelle:hrefWarning",
+                                                    _("Locator href attribute missing or malformed in non-standard extended link"),
+                                                    modelObejct=linkElement)
                                     else:
                                         linkElement.modelHref = href
                                         modelResource = linkElement
