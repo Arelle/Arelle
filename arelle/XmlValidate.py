@@ -211,6 +211,10 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                     element=elt.elementQname,
                     typeName=baseXsdType,
                     attributes=','.join(str(a) for a in missingAttributes))
+            # add default attribute values
+            for attrQname in (type.defaultAttributeQnames - presentAttributes):
+                modelAttr = type.attributes[attrQname]
+                validateValue(modelXbrl, elt, attrQname.clarkNotation, modelAttr.baseXsdType, modelAttr.default, facets=modelAttr.facets)
     if recurse:
         for child in elt.getchildren():
             validate(modelXbrl, child)
@@ -218,7 +222,10 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
 def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False, facets=None):
     if baseXsdType:
         try:
-            if len(value) == 0 and not isNillable and baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN", "noContent"):
+            if (len(value) == 0 and
+                not attrTag is None and 
+                not isNillable and 
+                baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN", "anyURI", "noContent")):
                 raise ValueError("missing value for not nillable element")
             xValid = VALID
             whitespaceReplace = (baseXsdType == "normalizedString")
@@ -257,7 +264,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             elif baseXsdType == "anyURI":
                 xValue = anyURI(value)
                 sValue = value
-                if not UrlUtil.isValid(xValue):
+                if xValue and not UrlUtil.isValid(xValue):  # allow empty strings to be valid anyURIs
                     raise ValueError("invalid anyURI value")
             elif not value: # rest of types get None if nil/empty value
                 xValue = sValue = None
