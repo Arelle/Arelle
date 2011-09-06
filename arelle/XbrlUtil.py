@@ -4,8 +4,9 @@ Created on Nov 26, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom.minidom
-from arelle import (ModelValue, XbrlConst, XmlUtil, XmlValidate)
+import xml.dom.minidom, math
+from arelle import XbrlConst, XmlUtil, XmlValidate
+from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject, ModelAttribute
 
 S_EQUAL = 0 # ordinary S-equality from 2.1 spec
@@ -47,9 +48,12 @@ def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED):
             dts = elt.modelXbrl
             if not hasattr(elt,"xValid"):
                 XmlValidate.validate(dts, elt)
+            hashableValue = elt.sValue if equalMode == S_EQUAL else elt.xValue
+            if isinstance(hashableValue,float) and math.isnan(hashableValue): 
+                hashableValue = (hashableValue,elt)    # ensure this NaN only compares to itself and no other NaN
             _hash = hash((elt.elementQname,
-                          elt.sValue if equalMode == S_EQUAL else elt.xValue,
-                          tuple(attributeDict(dts, elt, (), equalMode, excludeIDs).items()),
+                          hashableValue,
+                          tuple(attributeDict(dts, elt, (), equalMode, excludeIDs, distinguishNaNs=True).items()),
                           tuple(equalityHash(child,equalMode,excludeIDs) for child in childElements(elt))
                           ))
             if equalMode == S_EQUAL:
@@ -89,12 +93,13 @@ def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, dts2
             return False
     return True
 
-def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, ns2ns1Tbl=None, keyByTag=False):
+def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, ns2ns1Tbl=None, keyByTag=False, distinguishNaNs=False):
     if not hasattr(elt,"xValid"):
         XmlValidate.validate(modelXbrl, elt)
     attrs = {}
     # TBD: replace with validated attributes
-    for attrTag, attrValue in elt.items():
+    for modelAttribute in elt.xAttributes.values():
+        attrTag = modelAttribute.attrTag
         ns, sep, localName = attrTag.partition('}')
         attrNsURI = ns[1:] if sep else None
         if ns2ns1Tbl and attrNsURI in ns2ns1Tbl:
@@ -104,14 +109,16 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
             if keyByTag:
                 qname = attrTag
             elif attrNsURI is not None:
-                qname = ModelValue.QName(None, attrNsURI, localName)
+                qname = QName(None, attrNsURI, localName)
             else:
-                qname = ModelValue.QName(None, None, attrTag)
+                qname = QName(None, None, attrTag)
             try:
-                modelAttribute = elt.xAttributes[attrTag]
                 if excludeIDs and modelAttribute.xValid == XmlValidate.VALID_ID:
                     continue
-                attrs[qname] = modelAttribute.sValue if equalMode == S_EQUAL2 else modelAttribute.xValue
+                value = modelAttribute.sValue if equalMode <= S_EQUAL2 else modelAttribute.xValue
+                if distinguishNaNs and isinstance(value,float) and math.isnan(value):
+                    value = (value,elt)
+                attrs[qname] = value
             except KeyError:
                 pass  # what should be done if attribute failed to have psvi value
     return attrs
@@ -128,7 +135,7 @@ def xEqual(elt1, elt2, equalMode=S_EQUAL):
         XmlValidate.validate(elt1.modelXbrl, elt1)
     if not hasattr(elt2,"xValid"):
         XmlValidate.validate(elt2.modelXbrl, elt2)
-    if equalMode == S_EQUAL or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, ModelValue.QName)):
+    if equalMode == S_EQUAL or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
         return elt1.sValue == elt2.sValue
     else:
         return elt1.xValue == elt2.xValue

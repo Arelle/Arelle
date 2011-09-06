@@ -574,7 +574,7 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt, element=elt.qname)
                     for name, errName in (("{http://www.w3.org/1999/xlink}href","xbrl.3.5.3.7.2:linkLocHref"),
                                           ("{http://www.w3.org/1999/xlink}label","xbrl.3.5.3.7.3:linkLocLabel")):
-                        if not elt.get(name):
+                        if elt.get(name) is None:
                             val.modelXbrl.error(errName,
                                 _("Element %(element)s missing: %(attribute)s"),
                                 modelObject=elt, element=elt.qname, attribute=name)

@@ -98,8 +98,8 @@ class ValidateXbrlCalcs:
                                 weight = modelRel.weight
                                 itemConcept = modelRel.toModelObject
                                 for itemBindKey in boundSumKeys:
-                                    ancestor, context, unit = itemBindKey
-                                    factKey = (itemConcept, ancestor, context, unit)
+                                    ancestor, contextHash, unit = itemBindKey
+                                    factKey = (itemConcept, ancestor, contextHash, unit)
                                     if factKey in self.itemFacts:
                                         for fact in self.itemFacts[factKey]:
                                             if fact in self.duplicatedFacts:
@@ -107,8 +107,8 @@ class ValidateXbrlCalcs:
                                             else:
                                                 boundSums[itemBindKey] += self.roundFact(fact) * weight
                             for sumBindKey in boundSumKeys:
-                                ancestor, context, unit = sumBindKey
-                                factKey = (sumConcept, ancestor, context, unit)
+                                ancestor, contextHash, unit = sumBindKey
+                                factKey = (sumConcept, ancestor, contextHash, unit)
                                 if factKey in self.sumFacts:
                                     for fact in self.sumFacts[factKey]:
                                         if fact in self.duplicatedFacts:
@@ -129,9 +129,9 @@ class ValidateXbrlCalcs:
                             essenceBindingKeys = self.esAlConceptBindKeys[essenceConcept]
                             aliasBindingKeys = self.esAlConceptBindKeys[aliasConcept]
                             for esAlBindKey in essenceBindingKeys & aliasBindingKeys:
-                                ancestor, context = esAlBindKey
-                                essenceFactsKey = (essenceConcept, ancestor, context)
-                                aliasFactsKey = (aliasConcept, ancestor, context)
+                                ancestor, contextHash = esAlBindKey
+                                essenceFactsKey = (essenceConcept, ancestor, contextHash)
+                                aliasFactsKey = (aliasConcept, ancestor, contextHash)
                                 if essenceFactsKey in self.esAlFacts and aliasFactsKey in self.esAlFacts:
                                     for eF in self.esAlFacts[essenceFactsKey]:
                                         for aF in self.esAlFacts[aliasFactsKey]:
@@ -172,11 +172,12 @@ class ValidateXbrlCalcs:
                     for ancestor in ancestors:
                         # tbd: uniqify context and unit
                         context = self.mapContext.get(f.context,f.context)
+                        contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
                         unit = self.mapUnit.get(f.unit,f.unit)
-                        calcKey = (concept, ancestor, context, unit)
+                        calcKey = (concept, ancestor, contextHash, unit)
                         if not f.isNil:
                             self.itemFacts[calcKey].append(f)
-                            bindKey = (ancestor, context, unit)
+                            bindKey = (ancestor, contextHash, unit)
                             self.itemConceptBindKeys[concept].add(bindKey)
                     if not f.isNil:
                         self.sumFacts[calcKey].append(f) # sum only for immediate parent
@@ -194,9 +195,10 @@ class ValidateXbrlCalcs:
                 if concept in self.conceptsInEssencesAlias and not f.isNil:
                     ancestor = ancestors[-1]    # only care about direct parent
                     context = self.mapContext.get(f.context,f.context)
-                    esAlKey = (concept, ancestor, context)
+                    contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
+                    esAlKey = (concept, ancestor, contextHash)
                     self.esAlFacts[esAlKey].append(f)
-                    bindKey = (ancestor, context)
+                    bindKey = (ancestor, contextHash)
                     self.esAlConceptBindKeys[concept].add(bindKey)
                 # index facts by their requires element usage
                 if concept in self.conceptsInRequiresElement:

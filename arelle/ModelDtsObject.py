@@ -715,6 +715,14 @@ class ModelType(ModelSchemaObject):
             return self._requiredAttributeQnames
             
     @property
+    def defaultAttributeQnames(self):
+        try:
+            return self._defaultAttributeQnames
+        except AttributeError:
+            self._defaultAttributeQnames = set(a.qname for a in self.attributes.values() if a.default is not None)
+            return self._defaultAttributeQnames
+            
+    @property
     def elements(self):
         return XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "element")
     
