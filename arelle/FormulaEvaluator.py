@@ -596,7 +596,7 @@ def produceOutputFact(xpCtx, formula, result):
                     v = xsString(xpCtx, x)
                 elif decimals is not None:
                     v = "%.*f" % ( int(decimals), x)
-                elif precision is not None:
+                elif precision is not None and precision != 0:
                     a = fabs(x)
                     log = log10(a) if a != 0 else 0
                     v = "%.*f" % ( int(precision) - int(log) - (1 if a >= 1 else 0), x)
