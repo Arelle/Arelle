@@ -104,9 +104,10 @@ def checkDimensions(val, drsELRs):
                             fromConceptELRs[dim].add(domELR)
                             cycleCausingConcept = undirectedFwdCycle(val, domELR, dimDomRels, ELR, drsRelsFrom, drsRelsTo, fromConceptELRs)
                             if cycleCausingConcept is not None:
+                                cycleCausingConcept.append(hcDimRel)
                                 val.modelXbrl.error(("EFM.6.16.04", "GFM.1.08.04"),
-                                    _("Dimension relationships have an undirected cycle in DRS role %(linkrole)s starting from table %(hypercube)s, axis %(dimension)s, at %(member)s"),
-                                    modelObject=hcDimRel, linkrole=ELR, hypercube=hc.qname, dimension=dim.qname, member=cycleCausingConcept.qname)
+                                    _("Dimension relationships have an undirected cycle in DRS role %(linkrole)s \nstarting from table %(hypercube)s, \naxis %(dimension)s, \npath %(path)s"),
+                                    modelObject=hcDimRel, linkrole=ELR, hypercube=hc.qname, dimension=dim.qname, path=cyclePath(hc,cycleCausingConcept))
                             fromConceptELRs.clear()
                         elif val.validateSBRNL:
                             checkSBRNLMembers(val, hc, dim, domELR, dimDomRels, ELR, True)
@@ -127,8 +128,8 @@ def checkDimensions(val, drsELRs):
                 cycleCausingConcept = undirectedFwdCycle(val, ELR, rels, ELR, drsRelsFrom, drsRelsTo, fromConceptELRs)
                 if cycleCausingConcept is not None:
                     val.modelXbrl.error(("EFM.6.16.04", "GFM.1.08.04"),
-                        _("Domain-member primary-item relationships have an undirected cycle in DRS role %(linkrole)s starting from %(conceptFrom)s at %(conceptTo)s"),
-                        modelObject=relFrom, linkrole=ELR, conceptFrom=relFrom.qname, conceptTo=cycleCausingConcept.qname)
+                        _("Domain-member primary-item relationships have an undirected cycle in DRS role %(linkrole)s \nstarting from %(conceptFrom)s, \npath %(path)s"),
+                        modelObject=relFrom, linkrole=ELR, conceptFrom=relFrom.qname, path=cyclePath(relFrom, cycleCausingConcept))
                 fromConceptELRs.clear()
             for rel in rels:
                 fromMbr = rel.fromModelObject
@@ -209,7 +210,7 @@ def undirectedFwdCycle(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromC
             if not toELR:
                 toELR = fromELR
             if relTo in fromConceptELRs and toELR in fromConceptELRs[relTo]: #forms a directed cycle
-                return relTo
+                return [rel,True]
             fromConceptELRs[relTo].add(toELR)
             if drsRelsFrom:
                 domMbrRels = drsRelsFrom[relTo]
@@ -218,11 +219,15 @@ def undirectedFwdCycle(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromC
                          XbrlConst.domainMember, toELR).fromModelObject(relTo)
             cycleCausingConcept = undirectedFwdCycle(val, toELR, domMbrRels, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited)
             if cycleCausingConcept is not None:
+                cycleCausingConcept.append(rel)
+                cycleCausingConcept.append(True)
                 return cycleCausingConcept
             fromConceptELRs[relTo].discard(toELR)
             # look for back path in any of the ELRs visited (pass None as ELR)
             cycleCausingConcept = undirectedRevCycle(val, None, relTo, rel, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited)
             if cycleCausingConcept is not None:
+                cycleCausingConcept.append(rel)
+                cycleCausingConcept.append(True)
                 return cycleCausingConcept
     return None
 
@@ -248,11 +253,25 @@ def undirectedRevCycle(val, fromELR, mbrConcept, turnbackRel, drsELR, drsRelsFro
                 relFrom = rel.fromModelObject
                 relELR = rel.linkrole
                 if relFrom in fromConceptELRs and relELR in fromConceptELRs[relFrom]:
-                    return turnbackRel.toModelObject
+                    return [rel, False] # turnbackRel.toModelObject
                 cycleCausingConcept = undirectedRevCycle(val, relELR, relFrom, turnbackRel, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited)
                 if cycleCausingConcept is not None:
+                    cycleCausingConcept.append(rel)
+                    cycleCausingConcept.append(False)
                     return cycleCausingConcept
     return None
+
+def cyclePath(source, cycles):
+    isForward = True
+    path = []
+    for rel in reversed(cycles):
+        if isinstance(rel,bool):
+            isForward = rel
+        else:
+            path.append("{0}:{1} {2}".format(rel.modelDocument.basename, 
+                                             rel.sourceline, 
+                                             rel.toModelObject.qname if isForward else rel.fromModelObject.qname))
+    return str(source.qname) + " " + " - ".join(path)            
                 
 def commonAncestor(domainMemberRelationshipSet, 
                    negSourceConcept, posSourceConcepts):
