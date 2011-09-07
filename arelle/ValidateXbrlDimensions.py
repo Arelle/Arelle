@@ -73,14 +73,26 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                                 domELR = dimELR
                             dimDomRels = val.modelXbrl.relationshipSet(
                                  XbrlConst.dimensionDomain, domELR).fromModelObject(dimConcept)
-                            if xdtCycle(val, domainTargetRoles(val, domELR,dimDomRels), dimDomRels, {hcConcept,dimConcept}):
+                            cycle = xdtCycle(val, domainTargetRoles(val, domELR,dimDomRels), dimDomRels, {hcConcept,dimConcept})
+                            if cycle is not None:
+                                if cycle is not None:
+                                    cycle.append(hcDimRel)
+                                    path = str(hcConcept.qname) + " " + " - ".join(
+                                        "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
+                                        for rel in reversed(cycle))
                                 val.modelXbrl.error("xbrldte:DRSDirectedCycleError",
-                                    _("Dimension relationships have a directed cycle in DRS role %(linkrole)s starting from hypercube %(hypercube)s, dimension %(dimension)s"),
-                                    modelObject=hcConcept, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR)
-                            if drsPolymorphism(val, domELR, dimDomRels, drsPriItems(val, ELR, priItemConcept)):
+                                    _("Dimension relationships have a directed cycle in DRS role %(linkrole)s \nstarting from hypercube %(hypercube)s, \ndimension %(dimension)s, \npath %(path)s"),
+                                    modelObject=hcConcept, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR, path=path)
+                            cycle = drsPolymorphism(val, domELR, dimDomRels, drsPriItems(val, ELR, priItemConcept))
+                            if cycle is not None:
+                                if cycle is not None:
+                                    cycle.append(hcDimRel)
+                                    path = str(priItemConcept.qname) + " " + " - ".join(
+                                        "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
+                                        for rel in reversed(cycle))
                                 val.modelXbrl.error("xbrldte:PrimaryItemPolymorphismError",
-                                    _("Dimension relationships have a polymorphism cycle in DRS role %(linkrole)s starting from hypercube %(hypercube)s, dimension %(dimension)s"),
-                                    modelObject=hcConcept, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR)
+                                    _("Dimension relationships have a polymorphism cycle in DRS role %(linkrole)s \nstarting from hypercube %(hypercube)s, \ndimension %(dimension)s, \npath %(path)s"),
+                                    modelObject=hcConcept, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR, path=path)
     # check dimension-domain relationships
     elif arcrole == XbrlConst.dimensionDomain:
         for modelRel in relsSet.modelRelationships:
@@ -165,14 +177,16 @@ def xdtCycle(val, ELRs, rels, fromConcepts):
     for rel in rels:
         relTo = rel.toModelObject
         if rel.isUsable and relTo in fromConcepts: # don't think we want this?? and toELR == drsELR: #forms a directed cycle
-            return True
+            return [rel,]
         fromConcepts.add(relTo)
         for ELR in ELRs: 
             domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(relTo)
-            if xdtCycle(val, ELRs, domMbrRels, fromConcepts):
-                return True
+            foundCycle = xdtCycle(val, ELRs, domMbrRels, fromConcepts)
+            if foundCycle is not None:
+                foundCycle.append(rel)
+                return foundCycle
         fromConcepts.discard(relTo)
-    return False
+    return None
 
 def drsPriItems(val, fromELR, fromPriItem, priItems=None):
     if priItems is None:
@@ -195,14 +209,16 @@ def drsPolymorphism(val, fromELR, rels, priItems, visitedMbrs=None):
         if not toELR:
             toELR = fromELR
         if rel.isUsable and relTo in priItems: # don't think we want this?? and toELR == drsELR: #forms a directed cycle
-            return True
+            return [rel,]
         if relTo not in visitedMbrs:
             visitedMbrs.add(relTo)
             domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(relTo)
-            if drsPolymorphism(val, toELR, domMbrRels, priItems, visitedMbrs):
-                return True
+            foundCycle = drsPolymorphism(val, toELR, domMbrRels, priItems, visitedMbrs)
+            if foundCycle is not None:
+                foundCycle.append(rel)
+                return foundCycle
             visitedMbrs.discard(relTo)
-    return False
+    return None
 
 def checkConcept(val, concept):
     if concept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"):
