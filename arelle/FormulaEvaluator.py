@@ -4,7 +4,7 @@ Created on Jan 9, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil)
+from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil, XmlValidate)
 from arelle.FunctionXs import xsString
 from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFormula, ModelExistenceAssertion,
@@ -531,7 +531,7 @@ def produceOutputFact(xpCtx, formula, result):
             XmlUtil.copyNodes(scenarioElt, scenOCCs)
                 
         outputXbrlInstance.modelDocument.contextDiscover(newCntxElt)
-    
+        XmlValidate.validate(outputXbrlInstance, newCntxElt)    
     # does unit exist
     
     # add unit
@@ -557,6 +557,7 @@ def produceOutputFact(xpCtx, formula, result):
                 for divide in divideBy:
                     XmlUtil.addChild(denElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, divide))
             outputXbrlInstance.modelDocument.unitDiscover(newUnitElt)
+            XmlValidate.validate(outputXbrlInstance, newUnitElt)    
     
     # add fact
     attrs = [("contextRef", cntxId)]
@@ -613,6 +614,7 @@ def produceOutputFact(xpCtx, formula, result):
                                    afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))
         xpCtx.outputLastFact[outputInstanceQname] = newFact
         outputXbrlInstance.modelDocument.factDiscover(newFact, outputXbrlInstance.facts)
+        XmlValidate.validate(outputXbrlInstance, newFact)    
         return newFact
 
 def aspectValue(xpCtx, formula, aspect, srcMissingErr):

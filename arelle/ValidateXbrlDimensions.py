@@ -368,8 +368,6 @@ def checkFactElrHcs(val, f, ELR, hcRels):
                 domELR = hcDimRel.targetRole
                 if domELR is None:
                     domELR = dimELR
-                dimDomRels = val.modelXbrl.relationshipSet(
-                                XbrlConst.dimensionDomain, domELR).fromModelObject(dimConcept)
                 if dimConcept in modelDimValues:
                     memModelDimension = modelDimValues[dimConcept]
                     contextElementDimSet.discard(dimConcept)
@@ -380,7 +378,7 @@ def checkFactElrHcs(val, f, ELR, hcRels):
                     hcValid = False
                     continue
                 if not dimConcept.isTypedDimension:
-                    if memberStateInDomain(val, memConcept, dimDomRels, domELR) != MEMBER_USABLE:
+                    if dimensionMemberState(val, dimConcept, memConcept, domELR) != MEMBER_USABLE:
                         hcValid = False 
         if hcIsClosed and len(contextElementDimSet) > 0:
             hcValid = False # has extra stuff in the context element
@@ -390,6 +388,21 @@ def checkFactElrHcs(val, f, ELR, hcRels):
             elrValid = False
     return elrValid
                             
+def dimensionMemberState(val, dimConcept, memConcept, domELR):
+    try:
+        dimensionMemberStates = val.dimensionMemberStates
+    except AttributeError:
+        dimensionMemberStates = val.dimensionMemberStates = {}
+    key = (dimConcept, memConcept, domELR)
+    try:
+        return dimensionMemberStates[key]
+    except KeyError:
+        dimDomRels = val.modelXbrl.relationshipSet(
+                        XbrlConst.dimensionDomain, domELR).fromModelObject(dimConcept)
+        state = memberStateInDomain(val, memConcept, dimDomRels, domELR)
+        dimensionMemberStates[key] = state
+        return state
+
 def memberStateInDomain(val, memConcept, rels, ELR, fromConcepts=None):
     foundState = NOT_FOUND
     if fromConcepts is None:
@@ -435,9 +448,7 @@ def checkPriItemDimValueElrHcs(val, priItemConcept, matchDim, matchMem, ELR, hcR
             domELR = hcDimRel.targetRole
             if domELR is None:
                 domELR = dimELR
-            dimDomRels = val.modelXbrl.relationshipSet(
-                            XbrlConst.dimensionDomain, domELR).fromModelObject(dimConcept)
-            if memberStateInDomain(val, matchMem, dimDomRels, domELR) != MEMBER_USABLE:
+            if dimensionMemberState(val, dimConcept, matchMem, domELR) != MEMBER_USABLE:
                 return hcNegating # true if all, false if not all
         if hcIsClosed:
             return False # has extra stuff in the context element
