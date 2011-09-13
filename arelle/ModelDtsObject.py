@@ -175,6 +175,7 @@ class ModelConcept(ModelSchemaObject):
     def facets(self):
         return self.type.facets if self.type is not None else None
     
+    ''' unused, remove???
     def baseXsdAttrType(self,attrName):
         try:
             return self._baseXsdAttrType[attrName]
@@ -185,6 +186,7 @@ class ModelConcept(ModelSchemaObject):
                 attrType = "anyType"
             self._baseXsdAttrType[attrName] = attrType
             return attrType
+    '''
     
     @property
     def baseXbrliType(self):
@@ -793,13 +795,6 @@ class ModelLink(ModelObject):
     def role(self):
         return self.get("{http://www.w3.org/1999/xlink}role")
         
-    def modelResourceOfResourceElement(self,resourceElement):
-        label = resourceElement.get("{http://www.w3.org/1999/xlink}label")
-        for modelResource in self.labeledResources[label]:
-            if modelResource == resourceElement:
-                return modelResource
-        return None
-
 class ModelResource(ModelObject):
     def init(self, modelDocument):
         super().init(modelDocument)
@@ -982,7 +977,7 @@ class ModelRelationship(ModelObject):
     
     @property
     def linkQname(self):
-        return ModelValue.qname(self.arcElement.getparent())
+        return self.arcElement.getparent().elementQname
     
     @property
     def contextElement(self):
