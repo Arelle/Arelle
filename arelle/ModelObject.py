@@ -121,6 +121,20 @@ class ModelObject(etree.ElementBase):
         return self.get("id")
     
     @property
+    def innerText(self):    # includes text 'around' nested elements and comment nodes nested in value
+        return ''.join(self.itertext())  # no text nodes returns ''
+    
+    @property
+    def elementText(self):    # includes text 'around' comment nodes nested in value
+        return ''.join(self._elementTextNodes())  # no text nodes returns ''
+    
+    def _elementTextNodes(self):
+        if self.text: yield self.text
+        for c in self.iterchildren():
+            if not isinstance(c, etree.ElementBase): # skip nested element nodes
+                if c.tail: yield c.tail  # get tail of nested comment or processor nodes
+    
+    @property
     def document(self):
         return self.modelDocument
     

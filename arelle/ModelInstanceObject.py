@@ -146,8 +146,8 @@ class ModelFact(ModelObject):
     
     @property
     def value(self):
-        v = self.text
-        if v is None:
+        v = self.elementText
+        if not v:
             if self.concept.default is not None:
                 v = self.concept.default
             elif self.concept.fixed is not None:
@@ -625,13 +625,6 @@ class ModelContext(ModelObject):
                   if self.qnameDims else (),
                 )
 
-def measuresOf(parent):
-    return sorted([ModelValue.qname(m, XmlUtil.text(m)) 
-                   for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure")])
-
-def measuresStr(m):
-    return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)
-
 
 class ModelDimensionValue(ModelObject):
     def init(self, modelDocument):
@@ -672,7 +665,7 @@ class ModelDimensionValue(ModelObject):
 
     @property
     def memberQname(self):
-        return self.prefixedNameQname(XmlUtil.text(self))
+        return self.prefixedNameQname(self.elementText)
         
     @property
     def member(self):
@@ -704,6 +697,13 @@ class ModelDimensionValue(ModelObject):
         else:
             return (str(self.dimensionQname), etree.tounicode( XmlUtil.child(self) ) )
         
+def measuresOf(parent):
+    return sorted([ModelValue.qname(m, XmlUtil.text(m)) 
+                   for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure")])
+
+def measuresStr(m):
+    return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)
+
 class ModelUnit(ModelObject):
     def init(self, modelDocument):
         super().init(modelDocument)
@@ -725,6 +725,7 @@ class ModelUnit(ModelObject):
         try:
             return self._hash
         except AttributeError:
+            # should this use frozenSet of each measures element?
             self._hash = hash( ( tuple(self.measures[0]),tuple(self.measures[1]) ) )
             return self._hash
 

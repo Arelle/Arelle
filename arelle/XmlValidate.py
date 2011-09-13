@@ -8,7 +8,7 @@ from lxml import etree
 import xml.dom.minidom, os, re
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI
-from arelle.ModelObject import ModelAttribute
+from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle import UrlUtil
 
 UNKNOWN = 0
@@ -133,7 +133,7 @@ predefinedAttributeTypes = {
 def validate(modelXbrl, elt, recurse=True, attrQname=None):
     # attrQname can be provided for attributes that are global and LAX
     if not hasattr(elt,"xValid"):
-        text = XmlUtil.textNotStripped(elt)
+        text = elt.elementText
         qnElt = qname(elt)
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         facets = None
@@ -217,7 +217,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                 validateValue(modelXbrl, elt, attrQname.clarkNotation, modelAttr.baseXsdType, modelAttr.default, facets=modelAttr.facets)
     if recurse:
         for child in elt.getchildren():
-            validate(modelXbrl, child)
+            if isinstance(child, ModelObject):
+                validate(modelXbrl, child)
 
 def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False, facets=None):
     if baseXsdType:

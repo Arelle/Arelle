@@ -131,23 +131,26 @@ def textNotStripped(element):
 
 def innerText(element, ixExclude=False):   
     try:
-        return "".join(child.text for child in innerTextNodes(element, ixExclude)).strip()
+        return "".join(text for text in innerTextNodes(element, ixExclude)).strip()
     except TypeError:
         return ""
 
 def innerTextList(element, ixExclude=False):   
     try:
-        return ", ".join(child.text.strip() for child in innerTextNodes(element, ixExclude) if len(child.text.strip()) > 0)
+        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude) if len(child.text.strip()) > 0)
     except TypeError:
         return ""
 
 def innerTextNodes(element, ixExclude):
-    return [child
-            for child in element.iter()
-            if isinstance(child,ModelObject) and (
-               not ixExclude or 
-               child == element or
-               (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL"))]
+    if element.text:
+        yield element.text
+    for child in element.iterchildren():
+        if not isinstance(child,ModelObject) or (
+           not ixExclude or 
+           (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL")):
+            innerTextNodes(child, ixExclude)
+    if element.tail:
+        yield element.tail
 
 def parentId(element, parentNamespaceURI, parentLocalName):
     while element is not None:
