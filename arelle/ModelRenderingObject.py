@@ -78,11 +78,11 @@ class ModelExplicitAxisMember(ModelRenderingResource):
     def abstract(self):
         if self.localName == "explicitAxis":
             return 'false'
-        elif self.get("presentation") == 'true':
+        elif self.get("abstract") == 'true':
             return 'true'
         return 'false'
     
-    @property
+    @property   
     def primaryItemQname(self):
         conceptRule = XmlUtil.child(self, XbrlConst.formula, "concept")
         if conceptRule is not None:
