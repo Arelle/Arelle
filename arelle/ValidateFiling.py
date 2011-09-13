@@ -798,9 +798,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         for modelRel in ineffectiveArcs:
                             if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
                                 self.modelXbrl.error(("EFM.6.09.03", "GFM.1.04.03", "SBR.NL.2.2.1.05"),
-                                    _("Ineffective arc %(arc)s in link role %(linkrole)s arcrole %(arcrole)s from %(conceptFrom)s to %(conceptTo)s"),
+                                    _("Ineffective arc %(arc)s in \nlink role %(linkrole)s \narcrole %(arcrole)s \nfrom %(conceptFrom)s \nto %(conceptTo)s \n%(ineffectivity)s"),
                                     modelObject=modelRel, arc=modelRel.qname, linkrole=modelRel.linkrole, arcrole=modelRel.arcrole,
-                                    conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname)
+                                    conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
+                                    ineffectivity=modelRel.ineffectivity)
                     if arcrole == XbrlConst.parentChild:
                         conceptsPresented = set()
                         # 6.12.2 check for distinct order attributes

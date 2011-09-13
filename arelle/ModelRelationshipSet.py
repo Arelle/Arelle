@@ -34,22 +34,32 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     for equivalenceKey, relationship in relationships.items():
         #sort by priority, prohibited
         equivalentRels = []
-        i = 0
-        for modelRel in relationship:
+        for i, modelRel in enumerate(relationship):
             equivalentRels.append((modelRel.priority,modelRel.prohibitedUseSortKey,i))
-            i += 1
         equivalentRels.sort()
         priorRel = None
         for rel in equivalentRels:
             if rel[1] == 2: # this rel is prohibited
                 if priorRel is None:
-                    ineffectives.append(relationship[rel[2]]) # this rel ineffective
+                    ineffective = relationship[rel[2]]
+                    ineffective.ineffectivity = _("prohibited arc (priority {0}) has no other arc to prohibit").format(
+                                               ineffective.priority)
+                    ineffectives.append(ineffective) # this rel ineffective
                 elif priorRel[1] == 2: # prior rel is prohibited
-                    ineffectives.append(priorRel[2])
+                    ineffective = relationship[priorRel[2]]
+                    effective = relationship[rel[2]]
+                    ineffective.ineffectivity = _("prohibited arc (priority {0}, {1} - {2}) has an equivalent prohibited arc (priority {3}, {4} - {5})\n").format(
+                                             ineffective.priority, ineffective.modelDocument.basename, ineffective.sourceline,
+                                             effective.priority, effective.modelDocument.basename, effective.sourceline)
+                    ineffectives.append(ineffective)
             else:
-                if priorRel is not None and \
-                   priorRel[1] != 2:
-                    ineffectives.append(relationship[priorRel[2]]) # prior ineffective
+                if priorRel is not None and priorRel[1] != 2:
+                    ineffective = relationship[priorRel[2]]
+                    effective = relationship[rel[2]]
+                    ineffective.ineffectivity = _("arc (priority {0}, {1} - {2}) is ineffective due to equivalent arc (priority {3}, {4} - {5})\n").format(
+                                             ineffective.priority, ineffective.modelDocument.basename, ineffective.sourceline,
+                                             effective.priority, effective.modelDocument.basename, effective.sourceline)
+                    ineffectives.append(ineffective) # prior ineffective
             priorRel = rel
     return ineffectives
 
