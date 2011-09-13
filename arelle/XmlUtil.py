@@ -124,10 +124,7 @@ def childText(element, childNamespaceURI, childLocalNames):
 def textNotStripped(element):
     if element is None: 
         return ""
-    text = element.text
-    if text is None:
-        return ""   
-    return text
+    return element.elementText  # allows embedded comment nodes, returns '' if None
 
 def innerText(element, ixExclude=False):   
     try:
