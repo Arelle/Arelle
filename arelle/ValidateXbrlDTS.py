@@ -292,10 +292,16 @@ def checkElements(val, modelDocument, parent):
                 if elt.namespaceURI == XbrlConst.xsd:
                     if elt.localName == "schema":
                         XmlValidate.validate(val.modelXbrl, elt)
-                        if elt.get("targetNamespace") is not None and elt.get("targetNamespace") == "":
-                            val.modelXbrl.error("xbrl.5.1:emptyTargetNamespace",
-                                "Schema element has an empty targetNamespace",
-                                modelObject=elt)
+                        targetNamespace = elt.get("targetNamespace")
+                        if targetNamespace is not None:
+                            if targetNamespace == "":
+                                val.modelXbrl.error("xbrl.5.1:emptyTargetNamespace",
+                                    "Schema element has an empty targetNamespace",
+                                    modelObject=elt)
+                            if val.validateEFM and len(targetNamespace) > 100 and len(targetNamespace.encode("utf-8")) > 200:
+                                val.modelXbrl.error("EFM.6.07.30",
+                                    _("Schema targetNamespace over 200 bytes long in utf-8 %(targetNamespace)s"),
+                                    modelObject=elt, targetNamespace=targetNamespace)
                         if val.validateSBRNL:
                             if elt.get("targetNamespace") is None:
                                 val.modelXbrl.error("SBR.NL.2.2.0.08",
@@ -406,6 +412,13 @@ def checkElements(val, modelDocument, parent):
                         val.modelXbrl.error("SBR.NL.2.2.0.12",
                             _('Schema file annotation missing appinfo element must be be behind schema and before import'),
                             modelObject=elt)
+                        
+                    if val.validateEFM and elt.localName in {"element", "complexType", "simpleType"}:
+                        name = elt.get("name")
+                        if name and len(name) > 100 and len(name.encode("utf-8")) > 200:
+                            val.modelXbrl.error("EFM.6.07.29",
+                                _("Schema %(element)s has a name over 200 bytes long in utf-8, %{name)s."),
+                                modelObject=elt, element=elt.localName, name=name)
     
                     if val.validateSBRNL and elt.localName in {"all", "documentation", "any", "anyAttribute", "attributeGroup",
                                                                 "complexContent", "extension", "field", "group", "key", "keyref",
@@ -460,6 +473,10 @@ def checkElements(val, modelDocument, parent):
                                     val.modelXbrl.error("SBR.NL.2.3.8.05",
                                         _('RoleType %(roleURI)s must have a label in lang "nl"'),
                                         modelObject=elt, roleURI=roleURI)
+                        if val.validateEFM and len(roleURI) > 100 and len(roleURI.encode("utf-8")) > 200:
+                            val.modelXbrl.error("EFM.6.07.30",
+                                _("Schema %(element)s %(attribute)s over 200 bytes long in utf-8 %(roleURI)s"),
+                                modelObject=elt, element=elt.qname, attribute=uriAttr, roleURI=roleURI)
                     # check for used on duplications
                     usedOns = set()
                     for usedOn in elt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}usedOn"):

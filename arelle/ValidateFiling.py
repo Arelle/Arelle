@@ -376,15 +376,23 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelObject=unit, unitID=unit.id, unitID2=uniqueUnitHashes[h].id)
                 else:
                     uniqueUnitHashes[h] = unit
+                if self.validateEFM:  # 6.5.38
+                    for measureElt in unit.iterdescendants(tag="{http://www.xbrl.org/2003/instance}unit"):
+                        text = measureElt.text
+                        if text and len(text) > 100 and len(text.encode("utf-8")) > 200:
+                            modelXbrl.error("EFM.6.05.38",
+                                _("Units %(unitID)s has a measure over 200 bytes long in utf-8, %{measure)s."),
+                                modelObject=measureElt, unitID=unit.id, measure=text)
             del uniqueUnitHashes
             self.modelXbrl.profileActivity("... filer unit checks", minTimeToShow=1.0)
    
     
-            # EFM.6.05.14, GFM.1.02.13 xml:lang tests, EFM is just 'en', GFM is full default lang
-            if self.validateEFM:
-                factLangStartsWith = disclosureSystem.defaultXmlLang[:2]
-            else:
-                factLangStartsWith = disclosureSystem.defaultXmlLang
+            # EFM.6.05.14, GFM.1.02.13 xml:lang tests, as of v-17, full default lang is compared
+            #if self.validateEFM:
+            #    factLangStartsWith = disclosureSystem.defaultXmlLang[:2]
+            #else:
+            #    factLangStartsWith = disclosureSystem.defaultXmlLang
+            requiredFactLang = disclosureSystem.defaultXmlLang
 
             #6.5.12 equivalent facts
             factsForLang = {}
@@ -397,7 +405,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
                     factsForLang.setdefault(langTestKey, []).append(f1)
                     lang = f1.xmlLang
-                    if lang and not lang.startswith(factLangStartsWith):
+                    if lang and lang != requiredFactLang: # not lang.startswith(factLangStartsWith):
                         keysNotDefaultLang[langTestKey] = f1
                         
                     if disclosureSystem.GFM and f1.isNumeric and \
@@ -434,14 +442,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for keyNotDefaultLang, factNotDefaultLang in keysNotDefaultLang.items():
                 anyDefaultLangFact = False
                 for fact in factsForLang[keyNotDefaultLang]:
-                    if fact.xmlLang.startswith(factLangStartsWith):
+                    if fact.xmlLang == requiredFactLang: #.startswith(factLangStartsWith):
                         anyDefaultLangFact = True
                         break
                 if not anyDefaultLangFact:
                     self.modelXbrl.error(("EFM.6.05.14", "GFM.1.02.13"),
                         _("Fact %(fact)s of context %(contextID)s has text of xml:lang '%(lang)s' without corresponding %(lang2)s text"),
                         modelObject=factNotDefaultLang, fact=factNotDefaultLang.qname, contextID=factNotDefaultLang.contextID, 
-                        lang=factNotDefaultLang.xmlLang, lang2=factLangStartsWith)
+                        lang=factNotDefaultLang.xmlLang, lang2=requiredFactLang) # factLangStartsWith)
                     
             #label validations
             if not labelsRelationshipSet:
@@ -527,47 +535,48 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error("EFM.6.05.20",
                         _("DocumentType is required and was not found in the default context"), 
                         modelXbrl=modelXbrl)
-                elif documentType not in ("10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K", 
+                elif documentType not in {"10", "10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F", "6-K", "8-K", 
                                           "F-1", "F-10", "F-3", "F-4", "F-9", "S-1", "S-11", 
-                                          "S-3", "S-4", 
+                                          "S-3", "S-4", "POS AM", "10-KT", "10-QT",
                                           "8-K/A", 
                                           "S-1/A", "S-11/A", "S-3/A", "S-4/A", 
+                                          "10-KT/A", "10-QT/A",
                                           "485BPOS", "497 ", "NCSR", "N-CSR", "N-Q", 
                                           "N-Q/A",
-                                          "Other"):
+                                          "Other"}:
                     modelXbrl.error("EFM.6.05.20",
                         _("DocumentType '%(documentType)s' of context %(contextID)s was not recognized"),
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
                     
                 # 6.5.21
                 for doctypesRequired, deiItemsRequired in (
-                      (("10-K",
-                        "10-Q",
+                      (("10-K", "10-KT",
+                        "10-Q", "10-QT",
                         "20-F",
                         "40-F",
                         "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q",
-                        "10", "S-1", "S-3", "S-4", "S-11",
+                        "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
                         "8-K", "F-1", "F-3", "F-10", "497", "485BPOS",
                         "Other"),
                         ("EntityRegistrantName", "EntityCentralIndexKey")),
-                      (("10-K",
+                      (("10-K", "10-KT",
                         "20-F",
                         "40-F"),
                        ("EntityCurrentReportingStatus",)),
-                     (("10-K",),
+                     (("10-K", "10-KT",),
                       ("EntityVoluntaryFilers", "EntityPublicFloat")),
-                      (("10-K",
-                        "10-Q",
+                      (("10-K", "10-KT",
+                        "10-Q", "10-QT",
                         "20-F",
                         "40-F",
                         "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q"),
                         ("CurrentFiscalYearEndDate", "DocumentFiscalYearFocus", "DocumentFiscalPeriodFocus")),
-                      (("10-K",
-                        "10-Q",
+                      (("10-K", "10-KT",
+                        "10-Q", "10-QT",
                         "20-F",
-                        "10", "S-1", "S-3", "S-4", "S-11"),
+                        "10", "S-1", "S-3", "S-4", "S-11", "POS AM"),
                         ("EntityFilerCategory",)),
-                       (("10-K",
+                       (("10-K", "10-KT",
                          "20-F"),
                          ("EntityWellKnownSeasonedIssuer",))
                 ):
@@ -579,7 +588,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
                         elementName=deiItem)
                                 
-                if documentType in ("10-K", "10-Q", "20-F", "40-F"):
+                if documentType in ("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F"):
                     defaultSharesOutstanding = deiItems.get("EntityCommonStockSharesOutstanding")
                     if commonSharesClassMembers:
                         if defaultSharesOutstanding:
@@ -683,10 +692,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if self.validateEFM:
                                     ValidateFilingText.validateFootnote(modelXbrl, child)
                                 # find modelResource for this element
-                                modelResource = modelLink.modelResourceOfResourceElement(child)
                                 foundFact = False
                                 if XmlUtil.text(child) != "":
-                                    for relationship in relationshipSet.toModelObject(modelResource):
+                                    for relationship in relationshipSet.toModelObject(child):
                                         if isinstance(relationship.fromModelObject, ModelFact):
                                             foundFact = True
                                             break
