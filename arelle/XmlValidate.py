@@ -171,7 +171,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
         # validate attributes
         # find missing attributes for default values
         for attrTag, attrValue in elt.items():
-            qn = qname(attrTag)
+            qn = qname(attrTag, noPrefixIsNoNamespace=True)
             baseXsdAttrType = None
             facets = None
             if attrQname is not None: # validate all attributes and element

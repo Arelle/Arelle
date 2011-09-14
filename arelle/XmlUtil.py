@@ -404,7 +404,7 @@ def copyNodes(parent, elts):
         copyElt.init(modelDocument)
         parent.append(copyElt)
         for attrTag, attrValue in origElt.items():
-            qn = qname(attrTag)
+            qn = qname(attrTag, noPrefixIsNoNamespace=True)
             if qn.prefix and qn.namespaceURI:
                 setXmlns(modelDocument, qn.prefix, qn.namespaceURI)
                 copyElt.set(attrTag, attrValue)
