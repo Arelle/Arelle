@@ -244,14 +244,6 @@ class ViewRenderedGrid(ViewHtml.View):
                 rightCol += 1
             if renderNow and not childrenFirst:
                 self.xAxis(leftCol + (1 if nonAbstract else 0), topRow + 1, rowBelow, xAxisHdrObj, xFilters, childrenFirst, True, False) # render on this pass
-                '''
-                if row > topRow:   # add spanned left leg portion one row down
-                    elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                        attrib={"class":"xAxisSpanLeg",
-                                                "rowspan": str(row - topRow)})
-                    elt.text = "&nbsp;"
-                    self.rowElts[topRow].insert(leftCol,elt)
-                '''
             leftCol = rightCol
         if atTop and sideBorder and not childrenFirst:
             '''
