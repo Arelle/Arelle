@@ -10,6 +10,9 @@ rem both win 32 (x86) and win 64 (x64)
 
 "%PYTHON64DIR%\python" buildVersion.py
 
+rem Rebuild messages.pot internationalization file
+"%PYTHON64DIR%\python" pygettext.py -v -o arelle\locale\messages.pot arelle\*.pyw arelle\*.py
+
 rmdir build /s/q
 rmdir dist /s/q
 mkdir build

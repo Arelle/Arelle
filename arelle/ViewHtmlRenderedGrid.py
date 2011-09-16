@@ -154,7 +154,7 @@ class ViewRenderedGrid(ViewHtml.View):
             else:
                 thisCol = leftCol
                 #sideBorder = LEFTBORDER
-            print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
+            #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
             if renderNow:
                 columnspan = (rightCol - leftCol + (1 if nonAbstract else 0))
                 '''
