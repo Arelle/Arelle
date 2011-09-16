@@ -29,6 +29,7 @@ from arelle import (DialogURL,
                 ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
                 ViewWinTests, ViewWinVersReport, ViewWinRssFeed,
                 ViewCsvTests,
+                ViewHtmlRenderedGrid,
                 Updater
                )
 from arelle.ModelFormulaObject import FormulaOptions
@@ -355,7 +356,25 @@ class CntlrWinMain (Cntlr.Cntlr):
             return self.fileSave()
         return True
         
-    def fileSave(self, *ignore):
+    def fileSave(self, view=None, *ignore):
+        if view is not None:
+            modelXbrl = view.modelXbrl
+            if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
+                filename = self.uiFileDialog("save",
+                        title=_("arelle - Save HTML-rendered Table"),
+                        initialdir=os.path.dirname(modelXbrl.modelDocument.uri),
+                        filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm")],
+                        defaultextension=".html")
+                if not filename:
+                    return False
+                try:
+                    ViewHtmlRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.lang, sourceView=view)
+                except (IOError, EnvironmentError) as err:
+                    tkinter.messagebox.showwarning(_("arelle - Error"),
+                                    _("Failed to save {0}:\n{1}").format(
+                                    self.filename, err),
+                                    parent=self.parent)
+                return True
         if self.modelManager.modelXbrl:
             if self.modelManager.modelXbrl.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
                 filename = self.uiFileDialog("save",

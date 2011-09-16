@@ -1,53 +1,35 @@
 '''
-Created on Oct 5, 2010
+Created on Sep 13, 2011
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import os
-from tkinter import Menu, constants
-from arelle import ViewWinGrid, ModelObject, XbrlConst
+from arelle import ViewHtml, XbrlConst
+from lxml import etree
 from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
                                          inheritedExplicitDims, dimContextElement,
                                          FactPrototype, ContextPrototype, DimValuePrototype)
-from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
-                     label, checkbox, 
-                     TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
-from collections import defaultdict
 
-def viewRenderedGrid(modelXbrl, tabWin, lang=None):
+def viewRenderedGrid(modelXbrl, htmlfile, lang=None, viewTblELR=None, sourceView=None):
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
-    view = ViewRenderedGrid(modelXbrl, tabWin, lang)
+    view = ViewRenderedGrid(modelXbrl, htmlfile, lang)
     
     # dimension defaults required in advance of validation
     from arelle import ValidateXbrlDimensions
     ValidateXbrlDimensions.loadDimensionDefaults(view)
-    
-    # context menu
     setDefaults(view)
-    menu = view.contextMenu()
-    optionsMenu = Menu(view.viewFrame, tearoff=0)
-    view.ignoreDimValidity.trace("w", view.viewReloadDueToMenuAction)
-    optionsMenu.add_checkbutton(label=_("Ignore Dimensional Validity"), underline=0, variable=view.ignoreDimValidity, onvalue=True, offvalue=False)
-    view.xAxisChildrenFirst.trace("w", view.viewReloadDueToMenuAction)
-    optionsMenu.add_checkbutton(label=_("X-Axis Children First"), underline=0, variable=view.xAxisChildrenFirst, onvalue=True, offvalue=False)
-    view.yAxisChildrenFirst.trace("w", view.viewReloadDueToMenuAction)
-    optionsMenu.add_checkbutton(label=_("Y-Axis Children First"), underline=0, variable=view.yAxisChildrenFirst, onvalue=True, offvalue=False)
-    menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
-    view.tablesMenu = Menu(view.viewFrame, tearoff=0)
-    menu.add_cascade(label=_("Tables"), menu=view.tablesMenu, underline=0)
-    view.tablesMenuLength = 0
-    view.menuAddLangs()
-    view.menu.add_command(label=_("Save html file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view))
-    view.view()
-    view.blockSelectEvent = 1
-    view.blockViewModelObject = 0
-    view.viewFrame.bind("<Enter>", view.cellEnter, '+')
-    view.viewFrame.bind("<Leave>", view.cellLeave, '+')
-            
-class ViewRenderedGrid(ViewWinGrid.ViewGrid):
-    def __init__(self, modelXbrl, tabWin, lang):
-        super().__init__(modelXbrl, tabWin, "Rendering", True, lang)
+    if sourceView is not None:
+        viewTblELR = sourceView.tblELR
+        view.ignoreDimValidity.set(sourceView.ignoreDimValidity.get())
+        view.xAxisChildrenFirst.set(sourceView.xAxisChildrenFirst.get())
+        view.yAxisChildrenFirst.set(sourceView.yAxisChildrenFirst.get())
+    view.view(viewTblELR)    
+    view.write()
+    view.close()
+    
+class ViewRenderedGrid(ViewHtml.View):
+    def __init__(self, modelXbrl, htmlfile, lang):
+        super().__init__(modelXbrl, htmlfile, "Rendering", lang)
         self.dimsContextElement = {}
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
         self.zFilterIndex = 0
@@ -56,55 +38,34 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def dimensionDefaults(self):
         return self.modelXbrl.qnameDimensionDefaults
     
-    def loadTablesMenu(self):
-        tblMenuEntries = {}             
-        tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
-        for tblLinkroleUri in tblRelSet.linkRoleUris:
-            for tableAxisArcrole in (XbrlConst.euTableAxis, XbrlConst.tableAxis):
-                tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, tblLinkroleUri)
-                if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
-                    # table name
-                    modelRoleTypes = self.modelXbrl.roleTypes.get(tblLinkroleUri)
-                    if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-                        roledefinition = modelRoleTypes[0].definition
-                        if roledefinition is None or roledefinition == "":
-                            roledefinition = os.path.basename(tblLinkroleUri)       
-                        for table in tblAxisRelSet.rootConcepts:
-                            # add table to menu if there's any entry
-                            tblMenuEntries[roledefinition] = tblLinkroleUri
-                            break
-        self.tablesMenu.delete(0, self.tablesMenuLength)
-        self.tablesMenuLength = 0
-        for tblMenuEntry in sorted(tblMenuEntries.items()):
-            tbl,elr = tblMenuEntry
-            self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e))
-            self.tablesMenuLength += 1
-            if not hasattr(self,"tblELR") or self.tblELR is None: 
-                self.tblELR = elr # start viewing first ELR
         
     def viewReloadDueToMenuAction(self, *args):
         self.view()
         
     def view(self, viewTblELR=None):
-        if viewTblELR:  # specific table selection
-            self.tblELR = viewTblELR
-        else:   # first or subsequenct reloading (language, dimensions, other change)
-            self.loadTablesMenu()  # load menus (and initialize if first time
-            viewTblELR = self.tblELR
-
-        # remove old widgets
-        self.viewFrame.clearGrid()
+        if viewTblELR is None:
+            tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
+            for tblLinkroleUri in tblRelSet.linkRoleUris:
+                viewTblELR = tblLinkroleUri # take first table
+                break
+        self.tblELR = viewTblELR
 
         tblAxisRelSet, xAxisObj, yAxisObj, zAxisObj = getTblAxes(self, viewTblELR) 
         
-        if tblAxisRelSet:
+        self.tblElt = None
+        for self.tblElt in self.htmlDoc.iter(tag="{http://www.w3.org/1999/xhtml}table"):
+            break
+        
+        if tblAxisRelSet and self.tblElt is not None:
+            self.rowElts = [etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+                            for r in range(self.dataFirstRow + self.dataRows - 1)]
+            etree.SubElement(self.rowElts[0], "{http://www.w3.org/1999/xhtml}th",
+                             attrib={"class":"tableHdr",
+                                     "style":"min-width:200em;",
+                                     "colspan": str(self.dataFirstCol - 1),
+                                     "rowspan": str(self.dataFirstRow - 1)}
+                             ).text = self.roledefinition
             
-            gridHdr(self.gridTblHdr, 0, 0, 
-                    self.roledefinition, 
-                    anchor="nw",
-                    #columnspan=(self.dataFirstCol - 1),
-                    #rowspan=(self.dataFirstRow),
-                    wraplength=200)
             zFilters = []
             self.zAxis(1, zAxisObj, zFilters)
             xFilters = []
@@ -128,6 +89,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             priorZfilter = len(zFilters)
             self.zAxis(None, zAxisObj, zFilters)
             if row is not None:
+                '''
                 gridBorder(self.gridColHdr, self.dataFirstCol, row, TOPBORDER, columnspan=2)
                 gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
                 gridBorder(self.gridColHdr, self.dataFirstCol, row, RIGHTBORDER, columnspan=2)
@@ -137,14 +99,22 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         wraplength=200,
                         objectId=zAxisObj.objectId(),
                         onClick=self.onClick)
+                '''
+                etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
+                                 attrib={"class":"zAxisHdr",
+                                         "style":"min-width:200em;text-align:left;border-bottom:.5pt solid windowtext",
+                                         "colspan": str(self.dataCols)} # "2"}
+                                 ).text = zAxisObj.genLabel(lang=self.lang)
                 nextZfilter = len(zFilters)
                 if nextZfilter > priorZfilter:    # no combo box choices nested
+                    '''
                     self.combobox = gridCombobox(
                                  self.gridColHdr, self.dataFirstCol + 2, row,
                                  values=[zFilter[2] for zFilter in zFilters[priorZfilter:nextZfilter]],
                                  selectindex=self.zFilterIndex,
                                  comboboxselected=self.comboBoxSelected)
                     gridBorder(self.gridColHdr, self.dataFirstCol + 2, row, RIGHTBORDER)
+                    '''
                     row += 1
 
         if not zFilters:
@@ -161,7 +131,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         widthToSpanParent = 0
         sideBorder = not xFilters
         if atTop and sideBorder and childrenFirst:
+            '''
             gridBorder(self.gridColHdr, self.dataFirstCol, 1, LEFTBORDER, rowspan=self.dataFirstRow)
+            '''
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(xAxisParentObj):
             noDescendants = False
             xAxisHdrObj = axisMbrRel.toModelObject
@@ -178,12 +150,14 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             label = xAxisHdrObj.genLabel(lang=self.lang)
             if childrenFirst:
                 thisCol = rightCol
-                sideBorder = RIGHTBORDER
+                #sideBorder = RIGHTBORDER
             else:
                 thisCol = leftCol
-                sideBorder = LEFTBORDER
+                #sideBorder = LEFTBORDER
+            print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
             if renderNow:
                 columnspan = (rightCol - leftCol + (1 if nonAbstract else 0))
+                '''
                 gridBorder(self.gridColHdr, leftCol, topRow, TOPBORDER, columnspan=columnspan)
                 gridBorder(self.gridColHdr, leftCol, topRow, 
                            sideBorder, columnspan=columnspan,
@@ -196,8 +170,37 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         wraplength=width,
                         objectId=xAxisHdrObj.objectId(),
                         onClick=self.onClick)
+                '''
+                if rightCol == self.dataFirstCol + self.dataCols - 1:
+                    edgeBorder = "border-right:.5pt solid windowtext;"
+                else:
+                    edgeBorder = ""
+                attrib = {"class":"xAxisHdr",
+                          "style":"text-align:center;min-width:{0}em;{1}".format(width,edgeBorder)}
+                colspan = rightCol - leftCol + (1 if nonAbstract else 0)
+                if colspan > 1:
+                    attrib["colspan"] = str(colspan)
+                if leafNode and row > topRow:
+                    attrib["rowspan"] = str(row - topRow + 1)
+                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                    attrib=attrib)
+                elt.text = label if label else "&nbsp;"
+                self.rowElts[topRow-1].insert(leftCol,elt)
                 if nonAbstract:
+                    if colspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
+                        attrib= {"class":"xAxisSpanLeg",
+                                 "rowspan": str(rowBelow - row)}
+                        if edgeBorder:
+                            attrib["style"] = edgeBorder
+                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                            attrib=attrib)
+                        elt.text = "&nbsp;"
+                        if childrenFirst:
+                            self.rowElts[topRow].append(elt)
+                        else:
+                            self.rowElts[topRow].insert(leftCol,elt)
                     if self.colHdrDocRow:
+                        '''
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, TOPBORDER)
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, sideBorder)
                         gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, 
@@ -207,7 +210,15 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 wraplength=100,
                                 objectId=xAxisHdrObj.objectId(),
                                 onClick=self.onClick)
+                        '''
+                        doc = xAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
+                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                            attrib={"class":"xAxisHdr",
+                                                    "style":"text-align:center;min-width:100em;{0}".format(edgeBorder)})
+                        elt.text = doc if doc else "&nbsp;"
+                        self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
                     if self.colHdrCodeRow:
+                        '''
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, TOPBORDER)
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, sideBorder)
                         gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1, 
@@ -216,28 +227,40 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 wraplength=100,
                                 objectId=xAxisHdrObj.objectId(),
                                 onClick=self.onClick)
+                        '''
+                        code = xAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                            attrib={"class":"xAxisHdr",
+                                                    "style":"text-align:center;min-width:100em;{0}".format(edgeBorder)})
+                        self.rowElts[self.dataFirstRow - 2].insert(thisCol,elt)
+                        elt.text = code if code else "&nbsp;"
+                        
+                    '''
                     gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                    '''
                     xFilters.append((inheritedPrimaryItemQname(self, xAxisHdrObj),
                                      inheritedExplicitDims(self, xAxisHdrObj)))
             if nonAbstract:
                 rightCol += 1
             if renderNow and not childrenFirst:
                 self.xAxis(leftCol + (1 if nonAbstract else 0), topRow + 1, rowBelow, xAxisHdrObj, xFilters, childrenFirst, True, False) # render on this pass
+                '''
+                if row > topRow:   # add spanned left leg portion one row down
+                    elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                        attrib={"class":"xAxisSpanLeg",
+                                                "rowspan": str(row - topRow)})
+                    elt.text = "&nbsp;"
+                    self.rowElts[topRow].insert(leftCol,elt)
+                '''
             leftCol = rightCol
         if atTop and sideBorder and not childrenFirst:
+            '''
             gridBorder(self.gridColHdr, rightCol - 1, 1, RIGHTBORDER, rowspan=self.dataFirstRow)
+            '''
         return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
     def yAxis(self, leftCol, row, yAxisParentObj, childrenFirst, renderNow, atLeft):
         nestedBottomRow = row
-        if atLeft:
-            gridBorder(self.gridRowHdr, self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol, 
-                       self.dataFirstRow, 
-                       RIGHTBORDER, 
-                       rowspan=self.dataRows)
-            gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
-                       BOTTOMBORDER, 
-                       columnspan=(self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol))
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
             nestRow, nextRow = self.yAxis(leftCol + 1, row, yAxisHdrObj,  # nested items before totals
@@ -247,51 +270,84 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             isAbstract = not isNonAbstract
             label = yAxisHdrObj.genLabel(lang=self.lang)
             topRow = row
-            if childrenFirst and isNonAbstract:
-                row = nextRow
+            #if childrenFirst and isNonAbstract:
+            #    row = nextRow
+            #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
             if renderNow:
-                columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else None
-                gridBorder(self.gridRowHdr, leftCol, topRow, LEFTBORDER, 
-                           rowspan=(nestRow - topRow + 1) )
-                gridBorder(self.gridRowHdr, leftCol, topRow, TOPBORDER, 
-                           columnspan=(1 if childrenFirst and nextRow > row else columnspan))
-                if childrenFirst and row > topRow:
-                    gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
-                               columnspan=(self.rowHdrCols - leftCol))
-                gridHdr(self.gridRowHdr, leftCol, row, 
-                        label if label else "         ", 
-                        anchor=("w" if isNonAbstract or nestRow == row else "center"),
-                        columnspan=columnspan,
-                        rowspan=(nestRow - row if isAbstract else None),
-                        wraplength=(self.rowHdrColWidth[leftCol] if isAbstract else
-                                    self.rowHdrWrapLength -
-                                      sum(self.rowHdrColWidth[i] for i in range(leftCol))),
-                        minwidth=(16 if isNonAbstract and nextRow > topRow else None),
-                        objectId=yAxisHdrObj.objectId(),
-                        onClick=self.onClick)
+                columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
+                if childrenFirst and isNonAbstract and nextRow > row:
+                    elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                        attrib={"class":"yAxisSpanArm",
+                                                "style":"text-align:center;min-width:{0}em;".format(
+                                                     self.rowHdrColWidth[leftCol]),
+                                                "rowspan": str(nextRow - topRow)}
+                                        )
+                    insertPosition = self.rowElts[nextRow-1].__len__()
+                    self.rowElts[row - 1].insert(insertPosition, elt)
+                    elt.text = "&nbsp;"
+                    hdrRow = nextRow # put nested stuff on bottom row
+                    row = nextRow    # nested header still goes on this row
+                else:
+                    hdrRow = row
+                # provide top or bottom borders
+                edgeBorder = ""
+                if childrenFirst:
+                    if hdrRow == self.dataFirstRow:
+                        edgeBorder = "border-top:.5pt solid windowtext;"
+                else:
+                    if hdrRow == len(self.rowElts):
+                        edgeBorder = "border-bottom:.5pt solid windowtext;"
+                
+                attrib = {"style":"text-align:{0};min-width:{1}em;{2}".format(
+                                        "left" if isNonAbstract or nestRow == hdrRow else "center",
+                                        self.rowHdrColWidth[leftCol] if isAbstract else
+                                        self.rowHdrWrapLength -
+                                        sum(self.rowHdrColWidth[i] for i in range(leftCol)),
+                                        edgeBorder),
+                          "colspan": str(columnspan)}
+                if isAbstract:
+                    attrib["rowspan"] = str(nestRow - hdrRow)
+                    attrib["class"] = "yAxisHdrAbstractChildrenFirst" if childrenFirst else "yAxisHdrAbstract"
+                elif nestRow > hdrRow:
+                    attrib["class"] = "yAxisHdrWithLeg"
+                elif childrenFirst:
+                    attrib["class"] = "yAxisHdrWithChildrenFirst"
+                else:
+                    attrib["class"] = "yAxisHdr"
+                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                    attrib=attrib
+                                    )
+                elt.text = label if label else "&nbsp;"
                 if isNonAbstract:
+                    self.rowElts[hdrRow-1].append(elt)
+                    if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
+                        etree.SubElement(self.rowElts[hdrRow], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":"yAxisSpanLeg",
+                                                 "style":"text-align:center;min-width:{0}em;{1}".format(
+                                                         self.rowHdrColWidth[leftCol],edgeBorder),
+                                                 "rowspan": str(nestRow - hdrRow)}
+                                         ).text = "&nbsp;"
+                    hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
                     if self.rowHdrDocCol:
                         docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
-                        gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
-                        gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
-                        gridHdr(self.gridRowHdr, docCol, row, 
-                                yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
-                                                     lang=self.lang), 
-                                anchor="w",
-                                wraplength=100,
-                                objectId=yAxisHdrObj.objectId(),
-                                onClick=self.onClick)
+                        doc = yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation")
+                        etree.SubElement(self.rowElts[hdrRow - 1], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":hdrClass,
+                                                 "style":"text-align:left;min-width:100em;{0}".format(edgeBorder)}
+                                         ).text = doc if doc else "&nbsp;"
                     if self.rowHdrCodeCol:
                         codeCol = self.dataFirstCol - 1
-                        gridBorder(self.gridRowHdr, codeCol, row, TOPBORDER)
-                        gridBorder(self.gridRowHdr, codeCol, row, LEFTBORDER)
-                        gridHdr(self.gridRowHdr, codeCol, row, 
-                                yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                                anchor="center",
-                                wraplength=40,
-                                objectId=yAxisHdrObj.objectId(),
-                                onClick=self.onClick)
+                        code = yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                        etree.SubElement(self.rowElts[hdrRow - 1], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":hdrClass,
+                                                 "style":"text-align:center;min-width:40em;{0}".format(edgeBorder)}
+                                         ).text = code if code else "&nbsp;"
                     # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                else:
+                    self.rowElts[hdrRow-1].insert(leftCol - 1, elt)
             if isNonAbstract:
                 row += 1
             elif childrenFirst:
@@ -301,71 +357,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             if row > nestedBottomRow:
                 nestedBottomRow = row
             #if renderNow and not childrenFirst:
-            #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass
+            #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass            
             if not childrenFirst:
                 dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, renderNow, False) # render on this pass
         return (nestedBottomRow, row)
 
-        
-        '''  prior indented y axis code
-        col = 0
-        isEntirelyAbstract = True
-        axisMbrRels = self.axisMbrRelSet.fromModelObject(yAxisParentObj)
-        for axisMbrRel in axisMbrRels:
-            yAxisHdrObj = axisMbrRel.toModelObject
-            if yAxisHdrObj.abstract == "false":
-                isEntirelyAbstract= False
-                break
-        for axisMbrRel in axisMbrRels:
-            yAxisHdrObj = axisMbrRel.toModelObject
-            if childrenFirst:
-                row = self.yAxis(row, 
-                                 indent + (0 if isEntirelyAbstract else 20), 
-                                 yAxisHdrObj, atLeft and col == 0, 
-                                 childrenFirst)
-            if yAxisHdrObj.abstract == "false":
-                gridBorder(self.gridRowHdr, 1, row, TOPBORDER)
-                gridBorder(self.gridRowHdr, 1, row, LEFTBORDER)
-                gridHdr(self.gridRowHdr, 1, row, 
-                        yAxisHdrObj.genLabel(lang=self.lang), 
-                        anchor="w",
-                        padding=(indent,0,0,0) if indent is not None else None,
-                        wraplength=200,
-                        objectId=yAxisHdrObj.objectId(),
-                        onClick=self.onClick)
-                col = 2
-                if self.rowHdrDocCol:
-                    gridBorder(self.gridRowHdr, col, row, TOPBORDER)
-                    gridBorder(self.gridRowHdr, col, row, LEFTBORDER)
-                    gridHdr(self.gridRowHdr, col, row, 
-                            yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
-                                                   lang=self.lang), 
-                            anchor="w",
-                            wraplength=100,
-                            objectId=yAxisHdrObj.objectId(),
-                            onClick=self.onClick)
-                    col += 1
-                if self.rowHdrCodeCol:
-                    gridBorder(self.gridRowHdr, col, row, TOPBORDER)
-                    gridBorder(self.gridRowHdr, col, row, LEFTBORDER)
-                    gridHdr(self.gridRowHdr, col, row, 
-                            yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                            anchor="w",
-                            wraplength=40,
-                            objectId=yAxisHdrObj.objectId(),
-                            onClick=self.onClick)
-                    col += 1
-                gridBorder(self.gridRowHdr, col - 1, row, RIGHTBORDER)
-                row += 1
-            if not childrenFirst:
-                row = self.yAxis(row, 
-                                 indent + (0 if isEntirelyAbstract else 20), 
-                                 yAxisHdrObj, atLeft and col == 0, 
-                                 childrenFirst)
-        if atLeft and col > 0:
-            gridBorder(self.gridRowHdr, 1, row, BOTTOMBORDER, columnspan=col)
-        return row
-        '''
     
     def bodyCells(self, row, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
         dimDefaults = self.modelXbrl.qnameDimensionDefaults
@@ -377,7 +373,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 yAxisPriItemQname = inheritedPrimaryItemQname(self, yAxisHdrObj)
                 yAxisExplicitDims = inheritedExplicitDims(self, yAxisHdrObj)
                     
+                '''
                 gridSpacer(self.gridBody, self.dataFirstCol, row, LEFTBORDER)
+                '''
                 # data for columns of row
                 ignoreDimValidity = self.ignoreDimValidity.get()
                 zFilter = zFilters[self.zFilterIndex]
@@ -405,12 +403,28 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 justify = "right" if fact.isNumeric else "left"
                                 break
                     if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp):
+                        '''
                         gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, width=12,
                                  objectId=objectId, onClick=self.onClick)
+                        '''
+                        etree.SubElement(self.rowElts[row - 1], 
+                                         "{http://www.w3.org/1999/xhtml}td",
+                                         attrib={"class":"cell",
+                                                 "style":"text-align:{0};".format(justify)}
+                                         ).text = value if value else "&nbsp;"
                     else:
+                        '''
                         gridSpacer(self.gridBody, self.dataFirstCol + i, row, CENTERCELL)
+                        '''
+                        etree.SubElement(self.rowElts[row - 1], 
+                                         "{http://www.w3.org/1999/xhtml}td",
+                                         attrib={"class":"blockedCell",
+                                                 "style":"text-align:{0};".format(justify)}
+                                         ).text = "&nbsp;&nbsp;"
+                    '''
                     gridSpacer(self.gridBody, self.dataFirstCol + i, row, RIGHTBORDER)
                     gridSpacer(self.gridBody, self.dataFirstCol + i, row, BOTTOMBORDER)
+                    '''
                 row += 1
             if not yChildrenFirst:
                 row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
