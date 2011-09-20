@@ -39,7 +39,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.assignments = {}
         self.actions = {}
         self.namespaceRenameFrom = {}
+        self.namespaceRenameFromURI = {}
         self.namespaceRenameTo = {}
+        self.namespaceRenameToURI = {}
         self.roleChanges = {}
         self.conceptBasicChanges = []
         self.conceptExtendedChanges = []

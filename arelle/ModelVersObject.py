@@ -16,7 +16,7 @@ def relateConceptMdlObjs(modelDocument, fromConceptMdlObjs, toConceptMdlObjs):
             fromConceptQname = fromConcept.qname
             for toConceptMdlObj in toConceptMdlObjs:
                 toConcept = toConceptMdlObj.toConcept
-                if toConcept:
+                if toConcept is not None:
                     toConceptQname = toConcept.qname
                     modelDocument.relatedConcepts[fromConceptQname].add(toConceptQname)
 
@@ -96,7 +96,9 @@ class ModelNamespaceRename(ModelUriMapped):
     def init(self, modelDocument):
         super().init(modelDocument)
         self.modelDocument.namespaceRenameFrom[self.fromURI] = self
+        self.modelDocument.namespaceRenameFromURI[self.fromURI] = self.toURI
         self.modelDocument.namespaceRenameTo[self.toURI] = self
+        self.modelDocument.namespaceRenameToURI[self.toURI] = self.fromURI
         
 class ModelRoleChange(ModelUriMapped):
     def init(self, modelDocument):
