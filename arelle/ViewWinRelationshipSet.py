@@ -152,10 +152,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                 self.treeView.set(childnode, "usable", modelObject.usable)
         elif self.arcrole == "Table-rendering" and isRelation: # extra columns
-            if relArcrole == XbrlConst.euTableAxis:
-                self.treeView.set(childnode, "axis", modelObject.get("axisType"))
-            elif relArcrole == XbrlConst.tableAxis:
-                self.treeView.set(childnode, "axis", modelObject.get("cartesianRepr"))
+            self.treeView.set(childnode, "axis", modelObject.get("axisType"))
             if isinstance(concept, (ModelAxisCoord,ModelExplicitAxisMember)):
                 self.treeView.set(childnode, "priItem", concept.primaryItemQname)
                 self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim[0],dim[1]) for dim in concept.explicitDims)))

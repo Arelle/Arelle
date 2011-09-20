@@ -20,7 +20,7 @@ def getTblAxes(view, viewTblELR):
         view.axisMbrRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
         tblAxisRelSet = view.modelXbrl.relationshipSet(XbrlConst.tableAxis, viewTblELR)
-        view.axisMbrRelSet = view.modelXbrl.relationshipSet(XbrlConst.explicitAxisMember, viewTblELR)
+        view.axisMbrRelSet = view.modelXbrl.relationshipSet(XbrlConst.aspectRuleAxisMember, viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(view.arcrole))
         return (None, None, None, None)
@@ -46,11 +46,18 @@ def getTblAxes(view, viewTblELR):
         
         xAxisObj = yAxisObj = zAxisObj = None
         for tblAxisRel in tblAxisRelSet.fromModelObject(table):
-            axisType = tblAxisRel.tableAxis
+            axisType = tblAxisRel.axisType
             axisObj = tblAxisRel.toModelObject
-            if axisType == "xAxis": xAxisObj = axisObj
-            elif axisType == "yAxis": yAxisObj = axisObj
-            elif axisType == "zAxis": zAxisObj = axisObj
+            if axisType == "xAxis": 
+                xAxisObj = axisObj
+                if xAxisObj.parentChildOrder is not None:
+                    view.xAxisChildrenFirst.set(xAxisObj.parentChildOrder == "children-first")
+            elif axisType == "yAxis": 
+                yAxisObj = axisObj
+                if yAxisObj.parentChildOrder is not None:
+                    view.yAxisChildrenFirst.set(yAxisObj.parentChildOrder == "children-first")
+            elif axisType == "zAxis": 
+                zAxisObj = axisObj
             analyzeHdrs(view, axisObj, 1, axisType)
         view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
         view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols))

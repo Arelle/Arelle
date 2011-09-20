@@ -1036,15 +1036,16 @@ class ModelRelationship(ModelObject):
             return self._usable
         
     @property
-    def tableAxis(self):
+    def axisType(self):
         try:
             return self._tableAxis
         except AttributeError:
-            try:
-                self._tableAxis = self.get({XbrlConst.euTableAxis:"axisType", XbrlConst.tableAxis:"cartesianRepr"}[self.arcrole])
-            except (KeyError, TypeError):
-                self._tableAxis = None
-            return self._tableAxis
+            aType = self.get("axisType")
+            if aType in ("xAxis","x-axis"): self._axisType = "xAxis"
+            elif aType in ("yAxis","y-axis"): self._axisType = "yAxis"
+            elif aType in ("zAxis","z-axis"): self._axisType = "zAxis"
+            else: self._axisType = None
+            return self._axisType
         
     @property
     def equivalenceKey(self):

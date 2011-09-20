@@ -238,10 +238,10 @@ table = "http://xbrl.org/2011/table"
 tableAxis = "http://xbrl.org/arcrole/2011/table-axis"
 tableFilter = "http://xbrl.org/arcrole/2011/table-filter"
 qnTableTable = qname("{http://xbrl.org/2011/table}table:table")
-qnTableExplicitAxis = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxis")
-qnTableExplicitAxisMember = qname("{http://xbrl.org/2011/axis/explicit}expaxis:explicitAxisMember")
-qnTableFilterAxis = qname("{http://xbrl.org/2011/axis/filter}filaxis:filterAxis")
-explicitAxisMember = "http://xbrl.org/arcrole/2011/axis/explicit-axis-member"
+qnTableAspectRuleAxis = qname("{http://xbrl.org/2011/table}table:aspectRuleAxis")
+qnTableAspectRuleAxisMember = qname("{http://xbrl.org/2011/table}table:aspectRuleAxisMember")
+qnTableFilterAxis = qname("{http://xbrl.org/2011/table}table:filterAxis")
+aspectRuleAxisMember = "http://xbrl.org/arcrole/2011/axis/aspectRule-axis-member"
 axisFilter = "http://xbrl.org/arcrole/2011/axis/axis-filter"
 
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
@@ -410,7 +410,7 @@ def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
 def isTableRenderingArcrole(arcrole):
-    return arcrole in (euTableAxis, euAxisMember, tableAxis, tableFilter, explicitAxisMember, axisFilter)
+    return arcrole in (euTableAxis, euAxisMember, tableAxis, tableFilter, aspectRuleAxisMember, axisFilter)
    
 def isFormulaArcrole(arcrole):
     return arcrole in {"http://xbrl.org/arcrole/2008/assertion-set",

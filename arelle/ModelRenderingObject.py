@@ -35,6 +35,10 @@ class ModelAxisCoord(ModelRenderingResource):
         return self.get("abstract") if self.get("abstract") else 'false'
     
     @property
+    def parentChildOrder(self):
+        return None
+
+    @property
     def primaryItemQname(self):
         priItem = XmlUtil.childAttr(self, XbrlConst.euRend, "primaryItem", "name")
         if priItem is not None:
@@ -76,11 +80,15 @@ class ModelExplicitAxisMember(ModelRenderingResource):
         
     @property
     def abstract(self):
-        if self.localName == "explicitAxis":
+        if self.localName in ("explicitAxis", "aspectRuleAxis"):
             return 'false'
         elif self.get("abstract") == 'true':
             return 'true'
         return 'false'
+    
+    @property
+    def parentChildOrder(self):
+        return self.get("parentChildOrder")
     
     @property   
     def primaryItemQname(self):
@@ -126,7 +134,7 @@ elementSubstitutionModelClass.update((
     (XbrlConst.qnEuTable, ModelTable),
     (XbrlConst.qnTableTable, ModelTable),
     (XbrlConst.qnEuAxisCoord, ModelAxisCoord),
-    (XbrlConst.qnTableExplicitAxis, ModelExplicitAxisMember),
-    (XbrlConst.qnTableExplicitAxisMember, ModelExplicitAxisMember),
+    (XbrlConst.qnTableAspectRuleAxis, ModelExplicitAxisMember),
+    (XbrlConst.qnTableAspectRuleAxisMember, ModelExplicitAxisMember),
     (XbrlConst.qnTableFilterAxis, ModelExplicitAxisMember),
      ))
