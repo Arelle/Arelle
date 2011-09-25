@@ -254,9 +254,12 @@ class Validate:
                         (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                         status = "pass"
                         break
-                elif type(testErr) == type(expected) and testErr == expected:
-                    status = "pass"
-                    break
+                elif type(testErr) == type(expected):
+                    if (testErr == expected or
+                        (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
+                        (expected == "EFM.6.05.35" and testErr.startswith("utr:"))):
+                        status = "pass"
+                        break
             if (not modelUnderTest.errors and status == "fail" and 
                 modelTestcaseVariation.assertions and modelTestcaseVariation.assertions == expected):
                 status = "pass" # passing was previously successful and no further errors 
