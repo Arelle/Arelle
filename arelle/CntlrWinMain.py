@@ -488,7 +488,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.loadFileMenuHistory()
         self.saveConfig()
         
-    def fileOpenFile(self, filename, importToDTS=False):
+    def fileOpenFile(self, filename, importToDTS=False, selectTopView=False):
         if filename:
             filesource = None
             # check for archive files
@@ -504,7 +504,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if not filename.startswith("http://"):
                     self.config["fileOpenDir"] = os.path.dirname(filename)
             self.updateFileHistory(filename, importToDTS)
-            thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,importToDTS))
+            thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,importToDTS,selectTopView))
             thread.daemon = True
             thread.start()
             
@@ -523,7 +523,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             thread.daemon = True
             thread.start()
             
-    def backgroundLoadXbrl(self, filesource, importToDTS):
+    def backgroundLoadXbrl(self, filesource, importToDTS, selectTopView):
         startedAt = time.time()
         try:
             if importToDTS:
@@ -549,15 +549,16 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         (action, time.time() - startedAt)))
             self.showStatus(_("{0}, preparing views").format(action))
             self.waitForUiThreadQueue() # force status update
-            self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS]))
+            self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS, selectTopView]))
         else:
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("not successfully %s in %.2f secs"), 
                                         (action, time.time() - startedAt)))
 
-    def showLoadedXbrl(self, modelXbrl, attach):
+    def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False):
         startedAt = time.time()
         currentAction = "setting title"
+        topView = None
         try:
             if attach:
                 modelXbrl.closeViews()
@@ -583,17 +584,22 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang, altTabWin=self.tabWinTopRt)
                 if modelXbrl.hasTableRendering:  # show rendering grid even without any facts
                     ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.lang)
+                    if topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     currentAction = "table view of facts"
                     if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
                         ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
+                        if topView is None: topView = modelXbrl.views[-1]
                     currentAction = "tree/list of facts"
                     ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
+                    if topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.hasFormulae:
                     currentAction = "formulae view"
                     ViewWinFormulae.viewFormulae(modelXbrl, self.tabWinTopRt)
+                    if topView is None: topView = modelXbrl.views[-1]
                 currentAction = "presentation linkbase view"
                 ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.lang)
+                if topView is None: topView = modelXbrl.views[-1]
                 currentAction = "calculation linkbase view"
                 ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.lang)
                 currentAction = "dimensions relationships view"
@@ -607,6 +613,8 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("views %.2f secs"), 
                                         time.time() - startedAt))
+            if selectTopView and topView:
+                topView.select()
         except Exception as err:
             msg = _("Exception preparing {0}: {1}, at {2}").format(
                      currentAction,
