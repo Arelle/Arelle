@@ -81,9 +81,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         return None
     except (etree.LxmlError,
             ValueError) as err:  # ValueError raised on bad format of qnames, xmlns'es, or parameters
-        modelXbrl.error("XMLsyntax",
-                _("%(fileName)s: import error: %(error)s"),
-                modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
+        modelXbrl.error("xmlSchema:syntax",
+                _("%(error)s, %(fileName)s, %(sourceAction)s source element"),
+                modelObject=referringElement, fileName=os.path.basename(uri), 
+                error=str(err), sourceAction=("including" if isIncluded else "importing"))
         type = Type.Unknown
         if file:
             file.close()
