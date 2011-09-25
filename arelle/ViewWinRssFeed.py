@@ -89,7 +89,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
     def openInstance(self):
         rssItemObj = self.modelXbrl.modelObject(self.menuRow)
         if rssItemObj is not None:
-            self.modelXbrl.modelManager.cntlr.fileOpenFile(rssItemObj.zippedUrl)
+            self.modelXbrl.modelManager.cntlr.fileOpenFile(rssItemObj.zippedUrl, selectTopView=True)
         
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
