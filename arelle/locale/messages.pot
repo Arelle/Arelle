@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-09-16 09:30+Pacific Daylight Time\n"
+"POT-Creation-Date: 2011-09-24 17:08+Pacific Daylight Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -159,11 +159,11 @@ msgstr ""
 msgid "diff comparison DTS loaded in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:210 arelle\CntlrWinMain.py:699
+#: arelle\CntlrCmdLine.py:210 arelle\CntlrWinMain.py:707
 msgid "compared in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:218 arelle\CntlrWinMain.py:656
+#: arelle\CntlrCmdLine.py:218 arelle\CntlrWinMain.py:664
 msgid "validated in %.2f secs"
 msgstr ""
 
@@ -237,7 +237,7 @@ msgstr ""
 
 #: arelle\CntlrWinMain.py:76 arelle\CntlrWinMain.py:180
 #: arelle\DialogFind.py:122 arelle\ViewWinFactGrid.py:22
-#: arelle\ViewWinTree.py:200 arelle\ViewWinTupleGrid.py:27
+#: arelle\ViewWinTree.py:203 arelle\ViewWinTupleGrid.py:27
 msgid "Close"
 msgstr ""
 
@@ -253,7 +253,7 @@ msgstr ""
 msgid "Validation"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:96 arelle\CntlrWinMain.py:892
+#: arelle\CntlrWinMain.py:96 arelle\CntlrWinMain.py:900
 #: arelle\ViewWinXml.py:19
 msgid "Validate"
 msgstr ""
@@ -363,8 +363,8 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:166 arelle\CntlrWinMain.py:617
-#: arelle\CntlrWinMain.py:634 arelle\DialogFind.py:322
+#: arelle\CntlrWinMain.py:166 arelle\CntlrWinMain.py:625
+#: arelle\CntlrWinMain.py:642 arelle\DialogFind.py:322
 msgid "Ready..."
 msgstr ""
 
@@ -429,12 +429,12 @@ msgid "messages"
 msgstr ""
 
 #: arelle\CntlrWinMain.py:235 arelle\ViewWinList.py:105
-#: arelle\ViewWinTree.py:164
+#: arelle\ViewWinTree.py:167
 msgid "Copy to clipboard"
 msgstr ""
 
 #: arelle\CntlrWinMain.py:305 arelle\CntlrWinMain.py:343
-#: arelle\CntlrWinMain.py:640
+#: arelle\CntlrWinMain.py:648
 msgid "arelle - Unnamed"
 msgstr ""
 
@@ -468,13 +468,13 @@ msgstr ""
 
 #: arelle\CntlrWinMain.py:373 arelle\CntlrWinMain.py:390
 #: arelle\CntlrWinMain.py:409 arelle\CntlrWinMain.py:435
-#: arelle\CntlrWinMain.py:725 arelle\CntlrWinMain.py:972
+#: arelle\CntlrWinMain.py:733 arelle\CntlrWinMain.py:980
 msgid "arelle - Error"
 msgstr ""
 
 #: arelle\CntlrWinMain.py:374 arelle\CntlrWinMain.py:391
 #: arelle\CntlrWinMain.py:410 arelle\CntlrWinMain.py:436
-#: arelle\CntlrWinMain.py:973
+#: arelle\CntlrWinMain.py:981
 msgid ""
 "Failed to save {0}:\n"
 "{1}"
@@ -516,8 +516,8 @@ msgstr ""
 msgid "Saved {0} items to {1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:432 arelle\CntlrWinMain.py:564
-#: arelle\CntlrWinMain.py:721
+#: arelle\CntlrWinMain.py:432 arelle\CntlrWinMain.py:565
+#: arelle\CntlrWinMain.py:729
 msgid "arelle - {0}"
 msgstr ""
 
@@ -538,7 +538,7 @@ msgstr ""
 msgid "Please open web-accessed files with the second toolbar button, \"Open web file\", or the File menu, second entry, \"Open web...\""
 msgstr ""
 
-#: arelle\CntlrWinMain.py:461 arelle\CntlrWinMain.py:677
+#: arelle\CntlrWinMain.py:461 arelle\CntlrWinMain.py:685
 msgid "arelle - Warning"
 msgstr ""
 
@@ -574,65 +574,65 @@ msgstr ""
 msgid "not successfully %s in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:608
+#: arelle\CntlrWinMain.py:614
 msgid "views %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:611
+#: arelle\CntlrWinMain.py:619
 msgid "Exception preparing {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:615 arelle\CntlrWinMain.py:632
+#: arelle\CntlrWinMain.py:623 arelle\CntlrWinMain.py:640
 msgid "Exception preparing view"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:628
+#: arelle\CntlrWinMain.py:636
 msgid "Exception {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:678
+#: arelle\CntlrWinMain.py:686
 msgid "Two DTSes are required for the Compare DTSes operation, {0} found"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:682
+#: arelle\CntlrWinMain.py:690
 msgid "arelle - Save Versioning Report File"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:684
+#: arelle\CntlrWinMain.py:692
 msgid "Versioning report file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:718
+#: arelle\CntlrWinMain.py:726
 msgid "Loaded {0} items from {1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:726
+#: arelle\CntlrWinMain.py:734
 msgid ""
 "Failed to load {0}\n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:760
+#: arelle\CntlrWinMain.py:768
 msgid "arelle - Clear Internet Cache"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:761
+#: arelle\CntlrWinMain.py:769
 msgid "Are you sure you want to clear the internet cache?"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:813
+#: arelle\CntlrWinMain.py:821
 msgid "RSS Watch Control Error"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:814
+#: arelle\CntlrWinMain.py:822
 msgid "RSS Feed is not set up, please select options and select feed"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:849
+#: arelle\CntlrWinMain.py:857
 msgid "arelle - Labels language code setting"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:850
+#: arelle\CntlrWinMain.py:858
 msgid ""
 "The system default language is: {0} \n"
 "\n"
@@ -642,52 +642,52 @@ msgid ""
 "(Leave empty to use the system default language.)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:870
+#: arelle\CntlrWinMain.py:878
 msgid "Validate testcases"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:872
+#: arelle\CntlrWinMain.py:880
 msgid "Validate testcase"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:874
+#: arelle\CntlrWinMain.py:882
 msgid "Validate versioning report"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:878
+#: arelle\CntlrWinMain.py:886
 msgid ""
 "\n"
 "Check calculations (infer decimals)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:880
+#: arelle\CntlrWinMain.py:888
 msgid ""
 "\n"
 "Check calculations (infer precision)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:884
+#: arelle\CntlrWinMain.py:892
 msgid ""
 "\n"
 "Check unit type registry"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:888
+#: arelle\CntlrWinMain.py:896
 msgid ""
 "Validate\n"
 "Check disclosure system rules\n"
 "{0}{1}{2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:890
+#: arelle\CntlrWinMain.py:898
 msgid "Validate{0}{1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:920
+#: arelle\CntlrWinMain.py:928
 msgid "About arelle"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:922
+#: arelle\CntlrWinMain.py:930
 msgid ""
 "arelle® {0}\n"
 "An open source XBRL platform\n"
@@ -710,11 +710,11 @@ msgid ""
 "   xlwt © 2007 Stephen J. Machin, Lingfo Pty Ltd, © 2005 R. V. Kiseliov"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:963
+#: arelle\CntlrWinMain.py:971
 msgid "arelle - Save Messages Log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:965
+#: arelle\CntlrWinMain.py:973
 msgid "Txt file"
 msgstr ""
 
@@ -990,6 +990,15 @@ msgstr ""
 
 #: arelle\DialogUserPassword.py:81
 msgid "Use proxy server of {0}"
+msgstr ""
+
+#: arelle\DialogUserPassword.py:84
+msgid ""
+"Check to use {0} \n"
+"Uncheck to specify: \n"
+"   No proxy if URL address is left blank, \n"
+"   Proxy via URL address if it is not blank, \n"
+"       with user and password (if provided)"
 msgstr ""
 
 #: arelle\DialogUserPassword.py:95
@@ -1308,50 +1317,50 @@ msgid "%(fileName)s: file error: %(error)s"
 msgstr ""
 
 #: arelle\ModelDocument.py:85
-msgid "%(fileName)s: import error: %(error)s"
+msgid "%(error)s, %(fileName)s, %(sourceAction)s source element"
 msgstr ""
 
-#: arelle\ModelDocument.py:95
+#: arelle\ModelDocument.py:96
 msgid "loading {0}"
 msgstr ""
 
-#: arelle\ModelDocument.py:379
+#: arelle\ModelDocument.py:380
 msgid "Discovery of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:385
+#: arelle\ModelDocument.py:386
 msgid "Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:443
+#: arelle\ModelDocument.py:444
 msgid "Prohibited base attribute: %(attribute)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:472
+#: arelle\ModelDocument.py:473
 msgid "Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:541
+#: arelle\ModelDocument.py:542
 msgid "Linkbase reference for %(linkbaseRefElement)s href attribute missing or malformed"
 msgstr ""
 
-#: arelle\ModelDocument.py:574
+#: arelle\ModelDocument.py:575
 msgid "Locator href attribute missing or malformed in standard extended link"
 msgstr ""
 
-#: arelle\ModelDocument.py:578
+#: arelle\ModelDocument.py:579
 msgid "Locator href attribute missing or malformed in non-standard extended link"
 msgstr ""
 
-#: arelle\ModelDocument.py:617
+#: arelle\ModelDocument.py:618
 msgid "Linkbase extended link %(element)s missing schema definition"
 msgstr ""
 
-#: arelle\ModelDocument.py:721
+#: arelle\ModelDocument.py:722
 msgid "Inline XBRL tupleRef %(tupleRef)s not found"
 msgstr ""
 
-#: arelle\ModelDocument.py:743
+#: arelle\ModelDocument.py:744
 msgid "Instance fact %(element)s missing schema definition "
 msgstr ""
 
@@ -1417,69 +1426,77 @@ msgstr ""
 msgid "not tested"
 msgstr ""
 
-#: arelle\ModelVersReport.py:240
+#: arelle\ModelVersReport.py:242
 msgid "Comparing namespaces"
 msgstr ""
 
-#: arelle\ModelVersReport.py:242
+#: arelle\ModelVersReport.py:244
 msgid "Comparing roles"
 msgstr ""
 
-#: arelle\ModelVersReport.py:244
+#: arelle\ModelVersReport.py:246
 msgid "Comparing concepts"
 msgstr ""
 
-#: arelle\ModelVersReport.py:247
+#: arelle\ModelVersReport.py:249
 msgid "Comparing {0} relationships"
 msgstr ""
 
-#: arelle\ModelVersReport.py:250
+#: arelle\ModelVersReport.py:252
 msgid "Comparing dimension defaults"
 msgstr ""
 
-#: arelle\ModelVersReport.py:253
+#: arelle\ModelVersReport.py:255
 msgid "Comparing explicit dimensions"
 msgstr ""
 
-#: arelle\ModelVersReport.py:279
+#: arelle\ModelVersReport.py:281
 msgid "Checking report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:282
+#: arelle\ModelVersReport.py:284
 msgid "Writing report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:286
+#: arelle\ModelVersReport.py:288
 msgid "C report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:287 arelle\Validate.py:226
+#: arelle\ModelVersReport.py:289 arelle\Validate.py:226
 #: arelle\ValidateFiling.py:974 arelle\ValidateFormula.py:108
 #: arelle\ValidateXbrl.py:546
 msgid "ready"
 msgstr ""
 
-#: arelle\ModelVersReport.py:550 arelle\ModelVersReport.py:564
+#: arelle\ModelVersReport.py:552 arelle\ModelVersReport.py:566
 msgid "corresponding relationship {0} toDTS toName=\"{1}\""
 msgstr ""
 
-#: arelle\ModelVersReport.py:811
-msgid "typed domain element {0}"
+#: arelle\ModelVersReport.py:554
+msgid "toDTS does not have a corresponding relationship at position {0}"
+msgstr ""
+
+#: arelle\ModelVersReport.py:568
+msgid "fromDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
 #: arelle\ModelVersReport.py:813
+msgid "typed domain element {0}"
+msgstr ""
+
+#: arelle\ModelVersReport.py:815
 msgid "typedDomainRef={0} (element qname cannot be determined)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:884
+#: arelle\ModelVersReport.py:886
 msgid "from value: {0} "
 msgstr ""
 
-#: arelle\ModelVersReport.py:888 arelle\ModelVersReport.py:905
+#: arelle\ModelVersReport.py:890 arelle\ModelVersReport.py:907
 msgid "({0} does not have an id attribute)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:901
+#: arelle\ModelVersReport.py:903
 msgid "to value: {0} "
 msgstr ""
 
@@ -3726,17 +3743,17 @@ msgstr ""
 msgid "no relationships for XBRL formulae"
 msgstr ""
 
-#: arelle\ViewWinFormulae.py:79 arelle\ViewWinTree.py:153
+#: arelle\ViewWinFormulae.py:79 arelle\ViewWinTree.py:156
 #: arelle\ViewWinVersReport.py:20
 msgid "Expand"
 msgstr ""
 
-#: arelle\ViewWinFormulae.py:80 arelle\ViewWinTree.py:154
+#: arelle\ViewWinFormulae.py:80 arelle\ViewWinTree.py:157
 #: arelle\ViewWinVersReport.py:21
 msgid "Collapse"
 msgstr ""
 
-#: arelle\ViewWinGrid.py:132 arelle\ViewWinTree.py:168
+#: arelle\ViewWinGrid.py:135 arelle\ViewWinTree.py:171
 msgid "Language"
 msgstr ""
 
@@ -3744,7 +3761,7 @@ msgstr ""
 msgid "viewing properties"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:55
+#: arelle\ViewWinRelationshipSet.py:54
 msgid "{0} Relationships"
 msgstr ""
 
@@ -3756,15 +3773,15 @@ msgstr ""
 msgid "References"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:66
+#: arelle\ViewWinRelationshipSet.py:67
 msgid "Weight"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:68
+#: arelle\ViewWinRelationshipSet.py:69
 msgid "Balance"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:86
+#: arelle\ViewWinRelationshipSet.py:93
 msgid "Dimensions"
 msgstr ""
 
@@ -3804,59 +3821,59 @@ msgstr ""
 msgid "Filing"
 msgstr ""
 
-#: arelle\ViewWinTree.py:155
+#: arelle\ViewWinTree.py:158
 msgid "Expand All"
 msgstr ""
 
-#: arelle\ViewWinTree.py:156
+#: arelle\ViewWinTree.py:159
 msgid "Collapse All"
 msgstr ""
 
-#: arelle\ViewWinTree.py:161
+#: arelle\ViewWinTree.py:164
 msgid "Cell"
 msgstr ""
 
-#: arelle\ViewWinTree.py:162
+#: arelle\ViewWinTree.py:165
 msgid "Row"
 msgstr ""
 
-#: arelle\ViewWinTree.py:163
+#: arelle\ViewWinTree.py:166
 msgid "Table"
 msgstr ""
 
-#: arelle\ViewWinTree.py:173
+#: arelle\ViewWinTree.py:176
 msgid "Label Role"
 msgstr ""
 
-#: arelle\ViewWinTree.py:181
+#: arelle\ViewWinTree.py:184
 msgid "Name Style"
 msgstr ""
 
-#: arelle\ViewWinTree.py:185
+#: arelle\ViewWinTree.py:188
 msgid "Prefixed"
 msgstr ""
 
-#: arelle\ViewWinTree.py:186
+#: arelle\ViewWinTree.py:189
 msgid "No Prefix"
 msgstr ""
 
-#: arelle\ViewWinTree.py:190
+#: arelle\ViewWinTree.py:193
 msgid "Units"
 msgstr ""
 
-#: arelle\ViewWinTree.py:191
+#: arelle\ViewWinTree.py:194
 msgid "Unit ID"
 msgstr ""
 
-#: arelle\ViewWinTree.py:192
+#: arelle\ViewWinTree.py:195
 msgid "Measures"
 msgstr ""
 
-#: arelle\ViewWinTree.py:197
+#: arelle\ViewWinTree.py:200
 msgid "View"
 msgstr ""
 
-#: arelle\ViewWinTree.py:201
+#: arelle\ViewWinTree.py:204
 msgid "Additional view"
 msgstr ""
 

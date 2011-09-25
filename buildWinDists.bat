@@ -12,6 +12,7 @@ rem both win 32 (x86) and win 64 (x64)
 
 rem Rebuild messages.pot internationalization file
 "%PYTHON64DIR%\python" pygettext.py -v -o arelle\locale\messages.pot arelle\*.pyw arelle\*.py
+pause "Please check the python gettext string conversions"
 
 rmdir build /s/q
 rmdir dist /s/q

@@ -27,6 +27,7 @@ if sys.platform == 'darwin':
 	'--iconfile',
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
     ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+    ('config',['arelle/locale/' + f for f in os.listdir('arelle/locale')]),
     ('config',['arelle/examples/' + f for f in os.listdir('arelle/examples')]),
     ('scripts',['arelle/scripts/' + f for f in os.listdir('arelle/scripts-macOS')]),
       ]
@@ -42,6 +43,7 @@ elif sys.platform == 'win32':
     options = dict( build_exe =  {
         "include_files": [('arelle\\config','config'),
                           ('arelle\\images','images'),
+                          ('arelle\\locale','locale'),
                           ('arelle\\examples','examples'),
                           ('arelle\\scripts-windows','scripts')],
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
