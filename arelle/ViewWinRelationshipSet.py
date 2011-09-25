@@ -51,22 +51,24 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         
         if firstTime:
             # set up treeView widget and tabbed pane
-            self.treeView.column("#0", width=300, anchor="w")
             hdr = self.treeColHdr if self.treeColHdr else _("{0} Relationships").format(XbrlConst.baseSetArcroleLabel(self.arcrole)[1:])
             self.treeView.heading("#0", text=hdr)
             if self.arcrole == XbrlConst.parentChild: # extra columns
+                self.treeView.column("#0", width=300, anchor="w")
                 self.treeView["columns"] = ("type", "references")
                 self.treeView.column("type", width=100, anchor="w", stretch=False)
                 self.treeView.heading("type", text=_("Type"))
                 self.treeView.column("references", width=200, anchor="w", stretch=False)
                 self.treeView.heading("references", text=_("References"))
             elif self.arcrole == XbrlConst.summationItem: # extra columns
+                self.treeView.column("#0", width=300, anchor="w")
                 self.treeView["columns"] = ("weight", "balance")
                 self.treeView.column("weight", width=48, anchor="w", stretch=False)
                 self.treeView.heading("weight", text=_("Weight"))
                 self.treeView.column("balance", width=70, anchor="w", stretch=False)
                 self.treeView.heading("balance", text=_("Balance"))
             elif self.arcrole == "XBRL-dimensions":    # add columns for dimensional information
+                self.treeView.column("#0", width=300, anchor="w")
                 self.treeView["columns"] = ("arcrole", "contextElement", "closed", "usable")
                 self.treeView.column("arcrole", width=100, anchor="w", stretch=False)
                 self.treeView.heading("arcrole", text="Arcrole")
@@ -77,9 +79,14 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.column("usable", width=40, anchor="center", stretch=False)
                 self.treeView.heading("usable", text="Usable")
             elif self.arcrole == "Table-rendering":    # add columns for dimensional information
-                self.treeView["columns"] = ("axis", "priItem", "dims")
+                self.treeView.column("#0", width=160, anchor="w")
+                self.treeView["columns"] = ("axis", "abstract", "header", "priItem", "dims")
                 self.treeView.column("axis", width=50, anchor="center", stretch=False)
                 self.treeView.heading("axis", text="Axis")
+                self.treeView.column("abstract", width=24, anchor="center", stretch=False)
+                self.treeView.heading("abstract", text="Abs")
+                self.treeView.column("header", width=160, anchor="w", stretch=False)
+                self.treeView.heading("header", text="Header")
                 self.treeView.column("priItem", width=100, anchor="w", stretch=False)
                 self.treeView.heading("priItem", text="Primary Item")
                 self.treeView.column("dims", width=150, anchor="w", stretch=False)
@@ -122,13 +129,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 concept.typedDomainElement is not None):
                 text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
         elif self.arcrole == "Table-rendering":
-            text = concept.genLabel(lang=self.lang,strip=True)
-            if isRelation:
-                relArcrole = modelObject.arcrole
-                if text is None: 
-                    text = "{0} {1}".format(os.path.basename(relArcrole), concept.xlinkLabel)
-            elif not text:
-                text = concept.localName
+            text = concept.localName
         elif isinstance(concept, ModelDtsObject.ModelResource):
             text = concept.text
             if text is None:
@@ -151,11 +152,18 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.set(childnode, "closed", modelObject.closed)
             elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                 self.treeView.set(childnode, "usable", modelObject.usable)
-        elif self.arcrole == "Table-rendering" and isRelation: # extra columns
-            self.treeView.set(childnode, "axis", modelObject.get("axisType"))
-            if isinstance(concept, (ModelAxisCoord,ModelExplicitAxisMember)):
-                self.treeView.set(childnode, "priItem", concept.primaryItemQname)
-                self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim[0],dim[1]) for dim in concept.explicitDims)))
+        elif self.arcrole == "Table-rendering": # extra columns
+            header = concept.genLabel(lang=self.lang,strip=True)
+            if isRelation and header is None:
+                header = "{0} {1}".format(os.path.basename(modelObject.arcrole), concept.xlinkLabel)
+            self.treeView.set(childnode, "header", header)
+            if concept.get("abstract") == "true":
+                self.treeView.set(childnode, "abstract", '\u2713') # checkmark unicode character
+            if isRelation:
+                self.treeView.set(childnode, "axis", modelObject.get("axisType"))
+                if isinstance(concept, (ModelAxisCoord,ModelExplicitAxisMember)):
+                    self.treeView.set(childnode, "priItem", concept.primaryItemQname)
+                    self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim[0],dim[1]) for dim in concept.explicitDims)))
         self.id += 1
         self.tag_has[modelObject.objectId()].append(childnode)
         if isRelation:

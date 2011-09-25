@@ -79,6 +79,9 @@ class ViewTree:
             self.modelXbrl.views.remove(self)
             self.modelXbrl = None
         
+    def select(self):
+        self.tabWin.select(self.viewFrame)
+        
     def leave(self, *args):
         self.toolTipColId = None
         self.toolTipRowId = None
