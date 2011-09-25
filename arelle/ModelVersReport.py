@@ -551,7 +551,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 if toRel is not None:
                     comment = _('corresponding relationship {0} toDTS toName="{1}"').format(i+1, XmlUtil.addQnameValue(self.reportElement, toRel.toModelObject.qname))
                 else:
-                    comment = _('toDTS does not have a corresponding relationship at position {0}'.format(i+1))
+                    comment = _('toDTS does not have a corresponding relationship at position {0}').format(i+1)
                 self.createRelationshipSetEvent("relationships", eventParent=self.relSetDeletedEvent, fromConcept=fromConcept, toConcept=fromTgtConcept, comment=comment)
         for i, toRel in enumerate(toRels):
             toTgtConcept = toRel.toModelObject
@@ -565,7 +565,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 if fromRel is not None:
                     comment = _('corresponding relationship {0} toDTS toName="{1}"').format(i+1, XmlUtil.addQnameValue(self.reportElement, fromRel.toModelObject.qname))
                 else:
-                    comment = _('fromDTS does not have a corresponding relationship at position {0}'.format(i+1))
+                    comment = _('fromDTS does not have a corresponding relationship at position {0}').format(i+1)
                 self.createRelationshipSetEvent("relationships", eventParent=self.relSetAddedEvent, fromConcept=toConcept, toConcept=toTgtConcept, comment=comment)
     
     def diffDimensionDefaults(self):
