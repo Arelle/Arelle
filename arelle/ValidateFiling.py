@@ -242,7 +242,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
                                     if not value.lower().startswith(prefix.lower()):
                                         self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
-                                            _("dei:%(elementName)s %(prefix) be a case-insensitive prefix of: %(value)s"),
+                                            _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
                                             modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
                                             prefix=prefix, value=value)
                             elif factElementName in deiCheckLocalNames:
