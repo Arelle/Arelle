@@ -6,10 +6,13 @@ Created on Oct 17, 2010
 '''
 from collections import defaultdict
 from math import (log10, isnan, isinf, fabs, trunc, fmod, floor)
+import decimal
 import re
 from arelle import (XbrlConst, XbrlUtil)
 
 numberPattern = re.compile("[-]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-]?[0-9]*)?")
+ZERO = decimal.Decimal(0)
+ONE = decimal.Decimal(1)
 
 def validate(modelXbrl, inferPrecision=True):
     ValidateXbrlCalcs(modelXbrl, inferPrecision).validate()
@@ -93,9 +96,9 @@ class ValidateXbrlCalcs:
                                 itemBindingKeys = self.itemConceptBindKeys[modelRel.toModelObject]
                                 boundSumKeys |= sumBindingKeys & itemBindingKeys
                             # add up rounded items
-                            boundSums = defaultdict(float)
+                            boundSums = defaultdict(decimal.Decimal)
                             for modelRel in modelRels:
-                                weight = modelRel.weight
+                                weight = modelRel.weightDecimal
                                 itemConcept = modelRel.toModelObject
                                 for itemBindKey in boundSumKeys:
                                     ancestor, contextHash, unit = itemBindKey
@@ -115,7 +118,7 @@ class ValidateXbrlCalcs:
                                             dupBindingKeys.add(sumBindKey)
                                         elif sumBindKey not in dupBindingKeys:
                                             roundedSum = self.roundFact(fact)
-                                            roundedItemsSum = self.roundFact(fact, vFloat=boundSums[sumBindKey])
+                                            roundedItemsSum = self.roundFact(fact, vDecimal=boundSums[sumBindKey])
                                             if roundedItemsSum  != self.roundFact(fact):
                                                 self.modelXbrl.error("xbrl.5.2.5.2:calcInconsistency",
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
@@ -204,23 +207,23 @@ class ValidateXbrlCalcs:
                 if concept in self.conceptsInRequiresElement:
                     self.requiresElementFacts[concept].append(f)
 
-    def roundFact(self, fact, vFloat=None):
-        if vFloat is None:
+    def roundFact(self, fact, vDecimal=None):
+        if vDecimal is None:
             vStr = fact.value
-            vFloat = float(vStr)
-            vFloatFact = vFloat
+            vDecimal = decimal.Decimal(vStr)
+            vFloatFact = float(vStr)
         else: #only vFloat is defined, may not need vStr unless inferring precision from decimals
-            if isnan(vFloat):
-                return vFloat
+            if vDecimal.is_nan():
+                return vDecimal
             vStr = None
             vFloatFact = float(fact.value)
         dStr = fact.decimals
         pStr = fact.precision
         if dStr == "INF" or pStr == "INF":
-            vRounded = vFloat
+            vRounded = vDecimal
         elif self.inferPrecision:
             if dStr:
-                match = numberPattern.match(vStr if vStr else str(vFloat))
+                match = numberPattern.match(vStr if vStr else str(vDecimal))
                 if match:
                     nonZeroInt, period, zeroDec, nonZeroDec, e, exp = match.groups()
                     p = (len(nonZeroInt) if nonZeroInt and (len(nonZeroInt)) > 0 else -len(zeroDec)) + \
@@ -231,37 +234,48 @@ class ValidateXbrlCalcs:
             else:
                 p = int(pStr)
             if p == 0:
-                vRounded = float("NaN")
-            elif vFloat == 0:
-                vRounded = 0
-            else:
-                vAbs = fabs(vFloat)
-                log = log10(vAbs)
+                vRounded = decimal.Decimal("NaN")
+            elif vDecimal == 0:
+                vRounded = vDecimal
+            else:  # round per 4.6.7.1, half-up
+                vAbs = vDecimal.copy_abs()
+                log = vAbs.log10()
                 # defeat rounding to nearest even
-                if trunc(fmod(vFloat,2)) == 0:
-                    vFloat += 10 ** (log - p - 1) * (1.0 if vFloat > 0 else -1.0)
-                vRounded = round(vFloat, p - int(log) - (1 if vAbs >= 1 else 0))
-        else: #infer decimals
+                d = p - int(log) - (1 if vAbs >= 1 else 0)
+                #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
+                #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
+                #vRounded = round(vFloat, d)
+                vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
+        else: #infer decimals, round per 4.6.7.2, e.g., half-down
             if pStr:
                 p = int(pStr)
                 if p == 0:
-                    vRounded = float("NaN")
-                elif vFloat == 0:
-                    vRounded = 0
+                    vRounded = decimal.Decimal("NaN")
+                elif vDecimal == 0:
+                    vRounded = ZERO
                 else:
                     vAbs = fabs(vFloatFact)
                     d = p - int(floor(log10(vAbs))) - 1
                     # defeat rounding to nearest even
-                    if trunc(fmod(vFloat,2)) == 0:
-                        vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
-                    vRounded = round(vFloat, d)
+                    #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
+                    #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
+                    #vRounded = round(vFloat, d)
+                    vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_DOWN)
             else:
                 d = int(dStr)
                 # defeat rounding to nearest even
-                if trunc(fmod(vFloat,2)) == 0:
-                    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
-                vRounded = round(vFloat, d)
+                #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
+                #    vFloat += 10 ** (-d - 1) * (-1.0 if vFloat > 0 else 1.0)
+                #vRounded = round(vFloat, d)
+                #vRounded = round(vFloat,d)
+                vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_DOWN)
         return vRounded
+    
+def decimalRound(x, d, rounding):
+    if d >= 0:
+        return x.quantize(ONE.scaleb(-d),rounding)
+    else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point    
+        return x.scaleb(d).quantize(ONE,rounding).scaleb(-d)
 
 def inferredPrecision(fact):
     vStr = fact.value
