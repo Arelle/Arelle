@@ -402,7 +402,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
                     fromType = fromConcept.type # it is null for xsd:anyType
                     toType = toConcept.type
                     # TBD change to xml comparison with namespaceURI mappings, prefixes ignored
-                    if fromType is not None and toType and XbrlUtil.nodesCorrespond(self.fromDTS, fromType, toType, self.toDTS):
+                    if (fromType is not None and toType is not None and 
+                        not XbrlUtil.nodesCorrespond(self.fromDTS, fromType, toType, self.toDTS)):
                         action = self.createConceptEvent(verce, "verce:tupleContentModelChange", fromConcept, toConcept, action)
                 # custom attributes in from Concept
                 fromCustAttrs = {}
