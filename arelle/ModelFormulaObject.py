@@ -43,6 +43,13 @@ class Aspect:
         PRECISION: "precision",
         DECIMALS: "decimals",
         }
+
+def aspectStr(aspect):
+    if aspect in Aspect.label:
+        return Aspect.label[aspect]
+    else:
+        return str(aspect)
+
     
 aspectModelAspect = {   # aspect of the model that corresponds to retrievable aspects
     Aspect.VALUE: Aspect.ENTITY_IDENTIFIER, Aspect.SCHEME:Aspect.ENTITY_IDENTIFIER,
@@ -1512,6 +1519,26 @@ class ModelMatchFilter(ModelFilter):
         from arelle.FormulaEvaluator import aspectMatches
         aspect = self.aspect
         otherFact = xpCtx.inScopeVars.get(self.variable)
+        # check that otherFact is a single fact or otherwise all match for indicated aspect
+        if isinstance(otherFact,(tuple,list)):
+            firstFact = None
+            hasNonFact = False
+            for fact in otherFact:
+                if not isinstance(fact,ModelFact):
+                    hasNonFact = True
+                elif firstFact is None:
+                    firstFact = fact
+                elif not aspectMatches(xpCtx, fact, firstFact, aspect):
+                    ### error
+                    raise XPathContext.XPathException(xpCtx, 'xbrlmfe:inconsistentMatchedVariableSequence', 
+                                                      _('Matched variable sequence includes fact {0} inconsistent in aspect {1}').format(
+                                                      str(fact), aspectStr(aspect)))
+                    return cmplmt
+            if hasNonFact:
+                return []
+            otherFact = firstFact
+        if not isinstance(otherFact,ModelFact):
+            return []
         return [fact for fact in facts 
                 if cmplmt ^ (aspectMatches(xpCtx, fact, otherFact, aspect))] 
 
