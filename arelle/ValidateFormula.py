@@ -303,7 +303,7 @@ def validate(val):
                 if isinstance(variable, ModelFactVariable):
                     for depVar in XPathParser.variableReferencesSet(variable.fallbackValueProg, variable):
                         if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
-                            val.modelXbrl.error("xbrlve:factVariableReferenceNotAllowed",
+                            val.modelXbrl.error("xbrlve:fallbackValueVariableReferenceNotAllowed",
                                 _("Variable set %(xlinkLabel)s fallbackValue '%(fallbackValue)s' cannot refer to variable %(dependency)s"),
                                 modelObject=variable, xlinkLabel=modelVariableSet.xlinkLabel, 
                                 fallbackValue=variable.fallbackValue, dependency=depVar)
