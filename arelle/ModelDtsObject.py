@@ -7,6 +7,7 @@ Refactored from ModelObject on Jun 11, 2011
 '''
 from collections import defaultdict
 from lxml import etree
+import decimal
 from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
 from arelle.ModelObject import ModelObject
 
@@ -945,6 +946,23 @@ class ModelRelationship(ModelObject):
                     # XBRL validation error needed
                     weight = float("nan")
             self.arcElement._weight = weight
+            return weight
+
+    @property
+    def weightDecimal(self):
+        try:
+            return self.arcElement._weightDecimal
+        except AttributeError:
+            w = self.arcElement.get("weight")
+            if w is None:
+                weight = None
+            else:
+                try:
+                    weight = decimal.Decimal(w)
+                except (TypeError,ValueError) :
+                    # XBRL validation error needed
+                    weight = decimal.Decimal("nan")
+            self.arcElement._weightDecimal = weight
             return weight
 
     @property

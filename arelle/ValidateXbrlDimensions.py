@@ -12,7 +12,9 @@ from arelle.ModelDtsObject import ModelConcept
 
 def loadDimensionDefaults(val):
     # load dimension defaults when required without performing validations
+    val.dimensionDefaults = {}
     val.modelXbrl.qnameDimensionDefaults = {}
+    val.modelXbrl.qnameDimensionContextElement = {}
     for baseSetKey in val.modelXbrl.baseSets.keys():
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and arcrole == XbrlConst.dimensionDefault:

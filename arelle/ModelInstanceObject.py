@@ -478,9 +478,8 @@ class ModelContext(ModelObject):
             return self.modelXbrl.qnameDimensionDefaults[dimQname]
         return None
     
-    @property
-    def dimAspects(self):
-        return set(self.qnameDims.keys() | self.modelXbrl.qnameDimensionDefaults.keys())
+    def dimAspects(self, defaultDimensionAspects):
+        return set(self.qnameDims.keys() | defaultDimensionAspects)
     
     @property
     def dimsHash(self):

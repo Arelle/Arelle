@@ -143,7 +143,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
             facts = filterFacts(xpCtx, vb, facts, vb.var.filterRelationships, None)
             for fact in facts:
                 if fact.isItem:
-                    vb.aspectsDefined |= fact.context.dimAspects
+                    vb.aspectsDefined |= fact.context.dimAspects(xpCtx.defaultDimensionAspects)
             coverAspectCoverFilterDims(xpCtx, vb, facts, vb.var.filterRelationships)
             if varSet.implicitFiltering == "true" and len(xpCtx.varBindings) > 0:
                 facts = aspectMatchFilter(xpCtx, facts, (vb.aspectsDefined - vb.aspectsCovered), xpCtx.varBindings.values(), "implicit")
@@ -311,18 +311,30 @@ def aspectMatches(xpCtx, fact1, fact2, aspects):
                             matches = equalityDefinition.evalTest(xpCtx, fact1, fact2)
                         elif not XbrlUtil.nodesCorrespond(fact1.modelXbrl, dimValue1.typedMember, dimValue2.typedMember, dts2=fact2.modelXbrl):
                             matches = False
-            elif isinstance(dimValue1,QName):
-                if isinstance(dimValue2, QName):
-                    if dimValue1 != dimValue2:
+            elif isinstance(dimValue1,QName): # first dim is default value of an explicit dim
+                if isinstance(dimValue2, QName): # second dim is default value of an explicit dim
+                    # multi-instance does not consider member's qname here where it is a default
+                    # only check if qnames match if the facts are from same instance
+                    if fact1.modelXbrl == fact2.modelXbrl and dimValue1 != dimValue2:
                         matches = False
                 elif isinstance(dimValue2, ModelDimensionValue):
                     if dimValue2.isTyped:
                         matches = False
                     elif dimValue1 != dimValue2.memberQname:
                         matches = False 
+                elif dimValue2 is None: # no dim aspect for fact 2
+                    if fact1.modelXbrl == fact2.modelXbrl: # only allowed for multi-instance
+                        matches = False
             elif dimValue1 is None:
-                if dimValue2 is not None:
+                # absent dim member from fact1 allowed if fact2 is default in different instance
+                if isinstance(dimValue2,QName):
+                    if fact1.modelXbrl == fact2.modelXbrl:
+                        matches = False
+                elif dimValue2 is not None:
                     matches = False
+                else: #dimValue2 is None (no dimension)
+                    if fact1.modelXbrl == fact2.modelXbrl: # ok if both multiinst facts don't have the dimension
+                        matches = False
         if not matches: 
             break
     return matches
@@ -827,7 +839,7 @@ class VariableBinding:
         return dimension in self.definedDimensions
     
     def definedDimensions(self, dimension):
-        return self.yieldedFact.context.dimAspects if self.yieldedFact.isItem else set()
+        return self.yieldedFact.context.dimAspects(self.xpCtx.defaultDimensionAspects) if self.yieldedFact.isItem else set()
     
     def isDimensionalValid(self, dimension):
         return False
@@ -879,7 +891,7 @@ class VariableBinding:
         elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
             return self.yieldedFact.unit.measures
         elif aspect == Aspect.DIMENSIONS:
-            return self.yieldedFactContext.dimAspects
+            return self.yieldedFactContext.dimAspects(self.xpCtx.defaultDimensionAspects)
         elif isinstance(aspect, QName):
             return self.yieldedFact.context.dimValue(aspect)
         return None
