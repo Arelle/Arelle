@@ -417,7 +417,7 @@ def checkElements(val, modelDocument, parent):
                         name = elt.get("name")
                         if name and len(name) > 100 and len(name.encode("utf-8")) > 200:
                             val.modelXbrl.error("EFM.6.07.29",
-                                _("Schema %(element)s has a name over 200 bytes long in utf-8, %{name)s."),
+                                _("Schema %(element)s has a name over 200 bytes long in utf-8, %(name)s."),
                                 modelObject=elt, element=elt.localName, name=name)
     
                     if val.validateSBRNL and elt.localName in {"all", "documentation", "any", "anyAttribute", "attributeGroup",
