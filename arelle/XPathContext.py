@@ -21,6 +21,8 @@ class XPathException(Exception):
             self.column = progStep.loc
         elif isinstance(progStep, ProgHeader):
             self.line = progStep.sourceStr
+        elif isinstance(progStep, XPathContext) and progStep.progHeader:
+            self.line = progStep.sourceStr
         else:
             self.line = "(not available)"
         self.code = code
