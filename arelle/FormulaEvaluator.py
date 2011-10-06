@@ -124,7 +124,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
         varRel = varSet.orderedVariableRelationships[varIndex]
         vb = VariableBinding(xpCtx, varRel)
         if vb.isFactVar:
-            vb.aspectsDefined = aspectModels[varSet.aspectModel]
+            vb.aspectsDefined = set(aspectModels[varSet.aspectModel])  # has to be a mutable set
             vb.values = None
             if vb.var.fromInstanceQnames:
                 facts = [f for qn in vb.var.fromInstanceQnames 
