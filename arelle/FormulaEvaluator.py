@@ -43,7 +43,7 @@ def evaluate(xpCtx, varSet):
             else: varSet.countNotSatisfied += 1
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
                 xpCtx.modelXbrl.info("formula:trace",
-                     _("Existence Assertion %(xlinkLabel) \nResult: %(result)s"), 
+                     _("Existence Assertion %(xlinkLabel)s \nResult: %(result)s"), 
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, result=result)
             msg = varSet.message(result)
             if msg:
