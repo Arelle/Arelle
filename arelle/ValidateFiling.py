@@ -167,6 +167,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             paramFilerIdentifier = None
             paramFilerIdentifiers = None
             paramFilerNames = None
+            submissionType = None
             if self.validateEFM and self.parameters:
                 p = self.parameters.get(ModelValue.qname("CIK",noPrefixIsNoNamespace=True))
                 if p and len(p) == 2:
@@ -181,6 +182,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
                             _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
                             modelXbrl=modelXbrl, cikList=paramFilerIdentifiers, cikNameList=paramFilerNames)
+                p = self.parameters.get(ModelValue.qname("submissionType",noPrefixIsNoNamespace=True))
+                if p and len(p) == 2:
+                    submissionType = p[1]
                         
             deiCheckLocalNames = {
                 "EntityRegistrantName", 
@@ -503,7 +507,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 ValidateFilingText.validateTextBlockFacts(modelXbrl)
             
                 if amendmentFlag is None:
-                    modelXbrl.warning(("EFM.6.05.20", "GFM.3.02.01"),
+                    modelXbrl.error(("EFM.6.05.20", "GFM.3.02.01"),
                         _("%(elementName)s is not found in the default context"),
                         modelXbrl=modelXbrl, elementName=disclosureSystem.deiAmendmentFlagElement)
         
@@ -522,12 +526,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
             if self.validateEFM:
                 if amendmentFlag == "true" and not amendmentDescription:
-                    modelXbrl.warning("EFM.6.05.20",
+                    modelXbrl.error("EFM.6.05.20",
                         _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
                         modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact else "unknown")
         
                 if amendmentDescription and ((not amendmentFlag) or amendmentFlag == "false"):
-                    modelXbrl.warning("EFM.6.05.20",
+                    modelXbrl.error("EFM.6.05.20",
                         _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
                         modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
                     
@@ -547,6 +551,23 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error("EFM.6.05.20",
                         _("DocumentType '%(documentType)s' of context %(contextID)s was not recognized"),
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
+                elif submissionType:
+                    expectedDocumentType = {
+                            "10": "10", 
+                            "10/A": "10", "10-K": "10-K", "10-K/A": "10-K", "10-Q": "10-Q", "10-Q/A": "10-Q", 
+                            "20-F": "20-F", "20-F/A": "20-F", "40-F": "40-F", "40-F/A": "40-F", "485BPOS": "485BPOS", 
+                            "6-K": "6-K", "6-K/A": "6-K", "8-K": "8-K", "F-1": "F-1", "F-1/A": "F-1", 
+                            "F-10": "F-10", "F-10/A": "F-10", "F-3": "F-3", "F-3/A": "F-3", 
+                            "F-4": "F-4", "F-4/A": "F-4", "F-9": "F-9", "F-9/A": "F-9", "N-1A": "N-1A", 
+                            "NCSR": "NCSR", "NCSR/A": "NCSR", "NCSRS": "NCSR", "NCSRS/A": "NCSR", 
+                            "N-Q": "N-Q", "N-Q/A": "N-Q", "S-1": "S-1", "S-1/A": "S-1", "S-11": "S-11", "S-11/A": "S-11", 
+                            "S-3": "S-3", "S-3/A": "S-3", "S-4": "S-4", "S-4/A": "S-4", "N-CSR": "NCSR", "N-CSR/A": "NCSR", "N-CSRS": "NCSR", "NCSRS/A": "NCSR", 
+                            "497": "Other", 
+                            }.get(submissionType)
+                    if expectedDocumentType and expectedDocumentType != documentType:
+                        modelXbrl.error("EFM.6.05.20",
+                            _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
+                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=submissionType)
                     
                 # 6.5.21
                 for doctypesRequired, deiItemsRequired in (
