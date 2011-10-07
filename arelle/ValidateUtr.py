@@ -10,11 +10,11 @@ from arelle import (ModelDocument, ModelValue, XbrlConst, XmlUtil)
 
 def loadUtr(modelManager): # Build a dictionary of item types that are constrained by the UTR.
     modelManager.utrDict = {} # This attribute is unbound on modelManager until this function is called.
-    utrUrl = os.path.join(modelManager.cntlr.configDir, "utr.xml")
-    #utrUrl = "file:/c:/home/conformance-lrr/trunk/schema/utr/utr.xml"
+    utrUrl = "http://www.xbrl.org/utr/utr.xml"
+    #utrUrl = os.path.join(modelManager.cntlr.configDir, "utr.xml")
     modelManager.cntlr.showStatus(_("Loading Unit Type Registry"))
     try:
-        xmldoc = etree.parse(utrUrl)
+        xmldoc = etree.parse(modelManager.cntlr.webCache.getfilename(utrUrl))
         for unitElt in xmldoc.iter(tag="{http://www.xbrl.org/2009/utr}unit"):
             id = unitElt.get("id")
             unitId = unitElt.findtext("{http://www.xbrl.org/2009/utr}unitId")
