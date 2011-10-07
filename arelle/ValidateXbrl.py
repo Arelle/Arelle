@@ -537,7 +537,8 @@ class ValidateXbrl:
             modelXbrl.modelManager.showStatus(_("Validating instance calculations"))
             ValidateXbrlCalcs.validate(modelXbrl, inferPrecision=(not self.validateInferDecimals))
             
-        if modelXbrl.modelManager.validateUtr:
+        if (modelXbrl.modelManager.validateUtr or
+            (self.validateEFM and XbrlConst.dtrNumeric in self.modelXbrl.namespaceDocs)):
             ValidateUtr.validate(modelXbrl)
             
         if modelXbrl.hasFormulae:
