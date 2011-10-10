@@ -16,7 +16,10 @@ def authority(url):
     return url  #no path part of url
 
 absoluteUrlPattern = None
-relativeUrlPattern = re.compile(r"(^[/:\.+-_@%;?&=!~\*'\(\)\w ]+(#[\w_%\-\.\(/\)]+)?$)|(^#[\w_%\-\.\(/\)]+$)")
+# this pattern doesn't allow some valid unicode characters
+#relativeUrlPattern = re.compile(r"(^[/:\.+-_@%;?&=!~\*'\(\)\w ]+(#[\w_%\-\.\(/\)]+)?$)|(^#[\w_%\-\.\(/\)]+$)")
+# try this instead from http://www.ietf.org/rfc/rfc2396.txt (B)
+relativeUrlPattern = re.compile(r"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?")
 
 def splitDecodeFragment(url):
     urlPart, fragPart = urldefrag(url)
