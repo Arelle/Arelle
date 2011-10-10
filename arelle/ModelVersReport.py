@@ -382,10 +382,11 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 if fromConcept.isItem and toConcept.isItem:
                     if fromConcept.typeQname != self.fromDTSqname(toConcept.typeQname):
                         action = self.createConceptEvent(verce, "verce:conceptTypeChange", fromConcept, toConcept, action, fromValue=fromConcept.typeQname, toValue=toConcept.typeQname)
-                    if fromConcept.nillable != toConcept.nillable:
-                        action = self.createConceptEvent(verce, "verce:conceptNillableChange", fromConcept, toConcept, action, fromValue=fromConcept.nillable, toValue=toConcept.nillable)
-                    if fromConcept.abstract != toConcept.abstract:
-                        action = self.createConceptEvent(verce, "verce:conceptAbstractChange", fromConcept, toConcept, action, fromValue=fromConcept.abstract, toValue=toConcept.abstract)
+                if fromConcept.nillable != toConcept.nillable:
+                    action = self.createConceptEvent(verce, "verce:conceptNillableChange", fromConcept, toConcept, action, fromValue=fromConcept.nillable, toValue=toConcept.nillable)
+                if fromConcept.abstract != toConcept.abstract:
+                    action = self.createConceptEvent(verce, "verce:conceptAbstractChange", fromConcept, toConcept, action, fromValue=fromConcept.abstract, toValue=toConcept.abstract)
+                if fromConcept.isItem and toConcept.isItem:
                     if fromConcept.block != toConcept.block:
                         action = self.createConceptEvent(verce, "verce:conceptBlockChange", fromConcept, toConcept, action, fromValue=fromConcept.block, toValue=toConcept.block)
                     if fromConcept.default != toConcept.default:
