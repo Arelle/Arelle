@@ -298,10 +298,12 @@ def checkElements(val, modelDocument, parent):
                                 val.modelXbrl.error("xbrl.5.1:emptyTargetNamespace",
                                     "Schema element has an empty targetNamespace",
                                     modelObject=elt)
-                            if val.validateEFM and len(targetNamespace) > 124 and len(targetNamespace.encode("utf-8")) > 255:
-                                val.modelXbrl.error("EFM.6.07.30",
-                                    _("Schema targetNamespace over 255 bytes long in utf-8 %(targetNamespace)s"),
-                                    modelObject=elt, targetNamespace=targetNamespace)
+                            if val.validateEFM and len(targetNamespace) > 124:
+                                l = len(targetNamespace.encode("utf-8"))
+                                if l > 255:
+                                    val.modelXbrl.error("EFM.6.07.30",
+                                        _("Schema targetNamespace length (%(length)s) is over 255 bytes long in utf-8 %(targetNamespace)s"),
+                                        modelObject=elt, length=l, targetNamespace=targetNamespace)
                         if val.validateSBRNL:
                             if elt.get("targetNamespace") is None:
                                 val.modelXbrl.error("SBR.NL.2.2.0.08",
@@ -473,10 +475,12 @@ def checkElements(val, modelDocument, parent):
                                     val.modelXbrl.error("SBR.NL.2.3.8.05",
                                         _('RoleType %(roleURI)s must have a label in lang "nl"'),
                                         modelObject=elt, roleURI=roleURI)
-                        if val.validateEFM and len(roleURI) > 124 and len(roleURI.encode("utf-8")) > 255:
-                            val.modelXbrl.error("EFM.6.07.30",
-                                _("Schema %(element)s %(attribute)s over 255 bytes long in utf-8 %(roleURI)s"),
-                                modelObject=elt, element=elt.qname, attribute=uriAttr, roleURI=roleURI)
+                        if val.validateEFM and len(roleURI) > 124:
+                            l = len(roleURI.encode("utf-8"))
+                            if l > 255:
+                                val.modelXbrl.error("EFM.6.07.30",
+                                    _("Schema %(element)s %(attribute)s length (%(length)s) is over 255 bytes long in utf-8 %(roleURI)s"),
+                                    modelObject=elt, element=elt.qname, attribute=uriAttr, length=l, roleURI=roleURI)
                     # check for used on duplications
                     usedOns = set()
                     for usedOn in elt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}usedOn"):
