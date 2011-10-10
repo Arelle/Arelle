@@ -34,11 +34,6 @@ class ViewRenderedGrid(ViewHtml.View):
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
         self.zFilterIndex = 0
         
-    @property
-    def dimensionDefaults(self):
-        return self.modelXbrl.qnameDimensionDefaults
-    
-        
     def viewReloadDueToMenuAction(self, *args):
         self.view()
         

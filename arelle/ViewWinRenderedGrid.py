@@ -50,12 +50,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         super().__init__(modelXbrl, tabWin, "Rendering", True, lang)
         self.dimsContextElement = {}
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
-        self.zFilterIndex = 0
+        self.zComboBoxIndex = self.zFilterIndex = 0
         
-    @property
-    def dimensionDefaults(self):
-        return self.modelXbrl.qnameDimensionDefaults
-    
     def loadTablesMenu(self):
         tblMenuEntries = {}             
         tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
@@ -122,36 +118,44 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def zAxis(self, row, zAxisObj, zFilters):
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(zAxisObj):
             zAxisObj = axisMbrRel.toModelObject
+            priorZfilter = len(zFilters)
             zFilters.append((inheritedPrimaryItemQname(self, zAxisObj),
                              inheritedExplicitDims(self, zAxisObj),
-                             zAxisObj.genLabel(lang=self.lang)))
-            priorZfilter = len(zFilters)
+                             zAxisObj.genLabel(lang=self.lang),
+                             zAxisObj.objectId()))
             self.zAxis(None, zAxisObj, zFilters)
             if row is not None:
+                nextZfilter = len(zFilters)
                 gridBorder(self.gridColHdr, self.dataFirstCol, row, TOPBORDER, columnspan=2)
                 gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
                 gridBorder(self.gridColHdr, self.dataFirstCol, row, RIGHTBORDER, columnspan=2)
-                gridHdr(self.gridColHdr, self.dataFirstCol, row,
-                        zAxisObj.genLabel(lang=self.lang), 
-                        anchor="w", columnspan=2,
-                        wraplength=200, # in screen units
-                        objectId=zAxisObj.objectId(),
-                        onClick=self.onClick)
-                nextZfilter = len(zFilters)
-                if nextZfilter > priorZfilter:    # no combo box choices nested
+                if nextZfilter > priorZfilter + 1:  # combo box, use header on zAxis
+                    label = axisMbrRel.fromModelObject.genLabel(lang=self.lang)
+                else: # no combo box, use label on coord
+                    label = zAxisObj.genLabel(lang=self.lang)
+                hdr = gridHdr(self.gridColHdr, self.dataFirstCol, row,
+                              label, 
+                              anchor="w", columnspan=2,
+                              wraplength=200, # in screen units
+                              objectId=zAxisObj.objectId(),
+                              onClick=self.onClick)
+                if nextZfilter > priorZfilter + 1:    # multiple choices, use combo box
                     self.combobox = gridCombobox(
                                  self.gridColHdr, self.dataFirstCol + 2, row,
                                  values=[zFilter[2] for zFilter in zFilters[priorZfilter:nextZfilter]],
-                                 selectindex=self.zFilterIndex,
+                                 selectindex=self.zComboBoxIndex,
+                                 columnspan=2,
                                  comboboxselected=self.comboBoxSelected)
-                    gridBorder(self.gridColHdr, self.dataFirstCol + 2, row, RIGHTBORDER)
+                    self.zFilterIndex = priorZfilter + self.zComboBoxIndex
+                    self.combobox.objectId = hdr.objectId = zFilters[self.zFilterIndex][3]
+                    gridBorder(self.gridColHdr, self.dataFirstCol + 3, row, RIGHTBORDER)
                     row += 1
 
         if not zFilters:
             zFilters.append( (None,set()) )  # allow empty set operations
         
     def comboBoxSelected(self, *args):
-        self.zFilterIndex = self.combobox.valueIndex
+        self.zComboBoxIndex = self.combobox.valueIndex
         self.view() # redraw grid
             
     def xAxis(self, leftCol, topRow, rowBelow, xAxisParentObj, xFilters, childrenFirst, renderNow, atTop):

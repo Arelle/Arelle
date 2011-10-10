@@ -44,10 +44,6 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
         self.linkqname = linkqname
         self.arcqname = arcqname
         
-    @property
-    def dimensionDefaults(self):
-        return self.modelXbrl.qnameDimensionDefaults
-        
     def tableSetup(self):
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
