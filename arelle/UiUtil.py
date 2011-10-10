@@ -197,7 +197,7 @@ class gridCell(Entry):
         return self.valueVar.set(value)
     
 class gridCombobox(ttk.Combobox): 
-    def __init__(self, master, x, y, value="", values=(), selectindex=None, comboboxselected=None): 
+    def __init__(self, master, x, y, value="", values=(), columnspan=None, selectindex=None, comboboxselected=None): 
         ttk.Combobox.__init__(self, master=master) 
         self.valueVar = StringVar() 
         self.config(textvariable=self.valueVar,
@@ -208,7 +208,11 @@ class gridCombobox(ttk.Combobox):
         if isinstance(master.master.master, scrolledHeaderedFrame):
             x = x * 2
             y = y * 2
-        self.grid(column=x, row=y, sticky=(E,W)) 
+            if columnspan: columnspan = columnspan * 2 - 1
+        if columnspan and columnspan > 1:
+            self.grid(column=x, row=y, sticky=(E,W), columnspan=columnspan)
+        else:
+            self.grid(column=x, row=y, sticky=(E,W)) 
         if selectindex is not None:
             self.valueVar.set(values[selectindex])
         elif value: 
