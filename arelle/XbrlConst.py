@@ -84,6 +84,7 @@ domainMember = "http://xbrl.org/int/dim/arcrole/domain-member"
 dimensionDefault = "http://xbrl.org/int/dim/arcrole/dimension-default"
 usTypesStartsWith = "http://xbrl.us/us-types/"
 dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
+dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 defaultLinkRole = "http://www.xbrl.org/2003/role/link"
 iso4217 = "http://www.xbrl.org/2003/iso4217"
 standardLabel = "http://www.xbrl.org/2003/role/label"
@@ -261,6 +262,7 @@ errMsgPrefixNS = {
     "verrelse": "http://xbrl.org/2010/versioning-relationship-sets/error",
     "xbrlacfe": "http://xbrl.org/2010/filter/aspect-cover/error",
     "xbrlcfie": "http://xbrl.org/2010/custom-function/error",
+    "xbrlmfe": "http://xbrl.org/2008/filter/match/error",
     }
 
 def baseSetArcroleLabel(arcrole): # with sort char in first position

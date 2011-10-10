@@ -21,7 +21,8 @@ if sys.platform == 'darwin':
     options['py2app'] =  dict(app=['arelle/CntlrWinMain.py'],
                               iconfile='arelle/images/arelle.icns',
                               plist=dict(CFBundleIconFile='arelle.icns',
-                                         NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited'))
+                                         NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited'),
+                              argv_emulation=False)
     packages = find_packages('.')
     dataFiles = [
 	'--iconfile',
