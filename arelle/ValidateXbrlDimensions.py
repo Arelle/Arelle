@@ -12,7 +12,7 @@ from arelle.ModelDtsObject import ModelConcept
 
 def loadDimensionDefaults(val):
     # load dimension defaults when required without performing validations
-    val.dimensionDefaults = {}
+    val.modelXbrl.dimensionDefaultConcepts = {}
     val.modelXbrl.qnameDimensionDefaults = {}
     val.modelXbrl.qnameDimensionContextElement = {}
     for baseSetKey in val.modelXbrl.baseSets.keys():
@@ -131,13 +131,13 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     val.modelXbrl.error("xbrldte:DimensionDefaultTargetError",
                         _("Dimension-default relationship from %(source)s to %(target)s in link role %(linkrole)s must have a domain member target"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-                if fromConcept in val.dimensionDefaults and toConcept != val.dimensionDefaults[fromConcept]:
+                if fromConcept in val.modelXbrl.dimensionDefaultConcepts and toConcept != val.modelXbrl.dimensionDefaultConcepts[fromConcept]:
                     val.modelXbrl.error("xbrldte:TooManyDefaultMembersError",
                         _("Dimension %(source)s has multiple defaults %(target)s and %(target2)s"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, 
-                        target2=val.dimensionDefaults[fromConcept].qname)
+                        target2=val.modelXbrl.dimensionDefaultConcepts[fromConcept].qname)
                 else:
-                    val.dimensionDefaults[fromConcept] = toConcept
+                    val.modelXbrl.dimensionDefaultConcepts[fromConcept] = toConcept
                     val.modelXbrl.qnameDimensionDefaults[fromConcept.qname] = toConcept.qname
 
     # check for primary item cycles
@@ -266,7 +266,7 @@ def checkContext(val, cntx):
                         _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is not a global member item"),
                         modelObject=modelDimValue, contextID=cntx.id, 
                         dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
-                if val.dimensionDefaults.get(dimensionConcept) == memberConcept:
+                if val.modelXbrl.dimensionDefaultConcepts.get(dimensionConcept) == memberConcept:
                     val.modelXbrl.error("xbrldie:DefaultValueUsedInInstanceError",
                         _("Context %(contextID)s explicit dimension %(dimension)s member {2} is a default member item"),
                         modelObject=modelDimValue, contextID=cntx.id, 
@@ -374,8 +374,8 @@ def checkFactElrHcs(val, f, ELR, hcRels):
                     memModelDimension = modelDimValues[dimConcept]
                     contextElementDimSet.discard(dimConcept)
                     memConcept = memModelDimension.member
-                elif dimConcept in val.dimensionDefaults:
-                    memConcept = val.dimensionDefaults[dimConcept]
+                elif dimConcept in val.modelXbrl.dimensionDefaultConcepts:
+                    memConcept = val.modelXbrl.dimensionDefaultConcepts[dimConcept]
                 else:
                     hcValid = False
                     continue

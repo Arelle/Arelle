@@ -178,7 +178,7 @@ class ValidateXbrl:
                                 xlinkLabel=resourceArcToLabel)
             resourceArcTos = None # dereference arcs
 
-        self.dimensionDefaults = {}
+        modelXbrl.dimensionDefaultConcepts = {}
         modelXbrl.qnameDimensionDefaults = {}
         modelXbrl.qnameDimensionContextElement = {}
         # check base set cycles, dimensions
