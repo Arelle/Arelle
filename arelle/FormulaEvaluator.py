@@ -139,12 +139,14 @@ def evaluateVar(xpCtx, varSet, varIndex):
                 xpCtx.modelXbrl.info("formula:trace",
                      _("Fact Variable %(variable)s filtering: start with %(factCount)s facts"), 
                      modelObject=vb.var, variable=vb.qname, factCount=len(facts))
+            coverAspectCoverFilterDims(xpCtx, vb, vb.var.filterRelationships) # filters need to know what dims are covered
             facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
+            # implicit filters (relativeFilter) expect no dim aspects yet on variable binding
             facts = filterFacts(xpCtx, vb, facts, vb.var.filterRelationships, None)
+            # adding dim aspects must be done after explicit filterin
             for fact in facts:
                 if fact.isItem:
                     vb.aspectsDefined |= fact.context.dimAspects(xpCtx.defaultDimensionAspects)
-            coverAspectCoverFilterDims(xpCtx, vb, facts, vb.var.filterRelationships)
             if varSet.implicitFiltering == "true" and len(xpCtx.varBindings) > 0:
                 facts = aspectMatchFilter(xpCtx, facts, (vb.aspectsDefined - vb.aspectsCovered), xpCtx.varBindings.values(), "implicit")
             vb.facts = facts
@@ -216,17 +218,19 @@ def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
     else: 
         return facts
             
-def coverAspectCoverFilterDims(xpCtx, vb, facts, filterRelationships):
+def coverAspectCoverFilterDims(xpCtx, vb, filterRelationships):
     for varFilterRel in filterRelationships:
         filter = varFilterRel.toModelObject
         if isinstance(filter,ModelAspectCover):  # relationship not constrained to real filters
             if varFilterRel.isCovered:
                 vb.aspectsCovered |= filter.dimAspectsCovered(vb)
             
-def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType):
+def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType, relBinding=None):
     for aspect in aspects:
         for vb in (varBindings if hasattr(varBindings, '__iter__') else (varBindings,)):
-            if not vb.isFallback and vb.hasAspectValueUncovered(aspect):
+            if (vb.isFactVar and not vb.isFallback and not vb.hasAspectValueCovered(aspect) and
+                (relBinding is None or (relBinding.isFactVar and not relBinding.isFallback and not relBinding.hasAspectValueCovered(aspect)))):
+            #if not vb.isFallback and vb.hasAspectValueUncovered(aspect):
                 facts = [fact for fact in facts if aspectMatches(xpCtx, vb.yieldedFact, fact, aspect)]
                 if xpCtx.formulaOptions.traceVariableFilterWinnowing:
                     a = str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect]
@@ -234,9 +238,29 @@ def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType):
                         _("Fact Variable %(variable)s %(filter)s filter %(aspect)s passes %(factCount)s facts"), 
                         modelObject=vb.var, variable=vb.qname, filter=filterType, aspect=a, factCount=len(facts)),
                 if len(facts) == 0: break
+    if relBinding is not None and vb.isFactVar and not vb.isFallback and relBinding.isFactVar and not relBinding.isFallback:    
+        # check each dimension aspect of candidate fact (no dim aspect in aspects, only fact's apply)
+        matchedFacts = []
+        for fact in facts:
+            matches = True
+            if vb.isFactVar and not vb.isFallback:
+                for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects):
+                    if (not vb.hasAspectValueCovered(dimAspect) and
+                        not relBinding.hasAspectValueCovered(dimAspect) and 
+                        not aspectMatches(xpCtx, vb.yieldedFact, fact, dimAspect)):
+                        matches = False
+            if matches:
+                matchedFacts.append(fact)
+        facts = matchedFacts
+        if xpCtx.formulaOptions.traceVariableFilterWinnowing:
+            xpCtx.modelXbrl.info("formula:trace",
+                _("Fact Variable %(variable)s %(filter)s filter dimension matching passes %(factCount)s facts"), 
+                modelObject=vb.var, variable=vb.qname, filter=filterType, factCount=len(facts)),
     return facts
     
 def aspectMatches(xpCtx, fact1, fact2, aspects):
+    if fact1 is None or fact2 is None:  # fallback (atomic) never matches any aspect
+        return False
     matches = True
     for aspect in (aspects if hasattr(aspects,'__iter__') else (aspects,)):
         if aspect == Aspect.LOCATION:
@@ -300,6 +324,8 @@ def aspectMatches(xpCtx, fact1, fact2, aspects):
                             matches = False
                         elif dimValue1.memberQname != dimValue2.memberQname:
                             matches = False 
+                    elif dimValue2 is None:
+                        matches = False
                 elif dimValue1.isTyped:
                     if isinstance(dimValue2, QName):
                         matches = False
@@ -311,6 +337,8 @@ def aspectMatches(xpCtx, fact1, fact2, aspects):
                             matches = equalityDefinition.evalTest(xpCtx, fact1, fact2)
                         elif not XbrlUtil.nodesCorrespond(fact1.modelXbrl, dimValue1.typedMember, dimValue2.typedMember, dts2=fact2.modelXbrl):
                             matches = False
+                    elif dimValue2 is None:
+                        matches = False
             elif isinstance(dimValue1,QName): # first dim is default value of an explicit dim
                 if isinstance(dimValue2, QName): # second dim is default value of an explicit dim
                     # multi-instance does not consider member's qname here where it is a default
@@ -332,9 +360,7 @@ def aspectMatches(xpCtx, fact1, fact2, aspects):
                         matches = False
                 elif dimValue2 is not None:
                     matches = False
-                else: #dimValue2 is None (no dimension)
-                    if fact1.modelXbrl == fact2.modelXbrl: # ok if both multiinst facts don't have the dimension
-                        matches = False
+                # else if both are None, matches True for single and multiple instance
         if not matches: 
             break
     return matches
@@ -847,6 +873,10 @@ class VariableBinding:
     def hasAspectValueUncovered(self, aspect):
         if aspect in aspectModelAspect: aspect = aspectModelAspect[aspect]
         return aspect in self.aspectsDefined and aspect not in self.aspectsCovered
+    
+    def hasAspectValueCovered(self, aspect):
+        if aspect in aspectModelAspect: aspect = aspectModelAspect[aspect]
+        return aspect in self.aspectsCovered
     
     def hasAspectValueDefined(self, aspect):
         if aspect in aspectModelAspect: aspect = aspectModelAspect[aspect]

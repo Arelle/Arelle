@@ -1961,7 +1961,8 @@ class ModelRelativeFilter(ModelFilter):
                                  facts, 
                                  (varBinding.aspectsDefined - varBinding.aspectsCovered), 
                                  xpCtx.varBindings.get(self.variable), 
-                                 "relative")
+                                 "relative",
+                                 varBinding)
         
     @property
     def propertyView(self):
