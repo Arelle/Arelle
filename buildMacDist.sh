@@ -5,7 +5,7 @@
 /bin/rm -rf dist
 
 # set the build date in version.py
-python3.2 buildVersion.py > arelle/Version.py
+python3.2 buildVersion.py
 
 # create new app
 python3.2 setup.py py2app
@@ -17,7 +17,13 @@ cp -R arelle/images/arelle.icns dist/Arelle.app/Contents/Resources
 cp -R arelle/images dist/Arelle.app/Contents/Resources
 cp -R arelle/config dist/Arelle.app/Contents/Resources
 
+# add lxml _elementpath to lib
+mkdir lxml
+cp ~/Library/Python/3.2/lib/python/site-packages/lxml/__pycache__/_elementpath.cpython-32.pyc lxml/_elementpath.pyc
+zip -u dist/Arelle.app/Contents/Resources/lib/python32.zip lxml lxml/_elementpath.pyc
+/bin/rm -rf lxml
 /bin/rm -rf dist_pkg
+
 mkdir dist_pkg
 /developer/applications/utilities/packagemaker.app/contents/macos/packagemaker --root dist --id org.arelle.Arelle --title 'Arelle Open Source XBRL Platform' --out dist_pkg/arelle.pkg --no-recommend --verbose --version 2011041601
 #/developer/applications/utilities/packagemaker.app/contents/macos/packagemaker --doc arelle.pmdoc --out dist_pkg/arelle.pkg --verbose
@@ -27,6 +33,9 @@ mkdir dist_pkg
 mkdir dist_dmg
 #hdiutil create -fs HFS+ -volname "ARELLE" -srcfolder dist_pkg dist_dmg/arelle.dmg
 hdiutil create -fs HFS+ -volname "ARELLE" -srcfolder dist dist_dmg/arelle.dmg
+
+# rename the .dmg file with the exact same version date as Version.py
+sh -x buildRenameDmg.sh
 
 # delete the built application so that the package can be installed to test it
 #/bin/rm -rf dist

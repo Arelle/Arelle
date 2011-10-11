@@ -89,7 +89,7 @@ Section "Arelle" SecArelle
     
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Arelle.lnk" "$INSTDIR\runGUI.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Arelle.lnk" "$INSTDIR\arelleGUI.exe"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   
   !insertmacro MUI_STARTMENU_WRITE_END
@@ -119,6 +119,8 @@ Section "Uninstall"
 
   RMDir /r "$INSTDIR\config"
   RMDir /r "$INSTDIR\images"
+  RMDir /r "$INSTDIR\examples"
+  RMDir /r "$INSTDIR\scripts"
   RMDir /r "$INSTDIR\tcl"
   RMDir /r "$INSTDIR\tk"
   RMDir "$INSTDIR"

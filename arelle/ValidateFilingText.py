@@ -7,11 +7,13 @@ Created on Oct 17, 2010
 import xml.sax, xml.sax.handler
 import os, re, io
 from arelle import XbrlConst
+from arelle.ModelObject import ModelObject
 
+XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
 CDATApattern = re.compile(r"<!\[CDATA\[(.+)\]\]")
 #EFM table 5-1 and all &xxx; patterns
-docCheckPattern = re.compile(r"&\w+;|[^0-9A-Za-z`~!@#$%&\*\(\)\.\-+ \[\]\{\}\|\\:;\"'<>,_?/=\t\n\m\f]") # won't match &#nnn;
+docCheckPattern = re.compile(r"&\w+;|[^0-9A-Za-z`~!@#$%&\*\(\)\.\-+ \[\]\{\}\|\\:;\"'<>,_?/=\t\n\r\m\f]") # won't match &#nnn;
 entityPattern = re.compile(r"&\w+;") # won't match &#nnn;
 
 bodyTags = {
@@ -367,30 +369,43 @@ xhtmlEntities = {
     }
 
 def checkfile(modelXbrl, filepath):
-    result = ""
+    result = []
     lineNum = 1
-    with modelXbrl.fileSource.file(filepath) as f:
+    foundXmlDeclaration = False
+    file, encoding = modelXbrl.fileSource.file(filepath)
+    with file as f:
         while True:
             line = f.readline()
             if line == "":
                 break;
             # check for disallowed characters or entity codes
             for match in docCheckPattern.finditer(line):
-                str = match.group()
-                if str.startswith("&"):
-                    if not str in xhtmlEntities:
-                        modelXbrl.error(
-                            "Disallowed entity code {0} in file {1} line {2} col {3}".format(
-                                      str, os.path.basename(filepath), lineNum, match.start()), 
-                            "err", "EFM.5.2.2.6", "GFM.1.01.02")
+                text = match.group()
+                if text.startswith("&"):
+                    if not text in xhtmlEntities:
+                        modelXbrl.error(("EFM.5.2.2.6", "GFM.1.01.02"),
+                            _("Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s"),
+                            text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
                 elif modelXbrl.modelManager.disclosureSystem.EFM:
-                    modelXbrl.error(
-                        "Disallowed character '{0}' in file {1} at line {2} col {3}".format(
-                                  str, os.path.basename(filepath), lineNum, match.start()), 
-                        "err", "EFM.5.2.1.1")
-            result += line
+                    modelXbrl.error("EFM.5.2.1.1",
+                        _("Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s"),
+                        text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
+            if lineNum == 1:
+                xmlDeclarationMatch = XMLdeclaration.search(line)
+                if xmlDeclarationMatch: # remove it for lxml
+                    start,end = xmlDeclarationMatch.span()
+                    line = line[0:start] + line[end:]
+                    foundXmlDeclaration = True
+            result.append(line)
             lineNum += 1
-    return io.StringIO(initial_value=result)
+    result = ''.join(result)
+    if not foundXmlDeclaration: # may be multiline, try again
+        xmlDeclarationMatch = XMLdeclaration.search(result)
+        if xmlDeclarationMatch: # remove it for lxml
+            start,end = xmlDeclarationMatch.span()
+            result = result[0:start] + result[end:]
+            foundXmlDeclaration = True
+    return (io.StringIO(initial_value=result), encoding)
         
 def removeEntities(text):
     entitylessText = []
@@ -420,10 +435,9 @@ def validateTextBlockFacts(modelXbrl):
             for match in entityPattern.finditer(f1.value):
                 entity = match.group()
                 if not entity in xhtmlEntities:
-                    modelXbrl.error(
-                        _("{0} has disallowed entity {1}").format(
-                                  handler.errorDescription(), entity), 
-                        "err", "EFM.6.05.16", "GFM.1.2.15")                    
+                    modelXbrl.error(("EFM.6.05.16", "GFM.1.2.15"),
+                        _("Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s"),
+                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, entity=entity)
             # test html
             for xmltext in [f1.value] + CDATApattern.findall(f1.value):
                 try:
@@ -435,10 +449,9 @@ def validateTextBlockFacts(modelXbrl):
                         UnicodeDecodeError) as err:
                     # ignore errors which are not errors (e.g., entity codes checked previously
                     if not err.endswith("undefined entity"):
-                        handler.modelXbrl.error(
-                            _("{0} has text which causes the XML error {1}").format(
-                                      handler.errorDescription(), err), 
-                            "err", "EFM.6.05.15", "GFM.1.02.14")
+                        handler.modelXbrl.error(("EFM.6.05.15", "GFM.1.02.14"),
+                            _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
+                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
             handler.fact = None
     handler.modelXbrl = None
     
@@ -448,41 +461,35 @@ def validateFootnote(modelXbrl, footnote, parent=None):
         parent = footnote
     
     if parent != footnote:
-        for i in range(len(footnote.attributes)):
-            attr = footnote.attributes.item(i)
-            if not (attr.name in htmlAttributes and \
-                (footnote.localName in htmlAttributes[attr.name] or '*' in htmlAttributes[attr.name])):
-                modelXbrl.error(
-                    _("Footnote {0} has attribute '{1}' not allowed for <{2}>").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
-                        attr.name, attr.value), 
-                    "err", "EFM.6.05.34")
-            elif (attr.name == "href" and footnote.localName == "a") or \
-                 (attr.name == "src" and footnote.localName == "img"):
-                if "javascript:" in attr.value:
-                    modelXbrl.error(
-                        _("Footnote {0} has javascript in '{1}' for <{2}>").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
-                        attr.name, footnote.localName), 
-                        "err", "EFM.6.05.34")
-                elif attr.value.startswith("http://www.sec.gov/Archives/edgar/data/") and footnote.localName == "a":
+        for attrName, attrValue in footnote.items():
+            if not (attrName in htmlAttributes and \
+                (footnote.localName in htmlAttributes[attrName] or '*' in htmlAttributes[attrName])):
+                modelXbrl.error("EFM.6.05.34",
+                    _("Footnote %(xlinkLabel)s has attribute '%(attribute)s' not allowed for <%(element)s>"),
+                    modelObject=parent, xlinkLabel=parent.get("{http://www.w3.org/1999/xlink}label"),
+                    attribute=attrName, element=footnote.localName)
+            elif (attrName == "href" and footnote.localName == "a") or \
+                 (attrName == "src" and footnote.localName == "img"):
+                if "javascript:" in attrValue:
+                    modelXbrl.error("EFM.6.05.34",
+                        _("Footnote %(xlinkLabel)s has javascript in '%(attribute)s' for <%(element)s>"),
+                        modelObject=parent, xlinkLabel=parent.get("{http://www.w3.org/1999/xlink}label"),
+                        attribute=attrName, element=footnote.localName)
+                elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and footnote.localName == "a":
                     pass
-                elif "http:" in attr.value or "https:" in attr.value or "ftp:" in attr.value:
-                    modelXbrl.error(
-                        _("Footnote {0} has an invalid external reference in '{1}' for <{2}>: {3}").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
-                        attr.name, footnote.localName, attr.value), 
-                        "err", "EFM.6.05.34")
+                elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
+                    modelXbrl.error("EFM.6.05.34",
+                        _("Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
+                        modelObject=parent, xlinkLabel=parent.get("{http://www.w3.org/1999/xlink}label"),
+                        attribute=attrName, element=footnote.localName, value=attrValue)
             
-    for child in footnote.childNodes:
-
-        if child.nodeType == 1: #element
+    for child in footnote.iterchildren():
+        if isinstance(child,ModelObject): #element
             if not child.localName in bodyTags:
-                modelXbrl.error(
-                    _("Footnote {0} has disallowed html tag: <{1}>").format(
-                        footnote.getAttributeNS(XbrlConst.xlink, "label"),
-                        child.localName), 
-                    "err", "EFM.6.05.34")
+                modelXbrl.error("EFM.6.05.34",
+                    _("Footnote %(xlinkLabel)s has disallowed html tag: <%(element)s>"),
+                    modelObject=parent, xlinkLabel=parent.get("{http://www.w3.org/1999/xlink}label"),
+                    element=child.localName)
             else:
                 validateFootnote(modelXbrl, child, footnote)
 
@@ -503,67 +510,59 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
             if self.nestedBodyCount == 1:   # outer body is ok
                 return
         if not name in bodyTags:
-            self.modelXbrl.error(
-                _("{0} has disallowed html tag: <{1}>").format(
-                          self.errorDescription(), name), 
-                "err", "EFM.6.05.16")
+            self.modelXbrl.error("EFM.6.05.16",
+                _("Fact %(fact)s of context %(contextID) has disallowed html tag: <%(element)s>"),
+                modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
+                element=name)
         else:
             for item in attrs.items():
                 if not (item[0] in htmlAttributes and \
                     (name in htmlAttributes[item[0]] or '*' in htmlAttributes[item[0]])):
-                    self.modelXbrl.error(
-                        _("{0} has attribute '{1}' not allowed for <{2}>").format(
-                                  self.errorDescription(), item[0], name), 
-                        "err", "EFM.6.05.16")
+                    self.modelXbrl.error("EFM.6.05.16",
+                        _("Fact %(fact)s of context %(contextID) has attribute '%(attribute)s' not allowed for <%(element)s>"),
+                        modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
+                        attribute=item[0], element=name)
                 elif (item[0] == "href" and name == "a") or \
                      (item[0] == "src" and name == "img"):
                     if "javascript:" in item[1]:
-                        self.modelXbrl.error(
-                            _("{0} has javascript in '{1}' for <{2}>").format(
-                                      self.errorDescription(), item[0], name), 
-                            "err", "EFM.6.05.16")
+                        self.modelXbrl.error("EFM.6.05.16",
+                            _("Fact %(fact)s of context %(contextID) has javascript in '%(attribute)s' for <%(element)s>"),
+                            modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
+                            attribute=item[0], element=name)
                     elif item[1].startswith("http://www.sec.gov/Archives/edgar/data/") and name == "a":
                         pass
                     elif "http:" in item[1] or "https:" in item[1] or "ftp:" in item[1]:
-                        self.modelXbrl.error(
-                            _("{0} has an invalid external reference in '{2}' for <{2}>").format(
-                                      self.errorDescription(), item[0], name), 
-                            "err", "EFM.6.05.16")
+                        self.modelXbrl.error("EFM.6.05.16",
+                            _("Fact %(fact)s of context %(contextID) has an invalid external reference in '%(attribute)s' for <%(element)s>"),
+                            modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
+                            attribute=item[0], element=name)
 
     def characters (self, ch):
         if ">" in ch:
-            self.modelXbrl.error(
-                _("{0} has a '>' in text, not well-formed XML: '{1}'").format(
-                          self.errorDescription(), ch), 
-                "err", "EFM.6.05.15")
+            self.modelXbrl.error("EFM.6.05.15",
+                _("Fact %(fact)s of context %(contextID) has a '>' in text, not well-formed XML: '%(text)s'"),
+                 modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, text=ch)
 
     def endElement(self, name):
         if name == "body":
             self.nestedBodyCount -= 1
             
     def error(self, err):
-        self.modelXbrl.error(
-            _("{0} has text which causes the XML error {1} line {2} col {3}").format(
-                      self.errorDescription(), 
-                      err.getMessage(), err.getLineNumber(), err.getColumnNumber()), 
-            "err", "EFM.6.05.15")
+        self.modelXbrl.error("EFM.6.05.15",
+            _("Fact %(fact)s of context %(contextID) has text which causes the XML error %(error)s line %(line)s column %(column)s"),
+             modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
+             error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
     
     def fatalError(self, err):
         msg = err.getMessage()
-        self.modelXbrl.error(
-            _("{0} has text which causes the XML fatal error {1} line {2} col {3}").format(
-                  self.errorDescription(), 
-                  msg, err.getLineNumber(), err.getColumnNumber()), 
-            "err", "EFM.6.05.15")
+        self.modelXbrl.error("EFM.6.05.15",
+            _("Fact %(fact)s of context %(contextID) has text which causes the XML fatal error %(error)s line %(line)s column %(column)s"),
+             modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
+             error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
     
     def warning(self, err):
-        self.modelXbrl.error(
-            _("{0} has text which causes the XML warning {1} line {2} col {3}").format(
-                      self.errorDescription(), 
-                      err.getMessage(), err.getLineNumber(), err.getColumnNumber()), 
-            "wrn", "EFM.6.05.15")
+        self.modelXbrl.warning("EFM.6.05.15",
+            _("Fact %(fact)s of context %(contextID) has text which causes the XML warning %(error)s line %(line)s column %(column)s"),
+             modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
+             error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
         
-    def errorDescription(self):
-        return _("Fact {0} of context {1}").format(
-              self.fact.qname, self.fact.contextID)
-            

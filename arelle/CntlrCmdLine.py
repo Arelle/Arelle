@@ -8,17 +8,18 @@ This module is Arelle's controller in command line non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import gettext, time, datetime
+import gettext, time, datetime, os, shlex
 from optparse import OptionParser
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, ViewCsvRelationshipSet, ViewCsvTests)
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
+import logging
 
 def main():
     gettext.install("arelle")
     usage = "usage: %prog [options]"
-    parser = OptionParser(usage, version="Arelle(TM) {0}".format(Version.version))
+    parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
     parser.add_option("-f", "--file", dest="filename",
                       help=_("FILENAME is an entry point, which may be"
                              "an XBRL instance, schema, linkbase file, "
@@ -55,6 +56,8 @@ def main():
                       help=_("Write DTS tree into CSVFILE"))
     parser.add_option("--csvFacts", action="store", dest="csvFactList",
                       help=_("Write fact list into CSVFILE"))
+    parser.add_option("--csvFactCols", action="store", dest="csvFactListCols",
+                      help=_("Columns for CSVFILE"))
     parser.add_option("--csvConcepts", action="store", dest="csvConcepts",
                       help=_("Write concepts into CSVFILE"))
     parser.add_option("--csvPre", action="store", dest="csvPre",
@@ -83,13 +86,19 @@ def main():
     parser.add_option("--formulaVarExpressionEvaluation", action="store_true", dest="formulaVarExpressionEvaluation", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--packageDTS", action="store_true", dest="packageDTS", help=_("Package the opened DTSes into zip files"))
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
     
-    (options, args) = parser.parse_args()
+    envArgs = os.getenv("ARELLE_ARGS")
+    if envArgs:
+        argvFromEnv = shlex.split(envArgs)
+        (options, args) = parser.parse_args(argvFromEnv)
+    else:
+        (options, args) = parser.parse_args()
     if options.about:
-        print(_("\narelle(TM) {0}\n\n"
+        print(_("\narelle(r) {0}\n\n"
                 "An open source XBRL platform\n"
                 "(c) 2010-2011 Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -103,8 +112,9 @@ def main():
                 "See the License for the specific language governing permissions and \n"
                 "limitations under the License."
                 "\n\nIncludes:"
-                "\n   Python (c) 2001-2010 Python Software Foundation"
+                "\n   Python(r) (c) 2001-2010 Python Software Foundation"
                 "\n   PyParsing (c) 2003-2010 Paul T. McGuire"
+                "\n   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 "\n   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"
                 "\n   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
                 ).format(Version.version))
@@ -112,24 +122,21 @@ def main():
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
     else:
         # parse and run the FILENAME
-        CntlrCmdLine().run(options)
+        CntlrCmdLine(logFileName=options.logFile).run(options)
         
 class CntlrCmdLine(Cntlr.Cntlr):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, logFileName=None):
+        super().__init__(logFileName=logFileName if logFileName else "logToPrint",
+                         logFormat="[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
         
     def run(self, options):
-        if options.logFile:
-            self.messages = []
-        else:
-            self.messages = None
-        
         self.filename = options.filename
-        filesource = FileSource.FileSource(self.filename,self)
+        filesource = FileSource.openFileSource(self.filename,self)
         if options.validateEFM:
             if options.gfmName:
-                self.addToLog(_("[info] both --efm and --gfm validation are requested, proceeding with --efm only"))
+                self.addToLog(_("both --efm and --gfm validation are requested, proceeding with --efm only"),
+                              messageCode="info", file=self.filename)
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select("efm")
         elif options.gfmName:
@@ -139,7 +146,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
         if options.calcDecimals:
             if options.calcPrecision:
-                self.addToLog(_("[info] both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"))
+                self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
+                              messageCode="info", file=self.filename)
             self.modelManager.validateInferDecimals = True
             self.modelManager.validateCalcLB = True
         elif options.calcPrecision:
@@ -185,28 +193,32 @@ class CntlrCmdLine(Cntlr.Cntlr):
         startedAt = time.time()
         modelXbrl = self.modelManager.load(filesource, _("views loading"))
         self.addToLog(format_string(self.modelManager.locale, 
-                                    _("[info] loaded in %.2f secs at %s"), 
-                                    (time.time() - startedAt, timeNow)))
+                                    _("loaded in %.2f secs at %s"), 
+                                    (time.time() - startedAt, timeNow)), 
+                                    messageCode="info", file=self.filename)
         
         if options.diffFilename and options.versReportFilename:
             diffFilesource = FileSource.FileSource(self.diffFilename,self)
             startedAt = time.time()
             modelXbrl = self.modelManager.load(diffFilesource, _("views loading"))
             self.addToLog(format_string(self.modelManager.locale, 
-                                        _("[info] diff comparison DTS loaded in %.2f secs"), 
-                                        time.time() - startedAt))
+                                        _("diff comparison DTS loaded in %.2f secs"), 
+                                        time.time() - startedAt), 
+                                        messageCode="info", file=self.filename)
             startedAt = time.time()
             self.modelManager.compareDTSes(options.versReportFilename)
             self.addToLog(format_string(self.modelManager.locale, 
-                                        _("[info] compared in %.2f secs"), 
-                                        time.time() - startedAt))
+                                        _("compared in %.2f secs"), 
+                                        time.time() - startedAt), 
+                                        messageCode="info", file=self.filename)
         try:
             if options.validate:
                 startedAt = time.time()
                 self.modelManager.validate()
                 self.addToLog(format_string(self.modelManager.locale, 
-                                            _("[info] validated in %.2f secs"), 
-                                            time.time() - startedAt))
+                                            _("validated in %.2f secs"), 
+                                            time.time() - startedAt),
+                                            messageCode="info", file=self.filename)
                 if (options.csvTestReport and 
                     self.modelManager.modelXbrl.modelDocument.type in 
                         (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY)):
@@ -215,7 +227,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if options.csvDTS:
                 ViewCsvDTS.viewDTS(modelXbrl, options.csvDTS)
             if options.csvFactList:
-                ViewCsvFactList.viewFacts(modelXbrl, options.csvFactList)
+                ViewCsvFactList.viewFacts(modelXbrl, options.csvFactList, cols=options.csvFactListCols)
             if options.csvConcepts:
                 ViewCsvConcepts.viewConcepts(modelXbrl, options.csvConcepts)
             if options.csvPre:
@@ -224,25 +236,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvCal, "Calculation", "http://www.xbrl.org/2003/arcrole/summation-item")
             if options.csvDim:
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvDim, "Dimension", "XBRL-dimensions")
+            if options.packageDTS:
+                self.modelManager.packageDTS()
         except (IOError, EnvironmentError) as err:
             self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
 
-
-        if self.messages:
-            try:
-                with open(options.logFile, "w", encoding="utf-8") as fh:
-                    fh.writelines(self.messages)
-            except (IOError, EnvironmentError) as err:
-                print("Unable to save log to file: " + err)
-            
-    def addToLog(self, message):
-        if self.messages is not None:
-            self.messages.append(message + '\n')
-        else:
-            print(message) # allows printing on standard out
-    
-    def showStatus(self, message, clearAfter=None):
-        pass
-    
 if __name__ == "__main__":
     main()

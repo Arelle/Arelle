@@ -4,20 +4,25 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import tempfile, os, pickle, sys
-from arelle import (ModelManager, WebCache)
+import tempfile, os, pickle, sys, logging
+from arelle import ModelManager
 
 class Cntlr:
 
     __version__ = "0.0.4"
     
-    def __init__(self):
+    def __init__(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
+        self.hasWin32gui = False
         if sys.platform == "darwin":
+            self.isMac = True
+            self.isMSW = False
             self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = True
-            self.updateURL = "http://arelle.org/downloads/5"
+            self.updateURL = "http://arelle.org/downloads/8"
         elif sys.platform.startswith("win"):
+            self.isMac = False
+            self.isMSW = True
             tempDir = tempfile.gettempdir()
             if tempDir.endswith('local\\temp'):
                 self.userAppDir = tempDir[:-10] + 'local\\Arelle'
@@ -28,12 +33,19 @@ class Cntlr:
                 self.hasClipboard = True
             except ImportError:
                 self.hasClipboard = False
+            try:
+                import win32gui
+                self.hasWin32gui = True # active state for open file dialogs
+            except ImportError:
+                pass
             self.contextMenuClick = "<Button-3>"
             if "64 bit" in sys.version:
-                self.updateURL = "http://arelle.org/downloads/6"
+                self.updateURL = "http://arelle.org/downloads/9"
             else: # 32 bit
-                self.updateURL = "http://arelle.org/downloads/7"
+                self.updateURL = "http://arelle.org/downloads/10"
         else: # Unix/Linux
+            self.isMac = False
+            self.isMSW = False
             self.userAppDir = os.path.join(
                    os.getenv('XDG_CONFIG_HOME', os.path.expanduser("~/.config")),
                    "arelle")
@@ -91,9 +103,37 @@ class Cntlr:
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         self.modelManager = ModelManager.initialize(self)
+        
+        if logFileName: # use default logging
+            self.logger = logging.getLogger("arelle")
+            if logFileName == "logToPrint":
+                self.logHandler = LogToPrintHandler()
+            else:
+                self.logHandler = logging.FileHandler(filename=logFileName, 
+                                                      mode=logFileMode if logFileMode else "w", 
+                                                      encoding=logFileEncoding if logFileEncoding else "utf-8")
+            self.logHandler.level = logging.DEBUG
+            self.logHandler.setFormatter(logging.Formatter(logFormat if logFormat else "%(asctime)s [%(messageCode)s] %(message)s - %(file)s %(sourceLine)s \n"))
+            self.logger.addHandler(self.logHandler)
+        else:
+            self.logger = None
             
-    def close(self):
-        self.saveConfig()
+    def addToLog(self, message, messageCode="", file="", sourceLine=""):
+        # if there is a default logger, use it with dummy file name and arguments
+        if self.logger is not None:
+            self.logger.info(message, extra={"messageCode":messageCode,"file":file,"sourceLine":sourceLine})
+        else:
+            print(message) # allows printing on standard out
+            
+    def showStatus(self, message, clearAfter=None):
+        # dummy status line for batch operation
+        pass
+    
+    def close(self, saveConfig=False):
+        if saveConfig:
+            self.saveConfig()
+        if self.logger is not None:
+            self.logHandler.close()
         
     def saveConfig(self):
         with open(self.configPickleFile, 'wb') as f:
@@ -149,6 +189,10 @@ class Cntlr:
             except Exception:
                 pass
         return None
+
+class LogToPrintHandler(logging.Handler):
+    def emit(self, logRecord):
+        print(self.format(logRecord))
 
 
 

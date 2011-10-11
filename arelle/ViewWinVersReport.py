@@ -6,9 +6,10 @@ Created on Nov 9, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import (ViewWinTree, ModelObject, XbrlConst)
-from arelle.ModelVersObject import (ModelConceptChange, ModelRelationshipSetChange, ModelRelationshipSet,
-                              ModelRelationships, ModelInstanceAspectsChange)
+from arelle import ViewWinTree
+from arelle.ModelDtsObject import ModelRelationship
+from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelVersObject import ModelRelationshipSetChange, ModelInstanceAspectsChange
 
 def viewVersReport(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing versioning report"))
@@ -109,7 +110,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
                     k = i + j
                     for relationshipSet, name in ((event.fromRelationshipSet, "fromRelationshipSet"),
                                                   (event.toRelationshipSet, "toRelationshipSet")):
-                        if relationshipSet:
+                        if relationshipSet is not None:
                             relSetNode = self.treeView.insert(eventNode, "end", relationshipSet.objectId(), 
                                                               text=relationshipSet.localName, 
                                                               tags=("odd" if k & 1 else "even",))
@@ -124,7 +125,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
                     k = i + j
                     for aspects, name in ((event.fromAspects, "fromAspects"),
                                                   (event.toAspects, "toAspects")):
-                        if aspects:
+                        if aspects is not None:
                             k += 1
                             aspectsNode = self.treeView.insert(eventNode, "end", aspects.objectId(), text=aspects.localName, 
                                                                tags=("even" if k & 1 else "odd",))
@@ -160,9 +161,9 @@ class ViewVersReport(ViewWinTree.ViewTree):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                if isinstance(modelObject, ModelObject.ModelRelationship):
+                if isinstance(modelObject, ModelRelationship):
                     conceptId = modelObject.toModelObject.objectId()
-                elif isinstance(modelObject, ModelObject.ModelFact):
+                elif isinstance(modelObject, ModelFact):
                     conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()
                 else:
                     conceptId = modelObject.objectId()

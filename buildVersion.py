@@ -31,7 +31,7 @@ if __name__ == "__main__":
     distFileDate = timestamp.strftime("%Y-%m-%d")
     if sys.platform == "darwin":
         with open("buildRenameDmg.sh", "w") as fh:
-            fh.write("mv dist/arelle.dmg dist/arelle-macOS-{0}.dmg\n".format(distFileDate))
+            fh.write("mv dist_dmg/arelle.dmg dist_dmg/arelle-macOS-{0}.dmg\n".format(distFileDate))
     elif sys.platform.startswith("win"):
         renameCmdFile = "buildRenamer.bat"
         with open("buildRenameX86.bat", "w") as fh:

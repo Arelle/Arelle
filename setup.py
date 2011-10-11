@@ -4,18 +4,20 @@ Created on Jan 30, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import sys
+import sys, os
 
 setup_requires = []
 options = {}
 scripts = []
 
 if sys.platform == 'darwin':
-    from setuptools import os, setup, find_packages
+    from setuptools import setup, find_packages
     
     setup_requires.append('py2app')
     # Cross-platform applications generally expect sys.argv to
     # be used for opening files.
+    
+    # MacOS launches CntlrWinMain and uses "ARELLE_ARGS" to effect console (shell) mode
     options['py2app'] =  dict(app=['arelle/CntlrWinMain.py'],
                               iconfile='arelle/images/arelle.icns',
                               plist=dict(CFBundleIconFile='arelle.icns',
@@ -24,7 +26,10 @@ if sys.platform == 'darwin':
     dataFiles = [
 	'--iconfile',
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
-	('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+    ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+    ('config',['arelle/locale/' + f for f in os.listdir('arelle/locale')]),
+    ('config',['arelle/examples/' + f for f in os.listdir('arelle/examples')]),
+    ('scripts',['arelle/scripts/' + f for f in os.listdir('arelle/scripts-macOS')]),
       ]
     cx_FreezeExecutables = None
 elif sys.platform == 'win32':
@@ -33,26 +38,26 @@ elif sys.platform == 'win32':
     # py2exe is not ported to Python 3 yet
     # setup_requires.append('py2exe')
     # FIXME: this should use the entry_points mechanism
-    scripts.extend(
-        ['scripts/runEFMTests.bat',
-         'scripts/runUS-GFMTests.bat',
-         'scripts/runUTRTests.bat',
-         'scripts/runVersioningConsumptionTests.bat',
-         'scripts/runXDTTests.bat',
-        ])
     packages = find_packages('.')
     dataFiles = None
     options = dict( build_exe =  {
         "include_files": [('arelle\\config','config'),
-                          ('arelle\\images','images')],
+                          ('arelle\\images','images'),
+                          ('arelle\\locale','locale'),
+                          ('arelle\\examples','examples'),
+                          ('arelle\\scripts-windows','scripts')],
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
         } )
    
+    # windows uses arelleGUI.exe to launch in GUI mode, arelleCmdLine.exe in command line mode
     cx_FreezeExecutables = [
         Executable(
-                script="runGUI.pyw",
+                script="arelleGUI.pyw",
                 base="Win32GUI",
+                ),
+        Executable(
+                script="arelleCmdLine.py",
                 )                            
         ]
 

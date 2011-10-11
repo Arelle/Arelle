@@ -34,6 +34,15 @@ class Validate:
         else:
             self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
             self.formulaValidator = self.instValidator
+        if hasattr(modelXbrl,"fileSource"):
+            self.useFileSource = modelXbrl.fileSource
+        else:
+            self.useFileSource = None
+            
+    def close(self):
+        self.instValidator.close(reusable=False)
+        self.formulaValidator.close(reusable=False)
+        self.__dict__.clear()   # dereference variables
         
     def validate(self):
         # sort test cases by uri
@@ -48,36 +57,37 @@ class Validate:
             try:
                 self.validateTestcase(self.modelXbrl.modelDocument)
             except Exception as err:
-                self.modelXbrl.error(
-                    _("Testcase validation exception: {0}, testcase: {1}, at {2}").format(
-                         err,
-                         self.modelXbrl.modelDocument.basename,
-                         traceback.format_tb(sys.exc_info()[2])), 
-                    "err", "exception")
+                self.modelXbrl.error("exception",
+                    _("Testcase validation exception: %(error)s, testcase: %(testcase)s"),
+                    modelXbrl=self.modelXbrl,
+                    testcase=self.modelXbrl.modelDocument.basename, error=err,
+                    #traceback=traceback.format_tb(sys.exc_info()[2]),
+                    exc_info=True)
         elif self.modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
             try:
-                ValidateVersReport.ValidateVersReport(self.modelXbrl) \
-                    .validate(self.modelXbrl)
+                ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(self.modelXbrl)
             except Exception as err:
-                self.modelXbrl.error(
-                    _("Version report exception: {0}, testcase: {1}, at {2}").format(
-                         err,
-                         self.modelXbrl.modelDocument.basename,
-                         traceback.format_tb(sys.exc_info()[2])), 
-                    "err", "exception")
-        elif self.modelXbrl.modelDocument.type != ModelDocument.Type.Unknown:
+                self.modelXbrl.error("exception",
+                    _("Versioning report exception: %(error)s, testcase: %(reportFile)s"),
+                    modelXbrl=self.modelXbrl,
+                    reportFile=self.modelXbrl.modelDocument.basename, error=err,
+                    #traceback=traceback.format_tb(sys.exc_info()[2]),
+                    exc_info=True)
+        else:
             try:
                 self.instValidator.validate(self.modelXbrl)
+                self.instValidator.close()
             except Exception as err:
-                self.modelXbrl.error(
-                    _("Instance validation exception: {0}, instance: {1}, at {2}").format(
-                         err, 
-                         self.modelXbrl.modelDocument.basename if self.modelXbrl and self.modelXbrl.modelDocument else _("(not available)"),
-                         traceback.format_tb(sys.exc_info()[2])), 
-                    "err", "exception")
+                self.modelXbrl.error("exception",
+                    _("Instance validation exception: %(error)s, instance: %(instance)s"),
+                    modelXbrl=self.modelXbrl,
+                    instance=self.modelXbrl.modelDocument.basename, error=err,
+                    # traceback=traceback.format_tb(sys.exc_info()[2]),
+                    exc_info=True)
+        self.close()
 
     def validateTestcase(self, testcase):
-        self.modelXbrl.error(_("testcase {0}").format(os.path.basename(testcase.uri)))
+        self.modelXbrl.info("info", "Testcase", modelDocument=testcase)
         self.modelXbrl.viewModelObject(testcase.objectId())
         if hasattr(testcase, "testcaseVariations"):
             for modelTestcaseVariation in testcase.testcaseVariations:
@@ -88,9 +98,10 @@ class Validate:
                 resultIsXbrlInstance = modelTestcaseVariation.resultIsXbrlInstance
                 formulaOutputInstance = None
                 inputDTSes = defaultdict(list)
-                baseForElement = testcase.baseForElement(modelTestcaseVariation.element)
+                baseForElement = testcase.baseForElement(modelTestcaseVariation)
                 # try to load instance document
-                self.modelXbrl.error(_("variation {0} {1}: {2}").format(modelTestcaseVariation.id, modelTestcaseVariation.name, modelTestcaseVariation.expected))
+                self.modelXbrl.info("info", _("Variation %(id)s %(name)s: %(expected)s"),
+                    modelObject=modelTestcaseVariation, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, expected=modelTestcaseVariation.expected)
                 for readMeFirstUri in modelTestcaseVariation.readMeFirstUris:
                     if isinstance(readMeFirstUri,tuple):
                         # dtsName is for formula instances, but is from/to dts if versioning
@@ -117,17 +128,18 @@ class Validate:
                         modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    readMeFirstUri,
                                                    _("validating"), 
-                                                   base=baseForElement)
+                                                   base=baseForElement,
+                                                   useFileSource=self.useFileSource)
                     if modelXbrl.modelDocument is None:
-                        self.modelXbrl.error(_("Testcase {0} {1} document not loaded: {2}").format(
-                            modelTestcaseVariation.id, modelTestcaseVariation.name, os.path.basename(readMeFirstUri)))
+                        self.modelXbrl.error("arelle:notLoaded",
+                             _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
+                             modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         modelTestcaseVariation.status = "not loadable"
                         modelXbrl.close()
                     elif resultIsVersioningReport:
                         inputDTSes[dtsName] = modelXbrl
                     elif modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
-                        ValidateVersReport.ValidateVersReport(self.modelXbrl) \
-                            .validate(modelXbrl)
+                        ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelXbrl)
                         self.determineTestStatus(modelTestcaseVariation, modelXbrl)
                         modelXbrl.close()
                     elif testcase.type == ModelDocument.Type.REGISTRYTESTCASE:
@@ -135,6 +147,7 @@ class Validate:
                         self.instValidator.executeCallTest(modelXbrl, modelTestcaseVariation.id, 
                                    modelTestcaseVariation.cfcnCall, modelTestcaseVariation.cfcnTest)
                         self.determineTestStatus(modelTestcaseVariation, modelXbrl)
+                        self.instValidator.close()
                         modelXbrl.close()
                     else:
                         inputDTSes[dtsName].append(modelXbrl)
@@ -152,8 +165,9 @@ class Validate:
                               versReportFile, inputDTSes["from"], inputDTSes["to"])
                         modelTestcaseVariation.status = "generated"
                     else:
-                        self.modelXbrl.error(_("Testcase {0} {1} DTSes not loaded, unable to generate versioning report").format(
-                            modelTestcaseVariation.id, modelTestcaseVariation.name, os.path.basename(readMeFirstUri)))
+                        self.modelXbrl.error("arelle:notLoaded",
+                             _("Testcase %(id)s %(name)s DTSes not loaded, unable to generate versioning report: %(file)s"),
+                             modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         modelTestcaseVariation.status = "failed"
                     for inputDTS in inputDTSes:
                         inputDTS.close()
@@ -166,13 +180,16 @@ class Validate:
                             parameters[dtsName] = (None, inputDTS)
                     self.instValidator.validate(modelXbrl, parameters)
                     self.determineTestStatus(modelTestcaseVariation, modelXbrl)
-                    if modelXbrl.formulaOutputInstance and len(modelTestcaseVariation.actual) == 0: 
-                        # if an output instance is created, validate it
+                    self.instValidator.close()
+                    if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 
+                        # if an output instance is created, and no string error codes, ignoring dict of assertion results, validate it
+                        modelXbrl.formulaOutputInstance.hasFormulae = False #  block formulae on output instance (so assertion of input is not lost)
                         self.instValidator.validate(modelXbrl.formulaOutputInstance, modelTestcaseVariation.parameters)
                         self.determineTestStatus(modelTestcaseVariation, modelXbrl.formulaOutputInstance)
-                        if len(modelTestcaseVariation.actual) == 0: # if still 'clean' pass it forward for comparison to expected result instance
+                        if self.noErrorCodes(modelTestcaseVariation.actual): # if still 'clean' pass it forward for comparison to expected result instance
                             formulaOutputInstance = modelXbrl.formulaOutputInstance
                             modelXbrl.formulaOutputInstance = None # prevent it from being closed now
+                        self.instValidator.close()
                     for inputDTSlist in inputDTSes.values():
                         for inputDTS in inputDTSlist:
                             inputDTS.close()
@@ -182,24 +199,24 @@ class Validate:
                                                    _("loading expected result XBRL instance"), 
                                                    base=baseForElement)
                         if expectedInstance.modelDocument is None:
-                            self.modelXbrl.error(_("Testcase {0} {1} expected result instance not loaded: {2}").format(
-                                modelTestcaseVariation.id, modelTestcaseVariation.name, os.path.basename(modelTestcaseVariation.resultXbrlInstance)))
+                            self.modelXbrl.error("arelle:notLoaded",
+                                _("Testcase %(id)s %(name)s expected result instance not loaded: %(file)s"),
+                                modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
+                                file=os.path.basename(modelTestcaseVariation.resultXbrlInstance))
                             modelTestcaseVariation.status = "result not loadable"
                             expectedInstance.close()
                         else:   # compare facts
                             if len(expectedInstance.facts) != len(formulaOutputInstance.facts):
-                                formulaOutputInstance.error(
-                                    _("Formula output {0} facts, expected {1} facts").format(
-                                         len(formulaOutputInstance.facts),
-                                         len(expectedInstance.facts)), 
-                                    "err", "formula:resultFactCounts")
+                                formulaOutputInstance.error("formula:resultFactCounts",
+                                    _("Formula output %(countFacts)s facts, expected %(expectedFacts)s facts"),
+                                    modelXbrl=modelXbrl, countFacts=len(formulaOutputInstance.facts),
+                                         expectedFacts=len(expectedInstance.facts))
                             else:
                                 for fact in expectedInstance.facts:
-                                    if not formulaOutputInstance.matchFact(fact):
-                                        formulaOutputInstance.error(
-                                            _("Formula output missing expected fact {0}").format(
-                                                 fact), 
-                                            "err", "formula:expectedFactMissing")
+                                    if formulaOutputInstance.matchFact(fact) is None:
+                                        formulaOutputInstance.error("formula:expectedFactMissing",
+                                            _("Formula output missing expected fact %(fact)s"),
+                                            modelXbrl=modelXbrl, fact=fact)
                         self.determineTestStatus(modelTestcaseVariation, formulaOutputInstance)
                         formulaOutputInstance.close()
                         formulaOutputInstance = None
@@ -208,6 +225,9 @@ class Validate:
                     
             self.modelXbrl.modelManager.showStatus(_("ready"), 2000)
             
+    def noErrorCodes(self, modelTestcaseVariation):
+        return not any(not isinstance(actual,dict) for actual in modelTestcaseVariation)
+                
     def determineTestStatus(self, modelTestcaseVariation, modelUnderTest):
         numErrors = len(modelUnderTest.errors)
         expected = modelTestcaseVariation.expected
@@ -229,12 +249,17 @@ class Validate:
                 if isinstance(expected,QName) and isinstance(testErr,str):
                     errPrefix, sep, errLocalName = testErr.partition(":")
                     if ((not sep and errPrefix == expected.localName) or
-                        (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName))):
+                        (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName)) or
+                        # XDT xml schema tests expected results 
+                        (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                         status = "pass"
                         break
-                elif type(testErr) == type(expected) and testErr == expected:
-                    status = "pass"
-                    break
+                elif type(testErr) == type(expected):
+                    if (testErr == expected or
+                        (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
+                        (expected == "EFM.6.05.35" and testErr.startswith("utr:"))):
+                        status = "pass"
+                        break
             if (not modelUnderTest.errors and status == "fail" and 
                 modelTestcaseVariation.assertions and modelTestcaseVariation.assertions == expected):
                 status = "pass" # passing was previously successful and no further errors 
@@ -254,4 +279,17 @@ class Validate:
                 if isinstance(error,dict):
                     modelTestcaseVariation.actual.append(error)
                 
-                
+import logging
+class ValidationLogListener(logging.Handler):
+    def __init__(self, logView):
+        self.logView = logView
+        self.level = logging.DEBUG
+    def flush(self):
+        ''' Nothing to flush '''
+    def emit(self, logRecord):
+        # add to logView        
+        msg = self.format(logRecord)        
+        try:            
+            self.logView.append(msg)
+        except:
+            pass

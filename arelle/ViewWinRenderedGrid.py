@@ -5,8 +5,11 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os
-from tkinter import Menu, constants, BooleanVar
-from arelle import (ViewWinGrid, ModelObject, XbrlConst)
+from tkinter import Menu, constants
+from arelle import ViewWinGrid, ModelObject, XbrlConst
+from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
+                                         inheritedExplicitDims, dimContextElement,
+                                         FactPrototype, ContextPrototype, DimValuePrototype)
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
                      label, checkbox, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
@@ -21,15 +24,13 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     ValidateXbrlDimensions.loadDimensionDefaults(view)
     
     # context menu
+    setDefaults(view)
     menu = view.contextMenu()
     optionsMenu = Menu(view.viewFrame, tearoff=0)
-    view.ignoreDimValidity = BooleanVar(value=True)
     view.ignoreDimValidity.trace("w", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("Ignore Dimensional Validity"), underline=0, variable=view.ignoreDimValidity, onvalue=True, offvalue=False)
-    view.xAxisChildrenFirst = BooleanVar(value=True)
     view.xAxisChildrenFirst.trace("w", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("X-Axis Children First"), underline=0, variable=view.xAxisChildrenFirst, onvalue=True, offvalue=False)
-    view.yAxisChildrenFirst = BooleanVar(value=False)
     view.yAxisChildrenFirst.trace("w", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("Y-Axis Children First"), underline=0, variable=view.yAxisChildrenFirst, onvalue=True, offvalue=False)
     menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
@@ -37,6 +38,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     menu.add_cascade(label=_("Tables"), menu=view.tablesMenu, underline=0)
     view.tablesMenuLength = 0
     view.menuAddLangs()
+    view.menu.add_command(label=_("Save html file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view))
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -56,20 +58,21 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     
     def loadTablesMenu(self):
         tblMenuEntries = {}             
-        tblRelSet = self.modelXbrl.relationshipSet("EU-rendering")
+        tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
         for tblLinkroleUri in tblRelSet.linkRoleUris:
-            tblAxisRelSet = self.modelXbrl.relationshipSet(XbrlConst.euTableAxis, tblLinkroleUri)
-            if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
-                # table name
-                modelRoleTypes = self.modelXbrl.roleTypes.get(tblLinkroleUri)
-                if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-                    roledefinition = modelRoleTypes[0].definition
-                    if roledefinition is None or roledefinition == "":
-                        roledefinition = os.path.basename(tblLinkroleUri)       
-                    for table in tblAxisRelSet.rootConcepts:
-                        # add table to menu if there's any entry
-                        tblMenuEntries[roledefinition] = tblLinkroleUri
-                        break
+            for tableAxisArcrole in (XbrlConst.euTableAxis, XbrlConst.tableAxis):
+                tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, tblLinkroleUri)
+                if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
+                    # table name
+                    modelRoleTypes = self.modelXbrl.roleTypes.get(tblLinkroleUri)
+                    if modelRoleTypes is not None and len(modelRoleTypes) > 0:
+                        roledefinition = modelRoleTypes[0].definition
+                        if roledefinition is None or roledefinition == "":
+                            roledefinition = os.path.basename(tblLinkroleUri)       
+                        for table in tblAxisRelSet.rootConcepts:
+                            # add table to menu if there's any entry
+                            tblMenuEntries[roledefinition] = tblLinkroleUri
+                            break
         self.tablesMenu.delete(0, self.tablesMenuLength)
         self.tablesMenuLength = 0
         for tblMenuEntry in sorted(tblMenuEntries.items()):
@@ -89,101 +92,38 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.loadTablesMenu()  # load menus (and initialize if first time
             viewTblELR = self.tblELR
 
-        tblAxisRelSet = self.modelXbrl.relationshipSet(XbrlConst.euTableAxis, viewTblELR)
-        self.axisMbrRelSet = self.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
-        if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
-            self.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(self.arcrole))
-            return False
         # remove old widgets
         self.viewFrame.clearGrid()
 
-        # table name
-        modelRoleTypes = self.modelXbrl.roleTypes.get(viewTblELR)
-        if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-            roledefinition = modelRoleTypes[0].definition
-            if roledefinition is None or roledefinition == "":
-                roledefinition = os.path.basename(viewTblELR)       
-        for table in tblAxisRelSet.rootConcepts:            
-            self.dataCols = 0
-            self.dataRows = 0
-            self.colHdrDocRow = False
-            self.colHdrCodeRow = False
-            self.colHdrRows = 0
-            self.dataRows = 0
-            self.rowHdrMaxIndent = 0
-            self.rowHdrDocRow = False
-            self.rowHdrCodeRow = False
-            self.zAxisRows = 0
-            
-            xAxisObj = yAxisObj = zAxisObj = None
-            for tblAxisRel in tblAxisRelSet.fromModelObject(table):
-                axisType = tblAxisRel.element.getAttribute("axisType")
-                axisObj = tblAxisRel.toModelObject
-                if axisType == "xAxis": xAxisObj = axisObj
-                elif axisType == "yAxis": yAxisObj = axisObj
-                elif axisType == "zAxis": zAxisObj = axisObj
-                self.analyzeHdrs(axisObj, 1, axisType)
-            self.colHdrTopRow = self.zAxisRows + (2 if self.zAxisRows else 1)
-            self.dataFirstRow = self.colHdrTopRow + self.colHdrRows + self.colHdrDocRow + self.colHdrCodeRow
-            self.dataFirstCol = 2 + self.rowHdrDocRow + self.rowHdrCodeRow
-            #for i in range(self.dataFirstRow + self.dataRows):
-            #    self.gridView.rowconfigure(i)
-            #for i in range(self.dataFirstCol + self.dataCols):
-            #    self.gridView.columnconfigure(i)
+        tblAxisRelSet, xAxisObj, yAxisObj, zAxisObj = getTblAxes(self, viewTblELR) 
+        
+        if tblAxisRelSet:
             
             gridHdr(self.gridTblHdr, 0, 0, 
-                    roledefinition, 
+                    self.roledefinition, 
                     anchor="nw",
                     #columnspan=(self.dataFirstCol - 1),
                     #rowspan=(self.dataFirstRow),
-                    wraplength=200)
+                    wraplength=200) # in screen units
             zFilters = []
             self.zAxis(1, zAxisObj, zFilters)
             xFilters = []
             self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                        xAxisObj, xFilters, self.xAxisChildrenFirst.get(), True, True)
-            self.yAxis(self.dataFirstRow, 0, yAxisObj, True, self.yAxisChildrenFirst.get())
-            self.bodyCells(self.dataFirstRow, 0, yAxisObj, xFilters, zFilters, self.yAxisChildrenFirst.get())
+            self.yAxis(1, self.dataFirstRow,
+                       yAxisObj, self.yAxisChildrenFirst.get(), True, True)
+            self.bodyCells(self.dataFirstRow, yAxisObj, xFilters, zFilters, self.yAxisChildrenFirst.get())
                 
             # data cells
                 
         #self.gridView.config(scrollregion=self.gridView.bbox(constants.ALL))
 
-                
-    def analyzeHdrs(self, axisModelObj, depth, axisType):
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(axisModelObj):
-            axisMbrModelObject = axisMbrRel.toModelObject
-            if axisType == "zAxis":
-                self.zAxisRows += 1 
-                
-                continue # no recursion
-            elif axisType == "xAxis":
-                self.dataCols += 1
-                if depth > self.colHdrRows: self.colHdrRows = depth 
-                if not self.colHdrDocRow:
-                    if axisMbrModelObject.genLabel(role="http://www.xbrl.org/2008/role/documentation",
-                                                   lang=self.lang): 
-                        self.colHdrDocRow = True
-                if not self.colHdrCodeRow:
-                    if axisMbrModelObject.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
-                        self.colHdrCodeRow = True
-            elif axisType == "yAxis":
-                self.dataRows += 1
-                if depth > self.rowHdrMaxIndent: self.rowHdrMaxIndent = depth
-                if not self.rowHdrDocRow:
-                    if axisMbrModelObject.genLabel(role="http://www.xbrl.org/2008/role/documentation",
-                                                   lang=self.lang): 
-                        self.rowHdrDocRow = True
-                if not self.rowHdrCodeRow:
-                    if axisMbrModelObject.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
-                        self.rowHdrCodeRow = True
-            self.analyzeHdrs(axisMbrModelObject, depth+1, axisType) #recurse
             
     def zAxis(self, row, zAxisObj, zFilters):
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(zAxisObj):
             zAxisObj = axisMbrRel.toModelObject
-            zFilters.append((self.inheritedPrimaryItemQname(zAxisObj),
-                             self.inheritedExplicitDims(zAxisObj),
+            zFilters.append((inheritedPrimaryItemQname(self, zAxisObj),
+                             inheritedExplicitDims(self, zAxisObj),
                              zAxisObj.genLabel(lang=self.lang)))
             priorZfilter = len(zFilters)
             self.zAxis(None, zAxisObj, zFilters)
@@ -194,7 +134,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 gridHdr(self.gridColHdr, self.dataFirstCol, row,
                         zAxisObj.genLabel(lang=self.lang), 
                         anchor="w", columnspan=2,
-                        wraplength=200,
+                        wraplength=200, # in screen units
                         objectId=zAxisObj.objectId(),
                         onClick=self.onClick)
                 nextZfilter = len(zFilters)
@@ -233,7 +173,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             #    rightCol -= 1
             nonAbstract = xAxisHdrObj.abstract == "false"
             if nonAbstract:
-                width += 100 # width for this label
+                width += 100 # width for this label, in screen units
             widthToSpanParent += width
             label = xAxisHdrObj.genLabel(lang=self.lang)
             if childrenFirst:
@@ -253,18 +193,18 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         anchor="center",
                         columnspan=(rightCol - leftCol + (1 if nonAbstract else 0)),
                         rowspan=(row - topRow + 1) if leafNode else 1,
-                        wraplength=width,
+                        wraplength=width, # screen units
                         objectId=xAxisHdrObj.objectId(),
                         onClick=self.onClick)
                 if nonAbstract:
                     if self.colHdrDocRow:
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeRow, TOPBORDER)
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeRow, sideBorder)
-                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeRow, 
+                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, TOPBORDER)
+                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, sideBorder)
+                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, 
                                 xAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
                                                        lang=self.lang), 
                                 anchor="center",
-                                wraplength=100,
+                                wraplength=100, # screen units
                                 objectId=xAxisHdrObj.objectId(),
                                 onClick=self.onClick)
                     if self.colHdrCodeRow:
@@ -272,13 +212,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, sideBorder)
                         gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1, 
                                 xAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                                anchor="w",
-                                wraplength=100,
+                                anchor="center",
+                                wraplength=100, # screen units
                                 objectId=xAxisHdrObj.objectId(),
                                 onClick=self.onClick)
                     gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, BOTTOMBORDER)
-                    xFilters.append((self.inheritedPrimaryItemQname(xAxisHdrObj),
-                                     self.inheritedExplicitDims(xAxisHdrObj)))
+                    xFilters.append((inheritedPrimaryItemQname(self, xAxisHdrObj),
+                                     inheritedExplicitDims(self, xAxisHdrObj)))
             if nonAbstract:
                 rightCol += 1
             if renderNow and not childrenFirst:
@@ -288,73 +228,96 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             gridBorder(self.gridColHdr, rightCol - 1, 1, RIGHTBORDER, rowspan=self.dataFirstRow)
         return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
-    def yAxis(self, row, indent, yAxisParentObj, atLeft, childrenFirst):
-        col = 0
-        isEntirelyAbstract = True
+    def yAxis(self, leftCol, row, yAxisParentObj, childrenFirst, renderNow, atLeft):
+        nestedBottomRow = row
+        if atLeft:
+            gridBorder(self.gridRowHdr, self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol, 
+                       self.dataFirstRow, 
+                       RIGHTBORDER, 
+                       rowspan=self.dataRows)
+            gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
+                       BOTTOMBORDER, 
+                       columnspan=(self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol))
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
-            if yAxisHdrObj.abstract == "false":
-                isEntirelyAbstract= False
-                break
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
-            yAxisHdrObj = axisMbrRel.toModelObject
-            if childrenFirst:
-                row = self.yAxis(row, 
-                                 indent + (0 if isEntirelyAbstract else 20), 
-                                 yAxisHdrObj, atLeft and col == 0, 
-                                 childrenFirst)
-            if yAxisHdrObj.abstract == "false":
-                gridBorder(self.gridRowHdr, 1, row, TOPBORDER)
-                gridBorder(self.gridRowHdr, 1, row, LEFTBORDER)
-                gridHdr(self.gridRowHdr, 1, row, 
-                        yAxisHdrObj.genLabel(lang=self.lang), 
-                        anchor="w",
-                        padding=(indent,0,0,0) if indent is not None else None,
-                        wraplength=200,
+            nestRow, nextRow = self.yAxis(leftCol + 1, row, yAxisHdrObj,  # nested items before totals
+                                    childrenFirst, childrenFirst, False)
+            
+            isNonAbstract = yAxisHdrObj.abstract == "false"
+            isAbstract = not isNonAbstract
+            label = yAxisHdrObj.genLabel(lang=self.lang)
+            topRow = row
+            if childrenFirst and isNonAbstract:
+                row = nextRow
+            if renderNow:
+                columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else None
+                gridBorder(self.gridRowHdr, leftCol, topRow, LEFTBORDER, 
+                           rowspan=(nestRow - topRow + 1) )
+                gridBorder(self.gridRowHdr, leftCol, topRow, TOPBORDER, 
+                           columnspan=(1 if childrenFirst and nextRow > row else columnspan))
+                if childrenFirst and row > topRow:
+                    gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
+                               columnspan=(self.rowHdrCols - leftCol))
+                gridHdr(self.gridRowHdr, leftCol, row, 
+                        label if label else "         ", 
+                        anchor=("w" if isNonAbstract or nestRow == row else "center"),
+                        columnspan=columnspan,
+                        rowspan=(nestRow - row if isAbstract else None),
+                        # wraplength is in screen units
+                        wraplength=(self.rowHdrColWidth[leftCol] if isAbstract else
+                                    self.rowHdrWrapLength -
+                                      sum(self.rowHdrColWidth[i] for i in range(leftCol))),
+                        minwidth=(16 if isNonAbstract and nextRow > topRow else None),
                         objectId=yAxisHdrObj.objectId(),
                         onClick=self.onClick)
-                col = 2
-                if self.rowHdrDocRow:
-                    gridBorder(self.gridRowHdr, col, row, TOPBORDER)
-                    gridBorder(self.gridRowHdr, col, row, LEFTBORDER)
-                    gridHdr(self.gridRowHdr, col, row, 
-                            yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
-                                                   lang=self.lang), 
-                            anchor="w",
-                            wraplength=100,
-                            objectId=yAxisHdrObj.objectId(),
-                            onClick=self.onClick)
-                    col += 1
-                if self.rowHdrCodeRow:
-                    gridBorder(self.gridRowHdr, col, row, TOPBORDER)
-                    gridBorder(self.gridRowHdr, col, row, LEFTBORDER)
-                    gridHdr(self.gridRowHdr, col, row, 
-                            yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                            anchor="w",
-                            wraplength=40,
-                            objectId=yAxisHdrObj.objectId(),
-                            onClick=self.onClick)
-                    col += 1
-                gridBorder(self.gridRowHdr, col - 1, row, RIGHTBORDER)
+                if isNonAbstract:
+                    if self.rowHdrDocCol:
+                        docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
+                        gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
+                        gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
+                        gridHdr(self.gridRowHdr, docCol, row, 
+                                yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation",
+                                                     lang=self.lang), 
+                                anchor="w",
+                                wraplength=100, # screen units
+                                objectId=yAxisHdrObj.objectId(),
+                                onClick=self.onClick)
+                    if self.rowHdrCodeCol:
+                        codeCol = self.dataFirstCol - 1
+                        gridBorder(self.gridRowHdr, codeCol, row, TOPBORDER)
+                        gridBorder(self.gridRowHdr, codeCol, row, LEFTBORDER)
+                        gridHdr(self.gridRowHdr, codeCol, row, 
+                                yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"),
+                                anchor="center",
+                                wraplength=40, # screen units
+                                objectId=yAxisHdrObj.objectId(),
+                                onClick=self.onClick)
+                    # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+            if isNonAbstract:
                 row += 1
+            elif childrenFirst:
+                row = nextRow
+            if nestRow > nestedBottomRow:
+                nestedBottomRow = nestRow + (not childrenFirst)
+            if row > nestedBottomRow:
+                nestedBottomRow = row
+            #if renderNow and not childrenFirst:
+            #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass
             if not childrenFirst:
-                row = self.yAxis(row, 
-                                 indent + (0 if isEntirelyAbstract else 20), 
-                                 yAxisHdrObj, atLeft and col == 0, 
-                                 childrenFirst)
-        if atLeft and col > 0:
-            gridBorder(self.gridRowHdr, 1, row, BOTTOMBORDER, columnspan=col)
-        return row
-    
-    def bodyCells(self, row, indent, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
+                dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, renderNow, False) # render on this pass
+        return (nestedBottomRow, row)
+
+    def bodyCells(self, row, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
+        dimDefaults = self.modelXbrl.qnameDimensionDefaults
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
             if yChildrenFirst:
-                row = self.bodyCells(row, indent + 20, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
+                row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
             if yAxisHdrObj.abstract == "false":
-                yAxisPriItemQname = self.inheritedPrimaryItemQname(yAxisHdrObj)
-                yAxisExplicitDims = self.inheritedExplicitDims(yAxisHdrObj)
+                yAxisPriItemQname = inheritedPrimaryItemQname(self, yAxisHdrObj)
+                yAxisExplicitDims = inheritedExplicitDims(self, yAxisHdrObj)
                     
+                gridSpacer(self.gridBody, self.dataFirstCol, row, LEFTBORDER)
                 # data for columns of row
                 ignoreDimValidity = self.ignoreDimValidity.get()
                 zFilter = zFilters[self.zFilterIndex]
@@ -370,15 +333,20 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     objectId = None
                     justify = None
                     for fact in self.modelXbrl.facts:
-                        if (fact.qname == fp.qname and
-                            all(fact.context.dimMemberQname(dim,includeDefaults=True) == mem 
-                                for dim, mem in fp.dims)):
+                        if fact.qname == fp.qname:
+                            factDimMem = fact.context.dimMemberQname
+                            defaultedDims = dimDefaults.keys() - fp.dimKeys
+                            if (all(factDimMem(dim,includeDefaults=True) == mem 
+                                    for dim, mem in fp.dims) and
+                                all(factDimMem(dim,includeDefaults=True) in (dimDefaults[dim], None)
+                                    for dim in defaultedDims)):
                                 value = fact.effectiveValue
                                 objectId = fact.objectId()
                                 justify = "right" if fact.isNumeric else "left"
                                 break
                     if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp):
-                        gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, width=12,
+                        gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, 
+                                 width=12, # width is in characters, not screen units
                                  objectId=objectId, onClick=self.onClick)
                     else:
                         gridSpacer(self.gridBody, self.dataFirstCol + i, row, CENTERCELL)
@@ -386,27 +354,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     gridSpacer(self.gridBody, self.dataFirstCol + i, row, BOTTOMBORDER)
                 row += 1
             if not yChildrenFirst:
-                row = self.bodyCells(row, indent + 20, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
+                row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
         return row
-    
-    def inheritedPrimaryItemQname(self, axisMbrObj):
-        primaryItemQname = axisMbrObj.primaryItemQname
-        if primaryItemQname:
-            return primaryItemQname
-        for axisMbrRel in self.axisMbrRelSet.toModelObject(axisMbrObj):
-            primaryItemQname = self.inheritedPrimaryItemQname(axisMbrRel.fromModelObject)
-            if primaryItemQname:
-                return primaryItemQname
-        return None
-            
-    def inheritedExplicitDims(self, axisMbrObj, dims=None):
-        if dims is None: dims = {}
-        for axisMbrRel in self.axisMbrRelSet.toModelObject(axisMbrObj):
-            self.inheritedExplicitDims(axisMbrRel.fromModelObject, dims=dims)
-        for dim, mem in axisMbrObj.explicitDims:
-            dims[dim] = mem
-        return dims.items()
-    
     def onClick(self, event):
         self.modelXbrl.viewModelObject(event.widget.objectId)
             
@@ -444,62 +393,4 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             '''
             self.blockViewModelObject -= 1
             
-    def dimContextElement(self, dimConcept):
-        try:
-            return self.dimsContextElement[dimConcept]
-        except KeyError:
-            if self.hcDimRelSet:
-                for dimHcRel in self.hcDimRelSet.toModelObject(dimConcept):
-                    if dimHcRel.fromModelObject:
-                        for hcRel in self.hcDimRelSet.toModelObject(dimHcRel.fromModelObject):
-                            contextElement = hcRel.contextElement
-                            self.dimsContextElement[dimConcept] = contextElement
-                            return contextElement
-            return None
-            
-
-class FactPrototype():      # behaves like a fact for dimensional validity testing
-    def __init__(self, v, qname, dims):
-        self.qname = qname
-        self.concept = v.modelXbrl.qnameConcepts.get(qname)
-        self.context = ContextPrototype(v, dims)
-        self.dims = dims
-
-class ContextPrototype():  # behaves like a context
-    def __init__(self, v, dims):
-        self.segDimVals = {}
-        self.scenDimVals = {}
-        for dimQname,mem in dims:
-            if v.modelXbrl.qnameDimensionDefaults.get(dimQname) != mem: # not a default
-                try:
-                    dimConcept = v.modelXbrl.qnameConcepts[dimQname]
-                    dimValPrototype = DimValuePrototype(v, dimConcept, dimQname, mem)
-                    if v.dimContextElement(dimConcept) == "segment":
-                        self.segDimVals[dimConcept] = dimValPrototype
-                    else:
-                        self.scenDimVals[dimConcept] = dimValPrototype
-                except KeyError:
-                    pass
-        
-    def dimValues(self, contextElement):
-        return self.segDimVals if contextElement == "segment" else self.scenDimVals
-    
-    def nonDimValues(self, contextElement):
-        return []
-    
-class DimValuePrototype():
-    def __init__(self, v, dimConcept, dimQname, mem):
-        from arelle.ModelValue import QName
-        self.dimension = dimConcept
-        self.dimensionQname = dimQname
-        if isinstance(mem,QName):
-            self.isExplicit = True
-            self.isTyped = False
-            self.memberQname = mem
-            self.member = v.modelXbrl.qnameConcepts[mem]
-
-        else:
-            self.isExplicit = False
-            self.isTyped = True
-            self.typedMember = mem
             

@@ -4,75 +4,49 @@ Created on Nov 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ModelObject, XbrlUtil, XmlUtil, XbrlConst)
+from arelle import XmlUtil, XbrlConst
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 
-# initialize object from an element
-def create(modelDocument, element=None, localName=None, namespaceURI=None):
-    if element:
-        ln = element.localName
-        ns = element.namespaceURI
-    else:
-        ln = localName
-        ns = namespaceURI
-    modelObject = None
-    if ns == XbrlConst.ver:
-        if ln == "assignment":
-            modelObject = ModelAssignment(modelDocument, element)
-        elif ln == "action":
-            modelObject = ModelAction(modelDocument, element)
-        elif ln == "namespaceRename":
-            modelObject = ModelNamespaceRename(modelDocument, element)
-        elif ln == "roleChange":
-            modelObject = ModelRoleChange(modelDocument, element)
-        else:
-            modelObject = ModelVersObject(modelDocument, element)
-    elif ns == XbrlConst.vercb:
-        modelObject = ModelConceptBasicChange(modelDocument, element)
-    elif ns == XbrlConst.verce:
-        modelObject = ModelConceptExtendedChange(modelDocument, element)
-    elif ns == XbrlConst.verrels:
-        modelObject = ModelRelationshipSetChange(modelDocument, element)
-    return modelObject
 
 def relateConceptMdlObjs(modelDocument, fromConceptMdlObjs, toConceptMdlObjs):
     for fromConceptMdlObj in fromConceptMdlObjs:
         fromConcept = fromConceptMdlObj
-        if fromConcept:
+        if fromConcept is not None:
             fromConceptQname = fromConcept.qname
             for toConceptMdlObj in toConceptMdlObjs:
                 toConcept = toConceptMdlObj.toConcept
-                if toConcept:
+                if toConcept is not None:
                     toConceptQname = toConcept.qname
                     modelDocument.relatedConcepts[fromConceptQname].add(toConceptQname)
 
-class ModelVersObject(ModelObject.ModelObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+class ModelVersObject(ModelObject):
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def name(self):
-        return self.element.localName
+        return self.localName
 
     def viewText(self, labelrole=None, lang=None):
         return ''
 
 class ModelAssignment(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        modelDocument.assignments[self.id] = self
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelDocument.assignments[self.id] = self
         
     @property
     def categoryqname(self):
-        for child in self.element.childNodes:
-            if child.nodeType == 1:
+        for child in self.iterchildren():
+            if isinstance(child, ModelObject):
                 return "{" + child.namespaceURI + "}" + child.localName
 
     @property
     def categoryQName(self):
-        for child in self.element.childNodes:
-            if child.nodeType == 1:
-                return child.tagName
+        for child in self.iterchildren():
+            if isinstance(child, ModelObject):
+                return child.prefixedName
         return None
 
     @property
@@ -82,15 +56,15 @@ class ModelAssignment(ModelVersObject):
                 ("category", self.categoryQName))
 
 class ModelAction(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        actionKey = self.id if self.id else "action{0:05}".format(len(modelDocument.actions) + 1)
-        modelDocument.actions[actionKey] = self
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        actionKey = self.id if self.id else "action{0:05}".format(len(self.modelDocument.actions) + 1)
+        self.modelDocument.actions[actionKey] = self
         self.events = []
         
     @property
     def assignmentRefs(self):
-        return XmlUtil.childrenAttrs(self.element, XbrlConst.ver, "assignmentRef", "ref")
+        return XmlUtil.childrenAttrs(self, XbrlConst.ver, "assignmentRef", "ref")
         
     @property
     def propertyView(self):
@@ -99,16 +73,16 @@ class ModelAction(ModelVersObject):
                 ("assgnmts", self.assignmentRefs))
 
 class ModelUriMapped(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def fromURI(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.ver, "fromURI", "value")
+        return XmlUtil.childAttr(self, XbrlConst.ver, "fromURI", "value")
         
     @property
     def toURI(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.ver, "toURI", "value")
+        return XmlUtil.childAttr(self, XbrlConst.ver, "toURI", "value")
 
     @property
     def propertyView(self):
@@ -119,37 +93,39 @@ class ModelUriMapped(ModelVersObject):
         return "{0} -> {1}".format(self.fromURI, self.toURI)
     
 class ModelNamespaceRename(ModelUriMapped):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        modelDocument.namespaceRenameFrom[self.fromURI] = self
-        modelDocument.namespaceRenameTo[self.toURI] = self
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelDocument.namespaceRenameFrom[self.fromURI] = self
+        self.modelDocument.namespaceRenameFromURI[self.fromURI] = self.toURI
+        self.modelDocument.namespaceRenameTo[self.toURI] = self
+        self.modelDocument.namespaceRenameToURI[self.toURI] = self.fromURI
         
 class ModelRoleChange(ModelUriMapped):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        modelDocument.roleChanges[self.fromURI] = self
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelDocument.roleChanges[self.fromURI] = self
 
 class ModelConceptChange(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def actionId(self):
-        return XmlUtil.parentId(self.element, XbrlConst.ver, "action")
+        return XmlUtil.parentId(self, XbrlConst.ver, "action")
     
     @property
     def fromConceptQname(self):
-        fromConcept = XmlUtil.child(self.element, XbrlConst.vercb, "fromConcept")
-        if fromConcept and fromConcept.hasAttribute("name"):
-            return qname(fromConcept, fromConcept.getAttribute("name"))
+        fromConcept = XmlUtil.child(self, XbrlConst.vercb, "fromConcept")
+        if fromConcept is not None and fromConcept.get("name"):
+            return qname(fromConcept, fromConcept.get("name"))
         else:
             return None
         
     @property
     def toConceptQname(self):
-        toConcept = XmlUtil.child(self.element, XbrlConst.vercb, "toConcept")
-        if toConcept and toConcept.hasAttribute("name"):
-            return qname(toConcept, toConcept.getAttribute("name"))
+        toConcept = XmlUtil.child(self, XbrlConst.vercb, "toConcept")
+        if toConcept is not None and toConcept.get("name"):
+            return qname(toConcept, toConcept.get("name"))
         else:
             return None
         
@@ -164,7 +140,7 @@ class ModelConceptChange(ModelVersObject):
         return self.modelDocument.toDTS.qnameConcepts.get(self.toConceptQname)
         
     def setConceptEquivalence(self):
-        if self.fromConcept and self.toConcept:
+        if self.fromConcept is not None and self.toConcept is not None:
             self.modelDocument.equivalentConcepts[self.fromConcept.qname] = self.toConcept.qname
 
     @property
@@ -172,8 +148,8 @@ class ModelConceptChange(ModelVersObject):
         fromConcept = self.fromConcept
         toConcept = self.toConcept
         return (("event", self.localName),
-                 ("fromConcept", fromConcept.qname) if fromConcept else (),
-                 ("toConcept", toConcept.qname) if toConcept else (),
+                 ("fromConcept", fromConcept.qname) if fromConcept is not None else (),
+                 ("toConcept", toConcept.qname) if toConcept is not None else (),
                 )
 
     def viewText(self, labelrole=XbrlConst.conceptNameLabelRole, lang=None):
@@ -182,48 +158,47 @@ class ModelConceptChange(ModelVersObject):
         toConceptQname = self.toConceptQname
         toConcept = self.toConcept
         if (labelrole != XbrlConst.conceptNameLabelRole and
-            (fromConceptQname is None or (fromConceptQname and fromConcept)) and
-            (toConceptQname is None or (toConceptQname and toConcept))):
-            if fromConceptQname:
-                if toConceptQname:
+            (fromConceptQname is None or (fromConceptQname is not None and fromConcept is not None)) and
+            (toConceptQname is None or (toConceptQname is not None and toConcept is not None))):
+            if fromConceptQname is not None:
+                if toConceptQname is not None:
                     return self.fromConcept.label(labelrole,True,lang) + " -> " + self.toConcept.label(labelrole,True,lang)
                 else:
                     return self.fromConcept.label(labelrole,True,lang)
-            elif toConceptQname:
+            elif toConceptQname is not None:
                 return self.toConcept.label(labelrole,True,lang)
             else:
                 return "(invalidConceptReference)"
         else:
-            if fromConceptQname:
-                if toConceptQname:
+            if fromConceptQname is not None:
+                if toConceptQname is not None:
                     if toConceptQname.localName != fromConceptQname.localName:
                         return str(fromConceptQname) + " -> " + str(toConceptQname)
                     else:
                         return "( " + fromConceptQname.prefix + ": -> " + toConceptQname.prefix + ": ) " + toConceptQname.localName
                 else:
                     return str(fromConceptQname)
-            elif toConceptQname:
+            elif toConceptQname is not None:
                 return str(toConceptQname)
             else:
                 return "(invalidConceptReference)"
             
 
 class ModelConceptBasicChange(ModelConceptChange):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        modelDocument.conceptBasicChanges.append(self)
-        ln = self.element.localName
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelDocument.conceptBasicChanges.append(self)
             
         
 class ModelConceptExtendedChange(ModelConceptChange):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        modelDocument.conceptExtendedChanges.append(self)
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelDocument.conceptExtendedChanges.append(self)
         
     def customAttributeQname(self, eventName):
-        custAttrElt = XmlUtil.child(self.element, XbrlConst.verce, eventName)
-        if custAttrElt and custAttrElt.hasAttribute("name"):
-            return qname(custAttrElt, custAttrElt.getAttribute("name"))
+        custAttrElt = XmlUtil.child(self, XbrlConst.verce, eventName)
+        if custAttrElt is not None and custAttrElt.get("name"):
+            return qname(custAttrElt, custAttrElt.get("name"))
         return None
         
     @property
@@ -236,11 +211,11 @@ class ModelConceptExtendedChange(ModelConceptChange):
         
     @property
     def fromResourceValue(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.verce, "fromResource", "value")
+        return XmlUtil.childAttr(self, XbrlConst.verce, "fromResource", "value")
         
     @property
     def toResourceValue(self):
-        return XmlUtil.childAttr(self.element, XbrlConst.verce, "toResource", "value")
+        return XmlUtil.childAttr(self, XbrlConst.verce, "toResource", "value")
         
     @property
     def fromResource(self):
@@ -257,18 +232,18 @@ class ModelConceptExtendedChange(ModelConceptChange):
         fromCustomAttributeQname = self.fromCustomAttributeQname
         toCustomAttributeQname = self.toCustomAttributeQname
         return (("event", self.localName),
-                 ("fromConcept", fromConcept.qname) if fromConcept else (),
-                 ("fromCustomAttribute", fromCustomAttributeQname) if fromCustomAttributeQname else (),
-                 ("fromResource", self.fromResource.viewText() if self.fromResource else "(invalidContentResourceIdentifier)") if self.fromResourceValue else (),
-                 ("toConcept", toConcept.qname) if toConcept else (),
-                 ("toCustomAttribute", toCustomAttributeQname) if toCustomAttributeQname else (),
-                 ("toResource", self.toResource.viewText() if self.toResource else "(invalidContentResourceIdentifier)") if self.toResourceValue else (),
+                 ("fromConcept", fromConcept.qname) if fromConcept is not None else (),
+                 ("fromCustomAttribute", fromCustomAttributeQname) if fromCustomAttributeQname is not None else (),
+                 ("fromResource", self.fromResource.viewText() if self.fromResource is not None else "(invalidContentResourceIdentifier)") if self.fromResourceValue else (),
+                 ("toConcept", toConcept.qname) if toConcept is not None else (),
+                 ("toCustomAttribute", toCustomAttributeQname) if toCustomAttributeQname is not None else (),
+                 ("toResource", self.toResource.viewText() if self.toResource is not None else "(invalidContentResourceIdentifier)") if self.toResourceValue else (),
                 )
 
 class ModelRelationshipSetChange(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        modelDocument.relationshipSetChanges.append(self)
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelDocument.relationshipSetChanges.append(self)
         self.fromRelationshipSet = None
         self.toRelationshipSet = None
         
@@ -278,13 +253,13 @@ class ModelRelationshipSetChange(ModelVersObject):
                 )
 
 class ModelRelationshipSet(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def init(self, modelDocument):
+        super().init(modelDocument)
         self.relationships = []
         
     @property
     def isFromDTS(self):
-        return self.element.localName == "fromRelationshipSet"
+        return self.localName == "fromRelationshipSet"
         
     @property
     def dts(self):
@@ -292,33 +267,33 @@ class ModelRelationshipSet(ModelVersObject):
         
     @property
     def relationshipSetElement(self):
-        return XmlUtil.child(self.element, XbrlConst.verrels, "relationshipSet")
+        return XmlUtil.child(self, XbrlConst.verrels, "relationshipSet")
 
     @property
     def link(self):
-        if self.relationshipSetElement.hasAttribute("link"):
-            return self.prefixedNameQname(self.relationshipSetElement.getAttribute("link"))
+        if self.relationshipSetElement.get("link"):
+            return self.prefixedNameQname(self.relationshipSetElement.get("link"))
         else:
             return None
         
     @property
     def linkrole(self):
-        if self.relationshipSetElement.hasAttribute("linkrole"):
-            return self.relationshipSetElement.getAttribute("linkrole")
+        if self.relationshipSetElement.get("linkrole"):
+            return self.relationshipSetElement.get("linkrole")
         else:
             return None
         
     @property
     def arc(self):
-        if self.relationshipSetElement.hasAttribute("arc"):
-            return self.prefixedNameQname(self.relationshipSetElement.getAttribute("arc"))
+        if self.relationshipSetElement.get("arc"):
+            return self.prefixedNameQname(self.relationshipSetElement.get("arc"))
         else:
             return None
         
     @property
     def arcrole(self):
-        if self.relationshipSetElement.hasAttribute("arcrole"):
-            return self.relationshipSetElement.getAttribute("arcrole")
+        if self.relationshipSetElement.get("arcrole"):
+            return self.relationshipSetElement.get("arcrole")
         else:
             return None
         
@@ -333,19 +308,19 @@ class ModelRelationshipSet(ModelVersObject):
                 )
 
 class ModelRelationships(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def fromName(self):
-        if self.element.hasAttribute("fromName"):
-            return self.prefixedNameQname(self.element.getAttribute("fromName"))
+        if self.get("fromName"):
+            return self.prefixedNameQname(self.get("fromName"))
         else:
             return None
         
     @property
     def toName(self):
-        return self.prefixedNameQname(self.element.getAttribute("toName")) if self.element.hasAttribute("toName") else None
+        return self.prefixedNameQname(self.get("toName")) if self.get("toName") else None
         
     @property
     def fromConcept(self):
@@ -359,8 +334,8 @@ class ModelRelationships(ModelVersObject):
         
     @property
     def axis(self):
-        if self.element.hasAttribute("axis"):
-            return self.element.getAttribute("axis")
+        if self.get("axis"):
+            return self.get("axis")
         else:
             return None
         
@@ -399,9 +374,9 @@ class ModelRelationships(ModelVersObject):
                 )
 
 class ModelInstanceAspectsChange(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
-        modelDocument.instanceAspectChanges.append(self)
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.modelDocument.instanceAspectChanges.append(self)
         self.fromAspects = None
         self.toAspects = None
         
@@ -411,13 +386,13 @@ class ModelInstanceAspectsChange(ModelVersObject):
                 )
 
 class ModelInstanceAspects(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def init(self, modelDocument):
+        super().init(modelDocument)
         self.aspects = []
         
     @property
     def isFromDTS(self):
-        return self.element.localName == "fromAspects"
+        return self.localName == "fromAspects"
         
     @property
     def dts(self):
@@ -425,7 +400,7 @@ class ModelInstanceAspects(ModelVersObject):
         
     @property
     def excluded(self):
-        return self.element.getAttribute("excluded") if self.element.hasAttribute("excluded") else None
+        return self.get("excluded") if self.get("excluded") else None
         
     @property
     def propertyView(self):
@@ -434,13 +409,13 @@ class ModelInstanceAspects(ModelVersObject):
                 )
 
 class ModelInstanceAspect(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def init(self, modelDocument):
+        super().init(modelDocument)
         self.members = []
 
     @property
     def conceptName(self):
-        return self.prefixedNameQname(self.element.getAttribute("name")) if self.element.hasAttribute("name") else None
+        return self.prefixedNameQname(self.get("name")) if self.get("name") else None
         
     @property
     def concept(self):
@@ -466,12 +441,12 @@ class ModelInstanceAspect(ModelVersObject):
                 ) + self.elementAttributesTuple
 
 class ModelInstanceMemberAspect(ModelVersObject):
-    def __init__(self, modelDocument, element):
-        super().__init__(modelDocument, element)
+    def init(self, modelDocument):
+        super().init(modelDocument)
         
     @property
     def conceptName(self):
-        return self.prefixedNameQname(self.element.getAttribute("name")) if self.element.hasAttribute("name") else None
+        return self.prefixedNameQname(self.get("name")) if self.get("name") else None
         
     @property
     def concept(self):
@@ -494,4 +469,62 @@ class ModelInstanceMemberAspect(ModelVersObject):
                ((self.localName, ''),
                 ) + self.elementAttributesTuple
 
-        
+from arelle.ModelObjectFactory import elementSubstitutionModelClass
+elementSubstitutionModelClass.update((
+    (qname(XbrlConst.ver, "assignment"), ModelAssignment),
+    (qname(XbrlConst.ver, "action"), ModelAction),
+    (qname(XbrlConst.ver, "namespaceRename"), ModelNamespaceRename),
+    (qname(XbrlConst.ver, "roleChange"), ModelRoleChange),
+    (qname(XbrlConst.vercb, "conceptAdd"), ModelConceptBasicChange),
+    (qname(XbrlConst.vercb, "conceptDelete"), ModelConceptBasicChange),
+    (qname(XbrlConst.vercb, "conceptRename"), ModelConceptBasicChange),
+    (qname(XbrlConst.verce, "conceptIDChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptTypeChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptSubstitutionGroupChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptDefaultChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptNillableChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptAbstractChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptBlockChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptFixedChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptFinalChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptPeriodTypeChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptBalanceChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptAttributeAdd"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptAttributeDelete"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptAttributeChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "tupleContentModelChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptLabelAdd"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptLabelDelete"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptLabelChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptReferenceAdd"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptReferenceDelete"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verce, "conceptReferenceChange"), ModelConceptExtendedChange),
+    (qname(XbrlConst.verrels, "relationshipSetModelChange"), ModelRelationshipSetChange),
+    (qname(XbrlConst.verrels, "relationshipSetModelAdd"), ModelRelationshipSetChange),
+    (qname(XbrlConst.verrels, "relationshipSetModelDelete"), ModelRelationshipSetChange),
+    (qname(XbrlConst.verrels, "fromRelationshipSet"), ModelRelationshipSet),
+    (qname(XbrlConst.verrels, "toRelationshipSet"), ModelRelationshipSet),
+    (qname(XbrlConst.verrels, "relationships"), ModelRelationships),
+    (qname(XbrlConst.veria, "aspectModelChange"), ModelInstanceAspectsChange),
+    (qname(XbrlConst.veria, "aspectModelAdd"), ModelInstanceAspectsChange),
+    (qname(XbrlConst.veria, "aspectModelDelete"), ModelInstanceAspectsChange),
+    (qname(XbrlConst.veria, "fromAspects"), ModelInstanceAspects),
+    (qname(XbrlConst.veria, "toAspects"), ModelInstanceAspects),
+    (qname(XbrlConst.veria, "concept"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "explicitDimension"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "typedDimension"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "segment"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "scenario"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "entityIdentifier"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "period"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "location"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "unit"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "member"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "startDate"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "endDate"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "instant"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "forever"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "multiplyBy"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "divideBy"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "measure"), ModelInstanceMemberAspect),
+     ))

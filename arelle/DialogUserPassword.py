@@ -86,7 +86,7 @@ class DialogUserPassword(Toplevel):
                                          "   No proxy if URL address is left blank, \n"
                                          "   Proxy via URL address if it is not blank, \n"
                                          "       with user and password (if provided)"
-                                         .format(hostProxy)), wraplength=360)
+                                         ).format(hostProxy), wraplength=360)
             self.useOsProxyCb = useOsProxyCb
             useOsProxyCb.valueVar.trace("w", self.setEnabledState)
 

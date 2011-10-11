@@ -22,7 +22,10 @@ class ViewTree:
         self.treeView.tag_configure("ELR", background="#E0F0FF")
         self.treeView.tag_configure("even", background="#F0F0F0")
         self.treeView.tag_configure("odd", background="#FFFFFF")
-        highlightColor = "#%04x%04x%04x" % self.treeView.winfo_rgb("SystemHighlight")
+        if modelXbrl.modelManager.cntlr.isMac or modelXbrl.modelManager.cntlr.isMSW:
+            highlightColor = "#%04x%04x%04x" % self.treeView.winfo_rgb("SystemHighlight")
+        else:
+            highlightColor = "#33339999ffff"  # using MSW value for Unix/Linux which has no named colors
         self.treeView.tag_configure("selected-ELR", background=highlightColor)
         self.treeView.tag_configure("selected-even", background=highlightColor)
         self.treeView.tag_configure("selected-odd", background=highlightColor)
@@ -51,6 +54,7 @@ class ViewTree:
         self.modelXbrl = modelXbrl
         self.lang = lang
         self.labelrole = None
+        self.nameIsPrefixed = False
         if modelXbrl:
             modelXbrl.views.append(self)
             if not lang: 
@@ -74,6 +78,9 @@ class ViewTree:
             self.tabWin.forget(self.viewFrame)
             self.modelXbrl.views.remove(self)
             self.modelXbrl = None
+        
+    def select(self):
+        self.tabWin.select(self.viewFrame)
         
     def leave(self, *args):
         self.toolTipColId = None
@@ -173,25 +180,35 @@ class ViewTree:
         for x in labelroles(self.modelXbrl, includeConceptName):
             rolesMenu.add_cascade(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
 
+    def menuAddNameStyle(self, menulabel=None):
+        if menulabel is None: menulabel = _("Name Style")
+        nameStyleMenu = Menu(self.viewFrame, tearoff=0)
+        self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
+        from arelle.ModelRelationshipSet import labelroles
+        nameStyleMenu.add_cascade(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
+        nameStyleMenu.add_cascade(label=_("No Prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
+
     def menuAddUnitDisplay(self):
         rolesMenu = Menu(self.viewFrame, tearoff=0)
         self.menu.add_cascade(label=_("Units"), menu=rolesMenu, underline=0)
         rolesMenu.add_cascade(label=_("Unit ID"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=True))
         rolesMenu.add_cascade(label=_("Measures"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=False))
 
-    def menuAddViews(self):
+    def menuAddViews(self, addClose=True, tabWin=None):
+        if tabWin is None: tabWin = self.tabWin
         viewMenu = Menu(self.viewFrame, tearoff=0)
         self.menu.add_cascade(label=_("View"), menu=viewMenu, underline=0)
         newViewsMenu = Menu(self.viewFrame, tearoff=0)
-        viewMenu.add_cascade(label=_("Close"), underline=0, command=self.close)
+        if addClose:
+            viewMenu.add_cascade(label=_("Close"), underline=0, command=self.close)
         viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
         from arelle.ModelRelationshipSet import baseSetArcroles
         for x in baseSetArcroles(self.modelXbrl):
-            newViewsMenu.add_cascade(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a))
+            newViewsMenu.add_cascade(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
     
-    def newView(self, arcrole):
+    def newView(self, arcrole, tabWin):
         from arelle import ViewWinRelationshipSet
-        ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, self.tabWin, arcrole, lang=self.lang)
+        ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)
             
     def setLang(self, lang):
         self.lang = lang
@@ -201,11 +218,17 @@ class ViewTree:
         self.labelrole = labelrole
         self.view()
         
+    def setNamestyle(self, isPrefixed):
+        self.nameIsPrefixed = isPrefixed
+        self.view()
+        
     def setUnitDisplay(self, unitDisplayID=False):
         self.unitDisplayID = unitDisplayID
         self.view()
         
     def setColumnsSortable(self, treeColIsInt=False, startUnsorted=False, initialSortCol="#0", initialSortDirForward=True):
+        if hasattr(self, 'lastSortColumn') and self.lastSortColumn:
+            self.treeView.heading(self.lastSortColumn, image=self.sortImages[2])
         self.lastSortColumn = None if startUnsorted else initialSortCol 
         self.lastSortColumnForward = initialSortDirForward
         self.treeColIsInt = treeColIsInt

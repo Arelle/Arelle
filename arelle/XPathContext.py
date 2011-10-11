@@ -4,11 +4,14 @@ Created on Dec 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                           exceptionErrorIndication)
-from arelle import (ModelObject, ModelXbrl, XbrlConst, XmlUtil)
+from arelle import (ModelXbrl, XbrlConst, XmlUtil)
+from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
+from arelle.XmlValidate import UNKNOWN, VALID, validate
+from lxml import etree
 
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
@@ -18,6 +21,10 @@ class XPathException(Exception):
             self.column = progStep.loc
         elif isinstance(progStep, ProgHeader):
             self.line = progStep.sourceStr
+        elif isinstance(progStep, XPathContext) and progStep.progHeader:
+            self.line = progStep.sourceStr
+        else:
+            self.line = "(not available)"
         self.code = code
         self.message = message
         self.args = ( self.__repr__(), )
@@ -38,7 +45,8 @@ class FunctionNumArgs(Exception):
         return _("Exception: Number of arguments mismatch")
     
 class FunctionArgType(Exception):
-    def __init__(self, argIndex, expectedType):
+    def __init__(self, argIndex, expectedType, errCode='err:XPTY0004'):
+        self.errCode = errCode
         self.argNum = argIndex + 1
         self.expectedType = expectedType
         self.args = ( self.__repr__(), )
@@ -100,7 +108,7 @@ class XPathContext:
                     args = self.evaluate(p.args, contextItem=contextItem)
                     ns = op.namespaceURI; localname = op.localName
                     try:
-                        from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionCustom)
+                        from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionIxt, FunctionCustom)
                         if op in self.modelXbrl.modelCustomFunctionSignatures:
                             result = FunctionCustom.call(self, p, op, contextItem, args)
                         elif op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element', 
@@ -118,12 +126,14 @@ class XPathContext:
                             result = FunctionXfi.call(self, p, localname, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
+                        elif ns.startswith("http://www.xbrl.org/inlineXBRL/transformation"):
+                            result = FunctionIxt.call(self, p, localname, args)
                         else:
                             raise XPathException(p, 'err:XPST0017', _('Function call not identified.'))
                     except FunctionNumArgs:
                         raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity.'))
                     except FunctionArgType as err:
-                        raise XPathException(p, 'err:XPTY0004', _('Argument {0} does not match expected type {1}.')
+                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1}.')
                                              .format(err.argNum, err.expectedType))
                     except FunctionNotAvailable:
                         raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.')
@@ -206,9 +216,7 @@ class XPathContext:
                         result = []
                     else:
                         n1 = s1[0]
-                        if isinstance(n1,ModelObject.ModelObject): n1 = n1.element
                         n2 = s2[0][0]
-                        if isinstance(n2,ModelObject.ModelObject): n2 = n2.element
                         result = False;
                         for op1 in s1:
                             for op2 in s2:
@@ -264,8 +272,6 @@ class XPathContext:
                     result = False
                     s1 = self.flattenSequence( resultStack.pop() ) if len(resultStack) > 0 else []
                     arity = len(s1)
-                    if isinstance(s1,ModelObject.ModelObject):
-                        s1 = s1.element
                     if len(p.args) > 1:
                         occurenceIndicator = p.args[1]
                         if (occurenceIndicator == '?' and arity in (0,1) ) or \
@@ -296,13 +302,13 @@ class XPathContext:
                                         if result and type == DateTime:
                                             result = x.dateOnly == (t.localName == "date")
                             elif isinstance(t, OperationDef):
-                                if t.name == "element" and isinstance(x,xml.dom.Node):
+                                if t.name == "element" and isinstance(x,ModelObject):
                                     if len(t.args) >= 1:
                                         qn = t.args[0]
                                         if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
                                             result = True
                                             if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
-                                                modelXbrl = x.ownerDocument.modelDocument.modelXbrl
+                                                modelXbrl = x.modelDocument.modelXbrl
                                                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                                                 if not modelConcept.instanceOfType(t.args[1]):
                                                     result = False
@@ -321,9 +327,7 @@ class XPathContext:
                 elif op == '.':
                     result = contextItem
                 elif op == '..':
-                    result = XmlUtil.parent(contextItem.element 
-                                            if isinstance(contextItem, ModelObject.ModelObject)
-                                            else contextItem)
+                    result = XmlUtil.parent(contextItem)
                 elif op in ('/', '//', 'rootChild', 'rootDescendant'):
                     if op in ('rootChild', 'rootDescendant'):
                         # fix up for multi-instance
@@ -336,7 +340,7 @@ class XPathContext:
                         innerFocusNodes = contextItem
                     navSequence = []
                     for innerFocusNode in self.flattenSequence(innerFocusNodes):
-                        self.evaluate(p.args, contextItem=innerFocusNode, resultStack=navSequence, parentOp=op)
+                        navSequence += self.evaluate(p.args, contextItem=innerFocusNode, parentOp=op)
                     result = self.documentOrderedNodes(self.flattenSequence(navSequence))
             elif isinstance(p,ProgHeader):
                 self.progHeader = p
@@ -366,7 +370,7 @@ class XPathContext:
                 prefix,sep,localName = type.partition(':')
                 if prefix == 'xs':
                     if localName.endswith('*'): localName = localName[:-1]
-                    if hasattr(result, "__iter__") and not isinstance(result, str):
+                    if isinstance(result, (tuple,list,set)):
                         from arelle import (FunctionXs)
                         if type.endswith('*'):
                             return[FunctionXs.call(self,progHeader,localName,(r,)) for r in result]
@@ -383,7 +387,7 @@ class XPathContext:
             r = self.evaluate(p.bindingSeq, contextItem=contextItem)
             if len(r) == 1: # should be an expr single
                 r = r[0]
-                if hasattr(r, '__iter__') and not isinstance(r, str):
+                if isinstance(r, (tuple,list,set)):
                     if len(r) == 1 and isinstance(r[0],range):
                         r = r[0]
                     rvQname = p.rangeVar.name
@@ -410,32 +414,45 @@ class XPathContext:
             
     def isNodeSequence(self, x):
         for el in x:
-            if not isinstance(el,(xml.dom.Node, ModelObject.ModelObject) ):
+            if not isinstance(el,ModelObject):
                 return False
         return True
 
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,(ModelObject.ModelObject, xml.dom.Node)):
-                raise XPathException(p, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
+            if not isinstance(node,(ModelObject, etree._ElementTree, ModelAttribute)):
+                raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
-            if isinstance(node, ModelObject.ModelObject): node = node.element
             if isinstance(p,QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
-                    if p.unprefixed:
-                        if node.hasAttribute(localname):
-                            targetNodes.append(node.getAttribute(localname))
-                    else:
-                        if node.hasAttributeNS(ns,localname):
-                            targetNodes.append(node.getAttributeNS(ns,localname))
+                    attrTag = p.localName if p.unprefixed else p.clarkNotation
+                    modelAttribute = None
+                    try:
+                        modelAttribute = node.xAttributes[attrTag]
+                    except (AttributeError, TypeError, IndexError, KeyError):
+                        # may be lax or deferred validated
+                        try:
+                            validate(node.modelXbrl, node, p)
+                            modelAttribute = node.xAttributes[attrTag]
+                        except (AttributeError, TypeError, IndexError, KeyError):
+                            pass
+                    if modelAttribute is None:
+                        value = node.get(attrTag)
+                        if value is not None:
+                            targetNodes.append(ModelAttribute(node,p.clarkNotation,UNKNOWN,value,value,value))
+                    elif modelAttribute.xValid >= VALID:
+                            targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
                     targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
                     targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
-                    targetNodes = [ XmlUtil.parent(node) ]
+                    if isinstance(node,ModelAttribute):
+                        targetNodes = [ node.modelElement ]
+                    else:
+                        targetNodes = [ XmlUtil.parent(node) ]
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
                 if p.name.localName == "text":
                     targetNodes = [XmlUtil.text(node)]
@@ -463,7 +480,7 @@ class XPathContext:
             
     def atomize(self, p, x):
         # sequence
-        if hasattr(x, '__iter__') and not isinstance(x, str):
+        if isinstance(x, (tuple,list,set)):
             sequence = []
             for item in self.flattenSequence(x):
                 atomizedItem = self.atomize(p, item)
@@ -475,43 +492,32 @@ class XPathContext:
             return x
         baseXsdType = None
         e = None
-        if isinstance(x, ModelObject.ModelFact):
+        if isinstance(x, ModelFact):
             if x.isTuple:
                 raise XPathException(p, 'err:FOTY0012', _('Atomizing tuple {0} that does not have a typed value').format(x))
             if x.isNil:
                 return []
             baseXsdType = x.concept.baseXsdType
             v = x.value # resolves default value
-            e = x.element
+            e = x
+        elif isinstance(x, ModelAttribute): # ModelAttribute is a tuple (below), check this first!
+            return x.xValue
         else:
-            if isinstance(x, ModelObject.ModelObject):
-                e = x.element
-            elif isinstance(x, xml.dom.Node):
+            if isinstance(x, ModelObject):
                 e = x
-            if e:
-                if x.nodeType == xml.dom.Node.ELEMENT_NODE:
-                    if e.getAttributeNS(XbrlConst.xsi,"nil") == "true":
-                        return []
-                    modelXbrl = x.ownerDocument.modelDocument.modelXbrl
-                    modelConcept = modelXbrl.qnameConcepts.get(qname(x))
-                    if modelConcept:
-                        baseXsdType = modelConcept.baseXsdType
-                    v = XmlUtil.text(x)
-                elif x.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-                    e = x.ownerElement
-                    modelXbrl = e.ownerDocument.modelDocument.modelXbrl
-                    if x.namespaceURI:
-                        attrQname = qname(x.namespaceURI, x.localName)
-                    else:
-                        attrQname = qname(x.localName)
-                    modelConcept = modelXbrl.qnameConcepts.get(qname(e))
-                    if modelConcept:
-                        baseXsdType = modelConcept.baseXsdAttrType(attrQname) if modelConcept else None
-                    if baseXsdType is None:
-                        attrObject = modelXbrl.qnameAttributes.get(attrQname)
-                        if attrObject:
-                            baseXsdType = attrObject.baseXsdType
-                    v = x.value
+            if e is not None:
+                if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
+                    return []
+                try:
+                    if e.xValid >= VALID:
+                        return e.xValue
+                except AttributeError:
+                    pass
+                modelXbrl = x.modelXbrl
+                modelConcept = modelXbrl.qnameConcepts.get(qname(x))
+                if modelConcept is not None:
+                    baseXsdType = modelConcept.baseXsdType
+                v = XmlUtil.text(x)
         if baseXsdType in ("decimal", "float", "double"):
             try:
                 x = float(v)
@@ -524,7 +530,7 @@ class XPathContext:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to an integer does not have a proper value').format(x))
         elif baseXsdType == "boolean":
             x = (v == "true" or v == "1")
-        elif baseXsdType == "QName" and e:
+        elif baseXsdType == "QName" and e is not None:
             x = qname(e, v)
         elif baseXsdType == "anyURI":
             x = anyURI(v.strip())
@@ -542,16 +548,16 @@ class XPathContext:
     
     def effectiveBooleanValue(self, p, x):
         from arelle.FunctionFn import boolean
-        return boolean( self, p, None, (self.atomize( p, x ),) )
+        return boolean( self, p, None, (self.flattenSequence(x),) )
 
     # flatten into a sequence
     def flattenSequence(self, x, sequence=None):
         if sequence is None: 
-            if isinstance(x, str) or isinstance(x,range) or not hasattr(x, '__iter__'):
+            if not isinstance(x, (tuple,list,set)):
                 return [x]
             sequence = []
         for el in x:
-            if hasattr(el, '__iter__') and not isinstance(el, str):
+            if isinstance(el, (tuple,list,set)):
                 self.flattenSequence(el, sequence=sequence)
             else:
                 sequence.append(el)
@@ -561,34 +567,25 @@ class XPathContext:
     def documentOrderedNodes(self, x):
         l = set()  # must have unique nodes only
         for e in x:
-            if isinstance(e,ModelObject.ModelObject):
-                h = e.objectIndex
-            elif isinstance(e,xml.dom.Node):
-                h = e.__hash__()
+            if isinstance(e,ModelObject):
+                h = e.sourceline
+            elif isinstance(e,ModelAttribute):
+                h = e.modelElement.sourceline
             else:
                 h = 0
             l.add((h,e))
-        return [e for h,e in sorted(l)]
+        return [e for h,e in sorted(l, key=lambda h: h[0])]
     
     def modelItem(self, x):
-        modelItem = None
-        if isinstance(x, xml.dom.Node) and x.nodeType == 1:
-            elt = x
-            x = None
-            for docModelObject in elt.ownerDocument.modelDocument.modelObjects:
-                if docModelObject.element == elt:
-                    x = docModelObject
-                    break
-        if isinstance(x, (ModelObject.ModelFact, ModelObject.ModelInlineFact)) and x.isItem:
+        if isinstance(x, (ModelFact, ModelInlineFact)) and x.isItem:
             return x
         return None
 
     def modelInstance(self, x):
         if isinstance(x, ModelXbrl.ModelXbrl):
             return x
-        if isinstance(x, xml.dom.Node) and x.nodeType == 1:
-            return x.ownerDocument.modelDocument.modelXbrl
-        if isinstance(x, ModelObject.ModelObject):
+        if isinstance(x, ModelObject):
             return x.modelXbrl
         return None
-              
+        
+        

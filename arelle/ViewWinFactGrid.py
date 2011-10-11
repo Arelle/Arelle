@@ -6,7 +6,7 @@ Created on May 12, 2011
 '''
 import datetime
 from tkinter import Menu, constants, BooleanVar
-from arelle import (ViewWinGrid, ModelObject, XbrlConst)
+from arelle import ViewWinGrid, ModelObject, XbrlConst
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
                      label, checkbox, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
@@ -17,8 +17,17 @@ def viewFactsGrid(modelXbrl, tabWin, header="Fact Grid", arcrole=XbrlConst.paren
     view = ViewFactsGrid(modelXbrl, tabWin, header, arcrole, linkrole, linkqname, arcqname, lang)
     if view.tableSetup():
     
+        view.ignoreDims = BooleanVar(value=False)
+        view.showDimDefaults = BooleanVar(value=False)
+
         # context menu
         menu = view.contextMenu()
+        optionsMenu = Menu(view.viewFrame, tearoff=0)
+        view.ignoreDims.trace("w", view.view)
+        optionsMenu.add_checkbutton(label=_("Ignore Dimensions"), underline=0, variable=view.ignoreDims, onvalue=True, offvalue=False)
+        view.showDimDefaults.trace("w", view.view)
+        optionsMenu.add_checkbutton(label=_("Show Dimension Defaults"), underline=0, variable=view.showDimDefaults, onvalue=True, offvalue=False)
+        menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
         menu.add_cascade(label=_("Close"), underline=0, command=view.close)
         view.menuAddLangs()
         view.view()

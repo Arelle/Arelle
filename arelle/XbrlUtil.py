@@ -4,25 +4,69 @@ Created on Nov 26, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom.minidom
-from arelle import (ModelValue, XbrlConst, XmlUtil, XmlValidate)
+import xml.dom.minidom, math
+from arelle import XbrlConst, XmlUtil, XmlValidate
+from arelle.ModelValue import qname, QName
+from arelle.ModelObject import ModelObject, ModelAttribute
 
 S_EQUAL = 0 # ordinary S-equality from 2.1 spec
 S_EQUAL2 = 1 # XDT definition adds QName comparisions
 XPATH_EQ = 2 # XPath EQ on all types
 
-def nodesCorrespond(dts1, elt1, elt2, dts2=None):
+NO_IDs_EXCLUDED = 0
+ALL_IDs_EXCLUDED = 1
+TOP_IDs_EXCLUDED = 2 # only ancestor IDs are excluded
+
+def nodesCorrespond(dts1, elt1, elt2, dts2=None, equalMode=XPATH_EQ, excludeIDs=ALL_IDs_EXCLUDED):
     if elt1 is None:
         return elt2 is None #both can be empty sequences (no element) and true
     elif elt2 is None:
         return False
-    return sEqual(dts1, elt1, elt2, equalMode=XPATH_EQ, dts2=dts2, excludeIDs=True)
+    # can accept either modelElements or modelAttributes
+    if isinstance(elt1,ModelAttribute):
+        if isinstance(elt2,ModelAttribute):
+            return elt1.attrTag == elt2.attrTag and elt1.xValue == elt2.xValue
+        else:
+            return False
+    elif isinstance(elt2,ModelAttribute):
+        return False
+    # sEqual only accepts modelElements
+    return sEqual(dts1, elt1, elt2, equalMode=equalMode, dts2=dts2, excludeIDs=ALL_IDs_EXCLUDED)
 
 # dts1 is modelXbrl for first element
 # dts2 is for second element assumed same unless dts2 and ns2 to ns1 maping table provided
 #   (as used in versioning reports and multi instance
 
-def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=False, dts2=None, ns2ns1Tbl=None):
+def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED):
+    if isinstance(elt, ModelObject):
+        try:
+            if equalMode == S_EQUAL:
+                return elt._hashSEqual
+            else:
+                return elt._hashXpathEqual
+        except AttributeError:
+            dts = elt.modelXbrl
+            if not hasattr(elt,"xValid"):
+                XmlValidate.validate(dts, elt)
+            hashableValue = elt.sValue if equalMode == S_EQUAL else elt.xValue
+            if isinstance(hashableValue,float) and math.isnan(hashableValue): 
+                hashableValue = (hashableValue,elt)    # ensure this NaN only compares to itself and no other NaN
+            _hash = hash((elt.elementQname,
+                          hashableValue,
+                          tuple(attributeDict(dts, elt, (), equalMode, excludeIDs, distinguishNaNs=True).items()),
+                          tuple(equalityHash(child,equalMode,excludeIDs) for child in childElements(elt))
+                          ))
+            if equalMode == S_EQUAL:
+                elt._hashSEqual = _hash
+            else:
+                elt._hashXpathEqual = _hash
+            return _hash
+    elif isinstance(elt, (tuple,list,set)):
+        return hash( tuple(equalityHash(i) for i in elt) )
+    else:
+        return hash(None)
+
+def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, dts2=None, ns2ns1Tbl=None):
     if dts2 is None: dts2 = dts1
     if elt1.localName != elt2.localName:
         return False
@@ -31,139 +75,89 @@ def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=False, dts2=None, ns2
             return False
     elif elt1.namespaceURI != elt2.namespaceURI:
         return False
-    # is the element typed?
-    modelConcept1 = dts1.qnameConcepts.get(ModelValue.qname(elt1))
-    modelConcept2 = dts2.qnameConcepts.get(ModelValue.qname(elt2))
-    if (not xEqual(modelConcept1, elt1, elt2, equalMode, modelConcept2=modelConcept2) or 
-        attributeSet(dts1, modelConcept1, elt1, (), equalMode, excludeIDs) != 
-        attributeSet(dts2, modelConcept2, elt2, (), equalMode, excludeIDs, ns2ns1Tbl)):
+    if not hasattr(elt1,"xValid"):
+        XmlValidate.validate(dts1, elt1)
+    if not hasattr(elt2,"xValid"):
+        XmlValidate.validate(dts2, elt2)
+    if (not xEqual(elt1, elt2, equalMode) or 
+        attributeDict(dts1, elt1, (), equalMode, excludeIDs) != 
+        attributeDict(dts2, elt2, (), equalMode, excludeIDs, ns2ns1Tbl)):
         return False
     children1 = childElements(elt1)
     children2 = childElements(elt2)
     if len(children1) != len(children2):
         return False
+    excludeChildIDs = excludeIDs if excludeIDs != TOP_IDs_EXCLUDED else NO_IDs_EXCLUDED
     for i in range( len(children1) ):
-        if not sEqual(dts1, children1[i], children2[i], equalMode, excludeIDs, dts2, ns2ns1Tbl):
+        if not sEqual(dts1, children1[i], children2[i], equalMode, excludeChildIDs, dts2, ns2ns1Tbl):
             return False
     return True
 
-def attributeSet(modelXbrl, modelConcept, elt, exclusions=(), equalMode=S_EQUAL, excludeIDs=False, ns2ns1Tbl=None):
-    attrs = set()
-    for i in range(len(elt.attributes)):
-        attr = elt.attributes.item(i)
-        attrNsURI = attr.namespaceURI
+def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, ns2ns1Tbl=None, keyByTag=False, distinguishNaNs=False):
+    if not hasattr(elt,"xValid"):
+        XmlValidate.validate(modelXbrl, elt)
+    attrs = {}
+    # TBD: replace with validated attributes
+    for modelAttribute in elt.xAttributes.values():
+        attrTag = modelAttribute.attrTag
+        ns, sep, localName = attrTag.partition('}')
+        attrNsURI = ns[1:] if sep else None
         if ns2ns1Tbl and attrNsURI in ns2ns1Tbl:
             attrNsURI = ns2ns1Tbl[attrNsURI]
-        attrName = "{{{0}}}{1}".format(attrNsURI,attr.localName) if attrNsURI else attr.name            
-        if (attrName not in exclusions and 
-            (attrNsURI is None or attrNsURI not in exclusions) and 
-            attr.name not in ("xmlns") and attr.prefix != "xmlns"):
-            if attrNsURI:
-                qname = ModelValue.qname(attrNsURI, attr.localName)
+        if (attrTag not in exclusions and 
+            (attrNsURI is None or attrNsURI not in exclusions)):
+            if keyByTag:
+                qname = attrTag
+            elif attrNsURI is not None:
+                qname = QName(None, attrNsURI, localName)
             else:
-                qname = ModelValue.qname(attr.localName)
-            baseXsdAttrType = None
-            if modelConcept:
-                baseXsdAttrType = modelConcept.baseXsdAttrType(qname) if modelConcept else None
-            if baseXsdAttrType is None:
-                attrObject = modelXbrl.qnameAttributes.get(qname)
-                if attrObject:
-                    baseXsdAttrType = attrObject.baseXsdType
-            if excludeIDs and baseXsdAttrType == "ID":
-                continue
-            value = xTypeValue(baseXsdAttrType, elt, attr, attr.value, equalMode)
-            attrs.add( (qname,value) )
+                qname = QName(None, None, attrTag)
+            try:
+                if excludeIDs and modelAttribute.xValid == XmlValidate.VALID_ID:
+                    continue
+                value = modelAttribute.sValue if equalMode <= S_EQUAL2 else modelAttribute.xValue
+                if distinguishNaNs and isinstance(value,float) and math.isnan(value):
+                    value = (value,elt)
+                attrs[qname] = value
+            except KeyError:
+                pass  # what should be done if attribute failed to have psvi value
     return attrs
 
-def attributes(modelXbrl, modelConcept, elt, exclusions=(), ns2ns1Tbl=None):
-    attributeList = list( attributeSet(modelXbrl, modelConcept, elt, exclusions, ns2ns1Tbl=ns2ns1Tbl) )
-    attributeList.sort()
-    return tuple( attributeList )
-    
+def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False):
+    a = attributeDict(modelXbrl, elt, exclusions, ns2ns1Tbl=ns2ns1Tbl, keyByTag=keyByTag)
+    return tuple( (k,a[k]) for k in sorted(a.keys()) )    
 
 def childElements(elt):
-    children = []
-    for child in elt.childNodes:
-        if child.nodeType == 1:
-            children.append(child)
-    return children
+    return [child for child in elt.getchildren() if isinstance(child,ModelObject)]
 
-def xEqual(modelConcept1, node1, node2, equalMode=S_EQUAL, modelConcept2=None):
-    text1 = XmlUtil.text(node1)
-    text2 = XmlUtil.text(node2)
-    baseXsdType1 = modelConcept1.baseXsdType if modelConcept1 else None
-    if modelConcept1:
-        baseXsdType1 = modelConcept1.baseXsdType
-        if len(text1) == 0 and modelConcept1.default is not None:
-            text1 = modelConcept1.default
-        if not modelConcept2:
-            modelConcept2 = modelConcept1
+def xEqual(elt1, elt2, equalMode=S_EQUAL):
+    if not hasattr(elt1,"xValid"):
+        XmlValidate.validate(elt1.modelXbrl, elt1)
+    if not hasattr(elt2,"xValid"):
+        XmlValidate.validate(elt2.modelXbrl, elt2)
+    if equalMode == S_EQUAL or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
+        return elt1.sValue == elt2.sValue
     else:
-        baseXsdType1 = None
-    if modelConcept2:
-        baseXsdType2 = modelConcept2.baseXsdType
-        if len(text2) == 0 and modelConcept2.default is not None:
-            text1 = modelConcept2.default
-    else:
-        baseXsdType2 = None
-    return (xTypeValue(baseXsdType1, node1, node1, text1, equalMode) == 
-            xTypeValue(baseXsdType2, node2, node2, text2, equalMode))
+        return elt1.xValue == elt2.xValue
     
-def xTypeValue(baseXsdType, elt, node, value, equalMode=S_EQUAL):
-    try:
-        if node.xValid == XmlValidate.VALID:
-            xvalue = node.xValue
-            if (equalMode == XPATH_EQ or
-                isinstance(xvalue,(float,int,bool)) or
-                (equalMode == S_EQUAL2 and isinstance(xvalue,(ModelValue.QName)))):
-                value = xvalue
-    except AttributeError:
-        if baseXsdType in ("decimal", "float", "double"):
-            try:
-                return float(value)
-            except ValueError:
-                return value
-        elif baseXsdType in ("integer",):
-            try:
-                return int(value)
-            except ValueError:
-                return value
-        elif baseXsdType == "boolean":
-            return (value == "true" or value == "1")
-        elif equalMode == S_EQUAL2 and baseXsdType == "QName":
-            return ModelValue.qname(elt, value)
-        elif equalMode == XPATH_EQ and baseXsdType in ("normalizedString","token","language","NMTOKEN","Name","NCName","ID","IDREF","ENTITY"):
-            return value.strip()
-    return value
-
-def vEqual(modelConcept1, node1, modelConcept2, node2):
-    text1 = XmlUtil.text(node1)
-    text2 = XmlUtil.text(node2)
-    if modelConcept1:
-        baseXsdType1 = modelConcept1.baseXsdType
-        if len(text1) == 0 and modelConcept1.default is not None:
-            text1 = modelConcept1.default
-    else:
-        baseXsdType1 = None
-    if modelConcept2:
-        baseXsdType2 = modelConcept2.baseXsdType
-        if len(text2) == 0 and modelConcept2.default is not None:
-            text1 = modelConcept2.default
-    else:
-        baseXsdType2 = None
-    return xTypeValue(baseXsdType1, node1, node1, text1) == xTypeValue(baseXsdType2, node2, node2, text2)
+def vEqual(elt1, elt2):
+    if not hasattr(elt1,"xValid"):
+        XmlValidate.validate(elt1.modelXbrl, elt1)
+    if not hasattr(elt2,"xValid"):
+        XmlValidate.validate(elt2.modelXbrl, elt2)
+    return elt1.sValue == elt2.sValue
 
 def typedValue(dts, element, attrQname=None):
     try:
-        if attrQname:
-            node = element.getAttributeNodeNS(attrQname.namespaceURI,attrQname.localName)
-        else:
-            node = element
-        if node.xValid == XmlValidate.VALID:
-            return node.xValue
-    except AttributeError:
+        if attrQname: # PSVI attribute value
+            modelAttribute = element.xAttributes[attrQname.clarkNotation]
+            if modelAttribute.xValid >= XmlValidate.VALID:
+                return modelAttribute.xValue
+        else: # PSVI element value (of text)
+            if element.xValid >= XmlValidate.VALID:
+                return element.xValue
+    except (AttributeError, KeyError):
         if dts:
             XmlValidate.validate(dts, element, recurse=False, attrQname=attrQname)
             return typedValue(None, element, attrQname=attrQname)
-        return None
-    
+    return None
