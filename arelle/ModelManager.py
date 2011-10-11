@@ -87,7 +87,6 @@ class ModelManager:
             taxoFilename = taxonomy.fileSource.url
             outputFilename = taxoFilename + ".zip"
             with ZipFile(outputFilename, 'w', compression) as zip:
-                zip.write(taxoFilename, os.path.basename(taxoFilename))
                 dts = taxonomy.modelDocument.dts
                 if dts is not None:
                     for x in dts:
