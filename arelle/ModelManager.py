@@ -75,12 +75,18 @@ class ModelManager:
             return modelVersReport
     
     def packageDTS(self):
+        import os, zipfile
         from zipfile import ZipFile
-        import os
+        import zipfile
+        try:
+            import zlib
+            compression = zipfile.ZIP_DEFLATED
+        except:
+            compression = zipfile.ZIP_STORED
         for taxonomy in self.loadedModelXbrls:
             taxoFilename = taxonomy.fileSource.url
             outputFilename = taxoFilename + ".zip"
-            with ZipFile(outputFilename, 'w') as zip:
+            with ZipFile(outputFilename, 'w', compression) as zip:
                 zip.write(taxoFilename, os.path.basename(taxoFilename))
                 dts = taxonomy.modelDocument.dts
                 if dts is not None:

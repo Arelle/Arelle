@@ -804,7 +804,6 @@ class ModelDocument:
         except AttributeError:
             self._dts = set()
             self._incrementDTS(self._dts)
-            print("{} documents referenced".format(len(self.referencesDocument)))
             return self._dts
     
     def _incrementDTS(self, visited):
