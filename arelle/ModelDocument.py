@@ -796,3 +796,20 @@ class ModelDocument:
                             if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:
                                 self.referencesDocument[testcaseDoc] = "registryIndex"
             
+    @property
+    def dts(self):
+        ''' Returns the Discoverable Taxonomy Set for this taxonomy'''
+        try:
+            return self._dts
+        except AttributeError:
+            self._dts = set()
+            self._incrementDTS(self._dts)
+            print("{} documents referenced".format(len(self.referencesDocument)))
+            return self._dts
+    
+    def _incrementDTS(self, visited):
+        visited.add(self)
+        for referencedDocument in self.referencesDocument.keys():
+            if referencedDocument not in visited:
+                # add sub-elements
+                referencedDocument._incrementDTS(visited)

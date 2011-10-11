@@ -86,6 +86,7 @@ def main():
     parser.add_option("--formulaVarExpressionEvaluation", action="store_true", dest="formulaVarExpressionEvaluation", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--packageDTS", action="store_true", dest="packageDTS", help=_("Package the opened DTSes into zip files"))
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
@@ -235,6 +236,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvCal, "Calculation", "http://www.xbrl.org/2003/arcrole/summation-item")
             if options.csvDim:
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvDim, "Dimension", "XBRL-dimensions")
+            if options.packageDTS:
+                self.modelManager.packageDTS()
         except (IOError, EnvironmentError) as err:
             self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
 
