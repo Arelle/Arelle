@@ -10,6 +10,7 @@ import logging
 from arelle import UrlUtil, XmlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
+from arelle.ViewUtilRenderedGrid import FactPrototype
 
 def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
     if nextaction is None: nextaction = _("loading")
@@ -216,7 +217,7 @@ class ModelXbrl:
     def viewModelObject(self, objectId):
         modelObject = ""
         try:
-            if isinstance(objectId, ModelObject):
+            if isinstance(objectId, (ModelObject,FactPrototype)):
                 modelObject = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
                 modelObject = self.modelObject(objectId)
@@ -268,7 +269,7 @@ class ModelXbrl:
             elif argName == "sourceLine":
                 extras["sourceLine"] = argValue
             elif argName != "exc_info":
-                if isinstance(argValue, (ModelValue.QName, ModelObject)):
+                if isinstance(argValue, (ModelValue.QName, ModelObject, bool)):
                     fmtArgs[argName] = str(argValue)
                 elif isinstance(argValue,int):
                     # need locale-dependent formatting
