@@ -108,6 +108,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                        xAxisObj, xFilters, self.xAxisChildrenFirst.get(), True, True)
             self.yAxis(1, self.dataFirstRow,
                        yAxisObj, self.yAxisChildrenFirst.get(), True, True)
+            self.factPrototypes = []
             self.bodyCells(self.dataFirstRow, yAxisObj, xFilters, zFilters, self.yAxisChildrenFirst.get())
                 
             # data cells
@@ -116,40 +117,42 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
 
             
     def zAxis(self, row, zAxisObj, zFilters):
+        priorZfilter = len(zFilters)
+        
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(zAxisObj):
             zAxisObj = axisMbrRel.toModelObject
-            priorZfilter = len(zFilters)
             zFilters.append((inheritedPrimaryItemQname(self, zAxisObj),
                              inheritedExplicitDims(self, zAxisObj),
                              zAxisObj.genLabel(lang=self.lang),
                              zAxisObj.objectId()))
             self.zAxis(None, zAxisObj, zFilters)
-            if row is not None:
-                nextZfilter = len(zFilters)
-                gridBorder(self.gridColHdr, self.dataFirstCol, row, TOPBORDER, columnspan=2)
-                gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
-                gridBorder(self.gridColHdr, self.dataFirstCol, row, RIGHTBORDER, columnspan=2)
-                if nextZfilter > priorZfilter + 1:  # combo box, use header on zAxis
-                    label = axisMbrRel.fromModelObject.genLabel(lang=self.lang)
-                else: # no combo box, use label on coord
-                    label = zAxisObj.genLabel(lang=self.lang)
-                hdr = gridHdr(self.gridColHdr, self.dataFirstCol, row,
-                              label, 
-                              anchor="w", columnspan=2,
-                              wraplength=200, # in screen units
-                              objectId=zAxisObj.objectId(),
-                              onClick=self.onClick)
-                if nextZfilter > priorZfilter + 1:    # multiple choices, use combo box
-                    self.combobox = gridCombobox(
-                                 self.gridColHdr, self.dataFirstCol + 2, row,
-                                 values=[zFilter[2] for zFilter in zFilters[priorZfilter:nextZfilter]],
-                                 selectindex=self.zComboBoxIndex,
-                                 columnspan=2,
-                                 comboboxselected=self.comboBoxSelected)
-                    self.zFilterIndex = priorZfilter + self.zComboBoxIndex
-                    self.combobox.objectId = hdr.objectId = zFilters[self.zFilterIndex][3]
-                    gridBorder(self.gridColHdr, self.dataFirstCol + 3, row, RIGHTBORDER)
-                    row += 1
+            
+        if row is not None:
+            nextZfilter = len(zFilters)
+            gridBorder(self.gridColHdr, self.dataFirstCol, row, TOPBORDER, columnspan=2)
+            gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
+            gridBorder(self.gridColHdr, self.dataFirstCol, row, RIGHTBORDER, columnspan=2)
+            if nextZfilter > priorZfilter + 1:  # combo box, use header on zAxis
+                label = axisMbrRel.fromModelObject.genLabel(lang=self.lang)
+            else: # no combo box, use label on coord
+                label = zAxisObj.genLabel(lang=self.lang)
+            hdr = gridHdr(self.gridColHdr, self.dataFirstCol, row,
+                          label, 
+                          anchor="w", columnspan=2,
+                          wraplength=200, # in screen units
+                          objectId=zAxisObj.objectId(),
+                          onClick=self.onClick)
+            if nextZfilter > priorZfilter + 1:    # multiple choices, use combo box
+                self.combobox = gridCombobox(
+                             self.gridColHdr, self.dataFirstCol + 2, row,
+                             values=[zFilter[2] for zFilter in zFilters[priorZfilter:nextZfilter]],
+                             selectindex=self.zComboBoxIndex,
+                             columnspan=2,
+                             comboboxselected=self.comboBoxSelected)
+                self.zFilterIndex = priorZfilter + self.zComboBoxIndex
+                self.combobox.objectId = hdr.objectId = zFilters[self.zFilterIndex][3]
+                gridBorder(self.gridColHdr, self.dataFirstCol + 3, row, RIGHTBORDER)
+                row += 1
 
         if not zFilters:
             zFilters.append( (None,set()) )  # allow empty set operations
@@ -349,6 +352,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 justify = "right" if fact.isNumeric else "left"
                                 break
                     if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp):
+                        if objectId is None:
+                            objectId = "f{0}".format(len(self.factPrototypes))
+                            self.factPrototypes.append(fp)  # for property views
                         gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, 
                                  width=12, # width is in characters, not screen units
                                  objectId=objectId, onClick=self.onClick)
@@ -361,7 +367,12 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
         return row
     def onClick(self, event):
-        self.modelXbrl.viewModelObject(event.widget.objectId)
+        objId = event.widget.objectId
+        if objId and objId[0] == "f":
+            viewableObject = self.factPrototypes[int(objId[1:])]
+        else:
+            viewableObject = objId
+        self.modelXbrl.viewModelObject(viewableObject)
             
     def cellEnter(self, *args):
         self.blockSelectEvent = 0
