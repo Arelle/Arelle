@@ -151,6 +151,21 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         self.context = ContextPrototype(v, dims)
         self.dims = dims # dim items
         self.dimKeys = set(dim[0] for dim in dims)
+        
+    def objectId(self):
+        return "_factPrototype_" + str(self.qname)
+
+    @property
+    def propertyView(self):
+        return (("concept", str(self.qname)),
+                ("dimensions", "({0})".format(len(self.dims)),
+                  tuple((str(dim),str(mem)) for dim,mem in sorted(self.dims)))
+                  if self.dims else (),
+                )
+
+    @property
+    def viewConcept(self):
+        return self
 
 class ContextPrototype():  # behaves like a context
     def __init__(self, v, dims):
