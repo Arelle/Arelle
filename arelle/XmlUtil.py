@@ -134,7 +134,7 @@ def innerText(element, ixExclude=False):
 
 def innerTextList(element, ixExclude=False):   
     try:
-        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude) if len(child.text.strip()) > 0)
+        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude) if len(text.strip()) > 0)
     except TypeError:
         return ""
 
@@ -142,10 +142,11 @@ def innerTextNodes(element, ixExclude):
     if element.text:
         yield element.text
     for child in element.iterchildren():
-        if not isinstance(child,ModelObject) or (
+        if isinstance(child,ModelObject) and (
            not ixExclude or 
            (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL")):
-            innerTextNodes(child, ixExclude)
+            for nestedText in innerTextNodes(child, ixExclude):
+                yield nestedText
     if element.tail:
         yield element.tail
 
