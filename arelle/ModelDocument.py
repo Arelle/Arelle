@@ -674,9 +674,9 @@ class ModelDocument:
                             dimension = sElt.dimension
                             if dimension is not None and dimension not in containerDimValues:
                                 containerDimValues[dimension] = sElt
+                                modelContext.qnameDims[sElt.dimensionQname] = sElt # both seg and scen
                             else:
                                 modelContext.errorDimValues.append(sElt)
-                            modelContext.qnameDims[sElt.dimensionQname] = sElt # both seg and scen
                         else:
                             containerNonDimValues.append(sElt)
                             
