@@ -1884,8 +1884,14 @@ class ModelExplicitDimension(ModelFilter):
                              " \n  arcrole: " + arcrole if arcrole else "" +
                              " \n  axis: " + axis if axis else ""
                              ) if linkrole or arcrole or axis else "")
-        return ((str(self.dimQname) if self.dimQname else self.dimQnameExpression) +
-                " \n".join(members))
+         
+        if self.dimQname:
+            dimName = str(self.dimQname)
+        elif self.dimQnameExpression:
+            dimName = self.dimQnameExpression
+        else:
+            dimName = _("dimension not available")
+        return (dimName + " \n".join(members))
 
 class ModelTypedDimension(ModelTestFilter):
     def init(self, modelDocument):
