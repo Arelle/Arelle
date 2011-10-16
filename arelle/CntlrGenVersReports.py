@@ -15,7 +15,8 @@ versioning reports, per Roland Hommes 2010-12-10
 import time, datetime, os, gettext, io, sys, traceback
 from lxml import etree
 from optparse import OptionParser
-from arelle import (Cntlr, ModelXbrl, ModelDocument, ModelVersReport, FileSource, XmlUtil, Version)
+from arelle import (Cntlr, ModelXbrl, ModelDocument, ModelVersReport, FileSource, 
+                    XmlUtil, XbrlConst, Version)
 from arelle import xlrd
 import logging
 
@@ -162,12 +163,23 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                             # start testcase file
                             testcaseDocs = []
                             testcaseElements = []
+                            testcaseNumber = testcaseName[0:4]
+                            if testcaseNumber.isnumeric():
+                                testcaseNumberElement = "<number>{0}</number>".format(testcaseNumber)
+                                testcaseName = testcaseName[5:]
+                            else:
+                                testcaseNumberElement = ""
+                            testDirSegments = testDir.split('/')
+                            if len(testDirSegments) >= 2 and '-' in testDirSegments[1]:
+                                testedModule = testDirSegments[1][testDirSegments[1].index('-') + 1:]
+                            else:
+                                testedModule = ''
                             for purpose in ("Creation","Consumption"):
                                 file = io.StringIO(
                                     #'<?xml version="1.0" encoding="UTF-8"?>'
                                     '<!-- Copyright 2011 XBRL International.  All Rights Reserved. -->'
                                     '<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>'
-                                    '<testcase name="XBRL Versioning 1.0 {1} Tests" date="{2}" '
+                                    '<testcase '
                                     ' xmlns="http://xbrl.org/2008/conformance"'
                                     ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
                                     ' xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd">'
@@ -175,16 +187,25 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                                     '<name>Roland Hommes</name>'
                                     '<email>roland@rhocon.nl</email>'
                                     '</creator>'
-                                    '<name>{0}</name>'
-                                    '<description>{0}</description>'
-                                    '</testcase>'.format(testcaseName,purpose,today)
+                                    '{0}'
+                                    '<name>{1}</name>'
+                                    # '<description>{0}</description>'
+                                    '<reference>'
+                                    '{2}'
+                                    '{3}'
+                                    '</reference>'
+                                    '</testcase>'.format(testcaseNumberElement,
+                                                         testcaseName,
+                                                         '<name>{0}</name>'.format(testedModule) if testedModule else '',
+                                                         '<id>{0}</id>'.format(useCase) if useCase else '')
+                                    
                                     )
                                 doc = etree.parse(file)
                                 file.close()
                                 testcaseDocs.append(doc)
                                 testcaseElements.append(doc.getroot())
                             priorTestcasesDir = testcasesDir
-                            variationID = 1
+                            variationSeq = 1
                         try:
                             os.makedirs(os.path.dirname(reportFullPath))
                         except WindowsError:
@@ -195,20 +216,31 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                                                   schemaDir=schemaDir)
                         
                         # check for expected elements
-                        if expectedEvents and expectedEvents not in (
-                               "No change", "N.A."):
-                            if len(modelVersReport.xmlDocument.findall('//{*}' + expectedEvents)) == 0:
-                                modelTestcases.warning("warning",
-                                    "Generated test case %(reportName)s missing expected event %(events)s",
-                                    reportName=reportName, 
-                                    events=expectedEvents)
+                        if expectedEvents:
+                            for expectedEvent in expectedEvents.split(","):
+                                if expectedEvent not in ("No change", "N.A."):
+                                    prefix, sep, localName = expectedEvent.partition(':')
+                                    if sep and len(modelVersReport.xmlDocument.findall(
+                                                        '//{{{0}}}{1}'.format(
+                                                            XbrlConst.verPrefixNS.get(prefix),
+                                                            localName))) == 0:
+                                        modelTestcases.warning("warning",
+                                            "Generated test case %(reportName)s missing expected event %(event)s",
+                                            reportName=reportName, 
+                                            event=expectedEvent)
                         
                         modelVersReport.close()
+                        uriFromParts = uriFrom.split('_')
+                        if len(uriFromParts) >= 2:
+                            variationId = uriFromParts[1]
+                        else:
+                            variationId = "_{0:02n}".format(variationSeq)
                         for i,testcaseElt in enumerate(testcaseElements):
                             variationElement = etree.SubElement(testcaseElt, "{http://xbrl.org/2008/conformance}variation", 
-                                                                attrib={"id": "_{0:02n}".format(variationID)})
-                            nameElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}name")
+                                                                attrib={"id": variationId})
+                            nameElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}description")
                             nameElement.text = description
+                            ''' (removed per RH 2011/10/04
                             if note:
                                 paramElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}description")
                                 paramElement.text = "Note: " + note
@@ -216,12 +248,21 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                                 paramElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}reference")
                                 paramElement.set("specification", "versioning-requirements")
                                 paramElement.set("useCase", useCase)
+                            '''
                             dataElement = etree.SubElement(variationElement, "{http://xbrl.org/2008/conformance}data")
                             if i == 0:  # result is report
                                 if expectedEvents:
-                                    paramElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}parameter")
-                                    paramElement.set("name", "expectedEvents")
-                                    paramElement.text = expectedEvents.replace(", "," ")
+                                    paramElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}parameter",
+                                                                    attrib={"name":"expectedEvent",
+                                                                            "value":expectedEvents},
+                                                                    nsmap={"conf":"http://xbrl.org/2008/conformance",
+                                                                           None:""})
+                                if assignment:
+                                    paramElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}parameter",
+                                                                    attrib={"name":"assignment",
+                                                                            "value":assignment},
+                                                                    nsmap={"conf":"http://xbrl.org/2008/conformance",
+                                                                           None:""})
                             for schemaURIs, dtsAttr in ((uriFrom,"from"), (uriTo,"to")):
                                 for schemaURI in schemaURIs.split(","): 
                                     schemaElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}schema")
@@ -235,7 +276,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                             if i == 1:
                                 reportElement.set("readMeFirst","true")
                             reportElement.text = "report/" + reportName
-                        variationID += 1
+                        variationSeq += 1
             except Exception as err:
                 modelTestcases.error("exception",
                     _("Exception: %(error)s, Excel row: %(excelRow)s"),
