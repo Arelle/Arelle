@@ -254,7 +254,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                                 if expectedEvents:
                                     paramElement = etree.SubElement(dataElement, "{http://xbrl.org/2008/conformance}parameter",
                                                                     attrib={"name":"expectedEvent",
-                                                                            "value":expectedEvents},
+                                                                            "value":expectedEvents.replace(',',' ')},
                                                                     nsmap={"conf":"http://xbrl.org/2008/conformance",
                                                                            None:""})
                                 if assignment:

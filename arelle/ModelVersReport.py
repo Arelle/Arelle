@@ -726,7 +726,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                         for domRel in self.DRSdomRels(dts, dimRel):
                                             domHasMemRels = dts.relationshipSet(XbrlConst.domainMember, linkrole).fromModelObject(priItemConcept)
                                             self.createInstanceAspectsEvent("member", (('name',domRel.toModelObject.qname),) + \
-                                                                                      ((('linkrole',rel.linkrole),
+                                                                                      ((('linkrole',domRel.linkrole),
                                                                                         ('arcrole',XbrlConst.domainMember),
                                                                                         ('axis', 'DRS-descendant-or-self')) if domHasMemRels else ()),
                                                                                       eventParent=explDim)
