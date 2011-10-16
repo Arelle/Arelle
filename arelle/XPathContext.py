@@ -427,27 +427,30 @@ class XPathContext:
             if isinstance(p,QNameDef):
                 ns = p.namespaceURI; localname = p.localName
                 if p.isAttribute:
-                    attrTag = p.localName if p.unprefixed else p.clarkNotation
-                    modelAttribute = None
-                    try:
-                        modelAttribute = node.xAttributes[attrTag]
-                    except (AttributeError, TypeError, IndexError, KeyError):
-                        # may be lax or deferred validated
+                    if isinstance(node,ModelObject):
+                        attrTag = p.localName if p.unprefixed else p.clarkNotation
+                        modelAttribute = None
                         try:
-                            validate(node.modelXbrl, node, p)
                             modelAttribute = node.xAttributes[attrTag]
                         except (AttributeError, TypeError, IndexError, KeyError):
-                            pass
-                    if modelAttribute is None:
-                        value = node.get(attrTag)
-                        if value is not None:
-                            targetNodes.append(ModelAttribute(node,p.clarkNotation,UNKNOWN,value,value,value))
-                    elif modelAttribute.xValid >= VALID:
-                            targetNodes.append(modelAttribute)
+                            # may be lax or deferred validated
+                            try:
+                                validate(node.modelXbrl, node, p)
+                                modelAttribute = node.xAttributes[attrTag]
+                            except (AttributeError, TypeError, IndexError, KeyError):
+                                pass
+                        if modelAttribute is None:
+                            value = node.get(attrTag)
+                            if value is not None:
+                                targetNodes.append(ModelAttribute(node,p.clarkNotation,UNKNOWN,value,value,value))
+                        elif modelAttribute.xValid >= VALID:
+                                targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
-                    targetNodes = XmlUtil.children(node, ns, localname)
+                    if isinstance(node,ModelObject):
+                        targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
-                    targetNodes = XmlUtil.descendants(node, ns, localname)
+                    if isinstance(node,ModelObject):
+                        targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
                     if isinstance(node,ModelAttribute):
                         targetNodes = [ node.modelElement ]
