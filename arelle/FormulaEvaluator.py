@@ -106,7 +106,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
                 else: varSet.countNotSatisfied += 1
                 msg = varSet.message(result)
                 if msg is not None:
-                    xpCtx.modelXbrl.info("message:" + varSet.id,
+                    xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
                         msg.evaluate(xpCtx),
                         modelObject=varSet)
                 traceOf = "Value Assertion"
