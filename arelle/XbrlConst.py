@@ -101,6 +101,11 @@ vercb = "http://xbrl.org/2010/versioning-concept-basic"
 verce = "http://xbrl.org/2010/versioning-concept-extended"
 verrels = "http://xbrl.org/2010/versioning-relationship-sets"
 veria = "http://xbrl.org/2010/versioning-instance-aspects"
+verPrefixNS = {"ver":ver,
+               "vercb":vercb,
+               "verce":verce,
+               "verrels":verrels,
+               "veria":veria}
 
 # formula specs
 variable = "http://xbrl.org/2008/variable"
