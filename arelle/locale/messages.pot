@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-10-10 14:41+Pacific Daylight Time\n"
+"POT-Creation-Date: 2011-10-13 20:02+Pacific Daylight Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1093,6 +1093,10 @@ msgid ""
 "Result: %(result)s"
 msgstr ""
 
+#: arelle\FormulaEvaluator.py:109
+msgid "unlabeled variableSet"
+msgstr ""
+
 #: arelle\FormulaEvaluator.py:115
 msgid ""
 "%(variableSetType)s %(xlinkLabel)s \n"
@@ -1384,25 +1388,29 @@ msgstr ""
 msgid "%(dimension)s is not an explicit dimension concept QName."
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2410 arelle\ModelFormulaObject.py:2468
+#: arelle\ModelFormulaObject.py:1893
+msgid "dimension not available"
+msgstr ""
+
+#: arelle\ModelFormulaObject.py:2416 arelle\ModelFormulaObject.py:2474
 msgid "input {0}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2417
+#: arelle\ModelFormulaObject.py:2423
 msgid "{0}({1}) as {2}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2469
+#: arelle\ModelFormulaObject.py:2475
 msgid "step {0}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2477
+#: arelle\ModelFormulaObject.py:2483
 msgid ""
 "step ${0}: \n"
 "{1}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2478
+#: arelle\ModelFormulaObject.py:2484
 msgid ""
 "output: \n"
 "{0}"
@@ -1476,47 +1484,47 @@ msgstr ""
 msgid "ready"
 msgstr ""
 
-#: arelle\ModelVersReport.py:553 arelle\ModelVersReport.py:567
+#: arelle\ModelVersReport.py:554 arelle\ModelVersReport.py:568
 msgid "corresponding relationship {0} toDTS toName=\"{1}\""
 msgstr ""
 
-#: arelle\ModelVersReport.py:555
+#: arelle\ModelVersReport.py:556
 msgid "toDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:569
+#: arelle\ModelVersReport.py:570
 msgid "fromDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:814
+#: arelle\ModelVersReport.py:815
 msgid "typed domain element {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:816
+#: arelle\ModelVersReport.py:817
 msgid "typedDomainRef={0} (element qname cannot be determined)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:887
+#: arelle\ModelVersReport.py:888
 msgid "from value: {0} "
 msgstr ""
 
-#: arelle\ModelVersReport.py:891 arelle\ModelVersReport.py:908
+#: arelle\ModelVersReport.py:892 arelle\ModelVersReport.py:909
 msgid "({0} does not have an id attribute)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:904
+#: arelle\ModelVersReport.py:905
 msgid "to value: {0} "
 msgstr ""
 
-#: arelle\ModelXbrl.py:15
+#: arelle\ModelXbrl.py:16
 msgid "loading"
 msgstr ""
 
-#: arelle\ModelXbrl.py:46 arelle\ModelXbrl.py:122
+#: arelle\ModelXbrl.py:47 arelle\ModelXbrl.py:123
 msgid "xbrl loading finished, {0}..."
 msgstr ""
 
-#: arelle\ModelXbrl.py:227
+#: arelle\ModelXbrl.py:228
 msgid "Exception viewing properties {0} {1} at {2}"
 msgstr ""
 
