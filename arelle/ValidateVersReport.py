@@ -218,7 +218,7 @@ class ValidateVersReport():
                                 event=conceptChange.name, resource=conceptChange.toResourceValue, concept=conceptChange.toConceptQname)
                         else:
                             relationship = toConcept.relationshipToResource(toResource, XbrlConst.conceptLabel)
-                            if relationship:
+                            if relationship is not None:
                                 if relationship.qname != XbrlConst.qnLinkLabelArc or \
                                    relationship.parentQname != XbrlConst.qnLinkLabelLink or \
                                    toResource.qname != XbrlConst.qnLinkLabel:

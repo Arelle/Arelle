@@ -117,13 +117,14 @@ class Validate:
                         else:
                             modelXbrl = ModelXbrl.create(self.modelXbrl.modelManager, 
                                          ModelDocument.Type.DTSENTRIES,
-                                         self.modelXbrl.cntlr.webCache.normalizeUrl(readMeFirstUri[:-4] + ".dts", baseForElement),
+                                         self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(readMeFirstUri[:-4] + ".dts", baseForElement),
                                          isEntry=True)
                         DTSdoc = modelXbrl.modelDocument
                         DTSdoc.inDTS = True
                         doc = ModelDocument.load(modelXbrl, readMeFirstUri, base=baseForElement)
-                        DTSdoc.referencesDocument[doc] = "import"  #fake import
-                        doc.inDTS = True
+                        if doc is not None:
+                            DTSdoc.referencesDocument[doc] = "import"  #fake import
+                            doc.inDTS = True
                     else: # not a multi-schemaRef versioning report
                         modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    readMeFirstUri,
@@ -169,8 +170,9 @@ class Validate:
                              _("Testcase %(id)s %(name)s DTSes not loaded, unable to generate versioning report: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         modelTestcaseVariation.status = "failed"
-                    for inputDTS in inputDTSes:
+                    for inputDTS in inputDTSes.values():
                         inputDTS.close()
+                    del inputDTSes # dereference
                 elif inputDTSes:
                     # validate schema, linkbase, or instance
                     modelXbrl = inputDTSes[None][0]

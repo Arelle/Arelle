@@ -878,7 +878,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         XmlUtil.addChild(event, XbrlConst.ver, "ver:toURI", ("value",toURI))
     
     def createConceptEvent(self, eventNS, eventName, fromConcept=None, toConcept=None, action=None, fromCustomAttribute=None, toCustomAttribute=None, fromResource=None, toResource=None, fromValue=None, toValue=None, fromResourceText=None, toResourceText=None):
-        if not action:
+        if action is None:
             action = self.createAction()
         event = XmlUtil.addChild(action, eventNS, eventName)
         if fromConcept is not None:
