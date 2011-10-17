@@ -140,9 +140,6 @@ class ModelTestcaseVariation(ModelObject):
         errorElement = XmlUtil.descendant(self, None, "error")
         if errorElement is not None:
             return ModelValue.qname(errorElement, XmlUtil.text(errorElement))
-        versioningReport = XmlUtil.descendant(self, None, "versioningReport")
-        if versioningReport is not None:
-            return XmlUtil.text(versioningReport)
         resultElement = XmlUtil.descendant(self, None, "result")
         if resultElement is not None:
             expected = resultElement.get("expected")
@@ -164,6 +161,10 @@ class ModelTestcaseVariation(ModelObject):
             return self.get("result")
                 
         return None
+
+    @property
+    def expectedVersioningReport(self):
+        XmlUtil.text(XmlUtil.text(XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "versioningReport")))
 
     @property
     def propertyView(self):
