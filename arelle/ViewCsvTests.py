@@ -44,8 +44,8 @@ class ViewTests(ViewCsv.View):
         if id is None:
             id = ""
         self.write(["","",id,
-                    modelTestcaseVariation.name,
-                    " ".join(modelTestcaseVariation.readMeFirstUris),
+                    (modelTestcaseVariation.name or modelTestcaseVariation.description),
+                    " ".join(str(uri) for uri in modelTestcaseVariation.readMeFirstUris),
                     modelTestcaseVariation.status,
                     modelTestcaseVariation.expected,
                     " ".join(str(code) for code in modelTestcaseVariation.actual)])
