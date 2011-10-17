@@ -38,6 +38,11 @@ def viewTests(modelXbrl, tabWin):
             view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
     else:
         view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "expected", "actual")
+        
+    menu = view.contextMenu()
+    view.menuAddExpandCollapse()
+    view.menuAddClipboard()
+
     view.viewTestcaseIndexElement(modelXbrl.modelDocument, "")
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -86,7 +91,7 @@ class ViewTests(ViewWinTree.ViewTree):
         node = self.treeView.insert(parentNode, "end", modelTestcaseVariation.objectId(), 
                                     text=id, 
                                     tags=("odd" if n & 1 else "even",))
-        self.treeView.set(node, "name", modelTestcaseVariation.name)
+        self.treeView.set(node, "name", (modelTestcaseVariation.name or modelTestcaseVariation.description))
         self.treeView.set(node, "readMeFirst", ",".join(str(uri) for uri in modelTestcaseVariation.readMeFirstUris))
         self.treeView.set(node, "status", modelTestcaseVariation.status)
         call = modelTestcaseVariation.cfcnCall
