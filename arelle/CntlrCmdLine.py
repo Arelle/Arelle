@@ -8,7 +8,7 @@ This module is Arelle's controller in command line non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import gettext, time, datetime, os, shlex
+import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, ViewCsvRelationshipSet, ViewCsvTests)
@@ -220,7 +220,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                             messageCode="info", file=self.filename)
                 if (options.csvTestReport and 
                     self.modelManager.modelXbrl.modelDocument.type in 
-                        (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY)):
+                        (ModelDocument.Type.TESTCASESINDEX, 
+                         ModelDocument.Type.TESTCASE, 
+                         ModelDocument.Type.REGISTRY)):
                     ViewCsvTests.viewTests(self.modelManager.modelXbrl, options.csvTestReport)
                 
             if options.csvDTS:
@@ -237,6 +239,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvDim, "Dimension", "XBRL-dimensions")
         except (IOError, EnvironmentError) as err:
             self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
+        except Exception as err:
+            self.addToLog(_("[Exception] Failed to complete validation: \n{0} \n{1}").format(
+                        err,
+                        traceback.format_tb(sys.exc_info()[2])))
 
 if __name__ == "__main__":
     main()
