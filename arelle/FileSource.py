@@ -183,7 +183,7 @@ class FileSource:
             else: # filepath.startswith(self.baseurl)
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
-                b = archiveFileSource.fs.read(archiveFileName)
+                b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
                 encoding = XmlUtil.encoding(b)
                 return (io.TextIOWrapper(
                         io.BytesIO(b), 
