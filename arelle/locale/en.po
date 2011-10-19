@@ -1,0 +1,113 @@
+# Arelle English resources.
+# Copyright (C) 2011 Mark V Systems
+# This file is distributed under the same license as Arelle.
+# Regis Decamps <regis.decamps@acp.banque-france.fr>, 2011
+#
+#, fuzzy
+msgid ""
+msgstr "Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-09-13 15:50+0200\n"
+"PO-Revision-Date: 2011-09-13 15:50+0200\n"
+"Last-Translator: Rgis Dcamps <regis.decamps@banque-france.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ANSI\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ValidateXbrl.py:248
+msgid "Calculation relationship has illegal concept from "
+"%(source)s%(sourceNumericDecorator)s to "
+"%(target)s%(targetNumericDecorator)s in link role "
+"%(linkrole)s"
+msgstr "Calculation relationship has disallowed concept from "
+"%(source)s%(sourceNumericDecorator)s to "
+"%(target)s%(targetNumericDecorator)s in link role "
+"%(linkrole)s"
+
+#: ValidateXbrl.py:242
+msgid "Calculation relationship has illegal weight %(weight)s from "
+"%(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in "
+"link role %(linkrole)s (per 5.1.1.2 Table "
+"6)"
+msgstr "Calculation relationship has disallowed weight %(weight)s from "
+"%(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in "
+"link role %(linkrole)s (per 5.1.1.2 Table "
+"6)"
+
+#: Updater.py:51
+msgid "Download ompleted"
+msgstr "Download completed"
+
+#: ValidateXbrlDTS.py:580
+msgid "Element %(element)shas empty %(attribute)s"
+msgstr "Element %(element)s has empty %(attribute)s"
+
+#: FormulaEvaluator.py:46
+msgid "Existence Assertion %(xlinkLabel) \n"
+"Result: %(result)s"
+msgstr "Existence Assertion %(xlinkLabel)s \n"
+"Result: %(result)s"
+
+#: CntlrCmdLine.py:24
+msgid "FILENAME is an entry point, which may bean XBRL instance, schema, "
+"linkbase file, inline XBRL instance, testcase file, testcase index "
+"file.  FILENAME may be a local file or a URI to a web located "
+"file."
+msgstr "FILENAME is an entry point, which may be an XBRL instance, schema, "
+"linkbase, inline XBRL instance, testcase, testcase index. FILENAME "
+"may be a local file or a URI to a web "
+"resource."
+
+#: ValidateFormula.py:687
+msgid "Formula %(xlinkLabel)s dimension attribute %(dimension)s on the "
+"%(dimensionType)s dimension rule contains a QName that does not "
+"identify an (dimensionType)s dimension."
+msgstr "Formula %(xlinkLabel)s dimension attribute %(dimension)s on the "
+"%(dimensionType)s dimension rule contains a QName that does not "
+"identify an %(dimensionType)s dimension."
+
+#: ValidateFilingDimensions.py:178
+msgid "Hypercube %(hypercube)s has different dimensions in DRS roles "
+"%(linkrole)s and %(linkrole2)s: %(dimensions)s and "
+"%(dimensoins2)s"
+msgstr "Hypercube %(hypercube)s has different dimensions in DRS roles "
+"%(linkrole)s and %(linkrole2)s: %(dimensions)s and "
+"%(dimensions2)s"
+
+#: ValidateXbrlDTS.py:959
+msgid "Linkbase element %(element)s must not have attribute "
+"%(attribte)s"
+msgstr "Linkbase element %(element)s must not have attribute "
+"%(attribute)s"
+
+#: ValidateXbrlDTS.py:966
+msgid "Linkbase element %(element)s must not have attribute "
+"xlink:%(attribte)s"
+msgstr "Linkbase element %(element)s must not have attribute "
+"xlink:%(attribute)s"
+
+#: XPathContext.py:134
+msgid "Number of arguments do not match signature "
+"arity."
+msgstr "Number of arguments do not match function "
+"arity."
+
+#: ValidateFormula.py:62
+msgid "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an "
+"%(element)s  target"
+msgstr "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an "
+"%(element)s target"
+
+#: ValidateXbrl.py:441
+msgid "Unit %(unitID)s illegal measure: %(measure)s"
+msgstr "Unit %(unitID)s disallowed measure: "
+"%(measure)s"
+
+#: ValidateXbrl.py:158
+msgid "Unprohibited labelArc in extended link %(linkrole)s has illegal "
+"remote resource loc labeled %(xlinkLabel)s href "
+"%(xlinkHref)s"
+msgstr "Unprohibited labelArc in extended link %(linkrole)s has disallowed "
+"remote resource loc labeled %(xlinkLabel)s href "
+"%(xlinkHref)s"
+
