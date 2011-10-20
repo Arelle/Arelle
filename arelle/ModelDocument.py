@@ -312,7 +312,7 @@ class ModelDocument:
 
     def __eq__(self, other):
         # URI would be a better ID but normalization is easier on filepath
-        return isinstance(other, ModelDocument) and self.filepath == other.filep
+        return isinstance(other, ModelDocument) and self.filepath == other.filepath
 
     def __hash__(self):
         return hash(self.filepath)
