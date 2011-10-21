@@ -75,11 +75,19 @@ class WebCache:
         self.cachedUrlCheckTimesModified = False
         
     def resetProxies(self, httpProxyTuple):
+        try:
+            from ntlm import HTTPNtlmAuthHandler
+            self.hasNTLM = True
+        except ImportError:
+            self.hasNTLM = False
         self.proxy_handler = urllib.request.ProxyHandler(proxyDirFmt(httpProxyTuple))
         self.proxy_auth_handler = urllib.request.ProxyBasicAuthHandler()
         self.http_auth_handler = urllib.request.HTTPBasicAuthHandler()
-
-        self.opener = urllib.request.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
+        if self.hasNTLM:
+            self.ntlm_auth_handler = HTTPNtlmAuthHandler.HTTPNtlmAuthHandler()            
+            self.opener = urllib.request.build_opener(self.proxy_handler, self.ntlm_auth_handler, self.proxy_auth_handler, self.http_auth_handler)
+        else:
+            self.opener = urllib.request.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
 
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
