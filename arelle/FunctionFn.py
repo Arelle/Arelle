@@ -244,18 +244,30 @@ def substring_functions(xc, args, contains=None, startEnd=None, beforeAfter=None
             return ''
     raise fnFunctionNotAvailable()  # wrong arguments?
 
+def regexFlags(xc, p, args, n):
+    f = 0
+    flagsArg = stringArg(xc, args, n, "xs:string", missingArgFallback="", emptyFallback="")
+    for c in flagsArg:
+        if c == 's': f |= re.S
+        elif c == 'm': f |= re.M
+        elif c == 'i': f |= re.I
+        elif c == 'x': f |= re.X
+        else:
+            raise XPathContext.XPathException(p, 'err:FORX0001', _('Regular expression interpretation flag unrecognized: {0}').format(flagsArg))
+    return f
+            
 def matches(xc, p, contextItem, args):
-    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    if not 2 <= len(args) <= 3: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    return bool(re.match(pattern,input))
+    return bool(re.match(pattern,input,flags=regexFlags(xc, p, args, 2)))
 
 def replace(xc, p, contextItem, args):
-    if len(args) != 3: raise XPathContext.FunctionNumArgs()
+    if not 3 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    replacement = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    return input.replace(pattern,replacement)
+    replacement = stringArg(xc, args, 2, "xs:string", emptyFallback=())
+    return re.sub(pattern,replacement,input,flags=regexFlags(xc, p, args, 3))
 
 def tokenize(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
