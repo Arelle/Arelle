@@ -386,6 +386,13 @@ def validate(val):
                     
         # check messages variable dependencies
         checkValidationMessageVariables(val, modelVariableSet, qnameRels)
+
+        if isinstance(modelVariableSet, ModelFormula): # check consistency assertion message variables and its messages variables
+            for consisAsserRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet):
+                consisAsser = consisAsserRel.fromModelObject
+                if isinstance(consisAsser, ModelConsistencyAssertion):
+                    checkValidationMessages(val, consisAsser)
+                    checkValidationMessageVariables(val, consisAsser, qnameRels)
                         
         # check preconditions
         modelVariableSet.preconditions = []

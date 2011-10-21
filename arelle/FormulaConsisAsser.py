@@ -106,7 +106,7 @@ def evaluate(xpCtx, varSet, derivedFact):
                  _("Consistency assertion %(id)s result %(result)s"),
                  modelObject=consisAsser, id=consisAsser.id, result=isSatisfied)
         message = consisAsser.message(isSatisfied)
-        if message:
+        if message is not None:
             xpCtx.modelXbrl.info("message:" + consisAsser.id, message.evaluate(xpCtx),
                                  modelObject=message)
         if isSatisfied: consisAsser.countSatisfied += 1
