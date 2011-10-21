@@ -446,10 +446,10 @@ class XPathContext:
                         elif modelAttribute.xValid >= VALID:
                                 targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
-                    if isinstance(node,ModelObject):
+                    if isinstance(node,(ModelObject, etree._ElementTree)):
                         targetNodes = XmlUtil.children(node, ns, localname)
                 elif op == '//':
-                    if isinstance(node,ModelObject):
+                    if isinstance(node,(ModelObject, etree._ElementTree)):
                         targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
                     if isinstance(node,ModelAttribute):
@@ -457,9 +457,10 @@ class XPathContext:
                     else:
                         targetNodes = [ XmlUtil.parent(node) ]
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
-                if p.name.localName == "text":
-                    targetNodes = [XmlUtil.text(node)]
-                # todo: add element, attribute, node, etc...
+                if isinstance(node,ModelObject):
+                    if p.name.localName == "text":
+                        targetNodes = [XmlUtil.text(node)]
+                    # todo: add element, attribute, node, etc...
             targetSequence.extend(targetNodes)
         return targetSequence
         
