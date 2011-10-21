@@ -6,7 +6,6 @@ import gettext
 import locale
 
 def main():
-    gettext.install("arelle")
     CntlrProfiler().run()
         
 class CntlrProfiler(Cntlr.Cntlr):

@@ -4,7 +4,6 @@ This module is an example Arelle controller in non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import gettext
 from arelle import Cntlr
 
 class CntlrCustomLoggingExample(Cntlr.Cntlr):
@@ -41,5 +40,4 @@ class CustomLogHandler(logging.Handler):
         print(self.format(logRecord))
             
 if __name__ == "__main__":
-    gettext.install("arelle")
     CntlrCustomLoggingExample().run()

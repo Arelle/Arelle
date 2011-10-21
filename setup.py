@@ -28,10 +28,13 @@ if sys.platform == 'darwin':
 	'--iconfile',
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
     ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
-    ('config',['arelle/locale/' + f for f in os.listdir('arelle/locale')]),
-    ('config',['arelle/examples/' + f for f in os.listdir('arelle/examples')]),
+    ('examples',['arelle/examples/' + f for f in os.listdir('arelle/examples')]),
     ('scripts',['arelle/scripts/' + f for f in os.listdir('arelle/scripts-macOS')]),
       ]
+    for dir, subDirs, files in os.walk('arelle/locale'):
+        dir = dir.replace('\\','/')
+        dataFiles.append((dir[7:],
+                          [dir + "/" + f for f in files]))
     cx_FreezeExecutables = None
 elif sys.platform == 'win32':
     from setuptools import find_packages

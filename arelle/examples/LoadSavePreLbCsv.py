@@ -4,7 +4,6 @@ This module is an example Arelle controller in non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import gettext
 from arelle import Cntlr
 from arelle.ViewCsvRelationshipSet import viewRelationshipSet
 
@@ -25,5 +24,4 @@ class CntlrCsvPreLbExample(Cntlr.Cntlr):
         self.close()
             
 if __name__ == "__main__":
-    gettext.install("arelle")
     CntlrCsvPreLbExample().run()

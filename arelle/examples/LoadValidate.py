@@ -4,7 +4,6 @@ This module is an example Arelle controller in non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import gettext
 from arelle import Cntlr
 
 # this is the controller class
@@ -34,7 +33,5 @@ class CntlrValidateExample(Cntlr.Cntlr):
             
 # if python is initiated as a main program, start the controller
 if __name__ == "__main__":
-    # initialize gettext for language strings translation (the _(...) wrappers)
-    gettext.install("arelle")
     # create the controller and start it running
     CntlrValidateExample().run()

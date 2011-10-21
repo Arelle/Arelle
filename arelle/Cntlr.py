@@ -4,8 +4,9 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import tempfile, os, pickle, sys, logging
+import tempfile, os, pickle, sys, logging, gettext
 from arelle import ModelManager
+from arelle.Locale import getLanguageCodes
 
 class Cntlr:
 
@@ -76,13 +77,16 @@ class Cntlr:
             resources = os.path.dirname(os.path.dirname(os.path.dirname(self.moduleDir)))
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")
+            self.localeDir = os.path.join(resources, "locale")
         elif self.moduleDir.endswith("library.zip\\arelle"): # cx_Freexe
             resources = os.path.dirname(os.path.dirname(self.moduleDir))
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")
+            self.localeDir = os.path.join(resources, "locale")
         else:
             self.configDir = os.path.join(self.moduleDir, "config")
             self.imagesDir = os.path.join(self.moduleDir, "images")
+            self.localeDir = os.path.join(self.moduleDir, "locale")
         # assert that app dir must exist
         if not os.path.exists(self.userAppDir):
             os.makedirs(self.userAppDir)
@@ -100,6 +104,13 @@ class Cntlr:
                 'fileHistory': [],
                 'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),                
             }
+            
+        # start language translation for domain
+        try:
+            gettext.translation("arelle", self.localeDir, getLanguageCodes()).install()
+        except:
+            gettext.install("arelle", self.localeDir)
+
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         self.modelManager = ModelManager.initialize(self)

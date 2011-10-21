@@ -39,6 +39,11 @@ def getLanguageCode():
     import locale
     return locale.getdefaultlocale()[0].replace("_","-")
 
+def getLanguageCodes():
+    lang = getLanguageCode()
+    # allow searching on the lang with country part, either python or standard form, or just language
+    return [lang, lang.replace("-","_"), lang.partition("-")[0]]
+
 # Iterate over grouping intervals
 def _grouping_intervals(grouping):
     last_interval = 3 # added by Mark V to prevent compile error but not necessary semantically

@@ -539,7 +539,7 @@ class ValidateXbrl:
             
         if (modelXbrl.modelManager.validateUtr or
             (self.validateEFM and 
-             any(concept.namespaceURI in self.disclosureSystem.standardTaxonomiesDict 
+             any((concept.namespaceURI in self.disclosureSystem.standardTaxonomiesDict) 
                  for concept in self.modelXbrl.nameConcepts.get("UTR",())))):
             ValidateUtr.validate(modelXbrl)
             

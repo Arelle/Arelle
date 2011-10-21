@@ -17,7 +17,7 @@ from arelle.ModelFormulaObject import FormulaOptions
 import logging
 
 def main():
-    gettext.install("arelle")
+    gettext.install("arelle") # needed for options messages
     usage = "usage: %prog [options]"
     parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
     parser.add_option("-f", "--file", dest="filename",

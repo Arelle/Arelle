@@ -15,7 +15,6 @@ import tkinter.messagebox, traceback
 from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
-import gettext
 import logging
 
 import threading, queue
@@ -1092,7 +1091,6 @@ class WinMainLogHandler(logging.Handler):
 
 def main():
     # this is the entry called by arelleGUI.pyw for windows
-    gettext.install("arelle")
     global restartMain
     while restartMain:
         restartMain = False
