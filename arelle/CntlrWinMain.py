@@ -72,6 +72,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Open Web..."), self.webOpen, "Shift+Alt+O", "<Shift-Alt-o>"),
                 (_("Import File..."), self.importOpen, None, None),
                 (_("Save..."), self.fileSave, "Ctrl+S", "<Control-s>"),
+                (_("Package DTSses"), self.packageDTS, None, None),
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
                 (None, None, None, None),
                 (_("Quit"), self.quit, "Ctrl+Q", "<Control-q>"),
@@ -87,7 +88,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.fileMenuLength += 1
         self.loadFileMenuHistory()
         self.menubar.add_cascade(label=_("File"), menu=self.fileMenu, underline=0)
-        
         toolsMenu = Menu(self.menubar, tearoff=0)
         
         validateMenu = Menu(self.menubar, tearoff=0)
@@ -713,6 +713,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         modelVersReport.modelDocument.toDTS.closeViews()
         self.showLoadedXbrl(modelVersReport, True)
 
+    def packageDTS(self):
+        self.modelManager.packageDTS()
+        
     def loadFile(self, filename):
         self.filename = filename
         self.listBox.delete(0, END)

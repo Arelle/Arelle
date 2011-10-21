@@ -73,7 +73,29 @@ class ModelManager:
                           versReportFile,
                           self.loadedModelXbrls[0], self.loadedModelXbrls[1])
             return modelVersReport
-        
+    
+    def packageDTS(self):
+        import os, zipfile
+        from zipfile import ZipFile
+        import zipfile
+        try:
+            import zlib
+            compression = zipfile.ZIP_DEFLATED
+        except:
+            compression = zipfile.ZIP_STORED
+        for taxonomy in self.loadedModelXbrls:
+            taxoFilename = taxonomy.fileSource.url
+            outputFilename = taxoFilename + ".zip"
+            with ZipFile(outputFilename, 'w', compression) as zip:
+                dts = taxonomy.modelDocument.dts
+                if dts is not None:
+                    for x in dts:
+                        if not (x.uri is None or
+                                x.uri.startswith("http://") or x.uri.startswith("https://")):
+                            zip.write(x.uri, os.path.basename(x.uri))
+                    self.addToLog(_("DTS of {0} has {2} files packaged into {1}").format(
+                        os.path.basename(taxoFilename), outputFilename, len(taxonomy.modelDocument.dts)))
+            
     def close(self, modelXbrl=None):
         if modelXbrl is None: modelXbrl = self.modelXbrl
         if modelXbrl:

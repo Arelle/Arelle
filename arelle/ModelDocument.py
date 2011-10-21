@@ -295,8 +295,8 @@ class ModelDocument:
     def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
         self.modelXbrl = modelXbrl
         self.type = type
-        self.uri = uri
-        self.filepath = filepath
+        self.uri = uri # TODO Normalize URI so that http://foo/a../bar is http://foo/bar
+        self.filepath = os.path.normpath(filepath)
         self.xmlDocument = xmlDocument
         self.targetNamespace = None
         modelXbrl.urlDocs[uri] = self
@@ -310,7 +310,14 @@ class ModelDocument:
         self.referencedNamespaces = set()
         self.inDTS = False
 
-    def objectId(self,refId=""):
+    def __eq__(self, other):
+        # URI would be a better ID but normalization is easier on filepath
+        return isinstance(other, ModelDocument) and self.filepath == other.filepath
+
+    def __hash__(self):
+        return hash(self.filepath)
+
+    def objectId(self, refId=""):
         return "_{0}_{1}".format(refId, self.objectIndex)
     
     
@@ -334,7 +341,10 @@ class ModelDocument:
                  ) if self.type == Type.VERSIONINGREPORT else ()
         
     def __repr__(self):
-        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(), self.propertyView))
+
+    def __str__(self):
+        return "{0}".format(self.basename)
 
     def close(self, visited=None):
         if visited is None: visited = []
@@ -796,3 +806,19 @@ class ModelDocument:
                             if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:
                                 self.referencesDocument[testcaseDoc] = "registryIndex"
             
+    @property
+    def dts(self):
+        ''' Returns the Discoverable Taxonomy Set for this taxonomy'''
+        try:
+            return self._dts
+        except AttributeError:
+            self._dts = set()
+            self._incrementDTS(self._dts)
+            return self._dts
+    
+    def _incrementDTS(self, visited):
+        visited.add(self)
+        for referencedDocument in self.referencesDocument.keys():
+            if referencedDocument not in visited:
+                # add sub-elements
+                referencedDocument._incrementDTS(visited)
