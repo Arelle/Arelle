@@ -538,7 +538,9 @@ class ValidateXbrl:
             ValidateXbrlCalcs.validate(modelXbrl, inferPrecision=(not self.validateInferDecimals))
             
         if (modelXbrl.modelManager.validateUtr or
-            (self.validateEFM and XbrlConst.dtrNumeric in self.modelXbrl.namespaceDocs)):
+            (self.validateEFM and 
+             any(concept.namespaceURI in self.disclosureSystem.baseTaxonomyNamespaces 
+                 for concept in self.modelXbrl.nameConcepts.get("UTR",())))):
             ValidateUtr.validate(modelXbrl)
             
         if modelXbrl.hasFormulae:
