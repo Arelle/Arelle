@@ -502,7 +502,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["importOpenDir"] = os.path.dirname(filename)
             else:
                 if not filename.startswith("http://"):
-                    self.config["fileOpenDir"] = os.path.dirname(filename)
+                    self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
             self.updateFileHistory(filename, importToDTS)
             thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,importToDTS,selectTopView))
             thread.daemon = True

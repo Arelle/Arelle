@@ -8,6 +8,7 @@ from tkinter import *
 from tkinter.ttk import *
 import re, os
 from arelle.CntlrWinTooltip import ToolTip
+from arelle.DialogOpenTaxonomyPackage import TAXONOMY_PACKAGE_FILE_NAME, askForEntryPoint
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -19,6 +20,11 @@ DISCLOSURE_SYSTEM = 2
 def askArchiveFile(mainWin, filesource):
     filenames = filesource.dir
     if filenames is not None:   # an IO or other error can return None
+        
+        # use alternate dialog if taxonomy package file is found
+        if TAXONOMY_PACKAGE_FILE_NAME in filenames:
+            return askForEntryPoint(mainWin, filesource)
+        
         dialog = DialogOpenArchive(mainWin, 
                                    ARCHIVE, 
                                    filesource, 

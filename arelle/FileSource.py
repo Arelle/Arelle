@@ -293,5 +293,7 @@ class FileSource:
         self.selection = selection
         if selection.startswith("http://") or os.path.isabs(selection):
             self.url = selection
-        else:
-            self.url = self.baseurl + ("/" if self.baseIsHttp else os.sep) + selection
+        elif self.baseIsHttp or os.sep == '/':
+            self.url = self.baseurl + "/" + selection
+        else: # MSFT os.sep == '\\'
+            self.url = self.baseurl + os.sep + selection.replace("/", os.sep)
