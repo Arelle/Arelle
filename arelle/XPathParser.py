@@ -292,6 +292,11 @@ def pushExpr( sourceStr, loc, toks ):
 
 ParserElement.enablePackrat()
 # define grammar
+variableRef = Word( '$', alphanums + ':_-.')
+qName = Word(alphas + '_',alphanums + ':_-.')
+ncName = Word(alphas + '_',alphanums + '_-.')
+prefixOp = Literal(":")
+
 decimalPoint = Literal('.')
 exponentLiteral = CaselessLiteral('e')
 plusorminusLiteral = Literal('+') | Literal('-')
@@ -309,11 +314,6 @@ floatLiteral = ( Combine( integerLiteral +
                  decimalFractionLiteral |
                  infLiteral | nanLiteral ) 
 
-
-variableRef = Word( '$', alphanums + ':_-')
-qName = Word(alphas + '_',alphanums + ':_-')
-ncName = Word(alphas + '_',alphanums + '_-')
-prefixOp = Literal(":")
 
 #emptySequence = Literal( "(" ) + Literal( ")" )
 lParen  = Literal( "(" )
