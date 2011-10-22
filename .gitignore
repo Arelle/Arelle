@@ -2,6 +2,13 @@ __pycache__
 *.pyc
 build
 dist
+dist_dmg/
+dist_pkg/
 buildRenameX64.bat
 buildRenameX86.bat
+buildRenameDmg.sh
 arelle/Version.py
+arelle/Version.py
+arelle/images/__MACOSX/
+arelle/images/arelle.icns
+Arelle.egg-info/

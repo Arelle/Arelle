@@ -7,4 +7,4 @@
 #
 # run Arelle in GUI mode
 #
-python3.2 -marelle.CntlrWinMain
+exec python3.2 -m arelle.CntlrWinMain
