@@ -108,7 +108,7 @@ class Cntlr:
         # start language translation for domain
         try:
             gettext.translation("arelle", self.localeDir, getLanguageCodes()).install()
-        except:
+        except Exception as msg:
             gettext.install("arelle", self.localeDir)
 
         from arelle.WebCache import WebCache
