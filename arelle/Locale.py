@@ -37,7 +37,10 @@ def getUserLocale():
 
 def getLanguageCode():
     import locale
-    return locale.getdefaultlocale()[0].replace("_","-")
+    try:
+        return locale.getdefaultlocale()[0].replace("_","-")
+    except AttributeError: #language code and encoding may be None if their values cannot be determined.
+        return "en"    
 
 def getLanguageCodes():
     lang = getLanguageCode()
