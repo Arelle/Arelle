@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-10-21 13:47+Pacific Daylight Time\n"
+"POT-Creation-Date: 2011-10-22 13:02+Pacific Daylight Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,94 +15,94 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: arelle\CntlrCmdLine.py:23
+#: arelle\CntlrCmdLine.py:24
 msgid "FILENAME is an entry point, which may bean XBRL instance, schema, linkbase file, inline XBRL instance, testcase file, testcase index file.  FILENAME may be a local file or a URI to a web located file."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:29
+#: arelle\CntlrCmdLine.py:30
 msgid "FILENAME is a second entry point when comparing (diffing) two DTSes producing a versioning report."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:32
+#: arelle\CntlrCmdLine.py:33
 msgid "FILENAME is the filename to save as the versioning report."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:35
+#: arelle\CntlrCmdLine.py:36
 msgid "Validate the file according to the entry file type.  If an XBRL file, it is validated according to XBRL validation 2.1, calculation linkbase validation if either --calcDecimals or --calcPrecision are specified, and SEC Edgar Filing Manual (if --efm selected) or Global Filer Manual disclosure system validation (if --gfm=XXX selected). If a test suite or testcase, the test case variations are individually so validated."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:44
+#: arelle\CntlrCmdLine.py:45
 msgid "Specify calculation linkbase validation inferring decimals."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:46
+#: arelle\CntlrCmdLine.py:47
 msgid "Specify calculation linkbase validation inferring precision."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:48
+#: arelle\CntlrCmdLine.py:49
 msgid "Select Edgar Filer Manual (U.S. SEC) disclosure system validation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:50
+#: arelle\CntlrCmdLine.py:51
 msgid "Specify a Global Filer Manual disclosure system name and select disclosure system validation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:53
+#: arelle\CntlrCmdLine.py:54
 msgid "Select validation with respect to Unit Type Registry."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:55
+#: arelle\CntlrCmdLine.py:56
 msgid "Write DTS tree into CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:57
+#: arelle\CntlrCmdLine.py:58
 msgid "Write fact list into CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:59
+#: arelle\CntlrCmdLine.py:60
 msgid "Columns for CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:61
+#: arelle\CntlrCmdLine.py:62
 msgid "Write concepts into CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:63
+#: arelle\CntlrCmdLine.py:64
 msgid "Write presentation linkbase into CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:65
+#: arelle\CntlrCmdLine.py:66
 msgid "Write calculation linkbase into CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:67
+#: arelle\CntlrCmdLine.py:68
 msgid "Write dimensions (of definition) linkbase into CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:69
+#: arelle\CntlrCmdLine.py:70
 msgid "Write test report of validation (of test cases) into CSVFILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:71
+#: arelle\CntlrCmdLine.py:72
 msgid "Write log messages into file, otherwise they go to standard output"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:72 arelle\CntlrCmdLine.py:73
-#: arelle\CntlrCmdLine.py:74 arelle\CntlrCmdLine.py:75
-#: arelle\CntlrCmdLine.py:76 arelle\CntlrCmdLine.py:77
-#: arelle\CntlrCmdLine.py:78 arelle\CntlrCmdLine.py:79
-#: arelle\CntlrCmdLine.py:80 arelle\CntlrCmdLine.py:81
-#: arelle\CntlrCmdLine.py:82 arelle\CntlrCmdLine.py:83
-#: arelle\CntlrCmdLine.py:84 arelle\CntlrCmdLine.py:85
-#: arelle\CntlrCmdLine.py:86 arelle\CntlrCmdLine.py:87
+#: arelle\CntlrCmdLine.py:73 arelle\CntlrCmdLine.py:74
+#: arelle\CntlrCmdLine.py:75 arelle\CntlrCmdLine.py:76
+#: arelle\CntlrCmdLine.py:77 arelle\CntlrCmdLine.py:78
+#: arelle\CntlrCmdLine.py:79 arelle\CntlrCmdLine.py:80
+#: arelle\CntlrCmdLine.py:81 arelle\CntlrCmdLine.py:82
+#: arelle\CntlrCmdLine.py:83 arelle\CntlrCmdLine.py:84
+#: arelle\CntlrCmdLine.py:85 arelle\CntlrCmdLine.py:86
+#: arelle\CntlrCmdLine.py:87 arelle\CntlrCmdLine.py:88
 msgid "Specify formula tracing."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:90
+#: arelle\CntlrCmdLine.py:91
 msgid "Show product version, copyright, and license."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:99
+#: arelle\CntlrCmdLine.py:100
 msgid ""
 "\n"
 "arelle(r) {0}\n"
@@ -131,56 +131,56 @@ msgid ""
 "   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:120
+#: arelle\CntlrCmdLine.py:121
 msgid ""
 "incorrect arguments, please try\n"
 "  python CntlrCmdLine.pyw --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:136
+#: arelle\CntlrCmdLine.py:137
 msgid "both --efm and --gfm validation are requested, proceeding with --efm only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:147
+#: arelle\CntlrCmdLine.py:148
 msgid "both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:192 arelle\CntlrCmdLine.py:201
-#: arelle\CntlrGenVersReports.py:320 arelle\CntlrProfiler.py:20
+#: arelle\CntlrCmdLine.py:193 arelle\CntlrCmdLine.py:202
+#: arelle\CntlrGenVersReports.py:321 arelle\CntlrProfiler.py:20
 #: arelle\CntlrWinMain.py:535
 msgid "views loading"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:194
+#: arelle\CntlrCmdLine.py:195
 msgid "loaded in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:203
+#: arelle\CntlrCmdLine.py:204
 msgid "diff comparison DTS loaded in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:209 arelle\CntlrWinMain.py:706
+#: arelle\CntlrCmdLine.py:210 arelle\CntlrWinMain.py:706
 msgid "compared in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:217 arelle\CntlrWinMain.py:663
+#: arelle\CntlrCmdLine.py:218 arelle\CntlrWinMain.py:663
 msgid "validated in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:240
+#: arelle\CntlrCmdLine.py:241
 msgid ""
 "[IOError] Failed to save output:\n"
 " {0}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:242
+#: arelle\CntlrCmdLine.py:243
 msgid ""
 "[Exception] Failed to complete validation: \n"
 "{0} \n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:29
+#: arelle\CntlrGenVersReports.py:30
 msgid ""
 "FILENAME is an excel 95-2003 index file containing columns: \n"
 "Dir is a test directory, \n"
@@ -194,35 +194,35 @@ msgid ""
 "report files are generated in '/report' under fromURI's directory."
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:39
+#: arelle\CntlrGenVersReports.py:40
 msgid "Date if desired to use (instead of today) in generated testcase elements."
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:71
+#: arelle\CntlrGenVersReports.py:72
 msgid "[info] xls loaded in {0:.2} secs at {1}"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:115 arelle\CntlrGenVersReports.py:335
+#: arelle\CntlrGenVersReports.py:116 arelle\CntlrGenVersReports.py:336
 msgid "[info] testcase uriFrom {0}"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:118 arelle\CntlrGenVersReports.py:339
+#: arelle\CntlrGenVersReports.py:119 arelle\CntlrGenVersReports.py:340
 msgid "loading from DTS"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:118 arelle\CntlrGenVersReports.py:343
+#: arelle\CntlrGenVersReports.py:119 arelle\CntlrGenVersReports.py:344
 msgid "loading to DTS"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:281
+#: arelle\CntlrGenVersReports.py:282
 msgid "Exception: %(error)s, Excel row: %(excelRow)s"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:321
+#: arelle\CntlrGenVersReports.py:322
 msgid "[info] loaded in {0:.2} secs"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:326
+#: arelle\CntlrGenVersReports.py:327
 msgid "[info] testcases {0}"
 msgstr ""
 
@@ -4058,7 +4058,7 @@ msgstr ""
 #: arelle\WebCache.py:211
 msgid ""
 "{0} \n"
-"retrieving {1} \n"
+"unsuccessful retrieval of {1} \n"
 "switching to work offline"
 msgstr ""
 
@@ -4134,15 +4134,15 @@ msgstr ""
 msgid "Axis step {0} context item is not a node: {1}"
 msgstr ""
 
-#: arelle\XPathContext.py:500
+#: arelle\XPathContext.py:501
 msgid "Atomizing tuple {0} that does not have a typed value"
 msgstr ""
 
-#: arelle\XPathContext.py:528
+#: arelle\XPathContext.py:529
 msgid "Atomizing {0} to a {1} does not have a proper value"
 msgstr ""
 
-#: arelle\XPathContext.py:533
+#: arelle\XPathContext.py:534
 msgid "Atomizing {0} to an integer does not have a proper value"
 msgstr ""
 

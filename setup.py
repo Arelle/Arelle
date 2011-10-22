@@ -17,15 +17,20 @@ if sys.platform == 'darwin':
     # Cross-platform applications generally expect sys.argv to
     # be used for opening files.
     
+    plist = dict(CFBundleIconFile='arelle.icns', 
+                 NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited') 
+
     # MacOS launches CntlrWinMain and uses "ARELLE_ARGS" to effect console (shell) mode
-    options['py2app'] =  dict(app=['arelle/CntlrWinMain.py'],
-                              iconfile='arelle/images/arelle.icns',
-                              plist=dict(CFBundleIconFile='arelle.icns',
-                                         NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited'),
-                              argv_emulation=False)
+    options = dict(py2app=dict(app=['arelle/CntlrWinMain.py'], 
+                               iconfile='arelle/images/arelle.icns', 
+                               plist=plist, 
+                               includes=['lxml', 'lxml.etree',  
+                                         'lxml._elementpath', 'gzip'])) 
+
     packages = find_packages('.')
     dataFiles = [
-	'--iconfile',
+    #XXX: this breaks build on Lion/Py3.2  --mike 
+    #'--iconfile', 
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
     ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
     ('examples',['arelle/examples/' + f for f in os.listdir('arelle/examples')]),

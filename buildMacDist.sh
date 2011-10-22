@@ -16,12 +16,20 @@ cp -R arelle/images/arelle.icns dist/Arelle.app/Contents/Resources
 # add icon and config files to resources
 cp -R arelle/images dist/Arelle.app/Contents/Resources
 cp -R arelle/config dist/Arelle.app/Contents/Resources
+cp -R arelle/examples dist/Arelle.app/Contents/Resources
+cp -R arelle/locale dist/Arelle.app/Contents/Resources
+
+# add tcl and tk 8.6 versions
+cp -R /library/frameworks/tcl.framework/versions dist/Arelle.app/Contents/Frameworks/Tcl.framework
+cp -R /library/frameworks/tk.framework/versions dist/Arelle.app/Contents/Frameworks/Tk.framework
+rm -R dist/Arelle.app/Contents/Frameworks/Tcl.framework/Versions/8.5
+rm -R dist/Arelle.app/Contents/Frameworks/Tk.framework/Versions/8.5
 
 # add lxml _elementpath to lib
-mkdir lxml
-cp ~/Library/Python/3.2/lib/python/site-packages/lxml/__pycache__/_elementpath.cpython-32.pyc lxml/_elementpath.pyc
-zip -u dist/Arelle.app/Contents/Resources/lib/python32.zip lxml lxml/_elementpath.pyc
-/bin/rm -rf lxml
+#mkdir lxml
+#cp ~/Library/Python/3.2/lib/python/site-packages/lxml/__pycache__/_elementpath.cpython-32.pyc lxml/_elementpath.pyc
+#zip -u dist/Arelle.app/Contents/Resources/lib/python32.zip lxml lxml/_elementpath.pyc
+#/bin/rm -rf lxml
 /bin/rm -rf dist_pkg
 
 mkdir dist_pkg
