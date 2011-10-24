@@ -5,14 +5,14 @@
 # Regis Decamps <regis.decamps@acp.banque-france.fr>, 2011
 #
 msgid ""
-msgstr "Project-Id-Version: PACKAGE VERSION\n"
+msgstr "Project-Id-Version: trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-10-18 16:26+0200\n"
 "PO-Revision-Date: 2011-09-08 11:44+0200\n"
-"Last-Translator: <EMAIL@ADDRESS>\n"
+"Last-Translator: <regis.decamps@acp.banque-france.fr>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
@@ -46,13 +46,14 @@ msgstr ""
 #: CntlrWinMain.py:886
 msgid "\n"
 "Check calculations (infer decimals)"
-msgstr "Validation des calculs (inférence des "
+msgstr "\nValidation des calculs (inférence des "
 "décimales)"
 
 #: CntlrWinMain.py:888
 msgid "\n"
 "Check calculations (infer precision)"
-msgstr "Vérication des calculs (inférence de "
+msgstr "\n"
+"Vérication des calculs (inférence de "
 "précision)"
 
 #: CntlrWinMain.py:892
@@ -243,13 +244,13 @@ msgstr "L'encodage de %(docType)s doit être unicode \"utf-8\" mais est "
 #: ValidateXbrlDTS.py:213
 msgid "%(docType)s must have comment node only on line "
 "2"
-msgstr "%(docType)s ne peut avoir un nœud de type commentaire qu'à la ligne "
+msgstr "%(docType)s ne peut avoir un noud de type commentaire qu'à la ligne "
 "2"
 
 #: ValidateXbrlDTS.py:217
 msgid "%(docType)s must have only one comment node before schema "
 "element"
-msgstr "%(docType)s ne peut avoir qu'un nœud commentaire avant l'élément "
+msgstr "%(docType)s ne peut avoir qu'un noud commentaire avant l'élément "
 "\"schema\""
 
 #: ValidateXbrlDTS.py:225
@@ -435,7 +436,7 @@ msgstr "%(fileType)s l'élément %(element)s ne doit pas avoir "
 #: ValidateXbrlDTS.py:974
 msgid "%(fileType)s must have only one comment node before schema element: "
 "\"%(value)s\""
-msgstr "%(fileType)s ne peut avoir qu'un nœud commentaire avant "
+msgstr "%(fileType)s ne peut avoir qu'un noud commentaire avant "
 "l'élémentchéma \"%(value)s\""
 
 #: ValidateXbrlDTS.py:152
@@ -926,12 +927,12 @@ msgstr "arelle\\u00ae {0}\n"
 "support@arelle.org\n"
 "\n"
 "Logiciel sous licence Apache version 2.0 (appelée ci-après «la "
-"licence»); vous ne devez utiliser ce fichier qu’en conformité avec la "
+"licence»); vous ne devez utiliser ce fichier qu'en conformité avec la "
 "licence. Vous pouvez obtenir une copie de la licence à "
 "http://www.apache.org/licenses/LICENSE-2.0\n"
 "\n"
-"Sauf si la loi l’exige ou en cas d’accord par écrit, le logiciel "
-"distribué \"EN L'ETAT\", SANS GARANTIE NI CONDITION D’AUCUNE SORTE, "
+"Sauf si la loi l'exige ou en cas d'accord par écrit, le logiciel "
+"distribué \"EN L'ETAT\", SANS GARANTIE NI CONDITION D'AUCUNE SORTE, "
 "explicite ou implicite. Voir la licence pour connaître les termes "
 "employés afin de régir les autorisations et les restrictions en vertu "
 "de la licence. \n"
@@ -2618,7 +2619,7 @@ msgstr "Échec du chargement de {0}\n"
 #: CntlrWinMain.py:374 CntlrWinMain.py:391 CntlrWinMain.py:410
 #: CntlrWinMain.py:436 CntlrWinMain.py:981
 msgid "Failed to save {0}:\n"
-"{1}"
+"{1}\n"
 msgstr "Échec de l'enregistrement de {0} :\n"
 "{1}\n"
 
@@ -4119,7 +4120,7 @@ msgstr "L'arc interdit (priotrité {à}) n'a pas d'autre arc à "
 msgid "prohibited arc (priority {0}, {1} - {2}) has an equivalent prohibited "
 "arc (priority {3}, {4} - {5})\n"
 msgstr "L'arc interdit (priorité {0}, {1} - {2}) a un arc interdit équivalent "
-"(priorité {3}, {4} - {5})"
+"(priorité {3}, {4} - {5})\n"
 
 #: ModelDocument.py:444
 msgid "Prohibited base attribute: %(attribute)s"
