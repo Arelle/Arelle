@@ -139,7 +139,10 @@ class ModelConcept(ModelSchemaObject):
             else:
                 # check if anonymous type exists (clark qname tag + suffix)
                 qn = self.qname
-                typeQname = ModelValue.QName(qn.prefix, qn.namespaceURI, qn.localName + anonymousTypeSuffix)
+                if qn is not None:
+                    typeQname = ModelValue.QName(qn.prefix, qn.namespaceURI, qn.localName + anonymousTypeSuffix)
+                else:
+                    typeQname = None
                 if typeQname in self.modelXbrl.qnameTypes:
                     self._typeQname = typeQname
                 else:
@@ -196,7 +199,7 @@ class ModelConcept(ModelSchemaObject):
             return self._baseXbrliType
         except AttributeError:
             typeqname = self.typeQname
-            if typeqname.namespaceURI == XbrlConst.xbrli:
+            if typeqname is not None and typeqname.namespaceURI == XbrlConst.xbrli:
                 return typeqname.localName
             self._baseXbrliType = self.type.baseXbrliType if self.type is not None else None
             return self._baseXbrliType
@@ -432,6 +435,12 @@ class ModelConcept(ModelSchemaObject):
             subs = subNext
             subNext = subs.substitutionGroup
         return subs.qname
+
+    def dereference(self):
+        ref = self.get("ref")
+        if ref:
+            return self.modelXbrl.qnameAttributes.get(ModelValue.qname(self, ref))
+        return self
 
     @property
     def propertyView(self):
