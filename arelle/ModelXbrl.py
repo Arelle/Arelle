@@ -331,3 +331,22 @@ class ModelXbrl:
             pass
         self._startedAt = time.time()
 
+    def saveDTSpackage(self): 
+        if self.fileSource.isArchive:
+            return
+        from zipfile import ZipFile 
+        import os 
+        entryFilename = self.fileSource.url 
+        pkgFilename = entryFilename + ".zip" 
+        with ZipFile(pkgFilename, 'w') as zip:
+            numFiles = 0
+            for fileUri in sorted(self.urlDocs.keys()): 
+                if not (fileUri.startswith("http://") or fileUri.startswith("https://")): 
+                    numFiles += 1
+                    # this has to be a relative path because the hrefs will break
+                    zip.write(fileUri, os.path.basename(fileUri)) 
+        self.info("info",
+                  _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"), 
+                modelObject=self,
+                entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)
+
