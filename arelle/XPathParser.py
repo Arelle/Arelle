@@ -71,6 +71,7 @@ class QNameDef(ModelValue.QName):
 
 defaultNsmap = {
     "fn":"http://www.w3.org/2005/xpath-functions",
+    "xml":"http://www.w3.org/XML/1998/namespace",
     }
 
 def pushQName( sourceStr, loc, toks ):
