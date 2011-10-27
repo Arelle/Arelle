@@ -227,7 +227,7 @@ def checkDTS(val, modelDocument, visited):
                             prefix=prefix, namespace=ns)
             if modelDocument.type ==  ModelDocument.Type.LINKBASE:
                 if not val.containsRelationship:
-                    val.modelXbrl.error("SBR.NL.2.3.0.12"
+                    val.modelXbrl.error("SBR.NL.2.3.0.12",
                         "Linkbase has no relationships",
                         modelObject=modelDocument)
         del val.valUsedPrefixes
@@ -358,7 +358,7 @@ def checkElements(val, modelDocument, parent):
                                             requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr)
                             # semantic checks
                             modelConcept = modelDocument.idObjects.get(elt.get("id"))
-                            if modelConcept:
+                            if modelConcept is not None:
                                 if modelConcept.isTuple:
                                     val.hasTuple = True
                                 elif modelConcept.isLinkPart:
@@ -960,14 +960,14 @@ def checkElements(val, modelDocument, parent):
                                                   ("{http://www.w3.org/2001/XMLSchema-instance}type", "SBR.NL.2.3.10.07")):
                             if elt.get(attrName) is not None: 
                                 val.modelXbrl.error(errCode,
-                                    _("Linkbase element %(element)s must not have attribute %(attribte)s"),
+                                    _("Linkbase element %(element)s must not have attribute %(attribute)s"),
                                     modelObject=elt, element=elt.qname, attribute=attrName)
                     for attrName, errCode in (("{http://www.w3.org/1999/xlink}actuate", "SBR.NL.2.3.10.01"),
                                               ("{http://www.w3.org/1999/xlink}show", "SBR.NL.2.3.10.02"),
                                               ("{http://www.w3.org/1999/xlink}title", "SBR.NL.2.3.10.03")):
                         if elt.get(attrName) is not None: 
                             val.modelXbrl.error(errCode,
-                                _("Linkbase element %(element)s must not have attribute xlink:%(attribte)s"),
+                                _("Linkbase element %(element)s must not have attribute xlink:%(attribute)s"),
                                 modelObject=elt, element=elt.qname, attribute=attrName)
     
             checkElements(val, modelDocument, elt)
