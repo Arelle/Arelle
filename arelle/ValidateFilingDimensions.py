@@ -175,7 +175,7 @@ def checkDimensions(val, drsELRs):
             for ELR, dims in DRSdims.items():
                 if priorDRSdims is not None and priorDRSdims != dims:
                     val.modelXbrl.error("SBR.NL.2.3.5.02",
-                        _("Hypercube %(hypercube)s has different dimensions in DRS roles %(linkrole)s and %(linkrole2)s: %(dimensions)s and %(dimensoins2)s"),
+                        _("Hypercube %(hypercube)s has different dimensions in DRS roles %(linkrole)s and %(linkrole2)s: %(dimensions)s and %(dimensions2)s"),
                         modelObject=val.modelXbrl, hypercube=hc.qname, linkrole=ELR, linkrole2=priorELR,
                         dimensions=", ".join([str(dim.qname) for dim in dims]),
                         dimensions2=", ".join([str(dim.qname) for dim in priorDRSdims]))
@@ -330,7 +330,7 @@ def checkSBRNLMembers(val, hc, dim, domELR, rels, ELR, isDomMbr, members=None, a
                 if not rel.targetRole:
                     val.modelXbrl.error("SBR.NL.2.3.6.03",
                         _("Dimension %(dimension)s in DRS role %(linkrole)s in hypercube %(hypercube)s, missing targetrole to consecutive domain relationship"),
-                        modelObject=rel, dimension=dim.qname, linkrole=ELR)
+                        modelObject=rel, dimension=dim.qname, linkrole=ELR, hypercube=hc.qname)
             else: # domain-member arcrole
                 val.modelXbrl.error("SBR.NL.2.3.7.03",
                     _("Dimension %(dimension)s in DRS role %(linkrole)s for hypercube %(hypercube)s, has nested members %(member)s and %(member2)s"),
