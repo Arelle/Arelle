@@ -100,6 +100,8 @@ def checkDTS(val, modelDocument, visited):
                     name = modelConcept.get("name")
                     if name is None: 
                         name = ""
+                        if modelConcept.get("ref") is not None:
+                            continue    # don't validate ref's here
                     concepts = val.modelXbrl.nameConcepts.get(name)
                     if concepts is not None:
                         for c in concepts:
