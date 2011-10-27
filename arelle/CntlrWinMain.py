@@ -72,6 +72,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Open Web..."), self.webOpen, "Shift+Alt+O", "<Shift-Alt-o>"),
                 (_("Import File..."), self.importOpen, None, None),
                 (_("Save..."), self.fileSave, "Ctrl+S", "<Control-s>"),
+                (_("Save DTS Package"), self.saveDTSpackage, None, None),
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
                 (None, None, None, None),
                 (_("Quit"), self.quit, "Ctrl+Q", "<Control-q>"),
@@ -328,7 +329,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         for i in range( min( len(importHistory), 10 ) ):
             self.recentAttachMenu.add_command(
                  label=importHistory[i], 
-                 command=lambda j=i: self.fileOpenFile(self.config["fileImportHistory"][j],attach=True))
+                 command=lambda j=i: self.fileOpenFile(self.config["importHistory"][j],importToDTS=True))
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
        
         
@@ -437,6 +438,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 parent=self.parent)
         return True;
     
+    def saveDTSpackage(self):
+        self.modelManager.saveDTSpackage(allDTSes=True)
+    
     def fileOpen(self, *ignore):
         if not self.okayToContinue():
             return
@@ -518,7 +522,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 from arelle import DialogOpenArchive
                 url = DialogOpenArchive.askArchiveFile(self, filesource)
             self.updateFileHistory(url, False)
-            thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,False))
+            thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,False,False))
             thread.daemon = True
             thread.start()
             
