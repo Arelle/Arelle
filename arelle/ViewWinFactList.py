@@ -122,14 +122,17 @@ class ViewFactList(ViewWinTree.ViewTree):
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            if isinstance(modelObject, ModelDtsObject.ModelRelationship):
-                conceptId = modelObject.toModelObject.objectId()
-            else:
-                conceptId = modelObject.objectId()
-            #items = self.treeView.tag_has(conceptId)
-            items = self.tag_has.get(conceptId,[])
-            if len(items) > 0 and self.treeView.exists(items[0]):
-                self.treeView.see(items[0])
-                self.treeView.selection_set(items[0])
+            try:
+                if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                    conceptId = modelObject.toModelObject.objectId()
+                else:
+                    conceptId = modelObject.objectId()
+                #items = self.treeView.tag_has(conceptId)
+                items = self.tag_has.get(conceptId,[])
+                if len(items) > 0 and self.treeView.exists(items[0]):
+                    self.treeView.see(items[0])
+                    self.treeView.selection_set(items[0])
+            except (AttributeError, KeyError):
+                    self.treeView.selection_set(())
             self.blockViewModelObject -= 1
        
