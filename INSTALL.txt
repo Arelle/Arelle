@@ -1,0 +1,10 @@
+For Windows or MAC OS, read here:
+http://arelle.org/documentation/installation/
+
+For Linux:
+ * You'll need python >= 3.2
+ * You'll need python-tk >= 3.2
+ * You'll need python-setuptools >= 0.6.19
+ * You'll need python-lxml
+ * You'll need cx-freeze
+ * $ ./buildLinuxDist.sh
