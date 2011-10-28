@@ -41,7 +41,31 @@ if sys.platform == 'darwin':
         dataFiles.append((dir[7:],
                           [dir + "/" + f for f in files]))
     cx_FreezeExecutables = None
-elif sys.platform == 'win32':
+#one day, I'll have this working
+#elif sys.platform == 'linux2':
+#    from setuptools import find_packages
+#    from cx_Freeze import setup, Executable 
+#    # FIXME: this should use the entry_points mechanism
+#    packages = find_packages('.')
+#    dataFiles = None
+#    options = dict( build_exe =  {
+#        "include_files": [('arelle/config','config'),
+#                          ('arelle/images','images'),
+#                          ('arelle/locale','locale'),
+#                          ('arelle/examples','examples'),
+#                          ],
+#        "packages": packages,
+#        } )
+#   
+#    cx_FreezeExecutables = [
+#        Executable(
+#                script="arelleGUI.pyw",
+#                ),
+#        Executable(
+#                script="arelleCmdLine.py",
+#                )                            
+#        ]
+#elif sys.platform == 'win32':
     from setuptools import find_packages
     from cx_Freeze import setup, Executable 
     # py2exe is not ported to Python 3 yet
@@ -69,6 +93,9 @@ elif sys.platform == 'win32':
                 script="arelleCmdLine.py",
                 )                            
         ]
+else: 
+    print("Your platform (", sys.platform, ") isn't supported")
+    sys.exit(1)
 
 setup(name='Arelle',
       version='0.9.0',
