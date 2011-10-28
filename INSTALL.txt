@@ -7,4 +7,5 @@ For Linux:
  * You'll need python-setuptools >= 0.6.19
  * You'll need python-lxml
  * You'll need cx-freeze
+ * You'll need zip
  * $ ./buildLinuxDist.sh
