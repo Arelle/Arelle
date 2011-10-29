@@ -667,7 +667,7 @@ class ModelType(ModelSchemaObject):
     
     @property
     def isTextBlock(self):
-        if self.name == "textBlockItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.usTypesStartsWith):
+        if self.name == "textBlockItemType" and "/us-types/" in self.modelDocument.targetNamespace:
             return True
         if self.name == "escapedItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
             return True
@@ -680,7 +680,7 @@ class ModelType(ModelSchemaObject):
     @property
     def isDomainItemType(self):
         if self.name == "domainItemType" and \
-           (self.modelDocument.targetNamespace.startswith(XbrlConst.usTypesStartsWith) or
+           ("/us-types/" in self.modelDocument.targetNamespace or
             self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith)):
             return True
         qnameDerivedFrom = self.qnameDerivedFrom

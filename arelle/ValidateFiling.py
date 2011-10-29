@@ -14,20 +14,20 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 
 datePattern = None
-GFMcontextDatePattern = None
-signOrCurrencyPattern = None
-
 
 class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super().__init__(modelXbrl)
         
-        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern
+        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, usTypesPattern, usRolesPattern, usDeiPattern
         
         if datePattern is None:
             datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
             GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
             signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac£¥])")
+            usTypesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-types/")
+            usRolesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-roles/")
+            usDeiPattern = re.compile(r"http://(xbrl.us|xbrl.sec.gov)/dei/")
 
         
     def validate(self, modelXbrl, parameters=None):
@@ -817,7 +817,16 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
         self.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
-        
+        # checks for namespace clashes
+        if self.validateEFM:
+            # check number of us-roles taxonomies referenced
+            for nsPattern in (usTypesPattern, usRolesPattern, usDeiPattern):
+                usTypesURIs = set(ns for ns in modelXbrl.namespaceDocs.keys() if nsPattern.match(ns))
+                if len(usTypesURIs) > 1:
+                    modelXbrl.error("EFM.6.22.03",
+                        _("References for conflicting standard taxonomies %(namespaceConflicts)s are not allowed in same DTS"),
+                        modelObject=modelXbrl, namespaceConflicts=usTypesURIs)
+            
         conceptsUsedWithPreferredLabels = defaultdict(list)
         usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
         drsELRs = set()
