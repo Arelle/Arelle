@@ -181,6 +181,11 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                 presentAttributes.add(qn)
                 if qn in definedAttributes: # look for concept-type-specific attribute definition
                     modelAttr = definedAttributes[qn]
+                elif qn.namespaceURI:   # may be a globally defined attribute
+                    modelAttr = modelXbrl.qnameAttributes.get(qn)
+                else:
+                    modelAttr = None
+                if modelAttr is not None:
                     baseXsdAttrType = modelAttr.baseXsdType
                     facets = modelAttr.facets
             if baseXsdAttrType is None: # look for global attribute definition
@@ -193,11 +198,11 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                 elif attrTag == "id":
                     baseXsdAttrType = "ID"
                 elif elt.namespaceURI == "http://www.w3.org/2001/XMLSchema":
-                    if attrTag in ("type", "ref", "base", "refer", "itemType"):
+                    if attrTag in {"type", "ref", "base", "refer", "itemType"}:
                         baseXsdAttrType = "QName"
-                    elif attrTag in ("name"):
+                    elif attrTag in {"name"}:
                         baseXsdAttrType = "NCName"
-                    elif attrTag in ("default", "fixed", "form"):
+                    elif attrTag in {"default", "fixed", "form"}:
                         baseXsdAttrType = "string"
                 elif qn in predefinedAttributeTypes:
                     baseXsdAttrType, facets = predefinedAttributeTypes[qn]
