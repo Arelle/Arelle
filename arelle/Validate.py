@@ -258,6 +258,7 @@ class Validate:
                         break
                 elif type(testErr) == type(expected):
                     if (testErr == expected or
+                        ((expected == "EFM.6.03.04" or expected == "EFM.6.03.05") and testErr.startswith("xmlSchema:")) or
                         (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
                         (expected == "EFM.6.05.35" and testErr.startswith("utr:"))):
                         status = "pass"
