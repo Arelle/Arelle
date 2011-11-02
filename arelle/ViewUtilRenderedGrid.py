@@ -44,7 +44,8 @@ def getTblAxes(view, viewTblELR):
         view.rowHdrCodeCol = False
         view.zAxisRows = 0
         
-        xAxisObj = yAxisObj = zAxisObj = None
+        xAxisObj = yAxisObj = None
+        zAxisObjs = []
         for tblAxisRel in tblAxisRelSet.fromModelObject(table):
             axisType = tblAxisRel.axisType
             axisObj = tblAxisRel.toModelObject
@@ -58,6 +59,7 @@ def getTblAxes(view, viewTblELR):
                     view.yAxisChildrenFirst.set(yAxisObj.parentChildOrder == "children-first")
             elif axisType == "zAxis": 
                 zAxisObj = axisObj
+                zAxisObjs.append(axisObj)
             analyzeHdrs(view, axisObj, 1, axisType)
         view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
         view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols))
@@ -68,7 +70,7 @@ def getTblAxes(view, viewTblELR):
         #for i in range(view.dataFirstCol + view.dataCols):
         #    view.gridView.columnconfigure(i)
         
-        return (tblAxisRelSet, xAxisObj, yAxisObj, zAxisObj)
+        return (tblAxisRelSet, xAxisObj, yAxisObj, zAxisObjs)
     
     return (None, None, None, None)
                   

@@ -25,6 +25,7 @@ class DisclosureSystem:
     def clear(self):
         self.selection = None
         self.standardTaxonomiesDict = {}
+        self.standardLocalHrefs = set()
         self.standardAuthorities = set()
         self.baseTaxonomyNamespaces = set()
         self.names = None
@@ -145,6 +146,7 @@ class DisclosureSystem:
     def loadStandardTaxonomiesDict(self):
         if self.selection:
             self.standardTaxonomiesDict = {}
+            self.standardLocalHrefs = set()
             self.standardAuthorities = set()
             if not self.standardTaxonomiesUrl:
                 return
@@ -183,6 +185,9 @@ class DisclosureSystem:
                                     self.baseTaxonomyNamespaces.add(namespaceUri)
                             if href not in self.standardTaxonomiesDict:
                                 self.standardTaxonomiesDict[href] = "Allowed" + attType
+                            if localHref:
+                                self.standardLocalHrefs.add(localHref)
+
             except (EnvironmentError,
                     etree.LxmlError) as err:
                 self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
@@ -209,7 +214,7 @@ class DisclosureSystem:
         if namespaceUri in self.standardTaxonomiesDict:
             stdHref, localHref = self.standardTaxonomiesDict[namespaceUri]
             return not (href == stdHref or
-                        (localHref and not href.startswith("http://") and href.endswith(localHref)))
+                        (localHref and not href.startswith("http://") and href.replace("\\","/").endswith(localHref)))
         return False
 
     def hrefValid(self, href):
