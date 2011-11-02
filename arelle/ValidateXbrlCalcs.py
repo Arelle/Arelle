@@ -36,6 +36,9 @@ class ValidateXbrlCalcs:
         self.conceptsInRequiresElement = set()
         
     def validate(self):
+        if not self.modelXbrl.contexts and not self.modelXbrl.facts:
+            return # skip if no contexts or facts
+        
         self.modelXbrl.info("info","Validating calculations inferring %(inferMode)s",
                             inferMode=_("precision") if self.inferPrecision else _("decimals"))
 
@@ -256,19 +259,19 @@ class ValidateXbrlCalcs:
                 else:
                     vAbs = fabs(vFloatFact)
                     d = p - int(floor(log10(vAbs))) - 1
-                    # defeat rounding to nearest even
+                    # defeat binary rounding to nearest even
                     #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
                     #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
                     #vRounded = round(vFloat, d)
-                    vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_DOWN)
+                    vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
             else:
                 d = int(dStr)
-                # defeat rounding to nearest even
+                # defeat binary rounding to nearest even
                 #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
                 #    vFloat += 10 ** (-d - 1) * (-1.0 if vFloat > 0 else 1.0)
                 #vRounded = round(vFloat, d)
                 #vRounded = round(vFloat,d)
-                vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_DOWN)
+                vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
         return vRounded
     
 def decimalRound(x, d, rounding):
