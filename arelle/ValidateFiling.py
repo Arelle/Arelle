@@ -814,8 +814,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error("SBR.NL.2.2.2.26",
                             _("Concept %(concept)s missing standard label in local language."),
                             modelObject=concept, concept=concept.qname)
-                    if (concept not in presentationRelationshipSet.toModelObject(concept) and
-                        concept not in presentationRelationshipSet.fromModelObject(concept)):
+                    if not (presentationRelationshipSet.toModelObject(concept) or
+                            presentationRelationshipSet.fromModelObject(concept)):
                         modelXbrl.error("SBR.NL.2.2.0.21",
                             _("Concept %(concept)s not referred to by presentation relationship."),
                             modelObject=concept, concept=concept.qname)

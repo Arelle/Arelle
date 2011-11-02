@@ -255,7 +255,9 @@ def checkDTS(val, modelDocument, visited):
                                     definesAbstractItems = True
                             else:   # not abstract
                                 if not (modelConcept.label(preferredLabel=XbrlConst.documentationLabel,fallbackToQname=False,lang="nl") or
-                                        val.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(c)):
+                                        val.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(c) or
+                                        modelConcept.genLabel(role=XbrlConst.genDocumentationLabel,lang="nl") or
+                                        val.modelXbrl.relationshipSet(XbrlConst.elementReference).fromModelObject(c)):
                                     val.modelXbrl.error("SBR.NL.2.2.2.28",
                                         _("Concept %(concept)s must have a documentation label or reference"),
                                         modelObject=modelConcept, concept=modelConcept.qname)
@@ -263,7 +265,8 @@ def checkDTS(val, modelDocument, visited):
                                 val.modelXbrl.error("SBR.NL.2.2.2.24",
                                     _("Non-monetary concept %(concept)s must not have a balance attribute"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                            if not modelConcept.label(fallbackToQname=False,lang="nl"):
+                            if not (modelConcept.label(fallbackToQname=False,lang="nl") or 
+                                    modelConcept.genLabel(fallbackToQname=False,lang="nl")):
                                 val.modelXbrl.error("SBR.NL.2.2.2.26",
                                     _("Concept %(concept)s must have a standard label in language 'nl'"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
@@ -314,13 +317,13 @@ def checkDTS(val, modelDocument, visited):
                 # 6.7.10 only one role type declaration in DTS
                 modelRoleTypes = val.modelXbrl.roleTypes.get(roleURI)
                 if modelRoleTypes is not None:
+                    usedOns = modelRoleTypes[0].usedOns
                     if len(modelRoleTypes) > 1:
                         val.modelXbrl.error(("EFM.6.07.10", "GFM.1.03.10"),
                             _("RoleType %(roleType)s is defined in multiple taxonomies"),
                             modelObject=e, roleType=roleURI)
                     elif len(modelRoleTypes) == 1:
                         # 6.7.11 used on's for pre, cal, def if any has a used on
-                        usedOns = modelRoleTypes[0].usedOns
                         if not usedOns.isdisjoint(requiredUsedOns) and len(requiredUsedOns - usedOns) > 0:
                             val.modelXbrl.error(("EFM.6.07.11", "GFM.1.03.11"),
                                 _("RoleType %(roleType)s missing used on %(usedOn)s"),
