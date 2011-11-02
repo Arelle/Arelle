@@ -329,7 +329,7 @@ class ModelConcept(ModelSchemaObject):
             label = labelsRelationshipSet.label(self, preferredLabel, lang)
             if label is not None:
                 if strip: return label.strip()
-                return label
+                return Locale.rtlString(label, lang=lang)
         return str(self.qname) if fallbackToQname else None
     
     def relationshipToResource(self, resourceObject, arcrole):    
