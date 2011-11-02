@@ -335,44 +335,46 @@ def checkElements(val, modelDocument, parent):
                                         _('Schema element %(concept)s %(requirement)s contain attribute %(attribute)s'),
                                         modelObject=elt, concept=elt.get("name"), 
                                         requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr)
-                            type = qname(elt, elt.get("type"))
-                            eltQname = qname(modelDocument.targetNamespace, elt.get("name"))
-                            if type in xsd1_1datatypes:
-                                val.modelXbrl.error("SBR.NL.2.2.0.01",
-                                    _('Schema element %(concept)s contains XSD 1.1 datatype "%(xsdType)s"'),
-                                    modelObject=elt, concept=elt.get("name"), xsdType=type)
-                            if parent.localName != "schema": # root element
-                                if elt.get("name") is not None:
-                                    val.modelXbrl.error("SBR.NL.2.2.2.01",
-                                        _('Schema element definition is not at the root level: %(concept)s'),
-                                        modelObject=elt, concept=elt.get("name"))
-                            elif eltQname not in val.typedDomainQnames:
-                                for attr, presence, errCode in (("abstract", True, "2.2.2.08"),
-                                                                ("id", True, "2.2.2.13"),
-                                                                ("nillable", True, "2.2.2.15"),
-                                                                ("substitutionGroup", True, "2.2.2.18"),):
-                                    if (elt.get(attr) is not None) != presence:
-                                        val.modelXbrl.error("SBR.NL.{0}".format(errCode),
-                                            _('Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s'),
-                                            modelObject=elt, concept=elt.get("name"), 
-                                            requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr)
-                            # semantic checks
-                            modelConcept = modelDocument.idObjects.get(elt.get("id"))
-                            if modelConcept is not None:
-                                if modelConcept.isTuple:
-                                    val.hasTuple = True
-                                elif modelConcept.isLinkPart:
-                                    val.hasLinkPart = True
-                                elif modelConcept.isItem:
-                                    if modelConcept.isDimensionItem:
-                                        val.hasDimension = True
-                                    #elif modelConcept.substitutesFor()
-                                    if modelConcept.isAbstract:
+                            eltName = elt.get("name")
+                            if eltName is not None: # skip for concepts which are refs
+                                type = qname(elt, elt.get("type"))
+                                eltQname = qname(modelDocument.targetNamespace, eltName)
+                                if type in xsd1_1datatypes:
+                                    val.modelXbrl.error("SBR.NL.2.2.0.01",
+                                        _('Schema element %(concept)s contains XSD 1.1 datatype "%(xsdType)s"'),
+                                        modelObject=elt, concept=elt.get("name"), xsdType=type)
+                                if parent.localName != "schema": # root element
+                                    if elt.get("name") is not None:
+                                        val.modelXbrl.error("SBR.NL.2.2.2.01",
+                                            _('Schema element definition is not at the root level: %(concept)s'),
+                                            modelObject=elt, concept=elt.get("name"))
+                                elif eltQname not in val.typedDomainQnames:
+                                    for attr, presence, errCode in (("abstract", True, "2.2.2.08"),
+                                                                    ("id", True, "2.2.2.13"),
+                                                                    ("nillable", True, "2.2.2.15"),
+                                                                    ("substitutionGroup", True, "2.2.2.18"),):
+                                        if (elt.get(attr) is not None) != presence:
+                                            val.modelXbrl.error("SBR.NL.{0}".format(errCode),
+                                                _('Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s'),
+                                                modelObject=elt, concept=elt.get("name"), 
+                                                requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr)
+                                # semantic checks
+                                modelConcept = modelDocument.idObjects.get(elt.get("id"))
+                                if modelConcept is not None:
+                                    if modelConcept.isTuple:
+                                        val.hasTuple = True
+                                    elif modelConcept.isLinkPart:
+                                        val.hasLinkPart = True
+                                    elif modelConcept.isItem:
+                                        if modelConcept.isDimensionItem:
+                                            val.hasDimension = True
+                                        #elif modelConcept.substitutesFor()
+                                        if modelConcept.isAbstract:
+                                            val.hasAbstractItem = True
+                                        else:
+                                            val.hasNonAbstraceElement = True
+                                    if modelConcept.isAbstract and modelConcept.isItem:
                                         val.hasAbstractItem = True
-                                    else:
-                                        val.hasNonAbstraceElement = True
-                                if modelConcept.isAbstract and modelConcept.isItem:
-                                    val.hasAbstractItem = True
                         elif (elt.localName in ("sequence","choice") and 
                               ((elt.get("minOccurs") != "1") or
                                (elt.get("maxOccurs") != "1"))):
@@ -920,7 +922,7 @@ def checkElements(val, modelDocument, parent):
                     for attrTag, attrValue in elt.items():
                         prefix, ns, localName = XmlUtil.clarkNotationToPrefixNsLocalname(elt, attrTag, isAttribute=True)
                         val.valUsedPrefixes.add(prefix)
-                        if ns not in (None, XbrlConst.xbrli, XbrlConst.xbrldt, XbrlConst.xlink, XbrlConst.xml):
+                        if ns not in {None, XbrlConst.xbrli, XbrlConst.xbrldt, XbrlConst.xlink, XbrlConst.xml, XbrlConst.xsi}:
                             val.modelXbrl.error("SBR.NL.2.2.0.20",
                                 _("%(fileType)s element %(element)s must not have %(prefix)s:%(localName)s"),
                                 modelObject=elt, element=elt.qname, 

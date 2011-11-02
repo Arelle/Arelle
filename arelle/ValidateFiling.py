@@ -49,7 +49,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         super(ValidateFiling,self).validate(modelXbrl, parameters)
         xbrlInstDoc = modelXbrl.modelDocument.xmlDocument.getroot()
         disclosureSystem = self.disclosureSystem
-        self.modelXbrl = modelXbrl
+        _isStandardUri = {}
+        
+        def isStandardUri(uri):
+            try:
+                return _isStandardUri[uri]
+            except KeyError:
+                isStd = (uri in disclosureSystem.standardTaxonomiesDict or
+                         (not uri.startswith("http://") and 
+                          any(u.endswith(e) for u in (uri.replace("\\","/"),) for e in disclosureSystem.standardLocalHrefs)))
+                _isStandardUri[uri] = isStd
+                return isStd
+
         modelXbrl.modelManager.showStatus(_("validating {0}").format(disclosureSystem.name))
         
         self.modelXbrl.profileActivity()
@@ -792,18 +803,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
                         _("References for extension concept %(concept)s are not allowed: %(text)s"),
                         modelObject=modelReference, concept=concept.qname, text=text)
-                elif (self.validateEFM or self.validateSBRNL) and \
-                     modelRefRel.modelDocument.uri not in disclosureSystem.standardTaxonomiesDict: 
+                elif (self.validateEFM or self.validateSBRNL) and not isStandardUri(modelRefRel.modelDocument.uri): 
                     #6.18.2 no extension to add or remove references to standard concepts
                     modelXbrl.error(("EFM.6.18.02", "SBR.NL.2.1.0.08"),
                         _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
                         modelObject=modelReference, concept=concept.qname, text=text)
             if self.validateSBRNL:
-                if not conceptHasDefaultLangStandardLabel and (concept.isItem or concept.isTuple):
-                    modelXbrl.error("SBR.NL.2.2.2.26",
-                        _("Concept %(concept)s missing standard label in local language."),
-                        modelObject=concept, concept=concept.qname)
                 if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
+                    if not conceptHasDefaultLangStandardLabel and (concept.isItem or concept.isTuple):
+                        modelXbrl.error("SBR.NL.2.2.2.26",
+                            _("Concept %(concept)s missing standard label in local language."),
+                            modelObject=concept, concept=concept.qname)
                     if (concept not in presentationRelationshipSet.toModelObject(concept) and
                         concept not in presentationRelationshipSet.fromModelObject(concept)):
                         modelXbrl.error("SBR.NL.2.2.0.21",
@@ -949,8 +959,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             for rel in rels:
                                 relTo = rel.toModelObject
     
-                                if not (relTo.type is not None and relTo.type.isDomainItemType) and \
-                                   rel.modelDocument.uri not in disclosureSystem.standardTaxonomiesDict:
+                                if not (relTo.type is not None and relTo.type.isDomainItemType) and not isStandardUri(rel.modelDocument.uri):
                                     self.modelXbrl.error(("EFM.6.16.03", "GFM.1.08.03"),
                                         _("Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"),
                                         modelObject=rel, conceptFrom=relFrom.qname, conceptTo=relTo.qname, linkrole=rel.linkrole)

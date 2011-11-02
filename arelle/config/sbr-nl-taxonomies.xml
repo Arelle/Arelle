@@ -321,6 +321,7 @@
 <Family>BASE</Family>
 <Version>6.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/xbrl-syntax-extension.xsd</Href>
+<LocalHref>basis/sbr/xbrl/xbrl-syntax-extension.xsd</LocalHref>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
@@ -338,7 +339,7 @@
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
-<Namespace>http://www.nltaxonomie.nl/6.0.a.2/basis/sbr/items/nl-common-data</Namespace>
+<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/items/nl-common-data</Namespace>
 <Prefix>nl-cd</Prefix>
 </Loc>
 <Loc>
@@ -377,6 +378,7 @@
 <Family>SBR-NL-ITEMS</Family>
 <Version>6.0</Version>
 <Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data-ref.xml</Href>
+<LocalHref>basis/sbr/items/nl-common-data-ref.xml</LocalHref>
 <AttType>REF</AttType>
 <FileTypeName>Reference, Authoritative</FileTypeName>
 <Elements>0</Elements>
@@ -390,7 +392,7 @@
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
-<Namespace>http://www.nltaxonomie.nl/6.0.a.2/basis/sbr/items/nl-genbase</Namespace>
+<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/items/nl-genbase</Namespace>
 <Prefix>nl-gen</Prefix>
 </Loc>
 <Loc>
@@ -433,7 +435,7 @@
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
-<Namespace>http://www.nltaxonomie.nl/6.0.a.2/basis/sbr/linkroles/nl-genbase-domain-linkroles</Namespace>
+<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/linkroles/nl-genbase-domain-linkroles</Namespace>
 <Prefix>nl-lr</Prefix>
 </Loc>
 <Loc>
@@ -473,7 +475,7 @@
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
-<Namespace>http://www.nltaxonomie.nl/6.0.a.2/basis/sbr/xbrl/xbrl-syntax-extension</Namespace>
+<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/xbrl/xbrl-syntax-extension</Namespace>
 <Prefix>sbr</Prefix>
 </Loc>
 
