@@ -655,7 +655,8 @@ class ModelDimensionValue(ModelObject):
     def typedMember(self):
         # to get <typedMember> element use 'self'; this get's its contents
         for child in self.iterchildren():
-            return child
+            if isinstance(child, ModelObject):  # skip comment and processing nodes
+                return child
         return None
 
     @property
@@ -697,7 +698,7 @@ class ModelDimensionValue(ModelObject):
             return (str(self.dimensionQname), etree.tounicode( XmlUtil.child(self) ) )
         
 def measuresOf(parent):
-    return sorted([m.xValue for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") if m.xValue is not None])
+    return sorted([m.xValue for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") if isinstance(m.xValue, ModelObject)])
 
 def measuresStr(m):
     return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)

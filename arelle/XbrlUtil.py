@@ -20,7 +20,7 @@ TOP_IDs_EXCLUDED = 2 # only ancestor IDs are excluded
 def nodesCorrespond(dts1, elt1, elt2, dts2=None, equalMode=XPATH_EQ, excludeIDs=ALL_IDs_EXCLUDED):
     if elt1 is None:
         return elt2 is None #both can be empty sequences (no element) and true
-    elif elt2 is None:
+    elif elt2 is None or not isinstance(elt1, ModelObject) or not isinstance(elt2, ModelObject):
         return False
     # can accept either modelElements or modelAttributes
     if isinstance(elt1,ModelAttribute):
