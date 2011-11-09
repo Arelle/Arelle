@@ -51,6 +51,7 @@ def checkDTS(val, modelDocument, visited):
             definesAbstractItems = False
             definesNonabstractItems = False
             definesTuples = False
+            definesTypes = False
             definesEnumerations = False
             definesDimensions = False
             definesDomains = False
@@ -370,25 +371,35 @@ def checkDTS(val, modelDocument, visited):
     
                 if val.validateSBRNL:
                     definesArcroles = True
-        if val.validateSBRNL and (definesLinkroles + definesArcroles + definesLinkParts +
-                                  definesAbstractItems + definesNonabstractItems + definesTuples +
-                                  definesEnumerations + definesDimensions + definesDomains + 
-                                  definesHypercubes) > 1:
-            schemaContents = []
-            if definesLinkroles: schemaContents.append(_("linkroles"))
-            if definesArcroles: schemaContents.append(_("arcroles"))
-            if definesLinkParts: schemaContents.append(_("link parts"))
-            if definesAbstractItems: schemaContents.append(_("abstract items"))
-            if definesNonabstractItems: schemaContents.append(_("nonabstract items"))
-            if definesTuples: schemaContents.append(_("tuples"))
-            if definesEnumerations: schemaContents.append(_("enumerations"))
-            if definesDimensions: schemaContents.append(_("dimensions"))
-            if definesDomains: schemaContents.append(_("domains"))
-            if definesHypercubes: schemaContents.append(_("hypercubes"))
-            val.modelXbrl.error("SBR.NL.2.2.1.01",
-                _("Taxonomy schema %(schema)s may only define one of these: %(contents)s"),
-                modelObject=val.modelXbrl,
-                schema=os.path.basename(modelDocument.uri), contents=', '.join(schemaContents))
+        if val.validateSBRNL:
+            definesTypes = (modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None or
+                            modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}simpleType") is not None)
+            if (definesLinkroles + definesArcroles + definesLinkParts +
+                definesAbstractItems + definesNonabstractItems + definesTuples + definesTypes +
+                definesEnumerations + definesDimensions + definesDomains + 
+                definesHypercubes) != 1:
+                schemaContents = []
+                if definesLinkroles: schemaContents.append(_("linkroles"))
+                if definesArcroles: schemaContents.append(_("arcroles"))
+                if definesLinkParts: schemaContents.append(_("link parts"))
+                if definesAbstractItems: schemaContents.append(_("abstract items"))
+                if definesNonabstractItems: schemaContents.append(_("nonabstract items"))
+                if definesTuples: schemaContents.append(_("tuples"))
+                if definesTypes: schemaContents.append(_("types"))
+                if definesEnumerations: schemaContents.append(_("enumerations"))
+                if definesDimensions: schemaContents.append(_("dimensions"))
+                if definesDomains: schemaContents.append(_("domains"))
+                if definesHypercubes: schemaContents.append(_("hypercubes"))
+                if schemaContents:
+                    val.modelXbrl.error("SBR.NL.2.2.1.01",
+                        _("Taxonomy schema %(schema)s may only define one of these: %(contents)s"),
+                        modelObject=val.modelXbrl,
+                        schema=os.path.basename(modelDocument.uri), contents=', '.join(schemaContents))
+                else:
+                    val.modelXbrl.error("SBR.NL.2.2.1.01",
+                        _("Taxonomy schema %(schema)s must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
+                        modelObject=val.modelXbrl,
+                        schema=os.path.basename(modelDocument.uri))
 
     visited.remove(modelDocument)
     

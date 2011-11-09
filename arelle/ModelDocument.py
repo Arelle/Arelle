@@ -27,7 +27,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
        not normalizedUri.startswith(modelXbrl.uriDir) and \
        not modelXbrl.modelManager.disclosureSystem.hrefValid(normalizedUri):
         blocked = modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences
-        modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06"),
+        modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                 _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
                 modelObject=referringElement, url=normalizedUri, blockedIndicator=_(" blocked") if blocked else "")
         if blocked:
@@ -382,7 +382,7 @@ class ModelDocument:
                     namespace=namespace, targetNamespace=targetNamespace)
             if (self.modelXbrl.modelManager.validateDisclosureSystem and 
                 self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(self.uri, targetNamespace)):
-                    self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06"),
+                    self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                             _("Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"),
                             modelObject=rootElement, namespace=targetNamespace, schemaLocation=self.uri)
 
@@ -396,32 +396,22 @@ class ModelDocument:
         self.isQualifiedElementFormDefault = rootElement.get("elementFormDefault") == "qualified"
         self.isQualifiedAttributeFormDefault = rootElement.get("attributeFormDefault") == "qualified"
         try:
-            self.schemaImportElements(rootElement)
-            # if self.inDTS: (need all elements defined, even if not in DTS
             self.schemaDiscoverChildElements(rootElement)
         except (ValueError, LookupError) as err:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
                         self.basename,
                         err))
             
-    
-    def schemaImportElements(self, parentModelObject):
-        # must find import/include before processing linkbases or elements
-        for modelObject in parentModelObject.iterchildren():
-            if isinstance(modelObject,ModelObject) and modelObject.namespaceURI == XbrlConst.xsd:
-                ln = modelObject.localName
-                if ln == "import" or ln == "include":
-                    self.importDiscover(modelObject)
-                if ln in schemaBottom:
-                    break
-
     def schemaDiscoverChildElements(self, parentModelObject):
         # find roleTypes, elements, and linkbases
+        # must find import/include before processing linkbases or elements
         for modelObject in parentModelObject.iterchildren():
             if isinstance(modelObject,ModelObject):
                 ln = modelObject.localName
                 ns = modelObject.namespaceURI
-                if self.inDTS and ns == XbrlConst.link:
+                if modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include"}:
+                    self.importDiscover(modelObject)
+                elif self.inDTS and ns == XbrlConst.link:
                     if ln == "roleType":
                         self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)
                     elif ln == "arcroleType":
@@ -432,7 +422,8 @@ class ModelDocument:
                         self.linkbaseDiscover(modelObject)
                 # recurse to children
                 self.schemaDiscoverChildElements(modelObject)
-            
+
+                        
     def baseForElement(self, element):
         base = ""
         baseElt = element
@@ -469,7 +460,7 @@ class ModelDocument:
             if (self.modelXbrl.modelManager.validateDisclosureSystem and 
                     self.modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences and
                     self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(importSchemaLocation, importNamespace)):
-                self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06"),
+                self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                         _("Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s"),
                         modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation)
                 return
