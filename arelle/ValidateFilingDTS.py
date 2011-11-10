@@ -255,6 +255,8 @@ def checkDTS(val, modelDocument, visited):
                                 elif modelConcept.isItem:
                                     definesAbstractItems = True
                             else:   # not abstract
+                                if modelConcept.isItem:
+                                    definesNonabstractItems = True
                                 if not (modelConcept.label(preferredLabel=XbrlConst.documentationLabel,fallbackToQname=False,lang="nl") or
                                         val.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(c) or
                                         modelConcept.genLabel(role=XbrlConst.genDocumentationLabel,lang="nl") or
@@ -392,14 +394,12 @@ def checkDTS(val, modelDocument, visited):
                 if definesHypercubes: schemaContents.append(_("hypercubes"))
                 if schemaContents:
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
-                        _("Taxonomy schema %(schema)s may only define one of these: %(contents)s"),
-                        modelObject=val.modelXbrl,
-                        schema=os.path.basename(modelDocument.uri), contents=', '.join(schemaContents))
+                        _("Taxonomy schema may only define one of these: %(contents)s"),
+                        modelObject=modelDocument, contents=', '.join(schemaContents))
                 else:
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
-                        _("Taxonomy schema %(schema)s must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
-                        modelObject=val.modelXbrl,
-                        schema=os.path.basename(modelDocument.uri))
+                        _("Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
+                        modelObject=modelDocument)
 
     visited.remove(modelDocument)
     

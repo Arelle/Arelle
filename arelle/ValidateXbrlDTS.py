@@ -225,9 +225,9 @@ def checkDTS(val, modelDocument, visited):
                     if ((prefix not in val.valUsedPrefixes) and
                         (modelDocument.type != ModelDocument.Type.SCHEMA or ns != modelDocument.targetNamespace)):
                         val.modelXbrl.error("SBR.NL.2.2.0.11" if modelDocument.type == ModelDocument.Type.SCHEMA else "SBR.NL.2.3.0.08",
-                            _('%(docType)s namespace declaration %(prefix)s="%(namespace)s" is not used'),
+                            _('%(docType)s namespace declaration "%(declaration)s" is not used'),
                             modelObject=modelDocument, docType=modelDocument.gettype().title(), 
-                            prefix=prefix, namespace=ns)
+                            declaration=("xmlns" + (":" + prefix if prefix else "") + "=" + ns))
             if modelDocument.type ==  ModelDocument.Type.LINKBASE:
                 if not val.containsRelationship:
                     val.modelXbrl.error("SBR.NL.2.3.0.12",
@@ -950,9 +950,16 @@ def checkElements(val, modelDocument, parent):
                 if val.validateSBRNL:
                     # check attributes for prefixes and xmlns
                     val.valUsedPrefixes.add(elt.prefix)
+                    if elt.namespaceURI not in {XbrlConst.xbrli, XbrlConst.xbrldt, XbrlConst.xlink, XbrlConst.link, XbrlConst.xml, XbrlConst.xsd}:
+                        val.modelXbrl.error("SBR.NL.2.2.0.20",
+                            _("%(fileType)s element %(element)s must not have custom namespace %(namespace)s"),
+                            modelObject=elt, element=elt.qname, 
+                            fileType="schema" if isSchema else "linkbase" ,
+                            namespace=elt.namespaceURI)
                     for attrTag, attrValue in elt.items():
                         prefix, ns, localName = XmlUtil.clarkNotationToPrefixNsLocalname(elt, attrTag, isAttribute=True)
-                        val.valUsedPrefixes.add(prefix)
+                        if prefix: # don't count unqualified prefixes for using default namespace
+                            val.valUsedPrefixes.add(prefix)
                         if ns not in {None, XbrlConst.xbrli, XbrlConst.xbrldt, XbrlConst.xlink, XbrlConst.xml, XbrlConst.xsi}:
                             val.modelXbrl.error("SBR.NL.2.2.0.20",
                                 _("%(fileType)s element %(element)s must not have %(prefix)s:%(localName)s"),
