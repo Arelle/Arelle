@@ -698,7 +698,7 @@ class ModelDimensionValue(ModelObject):
             return (str(self.dimensionQname), etree.tounicode( XmlUtil.child(self) ) )
         
 def measuresOf(parent):
-    return sorted([m.xValue for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") if isinstance(m.xValue, ModelObject)])
+    return sorted([m.xValue for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") if isinstance(m, ModelObject)])
 
 def measuresStr(m):
     return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)
