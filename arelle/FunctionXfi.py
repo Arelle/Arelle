@@ -1058,6 +1058,7 @@ xfiFunctions = {
     'has-fallback-value' : has_fallback_value,
     'uncovered-non-dimensional-aspects' : uncovered_non_dimensional_aspects,
     'uncovered-dimensional-aspects': uncovered_dimensional_aspects,
+    'identical-nodes': identical_nodes,
     's-equal': s_equal,
     'u-equal': u_equal,
     'v-equal': v_equal,
