@@ -745,6 +745,22 @@ def uncoveredAspectValue(xpCtx, aspect):
     for vb in xpCtx.varBindings.values():
         if vb.isFactVar and not vb.isFallback and vb.hasAspectValueUncovered(aspect):
             return vb.aspectValue(aspect)
+    return None
+
+def variableBindingIsFallback(xpCtx, variableQname):
+    for vb in xpCtx.varBindings.values():
+        if vb.qname == variableQname:
+            return vb.isFactVar and vb.isFallback
+    return False
+
+def uncoveredVariableSetAspects(xpCtx):
+    aspectsDefined = set()
+    aspectsCovered = set()
+    for vb in xpCtx.varBindings.values():
+        if vb.isFactVar and not vb.isFallback:
+            aspectsCovered |= vb.aspectsCovered
+            aspectsDefined |= vb.aspectsDefined  
+    return (aspectsDefined - aspectsCovered)
 
 class VariableBindingError:
     def __init__(self, err,  msg=None):

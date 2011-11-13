@@ -80,6 +80,17 @@ aspectFromToken = {
      "scenario": Aspect.COMPLETE_SCENARIO, "complete-scenario": Aspect.COMPLETE_SCENARIO,
      }
 
+aspectToToken = {
+     Aspect.LOCATION: "location", Aspect.CONCEPT: "concept", 
+     Aspect.ENTITY_IDENTIFIER: "entityIdentifier", Aspect.ENTITY_IDENTIFIER: "entity-identifier", 
+     Aspect.PERIOD: "period", Aspect.UNIT:"unit",
+     Aspect.NON_XDT_SEGMENT: "non-XDT-segment", 
+     Aspect.NON_XDT_SCENARIO: "non-XDT-scenario",
+     Aspect.DIMENSIONS: "dimension", Aspect.DIMENSIONS: "dimensions" ,
+     Aspect.COMPLETE_SEGMENT: "complete-segment", 
+     Aspect.COMPLETE_SCENARIO: "complete-scenario",
+     }
+
 aspectElementNameAttrValue = {
         Aspect.LOCATION: ("location", None, None),
         Aspect.CONCEPT: ("concept", None, None),

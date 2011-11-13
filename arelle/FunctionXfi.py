@@ -318,6 +318,42 @@ def uncovered_aspect(xc, p, args):
         return ()
     return aspectValue
 
+def has_fallback_value(xc, p, args):
+    from arelle.FormulaEvaluator import variableBindingIsFallback
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    variableQname = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
+        
+    # check function use after checking argument types
+    if xc.progHeader is not None and xc.progHeader.element is not None:
+        if xc.progHeader.element.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message"):
+            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
+        if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
+            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
+        
+    return variableBindingIsFallback(xc, variableQname)
+
+def uncovered_non_dimensional_aspects(xc, p, args):
+    return uncovered_aspects(xc, p, args, dimensionAspects=False)
+
+def uncovered_dimensional_aspects(xc, p, args):
+    return uncovered_aspects(xc, p, args, dimensionAspects=True)
+
+def uncovered_aspects(xc, p, args, dimensionAspects=False):
+    from arelle.ModelFormulaObject import aspectToToken, Aspect
+    from arelle.FormulaEvaluator import uncoveredVariableSetAspects
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+        
+    # check function use after checking argument types
+    if xc.progHeader is not None and xc.progHeader.element is not None:
+        if xc.progHeader.element.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message"):
+            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
+        if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
+            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
+        
+    uncoveredAspects = uncoveredVariableSetAspects(xc)
+    return [(a if dimensionAspects else aspectToToken.get(a))
+            for a in uncoveredAspects if a != Aspect.DIMENSIONS and isinstance(a,QName) == dimensionAspects ]
+
 def nodesEqual(xc, args, test, mustBeItems=False, nonItemErrCode=None):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
@@ -1019,7 +1055,9 @@ xfiFunctions = {
     'precision': precision,
     'decimals': decimals,
     'uncovered-aspect' : uncovered_aspect,
-    'identical-nodes': identical_nodes,
+    'has-fallback-value' : has_fallback_value,
+    'uncovered-non-dimensional-aspects' : uncovered_non_dimensional_aspects,
+    'uncovered-dimensional-aspects': uncovered_dimensional_aspects,
     's-equal': s_equal,
     'u-equal': u_equal,
     'v-equal': v_equal,
