@@ -284,6 +284,7 @@ def validate(val):
                 val.modelXbrl.error("xbrlve:variableNameResolutionFailure",
                     _("Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s"),
                     modelObject=modelRel, xlinkLabel=modelVariableSet.xlinkLabel, name=modelRel.variablename )
+        checkVariablesScopeVisibleQnames(val, definedNamesSet, modelVariableSet)
         definedNamesSet |= parameterQnames
                 
         variableDependencies = {}
@@ -347,7 +348,7 @@ def validate(val):
                     
         # check unresolved variable set dependencies
         for varSetDepVarQname in modelVariableSet.variableRefs():
-            if varSetDepVarQname not in orderedNameSet and varSetDepVarQname not in parameterQnames:
+            if varSetDepVarQname not in definedNamesSet and varSetDepVarQname not in parameterQnames:
                 val.modelXbrl.error("xbrlve:unresolvedDependency",
                     _("Undefined variable dependency in variable set %(xlinkLabel)s, %(name)s"),
                     modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel,
@@ -588,6 +589,18 @@ def validate(val):
             # close prior instance, usually closed by caller to validate as it may affect UI on different thread
             val.modelXbrl.formulaOutputInstance.close()
         val.modelXbrl.formulaOutputInstance = outputXbrlInstance
+
+def checkVariablesScopeVisibleQnames(val, definedNamesSet, modelVariableSet):
+    for visibleVarSetRel in val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
+        varqname = visibleVarSetRel.variableQname # name (if any) of the formula result
+        if varqname and varqname not in definedNamesSet:
+            definedNamesSet.add(varqname)
+        visibleVarSet = visibleVarSetRel.fromModelObject
+        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSet).fromModelObject(visibleVarSet):
+            varqname = modelRel.variableQname
+            if varqname and varqname not in definedNamesSet:
+                definedNamesSet.add(varqname)
+        checkVariablesScopeVisibleQnames(val, definedNamesSet, visibleVarSet)
 
 def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, uncoverableAspects=None):
     if uncoverableAspects is None:

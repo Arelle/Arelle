@@ -233,6 +233,7 @@ vf = "http://xbrl.org/2008/filter/value"
 qnNilFilter = qname("{http://xbrl.org/2008/filter/value}vf:nil")
 qnPrecisionFilter = qname("{http://xbrl.org/2008/filter/value}vf:precision")
 xpath2err = "http://www.w3.org/2005/xqt-errors"
+variablesScope = "http://xbrl.org/arcrole/2010/variables-scope"
 
 # 2010 table linkbase
 euRend = "http://www.eurofiling.info/2010/rendering"
@@ -437,4 +438,5 @@ def isFormulaArcrole(arcrole):
                        "http://xbrl.org/arcrole/2010/assertion-unsatisfied-message",
                        "http://xbrl.org/arcrole/2010/instance-variable",
                        "http://xbrl.org/arcrole/2010/formula-instance",
-                       "http://xbrl.org/arcrole/2010/function-implementation"}
+                       "http://xbrl.org/arcrole/2010/function-implementation",
+                       "http://xbrl.org/arcrole/2010/variables-scope"}
