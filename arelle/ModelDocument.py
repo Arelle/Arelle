@@ -72,12 +72,16 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         file.close()
     except (EnvironmentError, KeyError) as err:  # missing zip file raises KeyError
+        if file:
+            file.close()
+        # retry in case of well known schema locations
+        if not isIncluded and namespace and namespace in XbrlConst.standardNamespaceSchemaLocations and uri != XbrlConst.standardNamespaceSchemaLocations[namespace]:
+            return load(modelXbrl, XbrlConst.standardNamespaceSchemaLocations[namespace], 
+                        base, referringElement, isEntry, isDiscovered, isIncluded, namespace, reloadCache)
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
         type = Type.Unknown
-        if file:
-            file.close()
         return None
     except (etree.LxmlError,
             ValueError) as err:  # ValueError raised on bad format of qnames, xmlns'es, or parameters

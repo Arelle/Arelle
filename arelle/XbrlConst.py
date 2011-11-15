@@ -292,6 +292,18 @@ def labelroleLabel(role): # with sort char in first position
 def isStandardNamespace(namespaceURI):
     return namespaceURI in {xsd, xbrli, link, gen, xbrldt, xbrldi}
 
+standardNamespaceSchemaLocations = {
+    xbrli: "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
+    link: "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd",
+    xl: "http://www.xbrl.org/2003/xl-2003-12-31.xsd",
+    xlink: "http://www.w3.org/1999/xlink",
+    xbrldt: "http://www.xbrl.org/2005/xbrldt-2005.xsd",
+    xbrldi: "http://www.xbrl.org/2006/xbrldi-2006.xsd",
+    gen: "http://www.xbrl.org/2008/generic-link.xsd",
+    genLabel: "http://www.xbrl.org/2008/generic-label.xsd",
+    genReference: "http://www.xbrl.org/2008/generic-reference.xsd"
+    }
+
 def isNumericXsdType(xsdType):
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
