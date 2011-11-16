@@ -187,6 +187,8 @@ class DisclosureSystem:
                                 self.standardTaxonomiesDict[href] = "Allowed" + attType
                             if localHref:
                                 self.standardLocalHrefs.add(localHref)
+                        elif attType == "SCH" and family == "BASE":
+                            self.baseTaxonomyNamespaces.add(namespaceUri)
 
             except (EnvironmentError,
                     etree.LxmlError) as err:
