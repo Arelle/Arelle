@@ -258,6 +258,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         modelDocument.targetNamespace = None
         modelDocument.isQualifiedElementFormDefault = False
         modelDocument.isQualifiedAttributeFormDefault = False
+    modelDocument.definesUTR = False
     return modelDocument
 
     
@@ -313,6 +314,7 @@ class ModelDocument:
         self.schemaLocationElements = set()
         self.referencedNamespaces = set()
         self.inDTS = False
+        self.definesUTR = False
 
     def objectId(self,refId=""):
         return "_{0}_{1}".format(refId, self.objectIndex)
@@ -399,6 +401,7 @@ class ModelDocument:
             self.modelXbrl.hasXDT = True
         self.isQualifiedElementFormDefault = rootElement.get("elementFormDefault") == "qualified"
         self.isQualifiedAttributeFormDefault = rootElement.get("attributeFormDefault") == "qualified"
+        self.definesUTR = any(ns == XbrlConst.utr for ns in rootElement.nsmap.values())
         try:
             self.schemaDiscoverChildElements(rootElement)
         except (ValueError, LookupError) as err:
@@ -533,7 +536,7 @@ class ModelDocument:
                     if lbLn == "roleRef" or lbLn == "arcroleRef":
                         href = self.discoverHref(lbElement)
                         if href is None:
-                            self.modelXbrl.error("xbrl:hrefMissing",
+                            self.modelXbrl.error("xmlSchema:requiredAttribute",
                                     _("Linkbase reference for %(linkbaseRefElement)s href attribute missing or malformed"),
                                     modelObject=lbElement, linkbaseRefElement=lbLn)
                         else:
@@ -566,7 +569,7 @@ class ModelDocument:
                                     href = self.discoverHref(linkElement, nonDTS=nonDTS)
                                     if href is None:
                                         if isStandardExtLink:
-                                            self.modelXbrl.error("xbrl:hrefMissing",
+                                            self.modelXbrl.error("xmlSchema:requiredAttribute",
                                                     _("Locator href attribute missing or malformed in standard extended link"),
                                                     modelObejct=linkElement)
                                         else:
