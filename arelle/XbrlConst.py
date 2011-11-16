@@ -97,6 +97,8 @@ periodEndLabel = "http://www.xbrl.org/2003/role/periodEndLabel"
 conceptNameLabelRole = "XBRL-concept-name" # fake label role to show concept QName instead of label
 xlinkLinkbase = "http://www.w3.org/1999/xlink/properties/linkbase"
 
+utr = "http://www.xbrl.org/2009/utr"
+
 ver = "http://xbrl.org/2010/versioning-base"
 vercb = "http://xbrl.org/2010/versioning-concept-basic"
 verce = "http://xbrl.org/2010/versioning-concept-extended"
