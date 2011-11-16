@@ -135,8 +135,8 @@ class Validate:
                         self.modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
-                        modelTestcaseVariation.status = "not loadable"
                         modelXbrl.close()
+                        self.determineNotLoadedTestStatus(modelTestcaseVariation)
                     elif resultIsVersioningReport:
                         inputDTSes[dtsName] = modelXbrl
                     elif modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
@@ -258,9 +258,10 @@ class Validate:
                         break
                 elif type(testErr) == type(expected):
                     if (testErr == expected or
-                        ((expected == "EFM.6.03.04" or expected == "EFM.6.03.05") and testErr.startswith("xmlSchema:")) or
-                        (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
-                        (expected == "EFM.6.05.35" and testErr.startswith("utr:"))):
+                        ((expected == "EFM.6.03.02" or expected == "EFM.6.03.08") or # 6.03.02 is not testable
+                         (expected == "EFM.6.03.04" or expected == "EFM.6.03.05") and testErr.startswith("xmlSchema:")) or
+                         (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
+                         (expected == "EFM.6.05.35" and testErr.startswith("utr:"))):
                         status = "pass"
                         break
             if (not modelUnderTest.errors and status == "fail" and 
@@ -273,7 +274,7 @@ class Validate:
             modelTestcaseVariation.actual = []
             # put error codes first, sorted, then assertion result (dict's)
             for error in modelUnderTest.errors:
-                if isinstance(error,dict):  # assertoin results
+                if isinstance(error,dict):  # asserion results
                     modelTestcaseVariation.assertions = error
                 else:   # error code results
                     modelTestcaseVariation.actual.append(error)
@@ -281,6 +282,13 @@ class Validate:
             for error in modelUnderTest.errors:
                 if isinstance(error,dict):
                     modelTestcaseVariation.actual.append(error)
+                
+    def determineNotLoadedTestStatus(self, modelTestcaseVariation):
+        expected = modelTestcaseVariation.expected
+        status = "not loadable"
+        if expected in ("EFM.6.03.04", "EFM.6.03.05"):
+            status = "pass"
+        modelTestcaseVariation.status = status
                 
 import logging
 class ValidationLogListener(logging.Handler):
