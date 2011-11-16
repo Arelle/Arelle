@@ -439,7 +439,7 @@ class ModelConcept(ModelSchemaObject):
     def dereference(self):
         ref = self.get("ref")
         if ref:
-            return self.modelXbrl.qnameAttributes.get(ModelValue.qname(self, ref))
+            return self.modelXbrl.qnameConcepts.get(ModelValue.qname(self, ref))
         return self
 
     @property
@@ -1081,7 +1081,7 @@ class ModelRelationship(ModelObject):
                 self.linkQname,
                 self.linkrole,  # needed when linkrole=None merges multiple links
                 self.fromModelObject.objectIndex if self.fromModelObject is not None else -1, 
-                self.toModelObject.objectIndex if self.toModelObject is not None else -1,
+                self.toModelObject.objectIndex if self.toModelObject is not None else -1, 
                 self.order, 
                 self.weight, 
                 self.preferredLabel) + \
