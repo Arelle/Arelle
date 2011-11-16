@@ -313,7 +313,7 @@ def checkElements(val, modelDocument, parent):
                                 val.modelXbrl.error("xbrl.5.1:emptyTargetNamespace",
                                     "Schema element has an empty targetNamespace",
                                     modelObject=elt)
-                            if val.validateEFM and len(targetNamespace) > 124:
+                            if val.validateEFM and len(targetNamespace) > 85:
                                 l = len(targetNamespace.encode("utf-8"))
                                 if l > 255:
                                     val.modelXbrl.error("EFM.6.07.30",
@@ -353,15 +353,15 @@ def checkElements(val, modelDocument, parent):
                             eltName = elt.get("name")
                             if eltName is not None: # skip for concepts which are refs
                                 type = qname(elt, elt.get("type"))
-                                eltQname = qname(modelDocument.targetNamespace, eltName)
+                                eltQname = elt.qname
                                 if type in xsd1_1datatypes:
                                     val.modelXbrl.error("SBR.NL.2.2.0.01",
                                         _('Schema element %(concept)s contains XSD 1.1 datatype "%(xsdType)s"'),
                                         modelObject=elt, concept=elt.get("name"), xsdType=type)
                                 if parent.localName != "schema": # root element
-                                    if elt.get("name") is not None:
+                                    if elt.get("name") is not None and (elt.isItem or elt.isTuple):
                                         val.modelXbrl.error("SBR.NL.2.2.2.01",
-                                            _('Schema element definition is not at the root level: %(concept)s'),
+                                            _('Schema concept definition is not at the root level: %(concept)s'),
                                             modelObject=elt, concept=elt.get("name"))
                                 elif eltQname not in val.typedDomainQnames:
                                     for attr, presence, errCode in (("abstract", True, "2.2.2.08"),
@@ -394,17 +394,16 @@ def checkElements(val, modelDocument, parent):
                                     val.referencedNamespaces.add(elt.substitutionGroupQname.namespaceURI)
                                 if elt.isTypedDimension:
                                     val.referencedNamespaces.add(elt.typedDomainElement.namespaceURI)
+                            else:
+                                referencedElt = elt.dereference()
+                                if referencedElt is not None:
+                                    val.referencedNamespaces.add(referencedElt.qname.namespaceURI)
                         elif (localName in ("sequence","choice") and 
                               ((elt.get("minOccurs") != "1") or
                                (elt.get("maxOccurs") != "1"))):
                             val.modelXbrl.error("SBR.NL.2.2.2.33",
                                 _('Schema %(element)s must have minOccurs and maxOccurs = "1"'),
                                 modelObject=elt, element=elt.prefixedName)
-                        elif (localName == "enumeration" and 
-                              qname(elt.getparent(), elt.getparent().get("base")) != XbrlConst.qnXbrliStringItemType):
-                            val.modelXbrl.error("SBR.NL.2.2.7.04",
-                            _('Schema enumeration %(value)s must be a xbrli:stringItemType restriction'),
-                            modelObject=elt, value=elt.get("value"))
                         elif localName in {"complexType","simpleType"}:
                             if elt.qnameDerivedFrom is not None:
                                 val.referencedNamespaces.add(elt.qnameDerivedFrom.namespaceURI)
@@ -442,7 +441,7 @@ def checkElements(val, modelDocument, parent):
                         
                     if val.validateEFM and localName in {"element", "complexType", "simpleType"}:
                         name = elt.get("name")
-                        if name and len(name) > 100 and len(name.encode("utf-8")) > 200:
+                        if name and len(name) > 64 and len(name.encode("utf-8")) > 200:
                             val.modelXbrl.error("EFM.6.07.29",
                                 _("Schema %(element)s has a name over 200 bytes long in utf-8, %(name)s."),
                                 modelObject=elt, element=localName, name=name)
@@ -508,7 +507,7 @@ def checkElements(val, modelDocument, parent):
                                     val.modelXbrl.error("SBR.NL.2.3.8.05",
                                         _('RoleType %(roleURI)s must have a label in lang "nl"'),
                                         modelObject=elt, roleURI=roleURI)
-                        if val.validateEFM and len(roleURI) > 124:
+                        if val.validateEFM and len(roleURI) > 85:
                             l = len(roleURI.encode("utf-8"))
                             if l > 255:
                                 val.modelXbrl.error("EFM.6.07.30",
@@ -950,7 +949,7 @@ def checkElements(val, modelDocument, parent):
                 if val.validateSBRNL:
                     # check attributes for prefixes and xmlns
                     val.valUsedPrefixes.add(elt.prefix)
-                    if elt.namespaceURI not in {XbrlConst.xbrli, XbrlConst.xbrldt, XbrlConst.xlink, XbrlConst.link, XbrlConst.xml, XbrlConst.xsd}:
+                    if elt.namespaceURI not in val.disclosureSystem.baseTaxonomyNamespaces:
                         val.modelXbrl.error("SBR.NL.2.2.0.20",
                             _("%(fileType)s element %(element)s must not have custom namespace %(namespace)s"),
                             modelObject=elt, element=elt.qname, 
@@ -960,7 +959,7 @@ def checkElements(val, modelDocument, parent):
                         prefix, ns, localName = XmlUtil.clarkNotationToPrefixNsLocalname(elt, attrTag, isAttribute=True)
                         if prefix: # don't count unqualified prefixes for using default namespace
                             val.valUsedPrefixes.add(prefix)
-                        if ns not in {None, XbrlConst.xbrli, XbrlConst.xbrldt, XbrlConst.xlink, XbrlConst.xml, XbrlConst.xsi}:
+                        if ns and ns not in val.disclosureSystem.baseTaxonomyNamespaces:
                             val.modelXbrl.error("SBR.NL.2.2.0.20",
                                 _("%(fileType)s element %(element)s must not have %(prefix)s:%(localName)s"),
                                 modelObject=elt, element=elt.qname, 
