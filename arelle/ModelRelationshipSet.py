@@ -33,12 +33,10 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     ineffectives = []
     for equivalenceKey, relationship in relationships.items():
         #sort by priority, prohibited
-        equivalentRels = []
-        for i, modelRel in enumerate(relationship):
-            equivalentRels.append((modelRel.priority,modelRel.prohibitedUseSortKey,i))
-        equivalentRels.sort()
+        equivalentRels = [(modelRel.priority, modelRel.prohibitedUseSortKey, i)
+                          for i, modelRel in enumerate(relationship)]
         priorRel = None
-        for rel in equivalentRels:
+        for rel in sorted( equivalentRels ):
             if rel[1] == 2: # this rel is prohibited
                 if priorRel is None:
                     ineffective = relationship[rel[2]]
