@@ -50,7 +50,10 @@ def checkDTS(val, modelDocument, visited):
             definesLinkParts = False
             definesAbstractItems = False
             definesNonabstractItems = False
+            definesConcepts = False
             definesTuples = False
+            definesPresentationTuples = False
+            definesSpecificationTuples = False
             definesTypes = False
             definesEnumerations = False
             definesDimensions = False
@@ -134,129 +137,132 @@ def checkDTS(val, modelDocument, visited):
                             modelObject=modelConcept, schema=os.path.basename(modelDocument.uri),
                             concept=name, nillable=nillable)
         
-                    if modelConcept is not None:
-                        # 6.7.19 not tuple
-                        if modelConcept.isTuple:
-                            if val.validateEFMorGFM:
-                                val.modelXbrl.error(("EFM.6.07.19", "GFM.1.03.21"),
-                                    _("Concept %(concept)s is a tuple"),
-                                    modelObject=modelConcept, concept=modelConcept.qname)
-                            
-                        # 6.7.20 no typed domain ref
-                        if modelConcept.isTypedDimension:
-                            val.modelXbrl.error(("EFM.6.07.20", "GFM.1.03.22"),
-                                _("Concept %(concept)s has typedDomainRef %(typedDomainRef)s"),
-                                modelObject=modelConcept, concept=modelConcept.qname,
-                                typedDomainRef=modelConcept.typedDomainElement.qname if modelConcept.typedDomainElement is not None else modelConcept.typedDomainRef)
-                            
-                        # 6.7.21 abstract must be duration
-                        isDuration = modelConcept.periodType == "duration"
-                        if modelConcept.abstract == "true" and not isDuration:
-                            val.modelXbrl.error(("EFM.6.07.21", "GFM.1.03.23"),
-                                _("Taxonomy schema %(schema)s element %(concept)s is abstract but period type is not duration"),
-                                modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=name)
-                            
-                        # 6.7.22 abstract must be stringItemType
-                        ''' removed SEC EFM v.17, Edgar release 10.4, and GFM 2011-04-08
-                        if modelConcept.abstract == "true" and modelConcept.typeQname != XbrlConst. qnXbrliStringItemType:
-                            val.modelXbrl.error(("EFM.6.07.22", "GFM.1.03.24"),
-                                _("Concept %(concept)s  is abstract but type is not xbrli:stringItemType"),
-                                modelObject=modelConcept, concept=modelConcept.qname)
-    					'''
-                        substititutionGroupQname = modelConcept.substitutionGroupQname
-                        # 6.7.23 Axis must be subs group dimension
-                        if name.endswith("Axis") ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
-                            val.modelXbrl.error(("EFM.6.07.23", "GFM.1.03.25"),
-                                _("Concept %(concept)s must end in Axis to be in dimensionItem substitution group"),
-                                modelObject=modelConcept, concept=modelConcept.qname)
-    
-                        # 6.7.24 Table must be subs group hypercube
-                        if name.endswith("Table") ^ (substititutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
-                            val.modelXbrl.error(("EFM.6.07.24", "GFM.1.03.26"),
-                                _("Concept %(concept)s is an Axis but not in hypercubeItem substitution group"),
-                                modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
-    
-                        # 6.7.25 if neither hypercube or dimension, substitution group must be item
-                        if substititutionGroupQname not in (None,
-                                                            XbrlConst.qnXbrldtDimensionItem, 
-                                                            XbrlConst.qnXbrldtHypercubeItem,
-                                                            XbrlConst.qnXbrliItem):                           
-                            val.modelXbrl.error(("EFM.6.07.25", "GFM.1.03.27"),
-                                _("Concept %(concept)s has disallowed substitution group %(substitutionGroup)s"),
-                                modelObject=modelConcept, concept=modelConcept.qname,
-                                substitutionGroup=modelConcept.substitutionGroupQname)
-                            
-                        # 6.7.26 Table must be subs group hypercube
-                        if name.endswith("LineItems") and modelConcept.abstract != "true":
-                            val.modelXbrl.error(("EFM.6.07.26", "GFM.1.03.28"),
-                                _("Concept %(concept)s is a LineItems but not abstract"),
-                                modelObject=modelConcept, concept=modelConcept.qname)
-    
-                        # 6.7.27 type domainMember must end with Domain or Member
-                        conceptType = modelConcept.type
-                        isDomainItemType = conceptType is not None and conceptType.isDomainItemType
-                        endsWithDomainOrMember = name.endswith("Domain") or name.endswith("Member")
-                        if isDomainItemType != endsWithDomainOrMember:
-                            val.modelXbrl.error(("EFM.6.07.27", "GFM.1.03.29"),
-                                _("Concept %(concept)s must end with Domain or Member for type of domainItemType"),
-                                modelObject=modelConcept, concept=modelConcept.qname)
-    
-                        # 6.7.28 domainItemType must be duration
-                        if isDomainItemType and not isDuration:
-                            val.modelXbrl.error(("EFM.6.07.28", "GFM.1.03.30"),
-                                _("Concept %(concept)s is a domainItemType and must be periodType duration"),
+                    # 6.7.19 not tuple
+                    if modelConcept.isTuple:
+                        if val.validateEFMorGFM:
+                            val.modelXbrl.error(("EFM.6.07.19", "GFM.1.03.21"),
+                                _("Concept %(concept)s is a tuple"),
                                 modelObject=modelConcept, concept=modelConcept.qname)
                         
-                        if val.validateSBRNL:
-                            definesConcepts = True
-                            if modelConcept.isTuple:
+                    # 6.7.20 no typed domain ref
+                    if modelConcept.isTypedDimension:
+                        val.modelXbrl.error(("EFM.6.07.20", "GFM.1.03.22"),
+                            _("Concept %(concept)s has typedDomainRef %(typedDomainRef)s"),
+                            modelObject=modelConcept, concept=modelConcept.qname,
+                            typedDomainRef=modelConcept.typedDomainElement.qname if modelConcept.typedDomainElement is not None else modelConcept.typedDomainRef)
+                        
+                    # 6.7.21 abstract must be duration
+                    isDuration = modelConcept.periodType == "duration"
+                    if modelConcept.abstract == "true" and not isDuration:
+                        val.modelXbrl.error(("EFM.6.07.21", "GFM.1.03.23"),
+                            _("Taxonomy schema %(schema)s element %(concept)s is abstract but period type is not duration"),
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=name)
+                        
+                    # 6.7.22 abstract must be stringItemType
+                    ''' removed SEC EFM v.17, Edgar release 10.4, and GFM 2011-04-08
+                    if modelConcept.abstract == "true" and modelConcept.typeQname != XbrlConst. qnXbrliStringItemType:
+                        val.modelXbrl.error(("EFM.6.07.22", "GFM.1.03.24"),
+                            _("Concept %(concept)s  is abstract but type is not xbrli:stringItemType"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+					'''
+                    substititutionGroupQname = modelConcept.substitutionGroupQname
+                    # 6.7.23 Axis must be subs group dimension
+                    if name.endswith("Axis") ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
+                        val.modelXbrl.error(("EFM.6.07.23", "GFM.1.03.25"),
+                            _("Concept %(concept)s must end in Axis to be in dimensionItem substitution group"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+
+                    # 6.7.24 Table must be subs group hypercube
+                    if name.endswith("Table") ^ (substititutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
+                        val.modelXbrl.error(("EFM.6.07.24", "GFM.1.03.26"),
+                            _("Concept %(concept)s is an Axis but not in hypercubeItem substitution group"),
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
+
+                    # 6.7.25 if neither hypercube or dimension, substitution group must be item
+                    if substititutionGroupQname not in (None,
+                                                        XbrlConst.qnXbrldtDimensionItem, 
+                                                        XbrlConst.qnXbrldtHypercubeItem,
+                                                        XbrlConst.qnXbrliItem):                           
+                        val.modelXbrl.error(("EFM.6.07.25", "GFM.1.03.27"),
+                            _("Concept %(concept)s has disallowed substitution group %(substitutionGroup)s"),
+                            modelObject=modelConcept, concept=modelConcept.qname,
+                            substitutionGroup=modelConcept.substitutionGroupQname)
+                        
+                    # 6.7.26 Table must be subs group hypercube
+                    if name.endswith("LineItems") and modelConcept.abstract != "true":
+                        val.modelXbrl.error(("EFM.6.07.26", "GFM.1.03.28"),
+                            _("Concept %(concept)s is a LineItems but not abstract"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+
+                    # 6.7.27 type domainMember must end with Domain or Member
+                    conceptType = modelConcept.type
+                    isDomainItemType = conceptType is not None and conceptType.isDomainItemType
+                    endsWithDomainOrMember = name.endswith("Domain") or name.endswith("Member")
+                    if isDomainItemType != endsWithDomainOrMember:
+                        val.modelXbrl.error(("EFM.6.07.27", "GFM.1.03.29"),
+                            _("Concept %(concept)s must end with Domain or Member for type of domainItemType"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+
+                    # 6.7.28 domainItemType must be duration
+                    if isDomainItemType and not isDuration:
+                        val.modelXbrl.error(("EFM.6.07.28", "GFM.1.03.30"),
+                            _("Concept %(concept)s is a domainItemType and must be periodType duration"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+                    
+                    if val.validateSBRNL:
+                        definesConcepts = True
+                        if modelConcept.isTuple:
+                            if modelConcept.substitutionGroupQname.localName == "presentationTuple" and modelConcept.substitutionGroupQname.namespaceURI.endswith("/basis/sbr/xbrl/xbrl-syntax-extension"): # namespace may change each year
+                                definesPresentationTuples = True
+                            elif modelConcept.substitutionGroupQname.localName == "specificationTuple" and modelConcept.substitutionGroupQname.namespaceURI.endswith("/basis/sbr/xbrl/xbrl-syntax-extension"): # namespace may change each year
+                                definesSpecificationTuples = True
+                            else:
                                 definesTuples = True
-                                if modelConcept.abstract == "true":
-                                    val.modelXbrl.error("SBR.NL.2.2.2.03",
-                                        _("Concept %(concept)s is an abstract tuple"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
-                                if tupleCycle(val,modelConcept):
-                                    val.modelXbrl.error("SBR.NL.2.2.2.07",
-                                        _("Tuple %(concept)s has a tuple cycle"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
-                                if modelConcept.nillable != "false" and modelConcept.isRoot:
-                                    val.modelXbrl.error("SBR.NL.2.2.2.17",
-                                        _("Tuple %(concept)s must have nillable='false'"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
+                            definesConcepts = True
                             if modelConcept.abstract == "true":
-                                if modelConcept.isRoot:
-                                    if modelConcept.nillable != "false":
-                                        val.modelXbrl.error("SBR.NL.2.2.2.16",
-                                            _("Abstract root concept %(concept)s must have nillable='false'"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
-                                    if modelConcept.typeQname != XbrlConst.qnXbrliStringItemType:
-                                        val.modelXbrl.error("SBR.NL.2.2.2.21",
-                                            _("Abstract root concept %(concept)s must have type='xbrli:stringItemType'"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
-                                else: # not root
-                                    if modelConcept.isItem:
-                                        val.modelXbrl.error("SBR.NL.2.2.2.31",
-                                            _("Taxonomy schema {0} abstract item %(concept)s must not be a child of a tuple"),
-                                            modelObject=modelConcept, concept=modelConcept.qname)
-                                if modelConcept.balance:
-                                    val.modelXbrl.error("SBR.NL.2.2.2.22",
-                                        _("Abstract concept %(concept)s must not have a balance attribute"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
-                                if modelConcept.isTuple:
-                                    val.modelXbrl.error("SBR.NL.2.2.2.31",
-                                        _("Tuple %(concept)s must not be abstract"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
-                                if modelConcept.isHypercubeItem:
-                                    definesHypercubes = True
-                                elif modelConcept.isDimensionItem:
-                                    definesDimensions = True
-                                elif substititutionGroupQname.localName == "domainItem":
-                                    definesDomains = True
-                                elif modelConcept.isItem:
-                                    definesAbstractItems = True
-                            else:   # not abstract
+                                val.modelXbrl.error("SBR.NL.2.2.2.03",
+                                    _("Concept %(concept)s is an abstract tuple"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if tupleCycle(val,modelConcept):
+                                val.modelXbrl.error("SBR.NL.2.2.2.07",
+                                    _("Tuple %(concept)s has a tuple cycle"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if modelConcept.nillable != "false" and modelConcept.isRoot:
+                                val.modelXbrl.error("SBR.NL.2.2.2.17",
+                                    _("Tuple %(concept)s must have nillable='false'"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                        elif modelConcept.isItem:
+                            definesConcepts = True
+                        if modelConcept.abstract == "true":
+                            if modelConcept.isRoot:
+                                if modelConcept.nillable != "false":
+                                    val.modelXbrl.error("SBR.NL.2.2.2.16",
+                                        _("Abstract root concept %(concept)s must have nillable='false'"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                                if modelConcept.typeQname != XbrlConst.qnXbrliStringItemType:
+                                    val.modelXbrl.error("SBR.NL.2.2.2.21",
+                                        _("Abstract root concept %(concept)s must have type='xbrli:stringItemType'"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            else: # not root
                                 if modelConcept.isItem:
-                                    definesNonabstractItems = True
+                                    val.modelXbrl.error("SBR.NL.2.2.2.31",
+                                        _("Taxonomy schema {0} abstract item %(concept)s must not be a child of a tuple"),
+                                        modelObject=modelConcept, concept=modelConcept.qname)
+                            if modelConcept.balance:
+                                val.modelXbrl.error("SBR.NL.2.2.2.22",
+                                    _("Abstract concept %(concept)s must not have a balance attribute"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if modelConcept.isHypercubeItem:
+                                definesHypercubes = True
+                            elif modelConcept.isDimensionItem:
+                                definesDimensions = True
+                            elif substititutionGroupQname and substititutionGroupQname.localName == "domainItem":
+                                definesDomains = True
+                            elif modelConcept.isItem:
+                                definesAbstractItems = True
+                        else:   # not abstract
+                            if modelConcept.isItem:
+                                definesNonabstractItems = True
                                 if not (modelConcept.label(preferredLabel=XbrlConst.documentationLabel,fallbackToQname=False,lang="nl") or
                                         val.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(c) or
                                         modelConcept.genLabel(role=XbrlConst.genDocumentationLabel,lang="nl") or
@@ -264,33 +270,40 @@ def checkDTS(val, modelDocument, visited):
                                     val.modelXbrl.error("SBR.NL.2.2.2.28",
                                         _("Concept %(concept)s must have a documentation label or reference"),
                                         modelObject=modelConcept, concept=modelConcept.qname)
-                            if modelConcept.balance and not modelConcept.instanceOfType(XbrlConst.qnXbrliMonetaryItemType):
-                                val.modelXbrl.error("SBR.NL.2.2.2.24",
-                                    _("Non-monetary concept %(concept)s must not have a balance attribute"),
+                        if modelConcept.balance and not modelConcept.instanceOfType(XbrlConst.qnXbrliMonetaryItemType):
+                            val.modelXbrl.error("SBR.NL.2.2.2.24",
+                                _("Non-monetary concept %(concept)s must not have a balance attribute"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        if (modelConcept.isItem or modelConcept.isTuple) and not (
+                                modelConcept.label(fallbackToQname=False,lang="nl") or 
+                                modelConcept.genLabel(fallbackToQname=False,lang="nl")):
+                            val.modelXbrl.error("SBR.NL.2.2.2.26",
+                                _("Concept %(concept)s must have a standard label in language 'nl'"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        if not modelConcept.isRoot:    # tuple child
+                            if modelConcept.get("maxOccurs") is not None and modelConcept.get("maxOccurs") != "1":
+                                val.modelXbrl.error("SBR.NL.2.2.2.30",
+                                    _("Tuple concept %(concept)s must have maxOccurs='1'"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                            if not (modelConcept.label(fallbackToQname=False,lang="nl") or 
-                                    modelConcept.genLabel(fallbackToQname=False,lang="nl")):
-                                val.modelXbrl.error("SBR.NL.2.2.2.26",
-                                    _("Concept %(concept)s must have a standard label in language 'nl'"),
-                                    modelObject=modelConcept, concept=modelConcept.qname)
-                            if not modelConcept.isRoot:    # tuple child
-                                if modelConcept.get("maxOccurs") is not None and modelConcept.get("maxOccurs") != "1":
-                                    val.modelXbrl.error("SBR.NL.2.2.2.30",
-                                        _("Tuple concept %(concept)s must have maxOccurs='1'"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
-                            if modelConcept.isLinkPart:
-                                definesLinkParts = True
-                                val.modelXbrl.error("SBR.NL.2.2.5.01",
-                                    _("Link:part concept %(concept)s is not allowed"),
-                                    modelObject=modelConcept, concept=modelConcept.qname)
-                            if modelConcept.isTypedDimension:
-                                domainElt = modelConcept.typedDomainElement
-                                if domainElt is not None and domainElt.localName == "complexType":
-                                    val.modelXbrl.error("SBR.NL.2.2.8.02",
-                                        _("Typed dimension %(concept)s domain element %(typedDomainElement)s has disallowed complex content"),
-                                        modelObject=modelConcept, concept=modelConcept.qname,
-                                        typedDomainElement=domainElt.qname)
-
+                        if modelConcept.isLinkPart:
+                            definesLinkParts = True
+                            val.modelXbrl.error("SBR.NL.2.2.5.01",
+                                _("Link:part concept %(concept)s is not allowed"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        if modelConcept.isTypedDimension:
+                            domainElt = modelConcept.typedDomainElement
+                            if domainElt is not None and domainElt.localName == "complexType":
+                                val.modelXbrl.error("SBR.NL.2.2.8.02",
+                                    _("Typed dimension %(concept)s domain element %(typedDomainElement)s has disallowed complex content"),
+                                    modelObject=modelConcept, concept=modelConcept.qname,
+                                    typedDomainElement=domainElt.qname)
+                        if modelConcept.isItem:
+                            if (conceptType is not None and conceptType.facets and 
+                                "enumeration" in conceptType.facets and
+                                not conceptType.isDerivedFrom(XbrlConst.qnXbrliStringItemType)):
+                                val.modelXbrl.error("SBR.NL.2.2.7.04",
+                                _('Schema enumeration %(value)s must be a xbrli:stringItemType restriction'),
+                                modelObject=modelConcept, value=modelConcept.get("value"))
         # 6.7.8 check for embedded linkbase
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
             if isinstance(e,ModelObject):
@@ -377,7 +390,8 @@ def checkDTS(val, modelDocument, visited):
             definesTypes = (modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None or
                             modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}simpleType") is not None)
             if (definesLinkroles + definesArcroles + definesLinkParts +
-                definesAbstractItems + definesNonabstractItems + definesTuples + definesTypes +
+                definesAbstractItems + definesNonabstractItems + 
+                definesTuples + definesPresentationTuples + definesSpecificationTuples + definesTypes +
                 definesEnumerations + definesDimensions + definesDomains + 
                 definesHypercubes) != 1:
                 schemaContents = []
@@ -387,6 +401,8 @@ def checkDTS(val, modelDocument, visited):
                 if definesAbstractItems: schemaContents.append(_("abstract items"))
                 if definesNonabstractItems: schemaContents.append(_("nonabstract items"))
                 if definesTuples: schemaContents.append(_("tuples"))
+                if definesPresentationTuples: schemaContents.append(_("sbrPresentationTuples"))
+                if definesSpecificationTuples: schemaContents.append(_("sbrSpecificationTuples"))
                 if definesTypes: schemaContents.append(_("types"))
                 if definesEnumerations: schemaContents.append(_("enumerations"))
                 if definesDimensions: schemaContents.append(_("dimensions"))
@@ -396,10 +412,18 @@ def checkDTS(val, modelDocument, visited):
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema may only define one of these: %(contents)s"),
                         modelObject=modelDocument, contents=', '.join(schemaContents))
-                else:
+                elif modelDocument != val.modelXbrl.modelDocument: # if not entry point
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
                         modelObject=modelDocument)
+            if definesNonabstractItems and not any(
+                       (refDoc.type == ModelDocument.Type.LINKBASE and
+                       (XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "referenceLink") is not None or
+                        XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "label", "{http://www.w3.org/1999/xlink}role", "http://www.xbrl.org/2003/role/documentation" ) is not None))
+                        for refDoc in modelDocument.referencesDocument.keys()):
+                val.modelXbrl.error("SBR.NL.2.2.1.03",
+                    _("A schema that defines non-abstract items MUST have a linked (2.1) reference linkbase AND/OR a label linkbase with @xlink:role=documentation"),
+                    modelObject=modelDocument)
 
     visited.remove(modelDocument)
     
