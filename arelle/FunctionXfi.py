@@ -485,12 +485,9 @@ def x_equal_test(node1, node2):
 def duplicate_item(xc, p, args):
     node1 = item(xc, args, 0)
     node2 = item(xc, args, 1)
-    if (node1 == node2 or
-        node1.concept != node2.concept or
-        node1.parentElement != node2.parentElement):
-        return False    # can't be identical
-    return  (node1.context.isEqualTo(node2.context,dimensionalAspectModel=False) and
-             (not node1.isNumeric or node1.unit.isEqualTo(node2.unit)))
+    if node1.isItem and node2.isItem:
+        return node1.isDuplicateOf(node2)
+    return False
 
 def duplicate_tuple(xc, p, args):
     node1 = tuple(xc, args, 0)
@@ -498,21 +495,8 @@ def duplicate_tuple(xc, p, args):
     return duplicate_tuple_test(node1, node2)
 
 def duplicate_tuple_test(node1, node2, topLevel=True):
-    if (node1 == node2 or
-        node1.concept != node2.concept or
-        (topLevel and node1.parentElement != node2.parentElement)):
-        return False    # can't be identical
-    if node1.isTuple:
-        if len(node1.modelTupleFacts) == len(node2.modelTupleFacts):
-            for child1 in node1.modelTupleFacts:
-                if child1.isItem:
-                    if not any(child1.isVEqualTo(child2) for child2 in node2.modelTupleFacts):
-                        return False
-                elif child1.isTuple:
-                    if not any(duplicate_tuple_test(child1, child2, topLevel=False) 
-                               for child2 in node2.modelTupleFacts):
-                        return False
-            return True
+    if node1.isTuple and node2.isTuple:
+        return node1.isDuplicateOf(node2)
     return False
 
 def p_equal(xc, p, args):

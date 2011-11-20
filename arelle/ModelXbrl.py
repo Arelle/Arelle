@@ -193,8 +193,10 @@ class ModelXbrl:
     
     def matchFact(self, otherFact):
         for fact in self.facts:
-            if (fact.qname == otherFact.qname and
-                fact.isVEqualTo(otherFact)):
+            if (fact.isTuple):
+                if fact.isDuplicateOf(otherFact):
+                    return fact
+            elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact)):
                 if not fact.isNumeric:
                     if fact.xmlLang == otherFact.xmlLang:
                         return fact
@@ -349,4 +351,3 @@ class ModelXbrl:
                   _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"), 
                 modelObject=self,
                 entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)
-

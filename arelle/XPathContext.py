@@ -73,6 +73,7 @@ class XPathContext:
         self.outputLastContext = {}   # last context element output per output instance
         self.outputLastUnit = {}
         self.outputLastFact = {}
+        self.outputFirstFact = {}
         self.sourceElement = sourceElement
         self.contextItem = self.inputXbrlInstance.xmlRootElement
         self.progHeader = None

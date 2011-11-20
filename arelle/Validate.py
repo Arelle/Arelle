@@ -218,7 +218,7 @@ class Validate:
                                     if formulaOutputInstance.matchFact(fact) is None:
                                         formulaOutputInstance.error("formula:expectedFactMissing",
                                             _("Formula output missing expected fact %(fact)s"),
-                                            modelXbrl=modelXbrl, fact=fact)
+                                            modelXbrl=fact, fact=fact.qname)
                         self.determineTestStatus(modelTestcaseVariation, formulaOutputInstance)
                         formulaOutputInstance.close()
                         formulaOutputInstance = None

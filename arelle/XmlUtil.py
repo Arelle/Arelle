@@ -365,7 +365,7 @@ def emptyContentModel(element):
 
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
-def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None):
+def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None, beforeSibling=None):
     from arelle.FunctionXs import xsString
     modelDocument = parent.modelDocument
     if isinstance(childName1, QName):
@@ -381,8 +381,10 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
             localName = prefix
         child = modelDocument.parser.makeelement("{{{0}}}{1}".format(childName1, localName))
     child.init(modelDocument)
-    if afterSibling is not None:
+    if afterSibling is not None and afterSibling.getparent() == parent:  # sibling is a hint, parent prevails
         afterSibling.addnext(child)
+    elif beforeSibling is not None and beforeSibling.getparent() == parent:  # sibling is a hint, parent prevails
+        beforeSibling.addprevious(child)
     else:
         parent.append(child)
     if attributes:
@@ -585,7 +587,7 @@ def elementFragmentIdentifier(element):
             element = element.getparent()
         location = "/".join(childSequence)
         return "element({0})".format(location)
-
+    
 def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
     # customized from xml.minidom to provide correct indentation for data items
     if isinstance(node,etree._ElementTree):

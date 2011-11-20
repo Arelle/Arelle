@@ -123,7 +123,9 @@ qnEqualityDefinition = qname("{http://xbrl.org/2008/variable}variable:equalityDe
 qnEqualityTestA = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:a")
 qnEqualityTestB = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:b")
 formula = "http://xbrl.org/2008/formula"
+tuple = "http://xbrl.org/2010/formula/tuple"
 qnFormula = qname("{http://xbrl.org/2008/formula}formula:formula")
+qnTuple = qname("{http://xbrl.org/2010/formula/tuple}tuple:tuple")
 qnFormulaUncovered = qname("{http://xbrl.org/2008/formula}formula:uncovered")
 qnFormulaDimensionSAV = qname("{http://xbrl.org/2008/formula}DimensionSAV") #signal that dimension aspect should use SAV of this dimension
 qnFormulaOccEmpty = qname("{http://xbrl.org/2008/formula}occEmpty") #signal that OCC aspect should omit the SAV values
@@ -276,6 +278,7 @@ errMsgPrefixNS = {
     "xbrlacfe": "http://xbrl.org/2010/filter/aspect-cover/error",
     "xbrlcfie": "http://xbrl.org/2010/custom-function/error",
     "xbrlmfe": "http://xbrl.org/2008/filter/match/error",
+    "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
     }
 
 def baseSetArcroleLabel(arcrole): # with sort char in first position

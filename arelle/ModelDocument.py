@@ -730,7 +730,12 @@ class ModelDocument:
         else:
             self.modelXbrl.facts.append(modelFact)
                 
-    def factDiscover(self, modelFact, parentModelFacts):
+    def factDiscover(self, modelFact, parentModelFacts=None, parentElement=None):
+        if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
+            if isinstance(parentElement, ModelFact) and parentElement.isTuple:
+                parentModelFacts = parentElement.modelTupleFacts
+            else:
+                parentModelFacts = self.modelXbrl.facts
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.append( modelFact )

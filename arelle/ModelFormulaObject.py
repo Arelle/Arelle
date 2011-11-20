@@ -14,7 +14,7 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.XbrlUtil import (typedValue)
 
 class Aspect:
-    LOCATION = 1
+    LOCATION = 1; LOCATION_RULE = 101
     CONCEPT = 2
     ENTITY_IDENTIFIER = 3; VALUE = 31; SCHEME = 32
     PERIOD = 4; PERIOD_TYPE = 41; START = 42; END = 43; INSTANT = 44
@@ -92,24 +92,24 @@ aspectToToken = {
      }
 
 aspectElementNameAttrValue = {
-        Aspect.LOCATION: ("location", None, None),
-        Aspect.CONCEPT: ("concept", None, None),
-        Aspect.ENTITY_IDENTIFIER: ("entityIdentifier", None, None),
-        Aspect.SCHEME: ("entityIdentifier", None, None),
-        Aspect.VALUE: ("entityIdentifier", None, None),
-        Aspect.PERIOD: ("period", None, None),
-        Aspect.PERIOD_TYPE: ("period", None, None),
-        Aspect.INSTANT: ("period", None, None),
-        Aspect.START: ("period", None, None),
-        Aspect.END: ("period", None, None),
-        Aspect.UNIT: ("unit", None, None),
-        Aspect.UNIT_MEASURES: ("unit", None, None),
-        Aspect.MULTIPLY_BY: ("multiplyBy", "source", "*"),
-        Aspect.DIVIDE_BY: ("divideBy", "source", "*"),
-        Aspect.COMPLETE_SEGMENT: (("occFragments", "occXpath"), "occ", "segment"),
-        Aspect.COMPLETE_SCENARIO: (("occFragments", "occXpath"), "occ", "scenario"),
-        Aspect.NON_XDT_SEGMENT: (("occFragments", "occXpath"), "occ", "segment"),
-        Aspect.NON_XDT_SCENARIO: (("occFragments", "occXpath"), "occ", "scenario"),
+        Aspect.LOCATION_RULE: ("location", XbrlConst.tuple, None, None),
+        Aspect.CONCEPT: ("concept", XbrlConst.formula, None, None),
+        Aspect.ENTITY_IDENTIFIER: ("entityIdentifier", XbrlConst.formula, None, None),
+        Aspect.SCHEME: ("entityIdentifier", XbrlConst.formula, None, None),
+        Aspect.VALUE: ("entityIdentifier", XbrlConst.formula, None, None),
+        Aspect.PERIOD: ("period", XbrlConst.formula, None, None),
+        Aspect.PERIOD_TYPE: ("period", XbrlConst.formula, None, None),
+        Aspect.INSTANT: ("period", XbrlConst.formula, None, None),
+        Aspect.START: ("period", XbrlConst.formula, None, None),
+        Aspect.END: ("period", XbrlConst.formula, None, None),
+        Aspect.UNIT: ("unit", XbrlConst.formula, None, None),
+        Aspect.UNIT_MEASURES: ("unit", XbrlConst.formula, None, None),
+        Aspect.MULTIPLY_BY: ("multiplyBy", XbrlConst.formula, "source", "*"),
+        Aspect.DIVIDE_BY: ("divideBy", XbrlConst.formula, "source", "*"),
+        Aspect.COMPLETE_SEGMENT: (("occFragments", "occXpath"), XbrlConst.formula, "occ", "segment"),
+        Aspect.COMPLETE_SCENARIO: (("occFragments", "occXpath"), XbrlConst.formula, "occ", "scenario"),
+        Aspect.NON_XDT_SEGMENT: (("occFragments", "occXpath"), XbrlConst.formula, "occ", "segment"),
+        Aspect.NON_XDT_SCENARIO: (("occFragments", "occXpath"), XbrlConst.formula, "occ", "scenario"),
         }
 
 class FormulaOptions():
@@ -386,7 +386,7 @@ class ModelFormula(ModelVariableSet):
                 return self.source()
             ruleElements = self.aspectRuleElements(aspect)
             if len(ruleElements) > 0: ruleElement = ruleElements[0]
-        if ruleElement is None and aspect not in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
+        if ruleElement is None and aspect not in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY, Aspect.LOCATION_RULE):
             ruleElement = self
         while (isinstance(ruleElement,ModelObject) and (acceptFormulaSource or ruleElement != self)):
             if ruleElement.get("source") is not None:
@@ -397,8 +397,8 @@ class ModelFormula(ModelVariableSet):
     
     def aspectRuleElements(self, aspect):
         if aspect in aspectElementNameAttrValue:
-            eltName, attrName, attrValue = aspectElementNameAttrValue[aspect]
-            return XmlUtil.descendants(self, XbrlConst.formula, eltName, attrName, attrValue)
+            eltName, ns, attrName, attrValue = aspectElementNameAttrValue[aspect]
+            return XmlUtil.descendants(self, ns, eltName, attrName, attrValue)
         elif isinstance(aspect,QName):
             return XmlUtil.descendants(self, XbrlConst.formula, 
                                       ("explicitDimension", "typedDimension"), 
@@ -416,6 +416,10 @@ class ModelFormula(ModelVariableSet):
     def viewExpression(self):
         return self.value
                 
+class ModelTuple(ModelFormula):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+
 class ModelVariableSetAssertion(ModelVariableSet):
     def init(self, modelDocument):
         super().init(modelDocument)
@@ -2502,6 +2506,7 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnExistenceAssertion, ModelExistenceAssertion),
      (XbrlConst.qnValueAssertion, ModelValueAssertion),
      (XbrlConst.qnFormula, ModelFormula),
+     (XbrlConst.qnTuple, ModelTuple),
      (XbrlConst.qnParameter, ModelParameter),
      (XbrlConst.qnInstance, ModelInstance),
      (XbrlConst.qnFactVariable, ModelFactVariable),

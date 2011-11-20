@@ -7,8 +7,8 @@ Created on Dec 9, 2010
 import os
 from collections import defaultdict
 from arelle.pyparsing.pyparsing_py3 import (ParseException) 
-from arelle.ModelFormulaObject import (ModelParameter, ModelInstance,
-                                       ModelFormula, ModelVariable, ModelFactVariable, 
+from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVariableSet,
+                                       ModelFormula, ModelTuple, ModelVariable, ModelFactVariable, 
                                        ModelVariableSetAssertion, ModelConsistencyAssertion,
                                        ModelExistenceAssertion, ModelValueAssertion,
                                        ModelPrecondition, ModelConceptName, Trace,
@@ -109,6 +109,12 @@ def executeCallTest(val, name, callTuple, testTuple):
         val.modelXbrl.modelManager.showStatus(_("ready"), 2000)
                 
 def validate(val):
+    for e in ("xbrl.5.1.4.3:cycles", "xbrlgene:violatedCyclesConstraint"):
+        if e in val.modelXbrl.errors:
+            val.modelXbrl.info("info", _("Formula validation skipped due to %(error)s error"),
+                                modelObject=val.modelXbrl, error=e)
+            return
+    
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
     XPathParser.initializeParser(val)
     val.modelXbrl.modelManager.showStatus(_("Compiling formulae"))
@@ -284,7 +290,7 @@ def validate(val):
                 val.modelXbrl.error("xbrlve:variableNameResolutionFailure",
                     _("Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s"),
                     modelObject=modelRel, xlinkLabel=modelVariableSet.xlinkLabel, name=modelRel.variablename )
-        checkVariablesScopeVisibleQnames(val, definedNamesSet, modelVariableSet)
+        checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet)
         definedNamesSet |= parameterQnames
                 
         variableDependencies = {}
@@ -513,6 +519,25 @@ def validate(val):
             ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
             xpathContext.defaultDimensionAspects |= namedInstance.qnameDimensionDefaults.keys()
 
+    # check for variable set dependencies across output instances produced
+    for instanceQname, modelVariableSets in instanceProducingVariableSets.items():
+        for modelVariableSet in modelVariableSets:
+            for varScopeRel in val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
+                if varScopeRel.fromModelObject is not None:
+                    sourceVariableSet = varScopeRel.fromModelObject
+                    if sourceVariableSet.outputInstanceQname != instanceQname:
+                        val.modelXbrl.error("xbrlvarscopee:differentInstances",
+                            _("Variable set %(xlinkLabel1)s in instance %(instance1)s has variables scope relationship to varaible set %(xlinkLabel2)s in instance %(instance2)s"),
+                            modelObject=modelVariableSet, 
+                            xlinkLabel1=sourceVariableSet.xlinkLabel, instance1=sourceVariableSet.outputInstanceQname,
+                            xlinkLabel2=modelVariableSet.xlinkLabel, instance2=modelVariableSet.outputInstanceQname)
+                    if sourceVariableSet.aspectModel != modelVariableSet.aspectModel:
+                        val.modelXbrl.error("xbrlvarscopee:conflictingAspectModels",
+                            _("Variable set %(xlinkLabel1)s aspectModel (%(aspectModel1)s) differs from varaible set %(xlinkLabel2)s aspectModel (%(aspectModel2)s)"),
+                            modelObject=modelVariableSet, 
+                            xlinkLabel1=sourceVariableSet.xlinkLabel, aspectModel1=sourceVariableSet.aspectModel,
+                            xlinkLabel2=modelVariableSet.xlinkLabel, aspectModel2=modelVariableSet.aspectModel)
+
     if initialErrorCount < val.modelXbrl.logCountErr:
         return  # don't try to execute
         
@@ -548,14 +573,15 @@ def validate(val):
     # evaluate variable sets not in consistency assertions
     for instanceQname in orderedInstancesList:
         for modelVariableSet in instanceProducingVariableSets[instanceQname]:
-            # produce variable evaluations
-            from arelle.FormulaEvaluator import evaluate
-            try:
-                evaluate(xpathContext, modelVariableSet)
-            except XPathContext.XPathException as err:
-                val.modelXbrl.error(err.code,
-                    _("Variable set \n%(variableSet)s \nException: \n%(error)s"), 
-                    modelObject=modelVariableSet, variableSet=str(modelVariableSet), error=err.message)
+            # produce variable evaluations if no dependent variables-scope relationships
+            if not val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
+                from arelle.FormulaEvaluator import evaluate
+                try:
+                    evaluate(xpathContext, modelVariableSet)
+                except XPathContext.XPathException as err:
+                    val.modelXbrl.error(err.code,
+                        _("Variable set \n%(variableSet)s \nException: \n%(error)s"), 
+                        modelObject=modelVariableSet, variableSet=str(modelVariableSet), error=err.message)
             
     # log assertion result counts
     asserTests = {}
@@ -590,17 +616,23 @@ def validate(val):
             val.modelXbrl.formulaOutputInstance.close()
         val.modelXbrl.formulaOutputInstance = outputXbrlInstance
 
-def checkVariablesScopeVisibleQnames(val, definedNamesSet, modelVariableSet):
+def checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet):
     for visibleVarSetRel in val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
         varqname = visibleVarSetRel.variableQname # name (if any) of the formula result
-        if varqname and varqname not in definedNamesSet:
-            definedNamesSet.add(varqname)
+        if varqname:
+            if varqname not in nameVariables:
+                nameVariables[varqname] = visibleVarSetRel.fromModelObject
+            if varqname not in definedNamesSet:
+                definedNamesSet.add(varqname)
         visibleVarSet = visibleVarSetRel.fromModelObject
         for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSet).fromModelObject(visibleVarSet):
             varqname = modelRel.variableQname
-            if varqname and varqname not in definedNamesSet:
-                definedNamesSet.add(varqname)
-        checkVariablesScopeVisibleQnames(val, definedNamesSet, visibleVarSet)
+            if varqname:
+                if varqname not in nameVariables:
+                    nameVariables[varqname] = modelRel.toModelObject
+                if varqname not in definedNamesSet:
+                    definedNamesSet.add(varqname)
+        checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, visibleVarSet)
 
 def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, uncoverableAspects=None):
     if uncoverableAspects is None:
@@ -651,83 +683,84 @@ def checkFormulaRules(val, formula, nameVariables):
             val.modelXbrl.error("xbrlfe:missingConceptRule",
                 _("Formula %(xlinkLabel)s omits a rule for the concept aspect"),
                 modelObject=formula, xlinkLabel=formula.xlinkLabel)
-    if (not (formula.hasRule(Aspect.SCHEME) or formula.source(Aspect.SCHEME)) or
-        not (formula.hasRule(Aspect.VALUE) or formula.source(Aspect.VALUE))):
-        if XmlUtil.hasDescendant(formula, XbrlConst.formula, "entityIdentifier"):
-            val.modelXbrl.error("xbrlfe:incompleteEntityIdentifierRule",
-                _("Formula %(xlinkLabel)s entity identifier rule does not have a nearest source and does not have either a @scheme or a @value attribute"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel)
-        else:
-            val.modelXbrl.error("xbrlfe:missingEntityIdentifierRule",
-                _("Formula %(xlinkLabel)s omits a rule for the entity identifier aspect"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel)
-    if not (formula.hasRule(Aspect.PERIOD_TYPE) or formula.source(Aspect.PERIOD_TYPE)):
-        if XmlUtil.hasDescendant(formula, XbrlConst.formula, "period"):
-            val.modelXbrl.error("xbrlfe:incompletePeriodRule",
-                _("Formula %(xlinkLabel)s period rule does not have a nearest source and does not have a child element"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel)
-        else:
-            val.modelXbrl.error("xbrlfe:missingPeriodRule",
-                _("Formula %(xlinkLabel)s omits a rule for the period aspect"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel)
-    # for unit need to see if the qname is statically determinable to determine if numeric
-    concept = val.modelXbrl.qnameConcepts.get(formula.evaluateRule(None, Aspect.CONCEPT))
-    if concept is None: # is there a source with a static QName filter
-        sourceFactVar = nameVariables.get(formula.source(Aspect.CONCEPT))
-        if isinstance(sourceFactVar, ModelFactVariable):
-            for varFilterRels in (formula.groupFilterRelationships, sourceFactVar.filterRelationships):
-                for varFilterRel in varFilterRels:
-                    filter = varFilterRel.toModelObject
-                    if isinstance(filter,ModelConceptName):  # relationship not constrained to real filters
-                        for conceptQname in filter.conceptQnames:
-                            concept = val.modelXbrl.qnameConcepts.get(conceptQname)
-                            if concept is not None and concept.isNumeric:
-                                break
-    if concept is not None: # from concept aspect rule or from source factVariable concept Qname filter
-        if concept.isNumeric:
-            if not (formula.hasRule(Aspect.MULTIPLY_BY) or formula.hasRule(Aspect.DIVIDE_BY) or formula.source(Aspect.UNIT)):
-                if XmlUtil.hasDescendant(formula, XbrlConst.formula, "unit"):
-                    val.modelXbrl.error("xbrlfe:missingSAVForUnitRule",
-                        _("Formula %(xlinkLabel)s unit rule does not have a source and does not have a child element"),
-                        modelObject=formula, xlinkLabel=formula.xlinkLabel)
-                else:
-                    val.modelXbrl.error("xbrlfe:missingUnitRule",
-                        _("Formula %(xlinkLabel)s omits a rule for the unit aspect"),
-                        modelObject=formula, xlinkLabel=formula.xlinkLabel)
-        elif (formula.hasRule(Aspect.MULTIPLY_BY) or formula.hasRule(Aspect.DIVIDE_BY) or 
-              formula.source(Aspect.UNIT, acceptFormulaSource=False)):
-            val.modelXbrl.error("xbrlfe:conflictingAspectRules",
-                _("Formula %(xlinkLabel)s has a rule for the unit aspect of a non-numeric concept %(concept)s"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=concept.qname)
-        aspectPeriodType = formula.evaluateRule(None, Aspect.PERIOD_TYPE)
-        if ((concept.periodType == "duration" and aspectPeriodType == "instant") or
-            (concept.periodType == "instant" and aspectPeriodType in ("duration","forever"))):
-            val.modelXbrl.error("xbrlfe:conflictingAspectRules",
-                _("Formula %(xlinkLabel)s has a rule for the %(aspectPeriodType)s period aspect of a %(conceptPeriodType)s concept %(concept)s"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=concept.qname, aspectPeriodType=aspectPeriodType, conceptPeriodType=concept.periodType)
-    
-    # check dimension elements
-    for eltName, dim, badUsageErr, missingSavErr in (("explicitDimension", "explicit", "xbrlfe:badUsageOfExplicitDimensionRule", "xbrlfe:missingSAVForExplicitDimensionRule"),
-                                                     ("typedDimension", "typed", "xbrlfe:badUsageOfTypedDimensionRule", "xbrlfe:missingSAVForTypedDimensionRule")):
-        for dimElt in XmlUtil.descendants(formula, XbrlConst.formula, eltName):
-            dimQname = qname(dimElt, dimElt.get("dimension"))
-            dimConcept = val.modelXbrl.qnameConcepts.get(dimQname)
-            if dimQname and (dimConcept is None or (not dimConcept.isExplicitDimension if dim == "explicit" else not dimConcept.isTypedDimension)):
-                val.modelXbrl.error(badUsageErr,
-                    _("Formula %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension."),
-                    modelObject=formula, xlinkLabel=formula.xlinkLabel, dimensionType=dim, dimension=dimQname)
-            elif not XmlUtil.hasChild(dimElt, XbrlConst.formula, "*") and not formula.source(Aspect.DIMENSIONS, dimElt):
-                val.modelXbrl.error(missingSavErr,
-                    _("Formula %(xlinkLabel)s %(dimension)s dimension rule does not have any child elements and does not have a SAV for the %(dimensionType)s dimension that is identified by its dimension attribute."),
-                    modelObject=formula, xlinkLabel=formula.xlinkLabel, dimensionType=dim, dimension=dimQname)
-    
-    # check aspect model expectations
-    if formula.aspectModel == "non-dimensional":
-        unexpectedElts = XmlUtil.descendants(formula, XbrlConst.formula, ("explicitDimension", "typedDimension"))
-        if unexpectedElts:
-            val.modelXbrl.error("xbrlfe:unrecognisedAspectRule",
-                _("Formula %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel, aspectModel=formula.aspectModel, undefinedAspects=", ".join([elt.localName for elt in unexpectedElts]))
+    if not isinstance(formula, ModelTuple):
+        if (not (formula.hasRule(Aspect.SCHEME) or formula.source(Aspect.SCHEME)) or
+            not (formula.hasRule(Aspect.VALUE) or formula.source(Aspect.VALUE))):
+            if XmlUtil.hasDescendant(formula, XbrlConst.formula, "entityIdentifier"):
+                val.modelXbrl.error("xbrlfe:incompleteEntityIdentifierRule",
+                    _("Formula %(xlinkLabel)s entity identifier rule does not have a nearest source and does not have either a @scheme or a @value attribute"),
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel)
+            else:
+                val.modelXbrl.error("xbrlfe:missingEntityIdentifierRule",
+                    _("Formula %(xlinkLabel)s omits a rule for the entity identifier aspect"),
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel)
+        if not (formula.hasRule(Aspect.PERIOD_TYPE) or formula.source(Aspect.PERIOD_TYPE)):
+            if XmlUtil.hasDescendant(formula, XbrlConst.formula, "period"):
+                val.modelXbrl.error("xbrlfe:incompletePeriodRule",
+                    _("Formula %(xlinkLabel)s period rule does not have a nearest source and does not have a child element"),
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel)
+            else:
+                val.modelXbrl.error("xbrlfe:missingPeriodRule",
+                    _("Formula %(xlinkLabel)s omits a rule for the period aspect"),
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel)
+        # for unit need to see if the qname is statically determinable to determine if numeric
+        concept = val.modelXbrl.qnameConcepts.get(formula.evaluateRule(None, Aspect.CONCEPT))
+        if concept is None: # is there a source with a static QName filter
+            sourceFactVar = nameVariables.get(formula.source(Aspect.CONCEPT))
+            if isinstance(sourceFactVar, ModelFactVariable):
+                for varFilterRels in (formula.groupFilterRelationships, sourceFactVar.filterRelationships):
+                    for varFilterRel in varFilterRels:
+                        filter = varFilterRel.toModelObject
+                        if isinstance(filter,ModelConceptName):  # relationship not constrained to real filters
+                            for conceptQname in filter.conceptQnames:
+                                concept = val.modelXbrl.qnameConcepts.get(conceptQname)
+                                if concept is not None and concept.isNumeric:
+                                    break
+        if concept is not None: # from concept aspect rule or from source factVariable concept Qname filter
+            if concept.isNumeric:
+                if not (formula.hasRule(Aspect.MULTIPLY_BY) or formula.hasRule(Aspect.DIVIDE_BY) or formula.source(Aspect.UNIT)):
+                    if XmlUtil.hasDescendant(formula, XbrlConst.formula, "unit"):
+                        val.modelXbrl.error("xbrlfe:missingSAVForUnitRule",
+                            _("Formula %(xlinkLabel)s unit rule does not have a source and does not have a child element"),
+                            modelObject=formula, xlinkLabel=formula.xlinkLabel)
+                    else:
+                        val.modelXbrl.error("xbrlfe:missingUnitRule",
+                            _("Formula %(xlinkLabel)s omits a rule for the unit aspect"),
+                            modelObject=formula, xlinkLabel=formula.xlinkLabel)
+            elif (formula.hasRule(Aspect.MULTIPLY_BY) or formula.hasRule(Aspect.DIVIDE_BY) or 
+                  formula.source(Aspect.UNIT, acceptFormulaSource=False)):
+                val.modelXbrl.error("xbrlfe:conflictingAspectRules",
+                    _("Formula %(xlinkLabel)s has a rule for the unit aspect of a non-numeric concept %(concept)s"),
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=concept.qname)
+            aspectPeriodType = formula.evaluateRule(None, Aspect.PERIOD_TYPE)
+            if ((concept.periodType == "duration" and aspectPeriodType == "instant") or
+                (concept.periodType == "instant" and aspectPeriodType in ("duration","forever"))):
+                val.modelXbrl.error("xbrlfe:conflictingAspectRules",
+                    _("Formula %(xlinkLabel)s has a rule for the %(aspectPeriodType)s period aspect of a %(conceptPeriodType)s concept %(concept)s"),
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=concept.qname, aspectPeriodType=aspectPeriodType, conceptPeriodType=concept.periodType)
+        
+        # check dimension elements
+        for eltName, dim, badUsageErr, missingSavErr in (("explicitDimension", "explicit", "xbrlfe:badUsageOfExplicitDimensionRule", "xbrlfe:missingSAVForExplicitDimensionRule"),
+                                                         ("typedDimension", "typed", "xbrlfe:badUsageOfTypedDimensionRule", "xbrlfe:missingSAVForTypedDimensionRule")):
+            for dimElt in XmlUtil.descendants(formula, XbrlConst.formula, eltName):
+                dimQname = qname(dimElt, dimElt.get("dimension"))
+                dimConcept = val.modelXbrl.qnameConcepts.get(dimQname)
+                if dimQname and (dimConcept is None or (not dimConcept.isExplicitDimension if dim == "explicit" else not dimConcept.isTypedDimension)):
+                    val.modelXbrl.error(badUsageErr,
+                        _("Formula %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension."),
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel, dimensionType=dim, dimension=dimQname)
+                elif not XmlUtil.hasChild(dimElt, XbrlConst.formula, "*") and not formula.source(Aspect.DIMENSIONS, dimElt):
+                    val.modelXbrl.error(missingSavErr,
+                        _("Formula %(xlinkLabel)s %(dimension)s dimension rule does not have any child elements and does not have a SAV for the %(dimensionType)s dimension that is identified by its dimension attribute."),
+                        modelObject=formula, xlinkLabel=formula.xlinkLabel, dimensionType=dim, dimension=dimQname)
+        
+        # check aspect model expectations
+        if formula.aspectModel == "non-dimensional":
+            unexpectedElts = XmlUtil.descendants(formula, XbrlConst.formula, ("explicitDimension", "typedDimension"))
+            if unexpectedElts:
+                val.modelXbrl.error("xbrlfe:unrecognisedAspectRule",
+                    _("Formula %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s"),
+                    modelObject=formula, xlinkLabel=formula.xlinkLabel, aspectModel=formula.aspectModel, undefinedAspects=", ".join([elt.localName for elt in unexpectedElts]))
 
     # check source qnames
     for sourceElt in ([formula] + 
@@ -745,7 +778,9 @@ def checkFormulaRules(val, formula, nameVariables):
                     modelObject=formula, xlinkLabel=formula.xlinkLabel, name=qnSource)
             else:
                 factVariable = nameVariables.get(qnSource)
-                if not isinstance(factVariable, ModelFactVariable):
+                if isinstance(factVariable, ModelVariableSet):
+                    pass
+                elif not isinstance(factVariable, ModelFactVariable):
                     val.modelXbrl.error("xbrlfe:nonexistentSourceVariable",
                         _("Variable set %(xlinkLabel)s, source %(name)s not a factVariable but is a %(element)s"),
                         modelObject=formula, xlinkLabel=formula.xlinkLabel, name=qnSource, element=factVariable.localName)

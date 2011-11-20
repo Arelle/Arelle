@@ -186,7 +186,7 @@ class ModelFact(ModelObject):
             return float(self.value)
         return self.value
     
-    def isVEqualTo(self, other):
+    def isVEqualTo(self, other):  # facts may be in different instances
         if self.isTuple or other.isTuple:
             return False
         if self.isNil:
@@ -212,6 +212,33 @@ class ModelFact(ModelObject):
             return selfValue.strip() == otherValue.strip()
         else:
             return selfValue == otherValue
+        
+    def isDuplicateOf(self, other, topLevel=True):  # facts may be in different instances
+        if self.isItem:
+            if (self == other or
+                self.qname != other or
+                self.parentElement.qname != other.parentElement.qname):
+                return False    # can't be identical
+            return  (self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
+                     (not self.isNumeric or self.unit.isEqualTo(other.unit)))
+        elif self.isTuple:
+            if (self == other or
+                self.qname != other.qname or
+                (topLevel and self.parentElement.qname != other.parentElement.qname)):
+                return False    # can't be identical
+            if self.isTuple:
+                if len(self.modelTupleFacts) == len(other.modelTupleFacts):
+                    for child1 in self.modelTupleFacts:
+                        if child1.isItem:
+                            if not any(child1.isVEqualTo(child2) for child2 in other.modelTupleFacts):
+                                return False
+                        elif child1.isTuple:
+                            if not any(child1.isDuplicateOf( child2, topLevel=False) 
+                                       for child2 in other.modelTupleFacts):
+                                return False
+                    return True
+        else:
+            return False
 
     @property
     def propertyView(self):
