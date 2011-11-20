@@ -21,7 +21,7 @@ def main():
     usage = "usage: %prog [options]"
     parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
     parser.add_option("-f", "--file", dest="filename",
-                      help=_("FILENAME is an entry point, which may be"
+                      help=_("FILENAME is an entry point, which may be "
                              "an XBRL instance, schema, linkbase file, "
                              "inline XBRL instance, testcase file, "
                              "testcase index file.  FILENAME may be "
