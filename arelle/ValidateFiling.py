@@ -405,11 +405,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     uniqueUnitHashes[h] = unit
                 if self.validateEFM:  # 6.5.38
                     for measureElt in unit.iterdescendants(tag="{http://www.xbrl.org/2003/instance}measure"):
-                        if (isinstance(measureElt.xValue, ModelValue.QName) and 
-                            len(measureElt.xValue.localName) > 65 and len(measureElt.xValue.localName.encode("utf-8")) > 200):
-                            modelXbrl.error("EFM.6.05.36",
-                                _("Unit has a measure over 200 bytes long in utf-8, %(measure)s."),
-                                modelObject=measureElt, measure=measureElt.xValue.localName)
+                        if isinstance(measureElt.xValue, ModelValue.QName) and len(measureElt.xValue.localName) > 65:
+                            l = len(measureElt.xValue.localName.encode("utf-8"))
+                            if l > 200:
+                                modelXbrl.error("EFM.6.05.36",
+                                    _("Unit has a measure  with localName length (%(length)s) over 200 bytes long in utf-8, %(measure)s."),
+                                    modelObject=measureElt, measure=measureElt.xValue.localName, length=l)
             del uniqueUnitHashes
             self.modelXbrl.profileActivity("... filer unit checks", minTimeToShow=1.0)
    

@@ -441,18 +441,21 @@ def checkElements(val, modelDocument, parent):
                         
                     if val.validateEFM and localName in {"element", "complexType", "simpleType"}:
                         name = elt.get("name")
-                        if name and len(name) > 64 and len(name.encode("utf-8")) > 200:
-                            val.modelXbrl.error("EFM.6.07.29",
-                                _("Schema %(element)s has a name over 200 bytes long in utf-8, %(name)s."),
-                                modelObject=elt, element=localName, name=name)
+                        if name and len(name) > 64:
+                            l = len(name.encode("utf-8"))
+                            if l > 200:
+                                val.modelXbrl.error("EFM.6.07.29",
+                                    _("Schema %(element)s has a name length (%(length)s) over 200 bytes long in utf-8, %(name)s."),
+                                    modelObject=elt, element=localName, name=name, length=l)
     
                     if val.validateSBRNL and localName in {"all", "documentation", "any", "anyAttribute", "attributeGroup",
-                                                                "complexContent", "extension", "field", "group", "key", "keyref",
+                                                                # comment out per R.H. 2011-11-16 "complexContent", "complexType", "extension", 
+                                                                "field", "group", "key", "keyref",
                                                                 "list", "notation", "redefine", "selector", "unique"}:
                         val.modelXbrl.error("SBR.NL.2.2.11.{0:02}".format({"all":1, "documentation":2, "any":3, "anyAttribute":4, "attributeGroup":7,
-                                                                  "complexContent":10, "extension":12, "field":13, "group":14, "key":15, "keyref":16,
+                                                                  "complexContent":10, "complexType":11, "extension":12, "field":13, "group":14, "key":15, "keyref":16,
                                                                   "list":17, "notation":18, "redefine":20, "selector":22, "unique":23}[localName]),
-                            _('Schema file {0} element must not be used "%(element)s"'),
+                            _('Schema file element must not be used "%(element)s"'),
                             modelObject=elt, element=elt.qname)
                     if val.inSchemaTop:
                         if localName in schemaBottom:
@@ -538,7 +541,7 @@ def checkElements(val, modelDocument, parent):
                 if elt.localName == "linkbase":
                     XmlValidate.validate(val.modelXbrl, elt)
                 if val.validateSBRNL and not elt.prefix:
-                        val.modelXbrl.error("SBR.NL.2.3.0.06",
+                        val.modelXbrl.error("SBR.NL.2.2.0.06",
                             _('Linkbase element is not prefixed: "%(element)s"'),
                             modelObject=elt, element=elt.qname)
             # check of roleRefs when parent is linkbase or instance element
