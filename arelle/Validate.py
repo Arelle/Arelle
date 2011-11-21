@@ -258,12 +258,13 @@ class Validate:
                         break
                 elif type(testErr) == type(expected):
                     if (testErr == expected or
-                        ((expected == "EFM.6.03.02" or expected == "EFM.6.03.08") or # 6.03.02 is not testable
-                         (expected == "EFM.6.03.04" or expected == "EFM.6.03.05") and testErr.startswith("xmlSchema:")) or
+                        ((expected == "EFM.6.03.04" or expected == "EFM.6.03.05") and testErr.startswith("xmlSchema:")) or
                          (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
                          (expected == "EFM.6.05.35" and testErr.startswith("utr:"))):
                         status = "pass"
                         break
+            if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
+                status = "pass"
             if (not modelUnderTest.errors and status == "fail" and 
                 modelTestcaseVariation.assertions and modelTestcaseVariation.assertions == expected):
                 status = "pass" # passing was previously successful and no further errors 
