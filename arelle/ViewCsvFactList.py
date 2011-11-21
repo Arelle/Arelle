@@ -31,7 +31,7 @@ class ViewFacts(ViewCsv.View):
                                      modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
             if "Period" in self.cols:
                 i = self.cols.index("Period")
-                self.cols[i:i] = ["Start", "End/Instant"]
+                self.cols[i:i+1] = ["Start", "End/Instant"]
         else:
             self.cols = ("Label","contextRef","unitRef","Dec","Prec","Lang","Value")
         col0 = self.cols[0]
