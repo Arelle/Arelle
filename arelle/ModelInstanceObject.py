@@ -219,6 +219,9 @@ class ModelFact(ModelObject):
                 self.qname != other or
                 self.parentElement.qname != other.parentElement.qname):
                 return False    # can't be identical
+            # parent test can only be done if in same instauce
+            if self.modelXbrl == other.modelXbrl and self.parentElement != other.parentElement:
+                return False
             return  (self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
                      (not self.isNumeric or self.unit.isEqualTo(other.unit)))
         elif self.isTuple:
