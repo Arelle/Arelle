@@ -28,6 +28,14 @@ namePattern = re.compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u037
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 NMTOKENPattern = re.compile(r"[_\-\.:" 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]+$")
+lexicalPatterns = {
+    "gYearMonth": re.compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "gYear": re.compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "gMonthDay": re.compile(r"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "gDay": re.compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "gMonth": re.compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),    
+    }
+
 baseXsdTypePatterns = {
                 "Name": namePattern,
                 "language": languagePattern,
@@ -324,6 +332,14 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 except Exception as err:
                     raise ValueError(err)
             else:
+                if baseXsdType in lexicalPatterns:
+                    match = lexicalPatterns[baseXsdType].match(value)
+                    if match is None:
+                        raise ValueError("lexical pattern mismatch")
+                    if baseXsdType == "gMonthDay":
+                        month, day, zSign, zHrMin, zHr, zMin = match.groups()
+                        if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
+                            raise ValueError("invalid day {0} for month {1}".format(day, month))
                 xValue = value
                 sValue = value
         except ValueError as err:
