@@ -12,6 +12,7 @@ from arelle import (ModelDocument, ModelValue, ValidateXbrl,
                 ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelDtsObject import ModelConcept
 
 datePattern = None
 
@@ -780,11 +781,15 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error("SBR.NL.2.2.2.26",
                         _("Concept %(concept)s missing standard label in local language."),
                         modelObject=concept, concept=concept.qname)
-                if (concept.isItem or concept.isTuple) and not (
-                        presentationRelationshipSet.toModelObject(concept) or
+                if not (presentationRelationshipSet.toModelObject(concept) or
                         presentationRelationshipSet.fromModelObject(concept)):
                     modelXbrl.error("SBR.NL.2.2.2.04",
                         _("Concept %(concept)s not referred to by presentation relationship."),
+                        modelObject=concept, concept=concept.qname)
+                if (concept.substitutionGroupQname and 
+                    concept.substitutionGroupQname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces):
+                    modelXbrl.error("SBR.NL.2.2.2.05",
+                        _("Concept %(concept)s has a substitutionGroup of a non-standard concept."),
                         modelObject=concept, concept=concept.qname)
                         
                 self.checkConceptLabels(modelXbrl, labelsRelationshipSet, disclosureSystem, concept)
@@ -793,9 +798,24 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         self.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
 
         defaultLangStandardLabels = None #dereference
+        
+        if self.validateSBRNL: # build camelCasedNamesTable
+            self.nameWordsTable = defaultdict(list)
+            for name in modelXbrl.nameConcepts.keys():
+                words = []
+                lastchar = ""
+                for c in name:
+                    if c.isupper() and lastchar.islower(): # it's another word
+                        partialName = ''.join(words)
+                        if partialName in modelXbrl.nameConcepts:
+                            self.nameWordsTable[name].append(partialName)
+                    words.append(c)
+                    lastchar = c
 
         # checks on all documents: instance, schema, instance                                
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
+        if self.validateSBRNL:
+            del self.nameWordsTable
         self.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
         # checks for namespace clashes
@@ -935,15 +955,26 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"),
                                         modelObject=rel, conceptFrom=relFrom.qname, conceptTo=relTo.qname, linkrole=rel.linkrole)
 
-                    elif arcrole == XbrlConst.dimensionDefault and self.validateSBRNL:
-                        for modelRel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
-                            self.modelXbrl.error("SBR.NL.2.3.6.05",
-                                _("Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"),
-                                modelObject=modelRel, conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
-                                linkrole=modelRel.linkrole)
+                    elif self.validateSBRNL:
+                        if arcrole == XbrlConst.dimensionDefault:
+                            for modelRel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
+                                self.modelXbrl.error("SBR.NL.2.3.6.05",
+                                    _("Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"),
+                                    modelObject=modelRel, conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
+                                    linkrole=modelRel.linkrole)
+                        if not (XbrlConst.isStandardArcrole(arcrole) or XbrlConst.isDefinitionOrXdtArcrole(arcrole)):
+                            for modelRel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
+                                relTo = modelRel.toModelObject
+                                relFrom = modelRel.fromModelObject
+                                if not (isinstance(relFrom,ModelConcept) and isinstance(relTo,ModelConcept)):
+                                    self.modelXbrl.error("SBR.NL.2.3.2.07",
+                                        _("The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"),
+                                        modelObject=modelRel, elementFrom=relFrom.qname, elementTo=relTo.qname, 
+                                        linkrole=modelRel.linkrole, arcrole=arcrole)
+                            
                            
                     # definition tests (GFM only, for now)
-                    if XbrlConst.isStandardOrXdtArcrole(arcrole) and disclosureSystem.GFM: 
+                    if XbrlConst.isDefinitionOrXdtArcrole(arcrole) and disclosureSystem.GFM: 
                         fromRelationships = modelXbrl.relationshipSet(arcrole,ELR).fromModelObjects()
                         for relFrom, rels in fromRelationships.items():
                             orderRels = {}

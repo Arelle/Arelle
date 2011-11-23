@@ -121,6 +121,24 @@ def checkDTS(val, modelDocument, visited):
                                             val.modelXbrl.error("SBR.NL.2.2.2.02",
                                                 _("Concept %(concept)s is also defined in standard taxonomy schema %(standardSchema)s without a general-special relationship"),
                                                 modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
+                    if val.validateSBRNL and name in val.nameWordsTable:
+                        foundGeneralSpecialRel = False
+                        for partialWordName in val.nameWordsTable[name]:
+                            concepts = val.modelXbrl.nameConcepts.get(partialWordName)
+                            if concepts is not None:
+                                for c in concepts:
+                                    for rel in val.modelXbrl.relationshipSet(XbrlConst.generalSpecial).toModelObject(modelConcept):
+                                        if rel.fromModelObject == c:
+                                            foundGeneralSpecialRel = True
+                                            break
+                                    if foundGeneralSpecialRel: break
+                            if foundGeneralSpecialRel: break
+                        if not foundGeneralSpecialRel: 
+                            val.modelXbrl.error("SBR.NL.2.3.2.01",
+                                _("Concept %(specialName)s is appears to be missing a general-special relationship to one of (%(generalNames)s)"),
+                                modelObject=c, specialName=modelConcept.qname, generalNames=', '.join(val.nameWordsTable[name]))
+
+
                     # 6.7.17 id properly formed
                     id = modelConcept.id
                     requiredId = (prefix if prefix is not None else "") + "_" + name
@@ -227,15 +245,15 @@ def checkDTS(val, modelDocument, visited):
                                 val.modelXbrl.error("SBR.NL.2.2.2.07",
                                     _("Tuple %(concept)s has a tuple cycle"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                            if modelConcept.nillable != "false" and modelConcept.isRoot:
-                                val.modelXbrl.error("SBR.NL.2.2.2.17",
+                            if modelConcept.get("nillable") != "false" and modelConcept.isRoot:
+                                val.modelXbrl.error("SBR.NL.2.2.2.17", #don't want default, just what was really there
                                     _("Tuple %(concept)s must have nillable='false'"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
                         elif modelConcept.isItem:
                             definesConcepts = True
                         if modelConcept.abstract == "true":
                             if modelConcept.isRoot:
-                                if modelConcept.nillable != "false":
+                                if modelConcept.get("nillable") != "false": #don't want default, just what was really there
                                     val.modelXbrl.error("SBR.NL.2.2.2.16",
                                         _("Abstract root concept %(concept)s must have nillable='false'"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
@@ -243,11 +261,6 @@ def checkDTS(val, modelDocument, visited):
                                     val.modelXbrl.error("SBR.NL.2.2.2.21",
                                         _("Abstract root concept %(concept)s must have type='xbrli:stringItemType'"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                            else: # not root
-                                if modelConcept.isItem:
-                                    val.modelXbrl.error("SBR.NL.2.2.2.31",
-                                        _("Taxonomy schema {0} abstract item %(concept)s must not be a child of a tuple"),
-                                        modelObject=modelConcept, concept=modelConcept.qname)
                             if modelConcept.balance:
                                 val.modelXbrl.error("SBR.NL.2.2.2.22",
                                     _("Abstract concept %(concept)s must not have a balance attribute"),
@@ -280,11 +293,6 @@ def checkDTS(val, modelDocument, visited):
                             val.modelXbrl.error("SBR.NL.2.2.2.26",
                                 _("Concept %(concept)s must have a standard label in language 'nl'"),
                                 modelObject=modelConcept, concept=modelConcept.qname)
-                        if not modelConcept.isRoot:    # tuple child
-                            if modelConcept.get("maxOccurs") is not None and modelConcept.get("maxOccurs") != "1":
-                                val.modelXbrl.error("SBR.NL.2.2.2.30",
-                                    _("Tuple concept %(concept)s must have maxOccurs='1'"),
-                                    modelObject=modelConcept, concept=modelConcept.qname)
                         if modelConcept.isLinkPart:
                             definesLinkParts = True
                             val.modelXbrl.error("SBR.NL.2.2.5.01",
