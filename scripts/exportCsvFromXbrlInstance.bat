@@ -9,11 +9,11 @@ rem Export CSV from XBRL Instance with Dimensions
 @set OUTPUTCSVFILE=%XBRLINSTANCEROOT%\converted-instance.csv
 
 rem to run from installer version use this
-@set ARELLE=c:\Progra~1\Arelle\arelleCmdLine.exe
+rem @set ARELLE=c:\Progra~1\Arelle\arelleCmdLine.exe
 
 rem to run from source use this
-rem @set ARELLE=c:\python32\python -marelle.CntlrCmdLine
-rem @set PYTHONPATH=..
+@set ARELLE=c:\python32\python -marelle.CntlrCmdLine
+@set PYTHONPATH=..
 
 %ARELLE% --file "%INSTANCEFILE%" --csvFactCols "Label unitRef Dec Value EntityScheme EntityIdentifier Period Dimensions" --csvFacts "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1
 

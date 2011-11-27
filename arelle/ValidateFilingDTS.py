@@ -298,6 +298,10 @@ def checkDTS(val, modelDocument, visited):
                             val.modelXbrl.error("SBR.NL.2.2.5.01",
                                 _("Link:part concept %(concept)s is not allowed"),
                                 modelObject=modelConcept, concept=modelConcept.qname)
+                            if not modelConcept.genLabel(fallbackToQname=False,lang="nl"):
+                                val.modelXbrl.error("SBR.NL.2.2.5.02",
+                                    _("Link part definition %(concept)s must have a generic label in language 'nl'"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
                         if modelConcept.isTypedDimension:
                             domainElt = modelConcept.typedDomainElement
                             if domainElt is not None and domainElt.localName == "complexType":
@@ -305,13 +309,6 @@ def checkDTS(val, modelDocument, visited):
                                     _("Typed dimension %(concept)s domain element %(typedDomainElement)s has disallowed complex content"),
                                     modelObject=modelConcept, concept=modelConcept.qname,
                                     typedDomainElement=domainElt.qname)
-                        if modelConcept.isItem:
-                            if (conceptType is not None and conceptType.facets and 
-                                "enumeration" in conceptType.facets and
-                                not conceptType.isDerivedFrom(XbrlConst.qnXbrliStringItemType)):
-                                val.modelXbrl.error("SBR.NL.2.2.7.04",
-                                _('Schema enumeration %(value)s must be a xbrli:stringItemType restriction'),
-                                modelObject=modelConcept, value=modelConcept.get("value"))
         # 6.7.8 check for embedded linkbase
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
             if isinstance(e,ModelObject):
@@ -341,7 +338,9 @@ def checkDTS(val, modelDocument, visited):
                 # 6.7.10 only one role type declaration in DTS
                 modelRoleTypes = val.modelXbrl.roleTypes.get(roleURI)
                 if modelRoleTypes is not None:
-                    usedOns = modelRoleTypes[0].usedOns
+                    modelRoleType = modelRoleTypes[0]
+                    definition = modelRoleType.definitionNotStripped
+                    usedOns = modelRoleType.usedOns
                     if len(modelRoleTypes) > 1:
                         val.modelXbrl.error(("EFM.6.07.10", "GFM.1.03.10"),
                             _("RoleType %(roleType)s is defined in multiple taxonomies"),
@@ -354,15 +353,28 @@ def checkDTS(val, modelDocument, visited):
                                 modelObject=e, roleType=roleURI, usedOn=requiredUsedOns - usedOns)
                             
                         # 6.7.12 definition match pattern
-                        definition = modelRoleTypes[0].definitionNotStripped
                         if (val.disclosureSystem.roleDefinitionPattern is not None and
                             (definition is None or not val.disclosureSystem.roleDefinitionPattern.match(definition))):
                             val.modelXbrl.error(("EFM.6.07.12", "GFM.1.03.12-14"),
                                 _("RoleType %(roleType)s definition \"%(definition)s\" must match {Sortcode} - {Type} - {Title}"),
                                 modelObject=e, roleType=roleURI, definition=definition)
                         
-                    if val.validateSBRNL and (usedOns & XbrlConst.standardExtLinkQnames):
-                        definesLinkroles = True
+                    if val.validateSBRNL:
+                        if usedOns & XbrlConst.standardExtLinkQnames:
+                            definesLinkroles = True
+                            if not e.genLabel():
+                                val.modelXbrl.error("SBR.NL.2.3.3.03",
+                                    _("Link RoleType %(roleType)s missing a generic standard label"),
+                                    modelObject=e, roleType=roleURI)
+                            nlLabel = e.genLabel(lang="nl")
+                            if definition != nlLabel:
+                                val.modelXbrl.error("SBR.NL.2.3.3.04",
+                                    _("Link RoleType %(roleType)s definition does not match NL standard generic label, \ndefinition: %(definition)s \nNL label: %(label)s"),
+                                    modelObject=e, roleType=roleURI, definition=definition, label=nlLabel)
+                        if definition and (definition[0].isspace() or definition[-1].isspace()):
+                            val.modelXbrl.error("SBR.NL.2.2.3.07",
+                                _('Link RoleType %(roleType)s definition has leading or trailing spaces: "%(definition)s"'),
+                                modelObject=e, roleType=roleURI, definition=definition)
 
         # 6.7.13 arcrole types authority
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}arcroleType"):
@@ -394,6 +406,10 @@ def checkDTS(val, modelDocument, visited):
     
                 if val.validateSBRNL:
                     definesArcroles = True
+                    val.modelXbrl.error("SBR.NL.2.2.4.01",
+                        _("Arcrole type definition is not allowed: %(arcroleURI)s"),
+                        modelObject=e, arcroleURI=arcroleURI)
+                    
         if val.validateSBRNL:
             definesTypes = (modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None or
                             modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}simpleType") is not None)
@@ -420,7 +436,7 @@ def checkDTS(val, modelDocument, visited):
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema may only define one of these: %(contents)s"),
                         modelObject=modelDocument, contents=', '.join(schemaContents))
-                elif modelDocument != val.modelXbrl.modelDocument: # if not entry point
+                else: #  elif modelDocument != val.modelXbrl.modelDocument: # if not entry point
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
                         modelObject=modelDocument)

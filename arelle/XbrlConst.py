@@ -23,6 +23,7 @@ qnXbrliDecimalsUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsT
 qnXbrliPrecisionUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:precisionType")
 qnXbrliNonZeroDecimalUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")
 link = "http://www.xbrl.org/2003/linkbase"
+qnLinkLoc = qname("{http://www.xbrl.org/2003/linkbase}link:loc")
 qnLinkLabelLink = qname("{http://www.xbrl.org/2003/linkbase}link:labelLink")
 qnLinkLabelArc = qname("{http://www.xbrl.org/2003/linkbase}link:labelArc")
 qnLinkLabel = qname("{http://www.xbrl.org/2003/linkbase}link:label")
@@ -30,10 +31,15 @@ qnLinkReferenceLink = qname("{http://www.xbrl.org/2003/linkbase}link:referenceLi
 qnLinkReferenceArc = qname("{http://www.xbrl.org/2003/linkbase}link:referenceArc")
 qnLinkReference = qname("{http://www.xbrl.org/2003/linkbase}link:reference")
 qnLinkPart = qname("{http://www.xbrl.org/2003/linkbase}link:part")
+qnLinkFootnoteLink = qname("{http://www.xbrl.org/2003/linkbase}link:footnoteLink")
+qnLinkFootnoteArc = qname("{http://www.xbrl.org/2003/linkbase}link:footnoteArc")
 qnLinkFootnote = qname("{http://www.xbrl.org/2003/linkbase}link:footnote")
 qnLinkPresentationLink = qname("{http://www.xbrl.org/2003/linkbase}link:presentationLink")
+qnLinkPresentationArc = qname("{http://www.xbrl.org/2003/linkbase}link:presentationArc")
 qnLinkCalculationLink = qname("{http://www.xbrl.org/2003/linkbase}link:calculationLink")
+qnLinkCalculationArc = qname("{http://www.xbrl.org/2003/linkbase}link:calculationArc")
 qnLinkDefinitionLink = qname("{http://www.xbrl.org/2003/linkbase}link:definitionLink")
+qnLinkDefinitionArc = qname("{http://www.xbrl.org/2003/linkbase}link:definitionArc")
 gen = "http://xbrl.org/2008/generic"
 qnGenLink = qname("{http://xbrl.org/2008/generic}gen:link")
 qnGenArc = qname("{http://xbrl.org/2008/generic}gen:arc")
@@ -389,7 +395,7 @@ def standardArcroleArcElement(arcrole):
             "http://www.xbrl.org/2003/arcrole/similar-tuples":"definitionArc",
             "http://www.xbrl.org/2003/arcrole/requires-element":"definitionArc"}[arcrole]
             
-def isStandardOrXdtArcrole(arcrole):
+def isDefinitionOrXdtArcrole(arcrole):
     return isDimensionArcrole(arcrole) or arcrole in {
             "http://www.xbrl.org/2003/arcrole/general-special",
             "http://www.xbrl.org/2003/arcrole/essence-alias",

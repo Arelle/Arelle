@@ -666,7 +666,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.addToLog(format_string(self.modelManager.locale, 
                                     _("validated in %.2f secs"), 
                                     time.time() - startedAt))
-        if modelXbrl and (priorOutputInstance or modelXbrl.formulaOutputInstance):
+        if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
             self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
             
         self.uiThreadQueue.put((self.logSelect, []))

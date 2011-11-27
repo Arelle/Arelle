@@ -150,11 +150,21 @@ def checkDimensions(val, drsELRs):
                 checkSBRNLMembers(val, hc, priItem, ELR, 
                                   val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(priItem), 
                                   ELR, False)
+                if priHcRel.contextElement == 'segment':  
+                    val.modelXbrl.error("SBR.NL.2.3.5.06",
+                        _("hypercube %(hypercube)s in segment not allowed, ELR role %(linkrole)s"),
+                        modelObject=priHcRel, linkrole=ELR, hypercube=hc.qname)
+        for notAllRel in val.modelXbrl.relationshipSet(XbrlConst.notAll).modelRelationships:
+            val.modelXbrl.error("SBR.NL.2.3.5.05",
+                _("Notall from primary item %(primaryItem)s in ELR role %(linkrole)s to %(hypercube)s"),
+                modelObject=val.modelXbrl, primaryItem=notAllRel.fromModelObject.qname, linkrole=notAllRel.linkrole, hypercube=notAllRel.toModelObject.qname)
         for ELR, hypercubes in hypercubesInLinkrole.items():
-            if len(hypercubes) > 1:
-                val.modelXbrl.error("SBR.NL.2.3.5.03",
-                    _("ELR role %(linkrole)s, has multiple hypercubes %(hypercubes)s"),
-                    modelObject=val.modelXbrl, linkrole=ELR, hypercubes=", ".join([str(hc.qname) for hc in hypercubes]))
+            for modelRel in val.modelXbrl.relationshipSet("XBRL-dimensions", ELR).modelRelationships:
+                if modelRel.fromModelObject != hc:
+                    val.modelXbrl.error("SBR.NL.2.3.5.03",
+                        _("ELR role %(linkrole)s, is not dedicated to %(hypercube)s, but also has %(otherQname)s"),
+                        modelObject=val.modelXbrl, linkrole=ELR, hypercube=hc.qname, otherQname=modelRel.fromModelObject.qname)
+            
             for hc in hypercubes:  # only one member
                 for arcrole in (XbrlConst.parentChild, "XBRL-dimensions"):
                     for modelRel in val.modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
@@ -163,38 +173,52 @@ def checkDimensions(val, drsELRs):
                                 _("ELR role %(linkrole)s, for hypercube %(hypercube)s has another parent %(concept)s"),
                                 modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, concept=modelRel.fromModelObject.qname)
         domainsInLinkrole = defaultdict(set)
+        dimDomsByLinkrole = defaultdict(set)
         for rel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain).modelRelationships:
+            relFrom = rel.fromModelObject
             relTo = rel.toModelObject
-            domainsInLinkrole[rel.targetRole].add(rel.fromModelObject)
-            if not rel.isUsable:
+            domainsInLinkrole[rel.targetRole].add(relFrom)
+            dimDomsByLinkrole[(rel.linkrole,relFrom)].add(relTo)
+            if rel.isUsable and val.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.targetRole).fromModelObject(relTo):
                 val.modelXbrl.error("SBR.NL.2.3.7.05",
-                    _("Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain %(domain)s"),
-                    modelObject=rel, dimension=rel.fromModelObject.qname, linkrole=rel.linkrole, domain=rel.toModelObject.qname)
+                    _("Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain with members %(domain)s"),
+                    modelObject=rel, dimension=relFrom.qname, linkrole=rel.linkrole, domain=relTo.qname)
             if not relTo.isAbstract:
                 val.modelXbrl.error("SBR.NL.2.3.7.02",
                     _("Dimension %(dimension)s in DRS role %(linkrole)s, has nonAbsract domain %(domain)s"),
-                    modelObject=rel, dimension=rel.fromModelObject.qname, linkrole=rel.linkrole, domain=rel.toModelObject.qname)
+                    modelObject=rel, dimension=relFrom.qname, linkrole=rel.linkrole, domain=relTo.qname)
             if relTo.substitutionGroupQname.localName != "domainItem":
                 val.modelXbrl.error("SBR.NL.2.2.2.19",
                     _("Domain item %(domain)s in DRS role %(linkrole)s, in dimension %(dimension)s is not a domainItem"),
-                    modelObject=rel, domain=relTo.qname, linkrole=rel.linkrole, dimension=rel.fromModelObject.qname)
+                    modelObject=rel, domain=relTo.qname, linkrole=rel.linkrole, dimension=relFrom.qname)
             if not rel.targetRole:
                 val.modelXbrl.error("SBR.NL.2.3.6.03",
                     _("Dimension %(dimension)s in DRS role %(linkrole)s, missing targetrole to consecutive domain relationship"),
-                    modelObject=rel, dimension=rel.fromModelObject.qname, linkrole=rel.linkrole)
-        for ELR, domains in domainsInLinkrole.items():
-            if ELR and len(domains) > 1:
+                    modelObject=rel, dimension=relFrom.qname, linkrole=rel.linkrole)
+        for linkrole, domains in domainsInLinkrole.items():
+            if linkrole and len(domains) > 1:
                 val.modelXbrl.error("SBR.NL.2.3.7.04",
-                    _("ELR role %(linkrole)s, has multiple domains %(domains)s"),
-                    modelObject=val.modelXbrl, linkrole=ELR, domains=", ".join([str(dom.qname) for dom in domains]))
+                    _("Linkrole %(linkrole)s, has multiple domains %(domains)s"),
+                    modelObject=val.modelXbrl, linkrole=linkrole, domains=", ".join([str(dom.qname) for dom in domains]))
         del domainsInLinkrole   # dereference
+        linkrolesByDimDoms = defaultdict(set)
+        for linkroleDim, doms in dimDomsByLinkrole.items():
+            linkrole, dim = linkroleDim
+            linkrolesByDimDoms[(dim,tuple(doms))].add(linkrole)
+        for dimDoms, linkroles in linkrolesByDimDoms.items():
+            if len(linkroles) > 1:
+                val.modelXbrl.error("SBR.NL.2.3.6.02",
+                    _("Dimension %(dimension)s domains same in linkroles %(linkroles)s"),
+                    modelObject=val.modelXbrl, dimension=dimDoms[0].qname, linkroles=', '.join(l for l in linkroles))
+        del dimDomsByLinkrole, linkrolesByDimDoms
+        for rel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).modelRelationships:
+            if val.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.targetRole).fromModelObject(rel.toModelObject):
+                val.modelXbrl.error("SBR.NL.2.3.7.03",
+                    _("Domain member %(member)s in DRS role %(linkrole)s, has nested members"),
+                    modelObject=rel, member=rel.toModelObject.qname, linkrole=rel.linkrole)
         for rel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).modelRelationships:
             relFrom = rel.fromModelObject
             relTo = rel.toModelObject
-            if val.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.linkrole).fromModelObject(relTo):
-                val.modelXbrl.error("SBR.NL.2.3.7.03",
-                    _("Domain member %(member)s in DRS role %(linkrole)s, has nested members"),
-                    modelObject=rel, member=relTo.qname, linkrole=rel.linkrole)
             # avoid primary item relationships in these tests
             if relFrom.substitutionGroupQname.localName == "domainItem":
                 if relTo.substitutionGroupQname.localName != "domainMemberItem":

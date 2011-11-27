@@ -116,6 +116,10 @@ class ModelXbrl:
         if modelDocument:
             modelDocument.close()
             
+    @property
+    def isClosed(self):
+        return bool(self.__dict__)  # closed when dict is empty
+            
     def reload(self,nextaction,reloadCache=False):
         from arelle import ModelDocument
         self.init(keepViews=True)

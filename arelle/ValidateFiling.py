@@ -722,6 +722,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             xlinkLabel=child.get("{http://www.w3.org/1999/xlink}label"))
             self.modelXbrl.profileActivity("... filer rfootnotes checks", minTimeToShow=1.0)
 
+        # entry point schema checks
+        elif modelXbrl.modelDocument.type == ModelDocument.Type.SCHEMA:
+            if self.validateSBRNL:
+                # entry must have a P-link
+                if not any(hrefElt.localName == "linkbaseRef" and hrefElt.get("{http://www.w3.org/1999/xlink}role") == "http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+                           for hrefElt, hrefDoc, hrefId in modelXbrl.modelDocument.hrefObjects):
+                    modelXbrl.error("SBR.NL.2.2.10.01",
+                        'Entrypoint schema must have a presentation linkbase', modelObject=modelXbrl.modelDocument)
         # all-labels and references checks
         defaultLangStandardLabels = {}
         for concept in modelXbrl.qnameConcepts.values():
@@ -775,23 +783,31 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error(("EFM.6.18.02", "SBR.NL.2.1.0.08"),
                         _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
                         modelObject=modelReference, concept=concept.qname, text=text)
-            if (self.validateSBRNL and (concept.isItem or concept.isTuple) and
-                concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict):
-                if not conceptHasDefaultLangStandardLabel:
-                    modelXbrl.error("SBR.NL.2.2.2.26",
-                        _("Concept %(concept)s missing standard label in local language."),
-                        modelObject=concept, concept=concept.qname)
-                if not (presentationRelationshipSet.toModelObject(concept) or
-                        presentationRelationshipSet.fromModelObject(concept)):
-                    modelXbrl.error("SBR.NL.2.2.2.04",
-                        _("Concept %(concept)s not referred to by presentation relationship."),
-                        modelObject=concept, concept=concept.qname)
-                if (concept.substitutionGroupQname and 
-                    concept.substitutionGroupQname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces):
-                    modelXbrl.error("SBR.NL.2.2.2.05",
-                        _("Concept %(concept)s has a substitutionGroup of a non-standard concept."),
-                        modelObject=concept, concept=concept.qname)
-                        
+            if self.validateSBRNL and (concept.isItem or concept.isTuple):
+                if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
+                    if not conceptHasDefaultLangStandardLabel:
+                        modelXbrl.error("SBR.NL.2.2.2.26",
+                            _("Concept %(concept)s missing standard label in local language."),
+                            modelObject=concept, concept=concept.qname)
+                    if not (presentationRelationshipSet.toModelObject(concept) or
+                            presentationRelationshipSet.fromModelObject(concept)):
+                        modelXbrl.error("SBR.NL.2.2.2.04",
+                            _("Concept %(concept)s not referred to by presentation relationship."),
+                            modelObject=concept, concept=concept.qname)
+                    if (concept.substitutionGroupQname and 
+                        concept.substitutionGroupQname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces):
+                        modelXbrl.error("SBR.NL.2.2.2.05",
+                            _("Concept %(concept)s has a substitutionGroup of a non-standard concept."),
+                            modelObject=concept, concept=concept.qname)
+                            
+                    if concept.isTuple: # verify same presentation linkbase nesting
+                        pLinkedQnames = set(rel.toModelObject.qname
+                                            for rel in modelXbrl.relationshipSet(XbrlConst.parentChild).fromModelObject(concept)
+                                            if rel.toModelObject is not None)
+                        for missingQname in set(concept.type.elements) ^ pLinkedQnames:
+                            modelXbrl.error("SBR.NL.2.3.4.01",
+                                _("Tuple %(concept)s has mismatch between content and presentation children: %(missingQname)s."),
+                                modelObject=concept, concept=concept.qname, missingQname=missingQname)
                 self.checkConceptLabels(modelXbrl, labelsRelationshipSet, disclosureSystem, concept)
                 self.checkConceptLabels(modelXbrl, genLabelsRelationshipSet, disclosureSystem, concept)
 
@@ -841,21 +857,21 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if not (arcroleFilter == arcrole or
                             arcroleFilter == "*" and arcrole not in (XbrlConst.summationItem, XbrlConst.parentChild)):
                         continue
-                    if self.validateEFMorGFM:
+                    if self.validateEFMorGFM or (self.validateSBRNL and arcrole == XbrlConst.parentChild):
                         ineffectiveArcs = ModelRelationshipSet.ineffectiveArcs(baseSetModelLinks, arcrole)
                         #validate ineffective arcs
                         for modelRel in ineffectiveArcs:
                             if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
-                                self.modelXbrl.error(("EFM.6.09.03", "GFM.1.04.03"),
+                                self.modelXbrl.error(("EFM.6.09.03", "GFM.1.04.03", "SBR.NL.2.3.4.06"),
                                     _("Ineffective arc %(arc)s in \nlink role %(linkrole)s \narcrole %(arcrole)s \nfrom %(conceptFrom)s \nto %(conceptTo)s \n%(ineffectivity)s"),
                                     modelObject=modelRel, arc=modelRel.qname, linkrole=modelRel.linkrole, arcrole=modelRel.arcrole,
                                     conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
                                     ineffectivity=modelRel.ineffectivity)
                     if arcrole == XbrlConst.parentChild:
                         conceptsPresented = set()
+                        localPreferredLabels = defaultdict(set)
                         # 6.12.2 check for distinct order attributes
-                        for relFrom, rels in modelXbrl.relationshipSet(
-                                 arcrole, ELR).fromModelObjects().items():
+                        for relFrom, rels in modelXbrl.relationshipSet(arcrole, ELR).fromModelObjects().items():
                             targetConceptPreferredLabels = defaultdict(set)
                             orderRels = {}
                             firstRel = True
@@ -867,15 +883,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         conceptsUsed[relFrom] = True # 6.12.3, has a pres relationship
                                         relFromUsed = True
                                 relTo = rel.toModelObject
+                                preferredLabel = rel.preferredLabel
                                 if relTo in conceptsUsed:
                                     conceptsUsed[relTo] = True # 6.12.3, has a pres relationship
-                                    preferredLabel = rel.preferredLabel
                                     if preferredLabel and preferredLabel != "":
                                         conceptsUsedWithPreferredLabels[relTo].append(preferredLabel)
+                                        if self.validateSBRNL and preferredLabel in ("periodStart","periodEnd"):
+                                            self.modelXbrl.error("SBR.NL.2.3.4.03",
+                                                _("Preferred label on presentation relationships not allowed"), modelObject=modelRel)
                                     # 6.12.5 distinct preferred labels in base set
                                     preferredLabels = targetConceptPreferredLabels[relTo]
-                                    if preferredLabel in preferredLabels:
-                                        self.modelXbrl.error(("EFM.6.12.05", "GFM.1.06.05"),
+                                    if (preferredLabel in preferredLabels or
+                                        (self.validateSBRNL and not relFrom.isTuple and
+                                         (not preferredLabel or None in preferredLabels))):
+                                        self.modelXbrl.error(("EFM.6.12.05", "GFM.1.06.05", "SBR.NL.2.3.4.06"),
                                             _("Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"),
                                             modelObject=rel, concept=relTo.qname, preferredLabel=preferredLabel, linkrole=rel.linkrole)
                                     else:
@@ -892,6 +913,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
                                 else:
                                     orderRels[order] = rel
+                                if self.validateSBRNL and not relFrom.isTuple:
+                                    if relTo in localPreferredLabels:
+                                        if {None, preferredLabel} & localPreferredLabels[relTo]:
+                                            self.modelXbrl.error("SBR.NL.2.3.4.06",
+                                                _("Non-distinguished preferredLabel presentation relations from concept %(conceptFrom)s in base set role %(linkrole)s"),
+                                                modelObject=rel, conceptFrom=relFrom.qname, linkrole=rel.linkrole, conceptTo=relTo.qname)
+                                    localPreferredLabels[relTo].add(preferredLabel)
                         for conceptPresented in conceptsPresented:
                             if conceptPresented in usedCalcsPresented:
                                 usedCalcPairingsOfConcept = usedCalcsPresented[conceptPresented]
@@ -1030,6 +1058,48 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 
         # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
 
+        if self.validateSBRNL:
+            # check presentation link roles for generic linkbase order number
+            ordersRelationshipSet = modelXbrl.relationshipSet("http://www.nltaxonomie.nl/2011/arcrole/linkrole-order")
+            presLinkroleNumberURI = {}
+            for roleURI, modelRoleTypes in modelXbrl.roleTypes.items():
+                for modelRoleType in modelRoleTypes:
+                    if XbrlConst.qnLinkPresentationLink in modelRoleType.usedOns:
+                        if not ordersRelationshipSet:
+                            modelXbrl.error("SBR.NL.2.2.3.06",
+                                _("Presentation linkrole %(linkrole)s missing order number relationship set"),
+                                modelObject=modelRoleType, linkrole=modelRoleType.roleURI)
+                        else:
+                            order = None
+                            for orderNumRel in ordersRelationshipSet.fromModelObject(modelRoleType):
+                                order = orderNumRel.toModelObject.xValue
+                                if order in presLinkroleNumberURI:
+                                    modelXbrl.error("SBR.NL.2.2.3.06",
+                                        _("Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s"),
+                                        modelObject=modelRoleType, order=order, linkrole=modelRoleType.roleURI, otherLinkrole=presLinkroleNumberURI[order])
+                                else:
+                                    presLinkroleNumberURI[order] = modelRoleType.roleURI
+                            if not order:
+                                modelXbrl.error("SBR.NL.2.2.3.06",
+                                    _("Presentation linkrole %(linkrole)s missing order number"),
+                                    modelObject=modelRoleType, linkrole=modelRoleType.roleURI)
+            # check arc role definitions for labels
+            for arcroleURI, modelRoleTypes in modelXbrl.arcroleTypes.items():
+                for modelRoleType in modelRoleTypes:
+                    if not arcroleURI.startswith("http://xbrl.org/") and (
+                       not modelRoleType.genLabel(lang="nl") or not modelRoleType.genLabel(lang="en")):
+                        modelXbrl.error("SBR.NL.2.2.5.02",
+                            _("ArcroleType missing nl or en generic label: %(arcrole)s"),
+                            modelObject=modelRoleType, arcrole=arcroleURI)
+
+            for modelType in modelXbrl.qnameTypes.values():
+                if (modelType.modelDocument.targetNamespace not in disclosureSystem.baseTaxonomyNamespaces and
+                    modelType.facets and 
+                    "enumeration" in modelType.facets and
+                    not modelType.isDerivedFrom(XbrlConst.qnXbrliStringItemType)):
+                    modelXbrl.error("SBR.NL.2.2.7.04",
+                                    _('Schema type enumeration %(value)s must be a xbrli:stringItemType restriction'),
+                                    modelObject=modelType, value=modelType.qname)
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
     def directedCycle(self, relFrom, origin, fromRelationships):
@@ -1070,7 +1140,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                modelLabel.role == XbrlConst.standardLabel:
                 hasDefaultLangStandardLabel = True
-            dupDetectKey = (modelLabel.role,modelLabel.xmlLang)
+            dupDetectKey = ( (modelLabel.role or ''), modelLabel.xmlLang)
             if dupDetectKey in dupLabels:
                 modelXbrl.error(("EFM.6.10.02", "GFM.1.5.2", "SBR.NL.2.2.1.05"),
                     _("Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."),
@@ -1087,17 +1157,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 lang=disclosureSystem.defaultLanguage)
             
         #6 10.3 default lang label for every role
-        dupLabels.add(("zzzz",disclosureSystem.defaultXmlLang)) #to allow following loop
-        priorRole = None
-        hasDefaultLang = True
-        for role, lang in sorted(dupLabels):
-            if role != priorRole:
-                if not hasDefaultLang:
-                    modelXbrl.error(("EFM.6.10.03", "GFM.1.5.3"),
-                        _("Concept %(concept)s is missing an %(lang)s label for role %(role)s."),
-                        modelObject=concept, concept=concept.qname, 
-                        lang=disclosureSystem.defaultLanguage, role=priorRole)
-                hasDefaultLang = False
-                priorRole = role
-            if lang is not None and lang.startswith(disclosureSystem.defaultXmlLang):
-                hasDefaultLang = True
+        try:
+            dupLabels.add(("zzzz",disclosureSystem.defaultXmlLang)) #to allow following loop
+            priorRole = None
+            hasDefaultLang = True
+            for role, lang in sorted(dupLabels):
+                if role != priorRole:
+                    if not hasDefaultLang:
+                        modelXbrl.error(("EFM.6.10.03", "GFM.1.5.3"),
+                            _("Concept %(concept)s is missing an %(lang)s label for role %(role)s."),
+                            modelObject=concept, concept=concept.qname, 
+                            lang=disclosureSystem.defaultLanguage, role=priorRole)
+                    hasDefaultLang = False
+                    priorRole = role
+                if lang is not None and lang.startswith(disclosureSystem.defaultXmlLang):
+                    hasDefaultLang = True
+        except Exception as err:
+            pass

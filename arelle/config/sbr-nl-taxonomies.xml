@@ -2,6 +2,33 @@
 <Erxl  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="erxl.xsd" >
 <Loc>
 <Family>BASE</Family>
+<Version>1998</Version>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://www.w3.org/XML/1998/namespace</Namespace>
+<Prefix>xml</Prefix>
+</Loc>
+<Loc>
+<Family>BASE</Family>
+<Version>2001</Version>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://www.w3.org/2001/XMLSchema</Namespace>
+<Prefix>xsd</Prefix>
+</Loc>
+<Loc>
+<Family>BASE</Family>
+<Version>2001</Version>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://www.w3.org/2001/XMLSchema-instance</Namespace>
+<Prefix>xsd</Prefix>
+</Loc>
+<Loc>
+<Family>BASE</Family>
 <Version>2010</Version>
 <Href>http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd</Href>
 <AttType>SCH</AttType>
@@ -456,6 +483,17 @@
 </Loc>
 
 <!-- do not examine sbr-nl rules in these files, this is why they are marked as BASE family -->
+<Loc>
+<Family>BASE</Family>
+<Version>6.0</Version>
+<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/xbrl/sbr-referenceparts.xsd</Href>
+<LocalHref>basis/sbr/xbrl/sbr-referenceparts.xsd</LocalHref>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/xbrl/sbr-referenceparts</Namespace>
+<Prefix>nl-a</Prefix>
+</Loc>
 <Loc>
 <Family>BASE</Family>
 <Version>6.0</Version>
