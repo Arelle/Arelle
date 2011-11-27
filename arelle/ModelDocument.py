@@ -472,6 +472,7 @@ class ModelDocument:
                         modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation)
                 return
             doc = None
+            importSchemaLocationBasename = os.path.basename(importNamespace)
             # is there an exact match for importNamespace and uri?
             for otherDoc in self.modelXbrl.namespaceDocs[importNamespace]:
                 doc = otherDoc
@@ -479,6 +480,8 @@ class ModelDocument:
                     break
                 elif isIncluded:
                     doc = None  # don't allow matching namespace lookup on include (NS is already loaded!)
+                elif doc.basename != importSchemaLocationBasename:
+                    doc = None  # different file (may have imported a file now being included)
             # if no uri match, doc will be some other that matched targetNamespace
             if doc is not None:
                 if self.inDTS and not doc.inDTS:
