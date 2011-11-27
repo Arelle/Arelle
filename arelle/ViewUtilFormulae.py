@@ -1,0 +1,39 @@
+'''
+Created on Nov 27, 2011
+
+@author: Mark V Systems Limited
+(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+'''
+from arelle import XbrlConst
+
+def rootFormulaObjects(view):
+    # relationship set based on linkrole parameter, to determine applicable linkroles
+    view.allFormulaRelationshipsSet = view.modelXbrl.relationshipSet("XBRL-formulae")
+    view.varSetFilterRelationshipSet = view.modelXbrl.relationshipSet(XbrlConst.variableSetFilter)
+    if view.allFormulaRelationshipsSet is None or len(view.allFormulaRelationshipsSet.modelRelationships) == 0:
+        view.modelXbrl.modelManager.addToLog(_("no relationships for XBRL formulae"))
+        return set()
+
+    rootObjects = set( view.modelXbrl.modelVariableSets )
+    
+    # remove formulae under consistency assertions from root objects
+    consisAsserFormulaRelSet = view.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula)
+    for modelRel in consisAsserFormulaRelSet.modelRelationships:
+        if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
+            rootObjects.add(modelRel.fromModelObject)   # display consis assertion
+            rootObjects.discard(modelRel.toModelObject) # remove formula from root objects
+            
+    # remove assertions under assertion sets from root objects
+    assertionSetRelSet = view.modelXbrl.relationshipSet(XbrlConst.assertionSet)
+    for modelRel in assertionSetRelSet.modelRelationships:
+        if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
+            rootObjects.add(modelRel.fromModelObject)   # display assertion set
+            rootObjects.discard(modelRel.toModelObject) # remove assertion from root objects
+            
+    return rootObjects
+
+def formulaObjSortKey(obj):
+    try:
+        return obj.xlinkLabel
+    except AttributeError:
+        return None    

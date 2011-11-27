@@ -11,7 +11,8 @@ This module is Arelle's controller in command line non-interactive mode
 import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
-               ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, ViewCsvRelationshipSet, ViewCsvTests)
+                    ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, 
+                    ViewCsvFormulae, ViewCsvRelationshipSet, ViewCsvTests)
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 import logging
@@ -66,6 +67,8 @@ def main():
                       help=_("Write calculation linkbase into CSVFILE"))
     parser.add_option("--csvDim", action="store", dest="csvDim",
                       help=_("Write dimensions (of definition) linkbase into CSVFILE"))
+    parser.add_option("--csvFormulae", action="store", dest="csvFormulae",
+                      help=_("Write formulae linkbase into CSVFILE"))
     parser.add_option("--csvTestReport", action="store", dest="csvTestReport",
                       help=_("Write test report of validation (of test cases) into CSVFILE"))
     parser.add_option("--logFile", action="store", dest="logFile",
@@ -237,6 +240,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvCal, "Calculation", "http://www.xbrl.org/2003/arcrole/summation-item")
             if options.csvDim:
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvDim, "Dimension", "XBRL-dimensions")
+            if options.csvFormulae:
+                ViewCsvFormulae.viewFormulae(modelXbrl, options.csvFormulae, "Formulae")
         except (IOError, EnvironmentError) as err:
             self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
         except Exception as err:
