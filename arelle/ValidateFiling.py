@@ -1137,17 +1137,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         dupLabels = set()
         for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
             modelLabel = modelLabelRel.toModelObject
-            if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
-               modelLabel.role == XbrlConst.standardLabel:
-                hasDefaultLangStandardLabel = True
-            dupDetectKey = ( (modelLabel.role or ''), modelLabel.xmlLang)
-            if dupDetectKey in dupLabels:
-                modelXbrl.error(("EFM.6.10.02", "GFM.1.5.2", "SBR.NL.2.2.1.05"),
-                    _("Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."),
-                    modelObject=concept, concept=concept.qname, 
-                    role=dupDetectKey[0], lang=dupDetectKey[1])
-            else:
-                dupLabels.add(dupDetectKey)
+            if modelLabel is not None and modelLabel.xmlLang:
+                if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
+                   modelLabel.role == XbrlConst.standardLabel:
+                    hasDefaultLangStandardLabel = True
+                dupDetectKey = ( (modelLabel.role or ''), modelLabel.xmlLang)
+                if dupDetectKey in dupLabels:
+                    modelXbrl.error(("EFM.6.10.02", "GFM.1.5.2", "SBR.NL.2.2.1.05"),
+                        _("Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."),
+                        modelObject=concept, concept=concept.qname, 
+                        role=dupDetectKey[0], lang=dupDetectKey[1])
+                else:
+                    dupLabels.add(dupDetectKey)
                 
         #6 10.1 en-US standard label
         if not hasDefaultLangStandardLabel:
