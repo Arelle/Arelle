@@ -27,6 +27,10 @@ def main():
                              "inline XBRL instance, testcase file, "
                              "testcase index file.  FILENAME may be "
                              "a local file or a URI to a web located file."))
+    parser.add_option("-i", "--import", dest="importFilenames",
+                      help=_("FILENAME is a list of files to import to the DTS, such as "
+                             "additional formula or label linkbases.  "
+                             "Multiple file names are separated by a '|' character. "))
     parser.add_option("-d", "--diff", dest="diffFilename",
                       help=_("FILENAME is a second entry point when "
                              "comparing (diffing) two DTSes producing a versioning report."))
@@ -198,7 +202,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                     _("loaded in %.2f secs at %s"), 
                                     (time.time() - startedAt, timeNow)), 
                                     messageCode="info", file=self.filename)
-        
+        if options.importFilenames:
+            for importFile in options.importFilenames.split("|"):
+                ModelDocument.load(modelXbrl, importFile.strip())
+                self.addToLog(format_string(self.modelManager.locale, 
+                                            _("imported in %.2f secs at %s"), 
+                                            (time.time() - startedAt, timeNow)), 
+                                            messageCode="info", file=importFile)
         if options.diffFilename and options.versReportFilename:
             diffFilesource = FileSource.FileSource(self.diffFilename,self)
             startedAt = time.time()
