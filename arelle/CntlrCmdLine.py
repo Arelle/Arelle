@@ -260,4 +260,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         traceback.format_tb(sys.exc_info()[2])))
 
 if __name__ == "__main__":
+    '''
+    if '--COMserver' in sys.argv:
+        import CntlrComServer
+        CntlrComServer.main()
+    '''
     main()

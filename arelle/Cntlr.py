@@ -119,6 +119,9 @@ class Cntlr:
             self.logger = logging.getLogger("arelle")
             if logFileName == "logToPrint":
                 self.logHandler = LogToPrintHandler()
+            elif logFileName.endswith(".xml"):
+                self.logHandler = LogToXmlHandler(filename=logFileName)
+                logFormat = "%(message)s"
             else:
                 self.logHandler = logging.FileHandler(filename=logFileName, 
                                                       mode=logFileMode if logFileMode else "w", 
@@ -204,6 +207,27 @@ class Cntlr:
 class LogToPrintHandler(logging.Handler):
     def emit(self, logRecord):
         print(self.format(logRecord))
+
+class LogToXmlHandler(logging.Handler):
+    def __init__(self, filename):
+        super().__init__()
+        self.filename = filename
+        self.logRecordBuffer = []
+    def flush(self):
+        with open(self.filename, "w", encoding='utf-8') as fh:
+            fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
+            fh.write('<log>\n')
+            for logRec in self.logRecordBuffer:
+                msg = self.format(logRec)
+                if logRec.args:
+                    args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) for n, v in logRec.args.items()])
+                else:
+                    args = ""
+                fh.write('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>\n'.format(
+                        logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("<","&lt;")))
+            fh.write('</log>\n')  
+    def emit(self, logRecord):
+        self.logRecordBuffer.append(logRecord)
 
 
 
