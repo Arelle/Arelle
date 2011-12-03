@@ -193,7 +193,7 @@ class WatchRss:
                                                 exc_info=True)
                     if self.stopRequested: break
             if self.stopRequested: 
-                self.rssModelXbrl.modelManager.showStatus(_("RSS watch, stop requested"), 10000)
+                self.cntlr.showStatus(_("RSS watch, stop requested"), 10000)
             else:
                 import time
                 time.sleep(600)
