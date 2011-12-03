@@ -4,15 +4,18 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, threading
 from tkinter import Menu, constants
-from arelle import ViewWinGrid, ModelObject, XbrlConst
+from arelle import ViewWinGrid, ModelDocument, ModelInstanceObject, ModelObject, XbrlConst, ModelXbrl, XmlValidate
+from arelle.ModelValue import qname
 from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
                                          inheritedExplicitDims, dimContextElement,
                                          FactPrototype, ContextPrototype, DimValuePrototype)
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
                      label, checkbox, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
+from arelle.DialogNewFactItem import getNewFactItemOptions
+from arelle.FunctionXs import xsString
 from collections import defaultdict
 from itertools import repeat
 
@@ -28,6 +31,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     setDefaults(view)
     menu = view.contextMenu()
     optionsMenu = Menu(view.viewFrame, tearoff=0)
+    optionsMenu.add_command(label=_("New fact item options"), underline=0, command=lambda: getNewFactItemOptions(modelXbrl.modelManager.cntlr, view.newFactItemOptions))
     view.ignoreDimValidity.trace("w", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("Ignore Dimensional Validity"), underline=0, variable=view.ignoreDimValidity, onvalue=True, offvalue=False)
     view.xAxisChildrenFirst.trace("w", view.viewReloadDueToMenuAction)
@@ -39,7 +43,10 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     menu.add_cascade(label=_("Tables"), menu=view.tablesMenu, underline=0)
     view.tablesMenuLength = 0
     view.menuAddLangs()
-    view.menu.add_command(label=_("Save html file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view))
+    saveMenu = Menu(view.viewFrame, tearoff=0)
+    saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
+    saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
+    menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -52,6 +59,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.dimsContextElement = {}
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
         self.zComboBoxIndex = None
+        self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
+        if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
+            self.instance = modelXbrl
+        else:
+            self.instance = None 
         
     def loadTablesMenu(self):
         tblMenuEntries = {}             
@@ -422,5 +434,100 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     self.treeView.selection_set(())
             '''
             self.blockViewModelObject -= 1
-            
+    
+    def saveInstance(self):
+        if not self.newFactItemOptions.entityIdentScheme:  # not initialized yet
+            if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
+                return # new instance not set
+        newFilename = None # only used when a new instance must be created
+        if self.instance is None:
+            newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
+        # continue saving in background
+        thread = threading.Thread(target=lambda: self.backgroundSaveInstance(newFilename))
+        thread.daemon = True
+        thread.start()
+
+    def backgroundSaveInstance(self, newFilename=None):
+        if newFilename:
+            self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
+            self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
+            self.instance = ModelXbrl.create(self.modelXbrl.modelManager, 
+                                             newDocumentType=ModelDocument.Type.INSTANCE,
+                                             url=newFilename,
+                                             schemaRefs=[self.modelXbrl.modelDocument.basename],
+                                             isEntry=True)
+            from arelle import ValidateXbrlDimensions
+            ValidateXbrlDimensions.loadDimensionDefaults(self.instance) # need dimension defaults 
+            if self.instance is None:
+                self.modelXbrl.modelManager.showStatus("")
+                return # saving canceled
+        self.modelXbrl.modelManager.showStatus(_("Saving {0}").format(self.instance.modelDocument.basename))
+        self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
+        if not self.modelXbrl.isDimensionsValidated: 
+            ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl) # need dimension defaults 
+        newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
+        newUnit = ModelXbrl.AUTO_LOCATE_ELEMENT
+        # check user keyed changes
+        for bodyCell in self.gridBody.winfo_children():
+            if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
+                value = bodyCell.value
+                objId = bodyCell.objectId
+                if objId and objId[0] == "f":
+                    factPrototype = self.factPrototypes[int(objId[1:])]
+                    if factPrototype.factObjectId is not None:
+                        objId = factPrototype.factObjectId
+                    else:
+                        concept = factPrototype.concept
+                        entityIdentScheme = self.newFactItemOptions.entityIdentScheme
+                        entityIdentValue = self.newFactItemOptions.entityIdentValue
+                        periodType = factPrototype.concept.periodType
+                        periodStart = self.newFactItemOptions.startDate if periodType == "duration" else None
+                        periodEndInstant = self.newFactItemOptions.endDate
+                        qnameDims = factPrototype.context.qnameDims
+                        prevCntx = self.instance.matchContext(
+                             entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
+                             qnameDims, [], [])
+                        if prevCntx is not None:
+                            cntxId = prevCntx.id
+                        else: # need new context
+                            newCntx = self.instance.createContext(entityIdentScheme, entityIdentValue, 
+                                          periodType, periodStart, periodEndInstant, qnameDims, [], [],
+                                          afterSibling=newCntx)
+                            cntxId = newCntx.id
+                            # new context
+                            if concept.isNumeric:
+                                if concept.isMonetary:
+                                    unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                    decimals = self.newFactItemOptions.monetaryDecimals
+                                elif concept.isShares:
+                                    unitMeasure = XbrlConst.qnXbrliShares
+                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
+                                else:
+                                    unitMeasure = XbrlConst.qnXbrliPure
+                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
+                                prevUnit = self.instance.matchUnit([unitMeasure],[])
+                                if prevUnit is not None:
+                                    unitId = prevUnit.id
+                                else:
+                                    newUnit = self.instance.createUnit([unitMeasure],[], afterSibling=newUnit)
+                                    unitId = newUnit.id
+                        attrs = [("contextRef", cntxId)]
+                        if concept.isNumeric:
+                            attrs.append(("unitRef", unitId))
+                            attrs.append(("decimals", decimals))
+                        newFact = self.instance.createFact(concept.qname, attributes=attrs, text=xsString(None, value))
+                        objId = None
+                if objId is not None:
+                    fact = self.modelXbrl.modelObject(objId)
+                    if fact.value != value:
+                        fact.text = xsString(None, value)
+                        XmlValidate.validate(self.instance, fact)    
+                pass
+
+        
+        
+        from arelle import XmlUtil
+        with open(self.instance.modelDocument.filepath, "w") as fh:
+            XmlUtil.writexml(fh, self.instance.modelDocument.xmlDocument, encoding="utf-8")
+        self.modelXbrl.modelManager.showStatus(_("Saved {0}").format(self.instance.modelDocument.basename), clearAfter=3000)
             

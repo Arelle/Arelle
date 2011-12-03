@@ -206,6 +206,11 @@ class DateTime(datetime.datetime):
         return dateTime
     def __copy__(self):
         return DateTime(self.year, self.month, self.day, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
+    def __str__(self):
+        if self.dateOnly:
+            return "{0.year:04}-{0.month:02}-{0.day:02}".format(self)
+        else:
+            return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(self)
     def addYearMonthDuration(self, other, sign):
         m = self.month + sign * other.months
         y = self.year + sign * other.years + m // 12

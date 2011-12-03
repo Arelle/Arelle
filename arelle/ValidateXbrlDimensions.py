@@ -17,8 +17,9 @@ def loadDimensionDefaults(val):
     val.modelXbrl.qnameDimensionContextElement = {}
     for baseSetKey in val.modelXbrl.baseSets.keys():
         arcrole, ELR, linkqname, arcqname = baseSetKey
-        if ELR and linkqname and arcqname and arcrole == XbrlConst.dimensionDefault:
+        if ELR and linkqname and arcqname and arcrole in (XbrlConst.all, XbrlConst.dimensionDefault):
             checkBaseSet(val, arcrole, ELR, val.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
+    val.modelXbrl.isDimensionsValidated = True
 
 def checkBaseSet(val, arcrole, ELR, relsSet):
     # check hypercube-dimension relationships

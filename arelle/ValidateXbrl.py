@@ -285,6 +285,7 @@ class ValidateXbrl:
                 ValidateXbrlDimensions.checkBaseSet(self, arcrole, ELR, relsSet)             
             elif modelXbrl.hasFormulae and arcrole.startswith(XbrlConst.formulaStartsWith):
                 ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)
+        modelXbrl.isDimensionsValidated = True
                             
         # instance checks
         modelXbrl.modelManager.showStatus(_("validating instance"))

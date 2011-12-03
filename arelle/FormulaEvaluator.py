@@ -539,8 +539,8 @@ def produceOutputFact(xpCtx, formula, result):
     # in source instance document
     newFact = None
     if isTuple:
-        newFact = XmlUtil.addChild(outputLocation, conceptQname,
-                                   afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))
+        newFact = outputXbrlInstance.createFact(conceptQname, parent=outputLocation,
+                                                afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))
     else:
         # add context
         prevCntx = outputXbrlInstance.matchContext(
@@ -550,71 +550,12 @@ def produceOutputFact(xpCtx, formula, result):
             cntxId = prevCntx.id
             newCntxElt = prevCntx
         else:
-            cntxId = 'c-{0:02n}'.format( len(outputXbrlInstance.contexts) + 1)
-            newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
-                                          afterSibling=xpCtx.outputLastContext.get(outputInstanceQname),
-                                          beforeSibling=xpCtx.outputFirstFact.get(outputInstanceQname))
+            newCntxElt = outputXbrlInstance.createContext(entityIdentScheme, entityIdentValue, 
+                          periodType, periodStart, periodEndInstant, dimAspects, segOCCs, scenOCCs,
+                          afterSibling=xpCtx.outputLastContext.get(outputInstanceQname),
+                          beforeSibling=xpCtx.outputFirstFact.get(outputInstanceQname))
+            cntxId = newCntxElt.id
             xpCtx.outputLastContext[outputInstanceQname] = newCntxElt
-            entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
-            XmlUtil.addChild(entityElt, XbrlConst.xbrli, "identifier",
-                                attributes=("scheme", entityIdentScheme),
-                                text=entityIdentValue)
-            periodElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "period")
-            if periodType == "forever":
-                XmlUtil.addChild(periodElt, XbrlConst.xbrli, "forever")
-            elif periodType == "instant":
-                XmlUtil.addChild(periodElt, XbrlConst.xbrli, "instant", 
-                                 text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
-            elif periodType == "duration":
-                XmlUtil.addChild(periodElt, XbrlConst.xbrli, "startDate", 
-                                 text=XmlUtil.dateunionValue(periodStart))
-                XmlUtil.addChild(periodElt, XbrlConst.xbrli, "endDate", 
-                                 text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
-            segmentElt = None
-            scenarioElt = None
-            from arelle.ModelInstanceObject import ModelDimensionValue
-            if dimAspects:
-                for dimQname in sorted(dimAspects.keys()):
-                    dimValue = dimAspects[dimQname]
-                    if isinstance(dimValue, ModelDimensionValue):
-                        if dimValue.isExplicit: 
-                            dimMemberQname = dimValue.memberQname
-                        contextEltName = dimValue.contextElement
-                    else: # qname for explicit or node for typed
-                        dimMemberQname = dimValue
-                        contextEltName = xpCtx.modelXbrl.qnameDimensionContextElement.get(dimQname)
-                    if contextEltName == "segment":
-                        if segmentElt is None: 
-                            segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
-                        contextElt = segmentElt
-                    elif contextEltName == "scenario":
-                        if scenarioElt is None: 
-                            scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
-                        contextElt = scenarioElt
-                    else:
-                        continue
-                    dimConcept = xpCtx.modelXbrl.qnameConcepts[dimQname]
-                    dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, dimConcept.qname))
-                    if dimConcept.isTypedDimension:
-                        dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
-                                                  attributes=dimAttr)
-                        if isinstance(dimValue, ModelDimensionValue) and dimValue.isTyped:
-                            XmlUtil.copyChildren(dimElt, dimValue)
-                    elif dimMemberQname:
-                        dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
-                                                  attributes=dimAttr,
-                                                  text=XmlUtil.addQnameValue(xbrlElt, dimMemberQname))
-            if segOCCs:
-                if segmentElt is None: 
-                    segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
-                XmlUtil.copyNodes(segmentElt, segOCCs)
-            if scenOCCs:
-                if scenarioElt is None: 
-                    scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
-                XmlUtil.copyNodes(scenarioElt, scenOCCs)
-                    
-            outputXbrlInstance.modelDocument.contextDiscover(newCntxElt)
-            XmlValidate.validate(outputXbrlInstance, newCntxElt)    
         # does unit exist
         
         # add unit
@@ -624,24 +565,11 @@ def produceOutputFact(xpCtx, formula, result):
                 unitId = prevUnit.id
                 newUnitElt = prevUnit
             else:
-                unitId = 'u-{0:02n}'.format( len(outputXbrlInstance.units) + 1)
-                newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
-                                              afterSibling=xpCtx.outputLastUnit.get(outputInstanceQname),
-                                              beforeSibling=xpCtx.outputFirstFact.get(outputInstanceQname))
+                newUnitElt = outputXbrlInstance.createUnit(multiplyBy, divideBy, 
+                                      afterSibling=xpCtx.outputLastUnit.get(outputInstanceQname),
+                                      beforeSibling=xpCtx.outputFirstFact.get(outputInstanceQname))
+                unitId = newUnitElt.id
                 xpCtx.outputLastUnit[outputInstanceQname] = newUnitElt
-                if len(divideBy) == 0:
-                    for multiply in multiplyBy:
-                        XmlUtil.addChild(newUnitElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, multiply))
-                else:
-                    divElt = XmlUtil.addChild(newUnitElt, XbrlConst.xbrli, "divide")
-                    numElt = XmlUtil.addChild(divElt, XbrlConst.xbrli, "unitNumerator")
-                    denElt = XmlUtil.addChild(divElt, XbrlConst.xbrli, "unitDenominator")
-                    for multiply in multiplyBy:
-                        XmlUtil.addChild(numElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, multiply))
-                    for divide in divideBy:
-                        XmlUtil.addChild(denElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, divide))
-                outputXbrlInstance.modelDocument.unitDiscover(newUnitElt)
-                XmlValidate.validate(outputXbrlInstance, newUnitElt)    
     
         # add fact
         attrs = [("contextRef", cntxId)]
@@ -693,15 +621,13 @@ def produceOutputFact(xpCtx, formula, result):
                     v = XmlUtil.dateunionValue(x)
                 else:
                     v = xsString(xpCtx, x)
-            newFact = XmlUtil.addChild(outputLocation, conceptQname,
-                                       attributes=attrs, text=v,
-                                       afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))
+            newFact = outputXbrlInstance.createFact(conceptQname, attributes=attrs, text=v,
+                                                    parent=outputLocation,
+                                                    afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))
     if newFact is not None:
         xpCtx.outputLastFact[outputInstanceQname] = newFact
         if outputInstanceQname not in xpCtx.outputFirstFact:
             xpCtx.outputFirstFact[outputInstanceQname] = newFact
-        outputXbrlInstance.modelDocument.factDiscover(newFact, parentElement=outputLocation)
-        XmlValidate.validate(outputXbrlInstance, newFact)    
     return newFact
 
 def aspectValue(xpCtx, formula, aspect, srcMissingErr):

@@ -113,7 +113,7 @@ aspectElementNameAttrValue = {
         }
 
 class FormulaOptions():
-    def __init__(self):
+    def __init__(self, savedValues=None):
         self.parameterValues = {} # index is QName, value is typed value
         self.traceParameterExpressionResult = True
         self.traceParameterInputValue = True
@@ -135,6 +135,8 @@ class FormulaOptions():
         self.traceVariableExpressionCode = False
         self.traceVariableExpressionEvaluation = False
         self.traceVariableExpressionResult = True
+        if isinstance(savedValues, dict):
+            self.__dict__.update(savedValues)
         
         # Note: if adding to this list keep DialogFormulaParameters in sync
     def traceSource(self, traceType):

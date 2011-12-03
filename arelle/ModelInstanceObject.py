@@ -11,6 +11,40 @@ from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
 from arelle.ModelObject import ModelObject
 
+class NewFactItemOptions():
+    def __init__(self, savedOptions=None, xbrlInstance=None):
+        self.entityIdentScheme = ""
+        self.entityIdentValue = ""
+        self.startDate = None
+        self.endDate = None
+        self.monetaryUnit = ""
+        self.monetaryDecimals = ""
+        self.nonMonetaryDecimals = ""
+        if savedOptions is not None:
+            self.__dict__.update(savedOptions)
+        elif xbrlInstance is not None:
+            for fact in xbrlInstance.facts:
+                if fact.isItem:
+                    cntx = fact.context
+                    if not self.entityIdentScheme:
+                        self.entityIdentScheme, self.entityIdentValue = cntx.entityIdentifier
+                    if self.startDate is None and cntx.isStartEndPeriod:
+                        self.startDate = cntx.startDatetime
+                    if self.startDate is None and (cntx.isStartEndPeriod or cntx.isInstantPeriod):
+                        self.endDate = cntx.endDatetime
+                    if fact.isNumeric:
+                        if fact.concept.isMonetary:
+                            if not self.monetaryUnit and fact.unit.measures[0] and fact.unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
+                                self.monetaryUnit = fact.unit.measures[0][0].localName
+                            if not self.monetaryDecimals:
+                                self.monetaryDecimals = fact.decimals
+                        elif not self.nonMonetaryDecimals:
+                            self.nonMonetaryDecimals = fact.decimals
+                if self.entityIdentScheme and self.startDate and self.monetaryUnit and self.monetaryDecimals and self.nonMonetaryDecimals:
+                    break 
+                
+                
+    
 class ModelFact(ModelObject):
     def init(self, modelDocument):
         super().init(modelDocument)

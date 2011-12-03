@@ -7,7 +7,7 @@ Created on Oct 5, 2010
 
 # initialize object from loaded linkbases
 from collections import defaultdict
-from arelle import (ModelDtsObject, XbrlConst, XmlUtil, ModelValue)
+from arelle import ModelDtsObject, XbrlConst, XmlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
 import os
@@ -72,6 +72,9 @@ def labelroles(modelXbrl, includeConceptName=False):
                         if r is not None))
     
 class ModelRelationshipSet:
+    __slots__ = ("isChanged", "modelXbrl", "arcrole", "linkrole", "linkqname", "arcqname",
+                 "modelRelationshipsFrom", "modelRelationshipsTo", "modelConceptRoots", "modellinkRoleUris",
+                 "modelRelationships")
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         self.isChanged = False
         self.modelXbrl = modelXbrl
@@ -134,7 +137,6 @@ class ModelRelationshipSet:
                                 relationships[modelRelEquivalenceKey] = modelRel
 
         #reduce effective arcs and order relationships...
-        self.modelRelationships = []
         self.modelRelationshipsFrom = None
         self.modelRelationshipsTo = None
         self.modelConceptRoots = None
@@ -143,9 +145,9 @@ class ModelRelationshipSet:
         for modelRel in relationships.values():
             if includeProhibits or not modelRel.isProhibited:
                 orderRels[modelRel.order].append(modelRel)
-        for order in sorted(orderRels.keys()):
-            for modelRel in orderRels[order]:
-                self.modelRelationships.append(modelRel)
+        self.modelRelationships = [modelRel
+                                   for order in sorted(orderRels.keys())
+                                   for modelRel in orderRels[order]]
         modelXbrl.relationshipSets[relationshipSetKey] = self
         
     @property
@@ -175,7 +177,8 @@ class ModelRelationshipSet:
         return self.modelRelationshipsFrom
 
     def fromModelObject(self, modelFrom):
-        self.loadModelRelationshipsFrom()
+        if self.modelRelationshipsFrom is None:
+            self.loadModelRelationshipsFrom()
         return self.modelRelationshipsFrom.get(modelFrom, [])
     
     def toModelObjects(self):
@@ -183,7 +186,8 @@ class ModelRelationshipSet:
         return self.modelRelationshipsTo
 
     def toModelObject(self, modelTo):
-        self.loadModelRelationshipsTo()
+        if self.modelRelationshipsTo is None:
+            self.loadModelRelationshipsTo()
         return self.modelRelationshipsTo.get(modelTo, [])
         
     @property
@@ -191,17 +195,14 @@ class ModelRelationshipSet:
         if self.modelConceptRoots is None:
             self.loadModelRelationshipsFrom()
             self.loadModelRelationshipsTo()
-            self.modelConceptRoots = []
-            for modelRelFrom in self.modelRelationshipsFrom.keys():
-                if self.modelRelationshipsTo.get(modelRelFrom) == None and \
-                    modelRelFrom not in self.modelConceptRoots:
-                    self.modelConceptRoots.append(modelRelFrom)
+            self.modelConceptRoots = [modelRelFrom
+                                      for modelRelFrom in self.modelRelationshipsFrom.keys()
+                                      if modelRelFrom not in self.modelRelationshipsTo]
         return self.modelConceptRoots
     
     # if modelFrom and modelTo are provided determine that they have specified relationship
     # if only modelFrom, determine that there are relationships present of specified axis
     def isRelated(self, modelFrom, axis, modelTo=None, visited=None): # either model concept or qname
-        if visited is None: visited = set()
         if isinstance(modelFrom,ModelValue.QName): modelFrom = self.modelXbrl.qnameConcepts[modelFrom]
         if isinstance(modelTo,ModelValue.QName): modelTo = self.modelXbrl.qnameConcepts[modelTo]
         if axis.endswith("self") and (modelTo is None or modelFrom == modelTo):
@@ -210,11 +211,13 @@ class ModelRelationshipSet:
             toConcept = modelRel.toModelObject
             if modelTo is None or modelTo == toConcept:
                 return True
-            if axis.startswith("descendant") and toConcept not in visited:
-                visited.add(toConcept)
-                if self.isRelated(toConcept, axis, modelTo, visited):
-                    return True
-                visited.discard(toConcept)
+            if axis.startswith("descendant"):
+                if visited is None: visited = set()
+                if toConcept not in visited:
+                    visited.add(toConcept)
+                    if self.isRelated(toConcept, axis, modelTo, visited):
+                        return True
+                    visited.discard(toConcept)
         return False
     
     def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True):

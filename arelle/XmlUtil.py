@@ -227,6 +227,12 @@ def child(element, childNamespaceURI=None, childLocalNames=("*",)):
         return result[0]
     return None
 
+def lastChild(element, childNamespaceURI=None, childLocalNames=("*",)):
+    result = children(element, childNamespaceURI, childLocalNames)
+    if result and len(result) > 0:
+        return result[-1]
+    return None
+
 def previousSiblingElement(element):
     for result in element.itersiblings(preceding=True):
         if isinstance(result,ModelObject):
@@ -486,7 +492,7 @@ def datetimeValue(element, addOneDay=False, none=None):
         elif none == "maxyear":
             return datetime.datetime(datetime.MAXYEAR,12,31)
         return None
-    match = datetimePattern.match(text(element).strip())
+    match = datetimePattern.match(element if isinstance(element,str) else text(element).strip())
     if match is None:
         return None
     hour24 = False

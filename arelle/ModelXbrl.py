@@ -7,10 +7,13 @@ Created on Oct 3, 2010
 from collections import defaultdict
 import os, sys, traceback
 import logging
-from arelle import UrlUtil, XmlUtil, ModelValue
+from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 from arelle.ViewUtilRenderedGrid import FactPrototype
+ModelRelationshipSet = None # dynamic import
+
+AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
 
 def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
     if nextaction is None: nextaction = _("loading")
@@ -118,7 +121,7 @@ class ModelXbrl:
             
     @property
     def isClosed(self):
-        return bool(self.__dict__)  # closed when dict is empty
+        return not bool(self.__dict__)  # closed when dict is empty
             
     def reload(self,nextaction,reloadCache=False):
         from arelle import ModelDocument
@@ -133,7 +136,9 @@ class ModelXbrl:
                 self.views[0].close()
         
     def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
-        from arelle import (ModelRelationshipSet)
+        global ModelRelationshipSet
+        if ModelRelationshipSet is None:
+            from arelle import ModelRelationshipSet
         key = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
         if key not in self.relationshipSets:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
@@ -162,16 +167,16 @@ class ModelXbrl:
         return self.matchSubstitutionGroup(elementQname, {
                   qn:(qn is not None) for qn in (subsGrpQnames if hasattr(subsGrpQnames, '__iter__') else (subsGrpQnames,)) + (None,)})
     
-    def matchContext(self, scheme, identifier, periodType, start, end, dims, segOCCs, scenOCCs):
+    def matchContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs):
         from arelle.ModelFormulaObject import Aspect
         from arelle.ModelValue import dateUnionEqual
         from arelle.XbrlUtil import sEqual
         if dims: segAspect, scenAspect = (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO)
         else: segAspect, scenAspect = (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO)
         for c in self.contexts.values():
-            if (c.entityIdentifier == (scheme, identifier) and
-                ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, end, instantEndDate=True)) or
-                 (c.isStartEndPeriod and periodType == "duration" and dateUnionEqual(c.startDatetime, start) and dateUnionEqual(c.endDatetime, end, instantEndDate=True)) or
+            if (c.entityIdentifier == (entityIdentScheme, entityIdentValue) and
+                ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or
+                 (c.isStartEndPeriod and periodType == "duration" and dateUnionEqual(c.startDatetime, periodStart) and dateUnionEqual(c.endDatetime, periodEndInstant, instantEndDate=True)) or
                  (c.isForeverPeriod and periodType == "forever")) and
                  # dimensions match if dimensional model
                  (dims is None or (
@@ -187,6 +192,80 @@ class ModelXbrl:
                     return c
         return None
                  
+    def createContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs,
+                      afterSibling=None, beforeSibling=None):
+        xbrlElt = self.modelDocument.xmlRootElement
+        if afterSibling == AUTO_LOCATE_ELEMENT:
+            afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
+        cntxId = 'c-{0:02n}'.format( len(self.contexts) + 1)
+        newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
+                                      afterSibling=afterSibling, beforeSibling=beforeSibling)
+        entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
+        XmlUtil.addChild(entityElt, XbrlConst.xbrli, "identifier",
+                            attributes=("scheme", entityIdentScheme),
+                            text=entityIdentValue)
+        periodElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "period")
+        if periodType == "forever":
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "forever")
+        elif periodType == "instant":
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "instant", 
+                             text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
+        elif periodType == "duration":
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "startDate", 
+                             text=XmlUtil.dateunionValue(periodStart))
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "endDate", 
+                             text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
+        segmentElt = None
+        scenarioElt = None
+        from arelle.ModelInstanceObject import ModelDimensionValue
+        if dims:
+            for dimQname in sorted(dims.keys()):
+                dimValue = dims[dimQname]
+                if isinstance(dimValue, ModelDimensionValue):
+                    if dimValue.isExplicit: 
+                        dimMemberQname = dimValue.memberQname
+                    contextEltName = dimValue.contextElement
+                else: # qname for explicit or node for typed
+                    dimMemberQname = dimValue
+                    contextEltName = self.qnameDimensionContextElement.get(dimQname)
+                if contextEltName == "segment":
+                    if segmentElt is None: 
+                        segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
+                    contextElt = segmentElt
+                elif contextEltName == "scenario":
+                    if scenarioElt is None: 
+                        scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
+                    contextElt = scenarioElt
+                else:
+                    self.info("arelleLinfo",
+                        _("Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"), 
+                        modelObject=self, dimension=dimQname),
+                    continue
+                dimConcept = self.qnameConcepts[dimQname]
+                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, dimConcept.qname))
+                if dimConcept.isTypedDimension:
+                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
+                                              attributes=dimAttr)
+                    if isinstance(dimValue, ModelDimensionValue) and dimValue.isTyped:
+                        XmlUtil.copyChildren(dimElt, dimValue)
+                elif dimMemberQname:
+                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
+                                              attributes=dimAttr,
+                                              text=XmlUtil.addQnameValue(xbrlElt, dimMemberQname))
+        if segOCCs:
+            if segmentElt is None: 
+                segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
+            XmlUtil.copyNodes(segmentElt, segOCCs)
+        if scenOCCs:
+            if scenarioElt is None: 
+                scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
+            XmlUtil.copyNodes(scenarioElt, scenOCCs)
+                
+        self.modelDocument.contextDiscover(newCntxElt)
+        XmlValidate.validate(self, newCntxElt)
+        return newCntxElt
+        
+        
     def matchUnit(self, multiplyBy, divideBy):
         multiplyBy.sort()
         divideBy.sort()
@@ -194,6 +273,28 @@ class ModelXbrl:
             if u.measures == (multiplyBy,divideBy):
                 return u
         return None
+
+    def createUnit(self, multiplyBy, divideBy, afterSibling=None, beforeSibling=None):
+        xbrlElt = self.modelDocument.xmlRootElement
+        if afterSibling == AUTO_LOCATE_ELEMENT:
+            afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context", "unit"))
+        unitId = 'u-{0:02n}'.format( len(self.units) + 1)
+        newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
+                                      afterSibling=afterSibling, beforeSibling=beforeSibling)
+        if len(divideBy) == 0:
+            for multiply in multiplyBy:
+                XmlUtil.addChild(newUnitElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, multiply))
+        else:
+            divElt = XmlUtil.addChild(newUnitElt, XbrlConst.xbrli, "divide")
+            numElt = XmlUtil.addChild(divElt, XbrlConst.xbrli, "unitNumerator")
+            denElt = XmlUtil.addChild(divElt, XbrlConst.xbrli, "unitDenominator")
+            for multiply in multiplyBy:
+                XmlUtil.addChild(numElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, multiply))
+            for divide in divideBy:
+                XmlUtil.addChild(denElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, divide))
+        self.modelDocument.unitDiscover(newUnitElt)
+        XmlValidate.validate(self, newUnitElt)
+        return newUnitElt
     
     def matchFact(self, otherFact):
         for fact in self.facts:
@@ -210,6 +311,14 @@ class ModelXbrl:
                         return fact
         return None
             
+    def createFact(self, conceptQname, attributes=None, text=None, parent=None, afterSibling=None, beforeSibling=None):
+        if parent is None: parent = self.modelDocument.xmlRootElement
+        newFact = XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+                                   afterSibling=afterSibling, beforeSibling=beforeSibling)
+        self.modelDocument.factDiscover(newFact, parentElement=parent)
+        XmlValidate.validate(self, newFact)
+        return newFact    
+        
     def modelObject(self, objectId):
         if isinstance(objectId,int):
             return self.modelObjects[objectId]

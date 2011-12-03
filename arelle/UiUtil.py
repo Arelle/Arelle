@@ -162,6 +162,8 @@ class gridCell(Entry):
     def __init__(self, master, x, y, value="", width=None, justify=None, objectId=None, onClick=None): 
         Entry.__init__(self, master=master) 
         self.valueVar = StringVar() 
+        self.valueVar.trace('w', self.valueChanged)
+        self.isChanged = False
         self.config(textvariable=self.valueVar,
                     #relief="ridge", 
                     #bg="#ff8ff8ff8", fg="#000000000", 
@@ -195,6 +197,9 @@ class gridCell(Entry):
     
     def setValue(self, value):
         return self.valueVar.set(value)
+    
+    def valueChanged(self, *args):
+        self.isChanged = True
     
 class gridCombobox(ttk.Combobox): 
     def __init__(self, master, x, y, value="", values=(), columnspan=None, selectindex=None, comboboxselected=None): 

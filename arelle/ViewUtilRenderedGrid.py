@@ -152,7 +152,8 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         self.concept = v.modelXbrl.qnameConcepts.get(qname)
         self.context = ContextPrototype(v, dims)
         self.dims = dims # dim items
-        self.dimKeys = set(dim[0] for dim in dims)
+        self.dimKeys = set(dim for dim,mem in dims)
+        self.factObjectId = None
         
     def objectId(self):
         return "_factPrototype_" + str(self.qname)
@@ -173,9 +174,11 @@ class ContextPrototype():  # behaves like a context
     def __init__(self, v, dims):
         self.segDimVals = {}
         self.scenDimVals = {}
+        self.qnameDims = {}
         for dimQname,mem in dims:
             if v.modelXbrl.qnameDimensionDefaults.get(dimQname) != mem: # not a default
                 try:
+                    self.qnameDims[dimQname] = mem
                     dimConcept = v.modelXbrl.qnameConcepts[dimQname]
                     dimValPrototype = DimValuePrototype(v, dimConcept, dimQname, mem)
                     if dimContextElement(v, dimConcept) == "segment":

@@ -45,14 +45,9 @@ class Validate:
         self.__dict__.clear()   # dereference variables
         
     def validate(self):
-        # sort test cases by uri
         if self.modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
-            testcases = []
-            for referencedDocument in self.modelXbrl.modelDocument.referencesDocument.keys():
-                testcases.append((referencedDocument.uri, referencedDocument.objectId()))
-            testcases.sort()
-            for testcaseTuple in testcases:
-                self.validateTestcase(self.modelXbrl.modelObject(testcaseTuple[1]))
+            for doc in sorted(self.modelXbrl.modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
+                self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
         elif self.modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
             try:
                 self.validateTestcase(self.modelXbrl.modelDocument)

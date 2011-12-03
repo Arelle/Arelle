@@ -564,6 +564,7 @@ def validate(val):
                                              url=uri,
                                              schemaRefs=schemaRefs,
                                              isEntry=True)
+            ValidateXbrlDimensions.loadDimensionDefaults(namedInstance) # need dimension defaults 
         xpathContext.inScopeVars[instanceQname] = namedInstance
         if instanceQname == XbrlConst.qnStandardOutputInstance:
             outputXbrlInstance = namedInstance

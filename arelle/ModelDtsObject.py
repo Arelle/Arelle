@@ -737,7 +737,11 @@ class ModelType(ModelSchemaObject):
             
     @property
     def elements(self):
-        return XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "element")
+        try:
+            return self._elements
+        except AttributeError:
+            self._elements = XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "element")
+            return self._elements
     
     @property
     def facets(self):

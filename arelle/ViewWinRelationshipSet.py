@@ -99,9 +99,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
             if modelRoleTypes:
-                roledefinition = modelRoleTypes[0].definition
-                if not roledefinition:
-                    roledefinition = linkroleUri                    
+                roledefinition = (modelRoleTypes[0].definition or linkroleUri)
                 roleId = modelRoleTypes[0].objectId(self.id)
             else:
                 roledefinition = linkroleUri
@@ -110,12 +108,12 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             linkroleUris.append((roledefinition, linkroleUri, roleId))
         linkroleUris.sort()
         # for each URI in definition order
-        for linkroleUriTuple in linkroleUris:
-            linknode = self.treeView.insert("", "end", linkroleUriTuple[2], text=linkroleUriTuple[0], tags=("ELR",))
-            linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUriTuple[1], self.linkqname, self.arcqname)
+        for roledefinition, linkroleUri, roleId in linkroleUris:
+            linknode = self.treeView.insert("", "end", roleId, text=roledefinition, tags=("ELR",))
+            linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUri, self.linkqname, self.arcqname)
             for rootConcept in linkRelationshipSet.rootConcepts:
                 self.viewConcept(rootConcept, rootConcept, "", self.labelrole, linknode, 1, linkRelationshipSet, set())
-                self.tag_has[linkroleUriTuple[1]].append(linknode)
+                self.tag_has[linkroleUri].append(linknode)
 
 
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, parentnode, n, relationshipSet, visited):
@@ -131,9 +129,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         elif self.arcrole == "Table-rendering":
             text = concept.localName
         elif isinstance(concept, ModelDtsObject.ModelResource):
-            text = concept.text
-            if text is None:
-                text = concept.localName
+            text = (concept.text or concept.localName)
         else:   # just a resource
             text = concept.localName
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))

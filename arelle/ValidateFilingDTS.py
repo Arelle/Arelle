@@ -98,6 +98,8 @@ def checkDTS(val, modelDocument, visited):
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s prefix %(prefix)s must not have an '_'"),
                     modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, prefix=prefix)
 
+            if val.validateSBRNL:
+                genrlSpeclRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
                     # 6.7.16 name not duplicated in standard taxonomies
@@ -106,37 +108,25 @@ def checkDTS(val, modelDocument, visited):
                         name = ""
                         if modelConcept.get("ref") is not None:
                             continue    # don't validate ref's here
-                    concepts = val.modelXbrl.nameConcepts.get(name)
-                    if concepts is not None:
-                        for c in concepts:
-                            if c.modelDocument != modelDocument:
-                                if (val.validateEFMorGFM and
-                                      not c.modelDocument.uri.startswith(val.modelXbrl.uriDir)):
-                                    val.modelXbrl.error(("EFM.6.07.16", "GFM.1.03.18"),
-                                        _("Concept %(concept)s is also defined in standard taxonomy schema schema %(standardSchema)s"),
+                    for c in val.modelXbrl.nameConcepts.get(name, []):
+                        if c.modelDocument != modelDocument:
+                            if (val.validateEFMorGFM and
+                                  not c.modelDocument.uri.startswith(val.modelXbrl.uriDir)):
+                                val.modelXbrl.error(("EFM.6.07.16", "GFM.1.03.18"),
+                                    _("Concept %(concept)s is also defined in standard taxonomy schema schema %(standardSchema)s"),
+                                    modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
+                            elif val.validateSBRNL:
+                                if not (genrlSpeclRelSet.isRelated(modelConcept, "child", c) or genrlSpeclRelSet.isRelated(c, "child", modelConcept)):
+                                    val.modelXbrl.error("SBR.NL.2.2.2.02",
+                                        _("Concept %(concept)s is also defined in standard taxonomy schema %(standardSchema)s without a general-special relationship"),
                                         modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
-                                elif val.validateSBRNL and c.modelDocument != modelDocument:
-                                        relSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
-                                        if not (relSet.isRelated(modelConcept, "child", c) or relSet.isRelated(modelConcept, "child", c)):
-                                            val.modelXbrl.error("SBR.NL.2.2.2.02",
-                                                _("Concept %(concept)s is also defined in standard taxonomy schema %(standardSchema)s without a general-special relationship"),
-                                                modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
                     if val.validateSBRNL and name in val.nameWordsTable:
-                        foundGeneralSpecialRel = False
-                        for partialWordName in val.nameWordsTable[name]:
-                            concepts = val.modelXbrl.nameConcepts.get(partialWordName)
-                            if concepts is not None:
-                                for c in concepts:
-                                    for rel in val.modelXbrl.relationshipSet(XbrlConst.generalSpecial).toModelObject(modelConcept):
-                                        if rel.fromModelObject == c:
-                                            foundGeneralSpecialRel = True
-                                            break
-                                    if foundGeneralSpecialRel: break
-                            if foundGeneralSpecialRel: break
-                        if not foundGeneralSpecialRel: 
+                        if not any( any( genrlSpeclRelSet.isRelated(c, "child", modelConcept)
+                                         for c in val.modelXbrl.nameConcepts.get(partialWordName, []))
+                                    for partialWordName in val.nameWordsTable[name]):
                             val.modelXbrl.error("SBR.NL.2.3.2.01",
-                                _("Concept %(specialName)s is appears to be missing a general-special relationship to one of (%(generalNames)s)"),
-                                modelObject=c, specialName=modelConcept.qname, generalNames=', '.join(val.nameWordsTable[name]))
+                                _("Concept %(specialName)s is appears to be missing a general-special relationship to %(generalNames)s"),
+                                modelObject=c, specialName=modelConcept.qname, generalNames=', or to '.join(val.nameWordsTable[name]))
 
 
                     # 6.7.17 id properly formed

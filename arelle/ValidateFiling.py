@@ -816,17 +816,21 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         defaultLangStandardLabels = None #dereference
         
         if self.validateSBRNL: # build camelCasedNamesTable
-            self.nameWordsTable = defaultdict(list)
+            self.nameWordsTable = {}
             for name in modelXbrl.nameConcepts.keys():
                 words = []
+                wordChars = []
                 lastchar = ""
                 for c in name:
                     if c.isupper() and lastchar.islower(): # it's another word
-                        partialName = ''.join(words)
+                        partialName = ''.join(wordChars)
                         if partialName in modelXbrl.nameConcepts:
-                            self.nameWordsTable[name].append(partialName)
-                    words.append(c)
+                            words.append(partialName)
+                    wordChars.append(c)
                     lastchar = c
+                if words:
+                    self.nameWordsTable[name] = words
+            self.modelXbrl.profileActivity("... build name words table", minTimeToShow=1.0)
 
         # checks on all documents: instance, schema, instance                                
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
@@ -961,10 +965,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         modelObject=rels[0], linkrole=ELR, concept=relFrom.qname)
                         elif self.validateSBRNL:
                             # find a calc relationship to get the containing document name
-                            for modelRel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
+                            for modelRel in self.modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
                                 self.modelXbrl.error("SBR.NL.2.3.9.01",
-                                    _("Calculation linkbase arcrole %(arcrole)s"),
-                                    modelObject=modelRel, arcrole=modelRel.arcrole)
+                                    _("Calculation linkbase linkrole %(linkrole)s"),
+                                    modelObject=modelRel, linkrole=ELR)
                                 break
                                 
                     elif arcrole == XbrlConst.all or arcrole == XbrlConst.notAll:
@@ -1057,6 +1061,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         lang=disclosureSystem.defaultLanguage, preferredLabel=preferredLabel)
                 
         # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
+        self.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
 
         if self.validateSBRNL:
             # check presentation link roles for generic linkbase order number
@@ -1100,6 +1105,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error("SBR.NL.2.2.7.04",
                                     _('Schema type enumeration %(value)s must be a xbrli:stringItemType restriction'),
                                     modelObject=modelType, value=modelType.qname)
+            self.modelXbrl.profileActivity("... SBR role types and type facits checks", minTimeToShow=1.0)
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
     def directedCycle(self, relFrom, origin, fromRelationships):
