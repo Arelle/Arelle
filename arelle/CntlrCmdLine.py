@@ -76,7 +76,8 @@ def main():
     parser.add_option("--csvTestReport", action="store", dest="csvTestReport",
                       help=_("Write test report of validation (of test cases) into CSVFILE"))
     parser.add_option("--logFile", action="store", dest="logFile",
-                      help=_("Write log messages into file, otherwise they go to standard output"))
+                      help=_("Write log messages into file, otherwise they go to standard output.  " 
+                             "If file ends in .xml it is xml-formatted, otherwise it is text. "))
     parser.add_option("--formulaParamExprResult", action="store_true", dest="formulaParamExprResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaParamInputValue", action="store_true", dest="formulaParamInputValue", help=_("Specify formula tracing."))
     parser.add_option("--formulaCallExprSource", action="store_true", dest="formulaCallExprSource", help=_("Specify formula tracing."))
