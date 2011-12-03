@@ -18,7 +18,7 @@ caller checks accepted, if True, caller retrieves url
 def getParameters(mainWin):
     dialog = DialogFormulaParameters(mainWin, mainWin.modelManager.formulaOptions)
     if dialog.accepted:
-        mainWin.config["formulaParameters"] = dialog.options
+        mainWin.config["formulaParameters"] = dialog.options.__dict__.copy()
         mainWin.saveConfig()
 
   
@@ -171,11 +171,11 @@ class DialogFormulaParameters(Toplevel):
         # set formula options
         for checkbox in self.checkboxes:
             setattr(self.options, checkbox.attr, checkbox.value)
-        self.options.parameters = {}
+        self.options.parameterValues = {}
         for paramCells in self.gridCells:
             qnameCell, typeCell, valueCell = paramCells
             if qnameCell.value != "" and valueCell.value != "":
-                self.options.parameters[qname(qnameCell.value)] = valueCell.value
+                self.options.parameterValues[qname(qnameCell.value)] = valueCell.value
         
     def ok(self, event=None):
         self.setOptions()

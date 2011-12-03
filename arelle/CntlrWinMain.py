@@ -117,7 +117,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         formulaMenu.add_command(label=_("Parameters..."), underline=0, command=self.formulaParametersDialog)
 
         toolsMenu.add_cascade(label=_("Formula"), menu=formulaMenu, underline=0)
-        self.modelManager.formulaOptions = self.config.setdefault("formulaOptions",FormulaOptions())
+        self.modelManager.formulaOptions = FormulaOptions(self.config.get("formulaParameters"))
 
         toolsMenu.add_command(label=_("Compare DTSes..."), underline=0, command=self.compareDTSes)
         cacheMenu = Menu(self.menubar, tearoff=0)
@@ -356,25 +356,33 @@ class CntlrWinMain (Cntlr.Cntlr):
             return self.fileSave()
         return True
         
-    def fileSave(self, view=None, *ignore):
+    def fileSave(self, view=None, fileType=None, *ignore):
         if view is not None:
             modelXbrl = view.modelXbrl
             if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
-                filename = self.uiFileDialog("save",
-                        title=_("arelle - Save HTML-rendered Table"),
-                        initialdir=os.path.dirname(modelXbrl.modelDocument.uri),
-                        filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm")],
-                        defaultextension=".html")
-                if not filename:
-                    return False
-                try:
-                    ViewHtmlRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.lang, sourceView=view)
-                except (IOError, EnvironmentError) as err:
-                    tkinter.messagebox.showwarning(_("arelle - Error"),
-                                    _("Failed to save {0}:\n{1}").format(
-                                    self.filename, err),
-                                    parent=self.parent)
-                return True
+                initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
+                if fileType == "html":
+                    filename = self.uiFileDialog("save",
+                            title=_("arelle - Save HTML-rendered Table"),
+                            initialdir=initialdir,
+                            filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm")],
+                            defaultextension=".html")
+                    if not filename:
+                        return False
+                    try:
+                        ViewHtmlRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.lang, sourceView=view)
+                    except (IOError, EnvironmentError) as err:
+                        tkinter.messagebox.showwarning(_("arelle - Error"),
+                                        _("Failed to save {0}:\n{1}").format(
+                                        self.filename, err),
+                                        parent=self.parent)
+                    return True
+                elif fileType == "xbrl":
+                    return self.uiFileDialog("save",
+                            title=_("arelle - Save Instance"),
+                            initialdir=initialdir,
+                            filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml")],
+                            defaultextension=".xbrl")
         if self.modelManager.modelXbrl:
             if self.modelManager.modelXbrl.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
                 filename = self.uiFileDialog("save",
