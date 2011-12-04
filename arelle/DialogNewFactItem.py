@@ -69,7 +69,7 @@ class DialogNewFactItemOptions(Toplevel):
         label(frame, 1, 1, "Entity scheme:")
         self.cellEntityIdentScheme = gridCell(frame, 2, 1, getattr(options,"entityIdentScheme",""), width=50)
         ToolTip(self.cellEntityIdentScheme, text=_("Enter the scheme for the context entity identifier"), wraplength=240)
-        label(frame, 1, 2, "Entity scheme:")
+        label(frame, 1, 2, "Entity identifier:")
         self.cellEntityIdentValue = gridCell(frame, 2, 2, getattr(options,"entityIdentValue",""))
         ToolTip(self.cellEntityIdentValue, text=_("Enter the entity identifier value (e.g., stock ticker)"), wraplength=240)
         label(frame, 1, 3, "Start date:")

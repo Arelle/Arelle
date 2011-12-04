@@ -6,7 +6,8 @@ Created on Oct 5, 2010
 '''
 import os, threading
 from tkinter import Menu, constants
-from arelle import ViewWinGrid, ModelDocument, ModelInstanceObject, ModelObject, XbrlConst, ModelXbrl, XmlValidate
+from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, ModelObject, XbrlConst, 
+                    ModelXbrl, XmlValidate, Locale)
 from arelle.ModelValue import qname
 from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
                                          inheritedExplicitDims, dimContextElement,
@@ -495,36 +496,37 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                           afterSibling=newCntx)
                             cntxId = newCntx.id
                             # new context
-                            if concept.isNumeric:
-                                if concept.isMonetary:
-                                    unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
-                                    decimals = self.newFactItemOptions.monetaryDecimals
-                                elif concept.isShares:
-                                    unitMeasure = XbrlConst.qnXbrliShares
-                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
-                                else:
-                                    unitMeasure = XbrlConst.qnXbrliPure
-                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
-                                prevUnit = self.instance.matchUnit([unitMeasure],[])
-                                if prevUnit is not None:
-                                    unitId = prevUnit.id
-                                else:
-                                    newUnit = self.instance.createUnit([unitMeasure],[], afterSibling=newUnit)
-                                    unitId = newUnit.id
+                        if concept.isNumeric:
+                            if concept.isMonetary:
+                                unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                unitMeasure.prefix = "iso4217"  # want to save with a recommended prefix
+                                decimals = self.newFactItemOptions.monetaryDecimals
+                            elif concept.isShares:
+                                unitMeasure = XbrlConst.qnXbrliShares
+                                decimals = self.newFactItemOptions.nonMonetaryDecimals
+                            else:
+                                unitMeasure = XbrlConst.qnXbrliPure
+                                decimals = self.newFactItemOptions.nonMonetaryDecimals
+                            prevUnit = self.instance.matchUnit([unitMeasure],[])
+                            if prevUnit is not None:
+                                unitId = prevUnit.id
+                            else:
+                                newUnit = self.instance.createUnit([unitMeasure],[], afterSibling=newUnit)
+                                unitId = newUnit.id
                         attrs = [("contextRef", cntxId)]
                         if concept.isNumeric:
                             attrs.append(("unitRef", unitId))
                             attrs.append(("decimals", decimals))
-                        newFact = self.instance.createFact(concept.qname, attributes=attrs, text=xsString(None, value))
+                            value = Locale.atof(self.modelXbrl.locale, value, str.strip)
+                        newFact = self.instance.createFact(concept.qname, attributes=attrs, text=value)
                         objId = None
                 if objId is not None:
                     fact = self.modelXbrl.modelObject(objId)
+                    if fact.concept.isNumeric:
+                        value = Locale.atof(self.modelXbrl.locale, value, str.strip)
                     if fact.value != value:
-                        fact.text = xsString(None, value)
+                        fact.text = value
                         XmlValidate.validate(self.instance, fact)    
-                pass
-
-        
         
         from arelle import XmlUtil
         with open(self.instance.modelDocument.filepath, "w") as fh:
