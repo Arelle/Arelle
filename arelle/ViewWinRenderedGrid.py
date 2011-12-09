@@ -61,10 +61,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
         self.zComboBoxIndex = None
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
-        if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
-            self.instance = modelXbrl
-        else:
-            self.instance = None 
         
     def loadTablesMenu(self):
         tblMenuEntries = {}             
@@ -95,7 +91,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def viewReloadDueToMenuAction(self, *args):
         self.view()
         
-    def view(self, viewTblELR=None):
+    def view(self, viewTblELR=None, newInstance=None):
+        if newInstance is not None:
+            self.modelXbrl = newInstance # a save operation has created a new instance to use subsequently
         if viewTblELR:  # specific table selection
             self.tblELR = viewTblELR
         else:   # first or subsequenct reloading (language, dimensions, other change)
@@ -339,6 +337,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
 
     def bodyCells(self, row, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
         dimDefaults = self.modelXbrl.qnameDimensionDefaults
+        priItemQnameErrors = set()
+        dimQnameErrors = set()
+        memQnameErrors = set()
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
             yAxisHdrObj = axisMbrRel.toModelObject
             if yChildrenFirst:
@@ -441,7 +442,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
                 return # new instance not set
         newFilename = None # only used when a new instance must be created
-        if self.instance is None:
+        if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
             newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
         # continue saving in background
         thread = threading.Thread(target=lambda: self.backgroundSaveInstance(newFilename))
@@ -449,21 +450,24 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         thread.start()
 
     def backgroundSaveInstance(self, newFilename=None):
+        cntlr = self.modelXbrl.modelManager.cntlr
         if newFilename:
             self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
             self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
-            self.instance = ModelXbrl.create(self.modelXbrl.modelManager, 
-                                             newDocumentType=ModelDocument.Type.INSTANCE,
-                                             url=newFilename,
-                                             schemaRefs=[self.modelXbrl.modelDocument.basename],
-                                             isEntry=True)
-            from arelle import ValidateXbrlDimensions
-            ValidateXbrlDimensions.loadDimensionDefaults(self.instance) # need dimension defaults 
-            if self.instance is None:
+            instance = ModelXbrl.create(self.modelXbrl.modelManager, 
+                                        newDocumentType=ModelDocument.Type.INSTANCE,
+                                        url=newFilename,
+                                        schemaRefs=[self.modelXbrl.modelDocument.basename],
+                                        isEntry=True)
+            if instance is None:
                 self.modelXbrl.modelManager.showStatus("")
                 return # saving canceled
-        self.modelXbrl.modelManager.showStatus(_("Saving {0}").format(self.instance.modelDocument.basename))
-        self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
+            from arelle import ValidateXbrlDimensions
+            ValidateXbrlDimensions.loadDimensionDefaults(instance) # need dimension defaults 
+        else:
+            instance = self.modelXbrl
+        cntlr.showStatus(_("Saving {0}").format(instance.modelDocument.basename))
+        cntlr.waitForUiThreadQueue() # force status update
         if not self.modelXbrl.isDimensionsValidated: 
             ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl) # need dimension defaults 
         newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
@@ -485,13 +489,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         periodStart = self.newFactItemOptions.startDate if periodType == "duration" else None
                         periodEndInstant = self.newFactItemOptions.endDate
                         qnameDims = factPrototype.context.qnameDims
-                        prevCntx = self.instance.matchContext(
+                        prevCntx = instance.matchContext(
                              entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
                              qnameDims, [], [])
                         if prevCntx is not None:
                             cntxId = prevCntx.id
                         else: # need new context
-                            newCntx = self.instance.createContext(entityIdentScheme, entityIdentValue, 
+                            newCntx = instance.createContext(entityIdentScheme, entityIdentValue, 
                                           periodType, periodStart, periodEndInstant, qnameDims, [], [],
                                           afterSibling=newCntx)
                             cntxId = newCntx.id
@@ -507,18 +511,18 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             else:
                                 unitMeasure = XbrlConst.qnXbrliPure
                                 decimals = self.newFactItemOptions.nonMonetaryDecimals
-                            prevUnit = self.instance.matchUnit([unitMeasure],[])
+                            prevUnit = instance.matchUnit([unitMeasure],[])
                             if prevUnit is not None:
                                 unitId = prevUnit.id
                             else:
-                                newUnit = self.instance.createUnit([unitMeasure],[], afterSibling=newUnit)
+                                newUnit = instance.createUnit([unitMeasure],[], afterSibling=newUnit)
                                 unitId = newUnit.id
                         attrs = [("contextRef", cntxId)]
                         if concept.isNumeric:
                             attrs.append(("unitRef", unitId))
                             attrs.append(("decimals", decimals))
                             value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                        newFact = self.instance.createFact(concept.qname, attributes=attrs, text=value)
+                        newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
                         objId = None
                 if objId is not None:
                     fact = self.modelXbrl.modelObject(objId)
@@ -526,10 +530,14 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         value = Locale.atof(self.modelXbrl.locale, value, str.strip)
                     if fact.value != value:
                         fact.text = value
-                        XmlValidate.validate(self.instance, fact)    
+                        XmlValidate.validate(instance, fact)    
         
         from arelle import XmlUtil
-        with open(self.instance.modelDocument.filepath, "w") as fh:
-            XmlUtil.writexml(fh, self.instance.modelDocument.xmlDocument, encoding="utf-8")
-        self.modelXbrl.modelManager.showStatus(_("Saved {0}").format(self.instance.modelDocument.basename), clearAfter=3000)
+        with open(instance.modelDocument.filepath, "w") as fh:
+            XmlUtil.writexml(fh, instance.modelDocument.xmlDocument, encoding="utf-8")
+        cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
+        
+        if newFilename:  # switch the view to the new instance
+            cntlr.uiThreadQueue.put((self.view, [None, instance]))
+
             
