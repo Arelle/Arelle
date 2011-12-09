@@ -66,7 +66,8 @@ class ViewGrid:
         
     def close(self):
         self.tabWin.forget(self.viewFrame)
-        self.modelXbrl.views.remove(self)
+        if self in self.modelXbrl.views:
+            self.modelXbrl.views.remove(self)
         self.modelXbrl = None
         
     def select(self):
