@@ -618,7 +618,6 @@ class ModelDocument:
                         self.modelXbrl.error("xbrl:schemaDefinitionMissing",
                                 _("Linkbase extended link %(element)s missing schema definition"),
                                 modelObject=lbElement, element=lbElement.prefixedName)
-                        
                 
     def discoverHref(self, element, nonDTS=False):
         href = element.get("{http://www.w3.org/1999/xlink}href")

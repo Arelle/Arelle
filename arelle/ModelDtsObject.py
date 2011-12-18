@@ -607,12 +607,17 @@ class ModelType(ModelSchemaObject):
     
     @property
     def qnameDerivedFrom(self):
-        return self.prefixedNameQname(XmlUtil.schemaBaseTypeDerivedFrom(self))
+        typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
+        if isinstance(typeOrUnion,list): # union
+            return [self.prefixedNameQname(t) for t in typeOrUnion]
+        return self.prefixedNameQname(typeOrUnion)
     
     @property
     def typeDerivedFrom(self):
         qnameDerivedFrom = self.qnameDerivedFrom
-        if qnameDerivedFrom is not None:
+        if isinstance(qnameDerivedFrom, list):
+            return [self.modelXbrl.qnameTypes.get(qn) for qn in qnameDerivedFrom]
+        elif isinstance(qnameDerivedFrom, ModelValue.QName):
             self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return None
     
@@ -622,26 +627,33 @@ class ModelType(ModelSchemaObject):
             return self._baseXsdType
         except AttributeError:
             if self.qname == XbrlConst.qnXbrliDateUnion:
-                return "XBRLI_DATEUNION"
+                self._baseXsdType = "XBRLI_DATEUNION"
             elif self.qname == XbrlConst.qnXbrliDecimalsUnion:
-                return "XBRLI_DECIMALSUNION"
+                self._baseXsdType = "XBRLI_DECIMALSUNION"
             elif self.qname == XbrlConst.qnXbrliPrecisionUnion:
-                return "XBRLI_PRECISIONUNION"
+                self._baseXsdType = "XBRLI_PRECISIONUNION"
             elif self.qname == XbrlConst.qnXbrliNonZeroDecimalUnion:
-                return "XBRLI_NONZERODECIMAL"
-            qnameDerivedFrom = self.qnameDerivedFrom
-            if qnameDerivedFrom is None:
-                # want None if base type has no content (not mixed content, TBD)
-                #self._baseXsdType =  "anyType"
-                self._baseXsdType =  "noContent"
-            elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:
-                self._baseXsdType = qnameDerivedFrom.localName
+                self._baseXsdType = "XBRLI_NONZERODECIMAL"
             else:
-                typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
-                #assert typeDerivedFrom is not None, _("Unable to determine derivation of {0}").format(qnameDerivedFrom)
-                self._baseXsdType = typeDerivedFrom.baseXsdType if typeDerivedFrom is not None else "anyType"
-            if self._baseXsdType == "anyType" and XmlUtil.emptyContentModel(self):
-                self._baseXsdType = "noContent"
+                qnameDerivedFrom = self.qnameDerivedFrom
+                if qnameDerivedFrom is None:
+                    # want None if base type has no content (not mixed content, TBD)
+                    #self._baseXsdType =  "anyType"
+                    self._baseXsdType =  "noContent"
+                elif isinstance(qnameDerivedFrom,list): # union
+                    if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
+                        self._baseXsdType = "XBRLI_DATEUNION"
+                    # TBD implement union types
+                    else:
+                        self._baseXsdType == "anyType" 
+                elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:
+                    self._baseXsdType = qnameDerivedFrom.localName
+                else:
+                    typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+                    #assert typeDerivedFrom is not None, _("Unable to determine derivation of {0}").format(qnameDerivedFrom)
+                    self._baseXsdType = typeDerivedFrom.baseXsdType if typeDerivedFrom is not None else "anyType"
+                if self._baseXsdType == "anyType" and XmlUtil.emptyContentModel(self):
+                    self._baseXsdType = "noContent"
             return self._baseXsdType
     
     @property
@@ -653,7 +665,13 @@ class ModelType(ModelSchemaObject):
             if self.qname == XbrlConst.qnXbrliDateUnion:
                 return "XBRLI_DATEUNION"
             qnameDerivedFrom = self.qnameDerivedFrom
-            if qnameDerivedFrom is not None:
+            if isinstance(qnameDerivedFrom,list): # union
+                if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
+                    self._baseXbrliType = "dateTime"
+                # TBD implement union types
+                else:
+                    self._baseXbrliType == None 
+            elif qnameDerivedFrom is not None:
                 if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
                     self._baseXbrliType = qnameDerivedFrom.localName
                 elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:    # xsd type
@@ -770,7 +788,7 @@ class ModelType(ModelSchemaObject):
             for facetElt in XmlUtil.schemaFacets(self, ("{http://www.w3.org/2001/XMLSchema}enumeration",)):
                 facetValues.setdefault("enumeration",set()).add(facetElt.get("value"))
         typeDerivedFrom = self.typeDerivedFrom
-        if typeDerivedFrom is not None:
+        if isinstance(typeDerivedFrom, ModelType):
             typeDerivedFrom.constrainingFacets(facetValues)
         return facetValues
                 

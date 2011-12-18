@@ -313,6 +313,10 @@ def schemaBaseTypeDerivedFrom(element):
     for child in element.iterchildren():
         if child.tag in ("{http://www.w3.org/2001/XMLSchema}extension","{http://www.w3.org/2001/XMLSchema}restriction"):
             return child.get("base") 
+        elif child.tag == "{http://www.w3.org/2001/XMLSchema}union":
+            return (child.get("memberTypes") or "").split() + [
+                    schemaBaseTypeDerivedFrom(child)
+                    for child in element.iterchildren(tag="{http://www.w3.org/2001/XMLSchema}simpleType")]
         elif child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
                            "{http://www.w3.org/2001/XMLSchema}simpleType",
                            "{http://www.w3.org/2001/XMLSchema}complexContent",
