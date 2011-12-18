@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-12-02 15:46+Pacific Standard Time\n"
+"POT-Creation-Date: 2011-12-18 15:00+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -563,7 +563,7 @@ msgid "arelle - Open file"
 msgstr ""
 
 #: arelle\CntlrWinMain.py:458 arelle\CntlrWinMain.py:478
-#: arelle\DialogRssWatch.py:147
+#: arelle\DialogRssWatch.py:148
 msgid "XBRL files"
 msgstr ""
 
@@ -757,7 +757,7 @@ msgstr ""
 
 #: arelle\DialogAbout.py:33 arelle\DialogFormulaParameters.py:150
 #: arelle\DialogNewFactItem.py:95 arelle\DialogOpenArchive.py:112
-#: arelle\DialogRssWatch.py:125 arelle\DialogURL.py:40
+#: arelle\DialogRssWatch.py:126 arelle\DialogURL.py:40
 #: arelle\DialogUserPassword.py:125
 msgid "OK"
 msgstr ""
@@ -861,7 +861,7 @@ msgid "Formula Parameters and Trace Options"
 msgstr ""
 
 #: arelle\DialogFormulaParameters.py:151 arelle\DialogNewFactItem.py:93
-#: arelle\DialogOpenArchive.py:113 arelle\DialogRssWatch.py:123
+#: arelle\DialogOpenArchive.py:113 arelle\DialogRssWatch.py:124
 #: arelle\DialogURL.py:41 arelle\DialogUserPassword.py:126
 msgid "Cancel"
 msgstr ""
@@ -898,11 +898,11 @@ msgstr ""
 msgid "Enter decimals for non-monetary items (e.g., stock shares)"
 msgstr ""
 
-#: arelle\DialogNewFactItem.py:94 arelle\DialogRssWatch.py:124
+#: arelle\DialogNewFactItem.py:94 arelle\DialogRssWatch.py:125
 msgid "Cancel operation, discarding changes and entries"
 msgstr ""
 
-#: arelle\DialogNewFactItem.py:96 arelle\DialogRssWatch.py:126
+#: arelle\DialogNewFactItem.py:96 arelle\DialogRssWatch.py:127
 msgid "Accept the options as entered above"
 msgstr ""
 
@@ -934,7 +934,7 @@ msgstr ""
 msgid "Non-monetary decimals invalid"
 msgstr ""
 
-#: arelle\DialogNewFactItem.py:130 arelle\DialogRssWatch.py:187
+#: arelle\DialogNewFactItem.py:130 arelle\DialogRssWatch.py:188
 msgid "Dialog validation error(s)"
 msgstr ""
 
@@ -982,74 +982,74 @@ msgstr ""
 msgid "WARNING: skipping multiple-document entry point (not supported)"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:52
+#: arelle\DialogRssWatch.py:53
 msgid "RSS Feed Processing Control"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:61
+#: arelle\DialogRssWatch.py:62
 msgid "Select an RSS feed to process for item matching, formulas, and validations as selected below"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:64
+#: arelle\DialogRssWatch.py:65
 msgid "Enter a regular expression to be matched to the text of each filing instance fact item. Regular expressions may contain patterns to detect, such as ab.?c, for any single character between b and c, or ab.*c for any number of characters between b and c."
 msgstr ""
 
-#: arelle\DialogRssWatch.py:68
+#: arelle\DialogRssWatch.py:69
 msgid "Select a formula linkbase to to evaluate each filing.  The formula linkbase may contain one or more assertions, the results of which is recorded in the log file.  If unsuccessful assertion alerts are selected and an e-mail address provided, the recipient will be notified of filings with assertions that do not pass."
 msgstr ""
 
-#: arelle\DialogRssWatch.py:76
+#: arelle\DialogRssWatch.py:77
 msgid ""
 "Select a log file in which to save an activity log, including validation results, matched item text, and formula results.\n"
 "\n"
 " Two files are produced, (1) .txt with the log messages, and (2) .csv with the RSS feed items and status.  "
 msgstr ""
 
-#: arelle\DialogRssWatch.py:82
+#: arelle\DialogRssWatch.py:83
 msgid "Specify e-mail recipient(s) for alerts per below."
 msgstr ""
 
-#: arelle\DialogRssWatch.py:86
+#: arelle\DialogRssWatch.py:87
 msgid "Specify pub dateTime of last processed submission.  Next item to examine will be after this dateTime."
 msgstr ""
 
-#: arelle\DialogRssWatch.py:90
+#: arelle\DialogRssWatch.py:91
 msgid "Clear pub dateTime so that next cycle processes all entries in RSS feed."
 msgstr ""
 
-#: arelle\DialogRssWatch.py:145
+#: arelle\DialogRssWatch.py:146
 msgid "Choose formula file for RSS Watch"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:156
+#: arelle\DialogRssWatch.py:157
 msgid "Choose log file for RSS Watch"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:158
+#: arelle\DialogRssWatch.py:159
 msgid "Log files"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:171
+#: arelle\DialogRssWatch.py:172
 msgid "RSS feed field contents invalid"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:176
+#: arelle\DialogRssWatch.py:177
 msgid "Match text field contents error {0}"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:178
+#: arelle\DialogRssWatch.py:179
 msgid "Formula file not found {0}"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:180
+#: arelle\DialogRssWatch.py:181
 msgid "Log file directory not found {0}"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:183
+#: arelle\DialogRssWatch.py:184
 msgid "E-mail address format error"
 msgstr ""
 
-#: arelle\DialogRssWatch.py:185
+#: arelle\DialogRssWatch.py:186
 msgid "Latest pub date field contents invalid"
 msgstr ""
 
@@ -1515,11 +1515,11 @@ msgstr ""
 msgid "Linkbase extended link %(element)s missing schema definition"
 msgstr ""
 
-#: arelle\ModelDocument.py:723
+#: arelle\ModelDocument.py:722
 msgid "Inline XBRL tupleRef %(tupleRef)s not found"
 msgstr ""
 
-#: arelle\ModelDocument.py:750
+#: arelle\ModelDocument.py:749
 msgid "Instance fact %(element)s missing schema definition "
 msgstr ""
 
@@ -1593,77 +1593,77 @@ msgstr ""
 msgid "not tested"
 msgstr ""
 
-#: arelle\ModelVersReport.py:242
+#: arelle\ModelVersReport.py:249
 msgid "Comparing namespaces"
 msgstr ""
 
-#: arelle\ModelVersReport.py:244
+#: arelle\ModelVersReport.py:251
 msgid "Comparing roles"
 msgstr ""
 
-#: arelle\ModelVersReport.py:246
+#: arelle\ModelVersReport.py:253
 msgid "Comparing concepts"
 msgstr ""
 
-#: arelle\ModelVersReport.py:249
+#: arelle\ModelVersReport.py:256
 msgid "Comparing {0} relationships"
 msgstr ""
 
-#: arelle\ModelVersReport.py:252
+#: arelle\ModelVersReport.py:259
 msgid "Comparing dimension defaults"
 msgstr ""
 
-#: arelle\ModelVersReport.py:255
+#: arelle\ModelVersReport.py:262
 msgid "Comparing explicit dimensions"
 msgstr ""
 
-#: arelle\ModelVersReport.py:281
+#: arelle\ModelVersReport.py:288
 msgid "Checking report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:284
+#: arelle\ModelVersReport.py:291
 msgid "Writing report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:288
+#: arelle\ModelVersReport.py:295
 msgid "C report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:289 arelle\Validate.py:223
+#: arelle\ModelVersReport.py:296 arelle\Validate.py:223
 #: arelle\ValidateFiling.py:1109 arelle\ValidateFormula.py:109
 #: arelle\ValidateXbrl.py:552
 msgid "ready"
 msgstr ""
 
-#: arelle\ModelVersReport.py:554 arelle\ModelVersReport.py:568
+#: arelle\ModelVersReport.py:566 arelle\ModelVersReport.py:580
 msgid "corresponding relationship {0} toDTS toName=\"{1}\""
 msgstr ""
 
-#: arelle\ModelVersReport.py:556
+#: arelle\ModelVersReport.py:568
 msgid "toDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:570
+#: arelle\ModelVersReport.py:582
 msgid "fromDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:815
+#: arelle\ModelVersReport.py:827
 msgid "typed domain element {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:817
+#: arelle\ModelVersReport.py:829
 msgid "typedDomainRef={0} (element qname cannot be determined)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:888
+#: arelle\ModelVersReport.py:900
 msgid "from value: {0} "
 msgstr ""
 
-#: arelle\ModelVersReport.py:892 arelle\ModelVersReport.py:909
+#: arelle\ModelVersReport.py:904 arelle\ModelVersReport.py:921
 msgid "({0} does not have an id attribute)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:905
+#: arelle\ModelVersReport.py:917
 msgid "to value: {0} "
 msgstr ""
 
@@ -4049,7 +4049,7 @@ msgstr ""
 msgid "Failed to save output html to %(file)s: \\s%(error)s"
 msgstr ""
 
-#: arelle\ViewHtmlRenderedGrid.py:14 arelle\ViewWinRenderedGrid.py:23
+#: arelle\ViewHtmlRenderedGrid.py:14 arelle\ViewWinRenderedGrid.py:24
 msgid "viewing rendering"
 msgstr ""
 
@@ -4094,7 +4094,7 @@ msgid "Show Dimension Defaults"
 msgstr ""
 
 #: arelle\ViewWinFactGrid.py:30 arelle\ViewWinFactTable.py:28
-#: arelle\ViewWinRenderedGrid.py:41
+#: arelle\ViewWinRenderedGrid.py:42
 msgid "Options"
 msgstr ""
 
@@ -4140,7 +4140,7 @@ msgstr ""
 msgid "Collapse"
 msgstr ""
 
-#: arelle\ViewWinGrid.py:135 arelle\ViewWinTree.py:171
+#: arelle\ViewWinGrid.py:136 arelle\ViewWinTree.py:171
 msgid "Language"
 msgstr ""
 
@@ -4172,47 +4172,47 @@ msgstr ""
 msgid "Dimensions"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:34
+#: arelle\ViewWinRenderedGrid.py:35
 msgid "New fact item options"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:36
+#: arelle\ViewWinRenderedGrid.py:37
 msgid "Ignore Dimensional Validity"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:38
+#: arelle\ViewWinRenderedGrid.py:39
 msgid "X-Axis Children First"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:40
+#: arelle\ViewWinRenderedGrid.py:41
 msgid "Y-Axis Children First"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:43
+#: arelle\ViewWinRenderedGrid.py:44
 msgid "Tables"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:47
+#: arelle\ViewWinRenderedGrid.py:48
 msgid "HTML file"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:48
+#: arelle\ViewWinRenderedGrid.py:49
 msgid "XBRL instance"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:49
+#: arelle\ViewWinRenderedGrid.py:50
 msgid "Save"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:452
+#: arelle\ViewWinRenderedGrid.py:455
 msgid "creating new instance {0}"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:464
+#: arelle\ViewWinRenderedGrid.py:469
 msgid "Saving {0}"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:532
+#: arelle\ViewWinRenderedGrid.py:538
 msgid "Saved {0}"
 msgstr ""
 
@@ -4532,31 +4532,31 @@ msgid ""
 "%(source)s"
 msgstr ""
 
-#: arelle\XbrlConst.py:291
+#: arelle\XbrlConst.py:292
 msgid "1Dimension"
 msgstr ""
 
-#: arelle\XbrlConst.py:292
+#: arelle\XbrlConst.py:293
 msgid "1Formula"
 msgstr ""
 
-#: arelle\XbrlConst.py:293
+#: arelle\XbrlConst.py:294
 msgid "1Rendering"
 msgstr ""
 
-#: arelle\XbrlConst.py:294
+#: arelle\XbrlConst.py:295
 msgid "1Presentation"
 msgstr ""
 
-#: arelle\XbrlConst.py:295
+#: arelle\XbrlConst.py:296
 msgid "1Calculation"
 msgstr ""
 
-#: arelle\XbrlConst.py:299
+#: arelle\XbrlConst.py:300
 msgid "1Standard Label"
 msgstr ""
 
-#: arelle\XbrlConst.py:300
+#: arelle\XbrlConst.py:301
 msgid "0Name"
 msgstr ""
 

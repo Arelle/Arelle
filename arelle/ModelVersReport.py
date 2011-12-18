@@ -4,7 +4,7 @@ Created on Nov 11, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, re
 from collections import defaultdict
 from arelle import (XbrlConst, XbrlUtil, XmlUtil, UrlUtil, ModelXbrl, ModelDocument, ModelVersObject)
 from arelle.ModelObject import ModelObject
@@ -28,6 +28,13 @@ relationshipSetArcAttributesExclusion = {
     "{http://www.w3.org/XML/1998/namespace}space",
     "id", "use","priority","order"
     }
+    
+authoritiesEquivalence = {
+    "http://xbrl.iasb.org": "IFRS", "http://xbrl.ifrs.org": "IFRS",
+    "http://xbrl.us": "XBRL-US", "http://fasb.org": "XBRL-US", "http://xbrl.sec.gov": "XBRL-US",
+    }
+    
+dateRemovalPattern = re.compile("[/]?(19|20)[0-9][0-9](-[01][0-9](-[0-3][0-9])?)?")
 
 class ModelVersReport(ModelDocument.ModelDocument):
     def __init__(self, modelXbrl, 
@@ -302,7 +309,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 toNSes.add(toModelDoc.targetNamespace)
         self.diffURIs( fromNSes, toNSes, 
                        "namespaceRename",
-                       (self.roleNumlessMatchPattern, self.rolePathlessMatchPattern, self.roleNoFromToMatchPattern),
+                       (self.rolePathlessDatelessMatchPattern, self.roleNumlessMatchPattern, self.roleNoFromToMatchPattern),
                         self.namespaceRenameFromURI, self.namespaceRenameToURI)
     
     def diffRoles(self):
@@ -311,7 +318,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.diffURIs( set( self.fromDTS.roleTypes.keys() ),
                        set( self.toDTS.roleTypes.keys() ),
                        "roleChange", 
-                       (self.roleNumlessMatchPattern, self.rolePathlessMatchPattern, self.roleNoFromToMatchPattern),
+                       (self.rolePathlessDatelessMatchPattern, self.roleNumlessMatchPattern, self.roleNoFromToMatchPattern),
                        self.roleChangeFromURI, self.roleChangeToURI )
                     
     def diffURIs(self, fromURIs, toURIs, eventName, matchers, changeFrom, changeTo):
@@ -347,10 +354,15 @@ class ModelVersReport(ModelDocument.ModelDocument):
         return ''.join((c if str.isalpha(c) or c == '/' else '') for c in basepart) + \
                 ((sep + lastpart) if lastpart else "")
 
-    def rolePathlessMatchPattern(self, role):
-        # remove intermediate role path elements between authority and end path segment
+
+    def rolePathlessDatelessMatchPattern(self, role):
+        # remove date from path (including / if immediately before date)
+        datelessRole = dateRemovalPattern.sub("", role)
+        # remove intermediate role path elements between authority and end path segment (after date removal)
         basepart, sep, lastpart = role.rpartition("/")
-        return UrlUtil.authority(role) + ((sep + lastpart) if lastpart else "")
+        origAuthority = UrlUtil.authority(role)
+        matchedAuthority = authoritiesEquivalence.get(origAuthority,origAuthority)
+        return matchedAuthority + ((sep + lastpart) if lastpart else "")
 
     def roleNoFromToMatchPattern(self, role):
         # remove intermediate role path elements between authority and end path segment
@@ -888,7 +900,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             XmlUtil.addComment(event, _("from value: {0} ").format(fromValue))
         if fromResource is not None:
             fromResElt = XmlUtil.addChild(event, XbrlConst.verce, "verce:fromResource", ("value",self.conceptHref(fromResource)) )
-            if fromResource.id is None and fromConcept:
+            if fromResource.id is None and fromConcept is not None:
                 XmlUtil.addComment(event, _("({0} does not have an id attribute)").format(eventName))
             if fromResourceText:
                 XmlUtil.addComment(event, fromResourceText)
@@ -905,7 +917,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             XmlUtil.addComment(event, _("to value: {0} ").format(toValue))
         if toResource is not None:
             toResElt = XmlUtil.addChild(event, XbrlConst.verce, "verce:toResource", ("value",self.conceptHref(toResource)) )
-            if toResource.id is None and toConcept:
+            if toResource.id is None and toConcept is not None:
                 XmlUtil.addComment(event, _("({0} does not have an id attribute)").format(eventName))
             if toResourceText:
                 XmlUtil.addComment(event, toResourceText)
