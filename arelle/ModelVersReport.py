@@ -34,7 +34,8 @@ authoritiesEquivalence = {
     "http://xbrl.us": "XBRL-US", "http://fasb.org": "XBRL-US", "http://xbrl.sec.gov": "XBRL-US",
     }
     
-dateRemovalPattern = re.compile("[/]?(19|20)[0-9][0-9](-[01][0-9](-[0-3][0-9])?)?")
+dateRemovalPattern = re.compile(r"[/]?(draft-)?(19|20)[0-9][0-9](-[01][0-9](-[0-3][0-9])?)?")
+numberRemovalPattern = re.compile(r"[/]?[0-9][0-9\.]*")
 
 class ModelVersReport(ModelDocument.ModelDocument):
     def __init__(self, modelXbrl, 
@@ -359,7 +360,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         # remove date from path (including / if immediately before date)
         datelessRole = dateRemovalPattern.sub("", role)
         # remove intermediate role path elements between authority and end path segment (after date removal)
-        basepart, sep, lastpart = role.rpartition("/")
+        basepart, sep, lastpart = datelessRole.rpartition("/")
         origAuthority = UrlUtil.authority(role)
         matchedAuthority = authoritiesEquivalence.get(origAuthority,origAuthority)
         return matchedAuthority + ((sep + lastpart) if lastpart else "")
@@ -775,13 +776,13 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                  toTgtConcept, toRel.consecutiveLinkrole,
                                  arcrole, diffs)
             else:
-                diffs.append((fromRel, None, None, None))
+                diffs.append((fromRel, None, set(), set()))
         for i, toRel in enumerate(toRels):
             toTgtConcept = toRel.toModelObject
             fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject is not None else None
             fromRel = fromRels[i] if i < len(fromRels) else None
             if fromRel is None or fromRel.toModelObject is None or fromRel.toModelObject.qname != fromTgtQname:
-                diffs.append((None, toRel, None, None))
+                diffs.append((None, toRel, set(), set()))
         return diffs
     
     def DRShcDiff(self, fromDTS, fromPriItemDRSrels, toDTS, toPriItemDRSrels):
