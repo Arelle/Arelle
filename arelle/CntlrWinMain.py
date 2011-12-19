@@ -883,7 +883,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.saveConfig()
         
     def setValidateTooltipText(self):
-        if self.modelManager.modelXbrl and hasattr(self.modelManager.modelXbrl,"modelDocument"):
+        if self.modelManager.modelXbrl and not self.modelManager.modelXbrl.isClosed:
             valType = self.modelManager.modelXbrl.modelDocument.type
             if valType == ModelDocument.Type.TESTCASESINDEX:
                 v = _("Validate testcases")

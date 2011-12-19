@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-12-18 15:00+Pacific Standard Time\n"
+"POT-Creation-Date: 2011-12-18 18:18+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1593,77 +1593,77 @@ msgstr ""
 msgid "not tested"
 msgstr ""
 
-#: arelle\ModelVersReport.py:249
+#: arelle\ModelVersReport.py:250
 msgid "Comparing namespaces"
 msgstr ""
 
-#: arelle\ModelVersReport.py:251
+#: arelle\ModelVersReport.py:252
 msgid "Comparing roles"
 msgstr ""
 
-#: arelle\ModelVersReport.py:253
+#: arelle\ModelVersReport.py:254
 msgid "Comparing concepts"
 msgstr ""
 
-#: arelle\ModelVersReport.py:256
+#: arelle\ModelVersReport.py:257
 msgid "Comparing {0} relationships"
 msgstr ""
 
-#: arelle\ModelVersReport.py:259
+#: arelle\ModelVersReport.py:260
 msgid "Comparing dimension defaults"
 msgstr ""
 
-#: arelle\ModelVersReport.py:262
+#: arelle\ModelVersReport.py:263
 msgid "Comparing explicit dimensions"
 msgstr ""
 
-#: arelle\ModelVersReport.py:288
+#: arelle\ModelVersReport.py:289
 msgid "Checking report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:291
+#: arelle\ModelVersReport.py:292
 msgid "Writing report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:295
+#: arelle\ModelVersReport.py:296
 msgid "C report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:296 arelle\Validate.py:223
+#: arelle\ModelVersReport.py:297 arelle\Validate.py:223
 #: arelle\ValidateFiling.py:1109 arelle\ValidateFormula.py:109
 #: arelle\ValidateXbrl.py:552
 msgid "ready"
 msgstr ""
 
-#: arelle\ModelVersReport.py:566 arelle\ModelVersReport.py:580
+#: arelle\ModelVersReport.py:567 arelle\ModelVersReport.py:581
 msgid "corresponding relationship {0} toDTS toName=\"{1}\""
 msgstr ""
 
-#: arelle\ModelVersReport.py:568
+#: arelle\ModelVersReport.py:569
 msgid "toDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:582
+#: arelle\ModelVersReport.py:583
 msgid "fromDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:827
+#: arelle\ModelVersReport.py:828
 msgid "typed domain element {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:829
+#: arelle\ModelVersReport.py:830
 msgid "typedDomainRef={0} (element qname cannot be determined)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:900
+#: arelle\ModelVersReport.py:901
 msgid "from value: {0} "
 msgstr ""
 
-#: arelle\ModelVersReport.py:904 arelle\ModelVersReport.py:921
+#: arelle\ModelVersReport.py:905 arelle\ModelVersReport.py:922
 msgid "({0} does not have an id attribute)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:917
+#: arelle\ModelVersReport.py:918
 msgid "to value: {0} "
 msgstr ""
 
@@ -1671,19 +1671,19 @@ msgstr ""
 msgid "loading"
 msgstr ""
 
-#: arelle\ModelXbrl.py:50 arelle\ModelXbrl.py:130
+#: arelle\ModelXbrl.py:50 arelle\ModelXbrl.py:131
 msgid "xbrl loading finished, {0}..."
 msgstr ""
 
-#: arelle\ModelXbrl.py:241
+#: arelle\ModelXbrl.py:243
 msgid "Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"
 msgstr ""
 
-#: arelle\ModelXbrl.py:343
+#: arelle\ModelXbrl.py:345
 msgid "Exception viewing properties {0} {1} at {2}"
 msgstr ""
 
-#: arelle\ModelXbrl.py:464
+#: arelle\ModelXbrl.py:466
 msgid "DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"
 msgstr ""
 

@@ -109,15 +109,16 @@ class ModelXbrl:
         self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):
-        self.closeViews()
-        if self.formulaOutputInstance:
-            self.formulaOutputInstance.close()
-        if hasattr(self,"fileSource") and self.closeFileSource:
-            self.fileSource.close()
-        modelDocument = self.modelDocument if hasattr(self,"modelDocument") else None
-        self.__dict__.clear() # dereference everything before closing document
-        if modelDocument:
-            modelDocument.close()
+        if not self.isClosed:
+            self.closeViews()
+            if self.formulaOutputInstance:
+                self.formulaOutputInstance.close()
+            if hasattr(self,"fileSource") and self.closeFileSource:
+                self.fileSource.close()
+            modelDocument = self.modelDocument if hasattr(self,"modelDocument") else None
+            self.__dict__.clear() # dereference everything before closing document
+            if modelDocument:
+                modelDocument.close()
             
     @property
     def isClosed(self):
@@ -131,9 +132,10 @@ class ModelXbrl:
         self.modelManager.reloadViews(self)
             
     def closeViews(self):
-        for view in range(len(self.views)):
-            if len(self.views) > 0:
-                self.views[0].close()
+        if not self.isClosed:
+            for view in range(len(self.views)):
+                if len(self.views) > 0:
+                    self.views[0].close()
         
     def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         global ModelRelationshipSet
