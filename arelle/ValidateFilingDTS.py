@@ -259,7 +259,7 @@ def checkDTS(val, modelDocument, visited):
                                 definesHypercubes = True
                             elif modelConcept.isDimensionItem:
                                 definesDimensions = True
-                            elif substititutionGroupQname and substititutionGroupQname.localName == "domainItem":
+                            elif substititutionGroupQname and substititutionGroupQname.localName in ("domainItem","domainMemberItem"):
                                 definesDomains = True
                             elif modelConcept.isItem:
                                 definesAbstractItems = True
@@ -426,7 +426,8 @@ def checkDTS(val, modelDocument, visited):
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema may only define one of these: %(contents)s"),
                         modelObject=modelDocument, contents=', '.join(schemaContents))
-                else: #  elif modelDocument != val.modelXbrl.modelDocument: # if not entry point
+                elif not any(refDoc.inDTS and refDoc.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces
+                             for refDoc in modelDocument.referencesDocument.keys()): # no linkbase ref or includes
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
                         modelObject=modelDocument)

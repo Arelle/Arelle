@@ -789,8 +789,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error("SBR.NL.2.2.2.26",
                             _("Concept %(concept)s missing standard label in local language."),
                             modelObject=concept, concept=concept.qname)
-                    if not (presentationRelationshipSet.toModelObject(concept) or
-                            presentationRelationshipSet.fromModelObject(concept)):
+                    if ((not concept.isAbstract or concept.get("substitutionGroup") == "sbr:presentationItem") and
+                        not (presentationRelationshipSet.toModelObject(concept) or
+                             presentationRelationshipSet.fromModelObject(concept))):
                         modelXbrl.error("SBR.NL.2.2.2.04",
                             _("Concept %(concept)s not referred to by presentation relationship."),
                             modelObject=concept, concept=concept.qname)
@@ -998,7 +999,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             for modelRel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
                                 relTo = modelRel.toModelObject
                                 relFrom = modelRel.fromModelObject
-                                if not (isinstance(relFrom,ModelConcept) and isinstance(relTo,ModelConcept)):
+                                if not ((isinstance(relFrom,ModelConcept) and isinstance(relTo,ModelConcept)) or
+                                        (relFrom.modelDocument.inDTS and
+                                         (relTo.qname == XbrlConst.qnGenLabel and modelRel.arcrole == XbrlConst.elementLabel) or
+                                         (relTo.qname == XbrlConst.qnGenReference and modelRel.arcrole == XbrlConst.elementReference))):
                                     self.modelXbrl.error("SBR.NL.2.3.2.07",
                                         _("The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"),
                                         modelObject=modelRel, elementFrom=relFrom.qname, elementTo=relTo.qname, 

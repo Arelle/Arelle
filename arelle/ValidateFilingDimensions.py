@@ -159,16 +159,17 @@ def checkDimensions(val, drsELRs):
                 _("Notall from primary item %(primaryItem)s in ELR role %(linkrole)s to %(hypercube)s"),
                 modelObject=val.modelXbrl, primaryItem=notAllRel.fromModelObject.qname, linkrole=notAllRel.linkrole, hypercube=notAllRel.toModelObject.qname)
         for ELR, hypercubes in hypercubesInLinkrole.items():
+            '''removed RH 2011-12-06
             for modelRel in val.modelXbrl.relationshipSet("XBRL-dimensions", ELR).modelRelationships:
                 if modelRel.fromModelObject != hc:
                     val.modelXbrl.error("SBR.NL.2.3.5.03",
                         _("ELR role %(linkrole)s, is not dedicated to %(hypercube)s, but also has %(otherQname)s"),
                         modelObject=val.modelXbrl, linkrole=ELR, hypercube=hc.qname, otherQname=modelRel.fromModelObject.qname)
-            
+            '''
             for hc in hypercubes:  # only one member
                 for arcrole in (XbrlConst.parentChild, "XBRL-dimensions"):
                     for modelRel in val.modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
-                        if modelRel.fromModelObject != hc:
+                        if modelRel.fromModelObject != hc and modelRel.toModelObject != hc:
                             val.modelXbrl.error("SBR.NL.2.2.3.05",
                                 _("ELR role %(linkrole)s, for hypercube %(hypercube)s has another parent %(concept)s"),
                                 modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, concept=modelRel.fromModelObject.qname)
@@ -187,11 +188,11 @@ def checkDimensions(val, drsELRs):
                 val.modelXbrl.error("SBR.NL.2.3.7.02",
                     _("Dimension %(dimension)s in DRS role %(linkrole)s, has nonAbsract domain %(domain)s"),
                     modelObject=rel, dimension=relFrom.qname, linkrole=rel.linkrole, domain=relTo.qname)
-            if relTo.substitutionGroupQname.localName != "domainItem":
+            if relTo.substitutionGroupQname.localName not in ("domainItem","domainMemberItem"):
                 val.modelXbrl.error("SBR.NL.2.2.2.19",
                     _("Domain item %(domain)s in DRS role %(linkrole)s, in dimension %(dimension)s is not a domainItem"),
                     modelObject=rel, domain=relTo.qname, linkrole=rel.linkrole, dimension=relFrom.qname)
-            if not rel.targetRole:
+            if not rel.targetRole and relTo.substitutionGroupQname.localName != "domainItem":
                 val.modelXbrl.error("SBR.NL.2.3.6.03",
                     _("Dimension %(dimension)s in DRS role %(linkrole)s, missing targetrole to consecutive domain relationship"),
                     modelObject=rel, dimension=relFrom.qname, linkrole=rel.linkrole)
@@ -236,7 +237,7 @@ def checkDimensions(val, drsELRs):
                         _("Abstract domain item %(domain)s in DRS role %(linkrole)s is not a primaryDomainItem"),
                         modelObject=rel, domain=relFrom.qname, linkrole=rel.linkrole)
                     break # don't repeat parent's error on rest of child members
-        #check unique set of dimensions per hypercube
+        '''removed RH 2011-12-06 #check unique set of dimensions per hypercube
         for hc, DRSdims in hypercubeDRSDimensions.items():
             priorELR = None
             priorDRSdims = None
@@ -249,7 +250,7 @@ def checkDimensions(val, drsELRs):
                         dimensions2=", ".join([str(dim.qname) for dim in priorDRSdims]))
                 priorELR = ELR
                 priorDRSdims = dims
-
+        '''
                         
 def getDrsRels(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts=None):
     if not fromConcepts: fromConcepts = set()
