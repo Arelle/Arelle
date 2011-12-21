@@ -169,6 +169,27 @@ class ModelXbrl:
         return self.matchSubstitutionGroup(elementQname, {
                   qn:(qn is not None) for qn in (subsGrpQnames if hasattr(subsGrpQnames, '__iter__') else (subsGrpQnames,)) + (None,)})
     
+    def createInstance(self, url=None):
+        from arelle import (ModelDocument, FileSource)
+        if self.modelDocument.type == ModelDocument.Type.INSTANCE: # entry already is an instance
+            return self.modelDocument # use existing instance entry point
+        priorFileSource = self.fileSource
+        self.fileSource = FileSource.FileSource(url)
+        if self.uri.startswith("http://"):
+            schemaRefUri = self.uri
+        else:   # relativize local paths
+            schemaRefUri = os.path.relpath(self.uri, os.path.dirname(url))
+        self.modelDocument = ModelDocument.create(self, ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUri], isEntry=True)
+        if priorFileSource:
+            priorFileSource.close()
+        self.closeFileSource= True
+        del self.entryLoadingUrl
+        # reload dts views
+        from arelle import ViewWinDTS
+        for view in self.views:
+            if isinstance(view, ViewWinDTS.ViewDTS):
+                self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
+    
     def matchContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs):
         from arelle.ModelFormulaObject import Aspect
         from arelle.ModelValue import dateUnionEqual

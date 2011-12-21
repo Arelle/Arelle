@@ -444,6 +444,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         newFilename = None # only used when a new instance must be created
         if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
             newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
+            if not newFilename:
+                return  # saving cancelled
         # continue saving in background
         thread = threading.Thread(target=lambda: self.backgroundSaveInstance(newFilename))
         thread.daemon = True
@@ -454,22 +456,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         if newFilename:
             self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
             self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
-            instance = ModelXbrl.create(self.modelXbrl.modelManager, 
-                                        newDocumentType=ModelDocument.Type.INSTANCE,
-                                        url=newFilename,
-                                        schemaRefs=[self.modelXbrl.modelDocument.basename],
-                                        isEntry=True)
-            if instance is None:
-                self.modelXbrl.modelManager.showStatus("")
-                return # saving canceled
-            from arelle import ValidateXbrlDimensions
-            ValidateXbrlDimensions.loadDimensionDefaults(instance) # need dimension defaults 
-        else:
-            instance = self.modelXbrl
+            self.modelXbrl.createInstance(newFilename) # creates an instance as this modelXbrl's entrypoing
+        instance = self.modelXbrl
         cntlr.showStatus(_("Saving {0}").format(instance.modelDocument.basename))
         cntlr.waitForUiThreadQueue() # force status update
-        if not self.modelXbrl.isDimensionsValidated: 
-            ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl) # need dimension defaults 
         newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
         newUnit = ModelXbrl.AUTO_LOCATE_ELEMENT
         # check user keyed changes
@@ -536,8 +526,4 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         with open(instance.modelDocument.filepath, "w") as fh:
             XmlUtil.writexml(fh, instance.modelDocument.xmlDocument, encoding="utf-8")
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
-        
-        if newFilename:  # switch the view to the new instance
-            cntlr.uiThreadQueue.put((self.view, [None, instance]))
-
             
