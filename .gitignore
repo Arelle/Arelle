@@ -7,3 +7,7 @@ buildRenameX86.bat
 arelle/Version.py
 
 .pydevproject
+
+arelle/.DS_Store
+
+.DS_Store
