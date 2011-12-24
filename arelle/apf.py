@@ -73,7 +73,7 @@ class GUIMenu(object, metaclass=MountPoint):
      '''
     def __init__(self, controller):
         self.modelManager = controller.modelManager
-        self.gui = controller
+        self.controller = controller
 
 class CommandLineOption(object, metaclass=MountPoint):
     ''' Plugins can inherit this mount point in order to add a command line option.
