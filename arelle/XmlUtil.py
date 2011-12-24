@@ -444,7 +444,10 @@ def copyChildren(parent, elt):
             copyNodes(parent, childNode)
 
 def addComment(parent, commentText):
-    child = etree.Comment( str(commentText) )
+    comment = str(commentText)
+    if '--' in comment: # replace -- with - - (twice, in case more than 3 '-' together)
+        comment = comment.replace('--', '- -').replace('--', '- -')
+    child = etree.Comment( comment )
     parent.append(child)
     
 def addQnameValue(modelDocument, qnameValue):
