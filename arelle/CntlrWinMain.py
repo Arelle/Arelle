@@ -31,6 +31,7 @@ from arelle import (DialogURL,
                 ViewHtmlRenderedGrid,
                 Updater
                )
+from arelle import apf
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ModelRssItem import RssWatchOptions
 from arelle.FileSource import openFileSource
@@ -38,7 +39,7 @@ from arelle.FileSource import openFileSource
 restartMain = True
 
 class CntlrWinMain (Cntlr.Cntlr):
-
+    menu_plugins=apf.ExtensionsAt(apf.GUIMenu)
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
@@ -72,7 +73,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Open Web..."), self.webOpen, "Shift+Alt+O", "<Shift-Alt-o>"),
                 (_("Import File..."), self.importOpen, None, None),
                 (_("Save..."), self.fileSave, "Ctrl+S", "<Control-s>"),
-                (_("Save DTS Package"), self.saveDTSpackage, None, None),
+                 #(_("Save DTS Package"), self.saveDTSpackage, None, None), # now a plugin
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
                 (None, None, None, None),
                 (_("Quit"), self.quit, "Ctrl+Q", "<Control-q>"),
@@ -146,6 +147,10 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         toolsMenu.add_cascade(label=_("Language..."), underline=0, command=self.languagesDialog)
 
+        toolsMenu.add_separator()
+        for plugin in self.menu_plugins: # apf.ExtensionsAt(apf.GUIMenu)
+            toolsMenu.add_command(label=plugin.label, underline=0, command=plugin.execute)
+            
         self.menubar.add_cascade(label=_("Tools"), menu=toolsMenu, underline=0)
 
         helpMenu = Menu(self.menubar, tearoff=0)
