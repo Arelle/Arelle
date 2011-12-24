@@ -196,7 +196,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 return [DTS.uri]
         return []
     
-    def diffDTSes(self, versReportFile, fromDTS, toDTS, assignment="technical", schemaDir=None):
+    def diffDTSes(self, versReportFile, fromDTS, toDTS, assignment="technical", schemaDir=None, writeReportFile=True):
         self.uri = os.path.normpath(versReportFile)
         from arelle import FileSource
         self.modelXbrl.fileSource = FileSource.FileSource(self.uri)
@@ -290,8 +290,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.modelXbrl.modelDocument = self # model document is now established
         self.versioningReportDiscover(self.reportElement)
         self.modelXbrl.modelManager.showStatus(_("Writing report file"))
-        with open(versReportFile, "w", encoding="utf-8") as fh:
-            XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+        if writeReportFile:
+            with open(versReportFile, "w", encoding="utf-8") as fh:
+                XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
         self.filepath = versReportFile
         self.modelXbrl.modelManager.showStatus(_("C report file"))
         self.modelXbrl.modelManager.showStatus(_("ready"), 2000)

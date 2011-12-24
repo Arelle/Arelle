@@ -69,7 +69,7 @@ class ModelManager:
                            err,
                            traceback.format_tb(sys.exc_info()[2])))
         
-    def compareDTSes(self, versReportFile):
+    def compareDTSes(self, versReportFile, writeReportFile=True):
         from arelle.ModelVersReport import ModelVersReport
         if len(self.loadedModelXbrls) == 2:
             from arelle.ModelDocument import Type
@@ -78,7 +78,8 @@ class ModelManager:
                                           createModelDocument=False)
             ModelVersReport(modelVersReport).diffDTSes(
                           versReportFile,
-                          self.loadedModelXbrls[0], self.loadedModelXbrls[1])
+                          self.loadedModelXbrls[0], self.loadedModelXbrls[1],
+                          writeReportFile=writeReportFile)
             return modelVersReport
         
     def close(self, modelXbrl=None):

@@ -119,6 +119,8 @@ class Cntlr:
             self.logger = logging.getLogger("arelle")
             if logFileName == "logToPrint":
                 self.logHandler = LogToPrintHandler()
+            elif logFileName == "logToBuffer":
+                self.logHandler = LogToBufferHandler()
             elif logFileName.endswith(".xml"):
                 self.logHandler = LogToXmlHandler(filename=logFileName)
                 logFormat = "%(message)s"
@@ -224,8 +226,39 @@ class LogToXmlHandler(logging.Handler):
                 else:
                     args = ""
                 fh.write('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>\n'.format(
-                        logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("<","&lt;")))
+                        logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
             fh.write('</log>\n')  
+    def emit(self, logRecord):
+        self.logRecordBuffer.append(logRecord)
+
+class LogToBufferHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.logRecordBuffer = []
+        
+    def flush(self):
+        pass # do nothing
+    
+    def getXml(self):
+        xml = ['<?xml version="1.0" encoding="utf-8"?>\n',
+               '<log>']
+        for logRec in self.logRecordBuffer:
+            msg = self.format(logRec)
+            if logRec.args:
+                args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) for n, v in logRec.args.items()])
+            else:
+                args = ""
+            xml.append('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>'.format(
+                    logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
+        xml.append('</log>')  
+        self.logRecBuffer = []
+        return '\n'.join(xml)
+    
+    def getText(self, separator='\n'):
+        text = separator.join([self.format(logRec) for logRec in self.logRecordBuffer])
+        self.logRecBuffer = []
+        return text
+    
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
 

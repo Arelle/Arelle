@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-12-18 18:18+Pacific Standard Time\n"
+"POT-Creation-Date: 2011-12-22 23:42+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -106,11 +106,15 @@ msgstr ""
 msgid "Specify formula tracing."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:99
+#: arelle\CntlrCmdLine.py:98
+msgid "start web server on host:port for REST and web access, e.g., --webserver locahost:8080."
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:101
 msgid "Show product version, copyright, and license."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:108
+#: arelle\CntlrCmdLine.py:110
 msgid ""
 "\n"
 "arelle(r) {0}\n"
@@ -139,53 +143,59 @@ msgid ""
 "   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:129
+#: arelle\CntlrCmdLine.py:131
 msgid ""
 "incorrect arguments, please try\n"
 "  python CntlrCmdLine.pyw --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:145
+#: arelle\CntlrCmdLine.py:143
+msgid ""
+"incorrect arguments with --webserver, please try\n"
+"  python CntlrCmdLine.pyw --help"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:162
 msgid "both --efm and --gfm validation are requested, proceeding with --efm only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:156
+#: arelle\CntlrCmdLine.py:173
 msgid "both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:201 arelle\CntlrCmdLine.py:216
+#: arelle\CntlrCmdLine.py:218 arelle\CntlrCmdLine.py:233
 #: arelle\CntlrGenVersReports.py:321 arelle\CntlrProfiler.py:20
 #: arelle\CntlrWinMain.py:547
 msgid "views loading"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:203
+#: arelle\CntlrCmdLine.py:220
 msgid "loaded in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:210
+#: arelle\CntlrCmdLine.py:227
 msgid "imported in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:218
+#: arelle\CntlrCmdLine.py:235
 msgid "diff comparison DTS loaded in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:224 arelle\CntlrWinMain.py:718
+#: arelle\CntlrCmdLine.py:241 arelle\CntlrWinMain.py:718
 msgid "compared in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:232 arelle\CntlrWinMain.py:675
+#: arelle\CntlrCmdLine.py:249 arelle\CntlrWinMain.py:675
 msgid "validated in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:257
+#: arelle\CntlrCmdLine.py:274
 msgid ""
 "[IOError] Failed to save output:\n"
 " {0}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:259
+#: arelle\CntlrCmdLine.py:276
 msgid ""
 "[Exception] Failed to complete validation: \n"
 "{0} \n"
@@ -1630,7 +1640,7 @@ msgid "C report file"
 msgstr ""
 
 #: arelle\ModelVersReport.py:297 arelle\Validate.py:223
-#: arelle\ValidateFiling.py:1109 arelle\ValidateFormula.py:109
+#: arelle\ValidateFiling.py:1113 arelle\ValidateFormula.py:109
 #: arelle\ValidateXbrl.py:552
 msgid "ready"
 msgstr ""
@@ -1675,15 +1685,15 @@ msgstr ""
 msgid "xbrl loading finished, {0}..."
 msgstr ""
 
-#: arelle\ModelXbrl.py:243
+#: arelle\ModelXbrl.py:264
 msgid "Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"
 msgstr ""
 
-#: arelle\ModelXbrl.py:345
+#: arelle\ModelXbrl.py:366
 msgid "Exception viewing properties {0} {1} at {2}"
 msgstr ""
 
-#: arelle\ModelXbrl.py:466
+#: arelle\ModelXbrl.py:487
 msgid "DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"
 msgstr ""
 
@@ -2004,23 +2014,23 @@ msgstr ""
 msgid "Concept %(concept)s missing standard label in local language."
 msgstr ""
 
-#: arelle\ValidateFiling.py:795
+#: arelle\ValidateFiling.py:796
 msgid "Concept %(concept)s not referred to by presentation relationship."
 msgstr ""
 
-#: arelle\ValidateFiling.py:800
+#: arelle\ValidateFiling.py:801
 msgid "Concept %(concept)s has a substitutionGroup of a non-standard concept."
 msgstr ""
 
-#: arelle\ValidateFiling.py:809
+#: arelle\ValidateFiling.py:810
 msgid "Tuple %(concept)s has mismatch between content and presentation children: %(missingQname)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:848
+#: arelle\ValidateFiling.py:849
 msgid "References for conflicting standard taxonomies %(namespaceConflicts)s are not allowed in same DTS"
 msgstr ""
 
-#: arelle\ValidateFiling.py:870
+#: arelle\ValidateFiling.py:871
 msgid ""
 "Ineffective arc %(arc)s in \n"
 "link role %(linkrole)s \n"
@@ -2030,95 +2040,95 @@ msgid ""
 "%(ineffectivity)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:897
+#: arelle\ValidateFiling.py:898
 msgid "Preferred label on presentation relationships not allowed"
 msgstr ""
 
-#: arelle\ValidateFiling.py:904
+#: arelle\ValidateFiling.py:905
 msgid "Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:915
+#: arelle\ValidateFiling.py:916
 msgid "Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:924
+#: arelle\ValidateFiling.py:925
 msgid "Non-distinguished preferredLabel presentation relations from concept %(conceptFrom)s in base set role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:957
+#: arelle\ValidateFiling.py:958
 msgid "Duplicate calculations relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:964
+#: arelle\ValidateFiling.py:965
 msgid "Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:970
+#: arelle\ValidateFiling.py:971
 msgid "Calculation linkbase linkrole %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:987
+#: arelle\ValidateFiling.py:988
 msgid "Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"
 msgstr ""
 
-#: arelle\ValidateFiling.py:994
+#: arelle\ValidateFiling.py:995
 msgid "Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1003
+#: arelle\ValidateFiling.py:1007
 msgid "The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1018
+#: arelle\ValidateFiling.py:1022
 msgid "Duplicate definitions relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1026
+#: arelle\ValidateFiling.py:1030
 msgid "Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in base set role %(linkrole)s to concept %(conceptTo)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1039
+#: arelle\ValidateFiling.py:1043
 msgid "Concept %(concept)s does not participate in an effective presentation relationship"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1045
+#: arelle\ValidateFiling.py:1049
 msgid "Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1059
+#: arelle\ValidateFiling.py:1063
 msgid "Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1075
+#: arelle\ValidateFiling.py:1079
 msgid "Presentation linkrole %(linkrole)s missing order number relationship set"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1083
+#: arelle\ValidateFiling.py:1087
 msgid "Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1089
+#: arelle\ValidateFiling.py:1093
 msgid "Presentation linkrole %(linkrole)s missing order number"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1097
+#: arelle\ValidateFiling.py:1101
 msgid "ArcroleType missing nl or en generic label: %(arcrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1106
+#: arelle\ValidateFiling.py:1110
 msgid "Schema type enumeration %(value)s must be a xbrli:stringItemType restriction"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1153
+#: arelle\ValidateFiling.py:1157
 msgid "Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1162
+#: arelle\ValidateFiling.py:1166
 msgid "Concept %(concept)s is missing an %(lang)s standard label."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1175
+#: arelle\ValidateFiling.py:1179
 msgid "Concept %(concept)s is missing an %(lang)s label for role %(role)s."
 msgstr ""
 
@@ -2353,11 +2363,11 @@ msgstr ""
 msgid "Taxonomy schema may only define one of these: %(contents)s"
 msgstr ""
 
-#: arelle\ValidateFilingDTS.py:431
+#: arelle\ValidateFilingDTS.py:432
 msgid "Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"
 msgstr ""
 
-#: arelle\ValidateFilingDTS.py:439
+#: arelle\ValidateFilingDTS.py:440
 msgid "A schema that defines non-abstract items MUST have a linked (2.1) reference linkbase AND/OR a label linkbase with @xlink:role=documentation"
 msgstr ""
 
@@ -2424,67 +2434,59 @@ msgstr ""
 msgid "Notall from primary item %(primaryItem)s in ELR role %(linkrole)s to %(hypercube)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:165
-msgid "ELR role %(linkrole)s, is not dedicated to %(hypercube)s, but also has %(otherQname)s"
-msgstr ""
-
-#: arelle\ValidateFilingDimensions.py:173
+#: arelle\ValidateFilingDimensions.py:174
 msgid "ELR role %(linkrole)s, for hypercube %(hypercube)s has another parent %(concept)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:184
+#: arelle\ValidateFilingDimensions.py:185
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain with members %(domain)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:188
+#: arelle\ValidateFilingDimensions.py:189
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s, has nonAbsract domain %(domain)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:192
+#: arelle\ValidateFilingDimensions.py:193
 msgid "Domain item %(domain)s in DRS role %(linkrole)s, in dimension %(dimension)s is not a domainItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:196
+#: arelle\ValidateFilingDimensions.py:197
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s, missing targetrole to consecutive domain relationship"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:201
+#: arelle\ValidateFilingDimensions.py:202
 msgid "Linkrole %(linkrole)s, has multiple domains %(domains)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:211
+#: arelle\ValidateFilingDimensions.py:212
 msgid "Dimension %(dimension)s domains same in linkroles %(linkroles)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:217
+#: arelle\ValidateFilingDimensions.py:218
 msgid "Domain member %(member)s in DRS role %(linkrole)s, has nested members"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:226
+#: arelle\ValidateFilingDimensions.py:227
 msgid "Domain member item %(member)s in DRS role %(linkrole)s is not a domainMemberItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:231
+#: arelle\ValidateFilingDimensions.py:232
 msgid "Domain item %(domain)s in DRS role %(linkrole)s is not a domainItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:236
+#: arelle\ValidateFilingDimensions.py:237
 msgid "Abstract domain item %(domain)s in DRS role %(linkrole)s is not a primaryDomainItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:246
-msgid "Hypercube %(hypercube)s has different dimensions in DRS roles %(linkrole)s and %(linkrole2)s: %(dimensions)s and %(dimensions2)s"
-msgstr ""
-
-#: arelle\ValidateFilingDimensions.py:375
+#: arelle\ValidateFilingDimensions.py:376
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s for hypercube %(hypercube)s, non-unique member %(concept)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:379
+#: arelle\ValidateFilingDimensions.py:380
 msgid "Primary items for hypercube %(hypercube)s ELR %(ELR)s, have non-unique (inheritance) member %(concept)s in DRS role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:386
+#: arelle\ValidateFilingDimensions.py:387
 msgid "Primary item %(concept)s in DRS role %(linkrole)s for hypercube %(hypercube)s, has parent %(concept2)s which is not a primaryDomainItem"
 msgstr ""
 
@@ -4204,15 +4206,15 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:455
+#: arelle\ViewWinRenderedGrid.py:457
 msgid "creating new instance {0}"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:469
+#: arelle\ViewWinRenderedGrid.py:461
 msgid "Saving {0}"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:538
+#: arelle\ViewWinRenderedGrid.py:528
 msgid "Saved {0}"
 msgstr ""
 

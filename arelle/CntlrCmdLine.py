@@ -36,6 +36,7 @@ def main():
                              "comparing (diffing) two DTSes producing a versioning report."))
     parser.add_option("-r", "--report", dest="versReportFilename",
                       help=_("FILENAME is the filename to save as the versioning report."))
+    parser.add_option("--versReportInMemory", action="store_true", dest="versReportInMemory")
     parser.add_option("-v", "--validate",
                       action="store_true", dest="validate",
                       help=_("Validate the file according to the entry "
@@ -93,7 +94,10 @@ def main():
     parser.add_option("--formulaVarExpressionCode", action="store_true", dest="formulaVarExpressionCode", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarExpressionEvaluation", action="store_true", dest="formulaVarExpressionEvaluation", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
+    parser.add_option("--formulaVarFilterWinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--webserver", action="store", dest="webserver",
+                      help=_("start web server on host:port for REST and web access, e.g., --webserver locahost:8080."))
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
@@ -124,9 +128,25 @@ def main():
                 "\n   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 "\n   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"
                 "\n   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
+                "\n   Bottle (c) 2011 Marcel Hellkamp"
                 ).format(Version.version))
-    elif len(args) != 0 or options.filename is None:
+    elif len(args) != 0 or (options.filename is None and options.webserver is None):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
+    elif options.webserver:
+        if any((options.filename, options.importFilenames, options.diffFilename, options.versReportFilename,
+                options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.gfmName,
+                options.utrValidate, options.csvDTS, options.csvFactList, options.csvFactListCols, 
+                options.csvConcepts, options.csvPre, options.csvCal, options.csvDim, options.csvFormulae,
+                options.csvTestReport, options.logFile, options.formulaParamExprResult, options.formulaParamInputValue,
+                options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
+                options.formulaCallExprResult, options.formulaVarSetExprEval, options.formulaVarSetExprResult,
+                options.formulaAsserResultCounts, options.formulaFormulaRules, options.formulaVarsOrder,
+                options.formulaVarExpressionSource, options.formulaVarExpressionCode, options.formulaVarExpressionEvaluation,
+                options.formulaVarExpressionResult, options.formulaVarFiltersResult)):
+            parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.pyw --help"))
+        else:
+            from arelle import CntlrWebMain
+            CntlrWebMain.startWebserver(CntlrCmdLine(logFileName='logToBuffer'), options)
     else:
         # parse and run the FILENAME
         CntlrCmdLine(logFileName=options.logFile).run(options)
@@ -138,6 +158,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                          logFormat="[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
         
     def run(self, options):
+        result = None
         self.filename = options.filename
         filesource = FileSource.openFileSource(self.filename,self)
         if options.validateEFM:
@@ -193,6 +214,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableExpressionEvaluation = True
         if options.formulaVarExpressionResult:
             fo.traceVariableExpressionResult = True
+        if options.formulaVarFilterWinnowing:
+            fo.traceVariableFilterWinnowing = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
         self.modelManager.formulaOptions = fo
@@ -211,7 +234,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                             (time.time() - startedAt, timeNow)), 
                                             messageCode="info", file=importFile)
         if options.diffFilename and options.versReportFilename:
-            diffFilesource = FileSource.FileSource(self.diffFilename,self)
+            diffFilesource = FileSource.FileSource(options.diffFilename,self)
             startedAt = time.time()
             modelXbrl = self.modelManager.load(diffFilesource, _("views loading"))
             self.addToLog(format_string(self.modelManager.locale, 
@@ -219,7 +242,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                         time.time() - startedAt), 
                                         messageCode="info", file=self.filename)
             startedAt = time.time()
-            self.modelManager.compareDTSes(options.versReportFilename)
+            result = self.modelManager.compareDTSes(options.versReportFilename, writeReportFile=not options.versReportInMemory)
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("compared in %.2f secs"), 
                                         time.time() - startedAt), 
@@ -259,11 +282,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.addToLog(_("[Exception] Failed to complete validation: \n{0} \n{1}").format(
                         err,
                         traceback.format_tb(sys.exc_info()[2])))
+        return result
 
 if __name__ == "__main__":
     '''
     if '--COMserver' in sys.argv:
-        import CntlrComServer
+        from arelle import CntlrComServer
         CntlrComServer.main()
+    else:
+        main()
     '''
     main()
+
