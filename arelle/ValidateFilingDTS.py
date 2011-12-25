@@ -44,7 +44,6 @@ def checkDTS(val, modelDocument, visited):
         
         # check schema contents types
         if val.validateSBRNL:
-            definesConcepts = False
             definesLinkroles = False
             definesArcroles = False
             definesLinkParts = False
@@ -120,6 +119,7 @@ def checkDTS(val, modelDocument, visited):
                                     val.modelXbrl.error("SBR.NL.2.2.2.02",
                                         _("Concept %(concept)s is also defined in standard taxonomy schema %(standardSchema)s without a general-special relationship"),
                                         modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
+                    ''' removed RH 2011-12-23 corresponding set up of table in ValidateFiling
                     if val.validateSBRNL and name in val.nameWordsTable:
                         if not any( any( genrlSpeclRelSet.isRelated(c, "child", modelConcept)
                                          for c in val.modelXbrl.nameConcepts.get(partialWordName, []))
@@ -127,7 +127,7 @@ def checkDTS(val, modelDocument, visited):
                             val.modelXbrl.error("SBR.NL.2.3.2.01",
                                 _("Concept %(specialName)s is appears to be missing a general-special relationship to %(generalNames)s"),
                                 modelObject=c, specialName=modelConcept.qname, generalNames=', or to '.join(val.nameWordsTable[name]))
-
+                    '''
 
                     # 6.7.17 id properly formed
                     id = modelConcept.id
@@ -218,7 +218,6 @@ def checkDTS(val, modelDocument, visited):
                             modelObject=modelConcept, concept=modelConcept.qname)
                     
                     if val.validateSBRNL:
-                        definesConcepts = True
                         if modelConcept.isTuple:
                             if modelConcept.substitutionGroupQname.localName == "presentationTuple" and modelConcept.substitutionGroupQname.namespaceURI.endswith("/basis/sbr/xbrl/xbrl-syntax-extension"): # namespace may change each year
                                 definesPresentationTuples = True
@@ -276,12 +275,6 @@ def checkDTS(val, modelDocument, visited):
                         if modelConcept.balance and not modelConcept.instanceOfType(XbrlConst.qnXbrliMonetaryItemType):
                             val.modelXbrl.error("SBR.NL.2.2.2.24",
                                 _("Non-monetary concept %(concept)s must not have a balance attribute"),
-                                modelObject=modelConcept, concept=modelConcept.qname)
-                        if (modelConcept.isItem or modelConcept.isTuple) and not (
-                                modelConcept.label(fallbackToQname=False,lang="nl") or 
-                                modelConcept.genLabel(fallbackToQname=False,lang="nl")):
-                            val.modelXbrl.error("SBR.NL.2.2.2.26",
-                                _("Concept %(concept)s must have a standard label in language 'nl'"),
                                 modelObject=modelConcept, concept=modelConcept.qname)
                         if modelConcept.isLinkPart:
                             definesLinkParts = True
@@ -353,12 +346,12 @@ def checkDTS(val, modelDocument, visited):
                         if usedOns & XbrlConst.standardExtLinkQnames:
                             definesLinkroles = True
                             if not e.genLabel():
-                                val.modelXbrl.error("SBR.NL.2.3.3.03",
+                                val.modelXbrl.error("SBR.NL.2.2.3.03",
                                     _("Link RoleType %(roleType)s missing a generic standard label"),
                                     modelObject=e, roleType=roleURI)
                             nlLabel = e.genLabel(lang="nl")
                             if definition != nlLabel:
-                                val.modelXbrl.error("SBR.NL.2.3.3.04",
+                                val.modelXbrl.error("SBR.NL.2.2.3.04",
                                     _("Link RoleType %(roleType)s definition does not match NL standard generic label, \ndefinition: %(definition)s \nNL label: %(label)s"),
                                     modelObject=e, roleType=roleURI, definition=definition, label=nlLabel)
                         if definition and (definition[0].isspace() or definition[-1].isspace()):
@@ -431,6 +424,13 @@ def checkDTS(val, modelDocument, visited):
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
                         modelObject=modelDocument)
+            if not definesConcepts and any(
+                       (refDoc.type == ModelDocument.Type.LINKBASE and
+                        XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "labelLink") is not None)
+                       for refDoc in modelDocument.referencesDocument.keys()): # no label linkbase
+                val.modelXbrl.error("SBR.NL.2.2.1.02",
+                    _("A schema having a label linkbase MUST define concepts"),
+                    modelObject=modelDocument)
             if definesNonabstractItems and not any(
                        (refDoc.type == ModelDocument.Type.LINKBASE and
                        (XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "referenceLink") is not None or

@@ -566,9 +566,8 @@ def checkElements(val, modelDocument, parent):
                                         _("%(element)s usedOn must not be link:calculationLink"),
                                         modelObject=elt, element=parent.qname, value=qName)
                                 if elt.localName == "roleType" and qName in XbrlConst.standardExtLinkQnames:
-                                    if not any(linkElt.elementQname == qName 
-                                               for key, linkElts in val.modelXbrl.baseSets.items() 
-                                               if key[1] == roleURI for linkElt in linkElts):
+                                    if not any((key[1] == roleURI  and key[2] == qName) 
+                                               for key in val.modelXbrl.baseSets.keys()):
                                         val.modelXbrl.error("SBR.NL.2.2.3.02",
                                             _("%(element)s usedOn %(usedOn)s not addressed for role %(role)s"),
                                             modelObject=elt, element=parent.qname, usedOn=qName, role=roleURI)
@@ -919,7 +918,7 @@ def checkElements(val, modelDocument, parent):
                     if val.validateSBRNL:
                         if elt.localName == "reference":
                             for child in elt.iterdescendants():
-                                if isinstance(child,ModelObject) and child.namespaceURI != "http://www.xbrl.org/2006/ref":
+                                if isinstance(child,ModelObject) and child.namespaceURI.startswith("http://www.xbrl.org") and child.namespaceURI != "http://www.xbrl.org/2006/ref":
                                     val.modelXbrl.error("SBR.NL.2.3.3.01",
                                         _("Reference %(xlinkLabel)s has unauthorized part element %(element)s"),
                                         modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"), 
