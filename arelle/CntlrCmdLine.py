@@ -16,6 +16,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 import logging
+from arelle import apf
 
 def main():
     gettext.install("arelle") # needed for options messages
@@ -101,7 +102,9 @@ def main():
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
-    
+    for plugin in apf.CommandLineOption.plugins:
+        parser.add_option("--"+plugin.name, action=plugin.action, dest=plugin.__name__, help=plugin.help)
+        
     envArgs = os.getenv("ARELLE_ARGS")
     if envArgs:
         argvFromEnv = shlex.split(envArgs)
@@ -131,7 +134,7 @@ def main():
                 "\n   Bottle (c) 2011 Marcel Hellkamp"
                 ).format(Version.version))
     elif len(args) != 0 or (options.filename is None and options.webserver is None):
-        parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
+        parser.error(_("You must provide a file or start in webserver mode. Please try\n  python CntlrCmdLine.pyw -f FILE [options]"))
     elif options.webserver:
         if any((options.filename, options.importFilenames, options.diffFilename, options.versReportFilename,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.gfmName,
@@ -152,7 +155,7 @@ def main():
         CntlrCmdLine(logFileName=options.logFile).run(options)
         
 class CntlrCmdLine(Cntlr.Cntlr):
-
+    plugins=apf.ExtensionsAt(apf.CommandLineOption)
     def __init__(self, logFileName=None):
         super().__init__(logFileName=logFileName if logFileName else "logToPrint",
                          logFormat="[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
@@ -276,6 +279,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvDim, "Dimension", "XBRL-dimensions")
             if options.csvFormulae:
                 ViewCsvFormulae.viewFormulae(modelXbrl, options.csvFormulae, "Formulae")
+            for plugin in self.plugins:
+                if hasattr(options, plugin.__class__.__name__):
+                    plugin.execute()
         except (IOError, EnvironmentError) as err:
             self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
         except Exception as err:

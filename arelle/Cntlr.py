@@ -6,6 +6,7 @@ Created on Oct 3, 2010
 '''
 import tempfile, os, pickle, sys, logging, gettext
 from arelle import ModelManager
+from arelle import apf
 from arelle.Locale import getLanguageCodes
 
 class Cntlr:
@@ -133,7 +134,8 @@ class Cntlr:
             self.logger.addHandler(self.logHandler)
         else:
             self.logger = None
-            
+    apf.load_plugins()
+
     def addToLog(self, message, messageCode="", file="", sourceLine=""):
         # if there is a default logger, use it with dummy file name and arguments
         if self.logger is not None:
