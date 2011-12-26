@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 5, 2010
 Refactored from ModelObject on Jun 11, 2011

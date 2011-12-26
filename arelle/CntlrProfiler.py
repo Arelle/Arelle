@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import Cntlr, ModelManager, FileSource, time
 from optparse import OptionParser
