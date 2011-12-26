@@ -62,7 +62,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             except KeyError:
                 isStd = (uri in disclosureSystem.standardTaxonomiesDict or
                          (not uri.startswith("http://") and 
-                          any(u.endswith(e) for u in (uri.replace("\\","/"),) for e in disclosureSystem.standardLocalHrefs)))
+                          # try 2011-12-23 RH: if works, remove the localHrefs
+                          # any(u.endswith(e) for u in (uri.replace("\\","/"),) for e in disclosureSystem.standardLocalHrefs)
+                          "/basis/sbr/" in uri.replace("\\","/")
+                          ))
                 _isStandardUri[uri] = isStd
                 return isStd
 
@@ -820,6 +823,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
 
         defaultLangStandardLabels = None #dereference
         
+        ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
         if self.validateSBRNL: # build camelCasedNamesTable
             self.nameWordsTable = {}
             for name in modelXbrl.nameConcepts.keys():
@@ -836,11 +840,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if words:
                     self.nameWordsTable[name] = words
             self.modelXbrl.profileActivity("... build name words table", minTimeToShow=1.0)
-
+        '''
+        
         # checks on all documents: instance, schema, instance                                
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
+        ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
         if self.validateSBRNL:
             del self.nameWordsTable
+        '''
         self.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
         # checks for namespace clashes
@@ -1075,27 +1082,34 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             # check presentation link roles for generic linkbase order number
             ordersRelationshipSet = modelXbrl.relationshipSet("http://www.nltaxonomie.nl/2011/arcrole/linkrole-order")
             presLinkroleNumberURI = {}
-            for roleURI, modelRoleTypes in modelXbrl.roleTypes.items():
-                for modelRoleType in modelRoleTypes:
-                    if XbrlConst.qnLinkPresentationLink in modelRoleType.usedOns:
-                        if not ordersRelationshipSet:
-                            modelXbrl.error("SBR.NL.2.2.3.06",
-                                _("Presentation linkrole %(linkrole)s missing order number relationship set"),
-                                modelObject=modelRoleType, linkrole=modelRoleType.roleURI)
-                        else:
-                            order = None
-                            for orderNumRel in ordersRelationshipSet.fromModelObject(modelRoleType):
-                                order = orderNumRel.toModelObject.xValue
-                                if order in presLinkroleNumberURI:
+            presLinkrolesCount = 0
+            for countLinkroles in (True, False):
+                for roleURI, modelRoleTypes in modelXbrl.roleTypes.items():
+                    for modelRoleType in modelRoleTypes:
+                        if XbrlConst.qnLinkPresentationLink in modelRoleType.usedOns:
+                            if countLinkroles:
+                                presLinkrolesCount += 1
+                            else:
+                                if not ordersRelationshipSet:
                                     modelXbrl.error("SBR.NL.2.2.3.06",
-                                        _("Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s"),
-                                        modelObject=modelRoleType, order=order, linkrole=modelRoleType.roleURI, otherLinkrole=presLinkroleNumberURI[order])
+                                        _("Presentation linkrole %(linkrole)s missing order number relationship set"),
+                                        modelObject=modelRoleType, linkrole=modelRoleType.roleURI)
                                 else:
-                                    presLinkroleNumberURI[order] = modelRoleType.roleURI
-                            if not order:
-                                modelXbrl.error("SBR.NL.2.2.3.06",
-                                    _("Presentation linkrole %(linkrole)s missing order number"),
-                                    modelObject=modelRoleType, linkrole=modelRoleType.roleURI)
+                                    order = None
+                                    for orderNumRel in ordersRelationshipSet.fromModelObject(modelRoleType):
+                                        order = orderNumRel.toModelObject.xValue
+                                        if order in presLinkroleNumberURI:
+                                            modelXbrl.error("SBR.NL.2.2.3.06",
+                                                _("Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s"),
+                                                modelObject=modelRoleType, order=order, linkrole=modelRoleType.roleURI, otherLinkrole=presLinkroleNumberURI[order])
+                                        else:
+                                            presLinkroleNumberURI[order] = modelRoleType.roleURI
+                                    if not order:
+                                        modelXbrl.error("SBR.NL.2.2.3.06",
+                                            _("Presentation linkrole %(linkrole)s missing order number"),
+                                            modelObject=modelRoleType, linkrole=modelRoleType.roleURI)
+                if countLinkroles and presLinkrolesCount < 2:
+                    break   # don't check order numbers if only one presentation linkrole
             # check arc role definitions for labels
             for arcroleURI, modelRoleTypes in modelXbrl.arcroleTypes.items():
                 for modelRoleType in modelRoleTypes:

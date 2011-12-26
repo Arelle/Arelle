@@ -194,7 +194,7 @@ def checkDimensions(val, drsELRs):
                 val.modelXbrl.error("SBR.NL.2.2.2.19",
                     _("Domain item %(domain)s in DRS role %(linkrole)s, in dimension %(dimension)s is not a domainItem"),
                     modelObject=rel, domain=relTo.qname, linkrole=rel.linkrole, dimension=relFrom.qname)
-            if not rel.targetRole and relTo.substitutionGroupQname.localName != "domainItem":
+            if not rel.targetRole and relTo.substitutionGroupQname.localName == "domainItem":
                 val.modelXbrl.error("SBR.NL.2.3.6.03",
                     _("Dimension %(dimension)s in DRS role %(linkrole)s, missing targetrole to consecutive domain relationship"),
                     modelObject=rel, dimension=relFrom.qname, linkrole=rel.linkrole)
