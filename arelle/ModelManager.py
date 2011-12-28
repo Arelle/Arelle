@@ -71,15 +71,14 @@ class ModelManager:
         
     def compareDTSes(self, versReportFile, writeReportFile=True):
         from arelle.ModelVersReport import ModelVersReport
-        if len(self.loadedModelXbrls) == 2:
+        if len(self.loadedModelXbrls) >= 2:
+            fromDTS = self.loadedModelXbrls[-2]
+            toDTS = self.loadedModelXbrls[-1]
             from arelle.ModelDocument import Type
             modelVersReport = self.create(newDocumentType=Type.VERSIONINGREPORT,
                                           url=versReportFile,
                                           createModelDocument=False)
-            ModelVersReport(modelVersReport).diffDTSes(
-                          versReportFile,
-                          self.loadedModelXbrls[0], self.loadedModelXbrls[1],
-                          writeReportFile=writeReportFile)
+            ModelVersReport(modelVersReport).diffDTSes(versReportFile, fromDTS, toDTS)
             return modelVersReport
         
     def close(self, modelXbrl=None):

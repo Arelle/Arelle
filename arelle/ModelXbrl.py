@@ -55,10 +55,10 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
     modelXbrl = ModelXbrl(modelManager)
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
-        modelXbrl.fileSource = FileSource.FileSource(url)
+        modelXbrl.fileSource = FileSource.FileSource(url) # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, url, schemaRefs=schemaRefs, isEntry=isEntry)
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
     return modelXbrl

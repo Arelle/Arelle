@@ -27,8 +27,8 @@ from arelle import (DialogURL,
                 ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
                 ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
                 ViewWinTests, ViewWinVersReport, ViewWinRssFeed,
-                ViewCsvTests,
-                ViewHtmlRenderedGrid,
+                ViewFileTests,
+                ViewFileRenderedGrid,
                 Updater
                )
 from arelle.ModelFormulaObject import FormulaOptions
@@ -370,7 +370,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     if not filename:
                         return False
                     try:
-                        ViewHtmlRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.lang, sourceView=view)
+                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.lang, sourceView=view)
                     except (IOError, EnvironmentError) as err:
                         tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
@@ -393,7 +393,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if not filename:
                     return False
                 try:
-                    ViewCsvTests.viewTests(self.modelManager.modelXbrl, filename)
+                    ViewFileTests.viewTests(self.modelManager.modelXbrl, filename)
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(

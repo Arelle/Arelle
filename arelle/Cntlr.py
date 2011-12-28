@@ -254,10 +254,13 @@ class LogToBufferHandler(logging.Handler):
         self.logRecBuffer = []
         return '\n'.join(xml)
     
-    def getText(self, separator='\n'):
-        text = separator.join([self.format(logRec) for logRec in self.logRecordBuffer])
+    def getLines(self):
+        lines = [self.format(logRec) for logRec in self.logRecordBuffer]
         self.logRecBuffer = []
-        return text
+        return lines
+    
+    def getText(self, separator='\n'):
+        return separator.join(self.getLines())
     
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
