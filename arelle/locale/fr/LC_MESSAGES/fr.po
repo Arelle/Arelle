@@ -1912,6 +1912,7 @@ msgstr "La dimension %(dimension)s dans le rôle DRS %(linkrole)s a un domaine "
 
 #: ValidateFilingDimensions.py:185
 #, fuzzy
+# FIXME is it really the error message?
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain "
 "with members %(domain)s"
 msgstr "La dimension %(dimension)s dans le rôle DRS %(linkrole)s a un domain "
@@ -4168,12 +4169,9 @@ msgid "nonabstract items"
 msgstr "item non abstrait"
 
 #: ValidateFiling.py:925
-#, fuzzy
 msgid "Non-distinguished preferredLabel presentation relations from concept "
 "%(conceptFrom)s in base set role %(linkrole)s"
-msgstr "Attribut xbrldt:usable='false' non autorisé sur la relation%(arc)s du "
-"concept %(conceptFrom)s dans l'ensemble de base rôle %(linkrole)s "
-"vers le concept %(conceptTo)s"
+msgstr ""
 
 #: ValidateFilingDTS.py:278
 msgid "Non-monetary concept %(concept)s must not have a balance "
@@ -4419,18 +4417,15 @@ msgid "Prefixed"
 msgstr "Préfixé"
 
 #: ValidateFiling.py:1093
-#, fuzzy
 msgid "Presentation linkrole %(linkrole)s missing order "
 "number"
-msgstr "Le rôle de lien générique %(xlinkRole)s devrait avoir "
-"roleRef"
+msgstr "Le rôle de lien présentation %(linkrole)s devrait avoir "
+"un ordre"
 
 #: ValidateFiling.py:1079
-#, fuzzy
 msgid "Presentation linkrole %(linkrole)s missing order number relationship "
 "set"
-msgstr "Axe %(dimension)s dans le rôle du DRS %(linkrole)s, il manque une "
-"relation targetrole consécutive"
+msgstr ""
 
 #: ValidateFiling.py:1087
 msgid "Presentation linkrole order number %(order)s of %(linkrole)s also "
@@ -4569,12 +4564,10 @@ msgid "References"
 msgstr "Références"
 
 #: ValidateFiling.py:849
-#, fuzzy
 msgid "References for conflicting standard taxonomies %(namespaceConflicts)s "
 "are not allowed in same DTS"
-msgstr "Les références pour le concept standard de taxonomy %(concept)s ne "
-"sont pas autorisées dans une base de liens étendue : "
-"%(text)s"
+msgstr "Les références pour les taxonomie standards en conflit %(namespaceConflicts)s ne "
+"sont pas autorisées dans le même DTS"
 
 #: ValidateFiling.py:779
 msgid "References for extension concept %(concept)s are not allowed: "
@@ -4656,10 +4649,9 @@ msgstr "Resource %(xlinkLabel)s, le rôle %(role) n'est pas un rôle standard "
 "de taxonomy"
 
 #: ValidateXbrlDTS.py:949
-#, fuzzy
 msgid "Resource element %(element)s may not be contained in a linkbase with "
 "%(element2)s"
-msgstr "L'élément étendu %(element)s doit être le même que "
+msgstr "L'élément ressource %(element)s ne peut pas être dans contenu dans la même base de liens que "
 "%(element2)s"
 
 #: WebCache.py:300
@@ -4797,9 +4789,8 @@ msgstr "Même libellé pour les concepts %(concept)s et %(concept2)s dans la "
 "%(text)s"
 
 #: ViewWinRenderedGrid.py:50
-#, fuzzy
 msgid "Save"
-msgstr "Enregistrer..."
+msgstr "Enregistrer"
 
 #: CntlrWinMain.py:75
 msgid "Save DTS Package"
@@ -4840,14 +4831,12 @@ msgid "Saves currently selected local XBRL "
 msgstr "Enregistre le fichier XBRL sélectionné"
 
 #: ViewWinRenderedGrid.py:461
-#, fuzzy
 msgid "Saving {0}"
-msgstr "chargement de {0}"
+msgstr "Enregistrement de {0}"
 
 #: ValidateFilingDTS.py:418
-#, fuzzy
 msgid "sbrPresentationTuples"
-msgstr "1Presentation"
+msgstr ""
 
 #: ValidateFilingDTS.py:419
 msgid "sbrSpecificationTuples"
@@ -4858,44 +4847,38 @@ msgid "Scenario"
 msgstr "Scénario"
 
 #: ValidateXbrlDTS.py:549
-#, fuzzy
 msgid "Schema %(element)s %(attribute)s length (%(length)s) is over 255 "
 "bytes long in utf-8 %(roleURI)s"
-msgstr "Schéma %(element)s %(attribut)s dépase 200 octets en UTF-8 "
+msgstr "Schéma %(element)s %(attribute)s de longueur %(length)s dépasse 255 octets en UTF-8 "
 "%(roleURI)s"
 
 #: ValidateXbrlDTS.py:480
-#, fuzzy
 msgid "Schema %(element)s has a name length (%(length)s) over 200 bytes long "
 "in utf-8, %(name)s."
-msgstr "Schéma %(element)s dépase 200 octets en UTF-8 "
+msgstr "Le nom du schéma %(element)s a une longueur (%(length)s) qui dépasse 200 octets en UTF-8 "
 "%(name)s"
 
 #: ValidateXbrlDTS.py:429
-#, fuzzy
 msgid "Schema %(element)s must have %(attrName)s"
-msgstr "L'élément schéma ne doit pas avoir d'attribut "
-"%(attribute)s"
+msgstr "Le schéma %(element)s doit avoir l'attribut "
+"%(attrName)s"
 
 #: ValidateXbrlDTS.py:433
-#, fuzzy
 msgid "Schema %(element)s must have %(attrName)s = "
 "\"1\""
-msgstr "Schéma %(element)s doit avoir minOccurs et "
-"maxOccurs=\"1\""
+msgstr "Schéma %(element)s doit avoir %(attrName)s = "
+"\"1\""
 
 #: ValidateXbrlDTS.py:414
-#, fuzzy
 msgid "Schema %(element)s must have minOccurs and "
 "maxOccurs"
 msgstr "Schéma %(element)s doit avoir minOccurs et "
-"maxOccurs=\"1\""
+"maxOccurs"
 
 #: ValidateXbrlDTS.py:369
-#, fuzzy
 msgid "Schema concept definition is not at the root level: "
 "%(concept)s"
-msgstr "La définiton de l'élément %(concept)s n'est pas à la racine du "
+msgstr "La définiton du concept %(concept)s n'est pas à la racine du "
 "schéma"
 
 #: ValidateXbrlDTS.py:345
@@ -4939,11 +4922,10 @@ msgid "Schema file annotation missing appinfo element must be be behind "
 msgstr ""
 
 #: ValidateXbrlDTS.py:490
-#, fuzzy
 msgid "Schema file element must not be used "
 "\"%(element)s\""
-msgstr "Dans le fichier de schéma {0}, l'élément \"%(element)s\" ne doit pas "
-"êter utilisé"
+msgstr "L'élément fichier du schéma \"%(element)s\" ne doit pas "
+"être utilisé"
 
 #: ValidateXbrlDTS.py:233
 msgid "Schema has %(annotationsCount)s xs:annotation elements, only 1 "
@@ -4962,17 +4944,15 @@ msgstr "Dans le schéma, l'élément racine %(concept)s %(requirement)s contient
 "un attribut %(attribute)s"
 
 #: ValidateXbrlDTS.py:325
-#, fuzzy
 msgid "Schema targetNamespace length (%(length)s) is over 255 bytes long in "
 "utf-8 %(targetNamespace)s"
-msgstr "Le targetNamespace du schéma dépasse 200 octets en UTF-8 : "
-"%(targetNamespace)s"
+msgstr "Le targetNamespace du schéma dépasse 255 octets en UTF-8 : "
+"%(targetNamespace)s  (longueur %(length)s)"
 
 #: ValidateFiling.py:1110
-#, fuzzy
 msgid "Schema type enumeration %(value)s must be a xbrli:stringItemType "
 "restriction"
-msgstr "L'énumération du schéma %(value)s doit êter une restriction de "
+msgstr "L'énumération du type schéma %(value)s doit être une restriction de "
 "xbrli:stringItemType"
 
 #: CntlrWinMain.py:97
@@ -5084,18 +5064,16 @@ msgid "Show %(xlinkShow)s invalid in extended link "
 msgstr ""
 
 #: ViewWinFactGrid.py:29
-#, fuzzy
 msgid "Show Dimension Defaults"
-msgstr "Compare les valeurs par défaut de dimensions"
+msgstr "Afficher les valeurs de dimensions par défaut"
 
 #: DialogOpenArchive.py:219
 msgid "Show Entries"
 msgstr "Afficher les entrées"
 
 #: DialogOpenArchive.py:219
-#, fuzzy
 msgid "Show Files"
-msgstr "Fichiers de log"
+msgstr "Afficher les fichiers"
 
 #: CntlrCmdLine.py:101
 msgid "Show product version, copyright, and "
@@ -5257,10 +5235,9 @@ msgstr "Dans le schéma de taxonomie %(schema)s, namespace %(targetNamespace)s "
 "'_'"
 
 #: ValidateFilingDTS.py:427
-#, fuzzy
 msgid "Taxonomy schema may only define one of these: "
 "%(contents)s"
-msgstr "Le schéma de taxonomie %(schema)s ne peut définir qu'un seul parmi "
+msgstr "Le schéma de taxonomie ne peut définir qu'un seul parmi "
 "%(content)s"
 
 #: ValidateFilingDTS.py:432
@@ -5362,9 +5339,8 @@ msgid "Trading/non-trading indicator (uk-bus:EntityTrading) is "
 msgstr ""
 
 #: FormulaEvaluator.py:772
-#, fuzzy
 msgid "Tuple"
-msgstr "tuples"
+msgstr "tuple"
 
 # Label: ignore
 #: ValidateXbrl.py:493
@@ -5484,9 +5460,8 @@ msgid "typedDomainRef={0} (element qname cannot be "
 msgstr ""
 
 #: ValidateFilingDTS.py:420
-#, fuzzy
 msgid "types"
-msgstr "tuples"
+msgstr "types"
 
 #: XPathContext.py:263
 msgid "Unary expression sequence length error"
@@ -5536,11 +5511,10 @@ msgstr "Unité %(unitID)s, la mesure %(measure) apparaît à la fois dans le "
 "numérateur et le dénominateur."
 
 #: ValidateFiling.py:413
-#, fuzzy
 msgid "Unit has a measure  with localName length (%(length)s) over 200 bytes "
 "long in utf-8, %(measure)s."
-msgstr "L'unité %(unitID)s a une mesure %(measure)s de plus de 200 octets de "
-"long en UTF-8."
+msgstr "L'unité a une mesure %(measure)s avec un nom local dont la "
+"longueur (%(length)s) dépasse 200 octets en UTF-8."
 
 #: ViewWinTree.py:194
 msgid "Unit ID"
@@ -5841,29 +5815,26 @@ msgstr "Ensemble de varables : %(xlinkLabel)s, ordre des variables : "
 "%(dependencies)s"
 
 #: ValidateFormula.py:536
-#, fuzzy
 msgid "Variable set %(xlinkLabel1)s aspectModel (%(aspectModel1)s) differs "
 "from varaible set %(xlinkLabel2)s aspectModel "
 "(%(aspectModel2)s)"
-msgstr "Ensemble de varables : %(xlinkLabel)s, model d'aspect "
-"%(aspectModel)s, filtre %(filterName)s %(filterLabel)s peut couvrir "
-"un aspect en dehors du modèle d'aspect"
+msgstr "Ensemble de varables %(xlinkLabel1)s, modèle d'aspect %(aspectModel1)s diffère "
+"de l'ensemble de variables  %(xlinkLabel2)s, modèle d'aspect %(aspectModel2)s"
 
 #: ValidateFormula.py:530
 msgid "Variable set %(xlinkLabel1)s in instance %(instance1)s has variables "
 "scope relationship to varaible set %(xlinkLabel2)s in instance "
 "%(instance2)s"
 msgstr "L'ensemble de variables %(xlinkLabel1)s de l'instance %(instance1)s a "
-"une relation de périmètre de variables vers l'ensemble de variabels "
-"%(xlinkLabel2)s de l'instance %(instance2)s"
+"une relation de périmètre vers l'ensemble de variables %(xlinkLabel2)s de l'instance "
+"%(instance2)s"
 
 #: FormulaEvaluator.py:154
-#, fuzzy
 msgid "Variable set chained in scope of variable set %(variableset)s \n"
 "Exception: \n"
 "%(error)s"
-msgstr "Ensemble de variables\n"
-"%(variableSet)s\n"
+msgstr "Ensemble de variables chainées dans le périmètre de l'ensemble de variables "
+"%(variableset)s\n"
 "Exception : \n"
 "%(error)s"
 
@@ -5913,7 +5884,6 @@ msgid "viewing facts"
 msgstr "voir les faits"
 
 #: ViewCsvFormulae.py:14
-#, fuzzy
 msgid "viewing formulae"
 msgstr "voir les formules"
 
@@ -6016,17 +5986,16 @@ msgid "Write fact list into CSVFILE"
 msgstr "Enregistre la liste de faits dans CSVFILE"
 
 #: CntlrCmdLine.py:75
-#, fuzzy
 msgid "Write formulae linkbase into CSVFILE"
-msgstr "Enregistre la base de liens de calcul dans "
-"CSVFILE"
+msgstr "Enregistre la base de liens de formules dans "
+"FICHIERCSV"
 
 #: CntlrCmdLine.py:79
-#, fuzzy
 msgid "Write log messages into file, otherwise they go to standard output.  "
 "If file ends in .xml it is xml-formatted, otherwise it is text. "
 msgstr "Enregistre les messages de log dans le fichier, sinon ils seront "
-"produits sur la sortie standard"
+"produits sur la sortie standard. "
+"Si le fichier porte l'extension .xml, il sera au format XML, sinon il sera au format texte."
 
 #: CntlrCmdLine.py:69
 msgid "Write presentation linkbase into CSVFILE"
@@ -6067,19 +6036,16 @@ msgid "XBRL files"
 msgstr "Fichiers XBRL"
 
 #: ViewWinRenderedGrid.py:49
-#, fuzzy
 msgid "XBRL instance"
-msgstr "Sortie XBRL instance .xml"
+msgstr "Instance XBRL"
 
 #: CntlrWinMain.py:384
-#, fuzzy
 msgid "XBRL instance .xbrl"
-msgstr "Sortie XBRL instance .xbrl"
+msgstr "Instance XBRL .xbrl"
 
 #: CntlrWinMain.py:384
-#, fuzzy
 msgid "XBRL instance .xml"
-msgstr "Sortie XBRL instance .xml"
+msgstr "Instance XBRL .xml"
 
 #: ModelXbrl.py:50 ModelXbrl.py:131
 msgid "xbrl loading finished, {0}..."
