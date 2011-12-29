@@ -1,7 +1,7 @@
 # Arelle English resources.
 # Copyright (C) 2011 Mark V Systems
 # This file is distributed under the same license as Arelle.
-# Régis Décamps <regis.decamps@banque-france.fr>, 2011
+# RÃ©gis DÃ©camps <regis.decamps@banque-france.fr>, 2011
 #
 #, fuzzy
 msgid ""
@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-09-13 15:50+0200\n"
 "PO-Revision-Date: 2011-09-13 15:50+0200\n"
-"Last-Translator: Régis Décamps <regis.decamps@banque-france.fr>\n"
+"Last-Translator: RÃ©gis DÃ©camps <regis.decamps@banque-france.fr>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ANSI\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -59,8 +59,17 @@ msgstr "Variable set %(xlinkLabel1)s in instance %(instance1)s has variables "
 "scope relationship to variable set %(xlinkLabel2)s in instance "
 "%(instance2)s"
 
+#: ValidateFormula.py:536
+msgid "Variable set %(xlinkLabel1)s aspectModel (%(aspectModel1)s) differs "
+"from varaible set %(xlinkLabel2)s aspectModel "
+"(%(aspectModel2)s)"
+msgstr "Variable set %(xlinkLabel1)s aspectModel (%(aspectModel1)s) differs "
+"from variable set %(xlinkLabel2)s aspectModel "
+"(%(aspectModel2)s)"
+
 #: CntlrCmdLine.py:143
 msgid "incorrect arguments with --webserver, please try\n"
 "  python CntlrCmdLine.pyw --help"
 msgstr "incorrect arguments with --webserver, please try\n"
 "  python arelleCmdLine.py --help"
+
