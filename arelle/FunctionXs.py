@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Dec 20, 2010
 
@@ -246,7 +248,7 @@ def gDay(xc, source):
 def gMonth(xc, source):
     raise xsFunctionNotAvailable()
   
-def string(xc, source):
+def xsString(xc, source):
     if isinstance(source,bool):
         return 'true' if source else 'false'
     elif isinstance(source,float):
@@ -272,7 +274,7 @@ def string(xc, source):
 def normalizedString(xc, source):
     return str(source)
   
-tokenPattern = re.compile("(^\s([.]*[\s])*)$")
+tokenPattern = re.compile(r"^\s*([-\.:\w]+)\s*$")
 def token(xc, source):
     s = str(source)
     if tokenPattern.match(s): return s
@@ -303,7 +305,20 @@ def ENTITY(xc, source):
     raise xsFunctionNotAvailable()
   
 def boolean(xc, source):
-    raise xsFunctionNotAvailable()
+    if isinstance(source,bool):
+        return source
+    elif isinstance(source,(int,float)):
+        if source == 1:
+            return True
+        elif source == 0:
+            return False
+    elif isinstance(source,str):
+        b = source.lower()
+        if b in ('true','yes'):
+            return True
+        elif b in ('false','no'):
+            return False
+    raise FORG0001
   
 def base64Binary(xc, source):
     raise xsFunctionNotAvailable()
@@ -354,7 +369,7 @@ xsFunctions = {
     'gMonthDay': gMonthDay,
     'gDay': gDay,
     'gMonth': gMonth,
-    'string': string,
+    'string': xsString,
     'normalizedString': normalizedString,
     'token': token,
     'language': language,
@@ -371,4 +386,3 @@ xsFunctions = {
     'QName': QName,
     'NOTATION': NOTATION,
     }
-  

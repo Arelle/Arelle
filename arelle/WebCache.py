@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 5, 2010
 
@@ -75,11 +77,19 @@ class WebCache:
         self.cachedUrlCheckTimesModified = False
         
     def resetProxies(self, httpProxyTuple):
+        try:
+            from ntlm import HTTPNtlmAuthHandler
+            self.hasNTLM = True
+        except ImportError:
+            self.hasNTLM = False
         self.proxy_handler = urllib.request.ProxyHandler(proxyDirFmt(httpProxyTuple))
         self.proxy_auth_handler = urllib.request.ProxyBasicAuthHandler()
         self.http_auth_handler = urllib.request.HTTPBasicAuthHandler()
-
-        self.opener = urllib.request.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
+        if self.hasNTLM:
+            self.ntlm_auth_handler = HTTPNtlmAuthHandler.HTTPNtlmAuthHandler()            
+            self.opener = urllib.request.build_opener(self.proxy_handler, self.ntlm_auth_handler, self.proxy_auth_handler, self.http_auth_handler)
+        else:
+            self.opener = urllib.request.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
 
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
@@ -200,7 +210,7 @@ class WebCache:
                     return None
                 
                 except Exception as err:
-                    self.cntlr.addToLog(_("{0} \nretrieving {1} \nswitching to work offline").format(err,url))
+                    self.cntlr.addToLog(_("{0} \nunsuccessful retrieval of {1} \nswitching to work offline").format(err,url))
                     # try working offline
                     self.workOffline = True
                     return filepath
@@ -289,7 +299,7 @@ class WebCache:
         # raise exception if actual size does not match content-length header
         if size >= 0 and read < size:
             raise ContentTooShortError(
-                "retrieval incomplete: got only %i out of %i bytes"
+                _("retrieval incomplete: got only %i out of %i bytes")
                 % (read, size), result)
 
         return result

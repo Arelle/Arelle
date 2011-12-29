@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Jan 26, 2011
 
@@ -16,6 +18,7 @@ import encodings.aliases
 import re
 import collections
 from builtins import str as _builtin_str
+import unicodedata
 import functools
 
 CHAR_MAX = 127
@@ -37,7 +40,51 @@ def getUserLocale():
 
 def getLanguageCode():
     import locale
-    return locale.getdefaultlocale()[0].replace("_","-")
+    try:
+        return locale.getdefaultlocale()[0].replace("_","-")
+    except AttributeError: #language code and encoding may be None if their values cannot be determined.
+        return "en"    
+
+def getLanguageCodes():
+    lang = getLanguageCode()
+    # allow searching on the lang with country part, either python or standard form, or just language
+    return [lang, lang.replace("-","_"), lang.partition("-")[0]]
+
+def rtlString(source, lang):
+    if lang and lang[0:2] in {"ar","he"}:
+        line = []
+        lineInsertion = 0
+        words = []
+        rtl = True
+        for c in source:
+            bidi = unicodedata.bidirectional(c)
+            if rtl:
+                if bidi == 'L':
+                    if words:
+                        line.insert(lineInsertion, ''.join(words))
+                        words = []
+                    rtl = False
+                elif bidi in ('R', 'NSM', 'AN'):
+                    pass
+                else:
+                    if words:
+                        line.insert(lineInsertion, ''.join(words))
+                        words = []
+                    line.insert(lineInsertion, c)
+                    continue
+            else:
+                if bidi == 'R' or bidi == 'AN':
+                    if words:
+                        line.append(''.join(words))
+                        words = []
+                    rtl = True
+            words.append(c)
+        if words:
+            if rtl:
+                line.insert(0, ''.join(words))
+        return ''.join(line)
+    else:
+        return source
 
 # Iterate over grouping intervals
 def _grouping_intervals(grouping):

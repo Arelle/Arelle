@@ -1,0 +1,6124 @@
+# French translations for Arelle.
+# Traduction anglaise du package Arelle.
+# Copyright (C) 2011 Mark V Systems
+# This file is distributed under the same license as the Arelle package.
+# Régis Décamps <regis.decamps@acp.banque-france.fr>, 2011
+#
+msgid ""
+msgstr "Project-Id-Version: trunk\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-12-22 23:42+Pacific Standard Time\n"
+"PO-Revision-Date: 2011-09-08 11:44+0200\n"
+"Last-Translator: <regis.decamps@acp.banque-france.fr>\n"
+"Language-Team: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: CntlrCmdLine.py:110
+msgid "\narelle(r) {0}\n\nAn open source XBRL platform\n"
+"(c) 2010-2011 Mark V Systems Limited\n"
+"All rights reserved\n"
+"http://www.arelle.org\n"
+"support@arelle.org\n"
+"\n"
+"Licensed under the Apache License, Version 2.0 (the \"License\"); you "
+"may not \n"
+"use this file except in compliance with the License.  You may obtain "
+"a copy \n"
+"of the License at 'http://www.apache.org/licenses/LICENSE-2.0'\n"
+"\nUnless required by applicable law or agreed to in writing, software \n"
+"distributed under the License is distributed on an \"AS IS\" BASIS, \n"
+"WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or "
+"implied.  \n"
+"See the License for the specific language governing permissions and \n"
+"limitations under the License.\n"
+"\nIncludes:\n   Python(r) (c) 2001-2010 Python Software Foundation\n"
+"   PyParsing (c) 2003-2010 Paul T. McGuire\n"
+"   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh\n"
+"   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. "
+"Giffin, (c) 2000 A. Khan\n"
+"   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. "
+"Kiseliov"
+msgstr ""
+
+#: CntlrWinMain.py:897
+msgid "\n"
+"Check calculations (infer decimals)"
+msgstr "\n"
+"Validation des calculs (inférence des "
+"décimales)"
+
+#: CntlrWinMain.py:899
+msgid "\n"
+"Check calculations (infer precision)"
+msgstr "\n"
+"Vérication des calculs (inférence de "
+"précision)"
+
+#: CntlrWinMain.py:903
+msgid "\n"
+"Check unit type registry"
+msgstr "\n"
+"Vérification du registre des types d'unité"
+
+#: ValidateXbrl.py:251 ValidateXbrl.py:252
+msgid " (non-numeric)"
+msgstr " (non numéric)"
+
+#: ModelDocument.py:32
+msgid " blocked"
+msgstr " bloqué"
+
+#: ValidateVersReport.py:291
+msgid "%(action)s %(event)s %(attr)s $(attrName)s does not have a "
+"namespace"
+msgstr "%(action)s %(event)s %(attr)s $(attrName)s n'a pas d'espace de "
+"nommage"
+
+#: ValidateVersReport.py:296
+msgid "%(action)s %(event)s %(attr)s $(attrName)s has an invalid "
+"namespace"
+msgstr "%(action)s %(event)s %(attr)s $(attrName)s a un espace de nommage non "
+"valide"
+
+#: ValidateVersReport.py:301
+msgid "%(action)s %(event)s event is not recognized"
+msgstr "L'événement %(action)s %(event)s n'est pas "
+"reconnu"
+
+#: ValidateVersReport.py:124
+msgid "%(action)s %(event)s fromConcept %(concept)s does not reference a "
+"concept in fromDTS"
+msgstr "%(action)s %(event)s fromConcept %(concept)s ne référence pas un "
+"concept de fromDTS"
+
+#: ValidateVersReport.py:132
+msgid "%(action)s %(event)s fromConcept %(concept)s must be defined as a "
+"tuple"
+msgstr "%(action)s %(event)s fromConcept %(concept)s doit être défini comme "
+"tuple"
+
+#: ValidateVersReport.py:280
+msgid "%(action)s %(event)s fromConcept %(conceptFrom)s and toConcept "
+"%(conceptTo)s must be equivalent or "
+"related"
+msgstr "%(action)s %(event)s fromConcept %(conceptFrom)s et toConcept "
+"%(conceptTo)s doivent être équivalents"
+
+#: ValidateVersReport.py:163
+msgid "%(action)s %(event)s fromResource %(resource)s does not have a label "
+"relationship to {3} in fromDTS"
+msgstr "%(action)s %(event)s fromResource %(resource)s n'a pas de relation "
+"libellé avec {3} dans fromDTS"
+
+#: ValidateVersReport.py:193
+msgid "%(action)s %(event)s fromResource %(resource)s does not have a "
+"reference relationship to %(concept)s in "
+"fromDTS"
+msgstr "%(action)s %(event)s fromResource %(resource)s n'a pas de relation "
+"référence avec %(concept)s dans fromDTS"
+
+#: ValidateVersReport.py:139 ValidateVersReport.py:169
+msgid "%(action)s %(event)s fromResource %(resource)s does not reference a "
+"resource in fromDTS"
+msgstr "%(action)s %(event)s fromResource %(resource)s n'a pas de référence "
+"ressource dans fromDTS"
+
+#: ValidateVersReport.py:188
+msgid "%(action)s %(event)s fromResource %(resource)s for %(concept)s  in "
+"fromDTS does not have expected link, arc, or label "
+"elements"
+msgstr "%(action)s %(event)s fromResource %(resource)s for %(concept)s dans "
+"fromDTS n'a pas l'élément attendu de type lien, arc, ou "
+"libellé"
+
+#: ValidateVersReport.py:149 ValidateVersReport.py:158
+#: ValidateVersReport.py:179
+msgid "%(action)s %(event)s fromResource %(resource)s for %(concept)s in "
+"fromDTS does not have expected link, arc, or label "
+"elements"
+msgstr "%(action)s %(event)s fromResource %(resource)s pour %(concept)s dans "
+"fromDTS n'a pas l'élément attendu de type lien, arc, or "
+"libellé"
+
+#: ValidateVersReport.py:201
+msgid "%(action)s %(event)s toConcept %(concept)s does not reference a "
+"concept in toDTS"
+msgstr "%(action)s %(event)s toConcept %(concept)s ne référence pas de "
+"concept dans toDTS"
+
+#: ValidateVersReport.py:209
+msgid "%(action)s %(event)s toConcept %(concept)s must be defined as a "
+"tuple"
+msgstr "%(action)s %(event)s toConcept %(concept)s doit être défini comme "
+"tuple"
+
+#: ValidateVersReport.py:240
+msgid "%(action)s %(event)s toResource %(resource)s does not have a label "
+"relationship to %(concept)s in toDTS"
+msgstr "%(action)s %(event)s toResource %(resource)s n'a pas de relation "
+"libellé vers %(concept)s dans toDTS"
+
+#: ValidateVersReport.py:270
+msgid "%(action)s %(event)s toResource %(resource)s does not have a "
+"reference relationship to %(concept)s in "
+"toDTS"
+msgstr "%(action)s %(event)s toResource %(resource)s does not have a "
+"reference relationship to %(concept)s in "
+"toDTS"
+
+#: ValidateVersReport.py:246
+msgid "%(action)s %(event)s toResource %(resource)s does not reference a "
+"resource in toDTS"
+msgstr "%(action)s %(event)s toResource %(resource)s ne référence pas de "
+"resource dans toDTS"
+
+#: ValidateVersReport.py:216
+msgid "%(action)s %(event)s toResource %(resource)s for %(concept)s does not "
+"reference a resource in toDTS"
+msgstr "%(action)s %(event)s toResource %(resource)s pour %(concept)s ne "
+"référence pas de resource dans toDTS"
+
+#: ValidateVersReport.py:226 ValidateVersReport.py:235
+#: ValidateVersReport.py:256 ValidateVersReport.py:265
+msgid "%(action)s %(event)s toResource %(resource)s for %(concept)s in toDTS "
+"does not have expected link, arc, or label "
+"elements"
+msgstr "%(action)s %(event)s toResource %(resource)s pour %(concept)s dans "
+"toDTS n'a pas l'élément attendu de type lien, arc ou "
+"libellé"
+
+#: ValidateXbrlDTS.py:1027
+msgid "%(arc)s must not contain use='prohibited'"
+msgstr "L'arc %(arc)s ne doit pas avoir l'attribut "
+"use='prohibited'"
+
+#: ValidateFormula.py:594
+msgid "%(assertionType)s Assertion %(id)s evaluations : %(satisfiedCount)s "
+"satisfied, %(notSatisfiedCount)s not "
+"satisfied"
+msgstr "%(assertionType)s Assertion %(id)s évaluations : %(satisfiedCount)s "
+"satisfaite(s), %(notSatisfiedCount)s non "
+"satisfaite(s)"
+
+#: FunctionCustom.py:63
+msgid "%(cfi)s output \n"
+"Expression: \n"
+"%(expression)s"
+msgstr "%(cfi)s sortie\n"
+"Expression: \n"
+"%(expression)s"
+
+#: FunctionCustom.py:69
+msgid "%(cfi)s output \n"
+"Result: \n"
+"%(expression)s"
+msgstr "%(cfi)s sortie\n"
+"Résultat :\n"
+"%(expression)s"
+
+#: FunctionCustom.py:48
+msgid "%(cfi)s step %(step)s \n"
+"Expression: \n"
+"%(expression)s"
+msgstr "%(cfi)s étape %(step)s \n"
+"Expression: \n"
+"%(expression)s"
+
+#: FunctionCustom.py:54
+msgid "%(cfi)s step %(step)s \n"
+"Result: \n"
+"%(expression)s"
+msgstr "%(cfi)s étape %(step)s \n"
+"Résultat: \n"
+"%(expression)s"
+
+#: ModelFormulaObject.py:1796
+msgid "%(dimension)s is not an explicit dimension concept "
+"QName."
+msgstr "%(dimension)s n'est pas un QName de dimension "
+"explicite."
+
+#: ValidateXbrlDTS.py:205
+msgid "%(docType)s encoding must be \"utf-8\" but is "
+"\"%(xmlEncoding)s\""
+msgstr "L'encodage de %(docType)s doit être unicode \"utf-8\" mais est "
+"\"%(xmlEncoding)s\""
+
+#: ValidateXbrlDTS.py:219
+msgid "%(docType)s must have comment node only on line "
+"2"
+msgstr "%(docType)s ne peut avoir un noud de type commentaire qu'à la ligne "
+"2"
+
+#: ValidateXbrlDTS.py:215
+msgid "%(docType)s must have only one comment node before schema "
+"element"
+msgstr "%(docType)s ne peut avoir qu'un noud commentaire avant l'élément "
+"\"schema\""
+
+#: ValidateXbrlDTS.py:227
+msgid "%(docType)s namespace declaration \"%(declaration)s\" is not "
+"used"
+msgstr "%(docType)s L'espace de nommage %(prefix)s=\"%(namespace)s\" n'est pas "
+"utilisé"
+
+#: ValidateXbrlDTS.py:200
+msgid "%(docType)s xml version must be \"1.0\" but is "
+"\"%(xmlVersion)s\""
+msgstr "La version xml de %(docType)s doit être \"1.0\" mais est "
+"\"%(xmlVersion)s\""
+
+#: ValidateVersReport.py:38
+msgid "%(dts) has errors: %(error)s"
+msgstr "%(dts) a des erreurs : %(error)s"
+
+#: ValidateVersReport.py:31
+msgid "%(dts)s is missing or not loaded"
+msgstr "%(dts)s est manquante ou non chargée"
+
+#: ValidateXbrlDTS.py:621
+msgid "%(element)s %(refURI)s is not defined"
+msgstr "%(element)s %(refURI)s n'est pas défini"
+
+#: ValidateXbrlDTS.py:613
+msgid "%(element)s %(refURI)s missing"
+msgstr "L'élément %(element)s %(refURI)s est "
+"manquant"
+
+#: ValidateXbrlDTS.py:532
+msgid "%(element)s %(roleURI)s invalid cyclesAllowed "
+"%(value)s"
+msgstr "%(element)s %(roleURI)s a cyclesAllowed invalide : "
+"%(value)s"
+
+#: ValidateXbrlDTS.py:525
+msgid "%(element)s %(roleURI)s not s-equal in "
+"%(otherSchema)s"
+msgstr "%(element)s %(roleURI)s n'est pas s-égal dans "
+"%(otherSchema)s"
+
+#: ValidateXbrlDTS.py:560
+msgid "%(element)s %(roleURI)s usedOn %(value)s on has s-equal "
+"duplicate"
+msgstr "%(element)s %(roleURI)s usedOn %(value)s a un doublon au sens "
+"s-equal"
+
+#: ValidateXbrlDTS.py:617
+msgid "%(element)s is duplicated for %(refURI)s"
+msgstr "%(element)s duplqiue %(refURI)s"
+
+#: ValidateXbrlDTS.py:912
+msgid "%(element)s is missing an xlink:role"
+msgstr "Il manque un xlink:role à %(element)s"
+
+#: ValidateXbrlDTS.py:514
+msgid "%(element)s missing or invalid %(attribute)s"
+msgstr "%(element)s a l'attribut %(attribute)s manquant ou non "
+"valide"
+
+#: ValidateXbrlDTS.py:508
+msgid "%(element)s not child of xsd:appinfo"
+msgstr "%(element)s n'est pas fils de xsd:appinfo"
+
+#: ValidateXbrlDTS.py:450
+msgid "%(element)s ref %(ref)s not found"
+msgstr "%(element)s ref %(ref)s non trouvé"
+
+#: ValidateXbrlDTS.py:573
+msgid "%(element)s usedOn %(usedOn)s not addressed for role "
+"%(role)s"
+msgstr ""
+
+#: ValidateXbrlDTS.py:566
+msgid "%(element)s usedOn must not be link:calculationLink"
+msgstr "%(element)s usedOn doit être link:calculationLink"
+
+#: ValidateFiling.py:149
+msgid "%(elementName)s element not allowed in context Id: "
+"%(context)s"
+msgstr "élément %(elementName)s non autorisé dans le context Id "
+"%(context)s"
+
+#: ValidateFiling.py:510
+msgid "%(elementName)s is in the default context is incorrect "
+"'%(date)s'"
+msgstr "%(elementName)s dans le context par défaut est incorrect  "
+"'%(date)s'"
+
+#: ValidateFiling.py:499
+msgid "%(elementName)s is not found in the default "
+"context"
+msgstr "%(elementName)s n'est pas trouvé dans le contexte par "
+"défaut"
+
+#: ValidateFiling.py:504
+msgid "%(elementName)s is required and was not found in the default "
+"context"
+msgstr "%(elementName)s est requis et non trouvé dans le contexte par "
+"défaut"
+
+#: ModelDocument.py:89
+msgid "%(error)s, %(fileName)s, %(sourceAction)s source "
+"element"
+msgstr "%(error)s, fichier %(filename)s, élément source "
+"%(sourceAction)s"
+
+#: ValidateVersReport.py:318
+msgid "%(event)s %(relSet)s arc %(arc) does not reference an element in its "
+"DTS"
+msgstr "%(event)s %(relSet)s arc %(arc) ne référence pas un élément dans son "
+"DTS"
+
+#: ValidateVersReport.py:332
+msgid "%(event)s %(relSet)s arcrole %(arcrole)s does not reference an "
+"arcrole in its DTS"
+msgstr "%(event)s %(relSet)s arcrole %(arcrole)s  ne référence pas un "
+"arcrolede dans son DTS"
+
+#: ValidateVersReport.py:312
+msgid "%(event)s %(relSet)s link %(link)s does not reference an element in "
+"its DTS"
+msgstr "%(event)s %(relSet)s lien %(link)s ne référence pas un élément dans "
+"son DTS"
+
+#: ValidateVersReport.py:325
+msgid "%(event)s %(relSet)s linkrole %(linkrole)s does not reference an "
+"linkrole in its DTS"
+msgstr "%(event)s %(relSet)s linkrole %(linkrole)s ne référence pas un "
+"linkrole dans son DTS"
+
+#: ValidateVersReport.py:354
+msgid "%(event)s %(relSet)s no relationship found from fromConcept "
+"%(conceptFrom)s to toConcept %(conceptTo)s in its "
+"DTS"
+msgstr "%(event)s %(relSet)s aucune relation trouvée de fromConcept "
+"%(conceptFrom)s vers toConcept %(conceptTo)s dans son "
+"DTS"
+
+#: ValidateVersReport.py:359
+msgid "%(event)s %(relSet)s no relationship found fromConcept "
+"%(conceptFrom)s in its DTS"
+msgstr "%(event)s %(relSet)s aucune relation trouvée pour fromConcept "
+"%(conceptFrom)s dans son DTS"
+
+#: ValidateVersReport.py:340
+msgid "%(event)s %(relSet)s relationship fromConcept %(conceptFrom)s does "
+"not reference a concept in its DTS"
+msgstr "%(event)s %(relSet)s la relation fromConcept %(conceptFrom)s ne "
+"référence pas un concept dans son DTS"
+
+#: ValidateVersReport.py:346
+msgid "%(event)s %(relSet)s relationship toConcept %(conceptTo)s does not "
+"reference a concept in its DTS"
+msgstr "%(event)s %(relSet)s relation toConcept %(conceptTo)s ne référence "
+"pas un concept dans son DTS"
+
+#: ValidateVersReport.py:105
+msgid "%(event)s fromConcept %(concept)s does not reference a concept in "
+"fromDTS"
+msgstr "%(event)s fromConcept %(concept)s ne référence pas un concept dans "
+"fromDTS"
+
+#: ValidateVersReport.py:111
+msgid "%(event)s toConcept %(concept)s does not reference a concept in "
+"toDTS"
+msgstr "%(event)s toConcept %(concept)s ne référence pas un concept dans "
+"toDTS"
+
+#: ModelDocument.py:82
+msgid "%(fileName)s: file error: %(error)s"
+msgstr "%(fileName)s erreur de fichier : %(error)s"
+
+#: ValidateXbrlDTS.py:1060
+msgid "%(fileType)s element %(element)s must not have "
+"%(prefix)s:%(localName)s"
+msgstr "%(fileType)s l'élément %(element)s ne doit pas avoir de "
+"%(prefix)s:%(localName)s"
+
+#: ValidateXbrlDTS.py:1050
+msgid "%(fileType)s element %(element)s must not have custom namespace "
+"%(namespace)s"
+msgstr "%(fileType)s l'élément %(element)s ne doit pas avoir d'espace de "
+"nommage personnalisé xmlns:%(prefix)s"
+
+#: ValidateXbrlDTS.py:1074
+msgid "%(fileType)s element %(element)s must not have "
+"xmlns:%(prefix)s"
+msgstr "%(fileType)s l'élément %(element)s ne doit pas avoir "
+"xmlns:%(prefix)s"
+
+#: ValidateXbrlDTS.py:1121
+msgid "%(fileType)s must have only one comment node before schema element: "
+"\"%(value)s\""
+msgstr "%(fileType)s ne peut avoir qu'un noud commentaire avant "
+"l'élémentchéma \"%(value)s\""
+
+#: ValidateXbrlDTS.py:154
+msgid "%(linkElement)s loc href %(locHref)s must identify a concept or "
+"label"
+msgstr "%(linkElement)s loc href %(locHref)s doit identifier un concept ou un "
+"libellé"
+
+#: ValidateFormula.py:106
+msgid "%(name)s evaluation error: %(error)s \n"
+"%(errorSource)s"
+msgstr "%(name)s erreur d'évaluation: %(error)s \n"
+"%(errorSource)s"
+
+#: ValidateFormula.py:88
+msgid "%(name)s result %(result)s"
+msgstr "%(name)s résultat %(result)s"
+
+#: FormulaEvaluator.py:123
+msgid "%(variableSetType)s %(xlinkLabel)s \n"
+"Result: \n"
+"%(result)s"
+msgstr "%(variableSetType)s %(xlinkLabel)s \n"
+"Résultat : \n"
+"%(result)s"
+
+#: FormulaEvaluator.py:222
+msgid "%(variableType)s %(variable)s: bound value "
+"%(result)s"
+msgstr "%(variableType)s %(variable)s: valeur liée "
+"%(result)s"
+
+#: CntlrWinMain.py:559
+msgid "%s in %.2f secs"
+msgstr "%s en %.2f s"
+
+#: ModelVersReport.py:905 ModelVersReport.py:922
+msgid "({0} does not have an id attribute)"
+msgstr "({0} n'a pas d'attribut 'id')"
+
+#: XPathContext.py:35
+msgid "[{0}] exception {1}"
+msgstr "[{0}] exception {1}"
+
+#: XPathContext.py:33
+msgid "[{0}] exception at {1} in {2}"
+msgstr "[{0}] exception à {1} dans {2}"
+
+#: CntlrCmdLine.py:276
+msgid "[Exception] Failed to complete validation: \n"
+"{0} \n"
+"{1}"
+msgstr "[exception] Exception de validation : \n"
+"{0} \n"
+"{1}"
+
+#: ModelManager.py:68
+msgid "[exception] Validation exception: {0} at "
+"{1}"
+msgstr "[exception] Exception de validation : {0} à "
+"{1}"
+
+#: CntlrGenVersReports.py:322
+msgid "[info] loaded in {0:.2} secs"
+msgstr "[info] chargé en {0:.2} s"
+
+#: CntlrWinMain.py:415
+msgid "[info] Saved formula output instance to "
+"{0}"
+msgstr "[info] Instance de formules enregistrée dans "
+"{0}"
+
+#: CntlrGenVersReports.py:116 CntlrGenVersReports.py:336
+msgid "[info] testcase uriFrom {0}"
+msgstr "[info] testcase uriFrom {0}"
+
+#: CntlrGenVersReports.py:327
+msgid "[info] testcases {0}"
+msgstr "[info] testcases {0}"
+
+#: CntlrGenVersReports.py:72
+msgid "[info] xls loaded in {0:.2} secs at "
+"{1}"
+msgstr "[info] xls chargé en {0:.2} secondes à "
+"{1}"
+
+#: CntlrCmdLine.py:274
+msgid "[IOError] Failed to save output:\n"
+" {0}"
+msgstr "[IOError] Impossible d'enregistrer la sortie\n"
+" {0}"
+
+#: WebCache.py:173 WebCache.py:207
+msgid "{0} \n"
+"retrieving {1}"
+msgstr "{0} \n"
+"récupération de {1}"
+
+#: WebCache.py:211
+msgid "{0} \n"
+"unsuccessful retrieval of {1} \n"
+"switching to work offline"
+msgstr "{0} \n"
+"récupération de {1} \n"
+"passage en mode déconnecté"
+
+#: WebCache.py:203
+msgid "'{0}' proxy-authentication for realm '{1}' is required to access {2}\n"
+"{3}"
+msgstr "Le proxy '{0}' demande une authentication sur le realm '{1}' pour "
+"accéder à {2}\n"
+"{3}"
+
+#: ViewWinRelationshipSet.py:54
+msgid "{0} Relationships"
+msgstr "{0} Relations"
+
+#: WebCache.py:191
+msgid "'{0}' www-authentication for realm '{1}' is required to access {2}\n"
+"{3}"
+msgstr "Un authentification www '{0}' pour le realm '{1}' est nécessaire pour "
+"accéder à {2}\n"
+"{3}"
+
+#: ModelFormulaObject.py:2440
+msgid "{0}({1}) as {2}"
+msgstr "{0}({1}) en tant que {2}"
+
+#: CntlrWinMain.py:561
+msgid "{0}, preparing views"
+msgstr "{0}, préparation des vues"
+
+#: DialogOpenArchive.py:322
+msgid "<unnamed {0}>"
+msgstr "<{} sans nom}"
+
+#: XbrlConst.py:301
+msgid "0Name"
+msgstr "0 Nom"
+
+#: XbrlConst.py:296
+msgid "1Calculation"
+msgstr "1Calcul"
+
+#: XbrlConst.py:292
+msgid "1Dimension"
+msgstr "1Dimension"
+
+#: XbrlConst.py:293
+msgid "1Formula"
+msgstr "1Formule"
+
+#: XbrlConst.py:295
+msgid "1Presentation"
+msgstr "1Presentation"
+
+#: XbrlConst.py:294
+msgid "1Rendering"
+msgstr "1Rendering"
+
+#: XbrlConst.py:300
+msgid "1Standard Label"
+msgstr "1Libellé Standard"
+
+#: DialogFind.py:331
+msgid "A different DTS is active, than find was initiated with.  Please "
+"press 'find' to re-search with the current "
+"DTS"
+msgstr "La recherche a été effectuée sur un DTS différent de celui qui est "
+"actif. Veuillez utiliser \"Recherche\" pour rechercher de nouveau avec "
+"le DTS actuel."
+
+#: ValidateFiling.py:486
+msgid "A label linkbase is required but was not "
+"found"
+msgstr "Une base de liens libellé est requise, mais non "
+"trouvée"
+
+#: DialogFind.py:73
+msgid "A regular expression to match, anywhere in the scope, ignoring case.  "
+"For example, \"cash\" would match cash anywhere in a string (like cash "
+"on hand), whereas \"^cash$\" would match a full string to only contain "
+"cash. Use regular expression metacharacters, e.g., \".\" for any single "
+"character, \".*\" for any number of wild characters, .{3} for exactly 3 "
+"wild characters. "
+msgstr "Une expression régulière à utiliser, dans le périmètre complet, en "
+"ignorant la casse. Par exemple, \"passif\" correspondra à \"Passifs "
+"immobilisés\". Certains caractères ont un sens particulier : '.' "
+"correspond à n'importe quel caractère ; '^' correspond au début de "
+"ligne ; '$' correspond à la fin de ligne ; '('...')' regroupe "
+"plusieurs caractères ; '*' est une répétition du groupe précédent. "
+
+#: ValidateXbrlDTS.py:247
+msgid "A schema import schemas of which no content is being addressed: "
+"%(importedFile)s"
+msgstr "Un schéma importe des schémas qui ne sont pas utilisés: "
+"%(importedFile)s"
+
+#: ValidateFilingDTS.py:440
+msgid "A schema that defines non-abstract items MUST have a linked (2.1) "
+"reference linkbase AND/OR a label linkbase with "
+"@xlink:role=documentation"
+msgstr "Un schéma qui définit des items non-abstraits DOIT avoir une base de "
+"liens liée (2.1) ER/OU une base de liens de libellés avec "
+"@xlink:role=documentation"
+
+#: CntlrWinMain.py:939
+msgid "About arelle"
+msgstr "À propos d'Arelle"
+
+#: CntlrWinMain.py:155
+msgid "About..."
+msgstr "À propos..."
+
+#: ValidateXbrlDTS.py:422
+msgid "Abstract concept %(concept)s must not be a child of a "
+"tuple"
+msgstr "Le concept abstrait %(concept)s ne doit pas être fils d'un "
+"tuple"
+
+#: ValidateFilingDTS.py:256
+msgid "Abstract concept %(concept)s must not have a balance "
+"attribute"
+msgstr "Le concept abstrait %(concept)s ne doit pas d'avoir d'attribut "
+"\"balance\""
+
+#: ValidateFilingDimensions.py:237
+msgid "Abstract domain item %(domain)s in DRS role %(linkrole)s is not a "
+"primaryDomainItem"
+msgstr "L'élément de domaine %(domain)s dans le rôle DRS %(linkrole)s n'est "
+"pas un domainItem primaire"
+
+#: ValidateFilingDTS.py:415
+msgid "abstract items"
+msgstr "Éléments abstraits"
+
+#: ValidateFilingDTS.py:248
+msgid "Abstract root concept %(concept)s must have "
+"nillable='false'"
+msgstr "Le concept racine abstrait %(concept)s foir avoir "
+"nillable='false'"
+
+#: ValidateFilingDTS.py:252
+msgid "Abstract root concept %(concept)s must have "
+"type='xbrli:stringItemType'"
+msgstr "Le concept racine abstrait %(concept)s doit avoir "
+"type='xbrli:stringItemType'"
+
+#: DialogNewFactItem.py:96 DialogRssWatch.py:127
+msgid "Accept the options as entered above"
+msgstr "Accepter les options précédantes"
+
+#: ViewWinVersReport.py:93
+msgid "actions"
+msgstr "actions"
+
+#: ValidateXbrl.py:119
+msgid "Actuate %(xlinkActuate)s invalid in extended link "
+"%(linkrole)s"
+msgstr "Le xlink:actutate %(xlinkActuate)s est non valide dans le lien étendu "
+"%(linkrole)s"
+
+#: ViewWinTree.py:204
+msgid "Additional view"
+msgstr "Vue complémentaire"
+
+#: DialogUserPassword.py:95
+msgid "Address:"
+msgstr "Adresse :"
+
+#: DialogFind.py:121
+msgid "Advance to the next matched object (in selected direction).  "
+msgstr "Aller au prochain objet correspondant"
+
+#: ValidateFilingDimensions.py:37
+msgid "All hypercube %(hypercube)s in DRS role %(linkrole)s, does not have "
+"closed='true'"
+msgstr "L'hypercube 'All' %(hypercube)s du rôle DRS %(linkrole)s n'a pas "
+"l'attribut closed='true'"
+
+#: ValidateFiling.py:523
+msgid "AmendmentDescription can not be provided when AmendmentFlag is not "
+"true in context %(contextID)s"
+msgstr "'AmendmentDescription' ne peut pas être fourni quand 'AmendmentFlag' "
+"n'est pas vrai dans le contexte %(contextID)s"
+
+#: ValidateFiling.py:518
+msgid "AmendmentFlag is true in context %(contextID)s so "
+"AmendmentDescription is also required"
+msgstr "AmendmentFlag est vrai dans le contexte %(contextID)s, ainsi "
+"AmendmentDescription est également requis"
+
+#: DialogFind.py:79
+msgid "An XPath 2 expression, where the context element, \".\", is a candidate "
+"concept QName, if any concept scope is checked, and a candidate fact "
+"item, if any fact scope is checked.  The XPath 2 functions do not "
+"need an \"fn:\" prefix (but it is defined).  The XBRL Functions "
+"Registry functions do require an \"xfi:\" prefix.  Constructors require "
+"an \"xs:\" prefix.  The expression is considered \"matched\" for the "
+"candidate concept QNames or fact items where the effective boolean "
+"value of the expression is \"true()\".  "
+msgstr ""
+
+#: ValidateXbrlDTS.py:461
+msgid "Annotation/appinfo record must be be behind schema and before "
+"import"
+msgstr "L'enregistrement annotation/appinfo doit être derrière le schema et "
+"avant l'import"
+
+#: ValidateXbrlDTS.py:465
+msgid "Annotation/appinfo record must be followed only by "
+"import"
+msgstr "L'enregistrement annotation/appinfo ne peut être suivi que par un "
+"import"
+
+#: ModelRelationshipSet.py:57
+msgid "arc (priority {0}, {1} - {2}) is ineffective due to equivalent arc "
+"(priority {3}, {4} - {5})\n"
+msgstr "L'arc (priority {0}, {1} - {2}) est sans effet en raison d'un arc "
+"équivalent (priority {3}, {4} - {5})\n"
+
+#: ValidateXbrlDTS.py:1039
+msgid "Arc element %(element)s may not be contained in a linkbase with "
+"%(element2)s"
+msgstr "L'élément étendu %(element)s ne doit pas être contenu dans la même "
+"base de liens que que %(element2)s"
+
+#: ValidateXbrlDTS.py:964
+msgid "Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an "
+"integer"
+msgstr "L'arc de %(xlinkFrom)s vers %(xlinkTo)s a une priorité de "
+"%(priority)s qui doit être un entier"
+
+#: ValidateXbrlDTS.py:957
+msgid "Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s must be "
+"less than 10"
+msgstr "L'arc de %(xlinkFrom)s vers %(xlinkTo)s a une priorité de "
+"%(priority)s qui doit être inférieure ou égale à "
+"9"
+
+#: ValidateXbrl.py:133
+msgid "Arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to "
+"%(xlinkLabelTo)s attribute '%(attribute)s' has no matching loc or "
+"resource label"
+msgstr "L'arc dans le lien étendu %(linkrole)s de %(xlinkLabelFrom)s vers "
+"%(xlinkLabelTo)s, attribut '%(attribute)s' n'a pas de libellé ou de "
+"loc"
+
+#: ValidateXbrlDTS.py:778
+msgid "Arcrole %(arcrole)s is missing an arcroleRef"
+msgstr "L'arcrole %(arcrole)s devrait avoir "
+"arcroleRef"
+
+#: ValidateXbrlDTS.py:768
+msgid "Arcrole %(arcrole)s is not absolute"
+msgstr "L'arcrole %(arcrole)s n'est pas absolu"
+
+#: ValidateXbrlDTS.py:788
+msgid "Arcrole %(arcrole)s missing usedOn for "
+"%(element)s"
+msgstr "L'arcrole %(arcrole)s devrait avoir usedOn pour "
+"%(element)s"
+
+#: ValidateXbrlDTS.py:630
+msgid "Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard "
+"taxonomy"
+msgstr "L'rcrole %(refURI)s arcroleRef %(xlinkHref)s doit être une taxonomie "
+"standard"
+
+#: ValidateXbrlDTS.py:636
+msgid "Arcrole %(refURI)s arcroleRef %(xlinkHref)s must not have an "
+"%(attribute)s attribute"
+msgstr "L'arcrole %(refURI)s arcroleRef %(xlinkHref)s ne peut pas avoir "
+"d'attribut %(attribute)s"
+
+#: ValidateXbrlDTS.py:763
+msgid "Arcrole on %(element)s is empty"
+msgstr "L'arcrole on %(element)s est vide"
+
+#: ValidateFilingDTS.py:400
+msgid "Arcrole type definition is not allowed: "
+"%(arcroleURI)s"
+msgstr "La définition de l'ArcroleType n'est pas autorisé : "
+"%(roleURI)s"
+
+#: ValidateFilingDTS.py:413
+msgid "arcroles"
+msgstr "arcroles"
+
+#: ValidateFilingDTS.py:394
+msgid "ArcroleType %(arcroleType)s definition must be "
+"non-empty"
+msgstr "La définition de l'ArcroleType %(arcroleType)s ne peut pas être "
+"vide"
+
+#: ValidateFilingDTS.py:375
+msgid "ArcroleType %(arcroleType)s does not match authority "
+"%(targetNamespaceAuthority)s"
+msgstr "L'ArcroleType %(arcroleType)s ne correspond à aucune autorité "
+"%(targetNamespaceAuthority)s"
+
+#: ValidateFilingDTS.py:387
+msgid "ArcroleType %(arcroleType)s is defined in multiple "
+"taxonomies"
+msgstr "L'ArcroleType %(arcroleType)s est défini dans plusieurs "
+"taxonomies"
+
+#: ValidateFilingDTS.py:380
+msgid "ArcroleType %(arcroleType)s should end with "
+"/arcrole/{LC3name}"
+msgstr "L'ArcroleType %(arcroleType)s devrait se terminer par "
+"/arcrole/{LC3name}"
+
+#: ValidateXbrlDTS.py:536
+msgid "ArcroleType is not allowed %(roleURI)s"
+msgstr "L'ArcroleType n'est pas autorisé %(roleURI)s"
+
+#: ValidateFiling.py:1101
+msgid "ArcroleType missing nl or en generic label: "
+"%(arcrole)s"
+msgstr ""
+
+#: CntlrWinMain.py:780
+msgid "Are you sure you want to clear the internet "
+"cache?"
+msgstr "Êtes-vous sûr de vouloir vider le cache "
+"Internet?"
+
+#: CntlrWinMain.py:440 CntlrWinMain.py:576
+#: CntlrWinMain.py:740
+msgid "arelle - {0}"
+msgstr "arelle - {0}"
+
+#: CntlrWinMain.py:779
+msgid "arelle - Clear Internet Cache"
+msgstr "arelle - Vider le cache Internet"
+
+#: CntlrWinMain.py:375 CntlrWinMain.py:398
+#: CntlrWinMain.py:417 CntlrWinMain.py:443
+#: CntlrWinMain.py:744 CntlrWinMain.py:991
+msgid "arelle - Error"
+msgstr "arelle - Erreur"
+
+#: CntlrWinMain.py:476
+msgid "arelle - Import file into opened DTS"
+msgstr "arelle - Importer le fichier dans le DTS "
+"ouvert"
+
+#: CntlrWinMain.py:868
+msgid "arelle - Labels language code setting"
+msgstr "arelle - Paramètre de langue des libellés"
+
+#: CntlrWinMain.py:456
+msgid "arelle - Open file"
+msgstr "arelle - Ouvrir le fichier"
+
+#: CntlrWinMain.py:424
+msgid "arelle - Save File"
+msgstr "arelle - Enregistrer le fichier"
+
+#: CntlrWinMain.py:405
+msgid "arelle - Save Formula Result Instance "
+"Document"
+msgstr "arelle - Enregistrer l'instance de résultat de "
+"formule"
+
+#: CntlrWinMain.py:366
+msgid "arelle - Save HTML-rendered Table"
+msgstr "arelle - Enregistrer le fichier HTML de rendu du "
+"tableau"
+
+#: CntlrWinMain.py:382
+msgid "arelle - Save Instance"
+msgstr "arelle - Enregistrer l'instance"
+
+#: CntlrWinMain.py:982
+msgid "arelle - Save Messages Log"
+msgstr "arelle - Enregistre les messages de "
+"log"
+
+#: CntlrWinMain.py:389
+msgid "arelle - Save Test Results"
+msgstr "arelle - Enregistrer les résultats de "
+"test"
+
+#: CntlrWinMain.py:701
+msgid "arelle - Save Versioning Report File"
+msgstr "arelle - Enregistrer le rapport de versioning"
+
+#: CntlrWinMain.py:305 CntlrWinMain.py:343
+#: CntlrWinMain.py:659
+msgid "arelle - Unnamed"
+msgstr "arelle - Sans nom"
+
+#: CntlrWinMain.py:350
+msgid "arelle - Unsaved Changes"
+msgstr "arelle - Modifications non enregistrées"
+
+#: Updater.py:24 Updater.py:42
+msgid "arelle - Updater"
+msgstr "arelle - Effectuer un mise à jour"
+
+#: CntlrWinMain.py:472 CntlrWinMain.py:696
+msgid "arelle - Warning"
+msgstr "arelle - Avertissement"
+
+#: CntlrWinMain.py:941
+msgid "arelle {0}\n"
+"An open source XBRL platform\n"
+" 2010-2011 Mark V Systems Limited\n"
+"All rights reserved\n"
+"http://www.arelle.org\n"
+"support@arelle.org\n"
+"\n"
+"Licensed under the Apache License, Version 2.0 (the \"License\"); you "
+"may not use this file except in compliance with the License.  You may "
+"obtain a copy of the License at\n"
+"\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n"
+"Unless required by applicable law or agreed to in writing, software "
+"distributed under the License is distributed on an \"AS IS\" BASIS, "
+"WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or "
+"implied.  See the License for the specific language governing "
+"permissions and limitations under the License.\n"
+"\nIncludes:\n   Python  2001-2010 Python Software Foundation\n"
+"   PyParsing  2003-2010 Paul T. McGuire\n"
+"   lxml  2004 Infrae, ElementTree  1999-2004 by Fredrik Lundh\n"
+"   xlrd  2005-2009 Stephen J. Machin, Lingfo Pty Ltd,  2001 D. "
+"Giffin,  2000 A. Khan\n"
+"   xlwt  2007 Stephen J. Machin, Lingfo Pty Ltd,  2005 R. V. "
+"Kiseliov"
+msgstr "u00ae {0}\n"
+"Une plateforme XBRL\n"
+"\\u00a9 2010-2011 Mark V Systems Limited\n"
+"Tous droits réservers\n"
+"http://www.arelle.org/\n"
+"support@arelle.org\n"
+"\n"
+"Logiciel sous licence Apache version 2.0 (appelée ci-après «la "
+"licence»); vous ne devez utiliser ce fichier qu'en conformité avec la "
+"licence. Vous pouvez obtenir une copie de la licence à "
+"http://www.apache.org/licenses/LICENSE-2.0\n"
+"\n"
+"Sauf si la loi l'exige ou en cas d'accord par écrit, le logiciel "
+"distribué \"EN L'ETAT\", SANS GARANTIE NI CONDITION D'AUCUNE SORTE, "
+"explicite ou implicite. Voir la licence pour connaître les termes "
+"employés afin de régir les autorisations et les restrictions en vertu "
+"de la licence. \n"
+"\nInclut:\n   Python\\u00ae \\u00a9 2001-2010 Python Software Foundation\n"
+"   PyParsing \\u00a9 2003-2010 Paul T. McGuire\n"
+"   lxml \\u00a9 2004 Infrae, ElementTree \\u00a9 1999-2004 by Fredrik "
+"Lundh\n"
+"   xlrd \\u00a9 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, \\u00a9 "
+"2001 D. Giffin, \\u00a9 2000 A. Khan\n"
+"   xlwt \\u00a9 2007 Stephen J. Machin, Lingfo Pty Ltd, \\u00a9 2005 R. "
+"V. Kiseliov"
+
+#: WatchRss.py:180
+msgid "Arelle RSS Watch alert on {0}"
+msgstr "Arelle alerte sur {0} dans l'observation "
+"RSS"
+
+#: Updater.py:37
+msgid "Arelle running version, {0}, is newer than the downloadable version, "
+"{1}."
+msgstr "La version d'Arelle en cours d'exécution ({0}) est plus récente que "
+"la dernière version téléchargeable ({1})"
+
+#: Updater.py:40
+msgid "Arelle running version, {0}, is the same as the downloadable "
+"version."
+msgstr "Arelle version {0} est à jour"
+
+#: XPathContext.py:137
+msgid "Argument {0} does not match expected type "
+"{1}."
+msgstr "L'argument {0} ne correspond pas au type {1} "
+"attendu."
+
+#: FunctionXfi.py:590
+msgid "Argument 1 {0} is not a concept in the "
+"DTS."
+msgstr "L'argument 1 {0} n'est pas un concept dans le "
+"DTS."
+
+#: FunctionXfi.py:639 FunctionXfi.py:699
+msgid "Argument 1 {0} is not a dimension concept "
+"QName."
+msgstr "L'argument 1 {0} n'est pas un concept dimensionnel "
+"QName."
+
+#: FunctionXfi.py:261
+msgid "Argument 1 {0} is not inferrable."
+msgstr "L'argument 1 {0} ne peut pas être inféré."
+
+#: FunctionXfi.py:263
+msgid "Argument 1 is not reported with {0}."
+msgstr "L'argument 1 n'est pas rapporté avec "
+"{0}"
+
+#: ValidateVersReport.py:50
+msgid "AssignmentRef %(assignmentRef)s does not reference an "
+"assignment"
+msgstr "L'assignmentRef %(assignmentRef)s ne référence pas une "
+"affectation"
+
+#: ViewWinVersReport.py:76
+msgid "assignments"
+msgstr "affectations"
+
+#: XPathContext.py:530
+msgid "Atomizing {0} to a {1} does not have a proper "
+"value"
+msgstr ""
+
+#: XPathContext.py:535
+msgid "Atomizing {0} to an integer does not have a proper "
+"value"
+msgstr ""
+
+#: XPathContext.py:502
+msgid "Atomizing tuple {0} that does not have a typed "
+"value"
+msgstr ""
+
+#: XPathContext.py:171
+msgid "Attempt to divide by zero: {0} {1} {2}."
+msgstr "Tentative de division par zéro : {0} {1} "
+"{2}."
+
+#: DialogUserPassword.py:17
+msgid "Authentication Request"
+msgstr "Demande d'authentification"
+
+#: ValidateFilingDimensions.py:94
+msgid "Axis %(dimension)s in DRS role %(linkrole)s, missing targetrole "
+"consecutive relationship"
+msgstr "Axe %(dimension)s dans le rôle du DRS %(linkrole)s, il manque une "
+"relation targetrole consécutive"
+
+#: XPathContext.py:426
+msgid "Axis step {0} context item is not a node: "
+"{1}"
+msgstr "Axe {0}, l'élément contexte n'est pas un noeud "
+"{1}"
+
+#: ViewWinRelationshipSet.py:69
+msgid "Balance"
+msgstr "Bilan"
+
+# Label: ignore
+#: ValidateHmrc.py:125
+msgid "Balance Sheet Date (uk-bus:BalanceSheetDate) is "
+"missing."
+msgstr ""
+
+#: CntlrCmdLine.py:173
+msgid "both --calcDecimals and --calcPrecision validation are requested, "
+"proceeding with --calcDecimals only"
+msgstr "Les validations --calcDecimals et --calcPrecision sont demandées "
+"simultanément, continue avec --calcDecimals "
+"uniquement"
+
+#: CntlrCmdLine.py:162
+msgid "both --efm and --gfm validation are requested, proceeding with --efm "
+"only"
+msgstr "Les validations --efm et --gfm sont demandées simultanément, continue "
+"avec --efm uniquement"
+
+#: ValidateFiling.py:144
+msgid "Both segment and scenario"
+msgstr "À la fois segment et scénario"
+
+#: ModelVersReport.py:296
+msgid "C report file"
+msgstr "Fichier rapport C"
+
+#: CntlrWinMain.py:106
+msgid "Calc Linkbase checks"
+msgstr "Vérification de la base de lien de calculs"
+
+#: ValidateXbrlCalcs.py:127
+msgid "Calculation inconsistent from %(concept)s in link role %(linkrole)s "
+"reported sum %(reportedSum)s computed sum %(computedSum)s context "
+"%(contextID)s unit %(unitID)s"
+msgstr "Calcul incohérent pour %(concept)s dans le rôle %(linkrole)s : somme "
+"rapportée %(reportedSum)s ; somme calculée %(computedSum)s contexte "
+"%(contextID)s unité %(unitID)s"
+
+#: ValidateFiling.py:971
+msgid "Calculation linkbase linkrole %(linkrole)s"
+msgstr "Linkrole de la base de liens de calcul "
+"%(arcrole)s"
+
+#: ValidateXbrl.py:248
+msgid "Calculation relationship has illegal concept from "
+"%(source)s%(sourceNumericDecorator)s to "
+"%(target)s%(targetNumericDecorator)s in link role "
+"%(linkrole)s"
+msgstr "La relation de calcul a un concept non autorisé de "
+"%(soruce)s%(sourceNumericDecorator)s vers "
+"%(target)s%(targetNumericDecorator)s dans le rôle "
+"%(linkrole)s"
+
+#: ValidateXbrl.py:242
+msgid "Calculation relationship has illegal weight %(weight)s from "
+"%(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in "
+"link role %(linkrole)s (per 5.1.1.2 Table "
+"6)"
+msgstr "La relation de calcul a une pondération %(weight)s non autorisée "
+"depuis %(source)s, %(sourceBalance)s, vers %(target)s, "
+"%(targetBalance)s, dans le rle %(linkrole)s (selon 5.1.1.2 Table "
+"6)"
+
+#: ValidateXbrl.py:233
+msgid "Calculation relationship has zero weight from %(source)s to "
+"%(target)s in link role %(linkrole)s"
+msgstr "La relation de calcul a une pondération nulle de %(source)s vers "
+"%(target)s dans le rôle %(linkrole)s"
+
+#: ValidateFiling.py:965
+msgid "Calculation relationships have a directed cycle in base set role "
+"%(linkrole)s starting from %(concept)s"
+msgstr "La relation de calcul a un cycle orienté dans l'ensemble de base, "
+"rôle %(linkrole)s, en démarrant de %(concept)s"
+
+#: ValidateXbrlDTS.py:979
+msgid "CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an "
+"order"
+msgstr "CalculationArc de %(xlinkFrom)s vers %(xlinkTo)s doit avoir un "
+"ordre"
+
+#: ValidateXbrlDTS.py:994
+msgid "CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an "
+"weight"
+msgstr "CalculationArc de %(xlinkFrom)s vers %(xlinkTo)s doit avoir une "
+"pondération"
+
+#: ValidateXbrlDTS.py:987
+msgid "CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s "
+"must be 1 or -1"
+msgstr "CalculationArc de %(xlinkFrom)s vers %(xlinkTo)s : le poids "
+"%(weight)s doit être 1 ou -1"
+
+#: DialogFormulaParameters.py:151 DialogNewFactItem.py:93
+#: DialogOpenArchive.py:113 DialogRssWatch.py:124
+#: DialogURL.py:41 DialogUserPassword.py:126
+msgid "Cancel"
+msgstr "Annuler"
+
+#: DialogURL.py:49
+msgid "Cancel operation"
+msgstr "Annuler l'opération"
+
+#: DialogNewFactItem.py:94 DialogRssWatch.py:125
+msgid "Cancel operation, discarding changes and "
+"entries"
+msgstr "Annuler l'opération, les modifications seront "
+"perdues"
+
+#: ViewWinTree.py:164
+msgid "Cell"
+msgstr "Cellule"
+
+#: CntlrWinMain.py:153
+msgid "Check for updates"
+msgstr "Vérification des mises à jour"
+
+#: DialogUserPassword.py:84
+msgid "Check to use {0} \n"
+"Uncheck to specify: \n"
+"   No proxy if URL address is left blank, \n"
+"   Proxy via URL address if it is not blank, \n"
+"       with user and password (if provided)"
+msgstr "Cocher pour utiliser {0} \n"
+"Décocher pour préciser: \n"
+"   Aucun proxu si l'URL est laissée vide,\n"
+"   Proxy indiqué dans l'URL si complété,\n"
+"       avec l'authentification utilisateur/mot de passe (si "
+"indiqué)"
+
+#: ModelVersReport.py:289
+msgid "Checking report file"
+msgstr "Vérification du fichier de rapport"
+
+#: ValidateVersReport.py:128
+msgid "Child"
+msgstr "Enfant"
+
+#: DialogRssWatch.py:146
+msgid "Choose formula file for RSS Watch"
+msgstr ""
+
+#: DialogRssWatch.py:157
+msgid "Choose log file for RSS Watch"
+msgstr ""
+
+#: CntlrWinMain.py:144 CntlrWinMain.py:232
+msgid "Clear"
+msgstr "Vider"
+
+#: CntlrWinMain.py:138
+msgid "Clear cache"
+msgstr "Vider le cache"
+
+#: DialogRssWatch.py:91
+msgid "Clear pub dateTime so that next cycle processes all entries in RSS "
+"feed."
+msgstr ""
+
+#: CntlrWinMain.py:187
+msgid "Clears the messages log"
+msgstr "Vider le journal d'événements"
+
+#: CntlrWinMain.py:76 CntlrWinMain.py:180
+#: DialogFind.py:122 ViewWinFactGrid.py:31
+#: ViewWinTree.py:203 ViewWinTupleGrid.py:27
+msgid "Close"
+msgstr "Fermer"
+
+#: DialogFind.py:123
+msgid "Close the find dialog.  "
+msgstr "Fermer la boîte de recherche"
+
+#: CntlrWinMain.py:180
+msgid "Closes currently selected instance/DTS or "
+"testcase(s)"
+msgstr "Fermer l'instance/DTS ou le jeu de tests "
+"sélectionné"
+
+#: XPathParser.py:648
+msgid "Code %(name)s %(source)s"
+msgstr "Code %(name)s %(source)s"
+
+#: ViewWinFormulae.py:59 ViewWinTree.py:157
+#: ViewWinVersReport.py:21
+msgid "Collapse"
+msgstr "Réduire"
+
+#: ViewWinTree.py:159
+msgid "Collapse All"
+msgstr "Tout Réduire"
+
+#: CntlrCmdLine.py:65
+msgid "Columns for CSVFILE"
+msgstr "Colonnes du FICHIERCSV"
+
+# Label: ignore
+#: ValidateHmrc.py:119
+msgid "Company Name (uk-bus:EntityCurrentLegalOrRegisteredName) is "
+"missing."
+msgstr ""
+
+# Label: ignore
+#: ValidateHmrc.py:155
+msgid "Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) is "
+"missing."
+msgstr ""
+
+#: CntlrWinMain.py:185
+msgid "Compare DTSes"
+msgstr "Comparer les DTS"
+
+#: CntlrWinMain.py:122
+msgid "Compare DTSes..."
+msgstr "Comparaison des DTS..."
+
+#: CntlrWinMain.py:185
+msgid "compare two DTSes"
+msgstr "Comparer deux DTS"
+
+#: CntlrCmdLine.py:241 CntlrWinMain.py:718
+msgid "compared in %.2f secs"
+msgstr "Comparé en %.2f secondes"
+
+#: ModelVersReport.py:257
+msgid "Comparing {0} relationships"
+msgstr "Compare {0} relations"
+
+#: ModelVersReport.py:254
+msgid "Comparing concepts"
+msgstr "Compare les concepts"
+
+#: ModelVersReport.py:260
+msgid "Comparing dimension defaults"
+msgstr "Compare les valeurs par défaut de dimensions"
+
+#: ModelVersReport.py:263
+msgid "Comparing explicit dimensions"
+msgstr "Compare les dimensions explicites"
+
+#: ModelVersReport.py:250
+msgid "Comparing namespaces"
+msgstr "Compare les espaces de nommages"
+
+#: ModelVersReport.py:252
+msgid "Comparing roles"
+msgstr "Compare les rôles"
+
+#: DialogFind.py:119
+msgid "Compile (if regular expression or XPath 2), and find first match (if "
+"down direction) or last match (if up direction).  "
+msgstr "Compile (si expression régulière ou XPath 2) et trouve le premier "
+"(resp. dernier) résultat si la direction de recherche est \"vers le "
+"bas\" (resp. \"vers le haut\")"
+
+#: ValidateFormula.py:120
+msgid "Compiling formulae"
+msgstr "Compile la formule"
+
+#: DialogFind.py:228 DialogFind.py:230
+msgid "Compiling xpath expression..."
+msgstr "Compile l'expression XPath"
+
+#: DialogFind.py:284
+msgid "Completed with errors"
+msgstr "Terminé avec succès"
+
+#: ValidateFiling.py:1043
+msgid "Concept %(concept)s does not participate in an effective presentation "
+"relationship"
+msgstr "Le concept %(concept)s ne participe pas à une relation de "
+"présentation effective"
+
+#: ValidateFiling.py:801
+msgid "Concept %(concept)s has a substitutionGroup of a non-standard "
+"concept."
+msgstr "Le concept %(concept)s a un groupe de substitution d'un concept non "
+"standard."
+
+#: ValidateFilingDTS.py:195
+msgid "Concept %(concept)s has disallowed substitution group "
+"%(substitutionGroup)s"
+msgstr "Le concept %(concept)s a un groupe de substitution "
+"%(substitutionGroup)s désactivé"
+
+#: ValidateFiling.py:905
+msgid "Concept %(concept)s has duplicate preferred label %(preferredLabel)s "
+"in link role %(linkrole)s"
+msgstr "Le concept %(concept)s a un libellé préféré %(preferredLabel)s "
+"dupliqué dans le rôle %(linkrole)s"
+
+#: ValidateFiling.py:1157
+msgid "Concept %(concept)s has duplicated labels for role %(role)s lang "
+"%(lang)s."
+msgstr "Le concept %(concept)s a un libellé dupliqué pour le rôle %(role)s "
+"langue %(lang)s."
+
+#: ValidateFilingDTS.py:158
+msgid "Concept %(concept)s has typedDomainRef "
+"%(typedDomainRef)s"
+msgstr "Le concept %(concept)s a  typedDomainRef "
+"%(typedDomainRef)s"
+
+#: ValidateFilingDTS.py:137
+msgid "Concept %(concept)s id %(id)s should be "
+"$(requiredId)s"
+msgstr "Le concept %(concept)s id %(id)s devrait être "
+"$(requiredId)s"
+
+#: ValidateFilingDTS.py:217
+msgid "Concept %(concept)s is a domainItemType and must be periodType "
+"duration"
+msgstr "Le concept %(concept)s est un domainItemType et doit avoir une "
+"periodType \"duration\""
+
+#: ValidateFilingDTS.py:202
+msgid "Concept %(concept)s is a LineItems but not "
+"abstract"
+msgstr "Le concept %(concept)s est un LineItems mais n'est pas "
+"abstrait"
+
+#: ValidateFilingDTS.py:152
+msgid "Concept %(concept)s is a tuple"
+msgstr "Concept %(concept)s est un tuple"
+
+#: ValidateFilingDTS.py:121
+msgid "Concept %(concept)s is also defined in standard taxonomy schema "
+"%(standardSchema)s without a general-special "
+"relationship"
+msgstr "Le concept %(concept)s est également défin dans le schéma "
+"%(standardSchema)s de taxonomie standard, sans relation "
+"générale-spécifique"
+
+#: ValidateFilingDTS.py:116
+msgid "Concept %(concept)s is also defined in standard taxonomy schema "
+"schema %(standardSchema)s"
+msgstr "Le concept %(concept)s est également défin dans le schéma "
+"%(standardSchema)s de taxonomie standard"
+
+#: ValidateFilingDTS.py:232
+msgid "Concept %(concept)s is an abstract tuple"
+msgstr "Le concept %(concept) est un tuple abstrait"
+
+#: ValidateFilingDTS.py:186
+msgid "Concept %(concept)s is an Axis but not in hypercubeItem substitution "
+"group"
+msgstr "Le concept %(concept)s est un axe (Axis) mais pas dans le groupe de "
+"substitution hypercubeItem"
+
+#: ValidateFiling.py:1179
+msgid "Concept %(concept)s is missing an %(lang)s label for role "
+"%(role)s."
+msgstr "Il manque un libellé en langue '%(lang)s' dans le rôle %(role)s pour "
+"le concept %(concept)s."
+
+#: ValidateFiling.py:1166
+msgid "Concept %(concept)s is missing an %(lang)s standard "
+"label."
+msgstr "Il manque un libellé standard en langue '%(lang)s' pour le concept "
+"%(concept)s"
+
+#: ValidateXbrlDimensions.py:248
+msgid "Concept %(concept)s is not a dimension item but has a "
+"typedDomainRef"
+msgstr "Le concept %(concept)s n'est pas une dimension mais à l'attribut "
+"'typedDomainRef'"
+
+#: ValidateFiling.py:1063
+msgid "Concept %(concept)s missing %(lang)s preferred labels for role "
+"%(preferredLabel)s"
+msgstr "Il manque le libellé préféré du concept %(concept)s pour le rôle "
+"%(preferredLabel)s"
+
+#: ValidateFiling.py:790
+msgid "Concept %(concept)s missing standard label in local "
+"language."
+msgstr "Il manque le libellé standard dans la langue locale pour le concept "
+"%(concept)s"
+
+#: ValidateFilingDTS.py:180
+msgid "Concept %(concept)s must end in Axis to be in dimensionItem "
+"substitution group"
+msgstr "Le concept %(concept)s doit se terminer par 'Axis' pour être dans le "
+"groupe de substitution dimensionItem"
+
+#: ValidateFilingDTS.py:211
+msgid "Concept %(concept)s must end with Domain or Member for type of "
+"domainItemType"
+msgstr "Le concept %(concept)s doit se terminer par 'Domain' ou 'Member'pour "
+"être de type domainItemType"
+
+#: ValidateFilingDTS.py:274
+msgid "Concept %(concept)s must have a documentation label or "
+"reference"
+msgstr "Le concept %(concept)s doit avoir un libellé documentation ou un "
+"référence"
+
+#: ValidateFilingDTS.py:284
+msgid "Concept %(concept)s must have a standard label in language "
+"'nl'"
+msgstr "Le concept %(concept)s doit avoir un libellé standard en langue "
+"'nl'"
+
+#: ValidateFiling.py:796
+msgid "Concept %(concept)s not referred to by presentation "
+"relationship."
+msgstr "Le concept %(concept)s n'est pas référenced par une relation de "
+"présentation."
+
+#: ValidateFiling.py:745
+msgid "Concept %(concept)s of a standard taxonomy cannot have a "
+"documentation label: %(text)s"
+msgstr "Le concept %(concept)s d'une taxonomie standard ne peut pas avoir de "
+"libellé documentation : %(text)s"
+
+#: ValidateXbrlDimensions.py:234
+msgid "Concept %(concept)s typedDomainRef has no fragment "
+"identifier"
+msgstr "Le typedDomainRef  du concept %(concept)s n'a pas d'identifiant de "
+"fragment"
+
+#: ValidateXbrlDimensions.py:238
+msgid "Concept %(concept)s typedDomainRef is not "
+"resolved"
+msgstr "Le typedDomainRef  du concept %(concept)s ne peut pas être "
+"résolu"
+
+#: ValidateXbrlDimensions.py:244
+msgid "Concept %(concept)s typedDomainRef must identify a non-abstract "
+"element"
+msgstr "Le typedDomainRef  du concept %(concept)s doit identifier un élément "
+"concret"
+
+#: ValidateFilingDTS.py:128
+msgid "Concept %(specialName)s is appears to be missing a general-special "
+"relationship to %(generalNames)s"
+msgstr "Il semble que le concept %(specialName)s n'a pas de relation "
+"general-special vers %(generalNames)s"
+
+#: ViewWinVersReport.py:27
+msgid "Concept Label Role"
+msgstr "Rôle de Libellé Concept"
+
+#: ValidateFormula.py:606
+msgid "Consistency Assertion %(id)s evaluations : %(satisfiedCount)s "
+"satisfied, %(notSatisfiedCount)s not "
+"satisfied"
+msgstr "Cohérence de Assertion %(id)s : %(satisfiedCount)s évaluations "
+"satisfaites, %(notSatisfiedCount)s évaluations non "
+"satisfaites"
+
+#: FormulaConsisAsser.py:26
+msgid "Consistency assertion %(id)s formula %(xlinkLabel)s fact "
+"%(derivedFact)s has zero precision and no radius is defined, skipping "
+"consistency assertion"
+msgstr "Cohérence de Assertion %(id)s :  formule %(xlinkLabel)s fait "
+"%(derivedFact)s n'a aucune précision et le rayon n'est pas défini, la "
+"cohérence de l'assertion est ignorée"
+
+#: FormulaConsisAsser.py:80
+msgid "Consistency assertion %(id)s formula %(xlinkLabel)s input fact "
+"matched to %(derivedFact)s has zero precision and no radius, skipping "
+"consistency assertion"
+msgstr "Cohérence de Assertion %(id)s : formule %(xlinkLabel)s le fait "
+"d'entrée fact correspondand à %(derivedFact)s n'a aucune précision et "
+"pas de rayon, la cohérence d'assertion est "
+"ignorée"
+
+#: FormulaConsisAsser.py:52
+msgid "Consistency assertion %(id)s formula %(xlinkLabel)s no input facts "
+"matched to %(derivedFact)s, skipping consistency "
+"assertion"
+msgstr "Cohérence de Assertion %(id)s : formule %(xlinkLabel)s aucun fait "
+"d'entrée ne correspond à %(derivedFact)s, la cohérence de l'assertion "
+"est ignorée"
+
+#: FormulaConsisAsser.py:106
+msgid "Consistency assertion %(id)s result "
+"%(result)s"
+msgstr "Cohérence de Assertion %(id)s : résultat "
+"%(result)s"
+
+#: ValidateFormula.py:499
+msgid "Consistency assertion %(xlinkLabel)s has both absolute and "
+"proportional acceptance radii"
+msgstr "Cohérence de Assertion %(id)s :%(xlinkLabel)s a simultanément le "
+"rayon d'acceptation proportionnel et "
+"absolu"
+
+#: ValidateFormula.py:505
+msgid "Consistency assertion %(xlinkLabel)s has relationship to a "
+"%(elementTo)s %(xlinkLabelTo)s"
+msgstr "Cohérence de Assertion %(id)s :%(xlinkLabel)s a une relation vers un "
+"%(elementTo)s %(xlinkLabelTo)s "
+
+#: ValidateXbrl.py:420
+msgid "Context %(contextID) startDate or endDate: "
+"%(error)s"
+msgstr "Contexte %(contextID) startDate ou endDate : "
+"%(error)s"
+
+#: ValidateXbrl.py:617
+msgid "Context %(contextID)s %(contextElement)s cannot be "
+"empty"
+msgstr "Contexte %(contextID) L'élément %(contextElement)s ne peut pas être "
+"vide"
+
+#: ValidateXbrl.py:608
+msgid "Context %(contextID)s %(contextElement)s cannot have item or tuple "
+"element %(elementName)s"
+msgstr "Contexte %(contextID)s %(contextElement)s ne peut pas avoir un "
+"élément ou un tuple %(elementName)s"
+
+#: ValidateXbrl.py:602
+msgid "Context %(contextID)s %(contextElement)s cannot have xbrli element "
+"%(elementName)s"
+msgstr "Contexte %(contextID)s %(contextElement)s ne peut pas avoir un "
+"élément xbrli:%(elementName)s"
+
+#: ValidateXbrlDimensions.py:260
+msgid "Context %(contextID)s %(dimension)s %(value)s is not an appropriate "
+"dimension item"
+msgstr "Contexte %(contextID)s %(dimension)s %(value)s n'est pas un élément "
+"dimension adéquat"
+
+#: ValidateXbrlDimensions.py:298 ValidateXbrlDimensions.py:305
+msgid "Context %(contextID)s dimension %(dimension)s is a repeated dimension "
+"value"
+msgstr "Contexte %(contextID)s dimension %(dimension)s est une valeur de "
+"dimensions répétée"
+
+#: ValidateFiling.py:371
+msgid "Context %(contextID)s endDate and %(contextID2)s startDate have a "
+"duration of one day; that is inconsistent with document type "
+"%(documentType)s."
+msgstr "Contexte La endDate de %(contextID)s et la startDate de "
+"%(contextID2)s forment une durée d'un jour ; ceci est incohérent avec "
+"le type de document %(documentType)s."
+
+#: ValidateXbrlDimensions.py:267
+msgid "Context %(contextID)s explicit dimension %(dimension)s member "
+"%(value)s is not a global member item"
+msgstr "Contexte %(contextID)s dimension explicite %(dimension)s membre "
+"%(value)s n'est pas un membre global"
+
+#: ValidateXbrlDimensions.py:272
+msgid "Context %(contextID)s explicit dimension %(dimension)s member {2} is "
+"a default member item"
+msgstr "Dans la dimension explicite %(dimension)s du contexte %(contextID)s, "
+"le membre {2} est un élément par défaut"
+
+#: ValidateXbrl.py:427
+msgid "Context %(contextID)s instant date: "
+"%(error)s"
+msgstr "Contexte %(contextID)s date \"instant\" : "
+"%(error)s"
+
+#: ValidateXbrl.py:416
+msgid "Context %(contextID)s must have startDate less than "
+"endDate"
+msgstr "Le contexte %(contextID)s doit avoir une date de début antérieure à "
+"la date de fin"
+
+#: ValidateFiling.py:379
+msgid "Context %(contextID)s startDate and %(contextID2)s end (instant) have "
+"a duration of one day; that is inconsistent with document type "
+"%(documentType)s."
+msgstr "Le context %(contextID)s startDate and %(contextID2)s end (instant) a "
+"une durée de 1 jour ; ce n'est pas cohérent avec le type de document "
+"%(documentType)s."
+
+#: ValidateXbrlDimensions.py:289
+msgid "Context %(contextID)s typed dimension %(dimension)s has "
+"%(error)s"
+msgstr "Contexte %(contextID)s la dimension typée %(dimension)s a "
+"%(error)s"
+
+# Label: ignore
+#: ValidateHmrc.py:162
+msgid "Context entity identifier (%(entityIdentifier)s) does not match "
+"Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) "
+"Location: Accounts (context id %(contextID)s)."
+msgstr ""
+
+#: ValidateFiling.py:132
+msgid "Context id %(context)s %(elementName)s invalid content "
+"%(value)s"
+msgstr "Context ID %(context)s %(elementName)s : Contenu invalide "
+"%(value)s"
+
+#: ValidateFiling.py:121
+msgid "Context ID %(context)s is equivalent to context ID "
+"%(context2)s"
+msgstr "Contexte ID %(context)s est équivalent au context ID "
+"%(context2)s"
+
+#: CntlrWinMain.py:235 ViewWinList.py:105
+#: ViewWinTree.py:167
+msgid "Copy to clipboard"
+msgstr "Copy dans le presse-papier"
+
+#: ModelVersReport.py:567 ModelVersReport.py:581
+msgid "corresponding relationship {0} toDTS "
+"toName=\"{1}\""
+msgstr "Relation correspondante {0} toDTS toName=\"{1}\""
+
+#: ModelXbrl.py:264
+msgid "Create context, %(dimension)s, cannot determine context element, "
+"either no all relationship or validation "
+"issue"
+msgstr ""
+
+#: ViewWinRenderedGrid.py:457
+msgid "creating new instance {0}"
+msgstr "création en cours d'une nouvelle instance "
+"{0}"
+
+#: CntlrWinMain.py:391
+msgid "CSV file"
+msgstr "fichier CSV"
+
+#: ValidateFormula.py:171
+msgid "Custom function %(name)s has namespace reserved for functions in the "
+"function registry %(namespace)s"
+msgstr "La fonction spécifique %(name)s utilise un espace de nomamge réservé "
+"aux fonctions du registre %(namespace)s"
+
+#: ValidateFormula.py:179
+msgid "Custom function %(name)s signature has %(parameterCountSignature)s "
+"parameters but implementation has %(parameterCountImplementation)s, "
+"must be matching"
+msgstr "La signature de la fonction spécifique %(name)s a "
+"%(parameterCountSignature)s paramètres mais son implémentation a "
+"%(parameterCountImplementation)s paramètres ; cela doit "
+"correspondre"
+
+#: ValidateFormula.py:186
+msgid "Custom function implementation %(xlinkLabel)s has no relationship "
+"from any custom function signature"
+msgstr "L'implémentation de la fonction spécifique %(xlinkLabel)s n'a aucune "
+"relation avec les signatures des fonctions "
+"spécifiques"
+
+#: ValidateFormula.py:163
+msgid "Cyclic dependencies in parameter %(name)s, to names "
+"%(dependencies)s"
+msgstr "Dépendance cyclique dans le paramètre %(name)s pour les noms "
+"%(dependencies)s"
+
+#: ValidateFormula.py:351
+msgid "Cyclic dependencies in variable set %(xlinkLabel)s, from variable "
+"%(nameFrom)s to %(nameTo)s"
+msgstr "Dépendance cyclique dans l'ensemble de variables %(xlinkLabel)s, de "
+"la variabel %(nameFrom)s vers %(nameTo)s"
+
+#: ValidateFormula.py:472
+msgid "Cyclic dependencies of instance %(name)s produced by a formula, with "
+"variables consuming instances %(dependencies)s"
+msgstr "Dépendance cyclique de l'instance %(name)s causée par une formule, "
+"dont les variables consomment les instances "
+"%(dependencies)s"
+
+#: CntlrGenVersReports.py:40
+msgid "Date if desired to use (instead of today) in generated testcase "
+"elements."
+msgstr "Date à utiliser (à la place d'aujourd'hui) dans la génération des cas "
+"de test."
+
+# Label: ignore
+#: ValidateHmrc.py:134
+msgid "Date of signing Directors Report (uk-direp:DateSigningDirectorsReport)"
+" is missing."
+msgstr ""
+
+#: ViewWinFactList.py:23
+msgid "Dec"
+msgstr "Décimales"
+
+#: ValidateXbrlCalcs.py:43
+msgid "decimals"
+msgstr "décimales"
+
+#: ValidateFiling.py:988
+msgid "Definition relationship from %(conceptFrom)s to %(conceptTo)s in role "
+"%(linkrole)s requires domain item target"
+msgstr "La relation de type \"définition\" de %(conceptFrom)s vers "
+"%(conceptTo)s dans le rôle %(linkrole)s nécessite une cible de type "
+"domaine"
+
+#: ValidateXbrlDTS.py:1009
+msgid "DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s has unauthorized "
+"arcrole %(arcrole)s"
+msgstr "Le DefinitionArc de %(xlinkFrom)s vers %(xlinkTo)s a un rôle "
+"%(arcrole)s non permis"
+
+#: ValidateXbrlDTS.py:1001
+msgid "DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an "
+"order"
+msgstr "Le DefinitionArc de %(xlinkFrom)s vers %(xlinkTo)s doit avoir un "
+"ordre"
+
+# Label: ignore
+#: ValidateFiling.py:266
+msgid "dei:%(elementName)s %(prefix)s should be a case-insensitive prefix "
+"of: %(value)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:252
+msgid "dei:%(elementName)s %(value)s is must match the context entity "
+"identifier %(entityIdentifer)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:257
+msgid "dei:%(elementName)s %(value)s must match submission: "
+"%(filerIdentifer)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:596
+msgid "dei:%(elementName)s is required for DocumentType '%(documentType)s' "
+"of context %(contextID)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:641
+msgid "dei:%(elementName)s is required in the default "
+"context"
+msgstr ""
+
+#: ValidateFiling.py:609
+msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType "
+"'%(documentType)s' but but a default-context because only one class "
+"of stock"
+msgstr ""
+
+#: ValidateFiling.py:627
+msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType "
+"'%(documentType)s' but missing for a non-default-context "
+"fact"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:614
+msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType "
+"'%(documentType)s' but missing in these stock classes: "
+"%(stockClasses)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:605
+msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType "
+"'%(documentType)s' but not in the default context because there are "
+"multiple classes of common shares"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:619
+msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType "
+"'%(documentType)s' but only one per stock class "
+"%(stockClass)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:623
+msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType "
+"'%(documentType)s' in stock class %(stockClass)s with measurement "
+"date %(date)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateFiling.py:631
+msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType "
+"'%(documentType)s' in the default context because there are not "
+"multiple classes of common shares"
+msgstr ""
+
+#: DialogNewFactItem.py:130 DialogRssWatch.py:188
+msgid "Dialog validation error(s)"
+msgstr "Boîte de dialogue des erreurs de validation"
+
+#: CntlrCmdLine.py:235
+msgid "diff comparison DTS loaded in %.2f secs"
+msgstr "comparaison différentielle DTS chargée en %.2f "
+"secondes"
+
+#: ValidateFilingDimensions.py:212
+msgid "Dimension %(dimension)s domains same in linkroles "
+"%(linkroles)s"
+msgstr "Dimension %(dimension)s, les domaines son identiques dans les "
+"linkroles %(linkroles)s"
+
+#: ValidateFilingDimensions.py:376
+msgid "Dimension %(dimension)s in DRS role %(linkrole)s for hypercube "
+"%(hypercube)s, non-unique member %(concept)s"
+msgstr "La dimension %(dimension)s dans le rôle DRS %(linkrole)s pour "
+"l'hypercube %(hypercube)s a un membre non unique "
+"%(concept)s"
+
+#: ValidateFilingDimensions.py:189
+msgid "Dimension %(dimension)s in DRS role %(linkrole)s, has nonAbsract "
+"domain %(domain)s"
+msgstr "La dimension %(dimension)s dans le rôle DRS %(linkrole)s a un domaine "
+"%(domain)s non abstrait"
+
+#: ValidateFilingDimensions.py:185
+#, fuzzy
+# FIXME is it really the error message?
+msgid "Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain "
+"with members %(domain)s"
+msgstr "La dimension %(dimension)s dans le rôle DRS %(linkrole)s a un domain "
+"%(domain)s non utilisable"
+
+#: ValidateFilingDimensions.py:197
+msgid "Dimension %(dimension)s in DRS role %(linkrole)s, missing targetrole "
+"to consecutive domain relationship"
+msgstr "Dimension %(dimension)s dans le rôle du DRS %(linkrole)s, il manque "
+"une relation targetrole vers la relation dimaine "
+"consécutive"
+
+#: ValidateXbrlDimensions.py:137
+msgid "Dimension %(source)s has multiple defaults %(target)s and "
+"%(target2)s"
+msgstr "La dimension %(source)s a plusieurs valeurs par défaut: %(target)s et "
+"%(target2)s"
+
+#: FunctionXfi.py:756
+msgid "dimension does not specify a typed dimension"
+msgstr "la dimension ne spécifie pas une dimension "
+"typée"
+
+#: FunctionXfi.py:722
+msgid "dimension does not specify an explicit "
+"dimension"
+msgstr "la dimension ne spécifie pas une dimension "
+"explicite"
+
+#: ValidateXbrl.py:527
+msgid "Dimension item %(concept)s must be abstract"
+msgstr "L'élément dimension %(concept)s doit être "
+"abstrait"
+
+#: ModelFormulaObject.py:1910
+msgid "dimension not available"
+msgstr "dimension non disponible"
+
+#: ValidateXbrlDimensions.py:87
+msgid "Dimension relationships have a directed cycle in DRS role "
+"%(linkrole)s \n"
+"starting from hypercube %(hypercube)s, \n"
+"dimension %(dimension)s, \n"
+"path %(path)s"
+msgstr "Les relations de dimension présentent un cycle orienté dans le rôle "
+"DRS %(linkrole)s\n"
+"débutant de l'hypercube %(hypercube)s,\n"
+"dimension %(dimension)s,\n"
+"chemin %(path)s"
+
+#: ValidateXbrlDimensions.py:97
+msgid "Dimension relationships have a polymorphism cycle in DRS role "
+"%(linkrole)s \n"
+"starting from hypercube %(hypercube)s, \n"
+"dimension %(dimension)s, \n"
+"path %(path)s"
+msgstr "Les relations de dimension présentent un cycle polymorphique dans le "
+"rôle DRS %(linkrole)s\n"
+"débutant de l'hypercube %(hypercube)s,\n"
+"dimension %(dimension)s,\n"
+"chemin %(path)s"
+
+#: ValidateFilingDimensions.py:108
+msgid "Dimension relationships have an undirected cycle in DRS role "
+"%(linkrole)s \n"
+"starting from table %(hypercube)s, \n"
+"axis %(dimension)s, \n"
+"path %(path)s"
+msgstr "Les relations de dimension présentent un cycle non orienté dans le "
+"rôle DRS %(linkrole)s\n"
+"débutant de l'hypercube %(hypercube)s,\n"
+"dimension %(dimension)s,\n"
+"chemin %(path)s"
+
+#: ValidateFiling.py:995
+msgid "Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role "
+"%(linkrole)s is not allowed"
+msgstr "La relation dimension-default de %(conceptFrom)s vers %(conceptTo)s "
+"dans le role %(linkrole)s n'est pas "
+"autorisée"
+
+#: ValidateXbrlDimensions.py:129
+msgid "Dimension-default relationship from %(source)s to %(target)s in link "
+"role %(linkrole)s has a typed dimension "
+"source"
+msgstr "La relation dimension-default de %(source)s vers %(target)s dans le "
+"rôle %(linkrole) est associée à une dimension "
+"typée"
+
+#: ValidateXbrlDimensions.py:125
+msgid "Dimension-default relationship from %(source)s to %(target)s in link "
+"role %(linkrole)s must have a dimension declaration "
+"source"
+msgstr "La relation dimension-default de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s doit avoir pour source une déclaration de "
+"dimension"
+
+#: ValidateXbrlDimensions.py:133
+msgid "Dimension-default relationship from %(source)s to %(target)s in link "
+"role %(linkrole)s must have a domain member "
+"target"
+msgstr "La relation dimension-default de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s doit cibler un membre du "
+"domaine"
+
+#: ValidateXbrlDimensions.py:111
+msgid "Dimension-domain relationship from %(source)s to %(target)s in link "
+"role %(linkrole)s has a typed dimension "
+"source"
+msgstr "La relation dimension-domaine de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s a une source de dimension "
+"typée"
+
+#: ValidateXbrlDimensions.py:107
+msgid "Dimension-domain relationship from %(source)s to %(target)s in link "
+"role %(linkrole)s must have a dimension declaration "
+"source"
+msgstr "La relation dimension-domaine de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s doit avoir pour source un déclaration de "
+"dimension"
+
+#: ValidateXbrlDimensions.py:115
+msgid "Dimension-domain relationship from %(source)s to %(target)s in link "
+"role %(linkrole)s must have a domain member "
+"target"
+msgstr "La relation dimension-domaine de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s doit cibler un membre du "
+"domaine"
+
+#: ValidateFilingDTS.py:422
+msgid "dimensions"
+msgstr "dimensions"
+
+#: ViewWinRelationshipSet.py:93
+msgid "Dimensions"
+msgstr "Dimensions"
+
+#: ValidateFilingText.py:391
+msgid "Disallowed character '%(text)s' in file %(file)s at line %(line)s col "
+"%(column)s"
+msgstr "Caractère '%(text)s' non autorisée dans le fichier %(file) ligne "
+"%(line)s colonne %(column)s"
+
+#: ValidateFilingText.py:387
+msgid "Disallowed entity code %(text)s in file %(file)s line %(line)s column "
+"%(column)s"
+msgstr "Entité '%(text)s' non autorisée dans le fichier %(file) ligne "
+"%(line)s colonne %(column)s"
+
+#: ValidateFiling.py:1030
+msgid "Disallowed xbrldt:usable='false' attribute on %(arc)s relationship "
+"from concept %(conceptFrom)s in base set role %(linkrole)s to concept "
+"%(conceptTo)s"
+msgstr "Attribut xbrldt:usable='false' non autorisé sur la relation%(arc)s du "
+"concept %(conceptFrom)s dans l'ensemble de base rôle %(linkrole)s "
+"vers le concept %(conceptTo)s"
+
+#: DialogOpenArchive.py:51
+msgid "Disclosure System"
+msgstr ""
+
+#: DisclosureSystem.py:143
+msgid "Disclosure system and mappings {0}: "
+"{1}"
+msgstr ""
+
+#: CntlrWinMain.py:101
+msgid "Disclosure system checks"
+msgstr ""
+
+#: ModelDocument.py:386
+msgid "Discovery of %(fileName)s expected namespace %(namespace)s found "
+"targetNamespace %(targetNamespace)s"
+msgstr "Dans %(fileName)s, l'espace de nommage attendu est %(namespace)s mais "
+"le targetNamespace est %(targetNamespace)s"
+
+#: ValidateXbrlDTS.py:1089
+msgid "Documentation element must not be used: "
+"%(value)s"
+msgstr "L'élément documentation ne doit pas êter utilisé : "
+"%(value)"
+
+#: ValidateFiling.py:557
+msgid "DocumentType '%(documentType)s' of context %(contextID)s inapplicable "
+"to submission form %(submissionType)s"
+msgstr "Le DocumentType '%(documentType)s' du contexte %(contextID) n'est pas "
+"reconnu"
+
+#: ValidateFiling.py:540
+msgid "DocumentType '%(documentType)s' of context %(contextID)s was not "
+"recognized"
+msgstr "Le DocumentType '%(documentType)s' du contexte %(contextID) n'est pas "
+"reconnu"
+
+#: ValidateFiling.py:528
+msgid "DocumentType is required and was not found in the default "
+"context"
+msgstr "DoucmentType est requis mais non trouvé dans le contexte par "
+"défaut"
+
+#: ValidateFilingDimensions.py:232
+msgid "Domain item %(domain)s in DRS role %(linkrole)s is not a "
+"domainItem"
+msgstr "L'élément de domaine %(domain)s dans le rôle DRS %(linkrole)s n'est "
+"pas un domainItem"
+
+#: ValidateFilingDimensions.py:193
+msgid "Domain item %(domain)s in DRS role %(linkrole)s, in dimension "
+"%(dimension)s is not a domainItem"
+msgstr "L'élément de domaine %(domain)s dans le rôle DRS %(linkrole)s dans la "
+"dimension %(dimension)s n'est pas un "
+"domainItem"
+
+#: ValidateFiling.py:314
+msgid "Domain item %(fact)s in context %(contextID)s may not appear as a "
+"fact"
+msgstr "L'élément %(fact)s du domaine dans le contexte %(contextID)s peut ne "
+"pas apparaître comme un fait"
+
+#: ValidateFilingDimensions.py:141
+msgid "Domain member %(concept)s in DRS role %(linkrole)s, missing "
+"targetrole consecutive relationship"
+msgstr "Le membre de domaine %(concept)s dans le rôle %(linkrole)s, il manque "
+"une relation targetrole"
+
+#: ValidateFilingDimensions.py:218
+msgid "Domain member %(member)s in DRS role %(linkrole)s, has nested "
+"members"
+msgstr "Le membre de domaine %(member)s dans le rôle DRS %(linkrole)s, a des "
+"membres imbriqués"
+
+#: ValidateFilingDimensions.py:227
+msgid "Domain member item %(member)s in DRS role %(linkrole)s is not a "
+"domainMemberItem"
+msgstr "Le membre de domaine %(member)s dans le rôle DRS %(linkrole)s n'est "
+"pas un domainMemberItem"
+
+#: ValidateFilingDimensions.py:130
+msgid "Domain-member primary-item relationships have an undirected cycle in "
+"DRS role %(linkrole)s \n"
+"starting from %(conceptFrom)s, \n"
+"path %(path)s"
+msgstr "Les relations membre de domaine - item primaire présentent un cycle "
+"non orienté dans le rôle DRS %(linkrole)s\n"
+"débutant de %(conceptFrom)s\n"
+"chemin %(path)s"
+
+#: ValidateXbrlDimensions.py:153
+msgid "Domain-Member relationship from %(source)s to %(target)s in link role "
+"%(linkrole)s must have a domain primary item or domain member "
+"source"
+msgstr "La relation domaine-membre de %(source)s vers %(target)s dans le rôle "
+"%(linkrole)s doit avoir un élément primaire domaine ou un membre "
+"source domaine"
+
+#: ValidateXbrlDimensions.py:157
+msgid "Domain-Member relationship from %(source)s to %(target)s in link role "
+"%(linkrole)s must have a domain primary item or domain member "
+"target"
+msgstr "La relation domaine-membre de %(source)s vers %(target)s dans le rôle "
+"%(linkrole)s doit avoir un élément primaire domaine ou un membre "
+"destination domaine"
+
+#: ValidateFilingDTS.py:423
+msgid "domains"
+msgstr "domaines"
+
+# Label: ignore
+#: ValidateHmrc.py:128
+msgid "Dormant/non-dormant indicator (uk-bus:EntityDormant) is "
+"missing."
+msgstr ""
+
+#: Updater.py:51
+msgid "Download ompleted"
+msgstr "Téléchargement terminé"
+
+#: ModelXbrl.py:487
+msgid "DTS of %(entryFile)s has %(numberOfFiles)s files packaged into "
+"%(packageOutputFile)s"
+msgstr "Le DTS de %(entryFile)s a %(numberOfFiles)s fichiers packagés dans "
+"%(packageOutputFile)s"
+
+#: ValidateXbrlDTS.py:518
+msgid "Duplicate %(element)s %(attribute)s "
+"%(roleURI)s"
+msgstr "Élément %(element)s %(attribute)s %(roleURI)s "
+"dupliqué"
+
+#: ValidateFiling.py:958
+msgid "Duplicate calculations relations from concept %(conceptFrom)s for "
+"order %(order)s in base set role %(linkrole)s to concept "
+"%(conceptTo)s and to concept %(conceptTo2)s"
+msgstr "Relations de calcul dupliquées entre concept %(conceptFrom) pour "
+"l'ordre %(order)s dans le rôle d'ensemble de base %(linkrole)s vers "
+"le concept %(conceptTo)s et vers le concept "
+"%(conceptTo2)s"
+
+#: ValidateFiling.py:1022
+msgid "Duplicate definitions relations from concept %(conceptFrom)s for "
+"order %(order)s in base set role %(linkrole)s to concept "
+"%(conceptTo)s and to concept %(conceptTo2)s"
+msgstr "Relations de définition dupliquées entre concept %(conceptFrom) pour "
+"l'ordre %(order)s dans le rôle d'ensemble de base %(linkrole)s vers "
+"le concept %(conceptTo)s et vers le concept "
+"%(conceptTo2)s"
+
+#: ValidateFiling.py:916
+msgid "Duplicate presentation relations from concept %(conceptFrom)s for "
+"order %(order)s in base set role %(linkrole)s to concept "
+"%(conceptTo)s and to concept %(conceptTo2)s"
+msgstr "Relations de présentation dupliquées entre concept %(conceptFrom) "
+"pour l'ordre %(order)s dans le rôle d'ensemble de base %(linkrole)s "
+"vers le concept %(conceptTo)s et vers le concept "
+"%(conceptTo2)s"
+
+#: ValidateXbrl.py:96
+msgid "Duplicate xlink arcs  in extended link %(linkrole)s from "
+"%(xlinkLabelFrom)s to %(xlinkLabelTo)s"
+msgstr "Arcs xlink dupliqués dans le lien étendu %(linkrole)s de "
+"%(xlinkLabelFrom)s vers %(xlinkLabelTo)s"
+
+#: FunctionFn.py:532
+msgid "Effective boolean value indeterminate"
+msgstr "Valeur booléen effective non déterminée"
+
+#: ValidateXbrlDTS.py:831
+msgid "Element %(element)s %(xlinkLabel)s has unauthorized "
+"xml:lang='%(lang)s'"
+msgstr "Lélément %(element)s %(xlinkLabel)s a xml:lang='%(lang)s' non "
+"autorisé"
+
+#: ValidateXbrlDTS.py:805
+msgid "Element %(element)s appears to be a resource missing "
+"xlink:type=\"resource\""
+msgstr "L'élément %(element)s semble être une resource mais il lui manque "
+"xlink:type=\"resource\""
+
+#: XmlValidate.py:349
+msgid "Element %(element)s attribute %(attribute)s type %(typeName)s value "
+"error: %(value)s, %(error)s"
+msgstr "Élément %(element)s attribut %(attribute)s type %(typeName)s valeur "
+"erronnée : %(value)s, %(error)s"
+
+#: ValidateXbrlDTS.py:305
+msgid "Element %(element)s id %(value)s is "
+"duplicated"
+msgstr "L'élément %(element)s id %(value)s est "
+"dupliqué"
+
+#: ValidateXbrlDTS.py:497
+msgid "Element %(element)s is mis-located in schema "
+"file"
+msgstr "L'élément %(element)s est mal positionné dans le fichier du "
+"schéma"
+
+#: ValidateXbrlDTS.py:843
+msgid "Element %(element)s is out of order"
+msgstr "L'élément %(element)s n"
+
+#: ValidateXbrlDTS.py:658
+msgid "Element %(element)s missing or invalid "
+"href"
+msgstr "Le href est manquant ou erronné pour l'élément "
+"%(element)s"
+
+#: ValidateXbrlDTS.py:817
+msgid "Element %(element)s missing xlink:%(attribute)s"
+msgstr "xlink:%(attribute)s est manquant pour l'élément "
+"%(element)s"
+
+#: ValidateXbrlDTS.py:810
+msgid "Element %(element)s missing xlink:label"
+msgstr "xlink:label est manquant pour l'élément "
+"%(element)s"
+
+#: ValidateXbrlDTS.py:673
+msgid "Element %(element)s missing xlink:type=\"locator\""
+msgstr "xlink:type=\"locator\" est manquant pour l'élément "
+"%(element)s"
+
+#: ValidateXbrlDTS.py:653
+msgid "Element %(element)s missing xlink:type=\"simple\""
+msgstr "xlink:type=\"simple\" est manquant pour l'élément "
+"%(element)s"
+
+#: ValidateXbrlDTS.py:679
+msgid "Element %(element)s missing: %(attribute)s"
+msgstr "L'attribut %(attribute)s est manquant pour l'élément "
+"%(element)s"
+
+#: XmlValidate.py:223
+msgid "Element %(element)s type %(typeName)s missing required attributes: "
+"%(attributes)s"
+msgstr "Il manque l'attribut obligatoire %(attribute)s pour l'élément "
+"%(element)s de type %(typeName)s"
+
+#: XmlValidate.py:358
+msgid "Element %(element)s type %(typeName)s value error: "
+"%(value)s"
+msgstr "Valeur erronnée pour l'élément %(element)s de type %(typeName)s: "
+"%(value)s"
+
+#: ValidateXbrlDTS.py:663
+msgid "Element %(element)shas empty %(attribute)s"
+msgstr "L'élément %(element)s a un attribut %(attribute)s "
+"vide"
+
+#: ValidateFilingDimensions.py:174
+msgid "ELR role %(linkrole)s, for hypercube %(hypercube)s has another parent "
+"%(concept)s"
+msgstr "Le rôle extendu %(linkrole)s pour l'hypercube %(hypercube)s a un "
+"autre parent %(concept)s"
+
+#: DialogRssWatch.py:184
+msgid "E-mail address format error"
+msgstr "Adresse électronique non valide"
+
+#: DialogNewFactItem.py:122
+msgid "End date invalid"
+msgstr "Date de fin invalide"
+
+#: DialogRssWatch.py:65
+msgid "Enter a regular expression to be matched to the text of each filing "
+"instance fact item. Regular expressions may contain patterns to "
+"detect, such as ab.?c, for any single character between b and c, or "
+"ab.*c for any number of characters between b and "
+"c."
+msgstr "Entrer une expression régulière qui doit servir de correspondance "
+"avec le texte de chaque fait de l'instance."
+
+#: CntlrWinMain.py:178
+msgid "Enter an http:// URL of an XBRL file or "
+"testcase"
+msgstr "Entrer une URL http d'un fichier XBRL ou d'un cas de "
+"test"
+
+#: DialogNewFactItem.py:88
+msgid "Enter decimals for monetary items"
+msgstr "Entrer les décimales pour les items "
+"monétaires"
+
+#: DialogNewFactItem.py:91
+msgid "Enter decimals for non-monetary items (e.g., stock "
+"shares)"
+msgstr "Entrer les décimales pour les items non monétaires (ex: nombre "
+"d'actions)"
+
+#: DialogFind.py:55
+msgid "Enter expression to find, or select from combo box drop down history "
+"list."
+msgstr "Entrer l'expression à chercher, ou sélection un élément de "
+"l'historique"
+
+#: DialogNewFactItem.py:82
+msgid "Enter the end date for the report period (e.g., "
+"2010-12-31)"
+msgstr "Entrer la date de fin du rapport (ex: "
+"2011-12-31)"
+
+#: DialogNewFactItem.py:74
+msgid "Enter the entity identifier value (e.g., stock "
+"ticker)"
+msgstr "Entrer l'identifiant de l'entité (ex: le code "
+"ISIN)"
+
+#: DialogNewFactItem.py:71
+msgid "Enter the scheme for the context entity "
+"identifier"
+msgstr "Entrer le schéma pour l'identifiant de l'entité dans le "
+"contexte"
+
+#: DialogNewFactItem.py:78
+msgid "Enter the start date for the report period (e.g., "
+"2010-01-01)"
+msgstr "Entrer la date de début du rapport (ex: "
+"2011-01-01)"
+
+#: DialogUserPassword.py:104
+msgid "Enter URL address and port number \n"
+"  e.g., address: 168.1.2.3 port: 8080 \n"
+"  or address: proxy.myCompany.com port: 8080 \n"
+"  or leave blank to specify no proxy "
+"server"
+msgstr "Entrer l'adresse sous la forme serveur:port\n"
+"  ex: 168.192.1.2:8080\n"
+"  ex: proxy.mycompany.domain:8000\n"
+"  ou laisser vide pour ne pas utiliser de "
+"mandataire"
+
+#: DialogNewFactItem.py:118
+msgid "Entity identifier value invalid"
+msgstr "La valeur de l'identifiant d'entité n'est pas "
+"valide"
+
+#: DialogNewFactItem.py:116
+msgid "Entity scheme invalid"
+msgstr "Le schéma pour l'entité n'est pas valide"
+
+#: ValidateFilingDTS.py:421
+msgid "enumerations"
+msgstr "énumérations"
+
+#: DialogUserPassword.py:80
+msgid "environment variables"
+msgstr "variables d'environnement"
+
+#: ValidateXbrlCalcs.py:148
+msgid "Essence-Alias inconsistent units from %(essenceConcept)s to "
+"%(aliasConcept)s in link role %(linkrole)s context "
+"%(contextID)s"
+msgstr "Unités non uniformes dans la relation Essence-Alias de "
+"%(essenceConcept)s vers %(aliasConcept)s dans le rôle %(linkrole)s, "
+"contexte %(contextID)s"
+
+#: ValidateXbrlCalcs.py:154
+msgid "Essence-Alias inconsistent value from %(essenceConcept)s to "
+"%(aliasConcept)s in link role %(linkrole)s context "
+"%(contextID)s"
+msgstr "Valeurs incohérentes dans la relation Essence-Alias de "
+"%(essenceConcept)s vers %(aliasConcept)s dans le rôle %(linkrole)s, "
+"contexte %(contextID)s"
+
+#: ValidateXbrl.py:281
+msgid "Essence-alias relationship from %(source)s to %(target)s in link role "
+"%(linkrole)s has different balances"
+msgstr "La relation essence-alias de %(source)s vers %(target)s dans le rôle "
+"%(linkrole)s a des attributs balance "
+"différents"
+
+#: ValidateXbrl.py:273
+msgid "Essence-alias relationship from %(source)s to %(target)s in link role "
+"%(linkrole)s has different types or "
+"periodTypes"
+msgstr "La relation Essence-alias de %(source)s vers %(target)s dans le rôle "
+"%(linkrole)s a des types ou periodTypes "
+"différants"
+
+#: CntlrWinMain.py:647
+msgid "Exception {0}: {1}, at {2}"
+msgstr "Exception {0}: {1}, à {2}"
+
+#: DisclosureSystem.py:139
+msgid "exception during loading"
+msgstr "exception lors du chargement"
+
+#: CntlrWinMain.py:549
+msgid "Exception loading {0}: {1}, at {2}"
+msgstr "Exception lors du chargement de {0}: {1} à "
+"{2}"
+
+#: CntlrWinMain.py:630
+msgid "Exception preparing {0}: {1}, at {2}"
+msgstr "Exception lors de la préparation de {0}: {1} à "
+"{2}"
+
+#: CntlrWinMain.py:634 CntlrWinMain.py:651
+msgid "Exception preparing view"
+msgstr "Exception lors de la préparation de la "
+"vue"
+
+#: ModelXbrl.py:366
+msgid "Exception viewing properties {0} {1} at "
+"{2}"
+msgstr "Exception lors de l'affichage de la propriété {0} {1} à "
+"{2}"
+
+#: XPathContext.py:61
+msgid "Exception, function not available: {0}"
+msgstr "Exception, fonction non disponible: "
+"{0}"
+
+#: CntlrGenVersReports.py:282
+msgid "Exception: %(error)s, Excel row: %(excelRow)s"
+msgstr "Exception: %(error)s, Ligne %(excelRow)s dans "
+"Excel"
+
+#: XPathContext.py:54
+msgid "Exception: Arg {0} expected type {1}"
+msgstr "Exception: Argument {0}, type {1} attendu"
+
+#: FunctionXs.py:21
+msgid "Exception: FONS0004, no namespace found for "
+"prefix"
+msgstr "Exception: FONS0004, aucun espace de nommage ne correspond au "
+"préfixe"
+
+#: FunctionXs.py:15
+msgid "Exception: FORG0001, invalid constructor"
+msgstr "Exception: FORG0001, constructeur non "
+"valide"
+
+#: XPathContext.py:45
+msgid "Exception: Number of arguments mismatch"
+msgstr "Exception: Le nombre d'aguments ne correspond "
+"pas"
+
+#: ValidateFormula.py:82
+msgid "Executing call"
+msgstr "Exécution de l'appel"
+
+#: ValidateFormula.py:92
+msgid "Executing test"
+msgstr "Exécution du test"
+
+#: FormulaEvaluator.py:49
+msgid "Existence Assertion %(xlinkLabel)s \n"
+"Result: %(result)s"
+msgstr "Assertion existence %(xlinkLabel)s\n"
+"Résultat: %(result)s"
+
+#: ValidateFormula.py:391
+msgid "Existence Assertion %(xlinkLabel)s, cannot refer to variable "
+"%(name)s"
+msgstr "Assertion existence %(xlinkLabel)s, ne peut pas référencer la "
+"variable %(name)s"
+
+#: FormulaEvaluator.py:775
+msgid "ExistenceAssertion"
+msgstr ""
+
+#: ViewWinFormulae.py:58 ViewWinTree.py:156
+#: ViewWinVersReport.py:20
+msgid "Expand"
+msgstr "Déplier"
+
+#: ViewWinTree.py:158
+msgid "Expand All"
+msgstr "Déplier Tout"
+
+#: DialogFind.py:70
+msgid "Expression is a set of characters to match, ignoring case.  The match "
+"may occur anywhere within the scope. "
+msgstr "L'expression est un ensemble de caractères à trouver, en ignorant la "
+"casse. La correspondance peut avoir lieu n'importe où dans le "
+"périmètre."
+
+#: ValidateXbrlDTS.py:902
+msgid "Extended element %(element)s must be the same as "
+"%(element2)s"
+msgstr "L'élément étendu %(element)s doit être le même que "
+"%(element2)s"
+
+#: ValidateXbrlDTS.py:694
+msgid "Extended link %(element)s must have a standard xlink:role attribute "
+"(%(xlinkRole)s)"
+msgstr "Le lien étendu %(element)s doit avoir un attribut xlink:role standard "
+"(%(xlinkRole)s)"
+
+#: ValidateXbrlDTS.py:756
+msgid "Extended link %(element)s must have an xlink:role "
+"attribute"
+msgstr "Le lien étendu %(element)s doit avoir un attribut "
+"xlink:role"
+
+#: ValidateXbrl.py:359
+msgid "Fact %(fact)s context %(contextID)s can not be nil and have either "
+"precision or decimals"
+msgstr "Le fait %(fact)s du contexte %(contextID)s ne peut pas être "
+"xsi:nil=\"true\" et avoir \"precision\" ou "
+"\"decimals\""
+
+#: ValidateXbrl.py:334
+msgid "Fact %(fact)s context %(contextID)s can not have both precision and "
+"decimals"
+msgstr "Le fait %(fact)s du context %(contextID)s ne peut pas avoir "
+"simultanément \"decimals\" et \"precision\""
+
+#: ValidateXbrl.py:338
+msgid "Fact %(fact)s context %(contextID)s decimals %(decimals)s is "
+"invalid"
+msgstr "Le fait %(fact)s du context %(contextID)s, decimals=\"%(decimal)s\" "
+"n'est pas valide"
+
+#: ValidateXbrlDimensions.py:311
+msgid "Fact %(fact)s context %(contextID)s dimensionally not "
+"valid"
+msgstr "Le fait %(fact)s du context %(contextID)s est invalide par ses "
+"dimensions"
+
+#: ValidateXbrl.py:351
+msgid "Fact %(fact)s context %(contextID)s has period type %(periodType)s "
+"conflict with context"
+msgstr "Le fait %(fact)s du context %(contextID)s a un type de période "
+"%(periodType)s en conflit avec le contexte"
+
+#: ValidateXbrl.py:364
+msgid "Fact %(fact)s context %(contextID)s is a fraction concept and cannot "
+"have either precision or decimals"
+msgstr "Le fait %(fact)s du context %(contextID)s est un concept de type "
+"fraction, et ne peut pas avoir \"decimals\" ou "
+"\"precision\""
+
+#: ValidateXbrl.py:373
+msgid "Fact %(fact)s context %(contextID)s is a fraction with invalid "
+"denominator %(denominator)"
+msgstr "Le fait %(fact)s du context %(contextID)s est une fraction avec un "
+"dénominateur %(denominateur)s non valide"
+
+#: ValidateXbrl.py:369
+msgid "Fact %(fact)s context %(contextID)s is a fraction with invalid "
+"numerator %(numerator)s"
+msgstr "Le fait %(fact)s du context %(contextID)s est une fraction avec un "
+"numérateur %(numerator)s non valide"
+
+#: ValidateXbrl.py:385
+msgid "Fact %(fact)s context %(contextID)s is a numeric concept and must "
+"have either precision or decimals"
+msgstr "Le fait %(fact)s du context %(contextID)s est un concept numérique et "
+"doit avoir soit \"precision\" soit \"decimals\""
+
+#: ValidateXbrl.py:302
+msgid "Fact %(fact)s context %(contextID)s is numeric and must have a "
+"unit"
+msgstr "Le fait %(fact)s du context %(contextID)s est numérique et doit avoir "
+"une unité"
+
+#: ValidateXbrl.py:380
+msgid "Fact %(fact)s context %(contextID)s may not have child elements "
+"%(childElementName)s"
+msgstr "Le fait %(fact)s du context %(contextID)s ne peut pas avoir d'élément "
+"enfant %(childElementName)s"
+
+#: ValidateXbrl.py:311
+msgid "Fact %(fact)s context %(contextID)s must have a monetary unit "
+"%(unitID)s"
+msgstr "Le fait %(fact)s du context %(contextID)s ne peut as avoir l'unité "
+"monétaire %(unitID)s"
+
+#: ValidateXbrl.py:318
+msgid "Fact %(fact)s context %(contextID)s must have a xbrli:shares unit "
+"%(unitID)s"
+msgstr "Le fait %(fact)s du context %(contextID)s doit avoir une unité "
+"xbrli:shares %(unitID)s"
+
+#: ValidateXbrl.py:324 ValidateXbrl.py:330
+msgid "Fact %(fact)s context %(contextID)s precision %(precision)s is "
+"invalid"
+msgstr "Le fait %(fact)s du context %(contextID)s a une précision "
+"%(precision)s non valide"
+
+#: ValidateFilingText.py:439
+msgid "Fact %(fact)s contextID %(contextID)s has disallowed entity "
+"%(entity)s"
+msgstr "Le fait %(fact)s du context %(contextID)s contient une entité "
+"%(entity)s non autorisée"
+
+#: ValidateFilingText.py:453
+msgid "Fact %(fact)s contextID %(contextID)s has text which causes the XML "
+"error %(error)s"
+msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui a "
+"généré l'erreur XML %(error)s"
+
+#: ValidateXbrl.py:394
+msgid "Fact %(fact)s is a tuple and cannot have either precision or "
+"decimals"
+msgstr "Le fait %(fact)s est un tuple et ne peut pas avoit de \"precision\" ni "
+"\"decimals\""
+
+#: ValidateXbrl.py:400
+msgid "Fact %(fact)s is a tuple and must not have attribute in this "
+"namespace %(attribute)s"
+msgstr "Le fait %(fact)s est un tuple et ne doit pas avoir d'attribut dans "
+"l'espace de nommage %(attribute)s"
+
+#: ValidateXbrl.py:404
+msgid "Fact %(fact)s must be an item or tuple"
+msgstr "Le fait %(fact)s doit être un item ou un "
+"tuple"
+
+#: ValidateFilingText.py:543
+msgid "Fact %(fact)s of context %(contextID) has a '>' in text, not "
+"well-formed XML: '%(text)s'"
+msgstr "Le fait %(fact)s du context %(contextID)s a un '>' dans son texte, le "
+"XML n'est pas correctement formé: [%(text)s]"
+
+#: ValidateFilingText.py:536
+msgid "Fact %(fact)s of context %(contextID) has an invalid external "
+"reference in '%(attribute)s' for <%(element)s>"
+msgstr "Le fait %(fact)s du context %(contextID)s a une référence externe non "
+"valide dans l'attribut '%(attribute)s' pour "
+"<%(element)s>"
+
+#: ValidateFilingText.py:522
+msgid "Fact %(fact)s of context %(contextID) has attribute '%(attribute)s' "
+"not allowed for <%(element)s>"
+msgstr "Le fait %(fact)s du context %(contextID)s a un attribut "
+"'%(attribute)s' non autorisé pour <%(element)s>"
+
+#: ValidateFilingText.py:514
+msgid "Fact %(fact)s of context %(contextID) has disallowed html tag: "
+"<%(element)s>"
+msgstr "Le fait %(fact)s du context %(contextID)s contient un tag HTML non "
+"autorisé: <%(element)s>"
+
+#: ValidateFilingText.py:529
+msgid "Fact %(fact)s of context %(contextID) has javascript in "
+"'%(attribute)s' for <%(element)s>"
+msgstr "Le fait %(fact)s du context %(contextID)s contient du javascript dans "
+"l'attribut '%(attribute)s' pour <%(element)s>"
+
+#: ValidateFilingText.py:552
+msgid "Fact %(fact)s of context %(contextID) has text which causes the XML "
+"error %(error)s line %(line)s column "
+"%(column)s"
+msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
+"l'origine de l'erreur XML %(error)s ligne %(line)s colonne "
+"%(column)s"
+
+#: ValidateFilingText.py:559
+msgid "Fact %(fact)s of context %(contextID) has text which causes the XML "
+"fatal error %(error)s line %(line)s column "
+"%(column)s"
+msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
+"l'origine de l'erreur XML fatale %(error)s ligne %(line)s colonne "
+"%(column)s"
+
+#: ValidateFilingText.py:565
+msgid "Fact %(fact)s of context %(contextID) has text which causes the XML "
+"warning %(error)s line %(line)s column "
+"%(column)s"
+msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
+"l'origine de l'avertissement XML %(error)s ligne %(line)s colonne "
+"%(column)s"
+
+#: ValidateFiling.py:451
+msgid "Fact %(fact)s of context %(contextID)s decimals %(decimals)s value "
+"%(value)s causes Value Error exception."
+msgstr "Le fait %(fact)s du context %(contextID)s décimales %(decimals)s "
+"valeur %(value)s est à l'origine d'une exception Value "
+"Error."
+
+#: ValidateFiling.py:447
+msgid "Fact %(fact)s of context %(contextID)s decimals %(decimals)s value "
+"%(value)s has insignificant digits %(value2)s."
+msgstr "Le fait %(fact)s du context %(contextID)s décimales %(decimals)s "
+"valeur %(value)s a des chiffres non significatifs "
+"%(value2)s."
+
+#: ValidateFiling.py:299
+msgid "Fact %(fact)s of context %(contextID)s has an XBRL "
+"error"
+msgstr "Le fait %(fact)s du context %(contextID)s est en erreur "
+"XBRL"
+
+#: ValidateFiling.py:479
+msgid "Fact %(fact)s of context %(contextID)s has text of xml:lang "
+"'%(lang)s' without corresponding %(lang2)s "
+"text"
+msgstr "Le fait %(fact)s du context %(contextID)s précise xml:lang=\"%(lang)s\" "
+"mais il n'y a pas de texte correspondant pour "
+"%(lang2)s"
+
+#: FormulaEvaluator.py:769
+msgid "Fact Variable"
+msgstr "Variable de fait"
+
+#: FormulaEvaluator.py:274
+msgid "Fact Variable %(variable)s %(filter)s filter %(aspect)s passes "
+"%(factCount)s facts"
+msgstr "La variable de fait %(variable)s filtrée par %(filter)s passe avec "
+"succès %(factCount)s faits"
+
+#: FormulaEvaluator.py:293
+msgid "Fact Variable %(variable)s %(filter)s filter dimension matching "
+"passes %(factCount)s facts"
+msgstr "Pour la variable de fait %(variable)s, le filtre de dimension  passe "
+"avec succès %(factCount)s faits"
+
+#: FormulaEvaluator.py:243
+msgid "Fact Variable %(variable)s %(filterType)s %(filter)s filter "
+"%(xlinkLabel)s passes %(factCount)s "
+"facts"
+msgstr "La variable de fait %(variable)s filtrée par %(filterType)s "
+"%(filter)s passe avec succès %(factCount)s "
+"faits"
+
+#: FormulaEvaluator.py:175
+msgid "Fact Variable %(variable)s filtering: start with %(factCount)s "
+"facts"
+msgstr "Application du filtre sur la variable de fait %(variable)s : "
+"démarrage avec %(factCount)s faits "
+
+#: FormulaEvaluator.py:196
+msgid "Fact Variable %(variable)s: fallbackValue result "
+"%(result)s"
+msgstr "Variable de fait %(variable)s : repli sur la valeur par défaut "
+"résulte en %(result)s"
+
+#: FormulaEvaluator.py:190
+msgid "Fact Variable %(variable)s: filters result "
+"%(result)s"
+msgstr "Variable de fait %(variable)s : résultat des filtres "
+"%(result)s"
+
+#: WatchRss.py:137
+msgid "Fact Variable {0}\n"
+" context {1}\n"
+" matched text: {2}"
+msgstr "Variable de fait {0}\n"
+" Contexte {1}\n"
+" texte correspondant : {2}"
+
+#: CntlrWinMain.py:745
+msgid "Failed to load {0}\n"
+"{1}"
+msgstr "Échec du chargement de {0}\n"
+"{1}"
+
+#: DialogOpenArchive.py:100
+msgid "Failed to parse metadata; the underlying error was: "
+"{0}"
+msgstr "Problème d'analyse des meta-données, l'erreur sous-jascente est : "
+"{0}"
+
+#: CntlrWinMain.py:376 CntlrWinMain.py:399
+#: CntlrWinMain.py:418 CntlrWinMain.py:444
+#: CntlrWinMain.py:992
+msgid "Failed to save {0}:\n"
+"{1}"
+msgstr "Échec de l'enregistrement de {0} :\n"
+"{1}"
+
+#: ViewHtml.py:60
+msgid "Failed to save output html to %(file)s: "
+"\\s%(error)s"
+msgstr "Impossible d'enregistrer la sortie HTML dans %(file)s : "
+"\\s%(error)s"
+
+#: CntlrWinMain.py:90 DialogOpenArchive.py:32
+#: DialogOpenArchive.py:40 DialogOpenArchive.py:257
+#: DialogOpenArchive.py:259
+msgid "File"
+msgstr "Fichier"
+
+#: ModelDocument.py:53
+msgid "File can not be loaded: %(fileName)s"
+msgstr "Le fichier %(fileName)s n'a pas pu être "
+"chargé"
+
+#: CntlrCmdLine.py:31
+msgid "FILENAME is a list of files to import to the DTS, such as additional "
+"formula or label linkbases.  Multiple file names are separated by a "
+"'|' character. "
+msgstr "FICHIER est une liste de fichiers à importer dans le DTS, tel que des "
+"bases de liens de formules ou de libellés. Les différents fichiers "
+"sont séparés par le caractère '|'. "
+
+#: CntlrCmdLine.py:35
+msgid "FILENAME is a second entry point when comparing (diffing) two DTSes "
+"producing a versioning report."
+msgstr "FILENAME est le second point d'entrée lors d'une comparaison "
+"différentielle de 2 DTS pour produire un rapport de "
+"version."
+
+#: CntlrCmdLine.py:25
+msgid "FILENAME is an entry point, which may be an XBRL instance, schema, "
+"linkbase file, inline XBRL instance, testcase file, testcase index "
+"file.  FILENAME may be a local file or a URI to a web located "
+"file."
+msgstr "FICHIER est un point d'entrée, qui peut être une instance XBRL, un "
+"schéma, une base de liens, une instance inline XBRL, un cas de test, "
+"un index de cas des test. FICHIER peut êter un fichier local ou une "
+"resource web."
+
+#: CntlrGenVersReports.py:30
+msgid "FILENAME is an excel 95-2003 index file containing columns: \n"
+"Dir is a test directory, \n"
+"fromURI is the fromDTS URI relative to test director, \n"
+"toURI is the toDTS URI relative to test director, \n"
+"Description is the goal of the test for testcase description, \n"
+"Assignment is the business, technical, or errata classification, \n"
+"Expected event is an event localName that is expected \n"
+"\nOutput files and testcases are located in filename's directory, \n"
+"report files are generated in '/report' under fromURI's "
+"directory."
+msgstr "FILENAME est un fichier index MS Excel 95-2003 contenant les "
+"colonnes:\n"
+"  Dir répertoire de test;\n"
+"  fromURi est l'URL relative de fromDRS,\n"
+"  toURi est l'URL relative de toDTS,\n"
+"  Description est une description du but du test,\n"
+"  Assignment est la classification métier, technique ou errata,\n"
+"  Expected event est l'événement locatlName qui est attendu.\n"
+"\n"
+"Les fichiers de sorties et les cas de test sont localisés dans le "
+"même répertoire que FILENAME,\n"
+"les rapports sont produits dans \"/report\" sous le répertoire de "
+"fromURI"
+
+#: CntlrCmdLine.py:38
+msgid "FILENAME is the filename to save as the versioning "
+"report."
+msgstr "FILENAME est le nom de fichier du rapport de version à "
+"sauver"
+
+#: ViewWinRssFeed.py:87
+msgid "Filing"
+msgstr "Instance"
+
+#: WatchRss.py:158
+msgid "Filing CIK {0}\n"
+" company {1}\n"
+" published {2}\n"
+" form type {3}\n"
+" filing date {4}\n"
+" period {5}\n"
+" year end {6}\n"
+" results: {7}"
+msgstr ""
+
+#: CntlrWinMain.py:182 DialogFind.py:46 DialogFind.py:118
+msgid "Find"
+msgstr "Recherche"
+
+#: DialogFind.py:162 DialogFind.py:169 DialogFind.py:174
+msgid "Find cannot be completed"
+msgstr "La recherche n'a pas abouti"
+
+#: CntlrWinMain.py:182
+msgid "Find dialog for scope and method of "
+"searching"
+msgstr "Boîte de dialogie pour la recherche de méthode et de "
+"périmètre"
+
+#: DialogFind.py:281
+msgid "Find expression error: {0} \n"
+"{1}"
+msgstr "Erreur dans l'expression de recherche : {0}\n"
+"{1}"
+
+#: DialogFind.py:170
+msgid "Find requires an opened DTS or RSS Feed"
+msgstr "La recherche nécessite une DTS ou un RSS "
+"ouvert"
+
+#: DialogFind.py:68
+msgid "Find/Next down (on screen) from first to last "
+"match."
+msgstr "Recherche/Suivant du premier au dernier"
+
+#: DialogFind.py:66
+msgid "Find/Next up (on screen) from last to first "
+"match."
+msgstr "Recherche/Précédant du dernier au premier"
+
+#: ViewCsvFactList.py:40
+msgid "First column must be Label or Name: "
+"%(col1)s"
+msgstr "La première colonne doit être le libellé ou le nom: "
+"%(col1)s"
+
+#: ValidateXbrlDTS.py:684
+msgid "Footnote %(xlinkLabel)s element missing xml:lang "
+"attribute"
+msgstr "Il manque l'attribut xml:lang à l'élément pied de page "
+"%(xlinkLabel)s"
+
+#: ValidateFilingText.py:482
+msgid "Footnote %(xlinkLabel)s has an invalid external reference in "
+"'%(attribute)s' for <%(element)s>: %(value)s"
+msgstr "Le pied de page %(xlinkLabel)s a une référence externe non valide "
+"dans '%(attribute)s' pour <%(element)s>: "
+"%(value)s"
+
+#: ValidateFilingText.py:468
+msgid "Footnote %(xlinkLabel)s has attribute '%(attribute)s' not allowed for "
+"<%(element)s>"
+msgstr "Le pied de page %(xlinkLabel)s a un attribut '%(attribute)s' qui "
+"n'est pas autorisé pour l'élément <%(element)s>"
+
+#: ValidateFilingText.py:490
+msgid "Footnote %(xlinkLabel)s has disallowed html tag: "
+"<%(element)s>"
+msgstr "Le pied de page %(xlinkLabel)s a un tag HTML non autorisé : "
+"<%(element)s>"
+
+#: ValidateFiling.py:706
+msgid "Footnote %(xlinkLabel)s has disallowed role "
+"%(role)s"
+msgstr "Le pied de page %(xlinkLabel)s a un rôle non autorisé : "
+"%(role)s"
+
+#: ValidateFilingText.py:475
+msgid "Footnote %(xlinkLabel)s has javascript in '%(attribute)s' for "
+"<%(element)s>"
+msgstr "Le pied de de page %(xlinkLabel)s contient du jaavscript dans "
+"l'attribut %(attribute)s pour <%(element)s>"
+
+#: ValidateFiling.py:701
+msgid "Footnote %(xlinkLabel)s is missing a "
+"role"
+msgstr "Il manque un rôle au pied de page %(xlinkLabel)s"
+
+#: ValidateXbrl.py:141
+msgid "Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to "
+"%(xlinkLabelTo)s \"from\" is not a loc"
+msgstr "Dans l'arc du pied de page du lien étendu %(linkrole)s de "
+"%(xlinkLabelFrom)s vers %(xlinkLabelTo)s : \"from\" 'est pas une "
+"resource \"loc\""
+
+#: ValidateXbrl.py:146
+msgid "Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to "
+"%(xlinkLabelTo)s \"to\" is not a footnote "
+"resource"
+msgstr "Dans l'arc du pied de page du lien étendu %(linkrole)s de "
+"%(xlinkLabelFrom)s vers %(xlinkLabelTo)s : \"to\" n'est pas une "
+"ressource \"footnote\""
+
+#: ValidateFiling.py:695
+msgid "FootnoteLink %(footnoteLinkNumber)s arc %(arcNumber)s has disallowed "
+"arcrole %(arcrole)s"
+msgstr "FootnoteLink %(footnoteLinkNumber)s arc %(arcNumber)s a un rôle d'arc "
+"non autorisé : arcrole %(arcrole)s"
+
+#: ValidateFiling.py:720
+msgid "FootnoteLink %(footnoteLinkNumber)s footnote %(xlinkLabel)s has no "
+"linked fact"
+msgstr "FootnoteLink %(footnoteLinkNumber)s, la note de pied de base "
+"%(xlinkLabel)s n'a pas de fait lié"
+
+#: ValidateFiling.py:671
+msgid "FootnoteLink %(footnoteLinkNumber)s has disallowed child element "
+"%(elementName)s"
+msgstr "FootnoteLink %(footnoteLinkNumber)s a un élément enfant non autorisé "
+": %(elementName)s"
+
+#: ValidateFiling.py:654
+msgid "FootnoteLink %(footnoteLinkNumber)s has disallowed role "
+"%(linkrole)s"
+msgstr "FootnoteLink %(footnoteLinkNumber)s a un rôle %(linkrole)s non "
+"autorisé"
+
+#: ValidateFiling.py:685
+msgid "FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed "
+"href %(locHref)s"
+msgstr "FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s a href "
+"%(locHref)s non autorisé"
+
+#: ValidateFiling.py:679
+msgid "FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed "
+"role %(role)s"
+msgstr "FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s a un rôle "
+"%(role)s non autorisé"
+
+#: CntlrWinMain.py:119 FormulaEvaluator.py:773
+msgid "Formula"
+msgstr "Formule"
+
+#: ValidateFormula.py:755
+msgid "Formula %(xlinkLabel)s %(dimension)s dimension rule does not have any "
+"child elements and does not have a SAV for the %(dimensionType)s "
+"dimension that is identified by its dimension "
+"attribute."
+msgstr "Dans la formule %(xlinkLabel)s, dimension %(dimension)s, la règle n'a "
+"pas d'élément enfant et n'a pas de \"valeur d'aspect source\" pour la "
+"dimension %(dimensionType)s qui est identifiée par son attribut "
+"dimensions."
+
+#: ValidateFormula.py:763
+msgid "Formula %(xlinkLabel)s aspect model, %(aspectModel)s, includes an "
+"rule for aspect not defined in this aspect model: "
+"%(undefinedAspects)s"
+msgstr "Formule %(xlinkLabel)s, modèle d'aspect %(aspectModel)s, inclut une "
+"tègle pour un aspect non défini dans le modèle : "
+"%(undefinedAspects)s"
+
+#: FormulaEvaluator.py:427
+msgid "Formula %(xlinkLabel)s concept %(concept)s is not a "
+"%(element)s"
+msgstr "Formule %(xlinkLabel)s, le concept %(concept)s n'est pas un item "
+"%(element)s"
+
+#: ValidateFormula.py:681
+msgid "Formula %(xlinkLabel)s concept rule does not have a nearest source "
+"and does not have a child element"
+msgstr "Formule %(xlinkLabel)s la règle d econcept n'a pas de source la plus "
+"proche et n'a pas d'élément enfant"
+
+#: FormulaEvaluator.py:420
+msgid "Formula %(xlinkLabel)s concept: %(concept)s"
+msgstr "Formule %(xlinkLabel)s concept : %(concept)s"
+
+#: FormulaEvaluator.py:519
+msgid "Formula %(xlinkLabel)s dimension %(dimension)s: "
+"%(value)s"
+msgstr "Formule %(xlinkLabel)s dimension %(dimension)s : "
+"%(value)s"
+
+#: ValidateFormula.py:751
+msgid "Formula %(xlinkLabel)s dimension attribute %(dimension)s on the "
+"%(dimensionType)s dimension rule contains a QName that does not "
+"identify an (dimensionType)s dimension."
+msgstr "Formule %(xlinkLabel)s attribut de dimension %(dimension)s, la règle "
+"contient un nom qualifié (QName) qui n'identifie pas une dimension "
+"%(dimensionType)s."
+
+#: ValidateFormula.py:692
+msgid "Formula %(xlinkLabel)s entity identifier rule does not have a nearest "
+"source and does not have either a @scheme or a @value "
+"attribute"
+msgstr "Formule %(xlinkLabel)s, la règle sur l'identifiant de l'entité n'a "
+"pas de source la plus proche et n'a pas d'attribut @scheme ni "
+"@value."
+
+#: FormulaEvaluator.py:437
+msgid "Formula %(xlinkLabel)s entity identifier scheme: "
+"%(scheme)s"
+msgstr "Formula %(xlinkLabel)s identifiant de l'entité a l'attribut @scheme : "
+"%(scheme)s"
+
+#: FormulaEvaluator.py:444
+msgid "Formula %(xlinkLabel)s entity identifier value: "
+"%(entityIdentifier)s"
+msgstr "Formule %(xlinkLabel)s identifiant de l'entité : "
+"%(entityIdentifier)s"
+
+#: ValidateFormula.py:740
+msgid "Formula %(xlinkLabel)s has a rule for the %(aspectPeriodType)s period "
+"aspect of a %(conceptPeriodType)s concept "
+"%(concept)s"
+msgstr "La formule %(xlinkLabel)s a une règle pour l'aspect période "
+"%(aspectPeriodType)s dun concept %(conceptPeriodType)s "
+"%(concept)s"
+
+#: ValidateFormula.py:734
+msgid "Formula %(xlinkLabel)s has a rule for the unit aspect of a "
+"non-numeric concept %(concept)s"
+msgstr "La formule %(xlinkLabel)s a une règle pour l'aspect unité du concept "
+"non numérique %(concept)s"
+
+#: ValidateFormula.py:685
+msgid "Formula %(xlinkLabel)s omits a rule for the concept "
+"aspect"
+msgstr "Formule %(xlinkLabel)s omet une règle pour l'aspect "
+"concept"
+
+#: ValidateFormula.py:696
+msgid "Formula %(xlinkLabel)s omits a rule for the entity identifier "
+"aspect"
+msgstr "La formule %(xlinkLabel)s omet une règle pour l'aspect identifiant "
+"d'entité"
+
+#: ValidateFormula.py:705
+msgid "Formula %(xlinkLabel)s omits a rule for the period "
+"aspect"
+msgstr "La formule %(xlinkLabel)s omet une règle pour l'aspect "
+"période"
+
+#: ValidateFormula.py:729
+msgid "Formula %(xlinkLabel)s omits a rule for the unit "
+"aspect"
+msgstr "La formule %(xlinkLabel)s omet une règle pour l'aspect "
+"unité"
+
+#: FormulaEvaluator.py:459 FormulaEvaluator.py:470
+msgid "Formula %(xlinkLabel)s period end: %(period)s"
+msgstr "La formule %(xlinkLabel)s a pour fin de période : "
+"%(period)s"
+
+#: ValidateFormula.py:701
+msgid "Formula %(xlinkLabel)s period rule does not have a nearest source and "
+"does not have a child element"
+msgstr "La règle période de la formule %(xlinkLabels)s n'a pas de source la "
+"plus proche et n'a pas d'élément enfant"
+
+#: FormulaEvaluator.py:465
+msgid "Formula %(xlinkLabel)s period start: "
+"%(period)s"
+msgstr "La formule %(xlinkLabel)s a pour début de période : "
+"%(period)s"
+
+#: FormulaEvaluator.py:453
+msgid "Formula %(xlinkLabel)s period type: "
+"%(periodType)s"
+msgstr "La formule %(xlinkLabel)s a un type de période "
+"%(periodType)s"
+
+#: ValidateFormula.py:725
+msgid "Formula %(xlinkLabel)s unit rule does not have a source and does not "
+"have a child element"
+msgstr "La règle unité de la formule %(xlinkLabel)s  n'a pas de source et n'a "
+"pas d'élément enfant"
+
+#: FormulaEvaluator.py:479 FormulaEvaluator.py:486
+msgid "Formula %(xlinkLabel)s unit: %(unit)s"
+msgstr "La formule %(xlinkLabel)s a pour unité : "
+"%(unit)s"
+
+#: FormulaEvaluator.py:584
+msgid "Formula %(xlinkLabel)s value is a sequence of length "
+"%(valueSequenceLength)s"
+msgstr "La formule %(xlinkLabel)s est valorisée dans une séquence de longueur "
+"%(valueSequenceLength)s"
+
+#: ValidateFormula.py:774
+msgid "Formula %(xlinkLabel)s, not implicit filtering element has "
+"formulaUncovered source: %(name)s"
+msgstr "Dans la formule %(xlinkLabel)s, l'élément filtrant non-implicite a "
+"une source formulaUncovered : %(name)s"
+
+#: ValidateFormula.py:794
+msgid "Formula %(xlinkLabel)s: formula source %(name)s is a fact variable "
+"that binds as a sequence"
+msgstr "Formule %(xlinkLabel)s, la source %(name)s est une variable de fait "
+"qui se lie comme une séquence"
+
+#: ValidateFormula.py:790
+msgid "Formula %(xlinkLabel)s: source %(name)s is a fact variable that has a "
+"fallback value"
+msgstr "Formule %(xlinkLabel)s, la source %(name)s est une variable de fait "
+"qui a une valeur de repli"
+
+#: DialogRssWatch.py:179
+msgid "Formula file not found {0}"
+msgstr "Fichier de formules {0} non trouvé"
+
+#: Validate.py:208
+msgid "Formula output %(countFacts)s facts, expected %(expectedFacts)s "
+"facts"
+msgstr "La formule produit %(countFacts)s faits, %(expectedFacts)s faits "
+"étaient attendus"
+
+#: Validate.py:215
+msgid "Formula output missing expected fact "
+"%(fact)s"
+msgstr "Le fait attendu %(fact)s est manquant dans la "
+"formule"
+
+#: DialogFormulaParameters.py:37
+msgid "Formula Parameters and Trace Options"
+msgstr "Paramétrage des formules et des logs"
+
+#: ValidateFormula.py:114
+msgid "Formula validation skipped due to %(error)s "
+"error"
+msgstr "La validation de formule n'est pas réalisée en raison de l'erreur "
+"%(error)s"
+
+#: XPathParser.py:576
+msgid "Formula xpath2 grammar initialized in %.2f "
+"secs"
+msgstr "Grammaire XPath2 des formules initialisée en %.2f "
+"secondes"
+
+#: ValidateFormula.py:243
+msgid "Formula:formula %(xlinkLabel)s is not "
+"allowed"
+msgstr "Formule %(xlinkLabel)s non autorisée"
+
+#: ViewWinDiffs.py:42
+msgid "From DTS Calculation"
+msgstr "Depuis Calculs du DTS"
+
+#: ViewWinDiffs.py:45
+msgid "From DTS Dimension"
+msgstr "Depuis Dimension du DTS"
+
+#: ViewWinDiffs.py:39
+msgid "From DTS Presentation"
+msgstr "Depuis Présentation du DTS"
+
+#: ModelVersReport.py:901
+msgid "from value: {0} "
+msgstr "de la valeur {0}"
+
+#: ModelVersReport.py:583
+msgid "fromDTS does not have a corresponding relationship at position "
+"{0}"
+msgstr "fromDTS n'a pas de relation correspondante à la position "
+"{0}"
+
+#: XPathParser.py:90
+msgid "Function %(name)s cannot be used on an XPath expression associated "
+"with a %(name2)s"
+msgstr "La fonction %(name)s ne peut pas être utilisée comme une expression "
+"XPath associée avec %(name2)s"
+
+#: XPathContext.py:140
+msgid "Function {0} is not available in this "
+"build."
+msgstr "La fonction {0} n'est pas disponible dans cette "
+"version."
+
+#: XPathContext.py:133
+msgid "Function call not identified."
+msgstr "Appel de fonction non identifié."
+
+#: ValidateFormula.py:74
+msgid "Function implementation %(xlinkLabel)s must be the target of only one "
+"function-implementation relationship"
+msgstr "L'implémentation de la fonction %(xlinkLabel)s ne doit être la cible "
+"que d'une relation fonction-implémentation"
+
+#: FunctionFn.py:657
+msgid "Function xf:doc $uri is not valid {0}"
+msgstr "Function xf:doc $uri n'est pas valide "
+"{0}"
+
+#: FunctionFn.py:665
+msgid "Function xf:doc $uri not successfully loaded "
+"{0}"
+msgstr "Function xf:doc $uri n'a pas pu être chargé correctement : "
+"{0}"
+
+#: FunctionFn.py:655
+msgid "Function xf:doc no formula resource element for "
+"{0}"
+msgstr "La fonction xf:doc n'a pas d'élément de resource formule pour "
+"{0}"
+
+#: FunctionXfi.py:296 FunctionXfi.py:329
+#: FunctionXfi.py:349
+msgid "Function xff:uncovered-aspect cannot be used on an XPath expression "
+"associated with a {0}"
+msgstr "La fonction xff:uncovered-aspect ne peut pas être utilisé dans une "
+"expression XPath associée à {0}"
+
+#: FunctionXfi.py:298 FunctionXfi.py:331
+#: FunctionXfi.py:351
+msgid "Function xff:uncovered-aspect cannot be used with "
+"implicitFiltering=false"
+msgstr "La fonction xff:uncovered-aspect ne peut pas êter utilisé avec "
+"implicitFiltering=false"
+
+#: ValidateFormula.py:69
+msgid "Function-implementation relationship from signature %(name)s has more "
+"than one implementation target"
+msgstr "La relation fonction-implémentation dont la signature est %(name)s a "
+"plusieurs implémentations pour cible"
+
+#: FormulaEvaluator.py:770
+msgid "General Variable"
+msgstr "Variable Générale"
+
+#: FormulaEvaluator.py:210
+msgid "General Variable %(variable)s: select result "
+"%(result)s"
+msgstr "variable générale %(variable)s : résultat sélectionné "
+"%(result)s"
+
+#: ValidateXbrlDTS.py:782
+msgid "Generic arc arcrole %(arcrole)s is missing an "
+"arcroleRef"
+msgstr "Le rôle d'arc générique %(arcrole)s devrait avoir "
+"arcroleRef"
+
+#: ValidateXbrlDTS.py:772
+msgid "Generic arc arcrole %(arcrole)s is not "
+"absolute"
+msgstr "Le rôle d'arc générique %(arcrole)s n'est pas "
+"absolu"
+
+#: ValidateXbrlDTS.py:792
+msgid "Generic arc arcrole %(arcrole)s missing usedOn for "
+"%(element)s"
+msgstr "Le rôle d'arc générique %(arcrole)s devrait avoir usedOn pour "
+"l'élément %(element)s"
+
+#: ValidateXbrl.py:168
+msgid "Generic label arc in extended link %(linkrole)s to %(xlinkLabel)s "
+"must target a generic label"
+msgstr "L'arc de libellé générique dans le lien étendu %(linkrole)s vers "
+"%(linkLabel)s doit cibler un libellé "
+"générique"
+
+#: ValidateXbrlDTS.py:734
+msgid "Generic link role %(xlinkRole)s is missing a "
+"roleRef"
+msgstr "Le rôle de lien générique %(xlinkRole)s devrait avoir "
+"roleRef"
+
+#: ValidateXbrlDTS.py:720
+msgid "Generic link role %(xlinkRole)s is not "
+"absolute"
+msgstr "Le rôle de lien générique %(xlinkRole)s n'est pas "
+"absolu"
+
+#: ValidateXbrlDTS.py:748
+msgid "Generic link role %(xlinkRole)s missing usedOn for "
+"{2}"
+msgstr "Le rôle de lien générique %(xlinkRole)s devrait avoir usedOn pour "
+"{2}"
+
+#: ValidateXbrl.py:175
+msgid "Generic reference arc in extended link %(linkrole)s to %(xlinkLabel)s "
+"must target a generic reference"
+msgstr "L'arc de référence générique dans le lien étendu %(linkrole)s vers "
+"%(xlinkLabel)s doit cibler une référence "
+"générique"
+
+#: ValidateXbrlDTS.py:738
+msgid "Generic resource role %(xlinkRole)s is missing a "
+"roleRef"
+msgstr "Le rôle de ressource générique %(xlinkRole)s devrait avoir "
+"roleRef"
+
+#: ValidateXbrlDTS.py:724
+msgid "Generic resource role %(xlinkRole)s is not "
+"absolute"
+msgstr "Le rôle de ressource générique %(xlinkRole)s n'est pas "
+"absolu"
+
+#: ValidateXbrlDTS.py:752
+msgid "Generic resource role %(xlinkRole)s missing usedOn for "
+"%(element)s"
+msgstr "Le rôle de ressource générique %(xlinkRole)s devrait avoir usedOn "
+"pour l'élément %(element)s"
+
+#: ValidateXbrlDimensions.py:59
+msgid "HasHypercube %(arcroleType)s relationship from %(source)s to "
+"%(target)s in link role %(linkrole)s must have a context "
+"element"
+msgstr "La relation hasHypercube %(arcroleType)s de %(source)s vers "
+"%(target)s dans le rôle %(linkrole)s doit avoir un élément "
+"contexte"
+
+#: ValidateXbrlDimensions.py:53
+msgid "HasHypercube %(arcroleType)s relationship from %(source)s to "
+"%(target)s in link role %(linkrole)s must have a hypercube "
+"declaration target"
+msgstr "La relation hasHypercube %(arcroleType)s de %(source)s vers "
+"%(target)s dans le rôle %(linkrole)s doit cibler une déclaration "
+"d'hypercube"
+
+#: ValidateXbrlDimensions.py:48
+msgid "HasHypercube %(arcroleType)s relationship from %(source)s to "
+"%(target)s in link role %(linkrole)s must have a primary item "
+"source"
+msgstr "La relation hasHypercube %(arcroleType)s de %(source)s vers "
+"%(target)s dans le rôle %(linkrole)s doit avoir une source item "
+"primaire"
+
+#: CntlrWinMain.py:162
+msgid "Help"
+msgstr "Aide"
+
+#: DialogUserPassword.py:58
+msgid "Host:"
+msgstr "Serveur :"
+
+#: ValidateXbrlDTS.py:46
+msgid "Href %(elementHref)s file not found"
+msgstr "Fichier href %(elementHref)s non trouvé"
+
+#: ValidateXbrlDTS.py:82
+msgid "Href %(elementHref)s may only have shorthand "
+"xpointers"
+msgstr "Le href %(elementHref)s ne peut avoir que des xpointers "
+"raccourcis"
+
+#: ValidateXbrlDTS.py:57
+msgid "Href %(elementHref)s not located"
+msgstr "href %(elementHref)s non trouvé"
+
+#: ValidateXbrlDTS.py:75
+msgid "Href %(elementHref)s unsupported scheme: "
+"%(scheme)s"
+msgstr "href %(elementHref)s protocole non supporté : "
+"%(scheme)s"
+
+#: ViewWinRenderedGrid.py:48
+msgid "HTML file"
+msgstr "Fichier HTML"
+
+#: CntlrWinMain.py:368
+msgid "HTML file .htm"
+msgstr "Fichier HTML .htm"
+
+#: CntlrWinMain.py:368
+msgid "HTML file .html"
+msgstr "Fichier HTML .html"
+
+#: ValidateFilingDimensions.py:68
+msgid "Hypercube %(hypercube)s in DRS role %(linkrole)s, missing targetrole "
+"to dimension %(dimension)s consecutive "
+"relationship"
+msgstr "L'hypercube %(hypercube)s dans les rôles DRS %(linkrole)s devrait "
+"avoir un rôle cible vers la dimension %(dimension)s de relation "
+"consécutive"
+
+#: ValidateFilingDimensions.py:155
+msgid "hypercube %(hypercube)s in segment not allowed, ELR role "
+"%(linkrole)s"
+msgstr "L'hypercube %(hypercube)s dans le segment n'est pas autorisé, rôle de "
+"lien étendu %(linkrole)s"
+
+#: ValidateXbrl.py:523
+msgid "Hypercube item %(concept)s must be abstract"
+msgstr "L'item %(concept)s d'hypercube doit être "
+"abstrait"
+
+#: ValidateXbrlDimensions.py:37
+msgid "Hypercube-dimension relationship from %(source)s to %(target)s in "
+"link role %(linkrole)s must have a dimension declaration "
+"target"
+msgstr "La relation hypercube-dimension de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s doit cibler une déclaration de "
+"dimension"
+
+#: ValidateXbrlDimensions.py:33
+msgid "Hypercube-dimension relationship from %(source)s to %(target)s in "
+"link role %(linkrole)s must have a hypercube declaration "
+"source"
+msgstr "La relation hypercube-dimension de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s doit avoir pour source une déclaration "
+"d'hypercube"
+
+#: ValidateFilingDTS.py:424
+msgid "hypercubes"
+msgstr "hypercubes"
+
+#: ViewWinRenderedGrid.py:37
+msgid "Ignore Dimensional Validity"
+msgstr "Ignorer la validation dimensionnelle"
+
+#: ViewWinFactGrid.py:27 ViewWinFactTable.py:27
+msgid "Ignore Dimensions"
+msgstr "Ignore les dimensions"
+
+#: CntlrWinMain.py:73
+msgid "Import File..."
+msgstr "Importer un fichier..."
+
+#: CntlrWinMain.py:473
+msgid "Import requires an opened DTS"
+msgstr "L'import nécessite un DTS ouvert"
+
+#: CntlrWinMain.py:541
+msgid "imported"
+msgstr "importé"
+
+#: CntlrCmdLine.py:227
+msgid "imported in %.2f secs at %s"
+msgstr "chargé en %.2f secondes à %s"
+
+#: ValidateHmrc.py:105
+msgid "Inconsistent duplicate facts %(fact)s context %(contextID)s and "
+"%(contextID2)s."
+msgstr "Fait %(fact)s en doublon non cohérent dans les contextes "
+"%(contextID)s et %(contextID2)s."
+
+#: CntlrCmdLine.py:143
+msgid "incorrect arguments with --webserver, please try\n"
+"  python CntlrCmdLine.pyw --help"
+msgstr "arguments incorrects avec --webserver, essayez\n"
+"  python arelleCmdLine --help"
+
+#: CntlrCmdLine.py:131
+msgid "incorrect arguments, please try\n"
+"  python CntlrCmdLine.pyw --help"
+msgstr "arguments incorrects, essayez\n"
+"  python CntlrCmdLine.pyw --help"
+
+#: ValidateFiling.py:871
+msgid "Ineffective arc %(arc)s in \n"
+"link role %(linkrole)s \n"
+"arcrole %(arcrole)s \n"
+"from %(conceptFrom)s \n"
+"to %(conceptTo)s \n"
+"%(ineffectivity)s"
+msgstr "L'arc %(arc)s est sans effet dans le rôle %(linkrole)s arcrole "
+"%(arcrole)s de %(conceptFrom)s vers "
+"%(conceptTo)s"
+
+#: CntlrWinMain.py:110
+msgid "Infer Decimals in calculations"
+msgstr "Inférer les décimales dans les calculs"
+
+#: XPathParser.py:572
+msgid "Initializing formula xpath2 grammar"
+msgstr "Initialisation de la grammaire XPath2 des "
+"formules"
+
+#: ValidateXbrlDTS.py:888
+msgid "Inline XBRL footnote %(footnoteID)s is missing an xml:lang "
+"attribute"
+msgstr "Pied de page inline XBRL %(footnoteID)s devrait avoir un attribut "
+"xml:lang"
+
+#: ValidateXbrlDTS.py:877
+msgid "Inline XBRL footnote %(footnoteID)s must be in non-displayable div "
+"due to arcrole %(arcrole)s"
+msgstr "Pied de page inline XBRL %(footnoteID)s doit être dans un div non "
+"visible en raison de son arcrole %(arcrole)s"
+
+#: ValidateXbrlDTS.py:883
+msgid "Inline XBRL non-empty footnote %(footnoteID)s is not referenced by "
+"any fact"
+msgstr "Pied de page inline XBRL %(footnoteID)s non vide n'est référencé par "
+"aucun fait"
+
+#: ModelDocument.py:722
+msgid "Inline XBRL tupleRef %(tupleRef)s not "
+"found"
+msgstr "tupleRef inline XBRL %(tupleRef)s non "
+"trouvé"
+
+#: ModelFormulaObject.py:2433 ModelFormulaObject.py:2491
+msgid "input {0}"
+msgstr "entrée {0}"
+
+#: ModelDocument.py:749
+msgid "Instance fact %(element)s missing schema definition "
+msgstr "Le fait d'instance %(element)s devrait avoir une définition de "
+"schéma"
+
+#: ValidateXbrlDTS.py:159
+msgid "Instance loc's href %(locHref)s not an element in same "
+"instance"
+msgstr "Le loc %(locHref)s n'est pas un élément de la même "
+"instance"
+
+#: Validate.py:77
+msgid "Instance validation exception: %(error)s, instance: "
+"%(instance)s"
+msgstr "Exception lors de la validation de l'instance %(instance)s : "
+"%(error)s"
+
+#: CntlrWinMain.py:133
+msgid "Internet"
+msgstr "Internet"
+
+#: FunctionXs.py:37
+msgid "invalid cast from {0} to xs:{1}"
+msgstr "Conversion de type automatique de {0} vers xs:{1} non "
+"valide"
+
+#: ValidateFiling.py:95
+msgid "Invalid entity identifier %(entityIdentifierName)s: "
+"%(entityIdentifer)s"
+msgstr "Identifant d'entité %(entityIdentifierName)s non valide : "
+"%(entityIdentifier)s"
+
+#: ValidateFiling.py:90
+msgid "Invalid entity identifier scheme: %(scheme)s"
+msgstr "L'identifiant d'entité a un attribut scheme non valide : "
+"%(scheme)s"
+
+#: ModelFormulaObject.py:184
+msgid "Invalid formula object %(element)s"
+msgstr "Objet de formule non valide : %(element)s"
+
+#: ValidateXbrl.py:514
+msgid "Item %(concept)s may not have a balance"
+msgstr "L'item %(concept)s ne peut pas avoir d'attribut "
+"balance"
+
+#: ValidateXbrl.py:509
+msgid "Item %(concept)s must have a valid balance "
+"%(balance)s"
+msgstr "L'item %(concept)s doit avoir une valeur valide pour l'attribut "
+"balance : %(balance)s"
+
+#: ValidateXbrl.py:504
+msgid "Item %(concept)s must have a valid periodType"
+msgstr "L'item %(concept)s  doit avoir un attribut periodType "
+"valide"
+
+#: ValidateXbrl.py:518
+msgid "Item %(concept)s type %(itemType)s invalid"
+msgstr "Le type %(itemType)s de l'item %(concept)s non "
+"valide"
+
+#: ValidateXbrl.py:344
+msgid "Item %(fact)s must have a context"
+msgstr "L'item %(fact)s doit avoir un contexte"
+
+#: FunctionIxt.py:12
+msgid "ixt function not available"
+msgstr "Function ixt non disponible"
+
+#: ViewWinFactList.py:14
+msgid "Label"
+msgstr "Libellé"
+
+#: ValidateXbrlDTS.py:688
+msgid "Label %(xlinkLabel)s element missing xml:lang "
+"attribute"
+msgstr "Le libellé %(xlinkLabel)s devrait avoir un attribut "
+"xml:lang"
+
+#: ValidateFiling.py:771
+msgid "Label for concept %(concept)s role %(role)s lang %(lang)s is not "
+"trimmed: %(text)s"
+msgstr "Le libellé pour le concept %(concept)s dans le rôle %(role)s de "
+"langue %(lang)s n'est pas nettoyé des espaces superflus : "
+"\"%(text)s\""
+
+#: ValidateFiling.py:760
+msgid "Label for concept %(concept)s role %(role)s length %(length)s must be "
+"shorter than 511 characters: %(text)s"
+msgstr "Le libellé pour le concept %(concept)s dans le rôle %(role)s de "
+"longueur %(length)s doit avoir une taille inférieure à 511 caractères "
+": %(text)s"
+
+#: ViewWinTree.py:176
+msgid "Label Role"
+msgstr "Rôle libellé"
+
+#: ValidateXbrlDTS.py:1043
+msgid "labelArc may not be contain order (%(order)s)"
+msgstr "Le labelArc ne peut pas contenir d'attribut ordre "
+"(%(order)s)"
+
+#: ViewWinFactList.py:27
+msgid "Lang"
+msgstr "Langue"
+
+#: ViewWinGrid.py:136 ViewWinTree.py:171
+msgid "Language"
+msgstr "Langue"
+
+#: CntlrWinMain.py:147
+msgid "Language..."
+msgstr "Langue..."
+
+#: DialogRssWatch.py:186
+msgid "Latest pub date field contents invalid"
+msgstr ""
+
+#: ValidateXbrlDTS.py:700
+msgid "Link part %(element)s is not authorized"
+msgstr "L'élément %(element)s n'est pas autorisé"
+
+#: ValidateFilingDTS.py:293
+msgid "Link part definition %(concept)s must have a generic label in "
+"language 'nl'"
+msgstr "La définition de partie de concept %(concept)s doit avoir un libellé "
+"générique en langue 'nl'"
+
+#: ValidateFilingDTS.py:414
+msgid "link parts"
+msgstr ""
+
+#: ValidateFilingDTS.py:362
+msgid "Link RoleType %(roleType)s definition does not match NL standard "
+"generic label, \n"
+"definition: %(definition)s \n"
+"NL label: %(label)s"
+msgstr ""
+
+#: ValidateFilingDTS.py:366
+msgid "Link RoleType %(roleType)s definition has leading or trailing spaces: "
+"\"%(definition)s\""
+msgstr ""
+
+#: ValidateFilingDTS.py:357
+msgid "Link RoleType %(roleType)s missing a generic standard "
+"label"
+msgstr "Il manque un libellé standard générique pour le type de rôle de lien "
+"%(roleType)s"
+
+#: ValidateXbrlDTS.py:603
+msgid "Link:%(elementName)s not child of link:linkbase or "
+"xbrli:instance"
+msgstr "Lien : %(elementName)s n'est pas enfant de link:linkbase ni "
+"xbrli:instance"
+
+#: ValidateFilingDTS.py:289
+msgid "Link:part concept %(concept)s is not "
+"allowed"
+msgstr ""
+
+#: ValidateXbrlDTS.py:1106
+msgid "Linkbase element %(element)s must not have attribute "
+"%(attribute)s"
+msgstr "L'élément de base de liens %(element)s ne doit pas avoir d'attribut "
+"%(attribute)s"
+
+#: ValidateXbrlDTS.py:1113
+msgid "Linkbase element %(element)s must not have attribute "
+"xlink:%(attribute)s"
+msgstr "L'élément  de base de liens %(element)s doit avoir un attribut "
+"xlink:%(attribute)s"
+
+#: ValidateXbrlDTS.py:584
+msgid "Linkbase element is not prefixed: \"%(element)s\""
+msgstr "L'élément  de base de liens %(element)s n'est pas "
+"préfixé"
+
+#: ValidateXbrlDTS.py:1098
+msgid "Linkbase element must not have schemaLocation entry for "
+"%(schemaLocation)s"
+msgstr "L'élément de base de liens %(element)s ne doit pas avoir de "
+"schemaLocation pour %(schemaLocation)s"
+
+#: ModelDocument.py:619
+msgid "Linkbase extended link %(element)s missing schema "
+"definition"
+msgstr "Le lien étendu  de base de liens %(element)s devait avoir une "
+"définition de schéma"
+
+#: ModelDocument.py:543
+msgid "Linkbase reference for %(linkbaseRefElement)s href attribute missing "
+"or malformed"
+msgstr "La référence  de base de liens pour %(linkbaseRefElement)s a un "
+"attribut href manquant ou mal formé"
+
+#: ValidateXbrlDTS.py:91
+msgid "LinkbaseRef %(linkbaseHref)s does not identify an link:linkbase "
+"element"
+msgstr "Le linkbaseRef %(linkbaseHref)s n'identifie pas un élément "
+"link:linkbase"
+
+#: ValidateXbrlDTS.py:668
+msgid "LinkbaseRef missing arcrole"
+msgstr "linkbaseRef devrait avoir un rôle d'arc"
+
+#: ValidateFilingDimensions.py:202
+msgid "Linkrole %(linkrole)s, has multiple domains "
+"%(domains)s"
+msgstr "Le rôle de liens %(linkrole)s a plusieurs domaines "
+"%(domains)s"
+
+#: ValidateFilingDTS.py:412
+msgid "linkroles"
+msgstr "linkroles"
+
+#: CntlrWinMain.py:546 DisclosureSystem.py:135
+msgid "loaded"
+msgstr "chargé"
+
+#: CntlrWinMain.py:737
+msgid "Loaded {0} items from {1}"
+msgstr "{0} items chargés de {1}"
+
+#: CntlrCmdLine.py:220
+msgid "loaded in %.2f secs at %s"
+msgstr "chargé en %.2f secondes à %s"
+
+#: ModelXbrl.py:19
+msgid "loading"
+msgstr "chargement en cours"
+
+#: ModelDocument.py:100
+msgid "loading {0}"
+msgstr "chargement de {0}"
+
+#: DialogOpenArchive.py:86
+msgid "loading archive {0}"
+msgstr "chargement de l'archive {0}"
+
+#: DisclosureSystem.py:84
+msgid "loading disclosure system and mappings"
+msgstr ""
+
+#: Validate.py:196
+msgid "loading expected result XBRL instance"
+msgstr "chargemetn de l'instance des résultats "
+"attendus"
+
+#: CntlrGenVersReports.py:119 CntlrGenVersReports.py:340
+msgid "loading from DTS"
+msgstr "chargement depuis le DTS"
+
+#: CntlrGenVersReports.py:119 CntlrGenVersReports.py:344
+msgid "loading to DTS"
+msgstr "chargement dans le DTS"
+
+#: ValidateUtr.py:15
+msgid "Loading Unit Type Registry"
+msgstr "Chargement du registre des types d'unité"
+
+#: CntlrWinMain.py:461 CntlrWinMain.py:481
+msgid "Loading web-accessed files"
+msgstr "Chargement des fichiers web"
+
+#: ValidateXbrlDTS.py:1085
+msgid "Loc %(xlinkLabel)s has unauthorized role "
+"attribute"
+msgstr "loc %(xlinkLabel)s a un attribut de rôle non "
+"autorisé"
+
+#: ValidateXbrlDTS.py:907
+msgid "Loc element %(element)s may not be contained in a linkbase with "
+"%(element2)s"
+msgstr "L'élément loc %(element)s ne peut pas être contenu dans la même base "
+"de liens que %(element2)s"
+
+#: ModelDocument.py:580
+msgid "Locator href attribute missing or malformed in non-standard extended "
+"link"
+msgstr "L'attribut href du locator est manquant ou mal formé dans le lien "
+"étendu non standard"
+
+#: ModelDocument.py:576
+msgid "Locator href attribute missing or malformed in standard extended "
+"link"
+msgstr "L'attribut href du locator est manquant ou mal formé dans le lien "
+"étendu standard"
+
+#: ValidateXbrlDTS.py:164
+msgid "Loc's href %(locHref)s does not identify an element in an XBRL "
+"document discovered as part of the DTS"
+msgstr "Le loc href %(locHref)s n'identifie pas un document XBRL découvert "
+"dans le DTS"
+
+#: DialogRssWatch.py:181
+msgid "Log file directory not found {0}"
+msgstr "Fichier de log {0} non trouvé"
+
+#: DialogRssWatch.py:159
+msgid "Log files"
+msgstr "Fichiers de log"
+
+#: XmlValidate.py:119
+msgid "lxml schema validating"
+msgstr "Validation du schéma par lxml"
+
+#: XmlValidate.py:135
+msgid "lxml validation done"
+msgstr "Valdiation lxml terminée"
+
+#: XmlValidate.py:107
+msgid "lxml validator loading xml schema"
+msgstr "Le valideur lxml charge le schéma xml"
+
+#: DialogUserPassword.py:78
+msgid "Mac OS X System Configuration"
+msgstr "Configuration du système Mac OS X"
+
+#: DialogOpenArchive.py:101
+msgid "Malformed taxonomy package"
+msgstr "Paquet de taxonomie mal constitué"
+
+#: CntlrWinMain.py:139
+msgid "Manage cache"
+msgstr "Gestion du cache"
+
+#: DialogRssWatch.py:177
+msgid "Match text field contents error {0}"
+msgstr "Erreur dans le champ de recherche {0}"
+
+#: ModelFormulaObject.py:1551
+msgid "Matched variable sequence includes fact {0} inconsistent in aspect "
+"{1}"
+msgstr "La séquence des variables correspondantes contient le fait {0}, ce "
+"qui est incohérent dans l'aspect {1}"
+
+#: DialogFind.py:251 DialogFind.py:252
+msgid "Matching concepts..."
+msgstr "Recherche de concepts..."
+
+#: DialogFind.py:267 DialogFind.py:268
+msgid "Matching facts..."
+msgstr "Recherche de faits..."
+
+#: WatchRss.py:78
+msgid "matching text"
+msgstr "recherche de texte"
+
+#: ViewWinTree.py:195
+msgid "Measures"
+msgstr "Mesures"
+
+#: ValidateFormula.py:840
+msgid "Message %(xlinkLabel)s: unbalanced %(character)s character(s) in: "
+"%(text)s"
+msgstr "Message %(xlinkLabel)s: Il n'y a pas aurant de caractères ouvrants et "
+"fermants pour '%(character)s' dans la chaîne : "
+"%(text)s"
+
+#: CntlrWinMain.py:229
+msgid "messages"
+msgstr "messages"
+
+#: CntlrWinMain.py:143
+msgid "Messages log"
+msgstr "Messages de log"
+
+#: CntlrWinMain.py:187
+msgid "Messages Log | Clear"
+msgstr "Messages de log | Effacer"
+
+#: DialogUserPassword.py:76
+msgid "Microsoft Windows Internet Settings"
+msgstr "Options Internet de Microsoft Windows"
+
+#: ValidateXbrlDimensions.py:277
+msgid "missing content"
+msgstr "contenu manquant"
+
+#: DialogNewFactItem.py:126
+msgid "Monetary decimals invalid"
+msgstr "Décimales monétaires non valides"
+
+#: DialogNewFactItem.py:124
+msgid "Monetary unit invalid"
+msgstr "Unité monétaire non valide"
+
+#: ValidateFiling.py:103
+msgid "Multiple %(entityIdentifierName)ss: %(entityIdentifer)s, "
+"%(entityIdentifer2)s"
+msgstr "Plusieurs %(entityIdentifierName)s : %(entityIdentifier)s et "
+"%(entityIdentifier2)s"
+
+#: ValidateXbrlDimensions.py:281
+msgid "multiple contents"
+msgstr "contenu multiple"
+
+#: ValidateFormula.py:234
+msgid "Multiple output instances for formula %(xlinkLabel)s, to names "
+"%(instanceTo)s, %(instanceTo2)s"
+msgstr "Plusieurs instances générées pour la formule %(xlinkLabel)s vers les "
+"noms %(instanceTo)s et %(instanceTo2)s"
+
+#: ValidateFilingDimensions.py:115
+msgid "Multiple tables (%(hypercubeCount)s) DRS role %(linkrole)s, source "
+"%(concept)s, only 1 allowed"
+msgstr "Plusieurs (%(hypercubeCount)s) tables du rôle DRS %(linkrole)s, "
+"source %(concept)s, seulement une autorisée"
+
+#: ValidateFormula.py:418
+msgid "Multiple typed domain definitions from %(typedDomain)s to "
+"%(equalityDefinition1)s and %(equalityDefinition2)s"
+msgstr "Plusieurs définition de domaine typé %(typedDomain)s : "
+"%(equalityDefinition1)s et %(equalityDefinition2)s"
+
+#: ValidateFormula.py:274
+msgid "Multiple variables named %(xlinkLabel)s in variable set "
+"%(name)s"
+msgstr "Plusieurs variables nommées %(xlinkLabel)s dans l'ensemble "
+"%(name)s"
+
+#: ValidateXbrlDTS.py:357 ValidateXbrlDTS.py:380
+msgid "MUST"
+msgstr "DOIT"
+
+#: ValidateXbrlDTS.py:357 ValidateXbrlDTS.py:380
+msgid "MUST NOT"
+msgstr "NE DOIT PAS"
+
+# Label: ignore
+#: ValidateHmrc.py:145
+msgid "Name of Director Approving Balance Sheet "
+"(uk-gaap:NameDirectorSigningAccounts OR "
+"ifrs:ExplanationOfBodyOfAuthorisation) is "
+"missing."
+msgstr ""
+
+# Label: ignore
+#: ValidateHmrc.py:137
+msgid "Name of Director signing Directors Report "
+"(uk-direp:DirectorSigningReport) is "
+"missing."
+msgstr ""
+
+#: ViewWinTree.py:184
+msgid "Name Style"
+msgstr "Convention de nommage"
+
+#: ViewWinVersReport.py:53
+msgid "namespace renamings"
+msgstr "renommage des espaces de nommage"
+
+#: ModelDocument.py:392
+msgid "Namespace: %(namespace)s disallowed schemaLocation "
+"%(schemaLocation)s"
+msgstr "Espace de nommage %(namespace)s :  schemaLocation %(schemaLocation)s "
+"non autorisée"
+
+#: ModelDocument.py:471
+msgid "Namespace: %(namespace)s disallowed schemaLocation blocked "
+"%(schemaLocation)s"
+msgstr "Espace de nommage %(namespace)s : schemaLocation %(schemaLocation)s "
+"bloquée"
+
+#: ValidateVersReport.py:57
+msgid "NamespaceRename fromURI %(uri)s does not reference a schema in "
+"fromDTS"
+msgstr "namespaceRename fromURI %(uri)s ne référence pas un schéma du "
+"DTS"
+
+#: ValidateVersReport.py:61
+msgid "NamespaceRename toURI %(uri)s does not reference a schema in "
+"toDTS"
+msgstr "namespaceRename toURI %(uri)s ne référence pas un schéma du "
+"DTS"
+
+#: ValidateFilingDimensions.py:88
+msgid "Negative table axis %(dimension)s in DRS role %(linkrole)s, not in "
+"any positive table in same role"
+msgstr ""
+
+#: ValidateFiling.py:146
+msgid "Neither segment nor scenario"
+msgstr "ni segment, ni scénario"
+
+#: FormulaEvaluator.py:661
+msgid "neither source {0}, nor an aspect rule, were "
+"found."
+msgstr "ne la source {0}, ni une règle d'aspect, non été "
+"trouvé"
+
+#: ViewWinRenderedGrid.py:35
+msgid "New fact item options"
+msgstr "Options Nouvel item de fait"
+
+#: DialogNewFactItem.py:65
+msgid "New Fact Item Options"
+msgstr "Options Nouvel item de fait"
+
+#: DialogFind.py:120
+msgid "Next"
+msgstr "Suivant"
+
+#: DialogFind.py:330 DialogFind.py:335
+msgid "Next cannot be completed"
+msgstr "Suivant n'a pas pu aboutir"
+
+#: XPathParser.py:209
+msgid "No custom function signature for %(custFunction)s in "
+"%(resource)s"
+msgstr "Aucune signature pour la fonction spécique %(custFunction)s dans "
+"%(resource)s"
+
+#: DialogFind.py:336
+msgid "No matches were found.  Please try a different "
+"search."
+msgstr "Aucune correspondance trouvée. Merci d'essayer une auter "
+"recherche."
+
+#: ViewWinTree.py:189
+msgid "No Prefix"
+msgstr "Aucun préfixe"
+
+#: ViewCsvRelationshipSet.py:25 ViewWinFactGrid.py:54
+#: ViewWinFactTable.py:52 ViewWinRelationshipSet.py:15
+#: ViewWinRelationshipSet.py:49
+msgid "no relationships for {0}"
+msgstr "aucune relation pour {0}"
+
+#: ViewUtilFormulae.py:14
+msgid "no relationships for XBRL formulae"
+msgstr "aucune relation pour la formule XBRL"
+
+#: ViewUtilRenderedGrid.py:25
+msgid "no table relationships for {0}"
+msgstr "pas de relation table pour {0}"
+
+#: XPathContext.py:215
+msgid "Node comparison sequence error"
+msgstr "Erreur dans la séquence de comparaison des "
+"nœuds"
+
+#: XPathContext.py:237
+msgid "Node operation sequence error"
+msgstr "Erreur dans la séquence d'opération des "
+"nœuds"
+
+#: ValidateFilingDTS.py:416
+msgid "nonabstract items"
+msgstr "item non abstrait"
+
+#: ValidateFiling.py:925
+msgid "Non-distinguished preferredLabel presentation relations from concept "
+"%(conceptFrom)s in base set role %(linkrole)s"
+msgstr ""
+
+#: ValidateFilingDTS.py:278
+msgid "Non-monetary concept %(concept)s must not have a balance "
+"attribute"
+msgstr "Concept non monétaire %(concept)s doit avoir un attribut "
+"balance"
+
+#: DialogNewFactItem.py:128
+msgid "Non-monetary decimals invalid"
+msgstr "Décimales non-monétaires non valides"
+
+#: ValidateFilingDimensions.py:42
+msgid "Not all hypercube %(hypercube)s in DRS role %(linkrole)s, does not "
+"have closed='false'"
+msgstr "Hypercube \"not all\" %(hypercube)s dans le rôle DRS %(linkrole)s n'a "
+"pas closed=\"false\""
+
+#: ValidateFilingDimensions.py:46
+msgid "Not all hypercube %(hypercube)s in DRS role %(linkrole)s, is also the "
+"target of a positive hypercube"
+msgstr "Hypercube \"not all\" %(hypercube)s dans le rôle DRS %(linkrole)s est "
+"aussi la cible d'un hypercube positif"
+
+#: CntlrWinMain.py:566
+msgid "not successfully %s in %.2f secs"
+msgstr "en échec %s en %.2f secondes"
+
+#: ModelRssItem.py:43 ModelRssItem.py:45
+msgid "not tested"
+msgstr "non testé"
+
+#: ValidateFilingDimensions.py:159
+msgid "Notall from primary item %(primaryItem)s in ELR role %(linkrole)s to "
+"%(hypercube)s"
+msgstr "Notall de l'item primaire %(primaryItem)s dans l'ELR %(linkrole)s "
+"vers %(hypercube)s"
+
+#: XPathContext.py:135
+msgid "Number of arguments do not match signature "
+"arity."
+msgstr "Le nombre d'arguments ne correspond pas à l'arité de la "
+"fonction."
+
+#: ValidateFiling.py:308
+msgid "Numeric fact %(fact)s of context %(contextID)s has a precision "
+"attribute '%(precision)s'"
+msgstr "Fait numérique %(fact)s du contexte %(contextID)s a un attribut "
+"précision '%(precision)s'"
+
+#: DialogAbout.py:33 DialogFormulaParameters.py:150
+#: DialogNewFactItem.py:95 DialogOpenArchive.py:112
+#: DialogRssWatch.py:126 DialogURL.py:40
+#: DialogUserPassword.py:125
+msgid "OK"
+msgstr "D'accord"
+
+#: CntlrWinMain.py:177
+msgid "Open by choosing a local XBRL file, testcase, or archive "
+"file"
+msgstr "Ouvrir en choisissant un fichier local (fichier XBRL, jeu de test, "
+"archive)"
+
+#: CntlrWinMain.py:71
+msgid "Open File..."
+msgstr "Ouvrir le fichier..."
+
+#: ViewWinRssFeed.py:78
+msgid "Open Instance Document"
+msgstr "Ouvrir un document instance"
+
+#: CntlrWinMain.py:177
+msgid "Open local file"
+msgstr "Ouvrir un fichier local"
+
+#: CntlrWinMain.py:178
+msgid "Open web file"
+msgstr "Ouvrir un fichier web"
+
+#: CntlrWinMain.py:72
+msgid "Open Web..."
+msgstr "Ouvrir Web..."
+
+#: DialogURL.py:47
+msgid "Opens above URL from web cache, downloading to cache if "
+"necessary"
+msgstr "Ouvre l'URL ci-dessus depuis le cache web, en téléchargent les "
+"ressources nécessaires dans le cache"
+
+# Label: ignore
+#: DialogURL.py:61
+msgid "Opens current US SEC Edgar RSS feed"
+msgstr ""
+
+# Label: ignore
+#: DialogURL.py:52
+msgid "Opens US SEC Edgar Company Search (in web browser)\n"
+"\n(1) Find the company in web browser,\n"
+"(2) Click 'documents' button for desired filing,\n"
+"(3) Find 'data files' panel, instance document row, 'document' "
+"column,\n"
+"(4) On instance document file name, right-click browser menu: 'copy "
+"shortcut',\n"
+"(5) Come back to this dialog window,\n"
+"(6) Ctrl-v (paste) shortcut into above URL text box,\n"
+"(7) Click ok button to load instance "
+"document"
+msgstr ""
+
+#: ViewWinFactGrid.py:30 ViewWinFactTable.py:28
+#: ViewWinRenderedGrid.py:42
+msgid "Options"
+msgstr "Options"
+
+#: CntlrWinMain.py:126 ViewWinRssFeed.py:43
+msgid "Options..."
+msgstr "Options..."
+
+#: ModelFormulaObject.py:2501
+msgid "output: \n"
+"{0}"
+msgstr "sortie :\n"
+"{0}"
+
+#: FormulaEvaluator.py:771
+msgid "Parameter"
+msgstr "Paramètre"
+
+#: ValidateFormula.py:217
+msgid "Parameter \n"
+"%(name)s \n"
+"Exception: \n"
+"%(error)s"
+msgstr "Paramètre\n"
+"%(name)s\n"
+"Exception:\n"
+"%(error)s"
+
+#: ValidateFormula.py:206
+msgid "Parameter %(name)s input value %(input)s"
+msgstr "Paramètre %(name)s, valeur d'entrée "
+"%(input)s"
+
+#: ValidateFormula.py:212
+msgid "Parameter %(name)s select result %(result)s"
+msgstr "Paramètre %(name)s, résultat sélectionné "
+"%(result)s"
+
+#: ModelFormulaObject.py:548
+msgid "Parameter name used on multiple parameters "
+"%(name)s"
+msgstr "Le nom de paramèter %(name)s est utilisé sur plusieurs "
+"paramètres"
+
+#: ValidateFiling.py:200
+msgid "parameters for cikList and cikNameList different list entry counts: "
+"%(cikList)s, %(cikNameList)s"
+msgstr "paramètres pour cikList et cikNameList ne contiennent pas autant "
+"d'éléments : %(cikList)s, %(cikNameList)s"
+
+#: CntlrWinMain.py:117
+msgid "Parameters..."
+msgstr "Paramètres..."
+
+#: XPathParser.py:655
+msgid "Parse error in %(name)s error: %(error)s \n"
+"%(source)s"
+msgstr "Error d'analyse dans %(name)s : %(error)s\n"
+"%(source)s"
+
+#: DisclosureSystem.py:154 DisclosureSystem.py:200
+#: ModelDocument.py:63
+msgid "parsing {0}"
+msgstr "analyse {0}"
+
+#: DisclosureSystem.py:67
+msgid "parsing disclosuresystems.xml"
+msgstr ""
+
+#: XPathParser.py:662
+msgid "Parsing terminated in %(name)s due to error: %(error)s \n"
+"%(source)s"
+msgstr "Analyse terminée dans %(name)s en raison d'une erreur : %(error)s\n"
+"%(source)s"
+
+#: DialogUserPassword.py:119
+msgid "Password:"
+msgstr "Mot de passe : "
+
+# Label: ignore
+#: ValidateHmrc.py:122
+msgid "Period End Date (uk-bus:EndDateForPeriodCoveredByReport) is "
+"missing."
+msgstr ""
+
+#: FunctionXfi.py:175
+msgid "Period is forever"
+msgstr "La période est éternelle"
+
+#: FunctionXfi.py:173
+msgid "Period is not instant"
+msgstr "La période est un instant"
+
+# Label: ignore
+#: ValidateHmrc.py:111
+msgid "Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) is "
+"missing."
+msgstr ""
+
+# Label: ignore
+#: ValidateHmrc.py:115
+msgid "Period Start Date (uk-bus:StartDateForPeriodCoveredByReport) must be "
+"6 April 2008 or later."
+msgstr ""
+
+#: CntlrWinMain.py:462 CntlrWinMain.py:482
+msgid "Please open web-accessed files with the second toolbar button, \"Open "
+"web file\", or the File menu, second entry, \"Open "
+"web...\""
+msgstr "Merci d'ouvrir les fichiers web avec le deuxième bouton de la barre "
+"d'outils \"'Ouvrir un fichier web\", ou depuis le menu \"Fichier\" > "
+"\"Ouvrir web...\""
+
+#: DialogUserPassword.py:97
+msgid "Port:"
+msgstr "Port :"
+
+#: ViewWinFactList.py:25
+msgid "Prec"
+msgstr "Précision"
+
+#: ValidateXbrlCalcs.py:43
+msgid "precision"
+msgstr "précision"
+
+#: ValidateFiling.py:898
+msgid "Preferred label on presentation relationships not "
+"allowed"
+msgstr "Le libellé préféré sur une relation de présentation n'est pas "
+"autorisé"
+
+#: ViewWinTree.py:188
+msgid "Prefixed"
+msgstr "Préfixé"
+
+#: ValidateFiling.py:1093
+msgid "Presentation linkrole %(linkrole)s missing order "
+"number"
+msgstr "Le rôle de lien présentation %(linkrole)s devrait avoir "
+"un ordre"
+
+#: ValidateFiling.py:1079
+msgid "Presentation linkrole %(linkrole)s missing order number relationship "
+"set"
+msgstr ""
+
+#: ValidateFiling.py:1087
+msgid "Presentation linkrole order number %(order)s of %(linkrole)s also "
+"used in %(otherLinkrole)s"
+msgstr "L'ordre n°%(order)s du rôle de lien présentation %(linkrole)s est "
+"également utilisé pour %(otherLinkrole)s"
+
+#: ValidateXbrl.py:261
+msgid "Presentation relationship from %(source)s to %(target)s in link role "
+"%(linkrole)s missing preferredLabel "
+"%(preferredLabel)s"
+msgstr "La relation de présentation de %(source)s vers %(target)s dans le "
+"rôle %(linkrole)s devrait avoir un preferredLabel "
+"%(preferredLabel)s"
+
+#: ValidateXbrlDTS.py:972
+msgid "PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an "
+"order"
+msgstr "L'arc de présentation de %(xlinkFrom)s vers %(xlinkTo)s doit avoir un "
+"ordre"
+
+#: ValidateFilingDimensions.py:387
+msgid "Primary item %(concept)s in DRS role %(linkrole)s for hypercube "
+"%(hypercube)s, has parent %(concept2)s which is not a "
+"primaryDomainItem"
+msgstr "L'item primaire %(concept)s dans le rôle DRS %(linkrole)s pour "
+"l'hypercube %(hypercube)s, a un parent %(concept2)s qui n'est pas un "
+"primaryDomainItem"
+
+#: ValidateFilingDimensions.py:380
+msgid "Primary items for hypercube %(hypercube)s ELR %(ELR)s, have "
+"non-unique (inheritance) member %(concept)s in DRS role "
+"%(linkrole)s"
+msgstr "Les items primaires pour l'hypercube %(hypercube)s ELR %(ELR)s ont un "
+"membre non-uniques (hérité) %(concept)s dans DRS rôle "
+"%(linkrole)s"
+
+# Label: ignore
+#: ValidateHmrc.py:150
+msgid "Profit or Loss for the period (uk-gaap:ProfitLossForPeriod OR "
+"ifrs:ProfitLoss) is missing."
+msgstr ""
+
+#: ModelRelationshipSet.py:43
+msgid "prohibited arc (priority {0}) has no other arc to "
+"prohibit"
+msgstr "L'arc interdit (priotrité {à}) n'a pas d'autre arc à "
+"restreindre"
+
+#: ModelRelationshipSet.py:49
+msgid "prohibited arc (priority {0}, {1} - {2}) has an equivalent prohibited "
+"arc (priority {3}, {4} - {5})\n"
+msgstr "L'arc interdit (priorité {0}, {1} - {2}) a un arc interdit équivalent "
+"(priorité {3}, {4} - {5})\n"
+
+#: ModelDocument.py:442
+msgid "Prohibited base attribute: %(attribute)s"
+msgstr "Attribut de base %(attribute)s interdit"
+
+#: ModelDocument.py:31
+msgid "Prohibited file for filings %(blockedIndicator)s: "
+"%(url)s"
+msgstr "Il est interdit de rapporter %(url)s : "
+"%(blockedIndicator)s"
+
+#: CntlrWinMain.py:140 DialogUserPassword.py:30
+msgid "Proxy Server"
+msgstr "Serveur mandataire"
+
+#: XPathParser.py:83
+msgid "QName prefix not defined for %(name)s"
+msgstr "QName non défini pour %(name)s"
+
+#: XPathParser.py:260
+msgid "QName prefix not defined for variable reference "
+"$%(variable)s"
+msgstr "Préfixe QName non défini pour la référence de variable "
+"$%(variable)s"
+
+#: CntlrWinMain.py:78
+msgid "Quit"
+msgstr "Quitter"
+
+#: XPathParser.py:274
+msgid "rangeVar('{0}' in {1})"
+msgstr "rangeVar('{0}' dans {1})"
+
+#: ModelVersReport.py:297 Validate.py:223
+#: ValidateFiling.py:1113 ValidateFormula.py:109
+#: ValidateXbrl.py:552
+msgid "ready"
+msgstr "prêt"
+
+#: CntlrWinMain.py:166 CntlrWinMain.py:636
+#: CntlrWinMain.py:653 DialogFind.py:322
+msgid "Ready..."
+msgstr "Prêt..."
+
+#: DialogUserPassword.py:66
+msgid "Realm:"
+msgstr "Domaine :"
+
+#: CntlrWinMain.py:326
+msgid "Recent files"
+msgstr "Fichiers récents"
+
+#: CntlrWinMain.py:333
+msgid "Recent imports"
+msgstr "Importations récentes"
+
+#: ValidateXbrlDTS.py:934
+msgid "Reference %(xlinkLabel)s has duplicated id %(id)s also in linkbase "
+"%(otherLinkbase)s"
+msgstr "La référence %(xlinkLabel)s a un id dupliqué %(id)s également dans "
+"%(otherLinkbase)s"
+
+#: ValidateXbrlDTS.py:924
+msgid "Reference %(xlinkLabel)s has unauthorized part element "
+"%(element)s"
+msgstr ""
+
+#: ValidateXbrlDTS.py:930
+msgid "Reference %(xlinkLabel)s is missing an id "
+"attribute"
+msgstr "La référence %(xlinkLabel)s devrait avoir un attribut "
+"id"
+
+#: ValidateXbrlDTS.py:1017
+msgid "ReferenceArc from %(xlinkFrom)s to %(xlinkTo)s has an "
+"order"
+msgstr "referenceArc de %(xlinkFrom) vers %(xlinkTo)s a un "
+"ordre"
+
+#: ViewWinRelationshipSet.py:62
+msgid "References"
+msgstr "Références"
+
+#: ValidateFiling.py:849
+msgid "References for conflicting standard taxonomies %(namespaceConflicts)s "
+"are not allowed in same DTS"
+msgstr "Les références pour les taxonomie standards en conflit %(namespaceConflicts)s ne "
+"sont pas autorisées dans le même DTS"
+
+#: ValidateFiling.py:779
+msgid "References for extension concept %(concept)s are not allowed: "
+"%(text)s"
+msgstr "Les références pour le concept d'extension %(concept)s ne sont pas "
+"autorisées : %(text)s"
+
+#: ValidateFiling.py:784
+msgid "References for standard taxonomy concept %(concept)s are not allowed "
+"in an extension linkbase: %(text)s"
+msgstr "Les références pour le concept standard de taxonomy %(concept)s ne "
+"sont pas autorisées dans une base de liens étendue : "
+"%(text)s"
+
+#: FunctionFn.py:256
+msgid "Regular expression interpretation flag unrecognized: "
+"{0}"
+msgstr "Drapeau de l'expression régulière non reconnu : "
+"{0}"
+
+#: ValidateFormula.py:63
+msgid "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an "
+"%(element)s  target"
+msgstr "La relation de %(xlinkFrom)s vers %(xlinkTo)s devrait avoir une cible "
+"%(element)s"
+
+#: ValidateFormula.py:58
+msgid "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an "
+"%(element)s source"
+msgstr "La relation de %(xlinkFrom)s vers %(xlinkTo)s devrait avoir une "
+"source %(element)s"
+
+#: ValidateXbrl.py:219
+msgid "Relationships have a %(cycle)s cycle in arcrole %(arcrole)s \n"
+"link role %(linkrole)s \n"
+"link %(linkname)s, \n"
+"arc %(arcname)s, \n"
+"path %(path)s"
+msgstr "Les relations forment un cycle %(cycle)s dans le rôle d'arc "
+"%(arcrole)s \n"
+"rôle de lien %(linkrole)s \n"
+"lien %(linkname)s, \n"
+"arc %(arcname)s, \n"
+"chemin %(path)s"
+
+#: ValidateVersReport.py:95
+msgid "ReportRef xlink:arcrole %(arcrole)s is "
+"invalid"
+msgstr "reportRef xlink:arcrole %(arcrole) n'est pas "
+"valide"
+
+#: ValidateVersReport.py:90
+msgid "ReportRef xlink:arcrole is missing"
+msgstr "reportRef xlink:arcrole est manquant"
+
+#: ValidateVersReport.py:81
+msgid "ReportRef xlink:type %(xlinkType)s must be "
+"\"simple\""
+msgstr "reportRef xlink:type %(xlinkType)s doit être "
+"\"simple\""
+
+#: ValidateFiling.py:393
+msgid "Required context (no segment) not found for document type "
+"%(documentType)s."
+msgstr "Le contexte requis (sans segment) non trouvé pour le type de document "
+"%(documentType)s."
+
+#: ValidateXbrlCalcs.py:165
+msgid "Requires-Element %(requiringConcept)s missing required fact for "
+"%(requiredConcept)s in link role %(linkrole)s"
+msgstr "Dans Requires-Element %(requiringConcept)s, il manque un fait pour "
+"%(requiredConcept)s dans le rôle de lien "
+"%(linkrole)s"
+
+#: ValidateXbrlDTS.py:917
+msgid "Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy "
+"role"
+msgstr "Resource %(xlinkLabel)s, le rôle %(role) n'est pas un rôle standard "
+"de taxonomy"
+
+#: ValidateXbrlDTS.py:949
+msgid "Resource element %(element)s may not be contained in a linkbase with "
+"%(element2)s"
+msgstr "L'élément ressource %(element)s ne peut pas être dans contenu dans la même base de liens que "
+"%(element2)s"
+
+#: WebCache.py:300
+msgid "retrieval incomplete: got only %i out of %i "
+"bytes"
+msgstr "récupération incomplète : %i / %i ko "
+"reçus"
+
+#: ValidateXbrlDTS.py:643
+msgid "Role %(refURI)s roleRef %(xlinkHref)s must not have an %(attribute)s "
+"attribute"
+msgstr "Rôle %(refURI)s roleRef %(xlinkHref)s doit avoir un attribut "
+"M(attribute)s"
+
+#: ValidateXbrlDTS.py:730
+msgid "Role %(xlinkRole)s is missing a roleRef"
+msgstr "Le rôle %(xlinkRole)s devrait avoir un "
+"roleRef"
+
+#: ValidateXbrlDTS.py:716
+msgid "Role %(xlinkRole)s is not absolute"
+msgstr "Le rôle %(xlinkRole)s n'est pas absolu"
+
+#: ValidateXbrlDTS.py:744
+msgid "Role %(xlinkRole)s missing usedOn for "
+"%(element)s"
+msgstr "Le rôle %(xlinkRole)s devrait avoir usedOn pour l'élément "
+"%(element)s"
+
+#: ViewWinVersReport.py:64
+msgid "role changes"
+msgstr "le rôle change"
+
+#: ValidateVersReport.py:68
+msgid "RoleChange fromURI %(uri)s does not reference a roleType in "
+"fromDTS"
+msgstr "roleChange fromURI %(uri)s ne référence pas un roleType dans "
+"fromDTS"
+
+#: ValidateVersReport.py:72
+msgid "RoleChange toURI %(uri)s does not reference a roleType in "
+"toDTS"
+msgstr "roleChange fromURI %(uri)s ne référence pas un roleType dans "
+"toDTS"
+
+#: ValidateFilingDTS.py:349
+msgid "RoleType %(roleType)s definition \"%(definition)s\" must match "
+"{Sortcode} - {Type} - {Title}"
+msgstr "RoleType %(roleType)s définition \"%(definition)s\" doit correspondre à "
+" {Sortcode} - {Type} - {Title}"
+
+#: ValidateFilingDTS.py:320
+msgid "RoleType %(roleType)s does not match authority "
+"%(targetNamespaceAuthority)s"
+msgstr "RoleType %(roleType)s ne correspond pas à l'autorité "
+"%(targetNamespaceAuthority)s"
+
+#: ValidateFilingDTS.py:336
+msgid "RoleType %(roleType)s is defined in multiple "
+"taxonomies"
+msgstr "Le type de role %(roleType)s est défini dans plusieurs "
+"taxonomies"
+
+#: ValidateFilingDTS.py:342
+msgid "RoleType %(roleType)s missing used on "
+"%(usedOn)s"
+msgstr "Le type de rôle %(roleType)s doit avoir usedOn "
+"%(usedOn)s"
+
+#: ValidateXbrlDTS.py:1081
+msgid "RoleType %(roleURI)s missing id attribute"
+msgstr "Le type de rôle %(roleType)s doit avoir l'attribut "
+"id"
+
+# Label: ignore
+#: ValidateXbrlDTS.py:543
+msgid "RoleType %(roleURI)s must have a label in lang "
+"\"nl\""
+msgstr ""
+
+#: ViewWinTree.py:165
+msgid "Row"
+msgstr "Ligne"
+
+#: DialogRssWatch.py:172
+msgid "RSS feed field contents invalid"
+msgstr ""
+
+#: CntlrWinMain.py:833
+msgid "RSS Feed is not set up, please select options and select "
+"feed"
+msgstr "Le flux RSS n'est pas configuré, merci de choisir les options et "
+"sélectionner un flux"
+
+#: DialogRssWatch.py:53
+msgid "RSS Feed Processing Control"
+msgstr ""
+
+#: WatchRss.py:115
+msgid "RSS item %(company)s %(form)s document not loaded: "
+"%(date)s"
+msgstr ""
+
+#: WatchRss.py:190
+msgid "RSS item %(company)s, %(form)s, %(date)s, exception: "
+"%(error)s"
+msgstr ""
+
+#: WatchRss.py:186
+msgid "RSS item {0}, {1} completed, status "
+"{2}"
+msgstr ""
+
+#: CntlrWinMain.py:130 ViewWinRssFeed.py:46
+msgid "RSS Watch"
+msgstr ""
+
+#: CntlrWinMain.py:832
+msgid "RSS Watch Control Error"
+msgstr ""
+
+#: WatchRss.py:196
+msgid "RSS watch, stop requested"
+msgstr ""
+
+#: WatchRss.py:72
+msgid "running formulas"
+msgstr "évaluation des formules"
+
+#: ValidateFiling.py:751
+msgid "Same labels for concepts %(concept)s and %(concept2)s for %(lang)s "
+"standard role: %(text)s."
+msgstr "Même libellé pour les concepts %(concept)s et %(concept2)s dans la "
+"langue %(lang)s pour le rôle standard : "
+"%(text)s"
+
+#: ViewWinRenderedGrid.py:50
+msgid "Save"
+msgstr "Enregistrer"
+
+#: CntlrWinMain.py:75
+msgid "Save DTS Package"
+msgstr "Enregistrer le DTS dans un paquet"
+
+#: CntlrWinMain.py:179
+msgid "Save file"
+msgstr "Enregistrer le fichier"
+
+#: CntlrWinMain.py:145 CntlrWinMain.py:233
+#: ViewWinList.py:103
+msgid "Save to file"
+msgstr "Enregistrer dans le fichier"
+
+#: CntlrWinMain.py:351
+msgid "Save unsaved changes?"
+msgstr "Enregistrement les modifications?"
+
+#: CntlrWinMain.py:74
+msgid "Save..."
+msgstr "Enregistrer..."
+
+#: ViewWinRenderedGrid.py:528
+msgid "Saved {0}"
+msgstr "{0} enregistré"
+
+#: CntlrWinMain.py:437
+msgid "Saved {0} items to {1}"
+msgstr "{0} items enregistrés dans {1}"
+
+#: ViewHtml.py:58
+msgid "Saved output html to %(file)s"
+msgstr "Sortie enregistrer en HTML dans %(file)s"
+
+#: CntlrWinMain.py:179
+msgid "Saves currently selected local XBRL "
+"file"
+msgstr "Enregistre le fichier XBRL sélectionné"
+
+#: ViewWinRenderedGrid.py:461
+msgid "Saving {0}"
+msgstr "Enregistrement de {0}"
+
+#: ValidateFilingDTS.py:418
+msgid "sbrPresentationTuples"
+msgstr ""
+
+#: ValidateFilingDTS.py:419
+msgid "sbrSpecificationTuples"
+msgstr ""
+
+#: ValidateFiling.py:140
+msgid "Scenario"
+msgstr "Scénario"
+
+#: ValidateXbrlDTS.py:549
+msgid "Schema %(element)s %(attribute)s length (%(length)s) is over 255 "
+"bytes long in utf-8 %(roleURI)s"
+msgstr "Schéma %(element)s %(attribute)s de longueur %(length)s dépasse 255 octets en UTF-8 "
+"%(roleURI)s"
+
+#: ValidateXbrlDTS.py:480
+msgid "Schema %(element)s has a name length (%(length)s) over 200 bytes long "
+"in utf-8, %(name)s."
+msgstr "Le nom du schéma %(element)s a une longueur (%(length)s) qui dépasse 200 octets en UTF-8 "
+"%(name)s"
+
+#: ValidateXbrlDTS.py:429
+msgid "Schema %(element)s must have %(attrName)s"
+msgstr "Le schéma %(element)s doit avoir l'attribut "
+"%(attrName)s"
+
+#: ValidateXbrlDTS.py:433
+msgid "Schema %(element)s must have %(attrName)s = "
+"\"1\""
+msgstr "Schéma %(element)s doit avoir %(attrName)s = "
+"\"1\""
+
+#: ValidateXbrlDTS.py:414
+msgid "Schema %(element)s must have minOccurs and "
+"maxOccurs"
+msgstr "Schéma %(element)s doit avoir minOccurs et "
+"maxOccurs"
+
+#: ValidateXbrlDTS.py:369
+msgid "Schema concept definition is not at the root level: "
+"%(concept)s"
+msgstr "La définiton du concept %(concept)s n'est pas à la racine du "
+"schéma"
+
+#: ValidateXbrlDTS.py:345
+msgid "Schema contains XSD 1.1 content \"%(element)s\""
+msgstr "Le schéma contient un contenu XSD 1.1 "
+"\"%(element)s\""
+
+#: ValidateXbrlDTS.py:355
+msgid "Schema element %(concept)s %(requirement)s contain attribute "
+"%(attribute)s"
+msgstr "L'élément de schéma %(concept)s, %(requirement)s contient un attribut "
+"%(attribute)s"
+
+#: ValidateXbrlDTS.py:364
+msgid "Schema element %(concept)s contains XSD 1.1 datatype "
+"\"%(xsdType)s\""
+msgstr "L'élément de schéma %(concept)s contient un typde de données XSD 1.1 "
+": %(xsdType)s"
+
+#: ValidateXbrlDTS.py:335
+msgid "Schema element attributeFormDefault must be \"unqualified\" and "
+"elementFormDefault must be \"qualified\""
+msgstr "L'élément de schéma attributeFormDefault doit être \"unqualified\" et "
+"elementFormDefault doit être \"qualified\""
+
+#: ValidateXbrlDTS.py:330
+msgid "Schema element must have a targetNamespace "
+"attribute"
+msgstr "L'élément schéma doit avoir un attribut "
+"targetNamespace"
+
+#: ValidateXbrlDTS.py:340
+msgid "Schema element must not have a %(attribute)s "
+"attribute"
+msgstr "L'élément schéma ne doit pas avoir d'attribut "
+"%(attribute)s"
+
+#: ValidateXbrlDTS.py:471
+msgid "Schema file annotation missing appinfo element must be be behind "
+"schema and before import"
+msgstr ""
+
+#: ValidateXbrlDTS.py:490
+msgid "Schema file element must not be used "
+"\"%(element)s\""
+msgstr "L'élément fichier du schéma \"%(element)s\" ne doit pas "
+"être utilisé"
+
+#: ValidateXbrlDTS.py:233
+msgid "Schema has %(annotationsCount)s xs:annotation elements, only 1 "
+"allowed"
+msgstr "Le schéma a %(annotationsCount)s éléments xs:annotation, seulement 1 "
+"autorisé"
+
+#: XmlValidate.py:117
+msgid "schema loaded in %.2f secs"
+msgstr "schéma chargé en %.2f secondes"
+
+#: ValidateXbrlDTS.py:378
+msgid "Schema root element %(concept)s %(requirement)s contain attribute "
+"%(attribute)s"
+msgstr "Dans le schéma, l'élément racine %(concept)s %(requirement)s contient "
+"un attribut %(attribute)s"
+
+#: ValidateXbrlDTS.py:325
+msgid "Schema targetNamespace length (%(length)s) is over 255 bytes long in "
+"utf-8 %(targetNamespace)s"
+msgstr "Le targetNamespace du schéma dépasse 255 octets en UTF-8 : "
+"%(targetNamespace)s  (longueur %(length)s)"
+
+#: ValidateFiling.py:1110
+msgid "Schema type enumeration %(value)s must be a xbrli:stringItemType "
+"restriction"
+msgstr "L'énumération du type schéma %(value)s doit être une restriction de "
+"xbrli:stringItemType"
+
+#: CntlrWinMain.py:97
+msgid "Schema validate (experimental)"
+msgstr "Validation du schéma (expérimental)"
+
+#: XmlValidate.py:126
+msgid "schema validated in %.3f secs"
+msgstr "schéma validé en %.3f secondes"
+
+#: ValidateXbrlDTS.py:120
+msgid "SchemaRef %(schemaRef)s does not identify an xsd:schema "
+"element"
+msgstr "Le schemaRef %(schemaRef)s n'identifie pas un élément "
+"xsd:schema"
+
+#: DialogFind.py:63
+msgid "Scope for an XBRL document (instance or DTS).  For an RSS Feed, all "
+"properties are matched.  "
+msgstr "Périmètre pour un document XBRL (instance ou DTS). Pour un flux RSS, "
+"toutes les propriétés sont "
+
+# Label: ignore
+#: DialogURL.py:43
+msgid "SEC RSS"
+msgstr ""
+
+# Label: ignore
+#: DialogURL.py:42
+msgid "SEC search"
+msgstr ""
+
+#: ValidateFiling.py:142
+msgid "Segment"
+msgstr "Segment"
+
+#: ValidateFiling.py:161
+msgid "Segment of context Id %(context)s has disallowed content: "
+"%(content)s"
+msgstr "Le segment du context %(context)s a un contenu interdit : "
+"(content)s"
+
+#: DialogRssWatch.py:69
+msgid "Select a formula linkbase to to evaluate each filing.  The formula "
+"linkbase may contain one or more assertions, the results of which is "
+"recorded in the log file.  If unsuccessful assertion alerts are "
+"selected and an e-mail address provided, the recipient will be "
+"notified of filings with assertions that do not "
+"pass."
+msgstr ""
+
+#: DialogRssWatch.py:77
+msgid "Select a log file in which to save an activity log, including "
+"validation results, matched item text, and formula results.\n"
+"\n"
+" Two files are produced, (1) .txt with the log messages, and (2) .csv "
+"with the RSS feed items and status.  "
+msgstr ""
+
+#: DialogNewFactItem.py:85
+msgid "Select a monetary unit (e.g., EUR)"
+msgstr "Sélectionner une unité montaire (ex: "
+"EUR)"
+
+#: DialogRssWatch.py:62
+msgid "Select an RSS feed to process for item matching, formulas, and "
+"validations as selected below"
+msgstr ""
+
+#: DialogOpenArchive.py:39 DialogOpenArchive.py:259
+msgid "Select Archive File"
+msgstr "Sélectionner le fichier archive"
+
+#: DialogOpenArchive.py:50
+msgid "Select Disclosure System"
+msgstr ""
+
+#: CntlrWinMain.py:102
+msgid "Select disclosure system..."
+msgstr ""
+
+# Label: ignore
+#: CntlrCmdLine.py:54
+msgid "Select Edgar Filer Manual (U.S. SEC) disclosure system "
+"validation."
+msgstr ""
+
+#: DialogOpenArchive.py:31 DialogOpenArchive.py:257
+msgid "Select Entry Point"
+msgstr "Sélectrionner le point d'entrée"
+
+#: CntlrCmdLine.py:59
+msgid "Select validation with respect to Unit Type "
+"Registry."
+msgstr "Choisis la validation relative au registre des types "
+"d'unité"
+
+#: WatchRss.py:176
+msgid "sending e-mail alert"
+msgstr "envoyer une alerte par e-mail"
+
+#: ViewWinFactList.py:16
+msgid "Seq"
+msgstr "Séquence"
+
+#: ValidateXbrl.py:125
+msgid "Show %(xlinkShow)s invalid in extended link "
+"%(linkrole)s"
+msgstr ""
+
+#: ViewWinFactGrid.py:29
+msgid "Show Dimension Defaults"
+msgstr "Afficher les valeurs de dimensions par défaut"
+
+#: DialogOpenArchive.py:219
+msgid "Show Entries"
+msgstr "Afficher les entrées"
+
+#: DialogOpenArchive.py:219
+msgid "Show Files"
+msgstr "Afficher les fichiers"
+
+#: CntlrCmdLine.py:101
+msgid "Show product version, copyright, and "
+"license."
+msgstr "Afficher la version du logicelle, les droits d'auteurs et la "
+"licence."
+
+#: ValidateXbrlDTS.py:706
+msgid "Simple link role %(xlinkRole)s is empty"
+msgstr "Le rôle de lien simple %(xlinkRole)s est "
+"vide"
+
+#: FormulaEvaluator.py:675
+msgid "source, {0}, contains the QName of a fact variable that binds as a "
+"sequence where that fact's aspect rule covers this filtered "
+"aspect"
+msgstr "La source {0} contient le QName d'une variable de fait qui se lie "
+"comme une séquence, où l'a règle d'aspect de ce tfait couvre cet "
+"aspect filtré"
+
+#: CntlrCmdLine.py:56
+msgid "Specify a Global Filer Manual disclosure system name and select "
+"disclosure system validation."
+msgstr ""
+
+#: CntlrCmdLine.py:50
+msgid "Specify calculation linkbase validation inferring "
+"decimals."
+msgstr "Indique une base de liens de calcul, avec inférence des "
+"décimales"
+
+#: CntlrCmdLine.py:52
+msgid "Specify calculation linkbase validation inferring "
+"precision."
+msgstr "Indique une base de liens de calcul, avec inférence de "
+"précision"
+
+#: DialogRssWatch.py:83
+msgid "Specify e-mail recipient(s) for alerts per "
+"below."
+msgstr "Indique les e-mails des destinataires pour les alertes "
+"ci-dessous"
+
+#: CntlrCmdLine.py:81 CntlrCmdLine.py:82
+#: CntlrCmdLine.py:83 CntlrCmdLine.py:84
+#: CntlrCmdLine.py:85 CntlrCmdLine.py:86
+#: CntlrCmdLine.py:87 CntlrCmdLine.py:88
+#: CntlrCmdLine.py:89 CntlrCmdLine.py:90
+#: CntlrCmdLine.py:91 CntlrCmdLine.py:92
+#: CntlrCmdLine.py:93 CntlrCmdLine.py:94
+#: CntlrCmdLine.py:95 CntlrCmdLine.py:96
+msgid "Specify formula tracing."
+msgstr "Indique le niveau de log de formule"
+
+#: DialogRssWatch.py:87
+msgid "Specify pub dateTime of last processed submission.  Next item to "
+"examine will be after this dateTime."
+msgstr ""
+
+#: ValidateXbrlDTS.py:711
+msgid "Standard extended link role %(xlinkRole)s is "
+"empty"
+msgstr "Le rôle étendu standard %(xlinkRole)s est "
+"vide"
+
+#: CntlrWinMain.py:127 ViewWinRssFeed.py:44
+msgid "Start"
+msgstr "Démarrer"
+
+#: DialogNewFactItem.py:120
+msgid "Start date invalid"
+msgstr "Date de début invalide"
+
+#: CntlrCmdLine.py:98
+msgid "start web server on host:port for REST and web access, e.g., "
+"--webserver locahost:8080."
+msgstr "démarre le serveur sur host:port pour les services REST et "
+"l'interface web, ex: --webserver localhost:8080"
+
+#: ModelFormulaObject.py:2500
+msgid "step ${0}: \n"
+"{1}"
+msgstr "étape ${0}:\n"
+"{1}"
+
+#: ModelFormulaObject.py:2492
+msgid "step {0}"
+msgstr "étape {0}"
+
+#: CntlrWinMain.py:128 ViewWinRssFeed.py:45
+msgid "Stop"
+msgstr "Arrêter"
+
+#: ViewWinTree.py:166
+msgid "Table"
+msgstr "Table"
+
+#: ValidateFilingDimensions.py:58
+msgid "Table %(hypercube)s in DRS role %(linkrole)s, missing targetrole "
+"consecutive relationship"
+msgstr "Table %(hypercube)s dans le rôle DRS %(linkrole)s, il manque une "
+"relation targetRole consécutive"
+
+#: ViewWinRenderedGrid.py:44
+msgid "Tables"
+msgstr "Tables"
+
+#: ValidateXbrlDTS.py:824
+msgid "TargetRole %(targetRole)s is missing a "
+"roleRef"
+msgstr "targetRole %(targetRole)s devrait avoir "
+"roleRef"
+
+#: ValidateFilingDTS.py:306
+msgid "Taxonomy schema %(schema)s contains an embedded "
+"linkbase"
+msgstr "Le schéma de taxonomie %(schema)s contient une base de liens "
+"embaquée"
+
+#: ValidateFilingDTS.py:166
+msgid "Taxonomy schema %(schema)s element %(concept)s is abstract but period "
+"type is not duration"
+msgstr "Dans le schéma de taxonomie %(schema)s, l'élément %(concept)s est "
+"asbtrat mais le type de période n'est pas "
+"\"duration\""
+
+#: ValidateFilingDTS.py:144
+msgid "Taxonomy schema %(schema)s element %(concept)s nillable %(nillable)s "
+"should be 'true'"
+msgstr "Dans le schéma de taxonomie %(schema)s, l'élément %(concept)s, "
+"l'annulable %(nillable)s devrait être "
+"\"true\""
+
+#: ValidateFilingDTS.py:32
+msgid "Taxonomy schema %(schema)s includes %(include)s, only import is "
+"allowed"
+msgstr "Le schéma de taxonomie %(schema)s inclut %(include)s, seuls des "
+"imports sont autorisés"
+
+#: ValidateFilingDTS.py:67
+msgid "Taxonomy schema %(schema)s namespace %(targetNamespace)s is a "
+"disallowed authority"
+msgstr "Dans le schéma de taxonomie %(schema)s, l'espace de nommage "
+"%(targetNamespace)s est une autorité non "
+"autorisées"
+
+#: ValidateFilingDTS.py:90
+msgid "Taxonomy schema %(schema)s namespace %(targetNamespace)s must have "
+"format http://{authority}/{versionDate}"
+msgstr "Dans le schéma de taxonomie %(schema)s, l'espace de nommage "
+"%(targetNamespace)s doit être dans le format "
+"http://{authority}/{versionDate}"
+
+#: ValidateFilingDTS.py:98
+msgid "Taxonomy schema %(schema)s namespace %(targetNamespace)s prefix "
+"%(prefix)s must not have an '_'"
+msgstr "Dans le schéma de taxonomie %(schema)s, namespace %(targetNamespace)s "
+"le préfixe %(prefix)s ne doit pas avoir de caractère "
+"'_'"
+
+#: ValidateFilingDTS.py:427
+msgid "Taxonomy schema may only define one of these: "
+"%(contents)s"
+msgstr "Le schéma de taxonomie ne peut définir qu'un seul parmi "
+"%(content)s"
+
+#: ValidateFilingDTS.py:432
+msgid "Taxonomy schema must be a DTS entrypoint OR define linkroles OR "
+"arcroles OR link:parts OR context fragments OR abstract items OR "
+"tuples OR non-abstract elements OR types OR enumerations OR "
+"dimensions OR domains OR hypercubes"
+msgstr "Le schéma de taxonomie doit être un point d'entrée DTS OU BIEN "
+"définir des linkroles OU des arcroles OU des link:parts OU des "
+"fragments de contexte OU des items abstrait OU des tuples OU des "
+"éléments non-abstraits OU des types OU des énumérations OU des "
+"dimensions OU des domaines OU des hypercubes"
+
+#: ValidateFormula.py:98 ValidateFormula.py:102
+msgid "Test %(name)s result %(result)s"
+msgstr "Test %(name)s ; résultat %(result)s"
+
+#: Validate.py:131
+msgid "Testcase %(id)s %(name)s document not loaded: "
+"%(file)s"
+msgstr "Cas de test %(id)s %(name)s document non chargé : "
+"%(file)s"
+
+#: Validate.py:165
+msgid "Testcase %(id)s %(name)s DTSes not loaded, unable to generate "
+"versioning report: %(file)s"
+msgstr "Cas de test %(id)s %(name)s les DTS ne sont pas chargées, impossible "
+"de générer un rapport de version : %(file)s"
+
+#: Validate.py:200
+msgid "Testcase %(id)s %(name)s expected result instance not loaded: "
+"%(file)s"
+msgstr "Cas de test %(id)s %(name)s l'instance de résultat attendu n'est pas "
+"chargée : %(file)s"
+
+#: Validate.py:56
+msgid "Testcase validation exception: %(error)s, testcase: "
+"%(testcase)s"
+msgstr "Exception lors de la validation du cas de test : %(error)s, cas de "
+"test: %(testcase)s"
+
+#: ModelRssItem.py:41
+msgid "tested"
+msgstr "testé"
+
+#: ValidateFiling.py:331
+msgid "The instance document contained a context(s) %(contextIDs)s that "
+"was(are) not used in any fact."
+msgstr "Le document instance contient des contextes %(contextIDs)s qui ne "
+"sont utilisés par aucun fait."
+
+#: ValidateFiling.py:1007
+msgid "The source and target of an arc must be in the DTS from "
+"%(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole "
+"%(arcrole)s"
+msgstr "La source et la cible d'un arc doivent être dans le DTS de "
+"%(elementFrom)s vers %(elementTo)s, dans le linkrole %(linkrole)s, "
+"arcrole %(arcrole)s"
+
+# Label: ignore
+#: CntlrWinMain.py:869
+msgid "The system default language is: {0} \n"
+"\nYou may override with a different language for labels display. \n\n"
+"Current language override code: {1} \n"
+"(Leave empty to use the system default "
+"language.)"
+msgstr ""
+
+#: ViewWinDiffs.py:52
+msgid "To DTS Calculation"
+msgstr "Vers Calcul DTS"
+
+#: ViewWinDiffs.py:55
+msgid "To DTS Dimension"
+msgstr "Vers Dimension DTS"
+
+#: ViewWinDiffs.py:49
+msgid "To DTS Presentation"
+msgstr "Vers Présentation DTS"
+
+#: ModelVersReport.py:918
+msgid "to value: {0} "
+msgstr "vers valeur : {0} "
+
+#: ModelVersReport.py:569
+msgid "toDTS does not have a corresponding relationship at position "
+"{0}"
+msgstr "toDTS n'a pas de relation correspondante à la position "
+"{0}"
+
+#: CntlrWinMain.py:149
+msgid "Tools"
+msgstr "Outils"
+
+# Label: ignore
+#: ValidateHmrc.py:131
+msgid "Trading/non-trading indicator (uk-bus:EntityTrading) is "
+"missing."
+msgstr ""
+
+#: FormulaEvaluator.py:772
+msgid "Tuple"
+msgstr "tuple"
+
+# Label: ignore
+#: ValidateXbrl.py:493
+msgid "Tuple %(concept)s element %(tupleElement)s not "
+"defined"
+msgstr ""
+
+# Label: ignore
+#: ValidateFilingDTS.py:236
+msgid "Tuple %(concept)s has a tuple cycle"
+msgstr ""
+
+#: ValidateFiling.py:810
+msgid "Tuple %(concept)s has mismatch between content and presentation "
+"children: %(missingQname)s."
+msgstr "Le tuple %(concept)s a une non-correspondance entre le contenu et la "
+"présentation : %(missingQname)s."
+
+# Label: ignore
+#: ValidateXbrl.py:462
+msgid "Tuple %(concept)s must be declared globally"
+msgstr ""
+
+# Label: ignore
+#: ValidateFilingDTS.py:240
+msgid "Tuple %(concept)s must have nillable='false'"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrlDTS.py:386
+msgid "Tuple %(concept)s must not be abstract"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:477
+msgid "Tuple %(concept)s must not have attribute in this namespace "
+"%(attribute)s"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:470
+msgid "Tuple %(concept)s must not have balance"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:499
+msgid "Tuple %(concept)s must not have element %(tupleElement)s not an item "
+"or tuple"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:482
+msgid "Tuple %(concept)s must not have mixed "
+"content"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:466
+msgid "Tuple %(concept)s must not have periodType"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:486
+msgid "Tuple %(concept)s must not have simple "
+"content"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:390
+msgid "Tuple %(fact)s must not have a context"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrlDTS.py:418
+msgid "Tuple concept %(concept)s must have "
+"maxOccurs='1'"
+msgstr ""
+
+#: ValidateFilingDTS.py:417
+msgid "tuples"
+msgstr "tuples"
+
+#: CntlrWinMain.py:697
+msgid "Two DTSes are required for the Compare DTSes operation, {0} "
+"found"
+msgstr "Deux DRS sont requises pour la comparaison de DTS, {0} "
+"trouvées"
+
+#: CntlrWinMain.py:984
+msgid "Txt file"
+msgstr "Fichier txt"
+
+#: ViewWinRelationshipSet.py:60
+msgid "Type"
+msgstr "Type"
+
+#: ValidateFilingDTS.py:299
+msgid "Typed dimension %(concept)s domain element %(typedDomainElement)s has "
+"disallowed complex content"
+msgstr "Dimension typée %(concept)s, l'élément du domaine "
+"%(typedDomainElement)s a un contenu complex non "
+"permis"
+
+#: ValidateFilingDimensions.py:73
+msgid "Typed dimension %(dimension)s in DRS role %(linkrole)s, has "
+"targetrole consecutive relationship"
+msgstr "La dimension typée %(dimension)s du rôle DRS %(linkrole)s a une "
+"relation targetrole consécutive"
+
+#: ModelVersReport.py:828
+msgid "typed domain element {0}"
+msgstr "élément du domaine type {0}"
+
+#: ModelVersReport.py:830
+msgid "typedDomainRef={0} (element qname cannot be "
+"determined)"
+msgstr ""
+
+#: ValidateFilingDTS.py:420
+msgid "types"
+msgstr "types"
+
+#: XPathContext.py:263
+msgid "Unary expression sequence length error"
+msgstr "Erreur dans la longueur de la séquence "
+"unaire"
+
+#: ValidateFormula.py:158
+msgid "Undefined dependencies in parameter %(name)s, to names "
+"%(dependencies)s"
+msgstr "Dépendances non défines dans le %(name)s vers les noms "
+"%(dependencies)s"
+
+#: ValidateFormula.py:346
+msgid "Undefined variable dependencies in variable set %(xlinkLabel)s, from "
+"variable %(nameFrom)s to %(nameTo)s"
+msgstr "Dépendances de variable non défines dans l'ensemble de variables "
+"%(xlinkLabel)s, de la variable %(nameFrom)s vers "
+"%(nameTo)s"
+
+#: ValidateFormula.py:865
+msgid "Undefined variable dependency in message %(xlinkLabel)s, "
+"%(name)s"
+msgstr "Dépendance de variable non défine dans le message %(xlinkLabel)s, "
+"%(name)s"
+
+#: ValidateFormula.py:359
+msgid "Undefined variable dependency in variable set %(xlinkLabel)s, "
+"%(name)s"
+msgstr "Dépendance de variable non défine dans l'ensemble de variable "
+"%(xlinkLabel)s, %(name)s"
+
+#: ValidateUtr.py:161
+msgid "Unit %(unitID)s disallowed on fact %(element)s of type "
+"%(typeName)s"
+msgstr "L'unité %(unitID)s n'est pas autorisée pour le fait %(element)s de "
+"type %(typeName)s"
+
+#: ValidateXbrl.py:442
+msgid "Unit %(unitID)s illegal measure: %(measure)s"
+msgstr "L'unité %(unitID)s a une mesure non autorisée : "
+"%(measure)s"
+
+#: ValidateXbrl.py:447
+msgid "Unit %(unitID)s numerator measure: %(measure)s also appears as "
+"denominator measure"
+msgstr "Unité %(unitID)s, la mesure %(measure) apparaît à la fois dans le "
+"numérateur et le dénominateur."
+
+#: ValidateFiling.py:413
+msgid "Unit has a measure  with localName length (%(length)s) over 200 bytes "
+"long in utf-8, %(measure)s."
+msgstr "L'unité a une mesure %(measure)s avec un nom local dont la "
+"longueur (%(length)s) dépasse 200 octets en UTF-8."
+
+#: ViewWinTree.py:194
+msgid "Unit ID"
+msgstr "ID unité"
+
+#: CntlrWinMain.py:114
+msgid "Unit Type Registry validation"
+msgstr "Validation du registre de types d'unité"
+
+#: ViewWinTree.py:193
+msgid "Units"
+msgstr "Unités"
+
+#: ValidateFiling.py:403
+msgid "Units %(unitID)s and %(unitID2)s are "
+"equivalent."
+msgstr "Les unités %(unitID)s et %(unitID)s sont "
+"équivalentes"
+
+#: FormulaEvaluator.py:117
+msgid "unlabeled variableSet"
+msgstr "variableSet sans libellé"
+
+#: ValidateXbrl.py:158
+msgid "Unprohibited labelArc in extended link %(linkrole)s has illegal "
+"remote resource loc labeled %(xlinkLabel)s href "
+"%(xlinkHref)s"
+msgstr "Le labelArc non interdit dans le lien étendu %(linkrole)s a une "
+"location de ressource distance, libellé %(xlinkLabel)s href "
+"%(xlinkHref)s"
+
+#: ViewCsvFactList.py:30
+msgid "Unrecognized columns: %(cols)s"
+msgstr "Colonnes non reconnues : %(cols)s"
+
+#: Updater.py:25
+msgid "Update {0} is available, running version is {1}.  \n"
+"\nDownload now?    \n\n"
+"(Arelle will exit before installing.)"
+msgstr ""
+
+#: DialogURL.py:37
+msgid "URL:"
+msgstr "URL:"
+
+#: DialogUserPassword.py:81
+msgid "Use proxy server of {0}"
+msgstr "Utilisation du serveur mandataire de "
+"{0}"
+
+#: ValidateFiling.py:1049
+msgid "Used calculation relationship from %(conceptFrom)s to %(conceptTo)s "
+"does not participate in an effective presentation "
+"relationship"
+msgstr "La relation de calcul utilisée de %(conceptFrom)s vers %(conceptTo)s "
+"ne participe pas à une relation de rpésentation "
+"effective"
+
+#: DialogUserPassword.py:111
+msgid "User:"
+msgstr "Utilisateur"
+
+#: CntlrWinMain.py:96 CntlrWinMain.py:911
+#: ViewWinXml.py:19
+msgid "Validate"
+msgstr "Valider"
+
+#: CntlrWinMain.py:907
+msgid "Validate\n"
+"Check disclosure system rules\n"
+"{0}{1}{2}"
+msgstr ""
+
+#: CntlrWinMain.py:184
+msgid "Validate currently selected DTS or testcase(s)"
+msgstr "Valider le DTS ou le cas de test actuellement "
+"sélectionné"
+
+#: CntlrWinMain.py:891
+msgid "Validate testcase"
+msgstr "Valider le cas de test"
+
+#: CntlrWinMain.py:889
+msgid "Validate testcases"
+msgstr "Validation des jeux de tests"
+
+#: CntlrCmdLine.py:41
+msgid "Validate the file according to the entry file type.  If an XBRL file, "
+"it is validated according to XBRL validation 2.1, calculation "
+"linkbase validation if either --calcDecimals or --calcPrecision are "
+"specified, and SEC Edgar Filing Manual (if --efm selected) or Global "
+"Filer Manual disclosure system validation (if --gfm=XXX selected). If "
+"a test suite or testcase, the test case variations are individually "
+"so validated."
+msgstr ""
+
+#: CntlrWinMain.py:893
+msgid "Validate versioning report"
+msgstr "Validation du rapport de version"
+
+#: CntlrWinMain.py:909
+msgid "Validate{0}{1}"
+msgstr "Validation {0}{1}"
+
+#: CntlrCmdLine.py:249 CntlrWinMain.py:675
+msgid "validated in %.2f secs"
+msgstr "validé en %.2f secondes"
+
+#: Validate.py:126 WatchRss.py:67 WatchRss.py:70
+msgid "validating"
+msgstr "validation"
+
+#: ValidateFiling.py:65 ValidateHmrc.py:31
+msgid "validating {0}"
+msgstr "validation de {0}"
+
+#: ValidateXbrl.py:451
+msgid "validating concepts"
+msgstr "validation des concepts"
+
+#: ValidateXbrl.py:532
+msgid "validating DTS"
+msgstr "validation du DTS"
+
+#: Validate.py:154
+msgid "validating existing version report"
+msgstr "validation du rapport de version existant"
+
+#: ValidateUtr.py:124
+msgid "Validating for Unit Type Registry"
+msgstr "Validation du registre des types d'unité"
+
+#: ValidateXbrl.py:291
+msgid "validating instance"
+msgstr "validation de l'instance"
+
+#: ValidateXbrl.py:538
+msgid "Validating instance calculations"
+msgstr "validation des calculs de l'instance"
+
+#: ValidateXbrl.py:63
+msgid "validating links"
+msgstr "validation des liens"
+
+#: ValidateXbrl.py:185
+msgid "validating relationship sets"
+msgstr "validation des ensembles de relations"
+
+#: CntlrWinMain.py:95
+msgid "Validation"
+msgstr "Validation"
+
+#: ViewWinXml.py:38
+msgid "Validation exception: \\s%(error)s"
+msgstr "Ensemble de variables : %(xlinkLabel)s\n"
+"Exception : %(error)s"
+
+#: ViewWinFactList.py:29
+msgid "Value"
+msgstr "Valeur"
+
+#: FunctionUtil.py:76
+msgid "Value operation {0} incompatible arguments {1} and "
+"{2}"
+msgstr "Opération valeur {0}, arguments incompatilbles :  {1} et "
+"{2}"
+
+#: XPathContext.py:148
+msgid "Value operation '{0}' sequence length "
+"error"
+msgstr "Opération valeur {0}, erreur de longueur de la "
+"séquence"
+
+# Label: ignore
+#: FormulaEvaluator.py:774
+msgid "ValueAssertion"
+msgstr ""
+
+#: ValidateFormula.py:487
+msgid "Variable instances processing order: "
+"%(dependencies)s"
+msgstr "Ordre de traitement des variables d'instance : "
+"%(dependencies)s"
+
+#: ValidateFormula.py:584
+msgid "Variable set \n"
+"%(variableSet)s \n"
+"Exception: \n"
+"%(error)s"
+msgstr "Ensemble de variables\n"
+"%(variableSet)s\n"
+"Exception : \n"
+"%(error)s"
+
+#: FormulaEvaluator.py:61
+msgid "Variable set %(xlinkLabel)s \n"
+"Exception: %(error)s"
+msgstr "Ensemble de variables : %(xlinkLabel)s\n"
+"Exception : %(error)s"
+
+#: FormulaEvaluator.py:96
+msgid "Variable set %(xlinkLabel)s \n"
+"Precondition %(precondition)s \n"
+"Result: %(result)s"
+msgstr "Ensemble de variables : %(xlinkLabel)s\n"
+"Pré-condition %(precondition)s\n"
+"Résultat : %(result)s"
+
+#: ValidateFormula.py:314
+msgid "Variable set %(xlinkLabel)s fallbackValue '%(fallbackValue)s' cannot "
+"refer to variable %(dependency)s"
+msgstr "Ensemble de variables : %(xlinkLabel)s, le valeur de repli "
+"'%(fallbackValue)s' ne peut pas renvoyer vers une variable "
+"%(dependency)s"
+
+#: FormulaEvaluator.py:56
+msgid "Variable set %(xlinkLabel)s had no xpCtx.evaluations"
+msgstr "Ensemble de varables : %(xlinkLabel)s n'a pas d'évaluation "
+"xpCtx"
+
+#: FormulaEvaluator.py:78
+msgid "Variable set %(xlinkLabel)s skipped evaluation, all fact variables "
+"have fallen back"
+msgstr "Ensemble de varables : %(xlinkLabel)s a passé l'évaluation, toutes "
+"les variables ont pris leur valeur de "
+"repli"
+
+#: FormulaEvaluator.py:87
+msgid "Variable set %(xlinkLabel)s skipped non-different or fallback "
+"evaluation, duplicates another evaluation"
+msgstr "L'ensemble de variables %(xlinkLabel)s a passé une évaluation "
+"non-different ou valeur de repli car elle duplique une autre "
+"évaluation"
+
+#: ValidateFormula.py:655
+msgid "Variable set %(xlinkLabel)s, aspect cover filter %(filterLabel)s, "
+"aspect %(aspect)s, conflicts with %(filterLabel2)s with inconsistent "
+"cover attribute"
+msgstr "L'ensemble de variables %(xlinkLabel)s, filtre de couverture d'aspect "
+"%(filterLabel)s, aspect %(aspect)s, entre en conflit avec "
+"%(filterLabel2)s avec un attribut de couverture non "
+"cohérent"
+
+#: ValidateFormula.py:669
+msgid "Variable set %(xlinkLabel)s, aspect model %(aspectModel)s filter "
+"%(filterName)s %(filterLabel)s can cover aspect not in aspect "
+"model"
+msgstr "Ensemble de varables : %(xlinkLabel)s, model d'aspect "
+"%(aspectModel)s, filtre %(filterName)s %(filterLabel)s peut couvrir "
+"un aspect en dehors du modèle d'aspect"
+
+#: ValidateFormula.py:254
+msgid "Variable set %(xlinkLabel)s, aspect model %(aspectModel)s not "
+"recognized"
+msgstr "Ensemble de varables : %(xlinkLabel)s, le modèle d'aspect "
+"%(aspectModel)s n'est pas reconnu"
+
+#: ValidateFormula.py:431
+msgid "Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be "
+"covered"
+msgstr "Ensemble de varables : %(xlinkLabel)s, le filtre %(filterLabel)s ne "
+"peut pas êter couvert"
+
+#: ValidateFormula.py:437
+msgid "Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot refer to "
+"variable %(name)s"
+msgstr "Ensemble de varables : %(xlinkLabel)s, le filter %(filterLabel)s ne "
+"peut pas pointer vers la variable %(name)s"
+
+#: ValidateFormula.py:378
+msgid "Variable set %(xlinkLabel)s, instance dependences "
+"%(dependencies)s"
+msgstr "Ensemble de varables : %(xlinkLabel)s, dépendances de l'instance "
+"%(dependencies)s"
+
+#: ValidateFormula.py:778
+msgid "Variable set %(xlinkLabel)s, source %(name)s is not in the variable "
+"set"
+msgstr "Ensemble de varables : %(xlinkLabel)s, la source %(name)s n'est pas "
+"dans l'ensemble de variables"
+
+#: ValidateFormula.py:786
+msgid "Variable set %(xlinkLabel)s, source %(name)s not a factVariable but "
+"is a %(element)s"
+msgstr "Ensemble de varables : %(xlinkLabel)s, la source %(name)s n'est pas "
+"une factVariable mais un %(element)s"
+
+#: ValidateFormula.py:305
+msgid "Variable set %(xlinkLabel)s, variable %(name)s, dependences "
+"%(dependencies)s"
+msgstr "Ensemble de varables : %(xlinkLabel)s, variable %(name)s, dépendances "
+"%(dependencies)s"
+
+#: ValidateFormula.py:372
+msgid "Variable set %(xlinkLabel)s, variables order: "
+"%(dependencies)s"
+msgstr "Ensemble de varables : %(xlinkLabel)s, ordre des variables : "
+"%(dependencies)s"
+
+#: ValidateFormula.py:536
+msgid "Variable set %(xlinkLabel1)s aspectModel (%(aspectModel1)s) differs "
+"from varaible set %(xlinkLabel2)s aspectModel "
+"(%(aspectModel2)s)"
+msgstr "Ensemble de varables %(xlinkLabel1)s, modèle d'aspect %(aspectModel1)s diffère "
+"de l'ensemble de variables  %(xlinkLabel2)s, modèle d'aspect %(aspectModel2)s"
+
+#: ValidateFormula.py:530
+msgid "Variable set %(xlinkLabel1)s in instance %(instance1)s has variables "
+"scope relationship to varaible set %(xlinkLabel2)s in instance "
+"%(instance2)s"
+msgstr "L'ensemble de variables %(xlinkLabel1)s de l'instance %(instance1)s a "
+"une relation de périmètre vers l'ensemble de variables %(xlinkLabel2)s de l'instance "
+"%(instance2)s"
+
+#: FormulaEvaluator.py:154
+msgid "Variable set chained in scope of variable set %(variableset)s \n"
+"Exception: \n"
+"%(error)s"
+msgstr "Ensemble de variables chainées dans le périmètre de l'ensemble de variables "
+"%(variableset)s\n"
+"Exception : \n"
+"%(error)s"
+
+#: ValidateFormula.py:291
+msgid "Variables name %(name)s cannot be determined on arc from "
+"%(xlinkLabel)s"
+msgstr "La variable nommée %(name)s ne peut pas être déterminée sur l'arc de "
+"%(xlinkLabel)s"
+
+#: Validate.py:98
+msgid "Variation %(id)s %(name)s: %(expected)s"
+msgstr "Variation %(id)s %(name)s : %(expected)s"
+
+#: ViewWinVersReport.py:24
+msgid "Versioning Report"
+msgstr "Rapport de version"
+
+#: Validate.py:66
+msgid "Versioning report exception: %(error)s, testcase: "
+"%(reportFile)s"
+msgstr "Exception du rapport de version : %(error)s, cas de test "
+"%(reportFile)s"
+
+#: CntlrWinMain.py:703
+msgid "Versioning report file"
+msgstr "Fichier de rapport de version"
+
+#: ViewWinTree.py:200
+msgid "View"
+msgstr "Vue"
+
+#: ViewWinFactList.py:42
+msgid "View Tuple Children"
+msgstr "Vue des tuples"
+
+#: ViewCsvConcepts.py:11 ViewWinConcepts.py:13
+msgid "viewing concepts"
+msgstr "voir les concepts"
+
+#: ViewCsvDTS.py:12 ViewWinDTS.py:14
+msgid "viewing DTS"
+msgstr "voir le DTS"
+
+#: ViewCsvFactList.py:11 ViewWinFactGrid.py:16
+#: ViewWinFactList.py:10
+msgid "viewing facts"
+msgstr "voir les faits"
+
+#: ViewCsvFormulae.py:14
+msgid "viewing formulae"
+msgstr "voir les formules"
+
+#: ViewWinFormulae.py:14
+msgid "viewing formulas"
+msgstr "voir les formules"
+
+#: ViewWinProperties.py:11
+msgid "viewing properties"
+msgstr "voir les propriétés"
+
+#: ViewCsvRelationshipSet.py:12 ViewWinFactTable.py:13
+#: ViewWinRelationshipSet.py:17
+msgid "viewing relationships {0}"
+msgstr "voir les relations {0}"
+
+#: ViewHtmlRenderedGrid.py:14 ViewWinRenderedGrid.py:24
+msgid "viewing rendering"
+msgstr "voir le rendu"
+
+#: ViewWinRssFeed.py:14
+msgid "viewing RSS feed"
+msgstr "voir le flux RSS"
+
+#: ViewCsvTests.py:11 ViewWinTests.py:14
+msgid "viewing Tests"
+msgstr "voir les tests"
+
+#: ViewWinTupleGrid.py:13
+msgid "viewing tuples"
+msgstr "voir les tuples"
+
+#: ViewWinVersReport.py:15
+msgid "viewing versioning report"
+msgstr "voir le rapport de version"
+
+#: ViewWinXml.py:14
+msgid "viewing xml"
+msgstr "voir le xml"
+
+#: CntlrWinMain.py:625
+msgid "views %.2f secs"
+msgstr "vues %.2f secondes"
+
+#: CntlrCmdLine.py:218 CntlrCmdLine.py:233
+#: CntlrGenVersReports.py:321 CntlrProfiler.py:20
+#: CntlrWinMain.py:547
+msgid "views loading"
+msgstr "chargement des vues"
+
+#: DialogOpenArchive.py:328
+msgid "WARNING: skipping multiple-document entry point (not "
+"supported)"
+msgstr "ATTENTION: passe les points d'entrée multi-documents (non "
+"supporté)"
+
+#: WebCache.py:240
+msgid "web caching {0}: {1:.0f} KB"
+msgstr "mise en cache web {0} : {1:.0f} ko"
+
+#: WebCache.py:235
+msgid "web caching {0}: {1:.0f} of {2:.0f} "
+"KB"
+msgstr "mise en cache web {0} : {1:.0f} ko sur {2:.0f} "
+"ko"
+
+#: ViewWinRelationshipSet.py:67
+msgid "Weight"
+msgstr "Poids"
+
+#: XPathParser.py:150
+msgid "wildcard prefix not defined for %(token)s"
+msgstr "Le préfixe joker non défini pour %(token)s"
+
+#: CntlrWinMain.py:137
+msgid "Work offline"
+msgstr "Travailler hors-ligne"
+
+#: CntlrCmdLine.py:71
+msgid "Write calculation linkbase into CSVFILE"
+msgstr "Enregistre la base de liens de calcul dans "
+"CSVFILE"
+
+#: CntlrCmdLine.py:67
+msgid "Write concepts into CSVFILE"
+msgstr "Enregistre les conepts dans CSVFILE"
+
+#: CntlrCmdLine.py:73
+msgid "Write dimensions (of definition) linkbase into "
+"CSVFILE"
+msgstr "Enregistre la base de liens des dimensions dans "
+"CSVFILE"
+
+#: CntlrCmdLine.py:61
+msgid "Write DTS tree into CSVFILE"
+msgstr "Enregistre l'arbre du DTS dans CSVFILE"
+
+#: CntlrCmdLine.py:63
+msgid "Write fact list into CSVFILE"
+msgstr "Enregistre la liste de faits dans CSVFILE"
+
+#: CntlrCmdLine.py:75
+msgid "Write formulae linkbase into CSVFILE"
+msgstr "Enregistre la base de liens de formules dans "
+"FICHIERCSV"
+
+#: CntlrCmdLine.py:79
+msgid "Write log messages into file, otherwise they go to standard output.  "
+"If file ends in .xml it is xml-formatted, otherwise it is text. "
+msgstr "Enregistre les messages de log dans le fichier, sinon ils seront "
+"produits sur la sortie standard. "
+"Si le fichier porte l'extension .xml, il sera au format XML, sinon il sera au format texte."
+
+#: CntlrCmdLine.py:69
+msgid "Write presentation linkbase into CSVFILE"
+msgstr "Enregistre la base de liens de présentation dans "
+"CSVFILE"
+
+#: CntlrCmdLine.py:77
+msgid "Write test report of validation (of test cases) into "
+"CSVFILE"
+msgstr "Enregistre le rapport de validation (des cas de test) dans "
+"CSVFILE"
+
+#: ModelVersReport.py:292
+msgid "Writing report file"
+msgstr "Enregistre le fichier rapport"
+
+#: ValidateXbrlDimensions.py:284
+msgid "wrong content {0}"
+msgstr "mauvais contenu {0}"
+
+#: ViewWinRenderedGrid.py:39
+msgid "X-Axis Children First"
+msgstr "X-Axis Fils en premier"
+
+#: CntlrWinMain.py:426
+msgid "Xbrl file"
+msgstr "Fichier XBRL"
+
+#: ValidateXbrlDTS.py:797
+msgid "XBRL file {0} standard arcrole %(arcrole)s used on wrong arc "
+"%(element)s"
+msgstr "Fichier XBRL {0}, le rôle d'arc standard %(arcrole)s est utilisé sur "
+"le mauvais arc %(element)s"
+
+#: CntlrWinMain.py:458 CntlrWinMain.py:478
+#: DialogRssWatch.py:148
+msgid "XBRL files"
+msgstr "Fichiers XBRL"
+
+#: ViewWinRenderedGrid.py:49
+msgid "XBRL instance"
+msgstr "Instance XBRL"
+
+#: CntlrWinMain.py:384
+msgid "XBRL instance .xbrl"
+msgstr "Instance XBRL .xbrl"
+
+#: CntlrWinMain.py:384
+msgid "XBRL instance .xml"
+msgstr "Instance XBRL .xml"
+
+#: ModelXbrl.py:50 ModelXbrl.py:131
+msgid "xbrl loading finished, {0}..."
+msgstr "Chargement XBRL terminé, {0}..."
+
+#: CntlrWinMain.py:407
+msgid "XBRL output instance .xbrl"
+msgstr "Sortie XBRL instance .xbrl"
+
+#: CntlrWinMain.py:407
+msgid "XBRL output instance .xml"
+msgstr "Sortie XBRL instance .xml"
+
+# Label: ignore
+#: ValidateXbrl.py:337
+msgid "xbrl.4.6.5:decimals"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrl.py:399
+msgid "xbrl.4.9:tupleAttribute"
+msgstr ""
+
+# Label: ignore
+#: ValidateXbrlDTS.py:747
+msgid "xbrlgene:missingLinkRoleUsedOnValue"
+msgstr ""
+
+#: FunctionXfi.py:20
+msgid "xfi function not available"
+msgstr "fonction xfi non disponible"
+
+#: ValidateXbrl.py:82
+msgid "Xlink locator %(xlinkLabel)s missing href in extended link "
+"%(linkrole)s"
+msgstr "Locator xlink %(xlinkLabel)s doit avoir href dans le lien étendu "
+"%(linkrole)s"
+
+#: ValidateXbrl.py:113
+msgid "Xlink type %(xlinkType)s invalid in extended link "
+"%(linkrole)s"
+msgstr "Le type xlink %(xlinkType)s n'est pas valide dans le lien étendu "
+"%(linkrole)s"
+
+#: ValidateXbrlDTS.py:191
+msgid "XML declaration encoding %(encoding)s and meta content type encoding "
+"%(metaContentTypeEncoding)s must both be "
+"utf-8"
+msgstr "La déclaration d'encodage %(encoding) and le type d'encodage du "
+"méta-contenu %(metaContentTypeEncoding) doivent tous deux être "
+"UTF-8"
+
+#: DialogFind.py:175
+msgid "XPath matching is not available for an RSS Feed, please choose text "
+"or regular expression.  "
+msgstr "La correspondance XPath n'est pas disponible dans un flux RSS, merci "
+"de choisir texte ou expression régulière. "
+
+#: DialogFind.py:163
+msgid "XPath matching is not available for searching messages, please choose "
+"text or regular expression.  "
+msgstr "La correspondance XPath n'est pas disponible pour la recherhche de "
+"messages, merci de choisir texte ou expression régulière. "
+
+#: FunctionXs.py:25
+msgid "xs function not available"
+msgstr "fonctin xs non disponible"
+
+#: ValidateXbrlDTS.py:454
+msgid "xs:attribute must not be used"
+msgstr "xs:attribute ne doit pas être utilisé"
+
+#: ViewWinRenderedGrid.py:41
+msgid "Y-Axis Children First"
+msgstr "Y-Axis Fils en premier"
+

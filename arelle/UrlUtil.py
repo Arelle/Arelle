@@ -1,10 +1,12 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 22, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re
+import re, os
 from urllib.parse import urldefrag
 from urllib.parse import unquote
 
@@ -16,7 +18,10 @@ def authority(url):
     return url  #no path part of url
 
 absoluteUrlPattern = None
-relativeUrlPattern = re.compile(r"^[/:\.+-_@?&=!~\*'\(\)\w]+(#\w+)?$")
+# this pattern doesn't allow some valid unicode characters
+#relativeUrlPattern = re.compile(r"(^[/:\.+-_@%;?&=!~\*'\(\)\w ]+(#[\w_%\-\.\(/\)]+)?$)|(^#[\w_%\-\.\(/\)]+$)")
+# try this instead from http://www.ietf.org/rfc/rfc2396.txt (B)
+relativeUrlPattern = re.compile(r"^(([^:/\?#]+):)?(//([^/\?#]*))?([^\?#]*)(\?([^#]*))?(#([^#]*))?$")
 
 def splitDecodeFragment(url):
     urlPart, fragPart = urldefrag(url)
@@ -148,4 +153,9 @@ def parseRfcDatetime(rfc2822date):
             return datetime(d[0],d[1],d[2],d[3],d[4],d[5])
     return None
        
-        
+def relativeUri(baseUri, relativeUri): # return uri relative to this modelDocument uri
+    if relativeUri.startswith('http://'):
+        return relativeUri
+    else:
+        return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')
+

@@ -1,11 +1,22 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Dec 16, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom.minidom, xml.parsers.expat, os, re
-from arelle import (UrlUtil, XmlUtil)
+import os, re
+from lxml import etree
+from arelle import (UrlUtil)
+
+def compileAttrPattern(elt, attrName, flags=None):
+    attr = elt.get(attrName)
+    if attr is None: attr = ""
+    if flags is not None:
+        return re.compile(attr, flags)
+    else:
+        return re.compile(attr)
 
 class DisclosureSystem:
     def __init__(self, modelManager):
@@ -16,6 +27,7 @@ class DisclosureSystem:
     def clear(self):
         self.selection = None
         self.standardTaxonomiesDict = {}
+        self.standardLocalHrefs = set()
         self.standardAuthorities = set()
         self.baseTaxonomyNamespaces = set()
         self.names = None
@@ -26,10 +38,12 @@ class DisclosureSystem:
         self.EFMorGFM = False
         self.HMRC = False
         self.SBRNL = False
+        self.validateFileText = False
         self.blockDisallowedReferences = False
         self.maxSubmissionSubdirectoryEntryNesting = 0
         self.defaultXmlLang = None
         self.xmlLangPattern = None
+        self.defaultLanguage = None
         self.language = None
         self.standardTaxonomiesUrl = None
         self.mappingsUrl = os.path.join(self.modelManager.cntlr.configDir, "mappings.xml")
@@ -55,15 +69,14 @@ class DisclosureSystem:
         self.modelManager.cntlr.showStatus(_("parsing disclosuresystems.xml"))
         namepaths = []
         try:
-            xmldoc = xml.dom.minidom.parse(self.url)
-            for dsElt in xmldoc.getElementsByTagName("DisclosureSystem"):
-                if dsElt.hasAttribute("names"):
+            xmldoc = etree.parse(self.url)
+            for dsElt in xmldoc.iter(tag="DisclosureSystem"):
+                if dsElt.get("names"):
                     namepaths.append(
-                         (dsElt.getAttribute("names").partition("|")[0],
-                          dsElt.getAttribute("description")))
+                         (dsElt.get("names").partition("|")[0],
+                          dsElt.get("description")))
         except (EnvironmentError,
-                xml.parsers.expat.ExpatError,
-                xml.dom.DOMException) as err:
+                etree.LxmlError) as err:
             self.modelManager.cntlr.addToLog("disclosuresystems.xml: import error: {0}".format(err))
         self.modelManager.cntlr.showStatus("")
         return namepaths
@@ -73,66 +86,69 @@ class DisclosureSystem:
         status = _("loading disclosure system and mappings")
         try:
             if name:
-                xmldoc = xml.dom.minidom.parse(self.url)
-                for dsElt in xmldoc.getElementsByTagName("DisclosureSystem"):
-                    names = dsElt.getAttribute("names").split("|")
-                    if name in names:
-                        self.names = names
-                        self.name = self.names[0]
-                        self.validationType = dsElt.getAttribute("validationType")
-                        self.EFM = self.validationType == "EFM"
-                        self.GFM = self.validationType == "GFM"
-                        self.EFMorGFM = self.EFM or self.GFM
-                        self.HMRC = self.validationType == "HMRC"
-                        self.SBRNL = self.validationType == "SBR-NL"
-                        self.blockDisallowedReferences = dsElt.getAttribute("blockDisallowedReferences") == "true"
-                        try:
-                            self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.getAttribute("maxSubmissionSubdirectoryEntryNesting"))
-                        except ValueError:
-                            self.maxSubmissionSubdirectoryEntryNesting = 0
-                        self.defaultXmlLang = dsElt.getAttribute("defaultXmlLang")
-                        if dsElt.hasAttribute("xmlLangPattern"):
-                            self.xmlLangPattern = re.compile(dsElt.getAttribute("xmlLangPattern"))
-                        self.defaultLanguage = dsElt.getAttribute("defaultLanguage")
-                        self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
-                                         dsElt.getAttribute("standardTaxonomiesUrl"),
-                                         self.url)
-                        if dsElt.hasAttribute("mappingsUrl"):
-                            self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
-                                         dsElt.getAttribute("mappingsUrl"),
-                                         self.url)
-                        self.identifierSchemePattern = re.compile(dsElt.getAttribute("identifierSchemePattern"))
-                        self.identifierValuePattern = re.compile(dsElt.getAttribute("identifierValuePattern"))
-                        self.identifierValueName = dsElt.getAttribute("identifierValueName")
-                        self.contextElement = dsElt.getAttribute("contextElement")
-                        self.roleDefinitionPattern = re.compile(dsElt.getAttribute("roleDefinitionPattern"))
-                        self.labelCheckPattern = re.compile(dsElt.getAttribute("labelCheckPattern"), re.DOTALL)
-                        self.labelTrimPattern = re.compile(dsElt.getAttribute("labelTrimPattern"), re.DOTALL)
-                        self.deiNamespacePattern = re.compile(dsElt.getAttribute("deiNamespacePattern"))
-                        self.deiAmendmentFlagElement = dsElt.getAttribute("deiAmendmentFlagElement")
-                        self.deiCurrentFiscalYearEndDateElement = dsElt.getAttribute("deiCurrentFiscalYearEndDateElement")
-                        self.deiDocumentFiscalYearFocusElement = dsElt.getAttribute("deiDocumentFiscalYearFocusElement")
-                        self.deiDocumentPeriodEndDateElement = dsElt.getAttribute("deiDocumentPeriodEndDateElement")
-                        self.deiFilerIdentifierElement = dsElt.getAttribute("deiFilerIdentifierElement")
-                        self.deiFilerNameElement = dsElt.getAttribute("deiFilerNameElement")
-                        self.selection = self.name
-                        break
+                xmldoc = etree.parse(self.url)
+                for dsElt in xmldoc.iter(tag="DisclosureSystem"):
+                    namesStr = dsElt.get("names")
+                    if namesStr:
+                        names = namesStr.split("|")
+                        if name in names:
+                            self.names = names
+                            self.name = self.names[0]
+                            self.validationType = dsElt.get("validationType")
+                            self.EFM = self.validationType == "EFM"
+                            self.GFM = self.validationType == "GFM"
+                            self.EFMorGFM = self.EFM or self.GFM
+                            self.HMRC = self.validationType == "HMRC"
+                            self.SBRNL = self.validationType == "SBR-NL"
+                            self.validateFileText = dsElt.get("validateFileText") == "true"
+                            self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
+                            try:
+                                self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.get("maxSubmissionSubdirectoryEntryNesting"))
+                            except (ValueError, TypeError):
+                                self.maxSubmissionSubdirectoryEntryNesting = 0
+                            self.defaultXmlLang = dsElt.get("defaultXmlLang")
+                            self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
+                            self.defaultLanguage = dsElt.get("defaultLanguage")
+                            self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                             dsElt.get("standardTaxonomiesUrl"),
+                                             self.url)
+                            if dsElt.get("mappingsUrl"):
+                                self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                             dsElt.get("mappingsUrl"),
+                                             self.url)
+                            self.identifierSchemePattern = compileAttrPattern(dsElt,"identifierSchemePattern")
+                            self.identifierValuePattern = compileAttrPattern(dsElt,"identifierValuePattern")
+                            self.identifierValueName = dsElt.get("identifierValueName")
+                            self.contextElement = dsElt.get("contextElement")
+                            self.roleDefinitionPattern = compileAttrPattern(dsElt,"roleDefinitionPattern")
+                            self.labelCheckPattern = compileAttrPattern(dsElt,"labelCheckPattern", re.DOTALL)
+                            self.labelTrimPattern = compileAttrPattern(dsElt,"labelTrimPattern", re.DOTALL)
+                            self.deiNamespacePattern = compileAttrPattern(dsElt,"deiNamespacePattern")
+                            self.deiAmendmentFlagElement = dsElt.get("deiAmendmentFlagElement")
+                            self.deiCurrentFiscalYearEndDateElement = dsElt.get("deiCurrentFiscalYearEndDateElement")
+                            self.deiDocumentFiscalYearFocusElement = dsElt.get("deiDocumentFiscalYearFocusElement")
+                            self.deiDocumentPeriodEndDateElement = dsElt.get("deiDocumentPeriodEndDateElement")
+                            self.deiFilerIdentifierElement = dsElt.get("deiFilerIdentifierElement")
+                            self.deiFilerNameElement = dsElt.get("deiFilerNameElement")
+                            self.selection = self.name
+                            break
             self.loadMappings()
             self.loadStandardTaxonomiesDict()
             status = _("loaded")
             result = True
         except (EnvironmentError,
-                xml.parsers.expat.ExpatError,
-                xml.dom.DOMException) as err:
+                etree.LxmlError) as err:
             status = _("exception during loading")
             result = False
             self.modelManager.cntlr.addToLog("disclosuresystems.xml: import error: {0}".format(err))
+            etree.clear_error_log()
         self.modelManager.cntlr.showStatus(_("Disclosure system and mappings {0}: {1}").format(status,name), 3500)
         return result
-
+    
     def loadStandardTaxonomiesDict(self):
         if self.selection:
             self.standardTaxonomiesDict = {}
+            self.standardLocalHrefs = set()
             self.standardAuthorities = set()
             if not self.standardTaxonomiesUrl:
                 return
@@ -141,27 +157,26 @@ class DisclosureSystem:
             try:
                 for file in (self.modelManager.cntlr.webCache.getfilename(self.standardTaxonomiesUrl), 
                             os.path.join(self.modelManager.cntlr.configDir,"xbrlschemafiles.xml")):
-                    xmldoc = xml.dom.minidom.parse(file)
-                    for locElt in xmldoc.getElementsByTagName("Loc"):
+                    xmldoc = etree.parse(file)
+                    for locElt in xmldoc.iter(tag="Loc"):
                         href = None
                         localHref = None
                         namespaceUri = None
                         attType = None
                         family = None
-                        for childElt in locElt.childNodes:
-                            if childElt.nodeType == 1: #element
-                                ln = childElt.localName
-                                value = XmlUtil.innerText(childElt)
-                                if ln == "Href":
-                                    href = value
-                                elif ln == "LocalHref":
-                                    localHref = value
-                                elif ln == "Namespace":
-                                    namespaceUri = value
-                                elif ln == "AttType":
-                                    attType = value
-                                elif ln == "Family":
-                                    family = value
+                        for childElt in locElt.iterchildren():
+                            ln = childElt.tag
+                            value = childElt.text.strip()
+                            if ln == "Href":
+                                href = value
+                            elif ln == "LocalHref":
+                                localHref = value
+                            elif ln == "Namespace":
+                                namespaceUri = value
+                            elif ln == "AttType":
+                                attType = value
+                            elif ln == "Family":
+                                family = value
                         if href:
                             if namespaceUri and (attType == "SCH" or attType == "ENT"):
                                 if namespaceUri not in self.standardTaxonomiesDict:
@@ -172,24 +187,29 @@ class DisclosureSystem:
                                     self.baseTaxonomyNamespaces.add(namespaceUri)
                             if href not in self.standardTaxonomiesDict:
                                 self.standardTaxonomiesDict[href] = "Allowed" + attType
+                            if localHref:
+                                self.standardLocalHrefs.add(localHref)
+                        elif attType == "SCH" and family == "BASE":
+                            self.baseTaxonomyNamespaces.add(namespaceUri)
+
             except (EnvironmentError,
-                    xml.parsers.expat.ExpatError,
-                    xml.dom.DOMException) as err:
+                    etree.LxmlError) as err:
                 self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
+                etree.clear_error_log()
 
     def loadMappings(self):
             basename = os.path.basename(self.mappingsUrl)
             self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
             try:
-                xmldoc = xml.dom.minidom.parse(self.mappingsUrl)
-                for elt in xmldoc.getElementsByTagName("mapFile"):
-                    self.mappedFiles[elt.getAttribute("from")] = elt.getAttribute("to")
-                for elt in xmldoc.getElementsByTagName("mapPath"):
-                    self.mappedPaths.append((elt.getAttribute("from"), elt.getAttribute("to")))
+                xmldoc = etree.parse(self.mappingsUrl)
+                for elt in xmldoc.iter(tag="mapFile"):
+                    self.mappedFiles[elt.get("from")] = elt.get("to")
+                for elt in xmldoc.iter(tag="mapPath"):
+                    self.mappedPaths.append((elt.get("from"), elt.get("to")))
             except (EnvironmentError,
-                    xml.parsers.expat.ExpatError,
-                    xml.dom.DOMException) as err:
+                    etree.LxmlError) as err:
                 self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
+                etree.clear_error_log()
 
     def uriAuthorityValid(self, uri):
         return UrlUtil.authority(uri) in self.standardAuthorities
@@ -198,7 +218,7 @@ class DisclosureSystem:
         if namespaceUri in self.standardTaxonomiesDict:
             stdHref, localHref = self.standardTaxonomiesDict[namespaceUri]
             return not (href == stdHref or
-                        (localHref and not href.startswith("http://") and href.endswith(localHref)))
+                        (localHref and not href.startswith("http://") and href.replace("\\","/").endswith(localHref)))
         return False
 
     def hrefValid(self, href):

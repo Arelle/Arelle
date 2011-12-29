@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 9, 2010
 
@@ -66,8 +68,12 @@ class ViewGrid:
         
     def close(self):
         self.tabWin.forget(self.viewFrame)
-        self.modelXbrl.views.remove(self)
+        if self in self.modelXbrl.views:
+            self.modelXbrl.views.remove(self)
         self.modelXbrl = None
+        
+    def select(self):
+        self.tabWin.select(self.viewFrame)
         
     def leave(self, *args):
         self.toolTipColId = None

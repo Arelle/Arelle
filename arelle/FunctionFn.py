@@ -1,14 +1,18 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Dec 20, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, math, re
+import math, re
+from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import (anytypeArg, stringArg, numericArg, qnameArg, nodeArg)
-from arelle import (FunctionXs, XPathContext, ModelObject, XbrlUtil, XmlUtil)
+from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg
+from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
+from lxml import etree
     
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
@@ -31,8 +35,8 @@ def node_name(xc, p, contextItem, args):
 
 def nilled(xc, p, contextItem, args):
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
-    if node != () and node.nodeType == xml.dom.Node.ELEMENT_NODE:
-        return node.getAttribute("xsi:nil") == "true"
+    if node != () and isinstance(node,ModelObject):
+        return node.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
     return ()
 
 def string(xc, p, contextItem, args):
@@ -131,7 +135,7 @@ def concat(xc, p, contextItem, args):
     for i in range(len(args)):
         item = anytypeArg(xc, args, i, "xs:anyAtomicType?")
         if item != ():
-            atomizedArgs.append( FunctionXs.string( xc, xc.atomize(p, item) ) )
+            atomizedArgs.append( FunctionXs.xsString( xc, xc.atomize(p, item) ) )
     return ''.join(atomizedArgs)
 
 def string_join(xc, p, contextItem, args):
@@ -242,18 +246,30 @@ def substring_functions(xc, args, contains=None, startEnd=None, beforeAfter=None
             return ''
     raise fnFunctionNotAvailable()  # wrong arguments?
 
+def regexFlags(xc, p, args, n):
+    f = 0
+    flagsArg = stringArg(xc, args, n, "xs:string", missingArgFallback="", emptyFallback="")
+    for c in flagsArg:
+        if c == 's': f |= re.S
+        elif c == 'm': f |= re.M
+        elif c == 'i': f |= re.I
+        elif c == 'x': f |= re.X
+        else:
+            raise XPathContext.XPathException(p, 'err:FORX0001', _('Regular expression interpretation flag unrecognized: {0}').format(flagsArg))
+    return f
+            
 def matches(xc, p, contextItem, args):
-    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    if not 2 <= len(args) <= 3: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    return bool(re.match(pattern,input))
+    return bool(re.match(pattern,input,flags=regexFlags(xc, p, args, 2)))
 
 def replace(xc, p, contextItem, args):
-    if len(args) != 3: raise XPathContext.FunctionNumArgs()
+    if not 3 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    replacement = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    return input.replace(pattern,replacement)
+    replacement = stringArg(xc, args, 2, "xs:string", emptyFallback=())
+    return re.sub(pattern,replacement,input,flags=regexFlags(xc, p, args, 3))
 
 def tokenize(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -465,7 +481,7 @@ def QName_functions(xc, p, args, prefix=False, localName=False, namespaceURI=Fal
 def namespace_uri_for_prefix(xc, p, contextItem, args):
     prefix = nodeArg(xc, args, 0, 'string?', emptyFallback='')
     node = nodeArg(xc, args, 1, 'element()', emptyFallback=())
-    if node and isinstance(node,xml.dom.Node) and node.nodeType == xml.dom.Node.ELEMENT_NODE:
+    if node is not None and isinstance(node,ModelObject):
         return XmlUtil.xmlns(node, prefix)
     return ()
 
@@ -483,8 +499,8 @@ def namespace_uri(xc, p, contextItem, args):
 
 def Node_functions(xc, contextItem, args, name=None, localName=None, namespaceURI=None):
     node = nodeArg(xc, args, 0, 'node()?', missingArgFallback=contextItem, emptyFallback=())
-    if node != () and node.nodeType in (xml.dom.Node.ELEMENT_NODE, xml.dom.Node.ATTRIBUTE_NODE):
-        if name: return node.tagName
+    if node != () and isinstance(node, ModelObject):
+        if name: return node.prefixedName
         if localName: return node.localName
         if namespaceURI: return node.namespaceURI
     return ''
@@ -506,7 +522,7 @@ def boolean(xc, p, contextItem, args):
     if inputSequence is None or len(inputSequence) == 0:
         return False
     item = inputSequence[0]
-    if isinstance(item, ModelObject.ModelObject) or isinstance(item, xml.dom.Node):
+    if isinstance(item, (ModelObject, ModelAttribute, etree._ElementTree)):
         return True
     if len(inputSequence) == 1:
         if isinstance(item, bool):
@@ -522,7 +538,7 @@ def index_of(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     seq = xc.atomize(p, args[0])
     srch = xc.atomize(p, args[1])
-    if hasattr(srch, '__iter__'):
+    if isinstance(srch,(tuple,list)):
         if len(srch) != 1: raise XPathContext.FunctionArgType(1,'xs:anyAtomicType')
         srch = srch[0]
     indices = []
@@ -548,13 +564,27 @@ def distinct_values(xc, p, contextItem, args):
     return list(set(sequence))
 
 def insert_before(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 3: raise XPathContext.FunctionNumArgs()
+    sequence = args[0]
+    if isinstance(sequence, tuple): sequence = list(sequence)
+    elif not isinstance(sequence, list): sequence = [sequence]
+    index = numericArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
+    insertion = args[2]
+    if isinstance(insertion, tuple): insertion = list(insertion)
+    elif not isinstance(insertion, list): insertion = [insertion]
+    return sequence[:index] + insertion + sequence[index:]
 
 def remove(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    sequence = args[0]
+    index = numericArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
+    return sequence[:index] + sequence[index+1:]
 
 def reverse(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    sequence = args[0]
+    if len(sequence) == 0: return []
+    return list( reversed(sequence) )
 
 def subsequence(xc, p, contextItem, args):
     if len(args) not in (2,3): raise XPathContext.FunctionNumArgs()
@@ -619,10 +649,28 @@ def idref(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
 
 def doc(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    uri = stringArg(xc, args, 0, "xs:string", emptyFallback=None)
+    if uri is None:
+        return ()
+    if xc.progHeader is None or xc.progHeader.element is None:
+        raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc no formula resource element for {0}').format(uri))
+    if not UrlUtil.isValid(uri):
+        raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc $uri is not valid {0}').format(uri))
+    normalizedUri = xc.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
+                                uri, 
+                                xc.progHeader.element.modelDocument.baseForElement(xc.progHeader.element))
+    if normalizedUri in xc.modelXbrl.urlDocs:
+        return xc.modelXbrl.urlDocs[normalizedUri].xmlDocument
+    modelDocument = ModelDocument.load(xc.modelXbrl, normalizedUri)
+    if modelDocument is None:
+        raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc $uri not successfully loaded {0}').format(uri))
+    # assure that document is validated
+    XmlValidate.validate(xc.modelXbrl, modelDocument.xmlRootElement)
+    return modelDocument.xmlDocument
 
 def doc_available(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    return isinstance(doc(xc, p, contextItem, args), etree._ElementTree)
 
 def collection(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -650,7 +698,8 @@ def implicit_timezone(xc, p, contextItem, args):
     return datetime.now().tzinfo
 
 def default_collation(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    # only unicode is supported
+    return "http://www.w3.org/2005/xpath-functions/collation/codepoint"
 
 def static_base_uri(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()

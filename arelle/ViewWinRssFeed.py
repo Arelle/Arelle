@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Mar 09, 2011
 
@@ -58,7 +60,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
         
     def viewRssFeed(self, modelDocument, parentNode):
         self.id = 1
-        for rssItem in modelDocument.items:
+        for rssItem in modelDocument.rssItems:
             node = self.treeView.insert(parentNode, "end", rssItem.objectId(),
                                         text=rssItem.companyName,
                                         tags=("odd" if self.id & 1 else "even",))
@@ -80,7 +82,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
             self.menu.delete(0, 0) # remove old filings
             menuRow = self.treeView.identify_row(event.y) # this is the object ID
             modelRssItem = self.modelXbrl.modelObject(menuRow)
-            if modelRssItem:
+            if modelRssItem is not None:
                 for description, url in modelRssItem.htmURLs:
                     filingMenu.add_command(label=description, underline=0, 
                                            command=lambda u=url: webbrowser.open(u))
@@ -88,8 +90,8 @@ class ViewRssFeed(ViewWinTree.ViewTree):
                 
     def openInstance(self):
         rssItemObj = self.modelXbrl.modelObject(self.menuRow)
-        if rssItemObj:
-            self.modelXbrl.modelManager.cntlr.fileOpenFile(rssItemObj.zippedUrl)
+        if rssItemObj is not None:
+            self.modelXbrl.modelManager.cntlr.fileOpenFile(rssItemObj.zippedUrl, selectTopView=True)
         
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0

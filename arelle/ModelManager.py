@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 3, 2010
 
@@ -42,11 +44,18 @@ class ModelManager:
     def reloadViews(self, modelXbrl):
         self.cntlr.reloadViews(modelXbrl)
         
-    def load(self, filesource, nextaction):
+    def load(self, filesource, nextaction=None):
         self.filesource = filesource
         self.modelXbrl = ModelXbrl.load(self, filesource, nextaction)
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
+    
+    def saveDTSpackage(self, allDTSes=False):
+        if allDTSes:
+            for modelXbrl in self.loadedModelXbrls:
+                modelXbrl.saveDTSpackage()
+        elif self.modelXbrl is not None:
+            self.modelXbrl.saveDTSpackage()
     
     def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True):
         self.modelXbrl = ModelXbrl.create(self, newDocumentType, url, schemaRefs, createModelDocument)
@@ -62,7 +71,7 @@ class ModelManager:
                            err,
                            traceback.format_tb(sys.exc_info()[2])))
         
-    def compareDTSes(self, versReportFile):
+    def compareDTSes(self, versReportFile, writeReportFile=True):
         from arelle.ModelVersReport import ModelVersReport
         if len(self.loadedModelXbrls) == 2:
             from arelle.ModelDocument import Type
@@ -71,20 +80,20 @@ class ModelManager:
                                           createModelDocument=False)
             ModelVersReport(modelVersReport).diffDTSes(
                           versReportFile,
-                          self.loadedModelXbrls[0], self.loadedModelXbrls[1])
+                          self.loadedModelXbrls[0], self.loadedModelXbrls[1],
+                          writeReportFile=writeReportFile)
             return modelVersReport
         
     def close(self, modelXbrl=None):
         if modelXbrl is None: modelXbrl = self.modelXbrl
         if modelXbrl:
-            closeTopXbrl = (modelXbrl == self.modelXbrl)
             while modelXbrl in self.loadedModelXbrls:
                 self.loadedModelXbrls.remove(modelXbrl)
-            modelXbrl.close()
-            if closeTopXbrl:
+            if (modelXbrl == self.modelXbrl): # dereference modelXbrl from this instance
                 if len(self.loadedModelXbrls) > 0:
                     self.modelXbrl = self.loadedModelXbrls[0]
                 else:
                     self.modelXbrl = None
+            modelXbrl.close()
             gc.collect()
 

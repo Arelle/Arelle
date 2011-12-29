@@ -1,63 +1,57 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Dec 30, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, xml.dom, xml.parsers
+import os
+from lxml import etree
 from arelle import (ModelDocument, ModelValue, XbrlConst, XmlUtil)
 
 def loadUtr(modelManager): # Build a dictionary of item types that are constrained by the UTR.
     modelManager.utrDict = {} # This attribute is unbound on modelManager until this function is called.
-    utrUrl = os.path.join(modelManager.cntlr.configDir, "utr.xml")
-    #utrUrl = "file:/c:/home/conformance-lrr/trunk/schema/utr/utr.xml"
+    utrUrl = "http://www.xbrl.org/utr/utr.xml"
+    #utrUrl = os.path.join(modelManager.cntlr.configDir, "utr.xml")
     modelManager.cntlr.showStatus(_("Loading Unit Type Registry"))
     try:
-        xmldoc = xml.dom.minidom.parse(utrUrl)
-        for unitElt in xmldoc.getElementsByTagName("unit"):
-            if unitElt.nodeType == xml.dom.Node.ELEMENT_NODE:
-                id = unitElt.getAttribute("id")
-                unitId = getText(unitElt, "unitId")
-                nsUnit = getText(unitElt, "nsUnit")
-                itemType = getText(unitElt, "itemType")
-                nsItemType = getText(unitElt, "nsItemType")
-                numeratorItemType = getText(unitElt, "numeratorItemType")
-                nsNumeratorItemType = getText(unitElt, "nsNumeratorItemType")
-                denominatorItemType = getText(unitElt, "denominatorItemType")
-                nsDenominatorItemType = getText(unitElt, "nsDenominatorItemType")
-                # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
-                if modelManager.utrDict.get(itemType) == None:
-                    modelManager.utrDict[itemType] = {}
-                # a RegEntry is just an array.
-                (modelManager.utrDict[itemType])[id] = [unitId, nsUnit # 0,1
-                                  , nsNumeratorItemType, numeratorItemType # 2,3
-                                  , nsDenominatorItemType, denominatorItemType # 4,5
-                                  , nsItemType # 6 often None
-                                  ]
+        xmldoc = etree.parse(modelManager.cntlr.webCache.getfilename(utrUrl))
+        for unitElt in xmldoc.iter(tag="{http://www.xbrl.org/2009/utr}unit"):
+            id = unitElt.get("id")
+            unitId = unitElt.findtext("{http://www.xbrl.org/2009/utr}unitId")
+            nsUnit = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsUnit")
+            itemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}itemType")
+            nsItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsItemType")
+            numeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}numeratorItemType")
+            nsNumeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsNumeratorItemType")
+            denominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}denominatorItemType")
+            nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
+            # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
+            if modelManager.utrDict.get(itemType) == None:
+                modelManager.utrDict[itemType] = {}
+            # a RegEntry is just an array.
+            (modelManager.utrDict[itemType])[id] = [unitId, nsUnit # 0,1
+                              , nsNumeratorItemType, numeratorItemType # 2,3
+                              , nsDenominatorItemType, denominatorItemType # 4,5
+                              , nsItemType # 6 often None
+                              ]
     except (EnvironmentError,
-            xml.parsers.expat.ExpatError,
-            xml.dom.DOMException) as err:
+            etree.LxmlError) as err:
         modelManager.cntlr.addToLog("Unit Type Registry Import error: {0}".format(err))
+        etree.clear_error_log()
   
-def getText(node, sTag): # Simple function just scoops up text inside the element
-    s = ""
-    for m in node.getElementsByTagName(sTag):
-        if m.nodeType == xml.dom.Node.ELEMENT_NODE:
-            for n in m.childNodes:
-                if n.nodeType == xml.dom.Node.TEXT_NODE:
-                    s = s + n.data
-    if s == "": s = None
-    return s
-
+'''
 def MeasureQName(node): # Return the qame of the content of the measure element
     assert node.nodeType == xml.dom.Node.ELEMENT_NODE
     assert node.localName == "measure"
     assert node.namespaceUri == XbrlConst.xbrli
     return ModelValue.qname(node, node.text)
+'''
 
 def UnitSatisfies(aRegEntry, unit, modelXbrl): # Return true if entry is satisfied by unit
     # aRegEntry is [unitId, nsUnit, nsNumeratorItemType, numeratorItemType, nsDenominatorItemType, denominatorItemType]
-    if aRegEntry[1] != None: # Entry requires a measure
+    if aRegEntry[1]: # Entry requires a measure
         if unit.measures[1] != [] or len(unit.measures[0])>1:
             return False # and only one measure
         else:
@@ -110,11 +104,13 @@ def MeasureSatisfies(measures,nsItemType,itemType,modelXbrl):
     # print(_("bResult={0}").format(bResult))
     return bResult
 
+'''
 def xmlEltMatch(node, localName, namespaceUri):
     if node == xml.dom.Node.ELEMENT_NODE and node.localName == localName and node.namespaceURI == namespaceUri:
         return True
     else:
         return False
+'''
 
 def validate(modelXbrl):
     ValidateUtr(modelXbrl).validate()
@@ -132,11 +128,11 @@ class ValidateUtr:
             aInvalidUnits = []
             for f in modelXbrl.facts:
                 concept = f.concept
-                if concept:
+                if concept is not None:
                     if concept.isNumeric:
                         unit = f.unit
+                        bConstrained = False
                         if f.unitID != None and unit != None:  # Would have failed XBRL validation otherwise
-                            bConstrained = False
                             bSatisfied = True
                             type = concept.type
                             while type != None:
@@ -163,4 +159,6 @@ class ValidateUtr:
                             aInvalidUnits.append(f)
             # end for
             for fact in aInvalidUnits:
-                modelXbrl.error(_("Unit {0} disallowed on fact of type {1}").format(fact.unitID, fact.concept.type.name),"err","utr:invalid")
+                modelXbrl.error("utr:invalid",
+                                _("Unit %(unitID)s disallowed on fact %(element)s of type %(typeName)s"),
+                                modelObject=fact, unitID=fact.unitID, element=fact.qname, typeName=fact.concept.type.name)

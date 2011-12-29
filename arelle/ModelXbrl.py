@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 3, 2010
 
@@ -5,26 +7,43 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import sys, traceback
+import os, sys, traceback
+import logging
+from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
+from arelle.ModelObject import ModelObject
+from arelle.Locale import format_string
+from arelle.ViewUtilRenderedGrid import FactPrototype
+ModelRelationshipSet = None # dynamic import
 
-def load(modelManager, url, nextaction, base=None):
+AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
+
+def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
+    if nextaction is None: nextaction = _("loading")
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager)
-    if isinstance(url,FileSource.FileSource):
+    if useFileSource is not None:
+        modelXbrl.fileSource = useFileSource
+        modelXbrl.closeFileSource = False
+        url = url
+    elif isinstance(url,FileSource.FileSource):
         modelXbrl.fileSource = url
+        modelXbrl.closeFileSource= True
         url = modelXbrl.fileSource.url
     else:
         modelXbrl.fileSource = FileSource.FileSource(url)
+        modelXbrl.closeFileSource= True
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
-    # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
-    modelDocumentsSchemaLocated = set()
-    while True: # need this logic because each new pass may add new urlDocs
-        modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
-        if not modelDocuments:
-            break
-        modelDocument = modelDocuments.pop()
-        modelDocumentsSchemaLocated.add(modelDocument)
-        modelDocument.loadSchemalocatedSchemas()
+    del modelXbrl.entryLoadingUrl
+    if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
+        modelDocumentsSchemaLocated = set()
+        while True: # need this logic because each new pass may add new urlDocs
+            modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            if not modelDocuments:
+                break
+            modelDocument = modelDocuments.pop()
+            modelDocumentsSchemaLocated.add(modelDocument)
+            modelDocument.loadSchemalocatedSchemas()
         
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document
@@ -39,8 +58,11 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
         modelXbrl.fileSource = FileSource.FileSource(url)
+        modelXbrl.closeFileSource= True
         if createModelDocument:
             modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, url, schemaRefs=schemaRefs, isEntry=isEntry)
+            if isEntry:
+                del modelXbrl.entryLoadingUrl
     return modelXbrl
     
 class ModelXbrl:
@@ -58,10 +80,11 @@ class ModelXbrl:
         self.logCountInfo = 0
         self.arcroleTypes = defaultdict(list)
         self.roleTypes = defaultdict(list)
-        self.qnameConcepts = {} # contains ModelConcepts by Py key {ns}}localname of schema elements
-        self.qnameAttributes = {}
+        self.qnameConcepts = {} # indexed by qname of element
         self.nameConcepts = defaultdict(list) # contains ModelConcepts by name 
-        self.qnameTypes = {} # contains ModelTypes by Py key {ns}localname of type
+        self.qnameAttributes = {}
+        self.qnameAttributeGroups = {}
+        self.qnameTypes = {} # contains ModelTypes by qname key of type
         self.baseSets = defaultdict(list) # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets = {} # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults = {} # contains qname of dimension (index) and default member(value)
@@ -80,50 +103,28 @@ class ModelXbrl:
         from arelle.XbrlConst import standardLabel
         self.labelroles = {standardLabel}
         self.hasXDT = False
-        self.hasEuRendering = False
+        self.hasTableRendering = False
         self.hasFormulae = False
         self.formulaOutputInstance = None
+        self.log = logging.getLogger("arelle")
+        self.log.setLevel(logging.DEBUG)
+        self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):
-        self.closeViews()
-        if self.modelDocument:
-            self.modelDocument.close([])
-        self.modelDocument = None
-        self.xbrlManager = None
-        self.namespaceDocs = defaultdict(list)
-        self.urlDocs = {}
-        self.errors = []
-        self.logCountErr = 0
-        self.logCountWrn = 0
-        self.logCountInfo = 0
-        self.arcroleTypes = defaultdict(list)
-        self.roleTypes = defaultdict(list)
-        self.qnameConcepts = {}
-        self.qnameAttributes = {}
-        self.nameConcepts = defaultdict(list) # contains ModelConcepts by name 
-        self.qnameTypes = {}
-        self.baseSets = defaultdict(list)
-        self.relationshipSets = {}
-        self.facts = []
-        self.factsInInstance = []
-        self.contexts = {}
-        self.units = {}
-        self.modelObjects = []
-        self.qnameParameters = {}
-        self.modelParameters = set()
-        self.modelVariableSets = set()
-        self.modelCustomFunctionSignatures = {}
-        self.modelCustomFunctionImplementations = set()
-        self.views = []
-        self.langs = set()
-        self.labelroles = set()
-        if hasattr(self,"fileSource"):
-            self.fileSource.close()
-        self.hasXDT = False
-        self.hasFormulae = False
-        self.hasEuRendering = False
-        if self.formulaOutputInstance:
-            self.formulaOutputInstance.close()
+        if not self.isClosed:
+            self.closeViews()
+            if self.formulaOutputInstance:
+                self.formulaOutputInstance.close()
+            if hasattr(self,"fileSource") and self.closeFileSource:
+                self.fileSource.close()
+            modelDocument = self.modelDocument if hasattr(self,"modelDocument") else None
+            self.__dict__.clear() # dereference everything before closing document
+            if modelDocument:
+                modelDocument.close()
+            
+    @property
+    def isClosed(self):
+        return not bool(self.__dict__)  # closed when dict is empty
             
     def reload(self,nextaction,reloadCache=False):
         from arelle import ModelDocument
@@ -133,12 +134,15 @@ class ModelXbrl:
         self.modelManager.reloadViews(self)
             
     def closeViews(self):
-        for view in range(len(self.views)):
-            if len(self.views) > 0:
-                self.views[0].close()
+        if not self.isClosed:
+            for view in range(len(self.views)):
+                if len(self.views) > 0:
+                    self.views[0].close()
         
     def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
-        from arelle import (ModelRelationshipSet)
+        global ModelRelationshipSet
+        if ModelRelationshipSet is None:
+            from arelle import ModelRelationshipSet
         key = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
         if key not in self.relationshipSets:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
@@ -146,7 +150,7 @@ class ModelXbrl:
     
     def baseSetModelLink(self, linkElement):
         for modelLink in self.baseSets[("XBRL-footnotes",None,None,None)]:
-            if modelLink.element == linkElement:
+            if modelLink == linkElement:
                 return modelLink
         return None
     
@@ -154,9 +158,9 @@ class ModelXbrl:
         if elementQname in subsGrpMatchTable:
             return subsGrpMatchTable[elementQname] # head of substitution group
         elementMdlObj = self.qnameConcepts.get(elementQname)
-        if elementMdlObj:
+        if elementMdlObj is not None:
             subsGrpMdlObj = elementMdlObj.substitutionGroup
-            while subsGrpMdlObj:
+            while subsGrpMdlObj is not None:
                 subsGrpQname = subsGrpMdlObj.qname
                 if subsGrpQname in subsGrpMatchTable:
                     return subsGrpMatchTable[subsGrpQname]
@@ -167,16 +171,37 @@ class ModelXbrl:
         return self.matchSubstitutionGroup(elementQname, {
                   qn:(qn is not None) for qn in (subsGrpQnames if hasattr(subsGrpQnames, '__iter__') else (subsGrpQnames,)) + (None,)})
     
-    def matchContext(self, scheme, identifier, periodType, start, end, dims, segOCCs, scenOCCs):
+    def createInstance(self, url=None):
+        from arelle import (ModelDocument, FileSource)
+        if self.modelDocument.type == ModelDocument.Type.INSTANCE: # entry already is an instance
+            return self.modelDocument # use existing instance entry point
+        priorFileSource = self.fileSource
+        self.fileSource = FileSource.FileSource(url)
+        if self.uri.startswith("http://"):
+            schemaRefUri = self.uri
+        else:   # relativize local paths
+            schemaRefUri = os.path.relpath(self.uri, os.path.dirname(url))
+        self.modelDocument = ModelDocument.create(self, ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUri], isEntry=True)
+        if priorFileSource:
+            priorFileSource.close()
+        self.closeFileSource= True
+        del self.entryLoadingUrl
+        # reload dts views
+        from arelle import ViewWinDTS
+        for view in self.views:
+            if isinstance(view, ViewWinDTS.ViewDTS):
+                self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
+    
+    def matchContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs):
         from arelle.ModelFormulaObject import Aspect
         from arelle.ModelValue import dateUnionEqual
         from arelle.XbrlUtil import sEqual
         if dims: segAspect, scenAspect = (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO)
         else: segAspect, scenAspect = (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO)
         for c in self.contexts.values():
-            if (c.entityIdentifier == (scheme, identifier) and
-                ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, end, instantEndDate=True)) or
-                 (c.isStartEndPeriod and periodType == "duration" and dateUnionEqual(c.startDatetime, start) and dateUnionEqual(c.endDatetime, end, instantEndDate=True)) or
+            if (c.entityIdentifier == (entityIdentScheme, entityIdentValue) and
+                ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or
+                 (c.isStartEndPeriod and periodType == "duration" and dateUnionEqual(c.startDatetime, periodStart) and dateUnionEqual(c.endDatetime, periodEndInstant, instantEndDate=True)) or
                  (c.isForeverPeriod and periodType == "forever")) and
                  # dimensions match if dimensional model
                  (dims is None or (
@@ -192,6 +217,80 @@ class ModelXbrl:
                     return c
         return None
                  
+    def createContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs,
+                      afterSibling=None, beforeSibling=None):
+        xbrlElt = self.modelDocument.xmlRootElement
+        if afterSibling == AUTO_LOCATE_ELEMENT:
+            afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
+        cntxId = 'c-{0:02n}'.format( len(self.contexts) + 1)
+        newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
+                                      afterSibling=afterSibling, beforeSibling=beforeSibling)
+        entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
+        XmlUtil.addChild(entityElt, XbrlConst.xbrli, "identifier",
+                            attributes=("scheme", entityIdentScheme),
+                            text=entityIdentValue)
+        periodElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "period")
+        if periodType == "forever":
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "forever")
+        elif periodType == "instant":
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "instant", 
+                             text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
+        elif periodType == "duration":
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "startDate", 
+                             text=XmlUtil.dateunionValue(periodStart))
+            XmlUtil.addChild(periodElt, XbrlConst.xbrli, "endDate", 
+                             text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
+        segmentElt = None
+        scenarioElt = None
+        from arelle.ModelInstanceObject import ModelDimensionValue
+        if dims:
+            for dimQname in sorted(dims.keys()):
+                dimValue = dims[dimQname]
+                if isinstance(dimValue, ModelDimensionValue):
+                    if dimValue.isExplicit: 
+                        dimMemberQname = dimValue.memberQname
+                    contextEltName = dimValue.contextElement
+                else: # qname for explicit or node for typed
+                    dimMemberQname = dimValue
+                    contextEltName = self.qnameDimensionContextElement.get(dimQname)
+                if contextEltName == "segment":
+                    if segmentElt is None: 
+                        segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
+                    contextElt = segmentElt
+                elif contextEltName == "scenario":
+                    if scenarioElt is None: 
+                        scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
+                    contextElt = scenarioElt
+                else:
+                    self.info("arelleLinfo",
+                        _("Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"), 
+                        modelObject=self, dimension=dimQname),
+                    continue
+                dimConcept = self.qnameConcepts[dimQname]
+                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, dimConcept.qname))
+                if dimConcept.isTypedDimension:
+                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
+                                              attributes=dimAttr)
+                    if isinstance(dimValue, ModelDimensionValue) and dimValue.isTyped:
+                        XmlUtil.copyChildren(dimElt, dimValue)
+                elif dimMemberQname:
+                    dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
+                                              attributes=dimAttr,
+                                              text=XmlUtil.addQnameValue(xbrlElt, dimMemberQname))
+        if segOCCs:
+            if segmentElt is None: 
+                segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
+            XmlUtil.copyNodes(segmentElt, segOCCs)
+        if scenOCCs:
+            if scenarioElt is None: 
+                scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
+            XmlUtil.copyNodes(scenarioElt, scenOCCs)
+                
+        self.modelDocument.contextDiscover(newCntxElt)
+        XmlValidate.validate(self, newCntxElt)
+        return newCntxElt
+        
+        
     def matchUnit(self, multiplyBy, divideBy):
         multiplyBy.sort()
         divideBy.sort()
@@ -199,11 +298,35 @@ class ModelXbrl:
             if u.measures == (multiplyBy,divideBy):
                 return u
         return None
+
+    def createUnit(self, multiplyBy, divideBy, afterSibling=None, beforeSibling=None):
+        xbrlElt = self.modelDocument.xmlRootElement
+        if afterSibling == AUTO_LOCATE_ELEMENT:
+            afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context", "unit"))
+        unitId = 'u-{0:02n}'.format( len(self.units) + 1)
+        newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
+                                      afterSibling=afterSibling, beforeSibling=beforeSibling)
+        if len(divideBy) == 0:
+            for multiply in multiplyBy:
+                XmlUtil.addChild(newUnitElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, multiply))
+        else:
+            divElt = XmlUtil.addChild(newUnitElt, XbrlConst.xbrli, "divide")
+            numElt = XmlUtil.addChild(divElt, XbrlConst.xbrli, "unitNumerator")
+            denElt = XmlUtil.addChild(divElt, XbrlConst.xbrli, "unitDenominator")
+            for multiply in multiplyBy:
+                XmlUtil.addChild(numElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, multiply))
+            for divide in divideBy:
+                XmlUtil.addChild(denElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, divide))
+        self.modelDocument.unitDiscover(newUnitElt)
+        XmlValidate.validate(self, newUnitElt)
+        return newUnitElt
     
     def matchFact(self, otherFact):
         for fact in self.facts:
-            if (fact.qname == otherFact.qname and
-                fact.isVEqualTo(otherFact)):
+            if (fact.isTuple):
+                if fact.isDuplicateOf(otherFact):
+                    return fact
+            elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact)):
                 if not fact.isNumeric:
                     if fact.xmlLang == otherFact.xmlLang:
                         return fact
@@ -213,6 +336,14 @@ class ModelXbrl:
                         return fact
         return None
             
+    def createFact(self, conceptQname, attributes=None, text=None, parent=None, afterSibling=None, beforeSibling=None):
+        if parent is None: parent = self.modelDocument.xmlRootElement
+        newFact = XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+                                   afterSibling=afterSibling, beforeSibling=beforeSibling)
+        self.modelDocument.factDiscover(newFact, parentElement=parent)
+        XmlValidate.validate(self, newFact)
+        return newFact    
+        
     def modelObject(self, objectId):
         if isinstance(objectId,int):
             return self.modelObjects[objectId]
@@ -224,49 +355,137 @@ class ModelXbrl:
     
     # UI thread viewModelObject
     def viewModelObject(self, objectId):
-        from arelle.ModelObject import ModelObject
         modelObject = ""
         try:
-            if isinstance(objectId, ModelObject):
+            if isinstance(objectId, (ModelObject,FactPrototype)):
                 modelObject = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
                 modelObject = self.modelObject(objectId)
-            if modelObject:
+            if modelObject is not None:
                 for view in self.views:
                     view.viewModelObject(modelObject)
         except (IndexError, ValueError, AttributeError)as err:
             self.modelManager.addToLog(_("Exception viewing properties {0} {1} at {2}").format(
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
-        
-    def error(self, message, severity=None, *argCodes):
-        code = None
-        hasRejectedCode = False
-        for argCode in argCodes:
-            if (isinstance(argCode,dict) or
-                (self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
+
+    def logArguments(self, codes, msg, codedArgs):
+        # determine logCode
+        messageCode = None
+        for argCode in codes if isinstance(codes,tuple) else (codes,):
+            if ((self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
                 (self.modelManager.disclosureSystem.GFM and argCode.startswith("GFM")) or
                 (self.modelManager.disclosureSystem.HMRC and argCode.startswith("HMRC")) or
                 (self.modelManager.disclosureSystem.SBRNL and argCode.startswith("SBR.NL")) or
                 argCode[0:3] not in ("EFM", "GFM", "HMR", "SBR")):
-                code = argCode
+                messageCode = argCode
                 break
-            else:
-                hasRejectedCode = True
-        if code is not None:
-            if severity in ('wrn','err'):
-                self.errors.append(code)
-            elif severity in ('asrt','asrtNoLog'):
-                self.errors.append(code) # code is dict expression of id and counts successful/not successful
-                code = "assertion:trace" # replace with user friendly code for log
-            logString = "[{0}] {1}".format(code, message)
+        
+        # determine message and extra arguments
+        fmtArgs = {}
+        extras = {"messageCode":messageCode}
+        for argName, argValue in codedArgs.items():
+            if argName in ("modelObject", "modelXbrl", "modelDocument"):
+                try:
+                    entryUrl = self.modelDocument.uri
+                except AttributeError:
+                    entryUrl = self.entryLoadingUrl
+                try:
+                    objectUrl = argValue.modelDocument.uri
+                except AttributeError:
+                    try:
+                        objectUrl = self.modelDocument.uri
+                    except AttributeError:
+                        objectUrl = self.entryLoadingUrl
+                file = UrlUtil.relativeUri(entryUrl, objectUrl)
+                extras["file"] = file
+                if isinstance(argValue,ModelObject):
+                    extras["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(argValue)
+                    extras["sourceLine"] = argValue.sourceline
+                    extras["objectId"] = argValue.objectId()
+                else:
+                    extras["href"] = file
+                    extras["sourceLine"] = ""
+            elif argName == "sourceLine":
+                extras["sourceLine"] = argValue
+            elif argName != "exc_info":
+                if isinstance(argValue, (ModelValue.QName, ModelObject, bool)):
+                    fmtArgs[argName] = str(argValue)
+                elif isinstance(argValue,int):
+                    # need locale-dependent formatting
+                    fmtArgs[argName] = format_string(self.modelManager.locale, '%i', argValue)
+                elif isinstance(argValue,float):
+                    # need locale-dependent formatting
+                    fmtArgs[argName] = format_string(self.modelManager.locale, '%f', argValue)
+                else:
+                    fmtArgs[argName] = argValue
+        if "href" not in extras:
+            try:
+                file = os.path.basename(self.modelDocument.uri)
+            except AttributeError:
+                try:
+                    file = os.path.basename(self.entryLoadingUrl)
+                except:
+                    file = ""
+            extras["file"] = file
+            extras["href"] = file
+            extras["sourceLine"] = ""
+        return (messageCode, 
+                (msg, fmtArgs) if fmtArgs else (msg,), 
+                extras)
+
+    def info(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        if messageCode == "asrtNoLog":
+            self.errors.append(args["assertionResults"])
         else:
-            if hasRejectedCode:
-                return # ignore if wrong disclosure system mode
-            logString = message
-        if severity != 'asrtNoLog':
-            self.modelManager.addToLog(logString)
-            
-        if severity == 'err': self.logCountErr += 1
-        elif severity == 'wrn': self.logCountWrn += 1
-        elif severity == 'info': self.logCountInfo += 1
+            self.logCountInfo += 1
+            self.log.info(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+                    
+    def warning(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        if messageCode:
+            self.logCountWrn += 1
+            self.log.warning(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+                    
+    def error(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        if messageCode:
+            self.errors.append(messageCode)
+            self.logCountErr += 1
+            self.log.error(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+
+    def exception(self, codes, msg, **args):
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        self.log.exception(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+                    
+        
+    def profileActivity(self, activityCompleted=None, minTimeToShow=0):
+        import time
+        try:
+            if activityCompleted:
+                timeTaken = time.time() - self._startedAt
+                if timeTaken > minTimeToShow:
+                    self.modelManager.addToLog("{0} {1:.2f} secs".format(activityCompleted, timeTaken))
+        except AttributeError:
+            pass
+        self._startedAt = time.time()
+
+    def saveDTSpackage(self): 
+        if self.fileSource.isArchive:
+            return
+        from zipfile import ZipFile 
+        import os 
+        entryFilename = self.fileSource.url 
+        pkgFilename = entryFilename + ".zip" 
+        with ZipFile(pkgFilename, 'w') as zip:
+            numFiles = 0
+            for fileUri in sorted(self.urlDocs.keys()): 
+                if not (fileUri.startswith("http://") or fileUri.startswith("https://")): 
+                    numFiles += 1
+                    # this has to be a relative path because the hrefs will break
+                    zip.write(fileUri, os.path.basename(fileUri)) 
+        self.info("info",
+                  _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"), 
+                modelObject=self,
+                entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)

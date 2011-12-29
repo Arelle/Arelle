@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Jan 25, 2011
 
@@ -8,7 +10,9 @@ from tkinter import *
 from tkinter.ttk import *
 import tkinter.filedialog
 import re, os
-from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
+from arelle.ModelValue import dateTime
+from arelle import XmlUtil
+from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isValidAbsolute
 
@@ -34,24 +38,7 @@ emailPattern = re.compile(
       r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"' # quoted-string     
       r')@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$', re.IGNORECASE) 
 
-datePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})([T ]([0-9]{2}):([0-9]{2}):([0-9]{2})?)?\s*")
 
-def datetime(datetimestr):
-    m = datePattern.match(datetimestr)
-    if m:
-        try:
-            from datetime import datetime
-            return datetime(
-                int(m.group(1)),
-                int(m.group(2)),
-                int(m.group(3)),
-                int(m.group(5)) if m.group(5) else 0,
-                int(m.group(6)) if m.group(6) else 0,
-                int(m.group(7)) if m.group(7) else 0)
-        except Exception:
-            pass
-    return None
-    
 class DialogRssWatch(Toplevel):
     def __init__(self, mainWin, options):
         self.mainWin = mainWin
@@ -197,7 +184,7 @@ class DialogRssWatch(Toplevel):
         if self.cellEmailAddress.value:
             if not emailPattern.match(self.cellEmailAddress.value):
                 errors.append(_("E-mail address format error").format(self.cellLogFile.value))
-        if self.cellLatestPubDate.value and datetime(self.cellLatestPubDate.value) is None:
+        if self.cellLatestPubDate.value and dateTime(self.cellLatestPubDate.value) is None:
             errors.append(_("Latest pub date field contents invalid"))
         if errors:
             tkinter.messagebox.showwarning(_("Dialog validation error(s)"),
@@ -217,7 +204,8 @@ class DialogRssWatch(Toplevel):
         self.options.logFileUri = self.cellLogFile.value
         self.options.emailAddress = self.cellEmailAddress.value
         if self.cellLatestPubDate.value:
-            self.options.latestPubDate = datetime(self.cellLatestPubDate.value)
+            # need datetime.datetime base class for pickling, not ModelValue class (unpicklable)
+            self.options.latestPubDate = XmlUtil.datetimeValue(self.cellLatestPubDate.value)
         else:
             self.options.latestPubDate = None
         for checkbox in self.checkboxes:

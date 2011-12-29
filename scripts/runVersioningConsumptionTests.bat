@@ -2,13 +2,9 @@
 
 @set TESTCASESROOT=C:\Users\Herm Fischer\Documents\mvsl\projects\XBRL.org\conformance-versioning\trunk\versioningReport
 
-rem uncomment for use-cases consumption test
-rem @set TESTCASESINDEXFILE=%TESTCASESROOT%\conf\consumption-testcases-index.xml
+@set TESTCASESINDEXFILE=%TESTCASESROOT%\conf\consumption-testcases-index.xml
 
-rem uncomment for 1000-2000 consumption test
-@set TESTCASESINDEXFILE=%TESTCASESROOT%\conf\creation\consumptionTestcasesIndex.xml
-
-@set OUTPUTLOGFILE=%TESTCASESROOT%\conf\creation\logConsumptionMessages.txt
+@set OUTPUTLOGFILE=%TESTCASESROOT%\conf\log-consumption-messages.txt
 
 @set OUTPUTCSVFILE=c:\temp\consumptionTestReport.csv
 

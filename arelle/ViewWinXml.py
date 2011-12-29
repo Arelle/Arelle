@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Feb 6, 2011
 
@@ -35,6 +37,4 @@ class ViewXml(ViewWinList.ViewList):
             import traceback
             Validate.validate(self.modelXbrl)
         except Exception as err:
-            self.modelXbrl.addToLog(_("[exception] Validation exception: {0} at {1}").format(
-                                     err,
-                                     traceback.format_tb(sys.exc_info()[2])))
+            self.modelXbrl.exception("exception", _("Validation exception: \s%(error)s"), error=err, exc_info=True)

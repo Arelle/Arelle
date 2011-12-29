@@ -1,15 +1,18 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 6, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ModelObject, XbrlConst, ViewCsv)
+from arelle import ModelObject, ModelDtsObject, XbrlConst, ViewCsv
+from arelle.ModelDtsObject import ModelRelationship
 import os
 
 def viewRelationshipSet(modelXbrl, csvfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
-    view = ViewRelationshipSet(modelXbrl, csvfile, header)
+    view = ViewRelationshipSet(modelXbrl, csvfile, header, lang)
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
     
@@ -27,10 +30,8 @@ class ViewRelationshipSet(ViewCsv.View):
         linkroleUris = []
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
-            if modelRoleTypes and len(modelRoleTypes) > 0:
-                roledefinition = modelRoleTypes[0].definition
-                if roledefinition is None or roledefinition == "":
-                    roledefinition = linkroleUri                    
+            if modelRoleTypes:
+                roledefinition = (modelRoleTypes[0].definition or linkroleUri)                    
             else:
                 roledefinition = linkroleUri
             linkroleUris.append((roledefinition, linkroleUri))
@@ -76,8 +77,20 @@ class ViewRelationshipSet(ViewCsv.View):
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, indent, arcrole, relationshipSet, visited):
         if concept is None:
             return
-        isRelation = isinstance(modelObject, ModelObject.ModelRelationship)
-        cols = indent + [labelPrefix + concept.label(preferredLabel,lang=self.lang)]
+        isRelation = isinstance(modelObject, ModelRelationship)
+        if isinstance(concept, ModelDtsObject.ModelConcept):
+            text = labelPrefix + concept.label(preferredLabel,lang=self.lang)
+            if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
+                concept.isTypedDimension and 
+                concept.typedDomainElement is not None):
+                text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
+        elif self.arcrole == "Table-rendering":
+            text = concept.localName
+        elif isinstance(concept, ModelDtsObject.ModelResource):
+            text = (concept.text or concept.localName)
+        else:   # just a resource
+            text = concept.localName
+        cols = indent + [text]
         if arcrole == "XBRL-dimensions" and isRelation: # extra columns
             for i in range(self.treeCols - len(indent)):
                 cols.append(None)

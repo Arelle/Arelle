@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''
 Created on Mar 21, 2011
 
@@ -11,6 +13,6 @@ def viewReferences(concept):
     references = []
     for refrel in concept.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(concept):
         ref = refrel.toModelObject
-        if ref:
+        if ref is not None:
             references.append(ref.viewText())
     return ", ".join(references)
