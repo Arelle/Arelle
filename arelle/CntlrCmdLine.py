@@ -59,7 +59,7 @@ def main():
                       help=_("Select validation with respect to Unit Type Registry."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
                       help=_("Language for labels in following file options (override system settings)"))
-    parser.add_option("--DTS", "--csvDTS", action="store", dest="DTSfile",
+    parser.add_option("--DTS", "--csvDTS", action="store", dest="DTSFile",
                       help=_("Write DTS tree into FILE (may be .csv or .html)"))
     parser.add_option("--facts", "--csvFacts", action="store", dest="factsFile",
                       help=_("Write fact list into FILE"))
@@ -136,7 +136,7 @@ def main():
     elif options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.gfmName,
-                options.utrValidate, options.DTSfile, options.factsFile, options.factListCols, 
+                options.utrValidate, options.DTSFile, options.factsFile, options.factListCols, 
                 options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
                 options.logFile, options.formulaParamExprResult, options.formulaParamInputValue,
                 options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
@@ -268,8 +268,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                          ModelDocument.Type.REGISTRY)):
                     ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport)
                 
-            if options.DTSfile:
-                ViewFileDTS.viewDTS(modelXbrl, options.DTSfile)
+            if options.DTSFile:
+                ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
             if options.factsFile:
                 ViewFileFactList.viewFacts(modelXbrl, options.factsFile, lang=options.labelLang, cols=options.factListCols)
             if options.conceptsFile:

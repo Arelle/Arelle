@@ -245,13 +245,15 @@ class LogToBufferHandler(logging.Handler):
         for logRec in self.logRecordBuffer:
             msg = self.format(logRec)
             if logRec.args:
-                args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) for n, v in logRec.args.items()])
+                args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) 
+                                for n, v in logRec.args.items()
+                                if v])  # skip empty arguments, they won't show in the message strings 
             else:
                 args = ""
             xml.append('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>'.format(
                     logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
         xml.append('</log>')  
-        self.logRecBuffer = []
+        self.logRecordBuffer = []
         return '\n'.join(xml)
     
     def getJson(self):
@@ -267,12 +269,12 @@ class LogToBufferHandler(logging.Handler):
                      "sourceLine": logRec.sourceLine,
                      "message": message}
             entries.append(entry)
-        self.logRecBuffer = []
+        self.logRecordBuffer = []
         return json.dumps( {"log": entries} )
     
     def getLines(self):
         lines = [self.format(logRec) for logRec in self.logRecordBuffer]
-        self.logRecBuffer = []
+        self.logRecordBuffer = []
         return lines
     
     def getText(self, separator='\n'):

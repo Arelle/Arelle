@@ -8,6 +8,7 @@ from collections import defaultdict
 import os, sys, traceback, uuid
 import logging
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
+from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 from arelle.ViewUtilRenderedGrid import FactPrototype
@@ -408,7 +409,7 @@ class ModelXbrl:
             elif argName == "sourceLine":
                 extras["sourceLine"] = argValue
             elif argName != "exc_info":
-                if isinstance(argValue, (ModelValue.QName, ModelObject, bool)):
+                if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO)):
                     fmtArgs[argName] = str(argValue)
                 elif isinstance(argValue,int):
                     # need locale-dependent formatting

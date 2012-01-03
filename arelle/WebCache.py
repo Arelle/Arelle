@@ -113,6 +113,8 @@ class WebCache:
         if normedPath:
             if normedPath.startswith('http:'):
                 return normedPath.replace('\\','/')
+            elif os.path.sep == '\\' and '/' in normedPath:
+                normedPath = normedPath.replace('/', '\\') # convert MSFT paths into '\' when normalizing
             if normedPath.startswith(self.cacheDir):
                 urlparts = normedPath[len(self.cacheDir)+1:].partition(os.sep)
                 normedPath = urlparts[0] + '://' + urlparts[2].replace('\\','/')
