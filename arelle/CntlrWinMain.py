@@ -885,11 +885,11 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateTooltipText(self):
         if self.modelManager.modelXbrl and not self.modelManager.modelXbrl.isClosed:
             valType = self.modelManager.modelXbrl.modelDocument.type
-            if valType == ModelDocument.Type.TESTCASESINDEX:
-                v = _("Validate testcases")
-            elif valType == ModelDocument.Type.TESTCASE:
-                v = _("Validate testcase")
-            elif valType == ModelDocument.Type.VERSIONINGREPORT:
+            if valType in (ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE):
+                valName = "DTS"
+            else:
+                valName = ModelDocument.Type.typeName[valType]
+            if valType == ModelDocument.Type.VERSIONINGREPORT:
                 v = _("Validate versioning report")
             else:
                 if self.modelManager.validateCalcLB:
@@ -904,9 +904,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                 else:
                     u = ""
                 if self.modelManager.validateDisclosureSystem:
-                    v = _("Validate\nCheck disclosure system rules\n{0}{1}{2}").format(self.modelManager.disclosureSystem.selection,c,u)
+                    v = _("Validate {0}\nCheck disclosure system rules\n{1}{2}{3}").format(
+                           valName, self.modelManager.disclosureSystem.selection,c,u)
                 else:
-                    v = _("Validate{0}{1}").format(c,u)
+                    v = _("Validate {0}{0}{1}").format(valName, c,u)
         else:
             v = _("Validate")
         self.validateTooltipText.set(v)
