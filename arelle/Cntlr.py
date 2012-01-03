@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import tempfile, os, pickle, sys, logging, gettext
+import tempfile, os, pickle, sys, logging, gettext, json
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 
@@ -253,6 +253,22 @@ class LogToBufferHandler(logging.Handler):
         xml.append('</log>')  
         self.logRecBuffer = []
         return '\n'.join(xml)
+    
+    def getJson(self):
+        entries = []
+        for logRec in self.logRecordBuffer:
+            message = { "text": self.format(logRec) }
+            if logRec.args:
+                for n, v in logRec.args.items():
+                    message[n] = v
+            entry = {"code": logRec.messageCode,
+                     "level": logRec.levelname.lower(),
+                     "file": logRec.file,
+                     "sourceLine": logRec.sourceLine,
+                     "message": message}
+            entries.append(entry)
+        self.logRecBuffer = []
+        return json.dumps( {"log": entries} )
     
     def getLines(self):
         lines = [self.format(logRec) for logRec in self.logRecordBuffer]
