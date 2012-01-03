@@ -177,13 +177,13 @@ def checkDTS(val, modelDocument, visited):
                     # 6.7.23 Axis must be subs group dimension
                     if name.endswith("Axis") ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
                         val.modelXbrl.error(("EFM.6.07.23", "GFM.1.03.25"),
-                            _("Concept %(concept)s must end in Axis to be in dimensionItem substitution group"),
+                            _("Concept %(concept)s must end in Axis to be in xbrldt:dimensionItem substitution group"),
                             modelObject=modelConcept, concept=modelConcept.qname)
 
                     # 6.7.24 Table must be subs group hypercube
                     if name.endswith("Table") ^ (substititutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
                         val.modelXbrl.error(("EFM.6.07.24", "GFM.1.03.26"),
-                            _("Concept %(concept)s is an Axis but not in hypercubeItem substitution group"),
+                            _("Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group"),
                             modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
 
                     # 6.7.25 if neither hypercube or dimension, substitution group must be item
@@ -343,7 +343,7 @@ def checkDTS(val, modelDocument, visited):
                                 modelObject=e, roleType=roleURI, definition=definition)
                         
                     if val.validateSBRNL:
-                        if usedOns & XbrlConst.standardExtLinkQnames:
+                        if usedOns & XbrlConst.standardExtLinkQnames or XbrlConst.qnGenLink in usedOns:
                             definesLinkroles = True
                             if not e.genLabel():
                                 val.modelXbrl.error("SBR.NL.2.2.3.03",
@@ -424,14 +424,14 @@ def checkDTS(val, modelDocument, visited):
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
                         modelObject=modelDocument)
-            if not definesConcepts and any(
+            if definesConcepts ^ any(  # xor so either concepts and no label LB or no concepts and has label LB
                        (refDoc.type == ModelDocument.Type.LINKBASE and
                         XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "labelLink") is not None)
                        for refDoc in modelDocument.referencesDocument.keys()): # no label linkbase
                 val.modelXbrl.error("SBR.NL.2.2.1.02",
                     _("A schema having a label linkbase MUST define concepts"),
                     modelObject=modelDocument)
-            if definesNonabstractItems and not any(
+            if definesNonabstractItems ^ any(  # xor so either concepts and no ref LB or no concepts and has ref LB
                        (refDoc.type == ModelDocument.Type.LINKBASE and
                        (XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "referenceLink") is not None or
                         XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "label", "{http://www.w3.org/1999/xlink}role", "http://www.xbrl.org/2003/role/documentation" ) is not None))
