@@ -213,7 +213,7 @@
 
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data.xsd</Href>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
@@ -223,7 +223,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-documentation-lab-en.xml</Href>
 <AttType>LAB</AttType>
 <FileTypeName>Labels, Documentation, en</FileTypeName>
@@ -231,7 +231,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-documentation-lab-nl.xml</Href>
 <AttType>LAB</AttType>
 <FileTypeName>Labels, Documentation, nl</FileTypeName>
@@ -239,7 +239,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-lab-en.xml</Href>
 <AttType>LAB</AttType>
 <FileTypeName>Labels, Standard, en</FileTypeName>
@@ -247,7 +247,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-lab-nl.xml</Href>
 <AttType>LAB</AttType>
 <FileTypeName>Labels, Standard, nl</FileTypeName>
@@ -255,7 +255,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-ref.xml</Href>
 <AttType>REF</AttType>
 <FileTypeName>Reference, Authoritative</FileTypeName>
@@ -264,7 +264,7 @@
 
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase.xsd</Href>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
@@ -274,7 +274,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-documentation-lab-nl.xml</Href>
 <AttType>LAB</AttType>
 <FileTypeName>Labels, Documentation, nl</FileTypeName>
@@ -282,7 +282,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-lab-en.xml</Href>
 <AttType>LAB</AttType>
 <FileTypeName>Labels, Standard, en</FileTypeName>
@@ -290,7 +290,7 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-lab-nl.xml</Href>
 <AttType>LAB</AttType>
 <FileTypeName>Labels, Standard, nl</FileTypeName>
@@ -298,45 +298,18 @@
 </Loc>
 <Loc>
 <Family>SBR-NL-ITEMS</Family>
-<Version>6.0</Version>
+<Version>5.0</Version>
 <Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-ref.xml</Href>
 <AttType>REF</AttType>
 <FileTypeName>Reference, Authoritative</FileTypeName>
 <Elements>0</Elements>
 </Loc>
 
-<Loc>
-<Family>SBR-NL-LINKROLES</Family>
-<Version>6.0</Version>
-<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/nl-genbase-domain-linkroles.xsd</Href>
-<AttType>SCH</AttType>
-<FileTypeName>Schema</FileTypeName>
-<Elements>1</Elements>
-<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/nl-genbase-domain-linkroles</Namespace>
-<Prefix>nl-lr</Prefix>
-</Loc>
-<Loc>
-<Family>SBR-NL-LINKROLES</Family>
-<Version>6.0</Version>
-<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/nl-genbase-domain-linkroles-generic-lab-en.xml</Href>
-<AttType>LAB</AttType>
-<FileTypeName>Labels, Standard, en</FileTypeName>
-<Elements>0</Elements>
-</Loc>
-<Loc>
-<Family>SBR-NL-LINKROLES</Family>
-<Version>6.0</Version>
-<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/nl-genbase-domain-linkroles-generic-lab-nl.xml</Href>
-<AttType>LAB</AttType>
-<FileTypeName>Labels, Standard, nl</FileTypeName>
-<Elements>0</Elements>
-</Loc>
-
 <!-- do not examine sbr-nl rules in these files, this is why they are marked as BASE family -->
 <Loc>
 <Family>BASE</Family>
-<Version>6.0</Version>
-<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/xbrl-syntax-arcroles.xsd</Href>
+<Version>5.0</Version>
+<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-arcroles.xsd</Href>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
@@ -346,8 +319,8 @@
 <Loc>
 
 <Family>BASE</Family>
-<Version>6.0</Version>
-<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/xbrl-syntax-extension.xsd</Href>
+<Version>5.0</Version>
+<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension.xsd</Href>
 <LocalHref>basis/sbr/xbrl/xbrl-syntax-extension.xsd</LocalHref>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
