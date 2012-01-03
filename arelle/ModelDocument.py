@@ -281,6 +281,7 @@ class Type:
                 "linkbase", 
                 "instance", 
                 "inline XBRL instance",
+                "entry point set",
                 "versioning report",
                 "testcasesindex", 
                 "testcase",

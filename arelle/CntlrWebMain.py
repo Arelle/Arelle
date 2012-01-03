@@ -73,6 +73,8 @@ class Options():
             
 supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'formulae'}
 
+@route('/rest/xbrl/<file:path>/open')
+@route('/rest/xbrl/<file:path>/close')
 @route('/rest/xbrl/<file:path>/validation/xbrl')
 @route('/rest/xbrl/<file:path>/DTS')
 @route('/rest/xbrl/<file:path>/concepts')
@@ -83,28 +85,27 @@ supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'formulae'}
 @route('/rest/xbrl/<file:path>/formulae')
 @route('/rest/xbrl/validation')
 @route('/rest/xbrl/view')
+@route('/rest/xbrl/open')
+@route('/rest/xbrl/close')
 def validation(file=None):
     errors = []
     flavor = request.query.flavor or 'standard'
     media = request.query.media or 'html'
-    requestPathParts = set(request.urlparts[2].split('/'))
-    isValidation = "validation" in requestPathParts
+    requestPathParts = request.urlparts[2].split('/')
+    isValidation = "validation" == requestPathParts[-1] or "validation" == requestPathParts[-2]
     view = request.query.view
     if not view:
-        views = set(requestPathParts) & supportedViews
-        if views:
-            if len(views) > 1:
-                errors.append(_("Only one view option is supported, {0} found.").format(len(views)))                
-            view = list(views)[0]
+        if requestPathParts[-1] in supportedViews:
+            view = requestPathParts[-1]
     if isValidation:
         if view:
             errors.append(_("Only validation or one view can be specified in one requested."))
-        if media not in ('xml', 'xhtml', 'html', 'text'):
-            errors.append(_("Media '{0}' is not supported for validation (please select xhtml, html, xml, or text)").format(media))
+        if media not in ('xml', 'xhtml', 'html', 'json', 'text'):
+            errors.append(_("Media '{0}' is not supported for validation (please select xhtml, html, xml, json or text)").format(media))
     elif view:
-        if media not in ('xml', 'xhtml', 'html', 'csv'):
-            errors.append(_("Media '{0}' is not supported for view (please select xhtml, html, xml, or csv)").format(media))
-    else:                
+        if media not in ('xml', 'xhtml', 'html', 'csv', 'json'):
+            errors.append(_("Media '{0}' is not supported for view (please select xhtml, html, xml, csv, or json)").format(media))
+    elif requestPathParts[-1] not in ("open", "close"):                
         errors.append(_("Neither validation nor view requested, nothing to do."))
     if flavor != 'standard' and not flavor.startswith('edgar') and not flavor.startswith('sec'):
         errors.append(_("Flavor '{0}' is not supported").format(flavor)) 
@@ -143,6 +144,8 @@ def validation(file=None):
         response.content_type = 'text/xml; charset=UTF-8'
     elif media == "csv":
         response.content_type = 'text/csv; charset=UTF-8'
+    elif media == "json":
+        response.content_type = 'application/json; charset=UTF-8'
     elif media == "text":
         response.content_type = 'text/plain; charset=UTF-8'
     else:
@@ -150,8 +153,10 @@ def validation(file=None):
     if successful and viewFile:
         result = viewFile.getvalue()
         viewFile.close()
-    elif successful and media == "xml":
+    elif media == "xml":
         result = cntlr.logHandler.getXml()
+    elif media == "json":
+        result = cntlr.logHandler.getJson()
     elif media == "text":
         result = cntlr.logHandler.getText()
     else:
@@ -196,6 +201,7 @@ as follows:</td></tr>
 <br/>{<code>sec</code>*|<code>edgar</code>*}: SEC Edgar Filer Manual validation.</td></tr> 
 <tr><td style="text-indent: 1em;">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)
 <br/><code>xml</code>: XML structured results.
+<br/><code>json</code>: JSON results.
 <br/><code>text</code>: Plain text results (no markup).</td></tr> 
 <tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.</td></tr> 
 <tr><td style="text-indent: 1em;">import</td><td>A list of files to import to the DTS, such as additional formula 
@@ -204,7 +210,7 @@ or label linkbases.  Multiple file names are separated by a '|' character.</td><
 <tr><td style="text-indent: 1em;">calcPrecision</td><td>Specify calculation linkbase validation inferring precision.</td></tr> 
 <tr><td style="text-indent: 1em;">efm</td><td>Select Edgar Filer Manual (U.S. SEC) disclosure system validation. (Alternative to flavor parameter.)</td></tr> 
 <tr><td style="text-indent: 1em;">ifrs</td><td>Specify IFRS Global Filer Manual validation.</td></tr>
-<tr><td style="text-indent: 1em;">hmrc</td><td>Specify IFRS Global Filer Manual validation.</td></tr>
+<tr><td style="text-indent: 1em;">hmrc</td><td>Specify HMRC validation.</td></tr>
 <tr><td style="text-indent: 1em;">sbr-nl</td><td>Specify SBR-NL taxonomy validation.</td></tr>
 <tr><td style="text-indent: 1em;">utr</td><td>Select validation with respect to Unit Type Registry.</td></tr> 
 <tr><td style="text-indent: 1em;">formulaAsserResultCounts</td><td>Report formula assertion counts.</td></tr> 
@@ -237,7 +243,8 @@ document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</t
 as follows:</td></tr>
 <tr><td style="text-indent: 1em;">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)
 <br/><code>xml</code>: XML structured results.
-<br/><code>csv</code>: CSV text results (no markup).</td></tr> 
+<br/><code>csv</code>: CSV text results (no markup).
+<br/><code>json</code>: JSON text results.</td></tr> 
 <tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.</td></tr> 
 <tr><td style="text-indent: 1em;">view</td><td>Alternate way to specify view by a parameter.</td></tr> 
 <tr><td style="text-indent: 1em;">import</td><td>A list of files to import to the DTS, such as additional formula 
@@ -248,7 +255,7 @@ Example:  <code>factListCols=&#x200B;Label,unitRef,Dec,&#x200B;Value,EntitySchem
 <tr><th colspan="2">Excel interface</th></tr>
 <tr><td>GUI operation:</td><td>Select data tab.<br/>Click Get External Data From Web.<br/>
 New Web Query dialog, enter rest URI to Address (example, for instance with indicated fact columns: 
-<code>http://localhost:8080/rest/xbrl/C:/Users/&#x200B;John Doe/&#x200B;Documents/eu/&#x200B;instance.xbrl/facts&#x200B;?media=xhtml&factListCols=&#x200B;Label,unitRef,Dec,&#x200B;Value,EntityScheme,&#x200B;EntityIdentifier,&#x200B;Period,Dimensions</code><br/>
+<code>http://localhost:8080/rest/xbrl/C:/Users/John Doe/Documents/eu/instance.xbrl/facts?media=xhtml&factListCols=Label,unitRef,Dec,Value,EntityScheme,EntityIdentifier,Period,Dimensions</code><br/>
 Before clicking Go, click Options, on Options dialog select Full HTML Formatting, then Ok to Options dialog.<br/>
 Click Go.<br/>
 Click arrow to select table.<br/>
@@ -256,7 +263,7 @@ Click Import button.<br/>
 Review insertion cell, click ok on Import Data dialog.</td></tr>
 <tr><td>VBA macro:</td><td>
 <code>With ActiveSheet.QueryTables.Add(Connection:= _<br/>
-   "URL;http://localhost:8080/rest/xbrl/C:/Users/&#x200B;John Doe/&#x200B;Documents/eu/&#x200B;instance.xbrl/facts&#x200B;?media=xhtml&factListCols=&#x200B;Label,unitRef,Dec,Value,&#x200B;EntityScheme,EntityIdentifier,&#x200B;Period,Dimensions" _<br/>
+   "URL;http://localhost:8080/rest/xbrl/C:/Users/John Doe/Documents/eu/instance.xbrl/facts?media=xhtml&factListCols=Label,unitRef,Dec,Value,EntityScheme,EntityIdentifier,Period,Dimensions" _<br/>
    , Destination:=Range("$A$1"))<br/>
    .Name = "facts"<br/>
    .FieldNames = True<br/>

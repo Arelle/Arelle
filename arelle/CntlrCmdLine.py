@@ -222,6 +222,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         startedAt = time.time()
         modelXbrl = self.modelManager.load(filesource, _("views loading"))
+        if modelXbrl.errors:
+            return False    # loading errors, don't attempt to utilize loaded DTS
         self.addToLog(format_string(self.modelManager.locale, 
                                     _("loaded in %.2f secs at %s"), 
                                     (time.time() - startedAt, timeNow)), 
@@ -233,10 +235,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                             _("imported in %.2f secs at %s"), 
                                             (time.time() - startedAt, timeNow)), 
                                             messageCode="info", file=importFile)
+            if modelXbrl.errors:
+                return False    # loading errors, don't attempt to utilize loaded DTS
         if options.diffFile and options.versReportFile:
             diffFilesource = FileSource.FileSource(options.diffFile,self)
             startedAt = time.time()
             modelXbrl = self.modelManager.load(diffFilesource, _("views loading"))
+            if modelXbrl.errors:
+                return False    # loading errors, don't attempt to utilize loaded DTS
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("diff comparison DTS loaded in %.2f secs"), 
                                         time.time() - startedAt), 
