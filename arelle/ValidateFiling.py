@@ -39,6 +39,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         
         # find typedDomainRefs before validateXBRL pass
         if modelXbrl.modelManager.disclosureSystem.SBRNL:
+            self.qnSbrLinkroleorder = ModelValue.qname("http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension","linkroleOrder")
+
             self.typedDomainQnames = set()
             for modelConcept in modelXbrl.qnameConcepts.values():
                 if modelConcept.isTypedDimension:
@@ -1009,7 +1011,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if not ((isinstance(relFrom,ModelConcept) and isinstance(relTo,ModelConcept)) or
                                         (relFrom.modelDocument.inDTS and
                                          (relTo.qname == XbrlConst.qnGenLabel and modelRel.arcrole == XbrlConst.elementLabel) or
-                                         (relTo.qname == XbrlConst.qnGenReference and modelRel.arcrole == XbrlConst.elementReference))):
+                                         (relTo.qname == XbrlConst.qnGenReference and modelRel.arcrole == XbrlConst.elementReference) or
+                                         (relTo.qname == self.qnSbrLinkroleorder))):
                                     self.modelXbrl.error("SBR.NL.2.3.2.07",
                                         _("The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"),
                                         modelObject=modelRel, elementFrom=relFrom.qname, elementTo=relTo.qname, 
@@ -1111,7 +1114,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 for modelRoleType in modelRoleTypes:
                     if not arcroleURI.startswith("http://xbrl.org/") and (
                        not modelRoleType.genLabel(lang="nl") or not modelRoleType.genLabel(lang="en")):
-                        modelXbrl.error("SBR.NL.2.2.5.02",
+                        modelXbrl.error("SBR.NL.2.2.4.02",
                             _("ArcroleType missing nl or en generic label: %(arcrole)s"),
                             modelObject=modelRoleType, arcrole=arcroleURI)
 
