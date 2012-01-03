@@ -4,13 +4,15 @@ Created on Oct 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import csv, io
+import csv, io, json
 from lxml import etree
 from arelle.FileSource import FileNamedStringIO
 
 CSV = 0
 HTML = 1
 XML = 2
+JSON = 3
+TYPENAMES = ["CSV", "HTML", "XML", "JSON"]
 
 class View:
     def __init__(self, modelXbrl, outfile, rootElementName, lang=None, style="table"):
@@ -21,15 +23,20 @@ class View:
                 self.type = HTML
             elif outfile.fileName == "csv":
                 self.type = CSV
+            elif outfile.fileName == "json":
+                self.type = JSON
             else:
                 self.type = XML
         elif outfile.endswith(".html") or outfile.endswith(".htm") or outfile.endswith(".xhtml"):
             self.type = HTML
         elif outfile.endswith(".xml"):
             self.type = XML
+        elif outfile.endswith(".json"):
+            self.type = JSON
         else:
             self.type = CSV
         self.outfile = outfile
+        self.rootElementName = rootElementName[0].lower() + rootElementName.title().replace(' ','')[1:]
         self.numHdrCols = 0
         self.treeCols = 0  # set to number of tree columns for auto-tree-columns
         if modelXbrl:
@@ -102,10 +109,14 @@ class View:
             for self.tblElt in self.xmlDoc.iter(tag="{http://www.w3.org/1999/xhtml}table"):
                 break
         elif self.type == XML:
-            html = io.StringIO("<{0}/>".format(rootElementName[0].lower() + rootElementName.title().replace(' ','')[1:]))
+            html = io.StringIO("<{0}/>".format(self.rootElementName))
             self.xmlDoc = etree.parse(html)
             html.close()
             self.docEltLevels = [self.xmlDoc.getroot()]
+        elif self.type == JSON:
+            self.entries = []
+            self.entryLevels = [self.entries]
+            self.jsonObject = {self.rootElementName: self.entries}
         
     def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None):
         if asHeader and len(cols) > self.numHdrCols:
@@ -165,6 +176,41 @@ class View:
                     for i, col in enumerate(cols):
                         if (i != 0 or not xmlCol0skipElt) and col:
                             etree.SubElement(rowElt, xmlColElementNames[i]).text = str(col)
+        elif self.type == JSON:
+            if asHeader:
+                # save column element names
+                self.xmlRowElementName = xmlRowElementName
+                self.columnEltNames = [col[0].lower() + col[1:].replace(' ','').replace('&#173;','').replace('-','')
+                                       for col in cols]
+            else:
+                if treeIndent < len(self.entryLevels) and self.entryLevels[treeIndent] is not None:
+                    entries = self.entryLevels[treeIndent]
+                else:
+                    # problem, error message? unexpected indent
+                    entries = self.entryLevels[0] 
+                entry = []
+                if xmlRowElementName:
+                    entry.append(xmlRowElementName)
+                elif self.xmlRowElementName:
+                    entry.append(self.xmlRowElementName)
+                if xmlRowEltAttr:
+                    entry.append(xmlRowEltAttr)
+                else:
+                    entry.append({})
+                entries.append(entry)
+                if treeIndent + 1 >= len(self.entryLevels): # extend levels as needed
+                    for extraColIndex in range(len(self.entryLevels) - 1, treeIndent + 1):
+                        self.entryLevels.append(None)
+                self.entryLevels[treeIndent + 1] = entry
+                if not xmlColElementNames: xmlColElementNames = self.columnEltNames
+                if len(cols) == 1 and not xmlCol0skipElt:
+                    entry.append(xmlRowText if xmlRowText else cols[0])
+                else:
+                    content = {}
+                    entry.append(content)
+                    for i, col in enumerate(cols):
+                        if (i != 0 or not xmlCol0skipElt) and col:
+                            content[xmlColElementNames[i]] = str(col)
         if asHeader and lastColSpan: 
             self.numHdrCols += lastColSpan - 1
                                 
@@ -174,18 +220,22 @@ class View:
                 self.csvFile.close()
             self.modelXbrl = None
         else:
+            fileType = TYPENAMES[self.type]
             try:
                 from arelle import XmlUtil
                 if isinstance(self.outfile, FileNamedStringIO):
                     fh = self.outfile
                 else:
                     fh = open(self.outfile, "w")
-                XmlUtil.writexml(fh, self.xmlDoc, encoding="utf-8")
+                if self.type == JSON:
+                    fh.write(json.dumps(self.jsonObject))
+                else:
+                    XmlUtil.writexml(fh, self.xmlDoc, encoding="utf-8")
                 if not isinstance(self.outfile, FileNamedStringIO):
                     fh.close()
-                self.modelXbrl.info("info", _("Saved output html to %(file)s"), file=self.outfile)
+                self.modelXbrl.info("info", _("Saved output %(type)s to %(file)s"), file=self.outfile, type=fileType)
             except (IOError, EnvironmentError) as err:
-                self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output html to %(file)s: \s%(error)s"), file=self.outfile, error=err)
+                self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: \s%(error)s"), file=self.outfile, type=fileType, error=err)
             self.modelXbrl = None
             if self.type == HTML:
                 self.tblElt = None

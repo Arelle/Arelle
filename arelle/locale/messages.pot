@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-12-27 19:13+Pacific Standard Time\n"
+"POT-Creation-Date: 2012-01-02 16:56+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -169,39 +169,39 @@ msgstr ""
 msgid "both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:224 arelle\CntlrCmdLine.py:239
+#: arelle\CntlrCmdLine.py:224 arelle\CntlrCmdLine.py:243
 #: arelle\CntlrGenVersReports.py:321 arelle\CntlrProfiler.py:20
 #: arelle\CntlrWinMain.py:547
 msgid "views loading"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:226
+#: arelle\CntlrCmdLine.py:228
 msgid "loaded in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:233
+#: arelle\CntlrCmdLine.py:235
 msgid "imported in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:241
+#: arelle\CntlrCmdLine.py:247
 msgid "diff comparison DTS loaded in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:247 arelle\CntlrWinMain.py:718
+#: arelle\CntlrCmdLine.py:253 arelle\CntlrWinMain.py:718
 msgid "compared in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:255 arelle\CntlrWinMain.py:675
+#: arelle\CntlrCmdLine.py:261 arelle\CntlrWinMain.py:675
 msgid "validated in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:280
+#: arelle\CntlrCmdLine.py:286
 msgid ""
 "[IOError] Failed to save output:\n"
 " {0}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:283
+#: arelle\CntlrCmdLine.py:289
 msgid ""
 "[Exception] Failed to complete request: \n"
 "{0} \n"
@@ -275,47 +275,43 @@ msgstr ""
 msgid "<p>You are logged out.</p>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:97
-msgid "Only one view option is supported, {0} found."
-msgstr ""
-
-#: arelle\CntlrWebMain.py:101
+#: arelle\CntlrWebMain.py:102
 msgid "Only validation or one view can be specified in one requested."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:103
-msgid "Media '{0}' is not supported for validation (please select xhtml, html, xml, or text)"
+#: arelle\CntlrWebMain.py:104
+msgid "Media '{0}' is not supported for validation (please select xhtml, html, xml, json or text)"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:106
-msgid "Media '{0}' is not supported for view (please select xhtml, html, xml, or csv)"
+#: arelle\CntlrWebMain.py:107
+msgid "Media '{0}' is not supported for view (please select xhtml, html, xml, csv, or json)"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:108
+#: arelle\CntlrWebMain.py:109
 msgid "Neither validation nor view requested, nothing to do."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:110
+#: arelle\CntlrWebMain.py:111
 msgid "Flavor '{0}' is not supported"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:112
+#: arelle\CntlrWebMain.py:113
 msgid "View '{0}' is not supported"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:114
+#: arelle\CntlrWebMain.py:115
 msgid "URL: "
 msgstr ""
 
-#: arelle\CntlrWebMain.py:158 arelle\CntlrWebMain.py:348
+#: arelle\CntlrWebMain.py:163 arelle\CntlrWebMain.py:355
 msgid "Messages"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:164
+#: arelle\CntlrWebMain.py:169
 msgid "From DTS, to DTS, and report must be specified"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:179
+#: arelle\CntlrWebMain.py:184
 msgid ""
 "<table>\n"
 "<tr><th colspan=\"2\">Arelle web API</th></tr>\n"
@@ -337,6 +333,7 @@ msgid ""
 "<br/>{<code>sec</code>*|<code>edgar</code>*}: SEC Edgar Filer Manual validation.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)\n"
 "<br/><code>xml</code>: XML structured results.\n"
+"<br/><code>json</code>: JSON results.\n"
 "<br/><code>text</code>: Plain text results (no markup).</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">file</td><td>Alternate way to specify file name or url by a parameter.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">import</td><td>A list of files to import to the DTS, such as additional formula \n"
@@ -345,7 +342,7 @@ msgid ""
 "<tr><td style=\"text-indent: 1em;\">calcPrecision</td><td>Specify calculation linkbase validation inferring precision.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">efm</td><td>Select Edgar Filer Manual (U.S. SEC) disclosure system validation. (Alternative to flavor parameter.)</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">ifrs</td><td>Specify IFRS Global Filer Manual validation.</td></tr>\n"
-"<tr><td style=\"text-indent: 1em;\">hmrc</td><td>Specify IFRS Global Filer Manual validation.</td></tr>\n"
+"<tr><td style=\"text-indent: 1em;\">hmrc</td><td>Specify HMRC validation.</td></tr>\n"
 "<tr><td style=\"text-indent: 1em;\">sbr-nl</td><td>Specify SBR-NL taxonomy validation.</td></tr>\n"
 "<tr><td style=\"text-indent: 1em;\">utr</td><td>Select validation with respect to Unit Type Registry.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">formulaAsserResultCounts</td><td>Report formula assertion counts.</td></tr> \n"
@@ -378,7 +375,8 @@ msgid ""
 "as follows:</td></tr>\n"
 "<tr><td style=\"text-indent: 1em;\">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)\n"
 "<br/><code>xml</code>: XML structured results.\n"
-"<br/><code>csv</code>: CSV text results (no markup).</td></tr> \n"
+"<br/><code>csv</code>: CSV text results (no markup).\n"
+"<br/><code>json</code>: JSON text results.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">file</td><td>Alternate way to specify file name or url by a parameter.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">view</td><td>Alternate way to specify view by a parameter.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">import</td><td>A list of files to import to the DTS, such as additional formula \n"
@@ -389,7 +387,7 @@ msgid ""
 "<tr><th colspan=\"2\">Excel interface</th></tr>\n"
 "<tr><td>GUI operation:</td><td>Select data tab.<br/>Click Get External Data From Web.<br/>\n"
 "New Web Query dialog, enter rest URI to Address (example, for instance with indicated fact columns: \n"
-"<code>http://localhost:8080/rest/xbrl/C:/Users/&#x200B;John Doe/&#x200B;Documents/eu/&#x200B;instance.xbrl/facts&#x200B;?media=xhtml&factListCols=&#x200B;Label,unitRef,Dec,&#x200B;Value,EntityScheme,&#x200B;EntityIdentifier,&#x200B;Period,Dimensions</code><br/>\n"
+"<code>http://localhost:8080/rest/xbrl/C:/Users/John Doe/Documents/eu/instance.xbrl/facts?media=xhtml&factListCols=Label,unitRef,Dec,Value,EntityScheme,EntityIdentifier,Period,Dimensions</code><br/>\n"
 "Before clicking Go, click Options, on Options dialog select Full HTML Formatting, then Ok to Options dialog.<br/>\n"
 "Click Go.<br/>\n"
 "Click arrow to select table.<br/>\n"
@@ -397,7 +395,7 @@ msgid ""
 "Review insertion cell, click ok on Import Data dialog.</td></tr>\n"
 "<tr><td>VBA macro:</td><td>\n"
 "<code>With ActiveSheet.QueryTables.Add(Connection:= _<br/>\n"
-"   \"URL;http://localhost:8080/rest/xbrl/C:/Users/&#x200B;John Doe/&#x200B;Documents/eu/&#x200B;instance.xbrl/facts&#x200B;?media=xhtml&factListCols=&#x200B;Label,unitRef,Dec,Value,&#x200B;EntityScheme,EntityIdentifier,&#x200B;Period,Dimensions\" _<br/>\n"
+"   \"URL;http://localhost:8080/rest/xbrl/C:/Users/John Doe/Documents/eu/instance.xbrl/facts?media=xhtml&factListCols=Label,unitRef,Dec,Value,EntityScheme,EntityIdentifier,Period,Dimensions\" _<br/>\n"
 "   , Destination:=Range(\"$A$1\"))<br/>\n"
 "   .Name = \"facts\"<br/>\n"
 "   .FieldNames = True<br/>\n"
@@ -423,7 +421,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:286
+#: arelle\CntlrWebMain.py:293
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">About arelle</th></tr>\n"
@@ -447,7 +445,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:309
+#: arelle\CntlrWebMain.py:316
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">Arelle Web Services</th></tr>\n"
@@ -496,7 +494,7 @@ msgstr ""
 msgid "Validation"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:96 arelle\CntlrWinMain.py:911
+#: arelle\CntlrWinMain.py:96 arelle\CntlrWinMain.py:912
 #: arelle\ViewWinXml.py:19
 msgid "Validate"
 msgstr ""
@@ -711,13 +709,13 @@ msgstr ""
 
 #: arelle\CntlrWinMain.py:375 arelle\CntlrWinMain.py:398
 #: arelle\CntlrWinMain.py:417 arelle\CntlrWinMain.py:443
-#: arelle\CntlrWinMain.py:744 arelle\CntlrWinMain.py:992
+#: arelle\CntlrWinMain.py:744 arelle\CntlrWinMain.py:993
 msgid "arelle - Error"
 msgstr ""
 
 #: arelle\CntlrWinMain.py:376 arelle\CntlrWinMain.py:399
 #: arelle\CntlrWinMain.py:418 arelle\CntlrWinMain.py:444
-#: arelle\CntlrWinMain.py:993
+#: arelle\CntlrWinMain.py:994
 msgid ""
 "Failed to save {0}:\n"
 "{1}"
@@ -897,14 +895,6 @@ msgid ""
 "(Leave empty to use the system default language.)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:889
-msgid "Validate testcases"
-msgstr ""
-
-#: arelle\CntlrWinMain.py:891
-msgid "Validate testcase"
-msgstr ""
-
 #: arelle\CntlrWinMain.py:893
 msgid "Validate versioning report"
 msgstr ""
@@ -929,20 +919,20 @@ msgstr ""
 
 #: arelle\CntlrWinMain.py:907
 msgid ""
-"Validate\n"
+"Validate {0}\n"
 "Check disclosure system rules\n"
-"{0}{1}{2}"
+"{1}{2}{3}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:909
-msgid "Validate{0}{1}"
+#: arelle\CntlrWinMain.py:910
+msgid "Validate {0}{0}{1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:939
+#: arelle\CntlrWinMain.py:940
 msgid "About arelle"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:941
+#: arelle\CntlrWinMain.py:942
 msgid ""
 "arelle® {0}\n"
 "An open source XBRL platform\n"
@@ -966,11 +956,11 @@ msgid ""
 "   Bottle © 2011 Marcel Hellkamp"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:983
+#: arelle\CntlrWinMain.py:984
 msgid "arelle - Save Messages Log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:985
+#: arelle\CntlrWinMain.py:986
 msgid "Txt file"
 msgstr ""
 
@@ -1702,43 +1692,43 @@ msgstr ""
 msgid "loading {0}"
 msgstr ""
 
-#: arelle\ModelDocument.py:386
+#: arelle\ModelDocument.py:387
 msgid "Discovery of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:392
+#: arelle\ModelDocument.py:393
 msgid "Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:442
+#: arelle\ModelDocument.py:443
 msgid "Prohibited base attribute: %(attribute)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:471
+#: arelle\ModelDocument.py:472
 msgid "Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:543
+#: arelle\ModelDocument.py:544
 msgid "Linkbase reference for %(linkbaseRefElement)s href attribute missing or malformed"
 msgstr ""
 
-#: arelle\ModelDocument.py:576
+#: arelle\ModelDocument.py:577
 msgid "Locator href attribute missing or malformed in standard extended link"
 msgstr ""
 
-#: arelle\ModelDocument.py:580
+#: arelle\ModelDocument.py:581
 msgid "Locator href attribute missing or malformed in non-standard extended link"
 msgstr ""
 
-#: arelle\ModelDocument.py:619
+#: arelle\ModelDocument.py:620
 msgid "Linkbase extended link %(element)s missing schema definition"
 msgstr ""
 
-#: arelle\ModelDocument.py:722
+#: arelle\ModelDocument.py:723
 msgid "Inline XBRL tupleRef %(tupleRef)s not found"
 msgstr ""
 
-#: arelle\ModelDocument.py:749
+#: arelle\ModelDocument.py:750
 msgid "Instance fact %(element)s missing schema definition "
 msgstr ""
 
@@ -1786,7 +1776,7 @@ msgid ""
 "{0}"
 msgstr ""
 
-#: arelle\ModelManager.py:68
+#: arelle\ModelManager.py:73
 msgid "[exception] Validation exception: {0} at {1}"
 msgstr ""
 
@@ -1849,7 +1839,7 @@ msgid "C report file"
 msgstr ""
 
 #: arelle\ModelVersReport.py:304 arelle\Validate.py:223
-#: arelle\ValidateFiling.py:1127 arelle\ValidateFormula.py:109
+#: arelle\ValidateFiling.py:1130 arelle\ValidateFormula.py:109
 #: arelle\ValidateXbrl.py:552
 msgid "ready"
 msgstr ""
@@ -1890,19 +1880,19 @@ msgstr ""
 msgid "loading"
 msgstr ""
 
-#: arelle\ModelXbrl.py:50 arelle\ModelXbrl.py:131
+#: arelle\ModelXbrl.py:50 arelle\ModelXbrl.py:132
 msgid "xbrl loading finished, {0}..."
 msgstr ""
 
-#: arelle\ModelXbrl.py:264
+#: arelle\ModelXbrl.py:265
 msgid "Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"
 msgstr ""
 
-#: arelle\ModelXbrl.py:366
+#: arelle\ModelXbrl.py:367
 msgid "Exception viewing properties {0} {1} at {2}"
 msgstr ""
 
-#: arelle\ModelXbrl.py:487
+#: arelle\ModelXbrl.py:488
 msgid "DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"
 msgstr ""
 
@@ -1979,267 +1969,267 @@ msgstr ""
 msgid "Formula output missing expected fact %(fact)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:68 arelle\ValidateHmrc.py:31
+#: arelle\ValidateFiling.py:70 arelle\ValidateHmrc.py:31
 msgid "validating {0}"
 msgstr ""
 
-#: arelle\ValidateFiling.py:93
+#: arelle\ValidateFiling.py:95
 msgid "Invalid entity identifier scheme: %(scheme)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:98
+#: arelle\ValidateFiling.py:100
 msgid "Invalid entity identifier %(entityIdentifierName)s: %(entityIdentifer)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:106
+#: arelle\ValidateFiling.py:108
 msgid "Multiple %(entityIdentifierName)ss: %(entityIdentifer)s, %(entityIdentifer2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:124
+#: arelle\ValidateFiling.py:126
 msgid "Context ID %(context)s is equivalent to context ID %(context2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:135
+#: arelle\ValidateFiling.py:137
 msgid "Context id %(context)s %(elementName)s invalid content %(value)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:143
+#: arelle\ValidateFiling.py:145
 msgid "Scenario"
 msgstr ""
 
-#: arelle\ValidateFiling.py:145
+#: arelle\ValidateFiling.py:147
 msgid "Segment"
 msgstr ""
 
-#: arelle\ValidateFiling.py:147
+#: arelle\ValidateFiling.py:149
 msgid "Both segment and scenario"
 msgstr ""
 
-#: arelle\ValidateFiling.py:149
+#: arelle\ValidateFiling.py:151
 msgid "Neither segment nor scenario"
 msgstr ""
 
-#: arelle\ValidateFiling.py:152
+#: arelle\ValidateFiling.py:154
 msgid "%(elementName)s element not allowed in context Id: %(context)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:164
+#: arelle\ValidateFiling.py:166
 msgid "Segment of context Id %(context)s has disallowed content: %(content)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:203
+#: arelle\ValidateFiling.py:205
 msgid "parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:255
+#: arelle\ValidateFiling.py:257
 msgid "dei:%(elementName)s %(value)s is must match the context entity identifier %(entityIdentifer)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:260
+#: arelle\ValidateFiling.py:262
 msgid "dei:%(elementName)s %(value)s must match submission: %(filerIdentifer)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:269
+#: arelle\ValidateFiling.py:271
 msgid "dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:302
+#: arelle\ValidateFiling.py:304
 msgid "Fact %(fact)s of context %(contextID)s has an XBRL error"
 msgstr ""
 
-#: arelle\ValidateFiling.py:311
+#: arelle\ValidateFiling.py:313
 msgid "Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"
 msgstr ""
 
-#: arelle\ValidateFiling.py:317
+#: arelle\ValidateFiling.py:319
 msgid "Domain item %(fact)s in context %(contextID)s may not appear as a fact"
 msgstr ""
 
-#: arelle\ValidateFiling.py:334
+#: arelle\ValidateFiling.py:336
 msgid "The instance document contained a context(s) %(contextIDs)s that was(are) not used in any fact."
 msgstr ""
 
-#: arelle\ValidateFiling.py:374
+#: arelle\ValidateFiling.py:376
 msgid "Context %(contextID)s endDate and %(contextID2)s startDate have a duration of one day; that is inconsistent with document type %(documentType)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:382
+#: arelle\ValidateFiling.py:384
 msgid "Context %(contextID)s startDate and %(contextID2)s end (instant) have a duration of one day; that is inconsistent with document type %(documentType)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:396
+#: arelle\ValidateFiling.py:398
 msgid "Required context (no segment) not found for document type %(documentType)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:406
+#: arelle\ValidateFiling.py:408
 msgid "Units %(unitID)s and %(unitID2)s are equivalent."
 msgstr ""
 
-#: arelle\ValidateFiling.py:416
+#: arelle\ValidateFiling.py:418
 msgid "Unit has a measure  with localName length (%(length)s) over 200 bytes long in utf-8, %(measure)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:450
+#: arelle\ValidateFiling.py:452
 msgid "Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has insignificant digits %(value2)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:454
+#: arelle\ValidateFiling.py:456
 msgid "Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."
 msgstr ""
 
-#: arelle\ValidateFiling.py:482
+#: arelle\ValidateFiling.py:484
 msgid "Fact %(fact)s of context %(contextID)s has text of xml:lang '%(lang)s' without corresponding %(lang2)s text"
 msgstr ""
 
-#: arelle\ValidateFiling.py:489
+#: arelle\ValidateFiling.py:491
 msgid "A label linkbase is required but was not found"
 msgstr ""
 
-#: arelle\ValidateFiling.py:502
+#: arelle\ValidateFiling.py:504
 msgid "%(elementName)s is not found in the default context"
 msgstr ""
 
-#: arelle\ValidateFiling.py:507
+#: arelle\ValidateFiling.py:509
 msgid "%(elementName)s is required and was not found in the default context"
 msgstr ""
 
-#: arelle\ValidateFiling.py:513
+#: arelle\ValidateFiling.py:515
 msgid "%(elementName)s is in the default context is incorrect '%(date)s'"
 msgstr ""
 
-#: arelle\ValidateFiling.py:521
+#: arelle\ValidateFiling.py:523
 msgid "AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"
 msgstr ""
 
-#: arelle\ValidateFiling.py:526
+#: arelle\ValidateFiling.py:528
 msgid "AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:531
+#: arelle\ValidateFiling.py:533
 msgid "DocumentType is required and was not found in the default context"
 msgstr ""
 
-#: arelle\ValidateFiling.py:543
+#: arelle\ValidateFiling.py:545
 msgid "DocumentType '%(documentType)s' of context %(contextID)s was not recognized"
 msgstr ""
 
-#: arelle\ValidateFiling.py:560
+#: arelle\ValidateFiling.py:562
 msgid "DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:599
+#: arelle\ValidateFiling.py:601
 msgid "dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:608
+#: arelle\ValidateFiling.py:610
 msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but not in the default context because there are multiple classes of common shares"
 msgstr ""
 
-#: arelle\ValidateFiling.py:612
+#: arelle\ValidateFiling.py:614
 msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a default-context because only one class of stock"
 msgstr ""
 
-#: arelle\ValidateFiling.py:617
+#: arelle\ValidateFiling.py:619
 msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing in these stock classes: %(stockClasses)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:622
+#: arelle\ValidateFiling.py:624
 msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but only one per stock class %(stockClass)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:626
+#: arelle\ValidateFiling.py:628
 msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in stock class %(stockClass)s with measurement date %(date)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:630
+#: arelle\ValidateFiling.py:632
 msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-default-context fact"
 msgstr ""
 
-#: arelle\ValidateFiling.py:634
+#: arelle\ValidateFiling.py:636
 msgid "dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the default context because there are not multiple classes of common shares"
 msgstr ""
 
-#: arelle\ValidateFiling.py:644
+#: arelle\ValidateFiling.py:646
 msgid "dei:%(elementName)s is required in the default context"
 msgstr ""
 
-#: arelle\ValidateFiling.py:657
+#: arelle\ValidateFiling.py:659
 msgid "FootnoteLink %(footnoteLinkNumber)s has disallowed role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:674
+#: arelle\ValidateFiling.py:676
 msgid "FootnoteLink %(footnoteLinkNumber)s has disallowed child element %(elementName)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:682
+#: arelle\ValidateFiling.py:684
 msgid "FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed role %(role)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:688
+#: arelle\ValidateFiling.py:690
 msgid "FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed href %(locHref)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:698
+#: arelle\ValidateFiling.py:700
 msgid "FootnoteLink %(footnoteLinkNumber)s arc %(arcNumber)s has disallowed arcrole %(arcrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:704
+#: arelle\ValidateFiling.py:706
 msgid "Footnote %(xlinkLabel)s is missing a role"
 msgstr ""
 
-#: arelle\ValidateFiling.py:709
+#: arelle\ValidateFiling.py:711
 msgid "Footnote %(xlinkLabel)s has disallowed role %(role)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:723
+#: arelle\ValidateFiling.py:725
 msgid "FootnoteLink %(footnoteLinkNumber)s footnote %(xlinkLabel)s has no linked fact"
 msgstr ""
 
-#: arelle\ValidateFiling.py:748
+#: arelle\ValidateFiling.py:750
 msgid "Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:754
+#: arelle\ValidateFiling.py:756
 msgid "Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:763
+#: arelle\ValidateFiling.py:765
 msgid "Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:774
+#: arelle\ValidateFiling.py:776
 msgid "Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:782
+#: arelle\ValidateFiling.py:784
 msgid "References for extension concept %(concept)s are not allowed: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:787
+#: arelle\ValidateFiling.py:789
 msgid "References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:793
+#: arelle\ValidateFiling.py:795
 msgid "Concept %(concept)s missing standard label in local language."
 msgstr ""
 
-#: arelle\ValidateFiling.py:799
+#: arelle\ValidateFiling.py:801
 msgid "Concept %(concept)s not referred to by presentation relationship."
 msgstr ""
 
-#: arelle\ValidateFiling.py:804
+#: arelle\ValidateFiling.py:806
 msgid "Concept %(concept)s has a substitutionGroup of a non-standard concept."
 msgstr ""
 
-#: arelle\ValidateFiling.py:813
+#: arelle\ValidateFiling.py:815
 msgid "Tuple %(concept)s has mismatch between content and presentation children: %(missingQname)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:856
+#: arelle\ValidateFiling.py:858
 msgid "References for conflicting standard taxonomies %(namespaceConflicts)s are not allowed in same DTS"
 msgstr ""
 
-#: arelle\ValidateFiling.py:878
+#: arelle\ValidateFiling.py:880
 msgid ""
 "Ineffective arc %(arc)s in \n"
 "link role %(linkrole)s \n"
@@ -2249,95 +2239,95 @@ msgid ""
 "%(ineffectivity)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:905
+#: arelle\ValidateFiling.py:907
 msgid "Preferred label on presentation relationships not allowed"
 msgstr ""
 
-#: arelle\ValidateFiling.py:912
+#: arelle\ValidateFiling.py:914
 msgid "Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:923
+#: arelle\ValidateFiling.py:925
 msgid "Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:932
+#: arelle\ValidateFiling.py:934
 msgid "Non-distinguished preferredLabel presentation relations from concept %(conceptFrom)s in base set role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:965
+#: arelle\ValidateFiling.py:967
 msgid "Duplicate calculations relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:972
+#: arelle\ValidateFiling.py:974
 msgid "Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:978
+#: arelle\ValidateFiling.py:980
 msgid "Calculation linkbase linkrole %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:995
+#: arelle\ValidateFiling.py:997
 msgid "Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1002
+#: arelle\ValidateFiling.py:1004
 msgid "Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1014
+#: arelle\ValidateFiling.py:1017
 msgid "The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1029
+#: arelle\ValidateFiling.py:1032
 msgid "Duplicate definitions relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1037
+#: arelle\ValidateFiling.py:1040
 msgid "Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in base set role %(linkrole)s to concept %(conceptTo)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1050
+#: arelle\ValidateFiling.py:1053
 msgid "Concept %(concept)s does not participate in an effective presentation relationship"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1056
+#: arelle\ValidateFiling.py:1059
 msgid "Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1070
+#: arelle\ValidateFiling.py:1073
 msgid "Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1091
+#: arelle\ValidateFiling.py:1094
 msgid "Presentation linkrole %(linkrole)s missing order number relationship set"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1099
+#: arelle\ValidateFiling.py:1102
 msgid "Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1105
+#: arelle\ValidateFiling.py:1108
 msgid "Presentation linkrole %(linkrole)s missing order number"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1115
+#: arelle\ValidateFiling.py:1118
 msgid "ArcroleType missing nl or en generic label: %(arcrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1124
+#: arelle\ValidateFiling.py:1127
 msgid "Schema type enumeration %(value)s must be a xbrli:stringItemType restriction"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1171
+#: arelle\ValidateFiling.py:1174
 msgid "Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1180
+#: arelle\ValidateFiling.py:1183
 msgid "Concept %(concept)s is missing an %(lang)s standard label."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1193
+#: arelle\ValidateFiling.py:1196
 msgid "Concept %(concept)s is missing an %(lang)s label for role %(role)s."
 msgstr ""
 
@@ -2386,11 +2376,11 @@ msgid "Taxonomy schema %(schema)s element %(concept)s is abstract but period typ
 msgstr ""
 
 #: arelle\ValidateFilingDTS.py:180
-msgid "Concept %(concept)s must end in Axis to be in dimensionItem substitution group"
+msgid "Concept %(concept)s must end in Axis to be in xbrldt:dimensionItem substitution group"
 msgstr ""
 
 #: arelle\ValidateFilingDTS.py:186
-msgid "Concept %(concept)s is an Axis but not in hypercubeItem substitution group"
+msgid "Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group"
 msgstr ""
 
 #: arelle\ValidateFilingDTS.py:195
@@ -4208,12 +4198,12 @@ msgstr ""
 msgid "Fact %(fact)s context %(contextID)s dimensionally not valid"
 msgstr ""
 
-#: arelle\ViewFile.py:186
-msgid "Saved output html to %(file)s"
+#: arelle\ViewFile.py:236
+msgid "Saved output %(type)s to %(file)s"
 msgstr ""
 
-#: arelle\ViewFile.py:188
-msgid "Failed to save output html to %(file)s: \\s%(error)s"
+#: arelle\ViewFile.py:238
+msgid "Failed to save output %(type)s to %(file)s: \\s%(error)s"
 msgstr ""
 
 #: arelle\ViewFileConcepts.py:11 arelle\ViewWinConcepts.py:13
