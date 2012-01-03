@@ -5,7 +5,7 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import os, sys, traceback
+import os, sys, traceback, uuid
 import logging
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.ModelObject import ModelObject
@@ -70,6 +70,7 @@ class ModelXbrl:
         self.init()
         
     def init(self, keepViews=False):
+        self.uuid = uuid.uuid1().urn
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
         self.errors = []

@@ -43,6 +43,11 @@ class ModelManager:
         self.cntlr.reloadViews(modelXbrl)
         
     def load(self, filesource, nextaction=None):
+        if filesource.url.startswith("urn:uuid:"): # request for an open modelXbrl
+            for modelXbrl in self.loadedModelXbrls:
+                if not modelXbrl.isClosed and modelXbrl.uuid == filesource.url:
+                    return modelXbrl
+            raise IOError(_("Open file handle is not open: {0}".format(filesource.url)))
         self.filesource = filesource
         self.modelXbrl = ModelXbrl.load(self, filesource, nextaction)
         self.loadedModelXbrls.append(self.modelXbrl)
