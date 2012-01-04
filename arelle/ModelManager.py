@@ -47,14 +47,7 @@ class ModelManager:
         self.modelXbrl = ModelXbrl.load(self, filesource, nextaction)
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
-    
-    def saveDTSpackage(self, allDTSes=False):
-        if allDTSes:
-            for modelXbrl in self.loadedModelXbrls:
-                modelXbrl.saveDTSpackage()
-        elif self.modelXbrl is not None:
-            self.modelXbrl.saveDTSpackage()
-    
+       
     def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True):
         self.modelXbrl = ModelXbrl.create(self, newDocumentType, url, schemaRefs, createModelDocument)
         self.loadedModelXbrls.append(self.modelXbrl)

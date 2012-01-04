@@ -73,7 +73,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Open Web..."), self.webOpen, "Shift+Alt+O", "<Shift-Alt-o>"),
                 (_("Import File..."), self.importOpen, None, None),
                 (_("Save..."), self.fileSave, "Ctrl+S", "<Control-s>"),
-                 #(_("Save DTS Package"), self.saveDTSpackage, None, None), # now a plugin
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
                 (None, None, None, None),
                 (_("Quit"), self.quit, "Ctrl+Q", "<Control-q>"),
@@ -450,10 +449,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 self.filename, err),
                                 parent=self.parent)
         return True;
-    
-    def saveDTSpackage(self):
-        self.modelManager.saveDTSpackage(allDTSes=True)
-    
+
     def fileOpen(self, *ignore):
         if not self.okayToContinue():
             return
