@@ -9,6 +9,7 @@ from collections import defaultdict
 from arelle import (XbrlConst, XbrlUtil, XmlUtil, UrlUtil, ModelXbrl, ModelDocument, ModelVersObject)
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName
+from arelle.FileSource import FileNamedStringIO
 
 def create(modelXbrlFromDTS, modelXbrlToDTS):
     modelXbrlVersReport = ModelXbrl.create(modelXbrlFromDTS.modelManager)
@@ -196,7 +197,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 return [DTS.uri]
         return []
     
-    def diffDTSes(self, versReportFile, fromDTS, toDTS, assignment="technical", schemaDir=None, writeReportFile=True):
+    def diffDTSes(self, reportOutput, fromDTS, toDTS, assignment="technical", schemaDir=None):
+        versReportFile = str(reportOutput)  # may be a FileNamedStringIO, in which case str( ) is the filename
         self.uri = os.path.normpath(versReportFile)
         from arelle import FileSource
         self.modelXbrl.fileSource = FileSource.FileSource(self.uri)
@@ -290,9 +292,13 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.modelXbrl.modelDocument = self # model document is now established
         self.versioningReportDiscover(self.reportElement)
         self.modelXbrl.modelManager.showStatus(_("Writing report file"))
-        if writeReportFile:
-            with open(versReportFile, "w", encoding="utf-8") as fh:
-                XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+        if isinstance(reportOutput, FileNamedStringIO):
+            fh = reportOutput
+        else:
+            fh = open(versReportFile, "w", encoding="utf-8")
+        XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+        if not isinstance(reportOutput, FileNamedStringIO):
+            fh.close()
         self.filepath = versReportFile
         self.modelXbrl.modelManager.showStatus(_("C report file"))
         self.modelXbrl.modelManager.showStatus(_("ready"), 2000)

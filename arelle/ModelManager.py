@@ -43,6 +43,11 @@ class ModelManager:
         self.cntlr.reloadViews(modelXbrl)
         
     def load(self, filesource, nextaction=None):
+        if filesource.url.startswith("urn:uuid:"): # request for an open modelXbrl
+            for modelXbrl in self.loadedModelXbrls:
+                if not modelXbrl.isClosed and modelXbrl.uuid == filesource.url:
+                    return modelXbrl
+            raise IOError(_("Open file handle is not open: {0}".format(filesource.url)))
         self.filesource = filesource
         self.modelXbrl = ModelXbrl.load(self, filesource, nextaction)
         self.loadedModelXbrls.append(self.modelXbrl)
@@ -71,15 +76,14 @@ class ModelManager:
         
     def compareDTSes(self, versReportFile, writeReportFile=True):
         from arelle.ModelVersReport import ModelVersReport
-        if len(self.loadedModelXbrls) == 2:
+        if len(self.loadedModelXbrls) >= 2:
+            fromDTS = self.loadedModelXbrls[-2]
+            toDTS = self.loadedModelXbrls[-1]
             from arelle.ModelDocument import Type
             modelVersReport = self.create(newDocumentType=Type.VERSIONINGREPORT,
                                           url=versReportFile,
                                           createModelDocument=False)
-            ModelVersReport(modelVersReport).diffDTSes(
-                          versReportFile,
-                          self.loadedModelXbrls[0], self.loadedModelXbrls[1],
-                          writeReportFile=writeReportFile)
+            ModelVersReport(modelVersReport).diffDTSes(versReportFile, fromDTS, toDTS)
             return modelVersReport
         
     def close(self, modelXbrl=None):

@@ -30,6 +30,10 @@ rm -R dist/Arelle.app/Contents/Frameworks/Tk.framework/Versions/8.5
 #cp ~/Library/Python/3.2/lib/python/site-packages/lxml/__pycache__/_elementpath.cpython-32.pyc lxml/_elementpath.pyc
 #zip -u dist/Arelle.app/Contents/Resources/lib/python32.zip lxml lxml/_elementpath.pyc
 #/bin/rm -rf lxml
+
+# copy scripts to get packaged with app in distribution directory
+cp arelle/scripts-macOS/* dist
+
 /bin/rm -rf dist_pkg
 
 mkdir dist_pkg

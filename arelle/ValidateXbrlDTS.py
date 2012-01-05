@@ -942,7 +942,7 @@ def checkElements(val, modelDocument, parent):
                             XbrlConst.qnLinkCalculationLink: tuple(),
                             XbrlConst.qnLinkDefinitionLink: tuple(),
                             XbrlConst.qnLinkFootnoteLink: (XbrlConst.qnLinkFootnote,),
-                            XbrlConst.qnGenLink: (XbrlConst.qnGenLabel, XbrlConst.qnGenReference),
+                            XbrlConst.qnGenLink: (XbrlConst.qnGenLabel, XbrlConst.qnGenReference, val.qnSbrLinkroleorder),
                              }.get(val.extendedElementName,tuple()):
                             val.modelXbrl.error("SBR.NL.2.3.0.11",
                                 _("Resource element %(element)s may not be contained in a linkbase with %(element2)s"),

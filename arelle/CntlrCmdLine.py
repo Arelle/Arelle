@@ -11,8 +11,8 @@ This module is Arelle's controller in command line non-interactive mode
 import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
-                    ViewCsvDTS, ViewCsvFactList, ViewCsvConcepts, 
-                    ViewCsvFormulae, ViewCsvRelationshipSet, ViewCsvTests)
+                    ViewFileDTS, ViewFileFactList, ViewFileConcepts, 
+                    ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests)
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 import logging
@@ -21,22 +21,21 @@ def main():
     gettext.install("arelle") # needed for options messages
     usage = "usage: %prog [options]"
     parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
-    parser.add_option("-f", "--file", dest="filename",
+    parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
                              "an XBRL instance, schema, linkbase file, "
                              "inline XBRL instance, testcase file, "
                              "testcase index file.  FILENAME may be "
                              "a local file or a URI to a web located file."))
-    parser.add_option("-i", "--import", dest="importFilenames",
+    parser.add_option("-i", "--import", dest="importFiles",
                       help=_("FILENAME is a list of files to import to the DTS, such as "
                              "additional formula or label linkbases.  "
                              "Multiple file names are separated by a '|' character. "))
-    parser.add_option("-d", "--diff", dest="diffFilename",
+    parser.add_option("-d", "--diff", dest="diffFile",
                       help=_("FILENAME is a second entry point when "
                              "comparing (diffing) two DTSes producing a versioning report."))
-    parser.add_option("-r", "--report", dest="versReportFilename",
+    parser.add_option("-r", "--report", dest="versReportFile",
                       help=_("FILENAME is the filename to save as the versioning report."))
-    parser.add_option("--versReportInMemory", action="store_true", dest="versReportInMemory")
     parser.add_option("-v", "--validate",
                       action="store_true", dest="validate",
                       help=_("Validate the file according to the entry "
@@ -58,24 +57,26 @@ def main():
                              " select disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
                       help=_("Select validation with respect to Unit Type Registry."))
-    parser.add_option("--csvDTS", action="store", dest="csvDTS",
-                      help=_("Write DTS tree into CSVFILE"))
-    parser.add_option("--csvFacts", action="store", dest="csvFactList",
-                      help=_("Write fact list into CSVFILE"))
-    parser.add_option("--csvFactCols", action="store", dest="csvFactListCols",
-                      help=_("Columns for CSVFILE"))
-    parser.add_option("--csvConcepts", action="store", dest="csvConcepts",
-                      help=_("Write concepts into CSVFILE"))
-    parser.add_option("--csvPre", action="store", dest="csvPre",
-                      help=_("Write presentation linkbase into CSVFILE"))
-    parser.add_option("--csvCal", action="store", dest="csvCal",
-                      help=_("Write calculation linkbase into CSVFILE"))
-    parser.add_option("--csvDim", action="store", dest="csvDim",
-                      help=_("Write dimensions (of definition) linkbase into CSVFILE"))
-    parser.add_option("--csvFormulae", action="store", dest="csvFormulae",
-                      help=_("Write formulae linkbase into CSVFILE"))
-    parser.add_option("--csvTestReport", action="store", dest="csvTestReport",
-                      help=_("Write test report of validation (of test cases) into CSVFILE"))
+    parser.add_option("--labelLang", action="store", dest="labelLang",
+                      help=_("Language for labels in following file options (override system settings)"))
+    parser.add_option("--DTS", "--csvDTS", action="store", dest="DTSFile",
+                      help=_("Write DTS tree into FILE (may be .csv or .html)"))
+    parser.add_option("--facts", "--csvFacts", action="store", dest="factsFile",
+                      help=_("Write fact list into FILE"))
+    parser.add_option("--factListCols", action="store", dest="factListCols",
+                      help=_("Columns for fact list file"))
+    parser.add_option("--concepts", "--csvConcepts", action="store", dest="conceptsFile",
+                      help=_("Write concepts into FILE"))
+    parser.add_option("--pre", "--csvPre", action="store", dest="preFile",
+                      help=_("Write presentation linkbase into FILE"))
+    parser.add_option("--cal", "--csvCal", action="store", dest="calFile",
+                      help=_("Write calculation linkbase into FILE"))
+    parser.add_option("--dim", "--csvDim", action="store", dest="dimFile",
+                      help=_("Write dimensions (of definition) linkbase into FILE"))
+    parser.add_option("--formulae", "--htmlFormulae", action="store", dest="formulaeFile",
+                      help=_("Write formulae linkbase into FILE"))
+    parser.add_option("--testReport", "--csvTestReport", action="store", dest="testReport",
+                      help=_("Write test report of validation (of test cases) into FILE"))
     parser.add_option("--logFile", action="store", dest="logFile",
                       help=_("Write log messages into file, otherwise they go to standard output.  " 
                              "If file ends in .xml it is xml-formatted, otherwise it is text. "))
@@ -130,14 +131,14 @@ def main():
                 "\n   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
                 "\n   Bottle (c) 2011 Marcel Hellkamp"
                 ).format(Version.version))
-    elif len(args) != 0 or (options.filename is None and options.webserver is None):
+    elif len(args) != 0 or (options.entrypointFile is None and options.webserver is None):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
     elif options.webserver:
-        if any((options.filename, options.importFilenames, options.diffFilename, options.versReportFilename,
+        if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.gfmName,
-                options.utrValidate, options.csvDTS, options.csvFactList, options.csvFactListCols, 
-                options.csvConcepts, options.csvPre, options.csvCal, options.csvDim, options.csvFormulae,
-                options.csvTestReport, options.logFile, options.formulaParamExprResult, options.formulaParamInputValue,
+                options.utrValidate, options.DTSFile, options.factsFile, options.factListCols, 
+                options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
+                options.logFile, options.formulaParamExprResult, options.formulaParamInputValue,
                 options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
                 options.formulaCallExprResult, options.formulaVarSetExprEval, options.formulaVarSetExprResult,
                 options.formulaAsserResultCounts, options.formulaFormulaRules, options.formulaVarsOrder,
@@ -158,13 +159,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                          logFormat="[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
         
     def run(self, options):
-        result = None
-        self.filename = options.filename
-        filesource = FileSource.openFileSource(self.filename,self)
+        self.entrypointFile = options.entrypointFile
+        filesource = FileSource.openFileSource(self.entrypointFile,self)
         if options.validateEFM:
             if options.gfmName:
                 self.addToLog(_("both --efm and --gfm validation are requested, proceeding with --efm only"),
-                              messageCode="info", file=self.filename)
+                              messageCode="info", file=self.entrypointFile)
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select("efm")
         elif options.gfmName:
@@ -175,7 +175,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.calcDecimals:
             if options.calcPrecision:
                 self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
-                              messageCode="info", file=self.filename)
+                              messageCode="info", file=self.entrypointFile)
             self.modelManager.validateInferDecimals = True
             self.modelManager.validateCalcLB = True
         elif options.calcPrecision:
@@ -222,31 +222,37 @@ class CntlrCmdLine(Cntlr.Cntlr):
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         startedAt = time.time()
         modelXbrl = self.modelManager.load(filesource, _("views loading"))
+        if modelXbrl.errors:
+            return False    # loading errors, don't attempt to utilize loaded DTS
         self.addToLog(format_string(self.modelManager.locale, 
                                     _("loaded in %.2f secs at %s"), 
                                     (time.time() - startedAt, timeNow)), 
-                                    messageCode="info", file=self.filename)
-        if options.importFilenames:
-            for importFile in options.importFilenames.split("|"):
+                                    messageCode="info", file=self.entrypointFile)
+        if options.importFiles:
+            for importFile in options.importFiles.split("|"):
                 ModelDocument.load(modelXbrl, importFile.strip())
                 self.addToLog(format_string(self.modelManager.locale, 
                                             _("imported in %.2f secs at %s"), 
                                             (time.time() - startedAt, timeNow)), 
                                             messageCode="info", file=importFile)
-        if options.diffFilename and options.versReportFilename:
-            diffFilesource = FileSource.FileSource(options.diffFilename,self)
+            if modelXbrl.errors:
+                return False    # loading errors, don't attempt to utilize loaded DTS
+        if options.diffFile and options.versReportFile:
+            diffFilesource = FileSource.FileSource(options.diffFile,self)
             startedAt = time.time()
             modelXbrl = self.modelManager.load(diffFilesource, _("views loading"))
+            if modelXbrl.errors:
+                return False    # loading errors, don't attempt to utilize loaded DTS
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("diff comparison DTS loaded in %.2f secs"), 
                                         time.time() - startedAt), 
-                                        messageCode="info", file=self.filename)
+                                        messageCode="info", file=self.entrypointFile)
             startedAt = time.time()
-            result = self.modelManager.compareDTSes(options.versReportFilename, writeReportFile=not options.versReportInMemory)
+            self.modelManager.compareDTSes(options.versReportFile)
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("compared in %.2f secs"), 
                                         time.time() - startedAt), 
-                                        messageCode="info", file=self.filename)
+                                        messageCode="info", file=self.entrypointFile)
         try:
             if options.validate:
                 startedAt = time.time()
@@ -254,35 +260,37 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.addToLog(format_string(self.modelManager.locale, 
                                             _("validated in %.2f secs"), 
                                             time.time() - startedAt),
-                                            messageCode="info", file=self.filename)
-                if (options.csvTestReport and 
+                                            messageCode="info", file=self.entrypointFile)
+                if (options.testReport and 
                     self.modelManager.modelXbrl.modelDocument.type in 
                         (ModelDocument.Type.TESTCASESINDEX, 
                          ModelDocument.Type.TESTCASE, 
                          ModelDocument.Type.REGISTRY)):
-                    ViewCsvTests.viewTests(self.modelManager.modelXbrl, options.csvTestReport)
+                    ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport)
                 
-            if options.csvDTS:
-                ViewCsvDTS.viewDTS(modelXbrl, options.csvDTS)
-            if options.csvFactList:
-                ViewCsvFactList.viewFacts(modelXbrl, options.csvFactList, cols=options.csvFactListCols)
-            if options.csvConcepts:
-                ViewCsvConcepts.viewConcepts(modelXbrl, options.csvConcepts)
-            if options.csvPre:
-                ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvPre, "Presentation", "http://www.xbrl.org/2003/arcrole/parent-child")
-            if options.csvCal:
-                ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvCal, "Calculation", "http://www.xbrl.org/2003/arcrole/summation-item")
-            if options.csvDim:
-                ViewCsvRelationshipSet.viewRelationshipSet(modelXbrl, options.csvDim, "Dimension", "XBRL-dimensions")
-            if options.csvFormulae:
-                ViewCsvFormulae.viewFormulae(modelXbrl, options.csvFormulae, "Formulae")
+            if options.DTSFile:
+                ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
+            if options.factsFile:
+                ViewFileFactList.viewFacts(modelXbrl, options.factsFile, lang=options.labelLang, cols=options.factListCols)
+            if options.conceptsFile:
+                ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, lang=options.labelLang)
+            if options.preFile:
+                ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", lang=options.labelLang)
+            if options.calFile:
+                ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", lang=options.labelLang)
+            if options.dimFile:
+                ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", lang=options.labelLang)
+            if options.formulaeFile:
+                ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
         except (IOError, EnvironmentError) as err:
             self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
+            return False
         except Exception as err:
-            self.addToLog(_("[Exception] Failed to complete validation: \n{0} \n{1}").format(
+            self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
                         err,
                         traceback.format_tb(sys.exc_info()[2])))
-        return result
+            return False
+        return True
 
 if __name__ == "__main__":
     '''

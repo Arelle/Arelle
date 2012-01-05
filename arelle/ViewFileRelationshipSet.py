@@ -4,62 +4,65 @@ Created on Oct 6, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelObject, ModelDtsObject, XbrlConst, ViewCsv
+from arelle import ModelObject, ModelDtsObject, XbrlConst, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 import os
 
-def viewRelationshipSet(modelXbrl, csvfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
+def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
-    view = ViewRelationshipSet(modelXbrl, csvfile, header, lang)
+    view = ViewRelationshipSet(modelXbrl, outfile, header, lang)
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
     
-class ViewRelationshipSet(ViewCsv.View):
-    def __init__(self, modelXbrl, csvfile, header, lang):
-        super().__init__(modelXbrl, csvfile, header, lang)
+class ViewRelationshipSet(ViewFile.View):
+    def __init__(self, modelXbrl, outfile, header, lang):
+        super().__init__(modelXbrl, outfile, header, lang)
         
     def view(self, arcrole, linkrole=None, linkqname=None, arcqname=None):
-        # relationship set based on linkrole parameter, to determine applicable linkroles
-        relationshipSet = self.modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
-        if relationshipSet is None or len(relationshipSet.modelRelationships) == 0:
-            self.modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcrole))
-            return
-        # sort URIs by definition
-        linkroleUris = []
-        for linkroleUri in relationshipSet.linkRoleUris:
-            modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
-            if modelRoleTypes:
-                roledefinition = (modelRoleTypes[0].definition or linkroleUri)                    
-            else:
-                roledefinition = linkroleUri
-            linkroleUris.append((roledefinition, linkroleUri))
-        linkroleUris.sort()
         # determine relationships indent depth for dimensions linkbases
         # set up treeView widget and tabbed pane
-        heading = ["Relationships"]
         if arcrole == "XBRL-dimensions":    # add columns for dimensional information
-            self.treeCols = 0
+            heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
+        else:
+            heading = [os.path.basename(arcrole).title() + " Relationships"]
+        # relationship set based on linkrole parameter, to determine applicable linkroles
+        relationshipSet = self.modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
+
+        self.arcrole = arcrole
+        
+        if relationshipSet:
+            # sort URIs by definition
+            linkroleUris = []
+            for linkroleUri in relationshipSet.linkRoleUris:
+                modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
+                if modelRoleTypes:
+                    roledefinition = (modelRoleTypes[0].definition or linkroleUri)                    
+                else:
+                    roledefinition = linkroleUri
+                linkroleUris.append((roledefinition, linkroleUri))
+            linkroleUris.sort()
+    
             for roledefinition, linkroleUri in linkroleUris:
                 linkRelationshipSet = self.modelXbrl.relationshipSet(arcrole, linkroleUri, linkqname, arcqname)
                 for rootConcept in linkRelationshipSet.rootConcepts:
-                    self.treeDepth(rootConcept, rootConcept, 1, arcrole, linkRelationshipSet, set())
-            for i in range(self.treeCols):
-                heading.append(None)
-            heading.extend(["Arcrole","CntxElt","Closed","Usable"])
-        self.write(heading)
-        # root node for tree view
-        self.write([os.path.basename(arcrole)])
-        # for each URI in definition order
-        for roledefinition, linkroleUri in linkroleUris:
-            self.write([roledefinition])
-            linkRelationshipSet = self.modelXbrl.relationshipSet(arcrole, linkroleUri, linkqname, arcqname)
-            for rootConcept in linkRelationshipSet.rootConcepts:
-                self.viewConcept(rootConcept, rootConcept, "", None, [None], arcrole, linkRelationshipSet, set())
+                    self.treeDepth(rootConcept, rootConcept, 2, arcrole, linkRelationshipSet, set())
+                    
+        self.addRow(heading, asHeader=True) # must do after determining tree depth
+        
+        if relationshipSet:
+            # for each URI in definition order
+            for roledefinition, linkroleUri in linkroleUris:
+                attr = {"role": linkroleUri}
+                self.addRow([roledefinition], treeIndent=0, colSpan=len(heading), 
+                            xmlRowElementName="linkRole", xmlRowEltAttr=attr, xmlCol0skipElt=True)
+                linkRelationshipSet = self.modelXbrl.relationshipSet(arcrole, linkroleUri, linkqname, arcqname)
+                for rootConcept in linkRelationshipSet.rootConcepts:
+                    self.viewConcept(rootConcept, rootConcept, "", None, 1, arcrole, linkRelationshipSet, set())
 
-    def treeDepth(self, concept, modelObject, indentedCol, arcrole, relationshipSet, visited):
+    def treeDepth(self, concept, modelObject, indent, arcrole, relationshipSet, visited):
         if concept is None:
             return
-        if indentedCol > self.treeCols: self.treeCols = indentedCol
+        if indent > self.treeCols: self.treeCols = indent
         if concept not in visited:
             visited.add(concept)
             for modelRel in relationshipSet.fromModelObject(concept):
@@ -69,7 +72,7 @@ class ViewRelationshipSet(ViewCsv.View):
                     targetRole = relationshipSet.linkrole
                 else:
                     nestedRelationshipSet = self.modelXbrl.relationshipSet(arcrole, targetRole)
-                self.treeDepth(modelRel.toModelObject, modelRel, indentedCol + 1, arcrole, nestedRelationshipSet, visited)
+                self.treeDepth(modelRel.toModelObject, modelRel, indent + 1, arcrole, nestedRelationshipSet, visited)
             visited.remove(concept)
             
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, indent, arcrole, relationshipSet, visited):
@@ -82,16 +85,21 @@ class ViewRelationshipSet(ViewCsv.View):
                 concept.isTypedDimension and 
                 concept.typedDomainElement is not None):
                 text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
+            xmlRowElementName = "concept"
+            attr = {"name": str(concept.qname)}
         elif self.arcrole == "Table-rendering":
             text = concept.localName
+            xmlRowElementName = "element"
+            attr = {"label": concept.xlinkLabel}
         elif isinstance(concept, ModelDtsObject.ModelResource):
             text = (concept.text or concept.localName)
+            xmlRowElementName = "resource"
+            attr = {"name": str(concept.elementQname)}
         else:   # just a resource
             text = concept.localName
-        cols = indent + [text]
+            xmlRowElementName = text
+        cols = [text]
         if arcrole == "XBRL-dimensions" and isRelation: # extra columns
-            for i in range(self.treeCols - len(indent)):
-                cols.append(None)
             relArcrole = modelObject.arcrole
             cols.append( os.path.basename( relArcrole ) )
             if relArcrole in (XbrlConst.all, XbrlConst.notAll):
@@ -102,7 +110,7 @@ class ViewRelationshipSet(ViewCsv.View):
                 cols.append(None)
             if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                 cols.append( modelObject.usable  )
-        self.write(cols)
+        self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
         if concept not in visited:
             visited.add(concept)
             for modelRel in relationshipSet.fromModelObject(concept):
@@ -119,5 +127,5 @@ class ViewRelationshipSet(ViewCsv.View):
                 toConcept = modelRel.toModelObject
                 if toConcept in visited:
                     childPrefix += "(loop) "
-                self.viewConcept(toConcept, modelRel, childPrefix, modelRel.preferredLabel, indent + [None], arcrole, nestedRelationshipSet, visited)
+                self.viewConcept(toConcept, modelRel, childPrefix, modelRel.preferredLabel, indent + 1, arcrole, nestedRelationshipSet, visited)
             visited.remove(concept)

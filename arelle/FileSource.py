@@ -33,15 +33,23 @@ def archiveFilenameParts(filename):
             return (filenameParts[0] + archiveSep[:-1], filenameParts[2])
     return None
 
+class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
+    def __init__(self, fileName):
+        super().__init__()
+        self.fileName = fileName
+
+    def __str__(self):
+        return self.fileName
+            
 class FileSource:
     def __init__(self, url, cntlr=None):
-        self.url = url
-        self.baseIsHttp = url.startswith("http://")
+        self.url = str(url)  # allow either string or FileNamedStringIO
+        self.baseIsHttp = self.url.startswith("http://")
         self.cntlr = cntlr
-        self.type = url.lower()[-4:]
+        self.type = self.url.lower()[-4:]
         self.isZip = self.type == ".zip"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
-        self.isRss = (self.type == ".rss" or url.endswith(".rss.xml"))
+        self.isRss = (self.type == ".rss" or self.url.endswith(".rss.xml"))
         self.isOpen = False
         self.fs = None
         self.selection = None

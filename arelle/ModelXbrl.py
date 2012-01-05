@@ -5,9 +5,10 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import os, sys, traceback
+import os, sys, traceback, uuid
 import logging
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
+from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 from arelle.ViewUtilRenderedGrid import FactPrototype
@@ -55,10 +56,10 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
     modelXbrl = ModelXbrl(modelManager)
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
-        modelXbrl.fileSource = FileSource.FileSource(url)
+        modelXbrl.fileSource = FileSource.FileSource(url) # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, url, schemaRefs=schemaRefs, isEntry=isEntry)
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
     return modelXbrl
@@ -70,6 +71,7 @@ class ModelXbrl:
         self.init()
         
     def init(self, keepViews=False):
+        self.uuid = uuid.uuid1().urn
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
         self.errors = []
@@ -407,7 +409,7 @@ class ModelXbrl:
             elif argName == "sourceLine":
                 extras["sourceLine"] = argValue
             elif argName != "exc_info":
-                if isinstance(argValue, (ModelValue.QName, ModelObject, bool)):
+                if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO)):
                     fmtArgs[argName] = str(argValue)
                 elif isinstance(argValue,int):
                     # need locale-dependent formatting

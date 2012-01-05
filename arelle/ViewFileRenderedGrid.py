@@ -4,15 +4,16 @@ Created on Sep 13, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ViewHtml, XbrlConst
+from arelle import ViewFile, XbrlConst
 from lxml import etree
 from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
                                          inheritedExplicitDims, dimContextElement,
                                          FactPrototype, ContextPrototype, DimValuePrototype)
+from itertools import repeat
 
-def viewRenderedGrid(modelXbrl, htmlfile, lang=None, viewTblELR=None, sourceView=None):
+def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None):
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
-    view = ViewRenderedGrid(modelXbrl, htmlfile, lang)
+    view = ViewRenderedGrid(modelXbrl, outfile, lang)
     
     # dimension defaults required in advance of validation
     from arelle import ValidateXbrlDimensions
@@ -24,15 +25,14 @@ def viewRenderedGrid(modelXbrl, htmlfile, lang=None, viewTblELR=None, sourceView
         view.xAxisChildrenFirst.set(sourceView.xAxisChildrenFirst.get())
         view.yAxisChildrenFirst.set(sourceView.yAxisChildrenFirst.get())
     view.view(viewTblELR)    
-    view.write()
     view.close()
     
-class ViewRenderedGrid(ViewHtml.View):
-    def __init__(self, modelXbrl, htmlfile, lang):
-        super().__init__(modelXbrl, htmlfile, "Rendering", lang)
+class ViewRenderedGrid(ViewFile.View):
+    def __init__(self, modelXbrl, outfile, lang):
+        super().__init__(modelXbrl, outfile, "Rendering", lang, style="rendering")
         self.dimsContextElement = {}
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
-        self.zFilterIndex = 0
+        self.zComboBoxIndex = None
         
     def viewReloadDueToMenuAction(self, *args):
         self.view()
@@ -45,11 +45,10 @@ class ViewRenderedGrid(ViewHtml.View):
                 break
         self.tblELR = viewTblELR
 
-        tblAxisRelSet, xAxisObj, yAxisObj, zAxisObj = getTblAxes(self, viewTblELR) 
-        
-        self.tblElt = None
-        for self.tblElt in self.htmlDoc.iter(tag="{http://www.w3.org/1999/xhtml}table"):
-            break
+        tblAxisRelSet, xAxisObj, yAxisObj, zAxisObjs = getTblAxes(self, viewTblELR) 
+        if self.zComboBoxIndex is None:
+            self.zComboBoxIndex = list(repeat(0, len(zAxisObjs))) # start with 0 indices
+            self.zFilterIndex = list(repeat(0, len(zAxisObjs)))
         
         if tblAxisRelSet and self.tblElt is not None:
             self.rowElts = [etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
@@ -62,7 +61,8 @@ class ViewRenderedGrid(ViewHtml.View):
                              ).text = self.roledefinition
             
             zFilters = []
-            self.zAxis(1, zAxisObj, zFilters)
+            for i, zAxisObj in enumerate(zAxisObjs):
+                self.zAxis(1 + i, zAxisObj, zFilters)
             xFilters = []
             self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                        xAxisObj, xFilters, self.xAxisChildrenFirst.get(), True, True)
@@ -76,38 +76,52 @@ class ViewRenderedGrid(ViewHtml.View):
 
             
     def zAxis(self, row, zAxisObj, zFilters):
+        priorZfilter = len(zFilters)
+        
         for axisMbrRel in self.axisMbrRelSet.fromModelObject(zAxisObj):
             zAxisObj = axisMbrRel.toModelObject
             zFilters.append((inheritedPrimaryItemQname(self, zAxisObj),
                              inheritedExplicitDims(self, zAxisObj),
-                             zAxisObj.genLabel(lang=self.lang)))
-            priorZfilter = len(zFilters)
+                             zAxisObj.genLabel(lang=self.lang),
+                             zAxisObj.objectId()))
             self.zAxis(None, zAxisObj, zFilters)
-            if row is not None:
-                etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
-                                 attrib={"class":"zAxisHdr",
-                                         "style":"max-width:200pt;text-align:left;border-bottom:.5pt solid windowtext",
-                                         "colspan": str(self.dataCols)} # "2"}
-                                 ).text = zAxisObj.genLabel(lang=self.lang)
-                nextZfilter = len(zFilters)
-                if nextZfilter > priorZfilter:    # no combo box choices nested
-                    '''
-                    self.combobox = gridCombobox(
-                                 self.gridColHdr, self.dataFirstCol + 2, row,
-                                 values=[zFilter[2] for zFilter in zFilters[priorZfilter:nextZfilter]],
-                                 selectindex=self.zFilterIndex,
-                                 comboboxselected=self.comboBoxSelected)
-                    gridBorder(self.gridColHdr, self.dataFirstCol + 2, row, RIGHTBORDER)
-                    '''
-                    row += 1
+            
+        if row is not None:
+            nextZfilter = len(zFilters)
+            if nextZfilter > priorZfilter + 1:  # combo box, use header on zAxis
+                label = axisMbrRel.fromModelObject.genLabel(lang=self.lang)
+            else: # no combo box, use label on coord
+                label = zAxisObj.genLabel(lang=self.lang)
+            etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
+                             attrib={"class":"zAxisHdr",
+                                     "style":"max-width:200pt;text-align:left;border-bottom:.5pt solid windowtext",
+                                     "colspan": str(self.dataCols)} # "2"}
+                             ).text = label
+            if nextZfilter > priorZfilter + 1:    # multiple choices, use combo box
+                zIndex = row - 1
+                selectIndex = self.zComboBoxIndex[zIndex]
+                '''
+                combobox = gridCombobox(
+                             self.gridColHdr, self.dataFirstCol + 2, row,
+                             values=[zFilter[2] for zFilter in zFilters[priorZfilter:nextZfilter]],
+                             selectindex=selectIndex,
+                             columnspan=2,
+                             comboboxselected=self.comboBoxSelected)
+                combobox.zIndex = zIndex
+                '''
+                zFilterIndex = priorZfilter + selectIndex
+                self.zFilterIndex[zIndex] = zFilterIndex
+                row += 1
+
 
         if not zFilters:
             zFilters.append( (None,set()) )  # allow empty set operations
-        
+     
+    '''    
     def comboBoxSelected(self, *args):
-        self.zFilterIndex = self.combobox.valueIndex
+        self.zComboBoxIndex[combobox.zIndex] = combobox.valueIndex
         self.view() # redraw grid
-            
+    '''        
     def xAxis(self, leftCol, topRow, rowBelow, xAxisParentObj, xFilters, childrenFirst, renderNow, atTop):
         parentRow = rowBelow
         noDescendants = True
@@ -299,14 +313,19 @@ class ViewRenderedGrid(ViewHtml.View):
                     
                 # data for columns of row
                 ignoreDimValidity = self.ignoreDimValidity.get()
-                zFilter = zFilters[self.zFilterIndex]
+                zPriItemQname = None
+                zDims = set()
+                for zIndex in self.zFilterIndex:
+                    zFilter = zFilters[zIndex]
+                    if zFilter[0]: zPriItemQname = zFilter[0] # inherit pri item
+                    zDims |= zFilter[1] # or in z-dims
                 for i, colFilter in enumerate(xFilters):
                     colPriItemQname = colFilter[0] # y axis pri item
                     if not colPriItemQname: colPriItemQname = yAxisPriItemQname # y axis
-                    if not colPriItemQname: colPriItemQname = zFilter[0] # z axis
+                    if not colPriItemQname: colPriItemQname = zPriItemQname # z axis
                     fp = FactPrototype(self,
                                        colPriItemQname,
-                                       yAxisExplicitDims | colFilter[1] | zFilter[1])
+                                       yAxisExplicitDims | colFilter[1] | zDims)
                     from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
                     value = None
                     objectId = None

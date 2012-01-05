@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import tempfile, os, pickle, sys, logging, gettext
+import tempfile, os, pickle, sys, logging, gettext, json
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 
@@ -245,19 +245,40 @@ class LogToBufferHandler(logging.Handler):
         for logRec in self.logRecordBuffer:
             msg = self.format(logRec)
             if logRec.args:
-                args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) for n, v in logRec.args.items()])
+                args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) 
+                                for n, v in logRec.args.items()
+                                if v])  # skip empty arguments, they won't show in the message strings 
             else:
                 args = ""
             xml.append('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>'.format(
                     logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
         xml.append('</log>')  
-        self.logRecBuffer = []
+        self.logRecordBuffer = []
         return '\n'.join(xml)
     
+    def getJson(self):
+        entries = []
+        for logRec in self.logRecordBuffer:
+            message = { "text": self.format(logRec) }
+            if logRec.args:
+                for n, v in logRec.args.items():
+                    message[n] = v
+            entry = {"code": logRec.messageCode,
+                     "level": logRec.levelname.lower(),
+                     "file": logRec.file,
+                     "sourceLine": logRec.sourceLine,
+                     "message": message}
+            entries.append(entry)
+        self.logRecordBuffer = []
+        return json.dumps( {"log": entries} )
+    
+    def getLines(self):
+        lines = [self.format(logRec) for logRec in self.logRecordBuffer]
+        self.logRecordBuffer = []
+        return lines
+    
     def getText(self, separator='\n'):
-        text = separator.join([self.format(logRec) for logRec in self.logRecordBuffer])
-        self.logRecBuffer = []
-        return text
+        return separator.join(self.getLines())
     
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)

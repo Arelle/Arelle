@@ -1714,7 +1714,7 @@ class ModelInstantDuration(ModelFilter):
     
     @property
     def viewExpression(self):
-        return self.variable
+        return "${0} ({1})".format(self.variable, self.boundary)
 
 class MemberModel():
     def __init__(self, qname, qnameExprProg, variable, linkrole, arcrole, axis):
