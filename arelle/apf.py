@@ -35,18 +35,17 @@ def load_plugins():
     '''
     Utility method to load all plugins found in PLUGIN_DIRECTORY
     '''
-    for (root, dirs, files) in os.walk(PLUGIN_DIRECTORY): #TODO several directories, eg User Application Data
-        for name in dirs:
-            if name == "__pycache__":
-                continue
-            try :
-                file, path, description = imp.find_module(name, [PLUGIN_DIRECTORY])
-                module = imp.load_module(name, file, path, description)
-                print("Plugin {} v{} by {} loaded".format(name, module.__version__, module.__author__))
-            except :
-                # non modules will fail
-                print(sys.exc_info()[1])
-                pass
+    for dir in os.listdir(PLUGIN_DIRECTORY): #TODO several directories, eg User Application Data
+        if (os.path.isfile(dir)):
+            continue
+        try :
+            file, path, description = imp.find_module(dir, [PLUGIN_DIRECTORY])
+            module = imp.load_module(dir, file, path, description)
+            print("Plugin {} v{} by {} loaded".format(dir, module.__version__, module.__author__))
+        except :
+            # non modules will fail
+            print(sys.exc_info()[1])
+            pass
 class ExtensionsAt(object):
     ''' Descriptor to get plugins on a given mount point.
     '''
