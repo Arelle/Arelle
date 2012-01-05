@@ -1,13 +1,14 @@
 from arelle import apf
+from . import _
 __author__ = 'Régis Décamps'
 
 class SaveDtsMenu(apf.GUIMenu):
     ''' Menu item for the savedts plugin
     '''
-    label = "Save DTS in a package"
+    label = _("Package DTS in a zip")
     def execute(self):
         if self.modelManager is None or self.modelManager.modelXbrl is None:
-            self.controller.addToLog("No taxonomy loaded.")
+            self.controller.addToLog(_("No taxonomy loaded"))
             return
         #self.modelManager.saveDTSpackage(allDTSes=True)
         packager=DTSPackager(self.modelManager.modelXbrl)
@@ -18,7 +19,7 @@ class SaveDtsCli(apf.CommandLineOption):
     name="package-dts"
     action="store_true"
     dest="packageDTS"
-    help="Package the DTS into a zip file"
+    help=_("Package the DTS into a zip file")
 
     def execute(self):
         packager=DTSPackager(self.modelManager.modelXbrl)

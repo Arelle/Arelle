@@ -1,0 +1,36 @@
+# Arelle plugin "Save DTS"
+# Copyright (C) 2010 Mark V Systems Limited
+# This file is distributed under the same license as the Arelle package.
+# Regis Decamps <regis.decamps@acp.banque-france.fr>, 2012
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-01-05 16:52+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: savedts.py:8
+msgid "Package DTS in a zip"
+msgstr ""
+
+#: savedts.py:11
+msgid "No taxonomy loaded"
+msgstr ""
+
+#: savedts.py:22
+msgid "Package the DTS into a zip file"
+msgstr ""
+
+#: savedts.py:48
+#, possible-python-format
+msgid ""
+"DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %"
+"(packageOutputFile)s"
+msgstr ""
