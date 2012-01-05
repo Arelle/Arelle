@@ -42,13 +42,13 @@ class DTSPackager(object):
         except:
             compression = zipfile.ZIP_STORED
         entryFilename = self.dts.fileSource.url
+        entryDirname = os.path.dirname(entryFilename)
         pkgFilename = entryFilename + ".zip"
         with zipfile.ZipFile(pkgFilename, 'w') as zip:
             numFiles = 0
-            for fileUri in sorted(self.dts.urlDocs.keys()):
-                if not (fileUri.startswith("http://") or fileUri.startswith("https://")):
+            for fileUri in sorted(self.urlDocs.keys()):
+                if fileUri.startswith(entryDirname):
                     numFiles += 1
-                    # this has to be a relative path because the hrefs will break
-                    zip.write(fileUri, os.path.basename(fileUri))
+                    zip.write(fileUri, fileUri[len(entryDirname):])
         self.dts.info("info",_("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"),entryFile=entryFilename,numberOfFiles=numFiles,packageOutputFile=pkgFilename)
 
