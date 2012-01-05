@@ -34,11 +34,16 @@ class DTSPackager(object):
     def package(self):
         if self.dts.fileSource.isArchive:
             return
-        from zipfile import ZipFile
         import os
+        import zipfile
+        try:
+            import zlib
+            compression = zipfile.ZIP_DEFLATED
+        except:
+            compression = zipfile.ZIP_STORED
         entryFilename = self.dts.fileSource.url
         pkgFilename = entryFilename + ".zip"
-        with ZipFile(pkgFilename, 'w') as zip:
+        with zipfile.ZipFile(pkgFilename, 'w') as zip:
             numFiles = 0
             for fileUri in sorted(self.dts.urlDocs.keys()):
                 if not (fileUri.startswith("http://") or fileUri.startswith("https://")):
