@@ -883,7 +883,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.saveConfig()
         
     def setValidateTooltipText(self):
-        if self.modelManager.modelXbrl and not self.modelManager.modelXbrl.isClosed:
+        if self.modelManager.modelXbrl and not self.modelManager.modelXbrl.isClosed and self.modelManager.modelXbrl.modelDocument is not None:
             valType = self.modelManager.modelXbrl.modelDocument.type
             if valType in (ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE):
                 valName = "DTS"

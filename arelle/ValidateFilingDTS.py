@@ -58,6 +58,7 @@ def checkDTS(val, modelDocument, visited):
             definesDimensions = False
             definesDomains = False
             definesHypercubes = False
+            typedDomainElements = set()
                 
         # 6.7.3 check namespace for standard authority
         targetNamespaceAuthority = UrlUtil.authority(modelDocument.targetNamespace) 
@@ -287,11 +288,8 @@ def checkDTS(val, modelDocument, visited):
                                     modelObject=modelConcept, concept=modelConcept.qname)
                         if modelConcept.isTypedDimension:
                             domainElt = modelConcept.typedDomainElement
-                            if domainElt is not None and domainElt.localName == "complexType":
-                                val.modelXbrl.error("SBR.NL.2.2.8.02",
-                                    _("Typed dimension %(concept)s domain element %(typedDomainElement)s has disallowed complex content"),
-                                    modelObject=modelConcept, concept=modelConcept.qname,
-                                    typedDomainElement=domainElt.qname)
+                            if domainElt is not None:
+                                typedDomainElements.add(domainElt)
         # 6.7.8 check for embedded linkbase
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
             if isinstance(e,ModelObject):
@@ -394,6 +392,36 @@ def checkDTS(val, modelDocument, visited):
                         modelObject=e, arcroleURI=arcroleURI)
                     
         if val.validateSBRNL:
+            for domainElt in typedDomainElements:
+                if not domainElt.genLabel(fallbackToQname=False,lang="nl"):
+                    val.modelXbrl.error("SBR.NL.2.2.8.01",
+                        _("Typed dimension domain element %(concept)s must have a generic label"),
+                        modelObject=domainElt, concept=domainElt.qname)
+                if domainElt.type is not None and domainElt.type.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None:
+                    val.modelXbrl.error("SBR.NL.2.2.8.02",
+                        _("Typed dimension domain element %(concept)s has disallowed complex content"),
+                        modelObject=domainElt, concept=domainElt.qname)
+                    
+            for appinfoElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}appinfo"):
+                for nonLinkElt in appinfoElt.iterdescendants():
+                    if isinstance(nonLinkElt, ModelObject) and nonLinkElt.namespaceURI != XbrlConst.link:
+                        val.modelXbrl.error("SBR.NL.2.2.11.05",
+                            _("Appinfo contains disallowed non-link element %(element)s"),
+                            modelObject=nonLinkElt, element=nonLinkElt.qname)
+
+            for cplxTypeElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
+                choiceElt = cplxTypeElt.find("{http://www.w3.org/2001/XMLSchema}choice")
+                if choiceElt is not None:
+                    val.modelXbrl.error("SBR.NL.2.2.11.09",
+                        _("ComplexType contains disallowed xs:choice element"),
+                        modelObject=choiceElt)
+                    
+            for cplxContentElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}complexContent"):
+                if XmlUtil.descendantAttr(cplxContentElt, "http://www.w3.org/2001/XMLSchema", "extension", "base") != "sbr:placeholder":
+                    val.modelXbrl.error("SBR.NL.2.2.11.10",
+                        _("ComplexContent is disallowed"),
+                        modelObject=cplxContentElt)
+
             definesTypes = (modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None or
                             modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}simpleType") is not None)
             if (definesLinkroles + definesArcroles + definesLinkParts +
@@ -431,7 +459,7 @@ def checkDTS(val, modelDocument, visited):
                 val.modelXbrl.error("SBR.NL.2.2.1.02",
                     _("A schema having a label linkbase MUST define concepts"),
                     modelObject=modelDocument)
-            if definesNonabstractItems ^ any(  # xor so either concepts and no ref LB or no concepts and has ref LB
+            if (definesNonabstractItems or definesTuples) ^ any(  # xor so either concepts and no ref LB or no concepts and has ref LB
                        (refDoc.type == ModelDocument.Type.LINKBASE and
                        (XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "referenceLink") is not None or
                         XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "label", "{http://www.w3.org/1999/xlink}role", "http://www.xbrl.org/2003/role/documentation" ) is not None))

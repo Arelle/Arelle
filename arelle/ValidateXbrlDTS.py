@@ -583,6 +583,8 @@ def checkElements(val, modelDocument, parent):
                             _('Linkbase element is not prefixed: "%(element)s"'),
                             modelObject=elt, element=elt.qname)
             # check of roleRefs when parent is linkbase or instance element
+            xlinkType = elt.get("{http://www.w3.org/1999/xlink}type")
+            xlinkRole = elt.get("{http://www.w3.org/1999/xlink}role")
             if elt.namespaceURI == XbrlConst.link:
                 if elt.localName == "linkbase":
                     if elt.parentQname not in (None, XbrlConst.qnXsdAppinfo):
@@ -641,10 +643,13 @@ def checkElements(val, modelDocument, parent):
                                             val.modelXbrl.error(errCode,
                                                 _("Role %(refURI)s roleRef %(xlinkHref)s must not have an %(attribute)s attribute"),
                                                 modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName)
+                    if val.validateSBRNL:
+                        if not xlinkType:
+                            val.modelXbrl.error("SBR.NL.2.3.0.01",
+                                _("Xlink 1.1 simple type is not allowed (xlink:type is missing)"),
+                                modelObject=elt)
     
             # checks for elements in linkbases
-            xlinkType = elt.get("{http://www.w3.org/1999/xlink}type")
-            xlinkRole = elt.get("{http://www.w3.org/1999/xlink}role")
             if elt.namespaceURI == XbrlConst.link:
                 if elt.localName in ("schemaRef", "linkbaseRef", "roleRef", "arcroleRef"):
                     if xlinkType != "simple":

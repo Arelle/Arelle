@@ -794,11 +794,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error("SBR.NL.2.2.2.26",
                             _("Concept %(concept)s missing standard label in local language."),
                             modelObject=concept, concept=concept.qname)
-                    if ((not concept.isAbstract or concept.get("substitutionGroup") == "sbr:presentationItem") and
+                    subsGroup = concept.get("substitutionGroup")
+                    if ((not concept.isAbstract or subsGroup == "sbr:presentationItem") and
                         not (presentationRelationshipSet.toModelObject(concept) or
                              presentationRelationshipSet.fromModelObject(concept))):
                         modelXbrl.error("SBR.NL.2.2.2.04",
                             _("Concept %(concept)s not referred to by presentation relationship."),
+                            modelObject=concept, concept=concept.qname)
+                    elif ((concept.isDimensionItem or
+                          (subsGroup and (subsGroup.endswith(":domainItem") or subsGroup.endswith(":domainMemberItem")))) and
+                        not (presentationRelationshipSet.toModelObject(concept) or
+                             presentationRelationshipSet.fromModelObject(concept))):
+                        modelXbrl.error("SBR.NL.2.2.10.03",
+                            _("DTS concept %(concept)s not referred to by presentation relationship."),
                             modelObject=concept, concept=concept.qname)
                     if (concept.substitutionGroupQname and 
                         concept.substitutionGroupQname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces):
@@ -817,6 +825,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 self.checkConceptLabels(modelXbrl, labelsRelationshipSet, disclosureSystem, concept)
                 self.checkConceptLabels(modelXbrl, genLabelsRelationshipSet, disclosureSystem, concept)
 
+        if self.validateSBRNL:
+            for qname, modelType in modelXbrl.qnameTypes.items():
+                if qname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces:
+                    facets = modelConcept.facets
+                    if facets:
+                        if facets.keys() & {"minLength", "maxLength"}:
+                            modelXbrl.error("SBR.NL.2.2.7.02",
+                                _("Type %(typename)s has length restriction facets"),
+                                modelObject=modelType, typename=modelType.qname)
+                        if "enumeration" in facets and modelConcept.baseXsdType != "string":
+                            modelXbrl.error("SBR.NL.2.2.7.04",
+                                _("Concept %(concept)s has enumeration and is not based on stringItemType"),
+                                modelObject=modelType, concept=modelType.qname)
+                        
         self.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
 
         defaultLangStandardLabels = None #dereference
