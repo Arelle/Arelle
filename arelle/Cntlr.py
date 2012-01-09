@@ -12,7 +12,7 @@ from arelle.Locale import getLanguageCodes
 class Cntlr:
 
     __version__ = "0.0.4"
-    
+
     def __init__(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         self.hasWin32gui = False
         if sys.platform == "darwin":
@@ -103,9 +103,9 @@ class Cntlr:
         if not self.config:
             self.config = {
                 'fileHistory': [],
-                'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),                
+                'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
             }
-            
+
         # start language translation for domain
         try:
             gettext.translation("arelle", self.localeDir, getLanguageCodes()).install()
@@ -115,7 +115,7 @@ class Cntlr:
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         self.modelManager = ModelManager.initialize(self)
-        
+
         if logFileName: # use default logging
             self.logger = logging.getLogger("arelle")
             if logFileName == "logToPrint":
@@ -126,15 +126,15 @@ class Cntlr:
                 self.logHandler = LogToXmlHandler(filename=logFileName)
                 logFormat = "%(message)s"
             else:
-                self.logHandler = logging.FileHandler(filename=logFileName, 
-                                                      mode=logFileMode if logFileMode else "w", 
+                self.logHandler = logging.FileHandler(filename=logFileName,
+                                                      mode=logFileMode if logFileMode else "w",
                                                       encoding=logFileEncoding if logFileEncoding else "utf-8")
             self.logHandler.level = logging.DEBUG
             self.logHandler.setFormatter(logging.Formatter(logFormat if logFormat else "%(asctime)s [%(messageCode)s] %(message)s - %(file)s %(sourceLine)s \n"))
             self.logger.addHandler(self.logHandler)
         else:
             self.logger = None
-    apf.load_plugins()
+        self.loaded_addons = apf.load_plugins()
 
     def addToLog(self, message, messageCode="", file="", sourceLine=""):
         # if there is a default logger, use it with dummy file name and arguments
@@ -142,35 +142,35 @@ class Cntlr:
             self.logger.info(message, extra={"messageCode":messageCode,"file":file,"sourceLine":sourceLine})
         else:
             print(message) # allows printing on standard out
-            
+
     def showStatus(self, message, clearAfter=None):
         # dummy status line for batch operation
         pass
-    
+
     def close(self, saveConfig=False):
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:
             self.logHandler.close()
-        
+
     def saveConfig(self):
         with open(self.configPickleFile, 'wb') as f:
             pickle.dump(self.config, f, pickle.HIGHEST_PROTOCOL)
-            
+
     # default non-threaded viewModelObject                 
     def viewModelObject(self, modelXbrl, objectId):
         modelXbrl.viewModelObject(objectId)
-            
+
     def reloadViews(self, modelXbrl):
         pass
-    
+
     def rssWatchUpdateOption(self, **args):
         pass
-        
+
     # default web authentication password
     def internet_user_password(self, host, realm):
         return ('myusername','mypassword')
-    
+
     # if no text, then return what is on the clipboard, otherwise place text onto clipboard
     def clipboardData(self, text=None):
         if self.hasClipboard:
@@ -229,7 +229,7 @@ class LogToXmlHandler(logging.Handler):
                     args = ""
                 fh.write('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>\n'.format(
                         logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
-            fh.write('</log>\n')  
+            fh.write('</log>\n')
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
 
@@ -237,10 +237,10 @@ class LogToBufferHandler(logging.Handler):
     def __init__(self):
         super().__init__()
         self.logRecordBuffer = []
-        
+
     def flush(self):
         pass # do nothing
-    
+
     def getXml(self):
         xml = ['<?xml version="1.0" encoding="utf-8"?>\n',
                '<log>']
@@ -252,15 +252,15 @@ class LogToBufferHandler(logging.Handler):
                 args = ""
             xml.append('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>'.format(
                     logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
-        xml.append('</log>')  
+        xml.append('</log>')
         self.logRecBuffer = []
         return '\n'.join(xml)
-    
+
     def getText(self, separator='\n'):
         text = separator.join([self.format(logRec) for logRec in self.logRecordBuffer])
         self.logRecBuffer = []
         return text
-    
+
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
 

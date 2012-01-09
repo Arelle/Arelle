@@ -18,6 +18,7 @@ class MountPoint(type):
     Add the parameter `metaclass = MountPoint` in any class to make it a mont point.
 
     '''
+
     def __init__(cls, name, bases, attrs):
         if not hasattr(cls, 'plugins'):
             # This branch only executes when processing the mount point itself.
@@ -31,24 +32,51 @@ class MountPoint(type):
             # track of it later.
             cls.plugins.append(cls)
 
-def load_plugins():
+
+def list_plugins():
     '''
-    Utility method to load all plugins found in PLUGIN_DIRECTORY
+    Utility method to list available plugins
     '''
+    l = list()
     for dir in os.listdir(PLUGIN_DIRECTORY): #TODO several directories, eg User Application Data
         if (os.path.isfile(dir)):
             continue
-        try :
-            file, path, description = imp.find_module(dir, [PLUGIN_DIRECTORY])
-            module = imp.load_module(dir, file, path, description)
-            print("Plugin {} v{} by {} loaded".format(dir, module.__version__, module.__author__))
-        except :
+        l.append(dir)
+    return l
+
+
+def load_plugins(ignored_plugins=None):
+    '''
+    Utility method to load all plugins found in PLUGIN_DIRECTORY
+    @type  ignored_plugins: a list of string
+    @param ignored_plugins: the list of plugins to ignore (by name)
+    '''
+    loaded_plugins = {}
+    if ignored_plugins is None:
+        ignored_plugins = ()
+    for addon in list_plugins():
+        if addon in ignored_plugins:
+            print("Plugin %(addon)s not loaded because it is deactivated")
+            continue
+        if addon in loaded_plugins:
+            print("Plugin %(addon)s not reloaded because it has already been loaded")
+            continue
+        try:
+            file, path, description = imp.find_module(addon, [PLUGIN_DIRECTORY])
+            module = imp.load_module(addon, file, path, description)
+            print("Plugin {} v{} by {} loaded".format(addon, module.__version__, module.__author__))
+            loaded_plugins[addon] = module
+        except:
             # non modules will fail
             print(sys.exc_info()[1])
             pass
+    return loaded_plugins
+
+
 class ExtensionsAt(object):
     ''' Descriptor to get plugins on a given mount point.
     '''
+
     def __init__(self, mount_point):
         ''' Initialize the descriptor with the mount point wanted.
         Eg: ExtensionsAt(apf.GUIMenu) to get extensions that change the GUI Menu.
@@ -72,9 +100,11 @@ class GUIMenu(object, metaclass=MountPoint):
      It must implement
      def execute(self):
      '''
+
     def __init__(self, controller):
         self.modelManager = controller.modelManager
         self.controller = controller
+
 
 class CommandLineOption(object, metaclass=MountPoint):
     ''' Plugins can inherit this mount point in order to add a command line option.
@@ -87,6 +117,7 @@ class CommandLineOption(object, metaclass=MountPoint):
     * help: help message
     The value obtained from the parser will be stored in self.__name__
     '''
+
     def __init__(self, controller):
         self.modelManager = controller.modelManager
         self.gui = None

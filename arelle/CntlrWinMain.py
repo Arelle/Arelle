@@ -20,7 +20,8 @@ import logging
 import threading, queue
 
 from arelle import Cntlr
-from arelle import (DialogURL, 
+from arelle import (DialogURL,
+                DialogAddonManager,
                 ModelDocument,
                 ModelManager,
                 ViewWinDTS,
@@ -155,6 +156,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         helpMenu = Menu(self.menubar, tearoff=0)
         for label, command, shortcut_text, shortcut in (
                 (_("Check for updates"), lambda: Updater.checkForUpdates(self), None, None),
+                (_("Manage add-ons"), lambda: DialogAddonManager.DialogAddonManager(self), None, None),
                 (None, None, None, None),
                 (_("About..."), self.helpAbout, None, None),
                 ):
