@@ -355,11 +355,12 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     error=err)
             else:
                 modelXbrl.error("xmlSchema:valueError",
-                    _("Element %(element)s type %(typeName)s value error: %(value)s"),
+                    _("Element %(element)s type %(typeName)s value error: %(value)s, %(error)s"),
                     modelObject=elt,
                     element=elt.elementQname,
                     typeName=baseXsdType,
-                    value=value)
+                    value=value,
+                    error=err)
             xValue = None
             sValue = value
             xValid = INVALID

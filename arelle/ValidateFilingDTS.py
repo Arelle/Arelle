@@ -58,7 +58,6 @@ def checkDTS(val, modelDocument, visited):
             definesDimensions = False
             definesDomains = False
             definesHypercubes = False
-            typedDomainElements = set()
                 
         # 6.7.3 check namespace for standard authority
         targetNamespaceAuthority = UrlUtil.authority(modelDocument.targetNamespace) 
@@ -286,10 +285,6 @@ def checkDTS(val, modelDocument, visited):
                                 val.modelXbrl.error("SBR.NL.2.2.5.02",
                                     _("Link part definition %(concept)s must have a generic label in language 'nl'"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                        if modelConcept.isTypedDimension:
-                            domainElt = modelConcept.typedDomainElement
-                            if domainElt is not None:
-                                typedDomainElements.add(domainElt)
         # 6.7.8 check for embedded linkbase
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
             if isinstance(e,ModelObject):
@@ -392,16 +387,6 @@ def checkDTS(val, modelDocument, visited):
                         modelObject=e, arcroleURI=arcroleURI)
                     
         if val.validateSBRNL:
-            for domainElt in typedDomainElements:
-                if not domainElt.genLabel(fallbackToQname=False,lang="nl"):
-                    val.modelXbrl.error("SBR.NL.2.2.8.01",
-                        _("Typed dimension domain element %(concept)s must have a generic label"),
-                        modelObject=domainElt, concept=domainElt.qname)
-                if domainElt.type is not None and domainElt.type.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None:
-                    val.modelXbrl.error("SBR.NL.2.2.8.02",
-                        _("Typed dimension domain element %(concept)s has disallowed complex content"),
-                        modelObject=domainElt, concept=domainElt.qname)
-                    
             for appinfoElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}appinfo"):
                 for nonLinkElt in appinfoElt.iterdescendants():
                     if isinstance(nonLinkElt, ModelObject) and nonLinkElt.namespaceURI != XbrlConst.link:

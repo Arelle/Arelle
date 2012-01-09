@@ -12,7 +12,6 @@ def checkDimensions(val, drsELRs):
     fromConceptELRs = defaultdict(set)
     hypercubes = set()
     hypercubesInLinkrole = defaultdict(set)
-    hypercubeDRSDimensions = defaultdict(dict)
     for ELR in drsELRs:
         domainMemberRelationshipSet = val.modelXbrl.relationshipSet( XbrlConst.domainMember, ELR)
                             
@@ -74,12 +73,6 @@ def checkDimensions(val, drsELRs):
                                     modelObject=hcDimRel, dimension=dim.qname, linkrole=ELR)
                         if hasHypercubeArcrole == XbrlConst.all:
                             positiveAxisTableSources[dim].add(sourceConcept)
-                            try:
-                                hcDRSdims = hypercubeDRSDimensions[hc][domELR]
-                            except KeyError:
-                                hcDRSdims = set()
-                                hypercubeDRSDimensions[hc][domELR] = hcDRSdims
-                            hcDRSdims.add(dim)
                         elif hasHypercubeArcrole == XbrlConst.notAll and \
                              (dim not in positiveAxisTableSources or \
                               not commonAncestor(domainMemberRelationshipSet,
@@ -237,20 +230,28 @@ def checkDimensions(val, drsELRs):
                         _("Abstract domain item %(domain)s in DRS role %(linkrole)s is not a primaryDomainItem"),
                         modelObject=rel, domain=relFrom.qname, linkrole=rel.linkrole)
                     break # don't repeat parent's error on rest of child members
-        '''removed RH 2011-12-06 #check unique set of dimensions per hypercube
+        hypercubeDRSDimensions = defaultdict(dict)
+        for hcDimRel in val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension).modelRelationships:
+            hc = hcDimRel.fromModelObject
+            ELR = hcDimRel.linkrole
+            try:
+                hcDRSdims = hypercubeDRSDimensions[hc][ELR]
+            except KeyError:
+                hcDRSdims = set()
+                hypercubeDRSDimensions[hc][ELR] = hcDRSdims
+            hcDRSdims.add(hcDimRel.toModelObject)
         for hc, DRSdims in hypercubeDRSDimensions.items():
-            priorELR = None
-            priorDRSdims = None
-            for ELR, dims in DRSdims.items():
-                if priorDRSdims is not None and priorDRSdims != dims:
+            hcELRdimSets = {}
+            for ELR, mutableDims in DRSdims.items():
+                dims = frozenset(mutableDims)
+                if dims not in hcELRdimSets:
+                    hcELRdimSets[dims] = ELR
+                else: 
                     val.modelXbrl.error("SBR.NL.2.3.5.02",
-                        _("Hypercube %(hypercube)s has different dimensions in DRS roles %(linkrole)s and %(linkrole2)s: %(dimensions)s and %(dimensions2)s"),
-                        modelObject=val.modelXbrl, hypercube=hc.qname, linkrole=ELR, linkrole2=priorELR,
-                        dimensions=", ".join([str(dim.qname) for dim in dims]),
-                        dimensions2=", ".join([str(dim.qname) for dim in priorDRSdims]))
-                priorELR = ELR
-                priorDRSdims = dims
-        '''
+                        _("Hypercube %(hypercube)s has same dimensions in ELR roles %(linkrole)s and %(linkrole2)s: %(dimensions)s"),
+                        modelObject=hc, hypercube=hc.qname, linkrole=ELR, linkrole2=hcELRdimSets[dims],
+                        dimensions=", ".join([str(dim.qname) for dim in dims]))
+        del hypercubeDRSDimensions # dereference
                         
 def getDrsRels(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts=None):
     if not fromConcepts: fromConcepts = set()

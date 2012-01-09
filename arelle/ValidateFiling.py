@@ -42,11 +42,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             self.qnSbrLinkroleorder = ModelValue.qname("http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension","linkroleOrder")
 
             self.typedDomainQnames = set()
+            typedDomainElements = set()
             for modelConcept in modelXbrl.qnameConcepts.values():
                 if modelConcept.isTypedDimension:
                     typedDomainElement = modelConcept.typedDomainElement
                     if typedDomainElement is not None:
                         self.typedDomainQnames.add(typedDomainElement.qname)
+                        typedDomainElements.add(typedDomainElement)
         
         # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks
         super(ValidateFiling,self).validate(modelXbrl, parameters)
@@ -828,12 +830,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         if self.validateSBRNL:
             for qname, modelType in modelXbrl.qnameTypes.items():
                 if qname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces:
-                    facets = modelConcept.facets
+                    facets = modelType.facets
                     if facets:
-                        if facets.keys() & {"minLength", "maxLength"}:
+                        lengthFacets = facets.keys() & {"minLength", "maxLength", "length"}
+                        if lengthFacets:
                             modelXbrl.error("SBR.NL.2.2.7.02",
-                                _("Type %(typename)s has length restriction facets"),
-                                modelObject=modelType, typename=modelType.qname)
+                                _("Type %(typename)s has length restriction facets %(facets)s"),
+                                modelObject=modelType, typename=modelType.qname, facets=", ".join(lengthFacets))
                         if "enumeration" in facets and modelConcept.baseXsdType != "string":
                             modelXbrl.error("SBR.NL.2.2.7.04",
                                 _("Concept %(concept)s has enumeration and is not based on stringItemType"),
@@ -1148,6 +1151,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error("SBR.NL.2.2.7.04",
                                     _('Schema type enumeration %(value)s must be a xbrli:stringItemType restriction'),
                                     modelObject=modelType, value=modelType.qname)
+
+            for domainElt in typedDomainElements:
+                if domainElt.modelDocument.targetNamespace not in disclosureSystem.baseTaxonomyNamespaces:
+                    if not domainElt.genLabel(fallbackToQname=False,lang="nl"):
+                        modelXbrl.error("SBR.NL.2.2.8.01",
+                            _("Typed dimension domain element %(concept)s must have a generic label"),
+                            modelObject=domainElt, concept=domainElt.qname)
+                    if domainElt.type is not None and domainElt.type.localName == "complexType":
+                        modelXbrl.error("SBR.NL.2.2.8.02",
+                            _("Typed dimension domain element %(concept)s has disallowed complex content"),
+                            modelObject=domainElt, concept=domainElt.qname)
+                    
             self.modelXbrl.profileActivity("... SBR role types and type facits checks", minTimeToShow=1.0)
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
@@ -1198,6 +1213,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         role=dupDetectKey[0], lang=dupDetectKey[1])
                 else:
                     dupLabels.add(dupDetectKey)
+                if modelLabel.role in (XbrlConst.periodStartLabel, XbrlConst.periodEndLabel):
+                    modelXbrl.error("SBR.NL.2.3.8.03",
+                        _("Concept %(concept)s has label for semantical role %(role)s."),
+                        modelObject=modelLabel, concept=concept.qname, role = modelLabel.role)
                 
         #6 10.1 en-US standard label
         if not hasDefaultLangStandardLabel:
