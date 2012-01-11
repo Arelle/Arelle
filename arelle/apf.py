@@ -1,3 +1,5 @@
+import ast
+
 __author__ = "Régis Décamps"
 
 import os, imp
@@ -45,32 +47,62 @@ def list_plugins():
     return l
 
 
-def load_plugins(ignored_plugins=None):
+def load_plugins(**kwargs):
     '''
     Utility method to load all plugins found in PLUGIN_DIRECTORY
-    @type  ignored_plugins: a list of string
-    @param ignored_plugins: the list of plugins to ignore (by name)
+    @type  ignored: a list of string
+    @param ignored: the list of plugins to ignore (by name)
+    @type name: a string
+    @param name: name of a single plugin to load
+    @type names: a list of string
+    @param names: the list of plugins to load. If undefined, plugins from PLUGIN_DIRECTORY are loaded
+    @return The list of loaded modules
     '''
+    ignored_plugins = ()
+    names = None
+    for key in kwargs:
+        if key == 'ignore':
+            ignored_plugins = kwargs[key]
+        elif key == 'names':
+            names = kwargs[key]
+        elif key == 'name':
+            names = (kwargs[key],)
+    if names is None:
+        names = list_plugins()
     loaded_plugins = {}
-    if ignored_plugins is None:
-        ignored_plugins = ()
-    for addon in list_plugins():
+    for addon in names:
         if addon in ignored_plugins:
-            print("Plugin %(addon)s not loaded because it is deactivated")
+            print("Plugin %(addon)s not loaded because it is disabled" % {'addon': addon})
             continue
         if addon in loaded_plugins:
-            print("Plugin %(addon)s not reloaded because it has already been loaded")
+            print("Plugin %(addon)s not reloaded because it has already been loaded" % {'addon': addon})
             continue
         try:
+            file = None # defines variable for catch clause
             file, path, description = imp.find_module(addon, [PLUGIN_DIRECTORY])
             module = imp.load_module(addon, file, path, description)
             print("Plugin {} v{} by {} loaded".format(addon, module.__version__, module.__author__))
             loaded_plugins[addon] = module
         except:
             # non modules will fail
+            # not a big deal, but file may have been opened by find_module
+            if file is not None:
+                file.close()
+                # and printing the stack can help understand what happened
             print(sys.exc_info()[1])
-            pass
     return loaded_plugins
+
+def get_module_info(name):
+    source = ast.AST()
+    for dir in os.listdir(PLUGIN_DIRECTORY): #TODO several directories, eg User Application Data
+        if os.path.isdir(os.path.join(dir,name)):
+            break;
+    tree = ast.parse(source, os.path.join(dir,name,'__init__.py'))
+    module_info = imp.new_module(name)
+    module_info.__version__ = '0.0'
+    module_info.__author__ = 'John Doe'
+    module_info.__desc__ = 'Doh!'
+    return module_info
 
 
 class ExtensionsAt(object):

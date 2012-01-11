@@ -134,7 +134,9 @@ class Cntlr:
             self.logger.addHandler(self.logHandler)
         else:
             self.logger = None
-        self.loaded_addons = apf.load_plugins()
+        self.disabled_addons = ['hello_dolly'] #TODO pickle configuration
+        self.loaded_addons = apf.load_plugins(ignore = self.disabled_addons)
+
 
     def addToLog(self, message, messageCode="", file="", sourceLine=""):
         # if there is a default logger, use it with dummy file name and arguments
