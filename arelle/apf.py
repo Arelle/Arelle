@@ -49,7 +49,8 @@ def list_plugins():
 
 def load_plugins(**kwargs):
     '''
-    Utility method to load all plugins found in PLUGIN_DIRECTORY
+    Utility method to load plugins.
+    If neither `name` nor `names` are specified, it loads all modules found in PLUGIN_DIRECTORY.
     @type  ignored: a list of string
     @param ignored: the list of plugins to ignore (by name)
     @type name: a string
@@ -92,17 +93,19 @@ def load_plugins(**kwargs):
             print(sys.exc_info()[1])
     return loaded_plugins
 
+
 def get_module_info(name):
-    source = ast.AST()
-    for dir in os.listdir(PLUGIN_DIRECTORY): #TODO several directories, eg User Application Data
-        if os.path.isdir(os.path.join(dir,name)):
-            break;
-    tree = ast.parse(source, os.path.join(dir,name,'__init__.py'))
-    module_info = imp.new_module(name)
-    module_info.__version__ = '0.0'
-    module_info.__author__ = 'John Doe'
-    module_info.__desc__ = 'Doh!'
-    return module_info
+    #TODO several directories, eg User Application Data
+    filename = os.path.join(PLUGIN_DIRECTORY, name, '__init__.py')
+    with open(filename) as f:
+        module_info = imp.new_module(name)
+        tree = ast.parse(f.read(), filename=filename)
+        for item in tree.body:
+            if isinstance(item, ast.Assign):
+                attr = item.targets[0].id
+                if attr in ('__author__','__version__','__desc__'):
+                    setattr(module_info, attr, item.value.s)
+        return module_info
 
 
 class ExtensionsAt(object):

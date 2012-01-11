@@ -104,6 +104,7 @@ class Cntlr:
             self.config = {
                 'fileHistory': [],
                 'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
+                'disabled_plugins': {}
             }
 
         # start language translation for domain
@@ -134,8 +135,8 @@ class Cntlr:
             self.logger.addHandler(self.logHandler)
         else:
             self.logger = None
-        self.disabled_addons = ['hello_dolly'] #TODO pickle configuration
-        self.loaded_addons = apf.load_plugins(ignore = self.disabled_addons)
+        disabled_addons = self.config.setdefault('disabled_addons',list())
+        self.loaded_addons = apf.load_plugins(ignore = disabled_addons)
 
 
     def addToLog(self, message, messageCode="", file="", sourceLine=""):

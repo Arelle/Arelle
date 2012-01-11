@@ -1,6 +1,6 @@
 from tkinter import Toplevel, Frame, PanedWindow, constants, tix, Label, Entry, StringVar, Button
 import sys
-from tkinter.constants import LEFT, HORIZONTAL
+from tkinter.constants import LEFT, HORIZONTAL, DISABLED, ACTIVE
 from tkinter.ttk import Treeview
 from arelle import apf
 
@@ -11,17 +11,19 @@ TAG_INACTIVE = 'inactive'
 class DialogAddonManager(Toplevel):
     def __init__(self, controller):
         super().__init__(controller.parent)
+        self.controller = controller
+        self.log = controller.addToLog
         self.loaded_addons = controller.loaded_addons
         self.disabled_addons = {}
-        for name in controller.disabled_addons:
+        for name in controller.config['disabled_addons']:
             self.disabled_addons[name] = apf.get_module_info(name)
 
         self.title(_("Manage add-ons"))
         #pane = PanedWindow(self)
 
         #addon list
-        addonList = AddonTreeview(self)
-        addonList.grid(row=0, column=0, rowspan=2)
+        addon_tree = AddonTreeview(self)
+        addon_tree.grid(row=0, column=0, rowspan=2)
 
         # details of the selected addon
         detailsFrame = Frame(self)
@@ -47,19 +49,43 @@ class DialogAddonManager(Toplevel):
     def on_item_selected(self, event):
         name_selected = event.widget.focus()
         if name_selected in self.disabled_addons:
-            self.button.config(text=_("Enable"), command=self.on_button_enable)
+            callback = self.on_button_enable(name_selected)
+            self.button.config(text=_("Enable"), command=callback)
             module_selected = self.disabled_addons[name_selected]
         else:
-            self.button.config(text=_("Disable"), command=self.on_button_disable)
+            callback = self.on_button_disable(name_selected)
+            self.button.config(text=_("Disable"), command=callback)
             module_selected = self.loaded_addons[name_selected]
         self.val_author.set(module_selected.__author__)
         self.val_desc.set(module_selected.__desc__)
+        self.button.config(state=ACTIVE)
 
-    def on_button_enable(self):
-        pass
+    def on_button_enable(self, name_selected):
+        def callback():
+            try:
+                self.loaded_addons[name_selected] = apf.load_plugins(name=name_selected)
+                self.log(_("Plugin %(plugin)s loaded successfully. You may have to restart Arelle.") %
+                         {'plugin': name_selected})
+                del self.disabled_addons[name_selected]
+                self.controller.config['disabled_addons'].remove(name_selected)
+                self.button.config(state=DISABLED)
+            except:
+                self.log(_("Failed to load module: %(error)s") % {'error': sys.exc_info()})
 
-    def on_button_disable(self):
-        pass
+        return callback
+
+    def on_button_disable(self, name_selected):
+        def callback():
+            try:
+                self.disabled_addons[name_selected] = sys.modules[name_selected]
+                self.controller.config['disabled_addons'].append(name_selected)
+                self.log(_("Plugin %(plugin)s disabled in config. You may have to restart Arelle.") %
+                         {'plugin': name_selected})
+                self.button.config(state=DISABLED)
+            except:
+                self.log(_("Failed to disable module: %(error)s") % {'error': sys.exc_info()})
+
+        return callback
 
 
 class AddonTreeview(Treeview):
