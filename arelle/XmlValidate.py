@@ -216,19 +216,25 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                 elif qn in predefinedAttributeTypes:
                     baseXsdAttrType, facets = predefinedAttributeTypes[qn]
             validateValue(modelXbrl, elt, attrTag, baseXsdAttrType, attrValue, facets=facets)
-        if type is not None and attrQname is None:
-            missingAttributes = type.requiredAttributeQnames - presentAttributes
-            if missingAttributes:
-                modelXbrl.error("xmlSchema:attributesRequired",
-                    _("Element %(element)s type %(typeName)s missing required attributes: %(attributes)s"),
-                    modelObject=elt,
-                    element=elt.elementQname,
-                    typeName=baseXsdType,
-                    attributes=','.join(str(a) for a in missingAttributes))
-            # add default attribute values
-            for attrQname in (type.defaultAttributeQnames - presentAttributes):
-                modelAttr = type.attributes[attrQname]
-                validateValue(modelXbrl, elt, attrQname.clarkNotation, modelAttr.baseXsdType, modelAttr.default, facets=modelAttr.facets)
+        if type is not None:
+            if attrQname is None:
+                missingAttributes = type.requiredAttributeQnames - presentAttributes
+                if missingAttributes:
+                    modelXbrl.error("xmlSchema:attributesRequired",
+                        _("Element %(element)s type %(typeName)s missing required attributes: %(attributes)s"),
+                        modelObject=elt,
+                        element=elt.elementQname,
+                        typeName=baseXsdType,
+                        attributes=','.join(str(a) for a in missingAttributes))
+                # add default attribute values
+                for attrQname in (type.defaultAttributeQnames - presentAttributes):
+                    modelAttr = type.attributes[attrQname]
+                    validateValue(modelXbrl, elt, attrQname.clarkNotation, modelAttr.baseXsdType, modelAttr.default, facets=modelAttr.facets)
+            if recurse:
+                try:
+                    validateElementSequence(type.particles, elt.getChildren())
+                except AttributeError:
+                    pass
     if recurse:
         for child in elt.getchildren():
             if isinstance(child, ModelObject):
@@ -262,11 +268,11 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 if "enumeration" in facets and value not in facets["enumeration"]:
                     raise ValueError("is not in {1}".format(value, facets["enumeration"]))
                 if "length" in facets and len(value) != facets["length"]:
-                    raise ValueError("length facet")
+                    raise ValueError("length facet {0}".format(facets["length"]))
                 if "minLength" in facets and len(value) < facets["minLength"]:
-                    raise ValueError("minLength facet")
+                    raise ValueError("minLength facet {0}".format(facets["minLength"]))
                 if "maxLength" in facets and len(value) > facets["maxLength"]:
-                    raise ValueError("maxLength facet")
+                    raise ValueError("maxLength facet {0}".format(facets["maxLength"]))
             if baseXsdType == "noContent":
                 if len(value) > 0 and not value.isspace():
                     raise ValueError("value content not permitted")
@@ -286,11 +292,11 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             elif baseXsdType in ("decimal", "float", "double"):
                 xValue = sValue = float(value)
                 if facets:
-                    if "totalDigits" in facets and len(value.replace(".","")) != facets["totalDigits"]:
-                        raise ValueError("total digits facet")
-                    if "fractionDigits" in facets and ( '.' not in value or
-                        len(value[value.index('.') + 1:]) != facets["fractionDigits"]):
-                        raise ValueError("fraction digits facet")
+                    if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
+                        raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
+                    if "fractionDigits" in facets and ( '.' in value and
+                        len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
+                        raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
             elif baseXsdType in ("integer",):
                 xValue = sValue = int(value)
             elif baseXsdType == "boolean":
@@ -397,4 +403,6 @@ def validateFacet(typeElt, facetElt):
         return facetElt.xValue
     return None
     
+def validateElementSequence(particles, childrenIterator):
+    pass
     
