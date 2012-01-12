@@ -6,6 +6,7 @@ Refactored from ModelObject on Jun 11, 2011
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
+import sys
 from lxml import etree
 import decimal
 from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
@@ -74,7 +75,7 @@ class ModelRoleType(ModelObject):
     def viewConcept(self):  # concept trees view roles as themselves
         return self
 
-class ModelSchemaObject(ModelObject):
+class ModelNamableTerm(ModelObject):
     def init(self, modelDocument):
         super().init(modelDocument)
         
@@ -103,14 +104,59 @@ class ModelSchemaObject(ModelObject):
         parent = self.getparent()
         return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"
 
+class ModelParticle():
+    
+    def addToParticles(self):
+        parent = self.getparent()
+        while parent is not None:  # find a parent with particles list
+            try:
+                parent.particles.append(self)
+                break
+            except AttributeError:
+                parent = parent.getparent()
+
+    @property
+    def maxOccurs(self):
+        try:
+            return self._maxOccurs
+        except AttributeError:
+            m = self.get("maxOccurs")
+            if m:
+                if m == "unbounded":
+                    self._maxOccurs = sys.maxsize
+                else:
+                    self._maxOccurs = int(m)
+                    if self._maxOccurs < 0: 
+                        raise ValueError(_("maxOccurs must be positive".format(m)))
+            else:
+                self._maxOccurs = 1
+            return self._maxOccurs
+        
+    @property
+    def minOccurs(self):
+        try:
+            return self._minOccurs
+        except AttributeError:
+            m = self.get("minOccurs")
+            if m:
+                self._maxOccurs = int(m)
+                if self._maxOccurs < 0: 
+                    raise ValueError(_("minOccurs must be positive".format(m)))
+            else:
+                self._maxOccurs = 1
+            return self._maxOccurs
+        
+
 anonymousTypeSuffix = "@anonymousType"
 
-class ModelConcept(ModelSchemaObject):
+class ModelConcept(ModelNamableTerm, ModelParticle):
     def init(self, modelDocument):
         super().init(modelDocument)
         if self.name:  # don't index elements with ref and no name
             self.modelXbrl.qnameConcepts[self.qname] = self
             self.modelXbrl.nameConcepts[self.name].append(self)
+        if not self.isGlobalDeclaration:
+            self.addToParticles()
         self._baseXsdAttrType = {}
         
     @property
@@ -460,7 +506,7 @@ class ModelConcept(ModelSchemaObject):
     def viewConcept(self):
         return self
             
-class ModelAttribute(ModelSchemaObject):
+class ModelAttribute(ModelNamableTerm):
     def init(self, modelDocument):
         super().init(modelDocument)
         if self.isGlobalDeclaration:
@@ -546,7 +592,7 @@ class ModelAttribute(ModelSchemaObject):
             return self.modelXbrl.qnameAttributes.get(ModelValue.qname(self, ref))
         return self
 
-class ModelAttributeGroup(ModelSchemaObject):
+class ModelAttributeGroup(ModelNamableTerm):
     def init(self, modelDocument):
         super().init(modelDocument)
         if self.isGlobalDeclaration:
@@ -582,10 +628,11 @@ class ModelAttributeGroup(ModelSchemaObject):
             return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
         return self
         
-class ModelType(ModelSchemaObject):
+class ModelType(ModelNamableTerm):
     def init(self, modelDocument):
         super().init(modelDocument)     
         self.modelXbrl.qnameTypes[self.qname] = self
+        self.particles = []
         
     @property
     def name(self):
@@ -811,7 +858,42 @@ class ModelType(ModelSchemaObject):
     def __repr__(self):
         return ("modelType[{0}]{1})".format(self.objectId(),self.propertyView))
     
-class ModelEnumeration(ModelSchemaObject):
+class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        if self.isGlobalDeclaration:
+            self.modelXbrl.qnameAttributeGroups[self.qname] = self
+        else:
+            self.addToParticles()
+        self.particles = []
+        
+class ModelGroupCompositor(ModelObject, ModelParticle):  # sequence, choice, all
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        self.addToParticles()
+        self.particles = []
+        
+class ModelAll(ModelGroupCompositor):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+        
+class ModelChoice(ModelGroupCompositor):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+
+class ModelSequence(ModelGroupCompositor):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+
+class ModelAny(ModelObject, ModelParticle):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+
+class ModelAnyAttribute(ModelObject):
+    def init(self, modelDocument):
+        super().init(modelDocument)
+
+class ModelEnumeration(ModelNamableTerm):
     def init(self, modelDocument):
         super().init(modelDocument)
         
