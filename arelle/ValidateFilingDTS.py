@@ -444,7 +444,7 @@ def checkDTS(val, modelDocument, visited):
                 val.modelXbrl.error("SBR.NL.2.2.1.02",
                     _("A schema having a label linkbase MUST define concepts"),
                     modelObject=modelDocument)
-            if (definesNonabstractItems or definesTuples) ^ any(  # xor so either concepts and no ref LB or no concepts and has ref LB
+            if (definesNonabstractItems or definesTuples) and not any(  # was xor but changed to and not per RH 1/11/12
                        (refDoc.type == ModelDocument.Type.LINKBASE and
                        (XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "referenceLink") is not None or
                         XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "label", "{http://www.w3.org/1999/xlink}role", "http://www.xbrl.org/2003/role/documentation" ) is not None))

@@ -837,7 +837,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelXbrl.error("SBR.NL.2.2.7.02",
                                 _("Type %(typename)s has length restriction facets %(facets)s"),
                                 modelObject=modelType, typename=modelType.qname, facets=", ".join(lengthFacets))
-                        if "enumeration" in facets and modelConcept.baseXsdType != "string":
+                        if "enumeration" in facets and not modelType.isDerivedFrom(XbrlConst.qnXbrliStringItemType):
                             modelXbrl.error("SBR.NL.2.2.7.04",
                                 _("Concept %(concept)s has enumeration and is not based on stringItemType"),
                                 modelObject=modelType, concept=modelType.qname)
@@ -1142,15 +1142,6 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error("SBR.NL.2.2.4.02",
                             _("ArcroleType missing nl or en generic label: %(arcrole)s"),
                             modelObject=modelRoleType, arcrole=arcroleURI)
-
-            for modelType in modelXbrl.qnameTypes.values():
-                if (modelType.modelDocument.targetNamespace not in disclosureSystem.baseTaxonomyNamespaces and
-                    modelType.facets and 
-                    "enumeration" in modelType.facets and
-                    not modelType.isDerivedFrom(XbrlConst.qnXbrliStringItemType)):
-                    modelXbrl.error("SBR.NL.2.2.7.04",
-                                    _('Schema type enumeration %(value)s must be a xbrli:stringItemType restriction'),
-                                    modelObject=modelType, value=modelType.qname)
 
             for domainElt in typedDomainElements:
                 if domainElt.modelDocument.targetNamespace not in disclosureSystem.baseTaxonomyNamespaces:

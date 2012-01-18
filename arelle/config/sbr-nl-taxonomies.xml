@@ -313,7 +313,7 @@
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
-<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/xbrl/xbrl-syntax-arcroles</Namespace>
+<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-arcroles</Namespace>
 <Prefix>nl-a</Prefix>
 </Loc>
 <Loc>
@@ -470,8 +470,8 @@
 <Loc>
 <Family>BASE</Family>
 <Version>6.0</Version>
-<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/linkroles/xbrl-syntax-arcroles.xsd</Href>
-<LocalHref>basis/sbr/linkroles/xbrl-syntax-arcroles.xsd</LocalHref>
+<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/xbrl/xbrl-syntax-arcroles.xsd</Href>
+<LocalHref>basis/sbr/xbrl/xbrl-syntax-arcroles.xsd</LocalHref>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
