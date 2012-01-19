@@ -4,7 +4,7 @@ Created on Oct 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import csv, io, json
+import csv, io, json, re
 from lxml import etree
 from arelle.FileSource import FileNamedStringIO
 
@@ -13,6 +13,7 @@ HTML = 1
 XML = 2
 JSON = 3
 TYPENAMES = ["CSV", "HTML", "XML", "JSON"]
+nonNameCharPattern =  re.compile(r"[^\w\-\.:]")
 
 class View:
     def __init__(self, modelXbrl, outfile, rootElementName, lang=None, style="table"):
@@ -36,7 +37,7 @@ class View:
         else:
             self.type = CSV
         self.outfile = outfile
-        self.rootElementName = rootElementName[0].lower() + rootElementName.title().replace(' ','')[1:]
+        self.rootElementName = rootElementName[0].lower() + nonNameCharPattern.sub("", rootElementName.title())[1:]
         self.numHdrCols = 0
         self.treeCols = 0  # set to number of tree columns for auto-tree-columns
         if modelXbrl:
@@ -156,7 +157,7 @@ class View:
             if asHeader:
                 # save column element names
                 self.xmlRowElementName = xmlRowElementName or "row"
-                self.columnEltNames = [col[0].lower() + col[1:].replace(' ','').replace('&#173;','').replace('-','')
+                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub('', col[1:])
                                        for col in cols]
             else:
                 if treeIndent < len(self.docEltLevels) and self.docEltLevels[treeIndent] is not None:
@@ -173,14 +174,30 @@ class View:
                 if len(cols) == 1 and not xmlCol0skipElt:
                     rowElt.text = xmlRowText if xmlRowText else cols[0]
                 else:
+                    isDimensionName = isDimensionValue = False
                     for i, col in enumerate(cols):
                         if (i != 0 or not xmlCol0skipElt) and col:
-                            etree.SubElement(rowElt, xmlColElementNames[i]).text = str(col)
+                            if i < len(xmlColElementNames):
+                                elementName = xmlColElementNames[i]
+                                if elementName == "dimensions":
+                                    elementName = "dimension" # one element per dimension
+                                    isDimensionName = True
+                            if isDimensionName:
+                                isDimensionValue = True
+                                isDimensionName = False
+                                dimensionName = str(col)
+                            else:
+                                elt = etree.SubElement(rowElt, elementName)
+                                elt.text = str(col)
+                                if isDimensionValue:
+                                    elt.set("name", dimensionName)
+                                    isDimensionName = True
+                                    isDimensionValue = False
         elif self.type == JSON:
             if asHeader:
                 # save column element names
                 self.xmlRowElementName = xmlRowElementName
-                self.columnEltNames = [col[0].lower() + col[1:].replace(' ','').replace('&#173;','').replace('-','')
+                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub('', col[1:])
                                        for col in cols]
             else:
                 if treeIndent < len(self.entryLevels) and self.entryLevels[treeIndent] is not None:
@@ -209,8 +226,13 @@ class View:
                     content = {}
                     entry.append(content)
                     for i, col in enumerate(cols):
-                        if (i != 0 or not xmlCol0skipElt) and col:
-                            content[xmlColElementNames[i]] = str(col)
+                        if (i != 0 or not xmlCol0skipElt) and col and i < len(xmlColElementNames):
+                                elementName = xmlColElementNames[i]
+                                if elementName == "dimensions":
+                                    value = dict((str(cols[i]),str(cols[i+1])) for i in range(i, len(cols), 2))
+                                else:
+                                    value = str(col)
+                                content[elementName] = value
         if asHeader and lastColSpan: 
             self.numHdrCols += lastColSpan - 1
                                 
