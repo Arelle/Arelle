@@ -165,7 +165,7 @@
 <Loc>
 <Family>IFRS</Family>
 <Version>2011</Version>
-<Href>http://xbrl.iasb.org/taxonomy/2011-03-15/ifrs-cor_2010-03-25.xsd</Href>
+<Href>http://xbrl.iasb.org/taxonomy/2011-03-25/ifrs-cor_2011-03-25.xsd</Href>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
