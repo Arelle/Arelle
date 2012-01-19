@@ -226,7 +226,7 @@ def checkDTS(val, modelDocument, visited):
                             else:
                                 definesTuples = True
                             definesConcepts = True
-                            if modelConcept.abstract == "true":
+                            if modelConcept.isAbstract:
                                 val.modelXbrl.error("SBR.NL.2.2.2.03",
                                     _("Concept %(concept)s is an abstract tuple"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
@@ -402,7 +402,7 @@ def checkDTS(val, modelDocument, visited):
                         modelObject=choiceElt)
                     
             for cplxContentElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}complexContent"):
-                if XmlUtil.descendantAttr(cplxContentElt, "http://www.w3.org/2001/XMLSchema", "extension", "base") != "sbr:placeholder":
+                if XmlUtil.descendantAttr(cplxContentElt, "http://www.w3.org/2001/XMLSchema", ("extension","restriction"), "base") != "sbr:placeholder":
                     val.modelXbrl.error("SBR.NL.2.2.11.10",
                         _("ComplexContent is disallowed"),
                         modelObject=cplxContentElt)
@@ -442,7 +442,7 @@ def checkDTS(val, modelDocument, visited):
                         XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "labelLink") is not None)
                        for refDoc in modelDocument.referencesDocument.keys()): # no label linkbase
                 val.modelXbrl.error("SBR.NL.2.2.1.02",
-                    _("A schema having a label linkbase MUST define concepts"),
+                    _("A schema that defines concepts MUST have a linked 2.1 label linkbase"),
                     modelObject=modelDocument)
             if (definesNonabstractItems or definesTuples) and not any(  # was xor but changed to and not per RH 1/11/12
                        (refDoc.type == ModelDocument.Type.LINKBASE and

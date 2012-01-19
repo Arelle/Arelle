@@ -381,10 +381,6 @@ def checkElements(val, modelDocument, parent):
                                 # semantic checks
                                 if elt.isTuple:
                                     val.hasTuple = True
-                                    if elt.isAbstract: # root tuple is abstract
-                                        val.modelXbrl.error("SBR.NL.2.2.2.32",
-                                            _("Tuple %(concept)s must not be abstract"),
-                                            modelObject=elt, concept=elt.qname)
                                 elif elt.isLinkPart:
                                     val.hasLinkPart = True
                                 elif elt.isItem:
@@ -915,11 +911,13 @@ def checkElements(val, modelDocument, parent):
                         val.modelXbrl.error(("EFM.6.09.04", "GFM.1.04.04"),
                             _("%(element)s is missing an xlink:role"),
                             modelObject=elt, element=elt.qname)
-                    elif not (XbrlConst.isStandardRole(xlinkRole) or 
-                              val.roleRefURIs.get(xlinkRole) in val.disclosureSystem.standardTaxonomiesDict):
-                        val.modelXbrl.error(("EFM.6.09.05", "GFM.1.04.05", "SBR.NL.2.3.10.14"),
-                            _("Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role"),
-                            modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"), role=xlinkRole)
+                    elif not XbrlConst.isStandardRole(xlinkRole):
+                        modelsRole = val.modelXbrl.roleTypes.get(xlinkRole)
+                        if (modelsRole is None or len(modelsRole) == 0 or 
+                            modelsRole[0].modelDocument.targetNamespace not in val.disclosureSystem.standardTaxonomiesDict):
+                            val.modelXbrl.error(("EFM.6.09.05", "GFM.1.04.05", "SBR.NL.2.3.10.14"),
+                                _("Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role"),
+                                modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"), role=xlinkRole)
                     if val.validateSBRNL:
                         if elt.localName == "reference":
                             for child in elt.iterdescendants():
@@ -1089,7 +1087,7 @@ def checkElements(val, modelDocument, parent):
                             _("Loc %(xlinkLabel)s has unauthorized role attribute"),
                             modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
                     elif elt.localName == "documentation": 
-                        val.modelXbrl.error("SBR.NL.2.3.10.12",
+                        val.modelXbrl.error("SBR.NL.2.3.10.12" if elt.namespaceURI == XbrlConst.link else "SBR.NL.2.2.11.02",
                             _("Documentation element must not be used: %(value)s"),
                             modelObject=elt, value=XmlUtil.text(elt))
                     if elt.localName == "linkbase":

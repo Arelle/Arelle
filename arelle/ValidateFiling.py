@@ -1207,7 +1207,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if modelLabel.role in (XbrlConst.periodStartLabel, XbrlConst.periodEndLabel):
                     modelXbrl.error("SBR.NL.2.3.8.03",
                         _("Concept %(concept)s has label for semantical role %(role)s."),
-                        modelObject=modelLabel, concept=concept.qname, role = modelLabel.role)
+                        modelObject=modelLabel, concept=concept.qname, role=modelLabel.role)
+        if self.validateSBRNL: # check for missing nl labels
+            for role, lang in dupLabels:
+                if role and lang != disclosureSystem.defaultXmlLang and (role,disclosureSystem.defaultXmlLang) not in dupLabels:
+                    modelXbrl.error("SBR.NL.2.3.8.05",
+                        _("Concept %(concept)s has en but no nl label in role %(role)s."),
+                        modelObject=concept, concept=concept.qname, role=role)
                 
         #6 10.1 en-US standard label
         if not hasDefaultLangStandardLabel:
