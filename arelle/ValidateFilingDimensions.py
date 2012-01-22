@@ -6,6 +6,7 @@ Created on Oct 17, 2010
 '''
 from collections import defaultdict
 from arelle import XbrlConst
+import os
 
 def checkDimensions(val, drsELRs):
     
@@ -60,7 +61,7 @@ def checkDimensions(val, drsELRs):
                         dim = hcDimRel.toModelObject
                         domELR = hcDimRel.targetRole
                         domTargetRequired = (domELR is not None)
-                        if not domELR:
+                        if not domELR and dim.isExplicitDimension:
                             domELR = dimELR
                             if val.validateSBRNL:
                                 val.modelXbrl.error("SBR.NL.2.3.5.04",
@@ -164,8 +165,9 @@ def checkDimensions(val, drsELRs):
                     for modelRel in val.modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
                         if modelRel.fromModelObject != hc and modelRel.toModelObject != hc:
                             val.modelXbrl.error("SBR.NL.2.2.3.05",
-                                _("ELR role %(linkrole)s, for hypercube %(hypercube)s has another parent %(concept)s"),
-                                modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, concept=modelRel.fromModelObject.qname)
+                                _("ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube, from %(fromConcept)s to %(toConcept)s"),
+                                modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, arcrole=os.path.basename(modelRel.arcrole), 
+                                fromConcept=modelRel.fromModelObject.qname, toConcept=modelRel.toModelObject.qname)
         domainsInLinkrole = defaultdict(set)
         dimDomsByLinkrole = defaultdict(set)
         for rel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain).modelRelationships:
