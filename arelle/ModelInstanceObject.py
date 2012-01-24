@@ -52,8 +52,7 @@ class ModelFact(ModelObject):
         
     @property
     def concept(self):
-        concept = self.modelXbrl.qnameConcepts.get(self.qname)
-        return concept
+        return self.elementDeclaration
         
     @property
     def contextID(self):

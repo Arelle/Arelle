@@ -108,6 +108,11 @@ class ModelObject(etree.ElementBase):
             return self._elementQname
     
     @property
+    def elementDeclaration(self):
+        concept = self.modelXbrl.qnameConcepts.get(self.qname)
+        return concept
+    
+    @property
     def parentQname(self):
         try:
             return self._parentQname
@@ -133,7 +138,7 @@ class ModelObject(etree.ElementBase):
         for c in self.iterchildren():
             if not isinstance(c, etree.ElementBase): # skip nested element nodes
                 if c.tail: yield c.tail  # get tail of nested comment or processor nodes
-    
+
     @property
     def document(self):
         return self.modelDocument

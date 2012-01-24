@@ -128,7 +128,7 @@ def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False)
     return tuple( (k,a[k]) for k in sorted(a.keys()) )    
 
 def childElements(elt):
-    return [child for child in elt.getchildren() if isinstance(child,ModelObject)]
+    return [child for child in elt if isinstance(child,ModelObject)]
 
 def xEqual(elt1, elt2, equalMode=S_EQUAL):
     if not hasattr(elt1,"xValid"):

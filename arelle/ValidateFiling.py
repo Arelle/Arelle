@@ -668,7 +668,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         continue    # had no child elements to parse
                     locNbr = 0
                     arcNbr = 0
-                    for child in footnoteLinkElt.getchildren():
+                    for child in footnoteLinkElt:
                         if isinstance(child,ModelObject):
                             xlinkType = child.get("{http://www.w3.org/1999/xlink}type")
                             if child.namespaceURI != XbrlConst.link or \

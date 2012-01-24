@@ -275,7 +275,7 @@ def checkContext(val, cntx):
             elif modelDimValue.isTyped:
                 typedDomainConcept = dimensionConcept.typedDomainElement
                 problem = _("missing content")                
-                for element in modelDimValue.getchildren():
+                for element in modelDimValue:
                     if isinstance(element,ModelObject):
                         if problem is None:
                             problem = _("multiple contents")

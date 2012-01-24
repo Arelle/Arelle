@@ -84,6 +84,7 @@ class ModelXbrl:
         self.nameConcepts = defaultdict(list) # contains ModelConcepts by name 
         self.qnameAttributes = {}
         self.qnameAttributeGroups = {}
+        self.qnameGroupDefinitions = {}
         self.qnameTypes = {} # contains ModelTypes by qname key of type
         self.baseSets = defaultdict(list) # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets = {} # contains ModelRelationshipSets by bas set keys

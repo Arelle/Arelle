@@ -742,7 +742,7 @@ class ModelDocument:
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.append( modelFact )
-            for tupleElement in modelFact.getchildren():
+            for tupleElement in modelFact:
                 if isinstance(tupleElement,ModelObject) and tupleElement.tag not in fractionParts:
                     self.factDiscover(tupleElement, modelFact.modelTupleFacts)
         else:
@@ -758,7 +758,7 @@ class ModelDocument:
                     base = os.path.join(os.path.dirname(self.filepath),rootAttr) + os.sep
                 else:
                     base = self.filepath
-                for testcaseElement in testcasesElement.getchildren():
+                for testcaseElement in testcasesElement:
                     if isinstance(testcaseElement,ModelObject) and testcaseElement.localName == "testcase":
                         if testcaseElement.get("uri"):
                             uriAttr = testcaseElement.get("uri")

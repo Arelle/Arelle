@@ -18,7 +18,7 @@ def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, inc
 def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     relationships = defaultdict(list)
     for modelLink in baseSetModelLinks:
-        for linkChild in modelLink.getchildren():
+        for linkChild in modelLink:
             if (isinstance(linkChild,ModelObject) and 
                 linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and 
                 arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole") and
@@ -102,7 +102,7 @@ class ModelRelationshipSet:
         for modelLink in modelLinks:
             arcs = []
             linkEltQname = modelLink.qname
-            for linkChild in modelLink.getchildren():
+            for linkChild in modelLink:
                 linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
                 if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and linkChildArcrole:
                     linkChildQname = linkChild

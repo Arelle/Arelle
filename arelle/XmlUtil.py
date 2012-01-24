@@ -434,12 +434,12 @@ def copyNodes(parent, elts):
                 text = text.strip()  # don't copy whitespace text
                 if text:
                     copyElt.text = text
-        for childNode in origElt.getchildren():
+        for childNode in origElt:
             if isinstance(childNode,ModelObject):
                 copyNodes(copyElt,childNode)
                 
 def copyChildren(parent, elt):
-    for childNode in elt.getchildren():
+    for childNode in elt:
         if isinstance(childNode,ModelObject):
             copyNodes(parent, childNode)
 
@@ -474,7 +474,7 @@ def setXmlns(modelDocument, prefix, namespaceURI):
         newmap = root.nsmap
         newmap[prefix] = namespaceURI
         newroot = etree.Element(root.tag, nsmap=newmap)
-        newroot.extend(root.getchildren())
+        newroot.extend(root)
         elementTree._setroot(newroot)
 
 def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeName=None, qnames=False):
@@ -612,7 +612,7 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
             if child.getparent() is not None:
                 break   # stop depth first iteration after comment and root node
             if child.tag == 'nsmap':
-                for nsmapChild in child.getchildren():
+                for nsmapChild in child:
                     writexml(writer, nsmapChild, indent=indent, parentNsmap={}) # force all xmlns in next element
             else:
                 writexml(writer, child, indent=indent, parentNsmap={})

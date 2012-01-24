@@ -104,13 +104,27 @@ class ModelNamableTerm(ModelObject):
         parent = self.getparent()
         return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"
 
+class ParticlesList(list):
+    def __repr__(self):
+        particlesList = []
+        for particle in self:
+            if isinstance(particle, ModelConcept):
+                p = str(particle.dereference().qname)
+            elif isinstance(particle, ModelAny):
+                p = "any"
+            else:
+                p = "{0}({1})".format(particle.localName, particle.dereference().particles)
+            particlesList.append(p + ("" if particle.minOccurs == particle.maxOccurs == 1 else
+                                      "{{{0}:{1}}}".format(particle.minOccursStr, particle.maxOccursStr)))
+        return ", ".join(particlesList)
+
 class ModelParticle():
     
     def addToParticles(self):
         parent = self.getparent()
         while parent is not None:  # find a parent with particles list
             try:
-                parent.particles.append(self)
+                parent.particlesList.append(self)
                 break
             except AttributeError:
                 parent = parent.getparent()
@@ -133,19 +147,28 @@ class ModelParticle():
             return self._maxOccurs
         
     @property
+    def maxOccursStr(self):
+        if self.maxOccurs == sys.maxsize:
+            return "unbounded"
+        return str(self.maxOccurs)
+        
+    @property
     def minOccurs(self):
         try:
             return self._minOccurs
         except AttributeError:
             m = self.get("minOccurs")
             if m:
-                self._maxOccurs = int(m)
-                if self._maxOccurs < 0: 
+                self._minOccurs = int(m)
+                if self._minOccurs < 0: 
                     raise ValueError(_("minOccurs must be positive".format(m)))
             else:
-                self._maxOccurs = 1
-            return self._maxOccurs
+                self._minOccurs = 1
+            return self._minOccurs
         
+    @property
+    def minOccursStr(self):
+        return str(self.minOccurs)        
 
 anonymousTypeSuffix = "@anonymousType"
 
@@ -518,7 +541,7 @@ class ModelAttribute(ModelNamableTerm):
             return self.prefixedNameQname(self.get("type"))
         else:
             # check if anonymous type exists
-            typeqname = ModelValue.qname(self.qname.clarkNotation +  "@anonymousType")
+            typeqname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
@@ -632,7 +655,7 @@ class ModelType(ModelNamableTerm):
     def init(self, modelDocument):
         super().init(modelDocument)     
         self.modelXbrl.qnameTypes[self.qname] = self
-        self.particles = []
+        self.particlesList = ParticlesList()
         
     @property
     def name(self):
@@ -644,7 +667,7 @@ class ModelType(ModelNamableTerm):
         while element is not None:
             nameAttr = element.getStripped("name")
             if nameAttr:
-                return nameAttr + "@anonymousType"
+                return nameAttr + anonymousTypeSuffix
             element = element.getparent()
         return None
     
@@ -665,8 +688,17 @@ class ModelType(ModelNamableTerm):
         if isinstance(qnameDerivedFrom, list):
             return [self.modelXbrl.qnameTypes.get(qn) for qn in qnameDerivedFrom]
         elif isinstance(qnameDerivedFrom, ModelValue.QName):
-            self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+            return self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return None
+    
+    @property
+    def particles(self):
+        if self.particlesList:  # if non empty list, use it
+            return self.particlesList
+        typeDerivedFrom = self.typeDerivedFrom  # else try to get derived from list
+        if isinstance(typeDerivedFrom, ModelType):
+            return typeDerivedFrom.particlesList
+        return self.particlesList  # empty list
     
     @property
     def baseXsdType(self):
@@ -847,6 +879,9 @@ class ModelType(ModelNamableTerm):
             elif attr.get("default"):
                 return attr.get("default")
         return None
+
+    def dereference(self):
+        return self
     
     @property
     def propertyView(self):
@@ -862,16 +897,25 @@ class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
     def init(self, modelDocument):
         super().init(modelDocument)
         if self.isGlobalDeclaration:
-            self.modelXbrl.qnameAttributeGroups[self.qname] = self
+            self.modelXbrl.qnameGroupDefinitions[self.qname] = self
         else:
             self.addToParticles()
-        self.particles = []
+        self.particlesList = self.particles = ParticlesList()
+
+    def dereference(self):
+        ref = self.get("ref")
+        if ref:
+            return self.modelXbrl.qnameGroupDefinitions.get(ModelValue.qname(self, ref))
+        return self
         
 class ModelGroupCompositor(ModelObject, ModelParticle):  # sequence, choice, all
     def init(self, modelDocument):
         super().init(modelDocument)
         self.addToParticles()
-        self.particles = []
+        self.particlesList = self.particles = ParticlesList()
+
+    def dereference(self):
+        return self
         
 class ModelAll(ModelGroupCompositor):
     def init(self, modelDocument):
@@ -888,6 +932,10 @@ class ModelSequence(ModelGroupCompositor):
 class ModelAny(ModelObject, ModelParticle):
     def init(self, modelDocument):
         super().init(modelDocument)
+        self.addToParticles()
+
+    def dereference(self):
+        return self
 
 class ModelAnyAttribute(ModelObject):
     def init(self, modelDocument):

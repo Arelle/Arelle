@@ -10,6 +10,7 @@ from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst,
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
+validateUniqueParticleAttribution = None # dynamic import
 
 arcNamesTo21Resource = {"labelArc","referenceArc"}
 xlinkTypeValues = {None, "simple", "extended", "locator", "arc", "resource", "title", "none"}
@@ -533,6 +534,12 @@ class ValidateXbrl:
         self.DTSreferenceResourceIDs = {}
         ValidateXbrlDTS.checkDTS(self, modelXbrl.modelDocument, [])
         del self.DTSreferenceResourceIDs
+        
+        global validateUniqueParticleAttribution
+        if validateUniqueParticleAttribution is None:
+            from arelle.XmlValidateParticles import validateUniqueParticleAttribution
+        for modelType in modelXbrl.qnameTypes.values():
+            validateUniqueParticleAttribution(modelXbrl, modelType.particlesList, modelType)
         
         if self.validateCalcLB:
             modelXbrl.modelManager.showStatus(_("Validating instance calculations"))

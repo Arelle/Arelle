@@ -5,11 +5,13 @@ Created on Feb 20, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
-import xml.dom.minidom, os, re
+import os, re
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle import UrlUtil
+validateElementSequence = None  #dynamic import to break dependency loops
+modelGroupCompositorTitle = None
 
 UNKNOWN = 0
 INVALID = 1
@@ -147,12 +149,12 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         facets = None
         if modelConcept is not None:
+            isNillable = modelConcept.isNillable
+            type = modelConcept.type
             if modelConcept.isAbstract:
                 baseXsdType = "noContent"
             else:
-                isNillable = modelConcept.isNillable
                 baseXsdType = modelConcept.baseXsdType
-                type = modelConcept.type
                 facets = modelConcept.facets
                 if len(text) == 0 and modelConcept.default is not None:
                     text = modelConcept.default
@@ -168,6 +170,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
             baseXsdType = None
             type = None
             isNillable = False
+        isNil = isNillable and elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
         if attrQname is None:
             validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, facets)
             if type is not None:
@@ -231,12 +234,33 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                     modelAttr = type.attributes[attrQname]
                     validateValue(modelXbrl, elt, attrQname.clarkNotation, modelAttr.baseXsdType, modelAttr.default, facets=modelAttr.facets)
             if recurse:
+                global validateElementSequence, modelGroupCompositorTitle
+                if validateElementSequence is None:
+                    from arelle.XmlValidateParticles import validateElementSequence, modelGroupCompositorTitle
                 try:
-                    validateElementSequence(type.particles, elt.getChildren())
-                except AttributeError:
+                    childElts = list(elt)
+                    if isNil:
+                        if childElts and any(True for e in childElts if isinstance(e, ModelObject)) or elt.text:
+                            modelXbrl.error("xmlSchema:nilElementHasContent",
+                                _("Element %(element)s is nil but has contents"),
+                                modelObject=elt,
+                                element=elt.elementQname)
+                    else:
+                        errResult = validateElementSequence(modelXbrl, type, childElts)
+                        if errResult is not None and errResult[2]:
+                            iElt, occured, errDesc, errArgs = errResult
+                            errElt = childElts[iElt] if iElt < len(childElts) else elt
+                            errArgs["modelObject"] = errElt
+                            errArgs["element"] = errElt.qname
+                            errArgs["parentElement"] = elt.qname
+                            if "compositor" in errArgs:  # compositor is an object, provide friendly string
+                                errArgs["compositor"] = modelGroupCompositorTitle(errArgs["compositor"])
+                            modelXbrl.error(*errDesc,**errArgs)
+                    recurse = False # cancel child element validation below
+                except AttributeError as ex:
                     pass
-    if recurse:
-        for child in elt.getchildren():
+    if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
+        for child in elt:
             if isinstance(child, ModelObject):
                 validate(modelXbrl, child)
 
@@ -402,7 +426,3 @@ def validateFacet(typeElt, facetElt):
     if facetElt.xValid == VALID:
         return facetElt.xValue
     return None
-    
-def validateElementSequence(particles, childrenIterator):
-    pass
-    
