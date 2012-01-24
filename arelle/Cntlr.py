@@ -245,9 +245,9 @@ class LogToBufferHandler(logging.Handler):
         for logRec in self.logRecordBuffer:
             msg = self.format(logRec)
             if logRec.args:
-                args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) 
+                args = "".join([' {0}="{1}"'.format(n, str(v).replace('"','&quot;')) 
                                 for n, v in logRec.args.items()
-                                if v])  # skip empty arguments, they won't show in the message strings 
+                                if not isinstance(v,str) or v])  # skip empty arguments, they won't show in the message strings 
             else:
                 args = ""
             xml.append('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>'.format(
