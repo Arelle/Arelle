@@ -18,6 +18,8 @@ def validateElementSequence(modelXbrl, compositor, children, iNextChild=0):
     if isinstance(compositor, ModelAll):
         allParticles = set() # elements required
         iNextAfterAll = iStartingChild
+    elif isinstance(compositor, ModelChoice):
+        anyChoiceHasMinOccurs0 = False
     moreParticlesPasses = True
     while moreParticlesPasses:
         moreParticlesPasses = False
@@ -56,6 +58,8 @@ def validateElementSequence(modelXbrl, compositor, children, iNextChild=0):
                 if occurences > 0 and particle.minOccurs <= occurences <= particle.maxOccurs:
                     return (iNextChild, True, None, None)  # choice has been selected
                 else: # otherwise start again on next choice
+                    if particle.minOccurs == 0:
+                        anyChoiceHasMinOccurs0 = True
                     iNextChild = iStartingChild
             elif isinstance(compositor, ModelAll):
                 if particle.minOccurs <= occurences <= particle.maxOccurs:
@@ -78,7 +82,7 @@ def validateElementSequence(modelXbrl, compositor, children, iNextChild=0):
                     dict(particles=particles))
         occured = True
     elif isinstance(compositor, ModelChoice):
-        occured = False
+        occured = anyChoiceHasMinOccurs0 # deemed to have occured if any choice had minoccurs=0
     else:
         occured = True
     if isinstance(compositor, ModelType) and iNextChild < len(children) and any(True for e in children[iNextChild] if isinstance(e, ModelObject)):

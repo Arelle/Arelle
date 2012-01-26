@@ -192,6 +192,10 @@ class ModelXbrl:
         for view in self.views:
             if isinstance(view, ViewWinDTS.ViewDTS):
                 self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
+                
+    def saveInstance(self):
+        with open(self.modelDocument.filepath, "w") as fh:
+            XmlUtil.writexml(fh, self.modelDocument.xmlDocument, encoding="utf-8")
     
     def matchContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs):
         from arelle.ModelFormulaObject import Aspect

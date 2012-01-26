@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<QBWCXML>
+   <AppName>ArelleWebService</AppName>
+   <AppID></AppID>
+   <AppURL>http://localhost:8080/quickbooks/server.asmx</AppURL>
+   <CertURL>http://localhost:8080/quickbooks/localhost.crt</CertURL> 
+   <AppDescription>QuickBooks web service for Arelle</AppDescription>
+   <AppSupport>http://arelle.org</AppSupport>
+   <UserName>arelle</UserName>
+   <OwnerID>{C0E35073-789A-406B-B93B-3C5698CE4314}</OwnerID>
+   <FileID>{E6C8BDA2-425E-11E1-BE45-028037EC0200}</FileID>
+   <QBType>QBFS</QBType>
+   <Scheduler>
+      <RunEveryNMinutes>1</RunEveryNMinutes>
+   </Scheduler>
+</QBWCXML>

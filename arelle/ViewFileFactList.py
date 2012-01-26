@@ -52,8 +52,9 @@ class ViewFacts(ViewFile.View):
     def tupleDepth(self, modelFacts, indentedCol):
         if indentedCol > self.treeCols: self.treeCols = indentedCol
         for modelFact in modelFacts:
-            numDims = len(modelFact.context.qnameDims) * 2
-            if numDims > self.maxNumDims: self.maxNumDims = numDims
+            if modelFact.context is not None:
+                numDims = len(modelFact.context.qnameDims) * 2
+                if numDims > self.maxNumDims: self.maxNumDims = numDims
             self.tupleDepth(modelFact.modelTupleFacts, indentedCol + 1)
         
     def viewFacts(self, modelFacts, indent):

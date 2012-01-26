@@ -150,7 +150,7 @@ class View:
                                          attrib={"class":"rowSpanLeg"},
                                          ).text = '&nbsp;'
                 td = etree.SubElement(tr, colEltTag, attrib=attrib)
-                td.text = str(col) if col else '&nbsp;'
+                td.text = str(col.replace("&","&amp;").replace("<","&lt;")) if col else '&nbsp;'
             if lastColSpan and td is not None:
                 td.set("colspan", str(lastColSpan))
         elif self.type == XML:
@@ -188,7 +188,7 @@ class View:
                                 dimensionName = str(col)
                             else:
                                 elt = etree.SubElement(rowElt, elementName)
-                                elt.text = str(col)
+                                elt.text = str(col.replace("&","&amp;").replace("<","&lt;"))
                                 if isDimensionValue:
                                     elt.set("name", dimensionName)
                                     isDimensionName = True

@@ -54,7 +54,8 @@ elif sys.platform == 'win32':
                           ('arelle\\images','images'),
                           ('arelle\\locale','locale'),
                           ('arelle\\examples','examples'),
-                          ('arelle\\scripts-windows','scripts')],
+                          ('arelle\\scripts-windows','scripts'),
+                          'QuickBooks.qwc'],
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
         } )

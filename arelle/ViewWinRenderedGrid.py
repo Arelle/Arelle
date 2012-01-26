@@ -521,9 +521,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     if fact.value != value:
                         fact.text = value
                         XmlValidate.validate(instance, fact)    
-        
-        from arelle import XmlUtil
-        with open(instance.modelDocument.filepath, "w") as fh:
-            XmlUtil.writexml(fh, instance.modelDocument.xmlDocument, encoding="utf-8")
+        instance.saveInstance()
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
             

@@ -3,8 +3,6 @@ Created on Oct 3, 2010
 
 Use this module to start Arelle in web server mode
 
-(TBD, plan is to be based on Mark V XBRL Gateway.)
-
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
@@ -71,7 +69,7 @@ class Options():
         for option in optionsNames:
             setattr(self, option, None)
             
-supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'formulae'}
+supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'factTable', 'formulae'}
 
 @route('/rest/xbrl/<file:path>/open')
 @route('/rest/xbrl/<file:path>/close')
@@ -82,6 +80,7 @@ supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'formulae'}
 @route('/rest/xbrl/<file:path>/cal')
 @route('/rest/xbrl/<file:path>/dim')
 @route('/rest/xbrl/<file:path>/facts')
+@route('/rest/xbrl/<file:path>/factTable')
 @route('/rest/xbrl/<file:path>/formulae')
 @route('/rest/xbrl/validation')
 @route('/rest/xbrl/view')
@@ -139,6 +138,9 @@ def validation(file=None):
     elif view:
         viewFile = FileNamedStringIO(media)
         setattr(options, view + "File", viewFile)
+    return runOptionsAndGetResult(options, media, viewFile)
+    
+def runOptionsAndGetResult(options, media, viewFile):
     successful = cntlr.run(options)
     if media == "xml":
         response.content_type = 'text/xml; charset=UTF-8'
@@ -151,7 +153,8 @@ def validation(file=None):
     else:
         response.content_type = 'text/html; charset=UTF-8'
     if successful and viewFile:
-        result = viewFile.getvalue()
+        # defeat re-encoding
+        result = viewFile.getvalue().replace("&nbsp;","\u00A0").replace("&amp;","&")
         viewFile.close()
     elif media == "xml":
         result = cntlr.logHandler.getXml()
@@ -178,6 +181,112 @@ def diff():
     response.content_type = 'text/xml; charset=UTF-8'
     return reportContents
 
+@get('/quickbooks/server.asmx', method='POST')
+def quickbooksServer():
+    from arelle import CntlrQuickBooks
+    response.content_type = 'text/xml; charset=UTF-8'
+    return CntlrQuickBooks.server(cntlr, request.body, request.urlparts)
+
+
+@route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>')
+@route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view')
+@route('/rest/quickbooks/<qbReport>/xbrl-gl/view')
+def quickbooksGLrequest(qbReport=None, file=None):
+    from arelle.CntlrQuickBooks import supportedQbReports, qbRequest 
+    from arelle.ModelValue import dateTime
+    errors = []
+    requestPathParts = request.urlparts[2].split('/')
+    viewRequested = "view" == requestPathParts[-1]
+    media = request.query.media or 'html'
+    fromDate = request.query.fromDate
+    toDate = request.query.toDate
+    if qbReport not in supportedQbReports:
+        errors.append(_("QuickBooks report '{0}' is not supported (please select from: {1})").format(
+                          qbReport, ', '.join(supportedQbReports)))
+    if media not in ('xml', 'xhtml', 'html'):
+        errors.append(_("Media '{0}' is not supported for xbrl-gl (please select xhtml, html or xml)").format(media))
+    if not fromDate or dateTime(fromDate) is None:
+        errors.append(_("FromDate '{0}' missing or not valid").format(fromDate))
+    if not toDate or dateTime(toDate) is None:
+        errors.append(_("ToDate '{0}' missing or not valid").format(toDate))
+    if errors:
+        return errorReport(errors, media)
+    ticket = qbRequest(qbReport, fromDate, toDate, file)
+    result = htmlBody(tableRows([_("Request queued for QuickBooks...")], header=_("Quickbooks Request")), script='''
+<script type="text/javascript">
+<!-- 
+var timer = setInterval("autoRefresh()", 1000 * 10);
+function autoRefresh(){{location.href = "/rest/quickbooks/response?ticket={0}&media={1}&view={2}";}}
+//--> 
+</script>
+'''.format(ticket, media, viewRequested))
+    return result
+
+    
+@route('/rest/quickbooks/response')
+def quickbooksGLresponse():
+    from arelle import CntlrQuickBooks
+    ticket = request.query.ticket
+    media = request.query.media
+    viewRequested = request.query.view
+    status = CntlrQuickBooks.qbRequestStatus.get(ticket)
+    if not status:
+        return htmlBody(tableRows([_("QuickBooks ticket not found, request canceled.")], header=_("Quickbooks Request")))
+    if status != "Done" or ticket not in CntlrQuickBooks.xbrlInstances:
+        return htmlBody(tableRows([_("{0}, Waiting 20 seconds...").format(status)], 
+                                  header=_("Quickbooks Request")), 
+                                  script='''
+<script type="text/javascript">
+<!-- 
+var timer = setInterval("autoRefresh()", 1000 * 20);
+function autoRefresh(){{clearInterval(timer);self.location.reload(true);}}
+//--> 
+</script>
+''')
+    CntlrQuickBooks.qbRequestStatus.pop(ticket)
+    instanceUuid = CntlrQuickBooks.xbrlInstances[ticket]
+    CntlrQuickBooks.xbrlInstances.pop(ticket)
+    options = Options()
+    setattr(options, "entrypointFile", instanceUuid)
+    viewFile = FileNamedStringIO(media)
+    setattr(options, "factsFile", viewFile)
+    return runOptionsAndGetResult(options, media, viewFile)
+
+@route('/quickbooks/server.html')
+def quickbooksWebPage():
+    return htmlBody(_('''<table width="700p">
+<tr><th colspan="2">Arelle QuickBooks Global Ledger Interface</th></tr>
+<tr><td>checkbox</td><td>Trial Balance.</td></tr>
+<tr><td>close button</td><td>Done</td></tr>
+</table>'''))
+
+@route('/quickbooks/localhost.crt')
+@route('/localhost.crt')
+def localhostCertificate():
+    return '''
+-----BEGIN CERTIFICATE-----
+MIIDljCCAn4CAQAwDQYJKoZIhvcNAQEEBQAwgZAxCzAJBgNVBAYTAlVTMRMwEQYD
+VQQIEwpDYWxpZm9ybmlhMQ8wDQYDVQQHEwZFbmNpbm8xEzARBgNVBAoTCmFyZWxs
+ZS5vcmcxDzANBgNVBAsTBmFyZWxsZTESMBAGA1UEAxMJbG9jYWxob3N0MSEwHwYJ
+KoZIhvcNAQkBFhJzdXBwb3J0QGFyZWxsZS5vcmcwHhcNMTIwMTIwMDg0NjM1WhcN
+MTQxMDE1MDg0NjM1WjCBkDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3Ju
+aWExDzANBgNVBAcTBkVuY2lubzETMBEGA1UEChMKYXJlbGxlLm9yZzEPMA0GA1UE
+CxMGYXJlbGxlMRIwEAYDVQQDEwlsb2NhbGhvc3QxITAfBgkqhkiG9w0BCQEWEnN1
+cHBvcnRAYXJlbGxlLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AMJEq9zT4cdA2BII4TG4OJSlUP22xXqNAJdZZeB5rTIX4ePwIZ8KfFh/XWQ1/q5I
+c/rkZ5TyC+SbEmQa/unvv1CypMAWWMfuguU6adOsxt+zFFMJndlE1lr3A2SBjHbD
+vBGzGJJTivBzDPBIQ0SGcf32usOeotmE2PA11c5en8/IsRXm9+TA/W1xL60mfphW
+9PIaJ+WF9rRROjKXVdQZTRFsNRs/Ag8o3jWEyWYCwR97+XkorYsAJs2TE/4zV+8f
+8wKuhOrsy9KYFZz2piVWaEC0hbtDwX1CqN+1oDHq2bYqLygUSD/LbgK1lxM3ciVy
+ewracPVHBErPlcJFxiOxAw0CAwEAATANBgkqhkiG9w0BAQQFAAOCAQEAM2np3UVY
+6g14oeV0Z32Gn04+r6FV2D2bobxCVLIQDsWGEv1OkjVBJTu0bLsZQuNVZHEn5a+2
+I0+MGME3HK1rx1c8MrAsr5u7ZLMNj7cjjtFWAUp9GugJyOmGK136o4/j1umtBojB
+iVPvHsAvwZuommfME+AaBE/aJjPy5I3bSu8x65o1fuJPycrSeLAnLd/shCiZ31xF
+QnJ9IaIU1HOusplC13A0tKhmRMGNz9v+Vqdj7J/kpdTH7FNMulrJTv/0ezTPjaOB
+QhpLdqly7hWJ23blbQQv4ILT2CiPDotJslcKDT7GzvPoDu6rIs2MpsB/4RDYejYU
++3cu//C8LvhjkQ==
+-----END CERTIFICATE-----
+'''
     
 @route('/help')
 def help():
@@ -234,7 +343,7 @@ as follows:</td></tr>
 <tr><th colspan="2">Views</th></tr>
 <tr><td>/rest/xbrl/&#x200B;{file}/&#x200B;{view}</td><td>View document at {file}.</td></tr>
 <tr><td>&nbsp;</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not necessary).</td></tr>
-<tr><td>&nbsp;</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, or <code>formulae</code>.</td></tr>
+<tr><td>&nbsp;</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, or <code>formulae</code>.</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;c:/a/b/c.xbrl/&#x200B;dim?&#x200B;media=html</code>: View dimensions of 
 document at c:/a/b/c.xbrl (on local drive) and return html result.</td></tr>
 <tr><td>/rest/xbrl/&#x200B;view</td><td>(Alternative syntax) View document, file and view are provided as parameters (see below).</td></tr>
@@ -287,6 +396,23 @@ Review insertion cell, click ok on Import Data dialog.</td></tr>
    .WebDisableRedirections = False<br/>
    .Refresh BackgroundQuery:=False<br/>
 End With</code></td></tr>
+
+<tr><th colspan="2">QuickBooks interface</th></tr>
+<tr><td>Setup:</td><td>Install QuickBooks Web Connector by <a href="http://marketplace.intuit.com/webconnector/" target="installWBWC">clicking here</a>.<br/>
+Click on QuickBooks.qwc in the Program Files Arelle directory, to install web connector for Arelle.  (It specifies localhost:8080 in it.)<br/>
+Open your QuickBooks and desired company<br/>
+From start menu, programs, QuickBooks, start Web Connector<br/>
+Start Arelle web server (if it wasn't already running)<br/>
+To request xbrl-gl, select report type (generalLedger, journal, or trialBalance) and specify file name for xbrl-gl output instance:</td></tr> 
+<tr><td style="text-align=right;">Example:</td><td><code>http://localhost:8080/rest/quickbooks/generalLedger/xbrl-gl/C:/mystuff/xbrlGeneralLedger.xbrl/view?fromDate=2011-01-01&toDate=2011-12-31</code> 
+(You may omit <code>/view</code>.)</td></tr>
+<tr><td></td><td>Parameters follow "?" character, and are separated by "&amp;" characters, 
+as follows:</td></tr>
+<tr><td style="text-indent: 1em;">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)
+<br/><code>xml</code>: XML structured results.
+<br/><code>json</code>: JSON results.
+<br/><code>text</code>: Plain text results (no markup).</td></tr> 
+<tr><td style="text-indent: 1em;">fromDate, toDate</td><td>From &amp to dates for GL transactions</td></tr>
 </table>'''))
 
 @route('/about')
@@ -321,11 +447,11 @@ def indexPage():
 </table>'''))
 
 
-def htmlBody(body):
+def htmlBody(body, script=""):
     return '''
 <?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
+%s    <head>
         <STYLE type="text/css">
             body, table, p {font-family:Arial,sans-serif;font-size:10pt;}
             table {vertical-align:top;white-space:normal;}
@@ -340,7 +466,7 @@ def htmlBody(body):
     %s
     </body>
 </html>
-''' % body
+''' % (script, body)
 
 def tableRows(lines, header=None):
     return '<table cellspacing="0" cellpadding="4">%s\n</table>' % (

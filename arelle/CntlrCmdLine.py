@@ -11,7 +11,7 @@ This module is Arelle's controller in command line non-interactive mode
 import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
-                    ViewFileDTS, ViewFileFactList, ViewFileConcepts, 
+                    ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests)
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
@@ -65,6 +65,8 @@ def main():
                       help=_("Write fact list into FILE"))
     parser.add_option("--factListCols", action="store", dest="factListCols",
                       help=_("Columns for fact list file"))
+    parser.add_option("--factTable", "--csvFactTable", action="store", dest="factTableFile",
+                      help=_("Write fact table into FILE"))
     parser.add_option("--concepts", "--csvConcepts", action="store", dest="conceptsFile",
                       help=_("Write concepts into FILE"))
     parser.add_option("--pre", "--csvPre", action="store", dest="preFile",
@@ -136,7 +138,7 @@ def main():
     elif options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.gfmName,
-                options.utrValidate, options.DTSFile, options.factsFile, options.factListCols, 
+                options.utrValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
                 options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
                 options.logFile, options.formulaParamExprResult, options.formulaParamInputValue,
                 options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
@@ -272,6 +274,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
             if options.factsFile:
                 ViewFileFactList.viewFacts(modelXbrl, options.factsFile, lang=options.labelLang, cols=options.factListCols)
+            if options.factTableFile:
+                ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, lang=options.labelLang)
             if options.conceptsFile:
                 ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, lang=options.labelLang)
             if options.preFile:

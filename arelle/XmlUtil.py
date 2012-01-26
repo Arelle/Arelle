@@ -673,7 +673,7 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
         for aName in aSortedNames:
             writer.write("%s%s=\"" % (indentAttrs, aName))
             if aName != "xsi:schemaLocation":
-                writer.write(attrs[aName].replace('"','&quot;'))
+                writer.write(attrs[aName].replace("&","&amp;").replace('"','&quot;'))
             else:
                 indentUri = "\n" + indent + "                      "
                 for i, a_uri in enumerate(attrs[aName].split()):
@@ -688,7 +688,7 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
         firstChild = True
         text = node.text
         if text is not None:
-            text = text.strip().replace("<","&lt;")
+            text = text.strip().replace("&","&amp;").replace("<","&lt;")
         for child in node.iterchildren():
             hasChildNodes = True
             if firstChild:
