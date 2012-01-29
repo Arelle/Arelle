@@ -194,7 +194,7 @@ class ModelXbrl:
                 self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
                 
     def saveInstance(self):
-        with open(self.modelDocument.filepath, "w") as fh:
+        with open(self.modelDocument.filepath, "w", encoding='utf-8') as fh:
             XmlUtil.writexml(fh, self.modelDocument.xmlDocument, encoding="utf-8")
     
     def matchContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs):
