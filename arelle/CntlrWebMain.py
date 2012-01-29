@@ -154,7 +154,7 @@ def runOptionsAndGetResult(options, media, viewFile):
         response.content_type = 'text/html; charset=UTF-8'
     if successful and viewFile:
         # defeat re-encoding
-        result = viewFile.getvalue().replace("&nbsp;","\u00A0").replace("&amp;","&")
+        result = viewFile.getvalue().replace("&nbsp;","\u00A0").replace("&shy;","\u00AD").replace("&amp;","&")
         viewFile.close()
     elif media == "xml":
         result = cntlr.logHandler.getXml()
@@ -297,7 +297,7 @@ def help():
 
 <tr><th colspan="2">Validation</th></tr>
 <tr><td>/rest/xbrl/&#x200B;{file}/&#x200B;validation/&#x200B;xbrl</td><td>Validate document at {file}.</td></tr>
-<tr><td>&nbsp;</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not
+<tr><td>\u00A0</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not
 necessary).</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;c:/a/b/c.xbrl/&#x200B;validation/&#x200B;xbrl?&#x200B;media=xml</code>: Validate entry instance
 document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>
@@ -342,8 +342,8 @@ as follows:</td></tr>
 
 <tr><th colspan="2">Views</th></tr>
 <tr><td>/rest/xbrl/&#x200B;{file}/&#x200B;{view}</td><td>View document at {file}.</td></tr>
-<tr><td>&nbsp;</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not necessary).</td></tr>
-<tr><td>&nbsp;</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, or <code>formulae</code>.</td></tr>
+<tr><td>\u00A0</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not necessary).</td></tr>
+<tr><td>\u00A0</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, or <code>formulae</code>.</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;c:/a/b/c.xbrl/&#x200B;dim?&#x200B;media=html</code>: View dimensions of 
 document at c:/a/b/c.xbrl (on local drive) and return html result.</td></tr>
 <tr><td>/rest/xbrl/&#x200B;view</td><td>(Alternative syntax) View document, file and view are provided as parameters (see below).</td></tr>

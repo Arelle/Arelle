@@ -26,7 +26,7 @@ class ViewFormulae(ViewFile.View):
         self.treeCols = 0
         for rootObject in rootObjects:
             self.treeDepth(rootObject, 1, set())
-        self.addRow(["Formula object", "Label", "Cover", "Com&#173;ple&#173;ment", "Bind as se&#173;quence", "Expression"], asHeader=True)
+        self.addRow(["Formula object", "Label", "Cover", "Com\u00ADple\u00ADment", "Bind as se\u00ADquence", "Expression"], asHeader=True)
         for rootObject in sorted(rootObjects, key=formulaObjSortKey):
             self.viewFormulaObjects(rootObject, None, 0, set())
         for cfQname in sorted(self.modelXbrl.modelCustomFunctionSignatures.keys()):

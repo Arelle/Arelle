@@ -10,7 +10,7 @@ from collections import defaultdict
 def viewConcepts(modelXbrl, outFile, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing concepts"))
     view = ViewConcepts(modelXbrl, outFile, lang)
-    view.addRow(["Label","Name","ID","Abs&#173;tract","Substi&#173;tu&#173;tion Group","Type","Facets"], asHeader=True)
+    view.addRow(["Label","Name","ID","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Facets"], asHeader=True)
     view.view(modelXbrl.modelDocument)
     view.close()
     

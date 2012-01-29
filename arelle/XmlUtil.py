@@ -688,7 +688,7 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
         firstChild = True
         text = node.text
         if text is not None:
-            text = text.strip().replace("&","&amp;").replace("<","&lt;")
+            text = text.replace("\u00A0","&nbsp;").strip().replace("&","&amp;").replace("<","&lt;").replace("\u00AD","&shy;")
         for child in node.iterchildren():
             hasChildNodes = True
             if firstChild:

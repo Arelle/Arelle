@@ -162,7 +162,7 @@ class ViewRenderedGrid(ViewFile.View):
                     attrib["rowspan"] = str(row - topRow + 1)
                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                     attrib=attrib)
-                elt.text = label if label else "&nbsp;"
+                elt.text = label if label else "\u00A0" #produces &nbsp;
                 self.rowElts[topRow-1].insert(leftCol,elt)
                 if nonAbstract:
                     if colspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
@@ -172,7 +172,7 @@ class ViewRenderedGrid(ViewFile.View):
                             attrib["style"] = edgeBorder
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib=attrib)
-                        elt.text = "&nbsp;"
+                        elt.text = "\u00A0"
                         if childrenFirst:
                             self.rowElts[topRow].append(elt)
                         else:
@@ -182,7 +182,7 @@ class ViewRenderedGrid(ViewFile.View):
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib={"class":"xAxisHdr",
                                                     "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                        elt.text = doc if doc else "&nbsp;"
+                        elt.text = doc if doc else "\u00A0"
                         self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
                     if self.colHdrCodeRow:
                         code = xAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code")
@@ -190,7 +190,7 @@ class ViewRenderedGrid(ViewFile.View):
                                             attrib={"class":"xAxisHdr",
                                                     "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
                         self.rowElts[self.dataFirstRow - 2].insert(thisCol,elt)
-                        elt.text = code if code else "&nbsp;"
+                        elt.text = code if code else "\u00A0"
                     xFilters.append((inheritedPrimaryItemQname(self, xAxisHdrObj),
                                      inheritedExplicitDims(self, xAxisHdrObj)))
             if nonAbstract:
@@ -222,7 +222,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         )
                     insertPosition = self.rowElts[nextRow-1].__len__()
                     self.rowElts[row - 1].insert(insertPosition, elt)
-                    elt.text = "&nbsp;"
+                    elt.text = "\u00A0"
                     hdrRow = nextRow # put nested stuff on bottom row
                     row = nextRow    # nested header still goes on this row
                 else:
@@ -256,7 +256,7 @@ class ViewRenderedGrid(ViewFile.View):
                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                     attrib=attrib
                                     )
-                elt.text = label if label else "&nbsp;"
+                elt.text = label if label else "\u00A0"
                 if isNonAbstract:
                     self.rowElts[hdrRow-1].append(elt)
                     if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
@@ -265,7 +265,7 @@ class ViewRenderedGrid(ViewFile.View):
                                          attrib={"class":"yAxisSpanLeg",
                                                  "style":"text-align:center;max-width:16pt;{1}".format(edgeBorder),
                                                  "rowspan": str(nestRow - hdrRow)}
-                                         ).text = "&nbsp;"
+                                         ).text = "\u00A0"
                     hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
                     if self.rowHdrDocCol:
                         docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
@@ -274,7 +274,7 @@ class ViewRenderedGrid(ViewFile.View):
                                          "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":hdrClass,
                                                  "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
-                                         ).text = doc if doc else "&nbsp;"
+                                         ).text = doc if doc else "\u00A0"
                     if self.rowHdrCodeCol:
                         codeCol = self.dataFirstCol - 1
                         code = yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code")
@@ -282,7 +282,7 @@ class ViewRenderedGrid(ViewFile.View):
                                          "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":hdrClass,
                                                  "style":"text-align:center;max-width:40pt;{0}".format(edgeBorder)}
-                                         ).text = code if code else "&nbsp;"
+                                         ).text = code if code else "\u00A0"
                     # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
                 else:
                     self.rowElts[hdrRow-1].insert(leftCol - 1, elt)
@@ -347,13 +347,13 @@ class ViewRenderedGrid(ViewFile.View):
                                          "{http://www.w3.org/1999/xhtml}td",
                                          attrib={"class":"cell",
                                                  "style":"text-align:{0};width:8em".format(justify)}
-                                         ).text = value if value else "&nbsp;"
+                                         ).text = value if value else "\u00A0"
                     else:
                         etree.SubElement(self.rowElts[row - 1], 
                                          "{http://www.w3.org/1999/xhtml}td",
                                          attrib={"class":"blockedCell",
                                                  "style":"text-align:{0};width:8em".format(justify)}
-                                         ).text = "&nbsp;&nbsp;"
+                                         ).text = "\u00A0\u00A0"
                 row += 1
             if not yChildrenFirst:
                 row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)

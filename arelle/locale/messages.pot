@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-01-26 14:42+Pacific Standard Time\n"
+"POT-Creation-Date: 2012-01-29 15:17+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -258,19 +258,19 @@ msgstr ""
 msgid "[info] testcases {0}"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:151
+#: arelle\CntlrQuickBooks.py:182
 msgid "Waiting for QuickBooks"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:182
+#: arelle\CntlrQuickBooks.py:213
 msgid "Generating XBRL-GL from QuickBooks response"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:462
+#: arelle\CntlrQuickBooks.py:501
 msgid "Saving XBRL-GL instance"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:464
+#: arelle\CntlrQuickBooks.py:503
 msgid "Done"
 msgstr ""
 
@@ -323,7 +323,7 @@ msgstr ""
 msgid "URL: "
 msgstr ""
 
-#: arelle\CntlrWebMain.py:166 arelle\CntlrWebMain.py:482
+#: arelle\CntlrWebMain.py:166 arelle\CntlrWebMain.py:483
 msgid "Messages"
 msgstr ""
 
@@ -382,7 +382,7 @@ msgid ""
 "\n"
 "<tr><th colspan=\"2\">Validation</th></tr>\n"
 "<tr><td>/rest/xbrl/&#x200B;{file}/&#x200B;validation/&#x200B;xbrl</td><td>Validate document at {file}.</td></tr>\n"
-"<tr><td>&nbsp;</td><td>{file} may be local or web url, and may have \"/\" characters replaced by \";\" characters (but that is not\n"
+"<tr><td> </td><td>{file} may be local or web url, and may have \"/\" characters replaced by \";\" characters (but that is not\n"
 "necessary).</td></tr>\n"
 "<tr><td style=\"text-align=right;\">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;c:/a/b/c.xbrl/&#x200B;validation/&#x200B;xbrl?&#x200B;media=xml</code>: Validate entry instance\n"
 "document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>\n"
@@ -427,8 +427,8 @@ msgid ""
 "\n"
 "<tr><th colspan=\"2\">Views</th></tr>\n"
 "<tr><td>/rest/xbrl/&#x200B;{file}/&#x200B;{view}</td><td>View document at {file}.</td></tr>\n"
-"<tr><td>&nbsp;</td><td>{file} may be local or web url, and may have \"/\" characters replaced by \";\" characters (but that is not necessary).</td></tr>\n"
-"<tr><td>&nbsp;</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, or <code>formulae</code>.</td></tr>\n"
+"<tr><td> </td><td>{file} may be local or web url, and may have \"/\" characters replaced by \";\" characters (but that is not necessary).</td></tr>\n"
+"<tr><td> </td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, or <code>formulae</code>.</td></tr>\n"
 "<tr><td style=\"text-align=right;\">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;c:/a/b/c.xbrl/&#x200B;dim?&#x200B;media=html</code>: View dimensions of \n"
 "document at c:/a/b/c.xbrl (on local drive) and return html result.</td></tr>\n"
 "<tr><td>/rest/xbrl/&#x200B;view</td><td>(Alternative syntax) View document, file and view are provided as parameters (see below).</td></tr>\n"
@@ -486,9 +486,10 @@ msgid ""
 "<tr><td>Setup:</td><td>Install QuickBooks Web Connector by <a href=\"http://marketplace.intuit.com/webconnector/\" target=\"installWBWC\">clicking here</a>.<br/>\n"
 "Click on QuickBooks.qwc in the Program Files Arelle directory, to install web connector for Arelle.  (It specifies localhost:8080 in it.)<br/>\n"
 "Open your QuickBooks and desired company<br/>\n"
-"From start menu, programs, QuickBooks, start Web Connector<br/>\n"
+"From start menu, programs, QuickBooks, start Web Connector (QBWC).  Web connector may want a password, use any string, such as \"abcd\", as it's not checked at this time.<br/>\n"
 "Start Arelle web server (if it wasn't already running)<br/>\n"
-"To request xbrl-gl, select report type (generalLedger, journal, or trialBalance) and specify file name for xbrl-gl output instance:</td></tr> \n"
+"To request xbrl-gl, select report type (generalLedger, journal, or trialBalance) and specify file name for xbrl-gl output instance.<br/>\n"
+"QBWC polls once a minute, if impatient, in the QBWC window, click its Arelle checkbox and press the update button.</td></tr> \n"
 "<tr><td style=\"text-align=right;\">Example:</td><td><code>http://localhost:8080/rest/quickbooks/generalLedger/xbrl-gl/C:/mystuff/xbrlGeneralLedger.xbrl/view?fromDate=2011-01-01&toDate=2011-12-31</code> \n"
 "(You may omit <code>/view</code>.)</td></tr>\n"
 "<tr><td></td><td>Parameters follow \"?\" character, and are separated by \"&amp;\" characters, \n"
@@ -501,7 +502,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:420
+#: arelle\CntlrWebMain.py:421
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">About arelle</th></tr>\n"
@@ -525,7 +526,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:443
+#: arelle\CntlrWebMain.py:444
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">Arelle Web Services</th></tr>\n"
