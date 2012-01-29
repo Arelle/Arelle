@@ -401,9 +401,10 @@ End With</code></td></tr>
 <tr><td>Setup:</td><td>Install QuickBooks Web Connector by <a href="http://marketplace.intuit.com/webconnector/" target="installWBWC">clicking here</a>.<br/>
 Click on QuickBooks.qwc in the Program Files Arelle directory, to install web connector for Arelle.  (It specifies localhost:8080 in it.)<br/>
 Open your QuickBooks and desired company<br/>
-From start menu, programs, QuickBooks, start Web Connector<br/>
+From start menu, programs, QuickBooks, start Web Connector (QBWC).  Web connector may want a password, use any string, such as "abcd", as it's not checked at this time.<br/>
 Start Arelle web server (if it wasn't already running)<br/>
-To request xbrl-gl, select report type (generalLedger, journal, or trialBalance) and specify file name for xbrl-gl output instance:</td></tr> 
+To request xbrl-gl, select report type (generalLedger, journal, or trialBalance) and specify file name for xbrl-gl output instance.<br/>
+QBWC polls once a minute, if impatient, in the QBWC window, click its Arelle checkbox and press the update button.</td></tr> 
 <tr><td style="text-align=right;">Example:</td><td><code>http://localhost:8080/rest/quickbooks/generalLedger/xbrl-gl/C:/mystuff/xbrlGeneralLedger.xbrl/view?fromDate=2011-01-01&toDate=2011-12-31</code> 
 (You may omit <code>/view</code>.)</td></tr>
 <tr><td></td><td>Parameters follow "?" character, and are separated by "&amp;" characters, 

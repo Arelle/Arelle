@@ -28,6 +28,35 @@ glEntriesType = {'trialBalance':'trialbalance',
                  'journal':'journal'
                 }
 
+qbTxnTypeToGL = {# QB code is case insensitive comparision (lowercase, some QBs do not have expected camel case)
+                 'bill':'voucher', # bills from vendors
+                 'billpayment':'check', # credits from vendors
+                 'billpaymentcheck':'check', # payments to vendors from bank account
+                 'billpaymentcreditcard':'payment-other',  # payments to vendor from credit card account
+                 'buildassembly':'other',
+                 'charge':'other',
+                 'check':'check', # checks written on bank account
+                 'creditcardcharge':'payment-other', # credit card account charge
+                 'creditcardcredit':'other', # credit card account credit
+                 'creditmemo':'credit-memo', # credit memo to customer
+                 'deposit':'check', # GL calls it check whether sent or received
+                 'estimate':'other',
+                 'inventoryadjustment':'other',
+                 'invoice':'invoice',
+                 'itemreceipt':'receipt',
+                 'journalentry':'manual-adjustment',
+                 'liabilitycheck': 'check',
+                 'paycheck': 'check',
+                 'purchaseorder':'order-vendor',
+                 'receivepayment':'payment-other',
+                 'salesorder':'order-customer',
+                 'salesreceipt':'other',
+                 'salestaxpaymentcheck':'check',
+                 'statementcharge':'other',
+                 'transfer':'payment-other',
+                 'vendorcredit':'credit-memo',
+                 }
+
 def server(_cntlr, soapFile, requestUrlParts):
     global cntlr
     if cntlr is None: cntlr = _cntlr
@@ -446,8 +475,16 @@ def processQbResponse(qbRequest, responseXml):
     
         if qbReport != "trialBalance":
             if qbTxnType: # not exactly same enumerations as expected by QB
+                cleanedQbTxnType = qbTxnType.replace(" ","").lower()
+                glDocType = qbTxnTypeToGL.get(cleanedQbTxnType) # try table lookup
+                if glDocType is None: # not in table
+                    if cleanedQbTxnType.endswith("check"): # didn't convert, probably should be a check
+                        glDocType = "check"
+                    # TBD add more QB transations here as they are discovered and not in table
+                    else:
+                        glDocType = qbTxnType # if all else fails pass through QB TxnType, it will fail GL validation and be noticed!
                 instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:documentType"), parent=entryDetail, attributes=nonNumAttr, 
-                                    text=qbTxnType)
+                                    text=glDocType)
         
             '''This enumerated field is used to specifically state whether the entries have been 
             posted to the originating system or not.'''
