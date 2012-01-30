@@ -37,10 +37,12 @@ qbTxnTypeToGL = {# QB code is case insensitive comparision (lowercase, some QBs 
                  'buildassembly':'other',
                  'charge':'other',
                  'check':'check', # checks written on bank account
+                 'credit':'credit-memo',
                  'creditcardcharge':'payment-other', # credit card account charge
                  'creditcardcredit':'other', # credit card account credit
                  'creditmemo':'credit-memo', # credit memo to customer
                  'deposit':'check', # GL calls it check whether sent or received
+                 'discount':'credit-memo',
                  'estimate':'other',
                  'generaljournal':'manual-adjustment',
                  'inventoryadjustment':'other',
@@ -48,6 +50,7 @@ qbTxnTypeToGL = {# QB code is case insensitive comparision (lowercase, some QBs 
                  'itemreceipt':'receipt',
                  'journalentry':'manual-adjustment',
                  'liabilitycheck': 'check',
+                 'payment': 'check',
                  'paycheck': 'check',
                  'purchaseorder':'order-vendor',
                  'receivepayment':'payment-other',
