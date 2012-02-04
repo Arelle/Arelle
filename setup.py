@@ -49,13 +49,15 @@ elif sys.platform == 'win32':
     # FIXME: this should use the entry_points mechanism
     packages = find_packages('.')
     dataFiles = None
+    win32includeFiles = [('arelle\\config','config'),
+                         ('arelle\\images','images'),
+                         ('arelle\\locale','locale'),
+                         ('arelle\\examples','examples'),
+                         ('arelle\\scripts-windows','scripts')]
+    if 'arelle.webserver' in packages:
+        win32includeFiles.append('QuickBooks.qwc')
     options = dict( build_exe =  {
-        "include_files": [('arelle\\config','config'),
-                          ('arelle\\images','images'),
-                          ('arelle\\locale','locale'),
-                          ('arelle\\examples','examples'),
-                          ('arelle\\scripts-windows','scripts'),
-                          'QuickBooks.qwc'],
+        "include_files": win32includeFiles,
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
         } )
