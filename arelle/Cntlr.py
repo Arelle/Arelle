@@ -87,6 +87,11 @@ class Cntlr:
             self.configDir = os.path.join(self.moduleDir, "config")
             self.imagesDir = os.path.join(self.moduleDir, "images")
             self.localeDir = os.path.join(self.moduleDir, "locale")
+        try:
+            from arelle import webserver
+            self.hasWebServer = True
+        except ImportError:
+            self.hasWebServer = False
         # assert that app dir must exist
         if not os.path.exists(self.userAppDir):
             os.makedirs(self.userAppDir)
@@ -133,7 +138,7 @@ class Cntlr:
             self.logger.addHandler(self.logHandler)
         else:
             self.logger = None
-            
+                        
     def addToLog(self, message, messageCode="", file="", sourceLine=""):
         # if there is a default logger, use it with dummy file name and arguments
         if self.logger is not None:

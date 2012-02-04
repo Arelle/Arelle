@@ -88,6 +88,7 @@ class ModelManager:
                                           createModelDocument=False)
             ModelVersReport(modelVersReport).diffDTSes(versReportFile, fromDTS, toDTS)
             return modelVersReport
+        return None
         
     def close(self, modelXbrl=None):
         if modelXbrl is None: modelXbrl = self.modelXbrl

@@ -9,7 +9,7 @@ This module is Arelle's controller in command line non-interactive mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import gettext, time, datetime, os, shlex, sys, traceback
-from optparse import OptionParser
+from optparse import OptionParser, SUPPRESS_HELP
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests)
@@ -18,6 +18,11 @@ from arelle.ModelFormulaObject import FormulaOptions
 import logging
 
 def main():
+    try:
+        from arelle import webserver
+        hasWebServer = True
+    except ImportError:
+        hasWebServer = False
     gettext.install("arelle") # needed for options messages
     usage = "usage: %prog [options]"
     parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
@@ -27,6 +32,8 @@ def main():
                              "inline XBRL instance, testcase file, "
                              "testcase index file.  FILENAME may be "
                              "a local file or a URI to a web located file."))
+    # special option for web interfaces to suppress closing an opened modelXbrl
+    parser.add_option("--keepOpen", dest="keepOpen", action="store_true", help=SUPPRESS_HELP)
     parser.add_option("-i", "--import", dest="importFiles",
                       help=_("FILENAME is a list of files to import to the DTS, such as "
                              "additional formula or label linkbases.  "
@@ -99,8 +106,9 @@ def main():
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFilterWinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
-    parser.add_option("--webserver", action="store", dest="webserver",
-                      help=_("start web server on host:port for REST and web access, e.g., --webserver locahost:8080."))
+    if hasWebServer:
+        parser.add_option("--webserver", action="store", dest="webserver",
+                          help=_("start web server on host:port for REST and web access, e.g., --webserver locahost:8080."))
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
@@ -131,11 +139,12 @@ def main():
                 "\n   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 "\n   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"
                 "\n   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
-                "\n   Bottle (c) 2011 Marcel Hellkamp"
-                ).format(Version.version))
-    elif len(args) != 0 or (options.entrypointFile is None and options.webserver is None):
+                "{1}"
+                ).format(Version.version,
+                         _("\n   Bottle (c) 2011 Marcel Hellkamp") if hasWebServer else ""))
+    elif len(args) != 0 or (options.entrypointFile is None and (not hasWebServer or options.webserver is None)):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
-    elif options.webserver:
+    elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.gfmName,
                 options.utrValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
@@ -223,78 +232,90 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.modelManager.formulaOptions = fo
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         startedAt = time.time()
+        modelDiffReport = None
+        success = True
         modelXbrl = self.modelManager.load(filesource, _("views loading"))
         if modelXbrl.errors:
-            return False    # loading errors, don't attempt to utilize loaded DTS
-        self.addToLog(format_string(self.modelManager.locale, 
-                                    _("loaded in %.2f secs at %s"), 
-                                    (time.time() - startedAt, timeNow)), 
-                                    messageCode="info", file=self.entrypointFile)
-        if options.importFiles:
-            for importFile in options.importFiles.split("|"):
-                ModelDocument.load(modelXbrl, importFile.strip())
-                self.addToLog(format_string(self.modelManager.locale, 
-                                            _("imported in %.2f secs at %s"), 
-                                            (time.time() - startedAt, timeNow)), 
-                                            messageCode="info", file=importFile)
-            if modelXbrl.errors:
-                return False    # loading errors, don't attempt to utilize loaded DTS
-        if options.diffFile and options.versReportFile:
+            success = False    # loading errors, don't attempt to utilize loaded DTS
+        else:
+            self.addToLog(format_string(self.modelManager.locale, 
+                                        _("loaded in %.2f secs at %s"), 
+                                        (time.time() - startedAt, timeNow)), 
+                                        messageCode="info", file=self.entrypointFile)
+            if options.importFiles:
+                for importFile in options.importFiles.split("|"):
+                    ModelDocument.load(modelXbrl, importFile.strip())
+                    self.addToLog(format_string(self.modelManager.locale, 
+                                                _("imported in %.2f secs at %s"), 
+                                                (time.time() - startedAt, timeNow)), 
+                                                messageCode="info", file=importFile)
+                if modelXbrl.errors:
+                    success = False    # loading errors, don't attempt to utilize loaded DTS
+        if success and options.diffFile and options.versReportFile:
             diffFilesource = FileSource.FileSource(options.diffFile,self)
             startedAt = time.time()
-            modelXbrl = self.modelManager.load(diffFilesource, _("views loading"))
-            if modelXbrl.errors:
-                return False    # loading errors, don't attempt to utilize loaded DTS
-            self.addToLog(format_string(self.modelManager.locale, 
-                                        _("diff comparison DTS loaded in %.2f secs"), 
-                                        time.time() - startedAt), 
-                                        messageCode="info", file=self.entrypointFile)
-            startedAt = time.time()
-            self.modelManager.compareDTSes(options.versReportFile)
-            self.addToLog(format_string(self.modelManager.locale, 
-                                        _("compared in %.2f secs"), 
-                                        time.time() - startedAt), 
-                                        messageCode="info", file=self.entrypointFile)
-        try:
-            if options.validate:
-                startedAt = time.time()
-                self.modelManager.validate()
+            modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))
+            if modelXbrl2.errors:
+                if not options.keepOpen:
+                    modelXbrl2.close()
+                success = False
+            else:
                 self.addToLog(format_string(self.modelManager.locale, 
-                                            _("validated in %.2f secs"), 
-                                            time.time() - startedAt),
+                                            _("diff comparison DTS loaded in %.2f secs"), 
+                                            time.time() - startedAt), 
                                             messageCode="info", file=self.entrypointFile)
-                if (options.testReport and 
-                    self.modelManager.modelXbrl.modelDocument.type in 
-                        (ModelDocument.Type.TESTCASESINDEX, 
-                         ModelDocument.Type.TESTCASE, 
-                         ModelDocument.Type.REGISTRY)):
-                    ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport)
-                
-            if options.DTSFile:
-                ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
-            if options.factsFile:
-                ViewFileFactList.viewFacts(modelXbrl, options.factsFile, lang=options.labelLang, cols=options.factListCols)
-            if options.factTableFile:
-                ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, lang=options.labelLang)
-            if options.conceptsFile:
-                ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, lang=options.labelLang)
-            if options.preFile:
-                ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", lang=options.labelLang)
-            if options.calFile:
-                ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", lang=options.labelLang)
-            if options.dimFile:
-                ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", lang=options.labelLang)
-            if options.formulaeFile:
-                ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
-        except (IOError, EnvironmentError) as err:
-            self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
-            return False
-        except Exception as err:
-            self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
-                        err,
-                        traceback.format_tb(sys.exc_info()[2])))
-            return False
-        return True
+                startedAt = time.time()
+                modelDiffReport = self.modelManager.compareDTSes(options.versReportFile)
+                self.addToLog(format_string(self.modelManager.locale, 
+                                            _("compared in %.2f secs"), 
+                                            time.time() - startedAt), 
+                                            messageCode="info", file=self.entrypointFile)
+        if success:
+            try:
+                if options.validate:
+                    startedAt = time.time()
+                    self.modelManager.validate()
+                    self.addToLog(format_string(self.modelManager.locale, 
+                                                _("validated in %.2f secs"), 
+                                                time.time() - startedAt),
+                                                messageCode="info", file=self.entrypointFile)
+                    if (options.testReport and 
+                        self.modelManager.modelXbrl.modelDocument.type in 
+                            (ModelDocument.Type.TESTCASESINDEX, 
+                             ModelDocument.Type.TESTCASE, 
+                             ModelDocument.Type.REGISTRY)):
+                        ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport)
+                    
+                if options.DTSFile:
+                    ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
+                if options.factsFile:
+                    ViewFileFactList.viewFacts(modelXbrl, options.factsFile, lang=options.labelLang, cols=options.factListCols)
+                if options.factTableFile:
+                    ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, lang=options.labelLang)
+                if options.conceptsFile:
+                    ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, lang=options.labelLang)
+                if options.preFile:
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", lang=options.labelLang)
+                if options.calFile:
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", lang=options.labelLang)
+                if options.dimFile:
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", lang=options.labelLang)
+                if options.formulaeFile:
+                    ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
+            except (IOError, EnvironmentError) as err:
+                self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
+                success = False
+            except Exception as err:
+                self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
+                            err,
+                            traceback.format_tb(sys.exc_info()[2])))
+                success = False
+        if not options.keepOpen:
+            if modelDiffReport:
+                modelDiffReport.close()
+            elif modelXbrl:
+                modelXbrl.close()
+        return success
 
 if __name__ == "__main__":
     '''
