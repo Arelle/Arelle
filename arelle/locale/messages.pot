@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-01-29 15:17+Pacific Standard Time\n"
+"POT-Creation-Date: 2012-02-04 23:20+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,115 +15,119 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: arelle\CntlrCmdLine.py:25
+#: arelle\CntlrCmdLine.py:30
 msgid "FILENAME is an entry point, which may be an XBRL instance, schema, linkbase file, inline XBRL instance, testcase file, testcase index file.  FILENAME may be a local file or a URI to a web located file."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:31
+#: arelle\CntlrCmdLine.py:38
 msgid "FILENAME is a list of files to import to the DTS, such as additional formula or label linkbases.  Multiple file names are separated by a '|' character. "
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:35
+#: arelle\CntlrCmdLine.py:42
 msgid "FILENAME is a second entry point when comparing (diffing) two DTSes producing a versioning report."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:38
+#: arelle\CntlrCmdLine.py:45
 msgid "FILENAME is the filename to save as the versioning report."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:41
+#: arelle\CntlrCmdLine.py:48
 msgid "Validate the file according to the entry file type.  If an XBRL file, it is validated according to XBRL validation 2.1, calculation linkbase validation if either --calcDecimals or --calcPrecision are specified, and SEC Edgar Filing Manual (if --efm selected) or Global Filer Manual disclosure system validation (if --gfm=XXX selected). If a test suite or testcase, the test case variations are individually so validated."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:50
+#: arelle\CntlrCmdLine.py:57
 msgid "Specify calculation linkbase validation inferring decimals."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:52
+#: arelle\CntlrCmdLine.py:59
 msgid "Specify calculation linkbase validation inferring precision."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:54
+#: arelle\CntlrCmdLine.py:61
 msgid "Select Edgar Filer Manual (U.S. SEC) disclosure system validation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:56
+#: arelle\CntlrCmdLine.py:63
 msgid "Specify a Global Filer Manual disclosure system name and select disclosure system validation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:59
+#: arelle\CntlrCmdLine.py:66
 msgid "Select validation with respect to Unit Type Registry."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:61
+#: arelle\CntlrCmdLine.py:68
 msgid "Language for labels in following file options (override system settings)"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:63
+#: arelle\CntlrCmdLine.py:70
+msgid "Label role for labels in following file options (instead of standard label)"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:72
 msgid "Write DTS tree into FILE (may be .csv or .html)"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:65
+#: arelle\CntlrCmdLine.py:74
 msgid "Write fact list into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:67
+#: arelle\CntlrCmdLine.py:76
 msgid "Columns for fact list file"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:69
+#: arelle\CntlrCmdLine.py:78
 msgid "Write fact table into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:71
+#: arelle\CntlrCmdLine.py:80
 msgid "Write concepts into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:73
+#: arelle\CntlrCmdLine.py:82
 msgid "Write presentation linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:75
+#: arelle\CntlrCmdLine.py:84
 msgid "Write calculation linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:77
+#: arelle\CntlrCmdLine.py:86
 msgid "Write dimensions (of definition) linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:79
+#: arelle\CntlrCmdLine.py:88
 msgid "Write formulae linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:81
+#: arelle\CntlrCmdLine.py:90
 msgid "Write test report of validation (of test cases) into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:83
+#: arelle\CntlrCmdLine.py:92
 msgid "Write log messages into file, otherwise they go to standard output.  If file ends in .xml it is xml-formatted, otherwise it is text. "
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:85 arelle\CntlrCmdLine.py:86
-#: arelle\CntlrCmdLine.py:87 arelle\CntlrCmdLine.py:88
-#: arelle\CntlrCmdLine.py:89 arelle\CntlrCmdLine.py:90
-#: arelle\CntlrCmdLine.py:91 arelle\CntlrCmdLine.py:92
-#: arelle\CntlrCmdLine.py:93 arelle\CntlrCmdLine.py:94
-#: arelle\CntlrCmdLine.py:95 arelle\CntlrCmdLine.py:96
-#: arelle\CntlrCmdLine.py:97 arelle\CntlrCmdLine.py:98
-#: arelle\CntlrCmdLine.py:99 arelle\CntlrCmdLine.py:100
-#: arelle\CntlrCmdLine.py:101
+#: arelle\CntlrCmdLine.py:94 arelle\CntlrCmdLine.py:95
+#: arelle\CntlrCmdLine.py:96 arelle\CntlrCmdLine.py:97
+#: arelle\CntlrCmdLine.py:98 arelle\CntlrCmdLine.py:99
+#: arelle\CntlrCmdLine.py:100 arelle\CntlrCmdLine.py:101
+#: arelle\CntlrCmdLine.py:102 arelle\CntlrCmdLine.py:103
+#: arelle\CntlrCmdLine.py:104 arelle\CntlrCmdLine.py:105
+#: arelle\CntlrCmdLine.py:106 arelle\CntlrCmdLine.py:107
+#: arelle\CntlrCmdLine.py:108 arelle\CntlrCmdLine.py:109
+#: arelle\CntlrCmdLine.py:110
 msgid "Specify formula tracing."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:103
+#: arelle\CntlrCmdLine.py:113
 msgid "start web server on host:port for REST and web access, e.g., --webserver locahost:8080."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:106
+#: arelle\CntlrCmdLine.py:116
 msgid "Show product version, copyright, and license."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:115
+#: arelle\CntlrCmdLine.py:125
 msgid ""
 "\n"
 "arelle(r) {0}\n"
@@ -149,63 +153,68 @@ msgid ""
 "   PyParsing (c) 2003-2010 Paul T. McGuire\n"
 "   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh\n"
 "   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan\n"
-"   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov\n"
+"   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov{1}"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:146
+msgid ""
+"\n"
 "   Bottle (c) 2011 Marcel Hellkamp"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:137
+#: arelle\CntlrCmdLine.py:148
 msgid ""
 "incorrect arguments, please try\n"
 "  python CntlrCmdLine.pyw --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:149
+#: arelle\CntlrCmdLine.py:160
 msgid ""
 "incorrect arguments with --webserver, please try\n"
 "  python CntlrCmdLine.pyw --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:168
+#: arelle\CntlrCmdLine.py:179
 msgid "both --efm and --gfm validation are requested, proceeding with --efm only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:179
+#: arelle\CntlrCmdLine.py:190
 msgid "both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:226 arelle\CntlrCmdLine.py:245
+#: arelle\CntlrCmdLine.py:239 arelle\CntlrCmdLine.py:259
 #: arelle\CntlrGenVersReports.py:321 arelle\CntlrProfiler.py:20
 #: arelle\CntlrWinMain.py:547
 msgid "views loading"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:230
+#: arelle\CntlrCmdLine.py:244
 msgid "loaded in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:237
+#: arelle\CntlrCmdLine.py:251
 msgid "imported in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:249
+#: arelle\CntlrCmdLine.py:266
 msgid "diff comparison DTS loaded in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:255 arelle\CntlrWinMain.py:718
+#: arelle\CntlrCmdLine.py:272 arelle\CntlrWinMain.py:718
 msgid "compared in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:263 arelle\CntlrWinMain.py:675
+#: arelle\CntlrCmdLine.py:281 arelle\CntlrWinMain.py:675
 msgid "validated in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:290
+#: arelle\CntlrCmdLine.py:308
 msgid ""
 "[IOError] Failed to save output:\n"
 " {0}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:293
+#: arelle\CntlrCmdLine.py:311
 msgid ""
 "[Exception] Failed to complete request: \n"
 "{0} \n"
@@ -258,19 +267,19 @@ msgstr ""
 msgid "[info] testcases {0}"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:182
+#: arelle\CntlrQuickBooks.py:185
 msgid "Waiting for QuickBooks"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:213
+#: arelle\CntlrQuickBooks.py:216
 msgid "Generating XBRL-GL from QuickBooks response"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:501
+#: arelle\CntlrQuickBooks.py:504
 msgid "Saving XBRL-GL instance"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:503
+#: arelle\CntlrQuickBooks.py:506
 msgid "Done"
 msgstr ""
 
@@ -323,7 +332,7 @@ msgstr ""
 msgid "URL: "
 msgstr ""
 
-#: arelle\CntlrWebMain.py:166 arelle\CntlrWebMain.py:483
+#: arelle\CntlrWebMain.py:166 arelle\CntlrWebMain.py:484
 msgid "Messages"
 msgstr ""
 
@@ -401,6 +410,7 @@ msgid ""
 "<tr><td style=\"text-indent: 1em;\">import</td><td>A list of files to import to the DTS, such as additional formula \n"
 "or label linkbases.  Multiple file names are separated by a '|' character.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">labelLang</td><td>Label language to override system settings, e.g., <code>&labelLang=ja</code>.</td></tr> \n"
+"<tr><td style=\"text-indent: 1em;\">labelRole</td><td>Label role instead of standard label, e.g., <code>&labelRole=http://www.xbrl.org/2003/role/verboseLabel</code>.  To use the concept QName instead of a label, specify <code>&labelRole=XBRL-concept-name</code>.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">calcDecimals</td><td>Specify calculation linkbase validation inferring decimals.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">calcPrecision</td><td>Specify calculation linkbase validation inferring precision.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">efm</td><td>Select Edgar Filer Manual (U.S. SEC) disclosure system validation. (Alternative to flavor parameter.)</td></tr> \n"
@@ -502,7 +512,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:421
+#: arelle\CntlrWebMain.py:422
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">About arelle</th></tr>\n"
@@ -526,7 +536,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:444
+#: arelle\CntlrWebMain.py:445
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">Arelle Web Services</th></tr>\n"
@@ -790,13 +800,13 @@ msgstr ""
 
 #: arelle\CntlrWinMain.py:375 arelle\CntlrWinMain.py:398
 #: arelle\CntlrWinMain.py:417 arelle\CntlrWinMain.py:443
-#: arelle\CntlrWinMain.py:744 arelle\CntlrWinMain.py:993
+#: arelle\CntlrWinMain.py:744 arelle\CntlrWinMain.py:994
 msgid "arelle - Error"
 msgstr ""
 
 #: arelle\CntlrWinMain.py:376 arelle\CntlrWinMain.py:399
 #: arelle\CntlrWinMain.py:418 arelle\CntlrWinMain.py:444
-#: arelle\CntlrWinMain.py:994
+#: arelle\CntlrWinMain.py:995
 msgid ""
 "Failed to save {0}:\n"
 "{1}"
@@ -1033,15 +1043,20 @@ msgid ""
 "   PyParsing © 2003-2010 Paul T. McGuire\n"
 "   lxml © 2004 Infrae, ElementTree © 1999-2004 by Fredrik Lundh\n"
 "   xlrd © 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, © 2001 D. Giffin, © 2000 A. Khan\n"
-"   xlwt © 2007 Stephen J. Machin, Lingfo Pty Ltd, © 2005 R. V. Kiseliov\n"
+"   xlwt © 2007 Stephen J. Machin, Lingfo Pty Ltd, © 2005 R. V. Kiseliov{1}"
+msgstr ""
+
+#: arelle\CntlrWinMain.py:964
+msgid ""
+"\n"
 "   Bottle © 2011 Marcel Hellkamp"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:984
+#: arelle\CntlrWinMain.py:985
 msgid "arelle - Save Messages Log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:986
+#: arelle\CntlrWinMain.py:987
 msgid "Txt file"
 msgstr ""
 
@@ -4336,11 +4351,11 @@ msgstr ""
 msgid "viewing facts"
 msgstr ""
 
-#: arelle\ViewFileFactList.py:30
+#: arelle\ViewFileFactList.py:31
 msgid "Unrecognized columns: %(cols)s"
 msgstr ""
 
-#: arelle\ViewFileFactList.py:40
+#: arelle\ViewFileFactList.py:41
 msgid "First column must be Label or Name: %(col1)s"
 msgstr ""
 

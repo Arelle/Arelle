@@ -201,8 +201,11 @@ class ViewFactTable(ViewWinTree.ViewTree):
                 # special case of start date, pick column corresponding
                 if preferredLabel == XbrlConst.periodStartLabel:
                     date = fact.context.instantDatetime
-                    if date and date in self.startdatetimeColId:
-                        colId = self.startdatetimeColId[date]
+                    if date:
+                        if date in self.startdatetimeColId:
+                            colId = self.startdatetimeColId[date]
+                        else:
+                            continue # not shown on this row (belongs on end period label row
                 self.treeView.set(node, 
                                   colId, 
                                   fact.effectiveValue)

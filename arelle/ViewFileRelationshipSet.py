@@ -8,15 +8,16 @@ from arelle import ModelObject, ModelDtsObject, XbrlConst, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 import os
 
-def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
+def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, labelrole=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
-    view = ViewRelationshipSet(modelXbrl, outfile, header, lang)
+    view = ViewRelationshipSet(modelXbrl, outfile, header, labelrole, lang)
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
     
 class ViewRelationshipSet(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, header, lang):
+    def __init__(self, modelXbrl, outfile, header, labelrole, lang):
         super().__init__(modelXbrl, outfile, header, lang)
+        self.labelrole = labelrole
         
     def view(self, arcrole, linkrole=None, linkqname=None, arcqname=None):
         # determine relationships indent depth for dimensions linkbases
@@ -57,7 +58,7 @@ class ViewRelationshipSet(ViewFile.View):
                             xmlRowElementName="linkRole", xmlRowEltAttr=attr, xmlCol0skipElt=True)
                 linkRelationshipSet = self.modelXbrl.relationshipSet(arcrole, linkroleUri, linkqname, arcqname)
                 for rootConcept in linkRelationshipSet.rootConcepts:
-                    self.viewConcept(rootConcept, rootConcept, "", None, 1, arcrole, linkRelationshipSet, set())
+                    self.viewConcept(rootConcept, rootConcept, "", self.labelrole, 1, arcrole, linkRelationshipSet, set())
 
     def treeDepth(self, concept, modelObject, indent, arcrole, relationshipSet, visited):
         if concept is None:
@@ -127,5 +128,5 @@ class ViewRelationshipSet(ViewFile.View):
                 toConcept = modelRel.toModelObject
                 if toConcept in visited:
                     childPrefix += "(loop) "
-                self.viewConcept(toConcept, modelRel, childPrefix, modelRel.preferredLabel, indent + 1, arcrole, nestedRelationshipSet, visited)
+                self.viewConcept(toConcept, modelRel, childPrefix, (modelRel.preferredLabel or self.labelrole), indent + 1, arcrole, nestedRelationshipSet, visited)
             visited.remove(concept)

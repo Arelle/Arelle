@@ -66,6 +66,8 @@ def main():
                       help=_("Select validation with respect to Unit Type Registry."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
                       help=_("Language for labels in following file options (override system settings)"))
+    parser.add_option("--labelRole", action="store", dest="labelRole",
+                      help=_("Label role for labels in following file options (instead of standard label)"))
     parser.add_option("--DTS", "--csvDTS", action="store", dest="DTSFile",
                       help=_("Write DTS tree into FILE (may be .csv or .html)"))
     parser.add_option("--facts", "--csvFacts", action="store", dest="factsFile",
@@ -289,17 +291,17 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if options.DTSFile:
                     ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
                 if options.factsFile:
-                    ViewFileFactList.viewFacts(modelXbrl, options.factsFile, lang=options.labelLang, cols=options.factListCols)
+                    ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)
                 if options.factTableFile:
-                    ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, lang=options.labelLang)
+                    ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang)
                 if options.conceptsFile:
-                    ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, lang=options.labelLang)
+                    ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
                 if options.preFile:
-                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", lang=options.labelLang)
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", labelrole=options.labelRole, lang=options.labelLang)
                 if options.calFile:
-                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", lang=options.labelLang)
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", labelrole=options.labelRole, lang=options.labelLang)
                 if options.dimFile:
-                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", lang=options.labelLang)
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang)
                 if options.formulaeFile:
                     ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
             except (IOError, EnvironmentError) as err:

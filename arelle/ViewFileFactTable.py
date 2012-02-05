@@ -174,8 +174,7 @@ class ViewFacts(ViewFile.View):
                 toConcept = modelRel.toModelObject
                 if toConcept in visited:
                     childPrefix += "(loop)"
-                labelrole = modelRel.preferredLabel
-                if not labelrole: labelrole = self.labelrole
+                labelrole = (modelRel.preferredLabel or self.labelrole)
                 self.viewConcept(toConcept, modelRel, childPrefix, labelrole, n + 1, nestedRelationshipSet, visited)
             visited.remove(concept)
             
@@ -186,8 +185,11 @@ class ViewFacts(ViewFile.View):
                 # special case of start date, pick column corresponding
                 if preferredLabel == XbrlConst.periodStartLabel:
                     date = fact.context.instantDatetime
-                    if date and date in self.startdatetimeColId:
-                        colId = self.startdatetimeColId[date]
+                    if date:
+                        if date in self.startdatetimeColId:
+                            colId = self.startdatetimeColId[date]
+                        else:
+                            continue # not shown on this row (belongs on end period label row
                 cols[colId] = fact.effectiveValue
             except AttributeError:  # not a fact or no concept
                 pass

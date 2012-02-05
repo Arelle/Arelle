@@ -7,15 +7,16 @@ Created on Jan 10, 2011
 from arelle import ViewFile, XbrlConst, XmlUtil
 from collections import defaultdict
 
-def viewFacts(modelXbrl, outfile, lang=None, cols=None):
+def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))
-    view = ViewFacts(modelXbrl, outfile, lang, cols)
+    view = ViewFacts(modelXbrl, outfile, labelrole, lang, cols)
     view.view(modelXbrl.modelDocument)
     view.close()
     
 class ViewFacts(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, lang, cols):
+    def __init__(self, modelXbrl, outfile, labelrole, lang, cols):
         super().__init__(modelXbrl, outfile, "Fact List", lang)
+        self.labelrole = labelrole
         self.cols = cols
 
     def view(self, modelDocument):
@@ -63,7 +64,7 @@ class ViewFacts(ViewFile.View):
             xmlRowElementName = 'item'
             attr = {"name": str(modelFact.qname)}
             if concept is not None and self.isCol0Label:
-                lbl = concept.label(lang=self.lang)
+                lbl = concept.label(preferredLabel=self.labelrole, lang=self.lang)
                 xmlCol0skipElt = False # provide label as a row element
             else:
                 lbl = modelFact.qname

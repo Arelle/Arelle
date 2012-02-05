@@ -13,4 +13,4 @@ rem Please edit or adapt to location of instance documents, output files, and Ar
 @set ARELLE=c:\Program Files\Arelle\arelleCmdLine.exe
 
 
-"%ARELLE%" --file "%INSTANCEFILE%" --csvFactCols "Label unitRef Dec Value EntityScheme EntityIdentifier Period Dimensions" --csvFacts "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1
+"%ARELLE%" --file "%INSTANCEFILE%" --factListCols "Label unitRef Dec Value EntityScheme EntityIdentifier Period Dimensions" --csvFacts "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1

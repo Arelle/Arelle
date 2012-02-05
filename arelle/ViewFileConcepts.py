@@ -7,22 +7,23 @@ Created on Oct 5, 2010
 from arelle import ViewFile, XbrlConst
 from collections import defaultdict
 
-def viewConcepts(modelXbrl, outFile, lang=None):
+def viewConcepts(modelXbrl, outFile, labelrole=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing concepts"))
-    view = ViewConcepts(modelXbrl, outFile, lang)
-    view.addRow(["Label","Name","ID","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Facets"], asHeader=True)
+    view = ViewConcepts(modelXbrl, outFile, labelrole, lang)
+    view.addRow(["Label","Name","ID","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Facets","Doc\u00ADu\u00ADmen\u00ADta\u00ADtion"], asHeader=True)
     view.view(modelXbrl.modelDocument)
     view.close()
     
 class ViewConcepts(ViewFile.View):
-    def __init__(self, modelXbrl, outFile, lang):
+    def __init__(self, modelXbrl, outFile, labelrole, lang):
         super().__init__(modelXbrl, outFile, "concepts", lang)
+        self.labelrole = labelrole
         
     def view(self, modelDocument):
         # sort by labels
         lbls = defaultdict(list)
         for concept in self.modelXbrl.qnameConcepts.values():
-            lbls[concept.label(lang=self.lang)].append(concept.objectId())
+            lbls[concept.label(preferredLabel=self.labelrole, lang=self.lang)].append(concept.objectId())
         srtLbls = sorted(lbls)
         for label in srtLbls:
             for objectId in lbls[label]:
@@ -30,7 +31,7 @@ class ViewConcepts(ViewFile.View):
                 if concept.modelDocument.targetNamespace not in (
                          XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
                          XbrlConst.xbrldt):
-                    self.addRow([concept.label(lang=self.lang),
+                    self.addRow([concept.label(preferredLabel=self.labelrole, lang=self.lang, strip=True),
                                  concept.name,
                                  concept.id,
                                  concept.abstract,
@@ -41,5 +42,6 @@ class ViewConcepts(ViewFile.View):
                                        name,
                                        sorted(value) if isinstance(value,set) else value
                                        ) for name,value in sorted(concept.type.facets.items())) \
-                                       if concept.type is not None and concept.type.facets else ''
+                                       if concept.type is not None and concept.type.facets else '',
+                                 concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True)
                                 ])
