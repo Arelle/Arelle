@@ -23,6 +23,21 @@ supportedQbReports = {'trialBalance':'GeneralSummary',
                       'generalLedger':'GeneralDetail', 
                       'journal':'GeneralDetail'
                      }
+# some reports don't provide the needed columns, request explicitly
+includeQbColumns = {'trialBalance': '',
+                    'generalLedger': '''
+<IncludeColumn>TxnType</IncludeColumn>
+<IncludeColumn>Date</IncludeColumn>
+<IncludeColumn>RefNumber</IncludeColumn>
+<IncludeColumn>Name</IncludeColumn>
+<IncludeColumn>Memo</IncludeColumn>
+<IncludeColumn>SplitAccount</IncludeColumn>
+<IncludeColumn>Credit</IncludeColumn>
+<IncludeColumn>Debit</IncludeColumn>
+<IncludeColumn>RunningBalance</IncludeColumn>
+''',
+                 'journal': ''
+                 }
 glEntriesType = {'trialBalance':'trialbalance', 
                  'generalLedger':'balance', 
                  'journal':'journal'
@@ -114,13 +129,14 @@ def server(_cntlr, soapFile, requestUrlParts):
       <ReportPeriod>
         <FromReportDate>{2}</FromReportDate>
         <ToReportDate>{3}</ToReportDate>
-      </ReportPeriod>
+      </ReportPeriod>{4}
     </{1}ReportQueryRq>
   </QBXMLMsgsRq>
 </QBXML>''').format(action[0].upper() + action[1:], 
                     supportedQbReports[action],
                     _qbRequest["fromDate"],
                     _qbRequest["toDate"],
+                    includeQbColumns[action],
                     ).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
                     
             elif request.tag == "{http://developer.intuit.com/}receiveResponseXML":
@@ -221,11 +237,13 @@ def processQbResponse(qbRequest, responseXml):
     strHCPResponse = qbRequest.get("strHCPResponse", "")
     
     # uncomment to dump out QB responses
+    '''
     with open("c:/temp/test.xml", "w") as fh:
         fh.write(responseXml)
     with open("c:/temp/testC.xml", "w") as fh:
         fh.write(strHCPResponse)
     # qb responses dump
+    '''
     
     companyQbDoc = etree.parse(io.StringIO(initial_value=strHCPResponse))
     responseQbDoc = etree.parse(io.StringIO(initial_value=responseXml))
@@ -235,8 +253,16 @@ def processQbResponse(qbRequest, responseXml):
     for colDescElt in responseQbDoc.iter("ColDesc"):
         colTypeElt = colDescElt.find("ColType")
         if colTypeElt is not None:
-            colTypeId[colTypeElt.text] = colDescElt.get("colID")
-            colIdType[colDescElt.get("colID")] = colTypeElt.text
+            colID = colDescElt.get("colID")
+            colType = colTypeElt.text
+            if colType == "Amount": # check if there's a credit or debit colTitle
+                for colTitleElt in colDescElt.iter("ColTitle"):
+                    title = colTitleElt.get("value")
+                    if title in ("Credit", "Debit"):
+                        colType = title
+                        break
+            colTypeId[colType] = colID
+            colIdType[colID] = colType
     
     # open new result instance document
 
