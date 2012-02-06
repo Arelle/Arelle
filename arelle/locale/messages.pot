@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-02-04 23:20+Pacific Standard Time\n"
+"POT-Creation-Date: 2012-02-05 23:04+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -267,19 +267,19 @@ msgstr ""
 msgid "[info] testcases {0}"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:185
+#: arelle\CntlrQuickBooks.py:201
 msgid "Waiting for QuickBooks"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:216
+#: arelle\CntlrQuickBooks.py:232
 msgid "Generating XBRL-GL from QuickBooks response"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:504
+#: arelle\CntlrQuickBooks.py:530
 msgid "Saving XBRL-GL instance"
 msgstr ""
 
-#: arelle\CntlrQuickBooks.py:506
+#: arelle\CntlrQuickBooks.py:532
 msgid "Done"
 msgstr ""
 
