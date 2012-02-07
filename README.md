@@ -11,8 +11,8 @@ Validation tool for versioning reports and a production tool to generate the bas
 versioning report that can be inferred by diffing two DTSes. 
 * Edgar and Global Filer Manual validation 
 * Base Specification, Dimensions, Generic linkbase validation 
-* Formula validation
-*Instance creation is supported using forms defined by the table linkbase (Eurofiling verison). 
+* Formula validation including support for extension modules
+* Instance creation is supported using forms defined by the table linkbase (Eurofiling verison). 
 * RSS Watch facility 
 * Users can explore the functionality and features from an interactive GUI, command line interface, or web services, and can develop their own controller interfaces as needed.
 * The Web Service API allows XBRL integration with applications, such as those in Excel, Java or Oracle.
