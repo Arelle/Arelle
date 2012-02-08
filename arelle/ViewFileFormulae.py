@@ -18,7 +18,7 @@ def viewFormulae(modelXbrl, outfile, header, lang=None):
     
 class ViewFormulae(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, lang):
-        super().__init__(modelXbrl, outfile, header, lang)
+        super(ViewFormulae, self).__init__(modelXbrl, outfile, header, lang)
         
     def view(self):
         # determine relationships indent depth

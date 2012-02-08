@@ -18,7 +18,7 @@ datePattern = None
 
 class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
-        super().__init__(modelXbrl)
+        super(ValidateFiling, self).__init__(modelXbrl)
         
         global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, usTypesPattern, usRolesPattern, usDeiPattern
         

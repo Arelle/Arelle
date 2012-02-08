@@ -17,7 +17,7 @@ def viewFormulae(modelXbrl, tabWin):
     
 class ViewFormulae(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "Formulae", True)
+        super(ViewFormulae, self).__init__(modelXbrl, tabWin, "Formulae", True)
         
     def view(self):
         self.blockSelectEvent = 1

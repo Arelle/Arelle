@@ -33,7 +33,7 @@ def viewVersReport(modelXbrl, tabWin):
     
 class ViewVersReport(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "Versioning Report", True)
+        super(ViewVersReport, self).__init__(modelXbrl, tabWin, "Versioning Report", True)
         
     def view(self):
         self.blockSelectEvent = 1

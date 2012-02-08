@@ -16,7 +16,7 @@ def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, link
     
 class ViewRelationshipSet(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, labelrole, lang):
-        super().__init__(modelXbrl, outfile, header, lang)
+        super(ViewRelationshipSet, self).__init__(modelXbrl, outfile, header, lang)
         self.labelrole = labelrole
         
     def view(self, arcrole, linkrole=None, linkqname=None, arcqname=None):

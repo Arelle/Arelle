@@ -16,7 +16,6 @@ from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombob
                      label, checkbox, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
 from arelle.DialogNewFactItem import getNewFactItemOptions
-from arelle.FunctionXs import xsString
 from collections import defaultdict
 from itertools import repeat
 
@@ -56,7 +55,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
             
 class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def __init__(self, modelXbrl, tabWin, lang):
-        super().__init__(modelXbrl, tabWin, "Rendering", True, lang)
+        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, "Rendering", True, lang)
         self.dimsContextElement = {}
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
         self.zComboBoxIndex = None

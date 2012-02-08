@@ -47,7 +47,7 @@ class NewFactItemOptions():
     
 class ModelFact(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelFact, self).init(modelDocument)
         self.modelTupleFacts = []
         
     @property
@@ -305,7 +305,7 @@ class ModelFact(ModelObject):
 
 class ModelInlineFact(ModelFact):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInlineFact, self).init(modelDocument)
         
     @property
     def qname(self):
@@ -396,7 +396,7 @@ class ModelInlineFact(ModelFact):
                
 class ModelContext(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelContext, self).init(modelDocument)
         self.segDimValues = {}
         self.scenDimValues = {}
         self.qnameDims = {}
@@ -690,7 +690,7 @@ class ModelContext(ModelObject):
 
 class ModelDimensionValue(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelDimensionValue, self).init(modelDocument)
         
     def __hash__(self):
         if self.isExplicit:
@@ -768,7 +768,7 @@ def measuresStr(m):
 
 class ModelUnit(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelUnit, self).init(modelDocument)
         
     @property
     def measures(self):

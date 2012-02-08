@@ -20,7 +20,7 @@ def viewXml(modelXbrl, tabWin, tabTitle, xmlDoc):
 
 class ViewXml(ViewWinList.ViewList):
     def __init__(self, modelXbrl, tabWin, tabTitle):
-        super().__init__(modelXbrl, tabWin, tabTitle, True)
+        super(ViewWinList, self).__init__(modelXbrl, tabWin, tabTitle, True)
     
     def view(self, xmlDoc):
         fh = io.StringIO()

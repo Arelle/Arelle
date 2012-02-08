@@ -167,7 +167,7 @@ class Trace():
 
 class ModelFormulaResource(ModelResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelFormulaResource, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):
@@ -199,7 +199,7 @@ class ModelFormulaResource(ModelResource):
     
 class ModelAssertionSet(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAssertionSet, self).init(modelDocument)
         self.modelXbrl.hasFormulae = True
 
     @property
@@ -216,7 +216,7 @@ class ModelAssertionSet(ModelFormulaResource):
 
 class ModelVariableSet(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelVariableSet, self).init(modelDocument)
         self.modelXbrl.modelVariableSets.add(self)
         self.modelXbrl.hasFormulae = True
         
@@ -248,7 +248,7 @@ class ModelVariableSet(ModelFormulaResource):
 
 class ModelFormula(ModelVariableSet):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelFormula, self).init(modelDocument)
     
     def compile(self):
         if not hasattr(self, "valueProg"):
@@ -336,10 +336,10 @@ class ModelFormula(ModelVariableSet):
                             aspect, expr = aspectExpr
                             self.aspectProgs[aspect].append(XPathParser.parse(self, expr, ruleElt, ruleElt.localName, Trace.FORMULA_RULES))
                         exprs = []
-            super().compile()
+            super(ModelFormula, self).compile()
 
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet)
+        return super(ModelFormula, self).variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet)
 
     def evaluate(self, xpCtx):
         return xpCtx.atomize( xpCtx.progHeader, xpCtx.evaluate( self.valueProg ) )
@@ -409,7 +409,7 @@ class ModelFormula(ModelVariableSet):
         
     @property
     def propertyView(self):
-        return super().propertyView + (("value", self.value),)
+        return super(ModelFormula, self).propertyView + (("value", self.value),)
         
     def __repr__(self):
         return ("formula({0}, '{1}')".format(self.id if self.id else self.xlinkLabel, self.value))
@@ -420,19 +420,19 @@ class ModelFormula(ModelVariableSet):
                 
 class ModelTuple(ModelFormula):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelTuple, self).init(modelDocument)
 
 class ModelVariableSetAssertion(ModelVariableSet):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelVariableSetAssertion, self).init(modelDocument)
     
     def compile(self):
         if not hasattr(self, "testProg"):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE_SET)
-            super().compile()
+            super(ModelVariableSetAssertion, self).compile()
 
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.testProg, varRefSet)
+        return super(ModelVariableSetAssertion, self).variableRefs(self.testProg, varRefSet)
 
     @property
     def test(self):
@@ -449,7 +449,7 @@ class ModelVariableSetAssertion(ModelVariableSet):
     
     @property
     def propertyView(self):
-        return super().propertyView + (("test", self.test),)
+        return super(ModelVariableSetAssertion, self).propertyView + (("test", self.test),)
         
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__,self.objectId(),self.propertyView))
@@ -461,11 +461,11 @@ class ModelVariableSetAssertion(ModelVariableSet):
 class ModelExistenceAssertion(ModelVariableSetAssertion):
     def init(self, modelDocument):
         self.evaluationsCount = 0
-        super().init(modelDocument)
+        super(ModelExistenceAssertion, self).init(modelDocument)
                 
 class ModelValueAssertion(ModelVariableSetAssertion):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelValueAssertion, self).init(modelDocument)
                 
     def evaluate(self, xpCtx):
         try:
@@ -475,13 +475,13 @@ class ModelValueAssertion(ModelVariableSetAssertion):
             
 class ModelConsistencyAssertion(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConsistencyAssertion, self).init(modelDocument)
         self.modelXbrl.hasFormulae = True
                 
     def compile(self):
         if not hasattr(self, "radiusProg"):
             self.radiusProg = XPathParser.parse(self, self.radiusExpression, self, "radius", Trace.VARIABLE_SET)
-            super().compile()
+            super(ModelConsistencyAssertion, self).compile()
 
     def evalRadius(self, xpCtx, factValue):
         try:
@@ -542,7 +542,7 @@ class ModelConsistencyAssertion(ModelFormulaResource):
                 
 class ModelParameter(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelParameter, self).init(modelDocument)
         if self.qname in self.modelXbrl.qnameParameters:
             self.modelXbrl.error("xbrlve:parameterNameClash",
                 _("Parameter name used on multiple parameters %(name)s"),
@@ -553,10 +553,10 @@ class ModelParameter(ModelFormulaResource):
     def compile(self):
         if not hasattr(self, "selectProg"):
             self.selectProg = XPathParser.parse(self, self.select, self, "select", Trace.PARAMETER)
-            super().compile()
+            super(ModelParameter, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.selectProg, varRefSet)
+        return super(ModelParameter, self).variableRefs(self.selectProg, varRefSet)
         
     def evaluate(self, xpCtx, typeQname):
         try:
@@ -611,14 +611,14 @@ class ModelParameter(ModelFormulaResource):
 
 class ModelInstance(ModelParameter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInstance, self).init(modelDocument)
 
 class ModelVariable(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelVariable, self).init(modelDocument)
         
     def compile(self):
-        super().compile()
+        super(ModelVariable, self).compile()
 
     @property
     def bindAsSequence(self):
@@ -626,18 +626,18 @@ class ModelVariable(ModelFormulaResource):
 
 class ModelFactVariable(ModelVariable):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelFactVariable, self).init(modelDocument)
     
     def compile(self):
         if not hasattr(self, "fallbackValueProg"):
             self.fallbackValueProg = XPathParser.parse(self, self.fallbackValue, self, "fallbackValue", Trace.VARIABLE)
-            super().compile()
+            super(ModelFactVariable, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         try:
             return self._variableRefs
         except AttributeError:
-            self._variableRefs = super().variableRefs(self.fallbackValueProg, varRefSet)
+            self._variableRefs = super(ModelFactVariable, self).variableRefs(self.fallbackValueProg, varRefSet)
             return self._variableRefs
         
     @property
@@ -677,15 +677,15 @@ class ModelFactVariable(ModelVariable):
 
 class ModelGeneralVariable(ModelVariable):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelGeneralVariable, self).init(modelDocument)
     
     def compile(self):
         if not hasattr(self, "selectProg"):
             self.selectProg = XPathParser.parse(self, self.select, self, "select", Trace.VARIABLE)
-            super().compile()
+            super(ModelGeneralVariable, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.selectProg, varRefSet)
+        return super(ModelGeneralVariable, self).variableRefs(self.selectProg, varRefSet)
         
     @property
     def select(self):
@@ -706,15 +706,15 @@ class ModelGeneralVariable(ModelVariable):
 
 class ModelPrecondition(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelPrecondition, self).init(modelDocument)
     
     def compile(self):
         if not hasattr(self, "testProg"):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE)
-            super().compile()
+            super(ModelPrecondition, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.testProg, varRefSet)
+        return super(ModelPrecondition, self).variableRefs(self.testProg, varRefSet)
         
     @property
     def test(self):
@@ -740,7 +740,7 @@ class ModelPrecondition(ModelFormulaResource):
 
 class ModelFilter(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelFilter, self).init(modelDocument)
         
     def aspectsCovered(self, varBinding):
         return set()    #enpty set
@@ -757,15 +757,15 @@ class ModelFilter(ModelFormulaResource):
 
 class ModelTestFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelTestFilter, self).init(modelDocument)
 
     def compile(self):
         if not hasattr(self, "testProg"):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE)
-            super().compile()
+            super(ModelTestFilter, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.testProg, varRefSet)
+        return super(ModelTestFilter, self).variableRefs(self.testProg, varRefSet)
         
     @property
     def test(self):
@@ -791,7 +791,7 @@ class ModelTestFilter(ModelFilter):
 
 class ModelPatternFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelPatternFilter, self).init(modelDocument)
 
     @property
     def pattern(self):
@@ -819,7 +819,7 @@ class ModelPatternFilter(ModelFilter):
 
 class ModelAspectCover(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAspectCover, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding, xpCtx=None):
         try:
@@ -880,7 +880,7 @@ class ModelAspectCover(ModelFilter):
                 else:
                     self.includedDimQnameProgs.append(prog)
                 i += 1
-            super().compile()
+            super(ModelAspectCover, self).compile()
         
     @property
     def viewExpression(self):
@@ -888,7 +888,7 @@ class ModelAspectCover(ModelFilter):
 
 class ModelBooleanFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelBooleanFilter, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):        
@@ -900,7 +900,7 @@ class ModelBooleanFilter(ModelFilter):
     
 class ModelAndFilter(ModelBooleanFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAndFilter, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         from arelle.FormulaEvaluator import filterFacts
@@ -911,7 +911,7 @@ class ModelAndFilter(ModelBooleanFilter):
         
 class ModelOrFilter(ModelBooleanFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelOrFilter, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         from arelle.FormulaEvaluator import filterFacts
@@ -922,7 +922,7 @@ class ModelOrFilter(ModelBooleanFilter):
 
 class ModelConceptName(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptName, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -935,10 +935,10 @@ class ModelConceptName(ModelFilter):
                 qNE = "qnameExpression_{0}".format(i)
                 self.qnameExpressionProgs.append( XPathParser.parse( self, XmlUtil.text(qnameExpression), qnameExpression, qNE, Trace.VARIABLE ) )
                 i += 1
-            super().compile()
+            super(ModelConceptName, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.qnameExpressionProgs, varRefSet)
+        return super(ModelConceptName, self).variableRefs(self.qnameExpressionProgs, varRefSet)
 
     @property
     def conceptQnames(self):
@@ -979,7 +979,7 @@ class ModelConceptName(ModelFilter):
 
 class ModelConceptPeriodType(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptPeriodType, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -1006,7 +1006,7 @@ class ModelConceptPeriodType(ModelFilter):
 
 class ModelConceptBalance(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptBalance, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -1033,7 +1033,7 @@ class ModelConceptBalance(ModelFilter):
 
 class ModelConceptFilterWithQnameExpression(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptFilterWithQnameExpression, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -1055,7 +1055,7 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
             qnExprElt = XmlUtil.descendant(self, XbrlConst.cf, "qnameExpression")
             qnExpr = XmlUtil.text(qnExprElt) if qnExprElt is not None else None
             self.qnameExpressionProg = XPathParser.parse(self, qnExpr, qnExprElt, "qnameExpression", Trace.VARIABLE)
-            super().compile()
+            super(ModelConceptFilterWithQnameExpression, self).compile()
         
     def evalQname(self, xpCtx, fact):
         if self.filterQname:
@@ -1063,11 +1063,11 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
         return xpCtx.evaluateAtomicValue(self.qnameExpressionProg, 'xs:QName', fact)
 
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.qnameExpressionProg, varRefSet)
+        return super(ModelConceptFilterWithQnameExpression, self).variableRefs(self.qnameExpressionProg, varRefSet)
 
 class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptCustomAttribute, self).init(modelDocument)
 
     @property
     def value(self):
@@ -1076,7 +1076,7 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
     def compile(self):
         if not hasattr(self, "valueProg"):
             self.valueProg = XPathParser.parse(self, self.value, self, "value", Trace.VARIABLE)
-            super().compile()
+            super(ModelConceptCustomAttribute, self).compile()
        
     def evalValue(self, xpCtx, fact):
         if not self.value:
@@ -1112,7 +1112,7 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
 
 class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptDataType, self).init(modelDocument)
 
     @property
     def strict(self):
@@ -1142,7 +1142,7 @@ class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
 
 class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptSubstitutionGroup, self).init(modelDocument)
 
     @property
     def strict(self):
@@ -1171,7 +1171,7 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
 
 class ModelConceptRelation(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptRelation, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
@@ -1259,13 +1259,14 @@ class ModelConceptRelation(ModelFilter):
             self.arcroleExpressionProg = XPathParser.parse(self, self.arcroleExpression, self, "arcroleQnameExpressionProg", Trace.VARIABLE)
             self.arcnameExpressionProg = XPathParser.parse(self, self.arcnameExpression, self, "arcnameQnameExpressionProg", Trace.VARIABLE)
             self.testExpressionProg = XPathParser.parse(self, self.test, self, "testExpressionProg", Trace.VARIABLE)
-            super().compile()
+            super(ModelConceptRelation, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         if self.variable and self.variable != XbrlConst.qnXfiRoot:
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs([p for p in (self.sourceQnameExpressionProg,
+        return super(ModelConceptRelation, self).variableRefs(
+                                                [p for p in (self.sourceQnameExpressionProg,
                                                  self.linkroleExpressionProg, self.linknameExpressionProg,
                                                  self.arcroleExpressionProg, self.arcnameExpressionProg)
                                         if p], varRefSet)
@@ -1376,7 +1377,7 @@ class ModelConceptRelation(ModelFilter):
 
 class ModelEntityIdentifier(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEntityIdentifier, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1389,7 +1390,7 @@ class ModelEntityIdentifier(ModelTestFilter):
         
 class ModelEntitySpecificIdentifier(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEntitySpecificIdentifier, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1406,7 +1407,7 @@ class ModelEntitySpecificIdentifier(ModelFilter):
         if not hasattr(self, "schemeProg"):
             self.schemeProg = XPathParser.parse(self, self.scheme, self, "scheme", Trace.VARIABLE)
             self.valueProg = XPathParser.parse(self, self.value, self, "value", Trace.VARIABLE)
-            super().compile()
+            super(ModelEntitySpecificIdentifier, self).compile()
         
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1429,7 +1430,7 @@ class ModelEntitySpecificIdentifier(ModelFilter):
 
 class ModelEntityScheme(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEntityScheme, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1441,7 +1442,7 @@ class ModelEntityScheme(ModelFilter):
     def compile(self):
         if not hasattr(self, "schemeProg"):
             self.schemeProg = XPathParser.parse(self, self.scheme, self, "scheme", Trace.VARIABLE)
-            super().compile()
+            super(ModelEntityScheme, self).compile()
         
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1462,7 +1463,7 @@ class ModelEntityScheme(ModelFilter):
 
 class ModelEntityRegexpIdentifier(ModelPatternFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEntityRegexpIdentifier, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1474,7 +1475,7 @@ class ModelEntityRegexpIdentifier(ModelPatternFilter):
 
 class ModelEntityRegexpScheme(ModelPatternFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEntityRegexpScheme, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1486,7 +1487,7 @@ class ModelEntityRegexpScheme(ModelPatternFilter):
 
 class ModelGeneral(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelGeneral, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1495,7 +1496,7 @@ class ModelGeneral(ModelTestFilter):
     
 class ModelMatchFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelMatchFilter, self).init(modelDocument)
 
     @property
     def aspectName(self):
@@ -1530,7 +1531,7 @@ class ModelMatchFilter(ModelFilter):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet)
+        return super(ModelMatchFilter, self).variableRefs(None, varRefSet)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         from arelle.FormulaEvaluator import aspectMatches
@@ -1576,7 +1577,7 @@ class ModelMatchFilter(ModelFilter):
 
 class ModelPeriod(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelPeriod, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.PERIOD}
@@ -1588,7 +1589,7 @@ class ModelPeriod(ModelTestFilter):
     
 class ModelDateTimeFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelDateTimeFilter, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.PERIOD}
@@ -1606,7 +1607,7 @@ class ModelDateTimeFilter(ModelFilter):
             self.dateProg = XPathParser.parse(self, self.date, self, "date", Trace.VARIABLE)
             if self.time and not hasattr(self, "timeProg"):
                 self.timeProg = XPathParser.parse(self, self.time, self, "time", Trace.VARIABLE)
-            super().compile()
+            super(ModelDateTimeFilter, self).compile()
         
     def evalDatetime(self, xpCtx, fact, addOneDay=False):
         date = xpCtx.evaluateAtomicValue(self.dateProg, 'xs:date', fact)
@@ -1633,7 +1634,7 @@ class ModelDateTimeFilter(ModelFilter):
     
 class ModelPeriodStart(ModelDateTimeFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelPeriodStart, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1642,7 +1643,7 @@ class ModelPeriodStart(ModelDateTimeFilter):
 
 class ModelPeriodEnd(ModelDateTimeFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelPeriodEnd, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1651,7 +1652,7 @@ class ModelPeriodEnd(ModelDateTimeFilter):
 
 class ModelPeriodInstant(ModelDateTimeFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelPeriodInstant, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1660,7 +1661,7 @@ class ModelPeriodInstant(ModelDateTimeFilter):
     
 class ModelForever(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelForever, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -1671,7 +1672,7 @@ class ModelForever(ModelFilter):
         
 class ModelInstantDuration(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInstantDuration, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.PERIOD}
@@ -1684,7 +1685,7 @@ class ModelInstantDuration(ModelFilter):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet)
+        return super(ModelInstantDuration, self).variableRefs(None, varRefSet)
 
     @property
     def boundary(self):
@@ -1727,7 +1728,7 @@ class MemberModel():
     
 class ModelExplicitDimension(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelExplicitDimension, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {self.dimQname}
@@ -1765,7 +1766,7 @@ class ModelExplicitDimension(ModelFilter):
                     XmlUtil.text(arcrole) if arcrole is not None else None,
                     XmlUtil.text(axis) if axis is not None else None)
                 self.memberProgs.append(memberModel)
-            super().compile()
+            super(ModelExplicitDimension, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         if varRefSet is None: varRefSet = set()
@@ -1775,7 +1776,7 @@ class ModelExplicitDimension(ModelFilter):
                 varRefSet.add(memberModel.variable)
             elif memberModel.qnameExprProg:
                 memberModelMemberProgs.append(memberModel.qnameExprProg)
-        return super().variableRefs(memberModelMemberProgs, varRefSet)
+        return super(ModelExplicitDimension, self).variableRefs(memberModelMemberProgs, varRefSet)
 
     def evalDimQname(self, xpCtx, fact):
         try:
@@ -1912,7 +1913,7 @@ class ModelExplicitDimension(ModelFilter):
 
 class ModelTypedDimension(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelTypedDimension, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {self.dimQname}
@@ -1934,7 +1935,7 @@ class ModelTypedDimension(ModelTestFilter):
     def compile(self):
         if not hasattr(self, "dimQnameExpressionProg"):
             self.dimQnameExpressionProg = XPathParser.parse(self, self.dimQnameExpression, self, "dimQnameExpressionProg", Trace.VARIABLE)
-            super().compile()
+            super(ModelTypedDimension, self).compile()
         
     def evalDimQname(self, xpCtx, fact):
         try:
@@ -1963,7 +1964,7 @@ class ModelTypedDimension(ModelTestFilter):
 
 class ModelRelativeFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRelativeFilter, self).init(modelDocument)
 
     @property
     def variable(self):
@@ -1973,7 +1974,7 @@ class ModelRelativeFilter(ModelFilter):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet)
+        return super(ModelRelativeFilter, self).variableRefs(None, varRefSet)
 
     def aspectsCovered(self, varBinding):
         return varBinding.aspectsDefined
@@ -2001,7 +2002,7 @@ class ModelRelativeFilter(ModelFilter):
 
 class ModelSegmentFilter(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelSegmentFilter, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.COMPLETE_SEGMENT}
@@ -2013,7 +2014,7 @@ class ModelSegmentFilter(ModelTestFilter):
     
 class ModelScenarioFilter(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelScenarioFilter, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.COMPLETE_SCENARIO}
@@ -2025,7 +2026,7 @@ class ModelScenarioFilter(ModelTestFilter):
     
 class ModelAncestorFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAncestorFilter, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -2047,10 +2048,10 @@ class ModelAncestorFilter(ModelFilter):
     def compile(self):
         if not hasattr(self, "qnameExpressionProg"):
             self.qnameExpressionProg = XPathParser.parse(self, self.qnameExpression, self, "qnameExpressionProg", Trace.VARIABLE)
-            super().compile()
+            super(ModelAncestorFilter, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.qnameExpressionProg, varRefSet)
+        return super(ModelAncestorFilter, self).variableRefs(self.qnameExpressionProg, varRefSet)
 
     def evalQname(self, xpCtx, fact):
         ancestorQname = self.ancestorQname
@@ -2079,7 +2080,7 @@ class ModelAncestorFilter(ModelFilter):
 
 class ModelParentFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelParentFilter, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -2101,10 +2102,10 @@ class ModelParentFilter(ModelFilter):
     def compile(self):
         if not hasattr(self, "qnameExpressionProg"):
             self.qnameExpressionProg = XPathParser.parse(self, self.qnameExpression, self, "qnameExpressionProg", Trace.VARIABLE)
-            super().compile()
+            super(ModelParentFilter, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs(self.qnameExpressionProg, varRefSet)
+        return super(ModelParentFilter, self).variableRefs(self.qnameExpressionProg, varRefSet)
 
     def evalQname(self, xpCtx, fact):
         parentQname = self.parentQname
@@ -2134,7 +2135,7 @@ class ModelParentFilter(ModelFilter):
 
 class ModelLocationFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelLocationFilter, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -2150,13 +2151,13 @@ class ModelLocationFilter(ModelFilter):
     def compile(self):
         if not hasattr(self, "locationProg"):
             self.locationProg = XPathParser.parse(self, self.location, self, "locationProg", Trace.VARIABLE)
-            super().compile()
+            super(ModelLocationFilter, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet)
+        return super(ModelLocationFilter, self).variableRefs(None, varRefSet)
 
     def evalLocation(self, xpCtx, fact):
         try:
@@ -2188,7 +2189,7 @@ class ModelLocationFilter(ModelFilter):
 
 class ModelSiblingFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelSiblingFilter, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
@@ -2201,7 +2202,7 @@ class ModelSiblingFilter(ModelFilter):
         if self.variable: 
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.variable)
-        return super().variableRefs(None, varRefSet)
+        return super(ModelSiblingFilter, self).variableRefs(None, varRefSet)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         otherFact = xpCtx.inScopeVars.get(self.variable)
@@ -2228,7 +2229,7 @@ class ModelSiblingFilter(ModelFilter):
 
 class ModelGeneralMeasures(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelGeneralMeasures, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.UNIT}
@@ -2240,7 +2241,7 @@ class ModelGeneralMeasures(ModelTestFilter):
     
 class ModelSingleMeasure(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelSingleMeasure, self).init(modelDocument)
 
     def aspectsCovered(self, varBinding):
         return {Aspect.UNIT}
@@ -2262,7 +2263,7 @@ class ModelSingleMeasure(ModelFilter):
     def compile(self):
         if not hasattr(self, "qnameExpressionProg"):
             self.qnameExpressionProg = XPathParser.parse(self, self.qnameExpression, self, "qnameExpressionProg", Trace.VARIABLE)
-            super().compile()
+            super(ModelSingleMeasure, self).compile()
         
     def evalQname(self, xpCtx, fact):
         measureQname = self.measureQname
@@ -2294,7 +2295,7 @@ class ModelSingleMeasure(ModelFilter):
 
 class ModelNilFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelNilFilter, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         return [fact for fact in facts 
@@ -2302,7 +2303,7 @@ class ModelNilFilter(ModelFilter):
     
 class ModelPrecisionFilter(ModelFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelPrecisionFilter, self).init(modelDocument)
 
     @property
     def minimum(self):
@@ -2332,19 +2333,19 @@ class ModelPrecisionFilter(ModelFilter):
 
 class ModelEqualityDefinition(ModelTestFilter):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEqualityDefinition, self).init(modelDocument)
         
     def evalTest(self, xpCtx, facta, factb):
         xpCtx.inScopeVars[XbrlConst.qnEqualityTestA] = facta
         xpCtx.inScopeVars[XbrlConst.qnEqualityTestB] = factb
-        result = super().evalTest(xpCtx, facta.modelXbrl)
+        result = super(ModelEqualityDefinition, self).evalTest(xpCtx, facta.modelXbrl)
         xpCtx.inScopeVars.pop(XbrlConst.qnEqualityTestB)
         xpCtx.inScopeVars.pop(XbrlConst.qnEqualityTestA)
         return result
 
 class ModelMessage(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelMessage, self).init(modelDocument)
 
     @property
     def separator(self):
@@ -2358,11 +2359,11 @@ class ModelMessage(ModelFormulaResource):
                 name = "qnameExpression_{0}".format(i)
                 self.expressionProgs.append( XPathParser.parse( self, expression, self, name, Trace.MESSAGE ) )
                 i += 1
-            super().compile()
+            super(ModelMessage, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         try:
-            return super().variableRefs(self.expressionProgs, varRefSet)
+            return super(ModelMessage, self).variableRefs(self.expressionProgs, varRefSet)
         except AttributeError:
             return set()    # no expressions
 
@@ -2384,7 +2385,7 @@ class ModelMessage(ModelFormulaResource):
 
 class ModelCustomFunctionSignature(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelCustomFunctionSignature, self).init(modelDocument)
         self.modelXbrl.modelCustomFunctionSignatures[self.qname] = self
         self.customFunctionImplementation = None
 
@@ -2442,7 +2443,7 @@ class ModelCustomFunctionSignature(ModelFormulaResource):
 
 class ModelCustomFunctionImplementation(ModelFormulaResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelCustomFunctionImplementation, self).init(modelDocument)
         self.modelXbrl.modelCustomFunctionImplementations.add(self)
 
     @property
@@ -2480,10 +2481,10 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
             for elt in XmlUtil.children(self, XbrlConst.cfi, "step"):
                 name = "qnameExpression_{0}".format(qname(elt, elt.get("name")))
                 self.stepProgs.append( XPathParser.parse( self, elt.text, elt, name, Trace.CUSTOM_FUNCTION ) )
-            super().compile()
+            super(ModelCustomFunctionImplementation, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super().variableRefs([self.outputProg] + self.stepProgs, varRefSet)
+        return super(ModelCustomFunctionImplementation, self).variableRefs([self.outputProg] + self.stepProgs, varRefSet)
 
     @property
     def propertyView(self):

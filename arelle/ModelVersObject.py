@@ -22,7 +22,7 @@ def relateConceptMdlObjs(modelDocument, fromConceptMdlObjs, toConceptMdlObjs):
 
 class ModelVersObject(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelVersObject, self).init(modelDocument)
         
     @property
     def name(self):
@@ -33,7 +33,7 @@ class ModelVersObject(ModelObject):
 
 class ModelAssignment(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAssignment, self).init(modelDocument)
         self.modelDocument.assignments[self.id] = self
         
     @property
@@ -57,7 +57,7 @@ class ModelAssignment(ModelVersObject):
 
 class ModelAction(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAction, self).init(modelDocument)
         actionKey = self.id if self.id else "action{0:05}".format(len(self.modelDocument.actions) + 1)
         self.modelDocument.actions[actionKey] = self
         self.events = []
@@ -74,7 +74,7 @@ class ModelAction(ModelVersObject):
 
 class ModelUriMapped(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelUriMapped, self).init(modelDocument)
         
     @property
     def fromURI(self):
@@ -94,7 +94,7 @@ class ModelUriMapped(ModelVersObject):
     
 class ModelNamespaceRename(ModelUriMapped):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelNamespaceRename, self).init(modelDocument)
         self.modelDocument.namespaceRenameFrom[self.fromURI] = self
         self.modelDocument.namespaceRenameFromURI[self.fromURI] = self.toURI
         self.modelDocument.namespaceRenameTo[self.toURI] = self
@@ -102,12 +102,12 @@ class ModelNamespaceRename(ModelUriMapped):
         
 class ModelRoleChange(ModelUriMapped):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRoleChange, self).init(modelDocument)
         self.modelDocument.roleChanges[self.fromURI] = self
 
 class ModelConceptChange(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptChange, self).init(modelDocument)
         
     @property
     def actionId(self):
@@ -186,13 +186,13 @@ class ModelConceptChange(ModelVersObject):
 
 class ModelConceptBasicChange(ModelConceptChange):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptBasicChange, self).init(modelDocument)
         self.modelDocument.conceptBasicChanges.append(self)
             
         
 class ModelConceptExtendedChange(ModelConceptChange):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConceptExtendedChange, self).init(modelDocument)
         self.modelDocument.conceptExtendedChanges.append(self)
         
     def customAttributeQname(self, eventName):
@@ -242,7 +242,7 @@ class ModelConceptExtendedChange(ModelConceptChange):
 
 class ModelRelationshipSetChange(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRelationshipSetChange, self).init(modelDocument)
         self.modelDocument.relationshipSetChanges.append(self)
         self.fromRelationshipSet = None
         self.toRelationshipSet = None
@@ -254,7 +254,7 @@ class ModelRelationshipSetChange(ModelVersObject):
 
 class ModelRelationshipSet(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRelationshipSet, self).init(modelDocument)
         self.relationships = []
         
     @property
@@ -309,7 +309,7 @@ class ModelRelationshipSet(ModelVersObject):
 
 class ModelRelationships(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRelationships, self).init(modelDocument)
         
     @property
     def fromName(self):
@@ -375,7 +375,7 @@ class ModelRelationships(ModelVersObject):
 
 class ModelInstanceAspectsChange(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInstanceAspectsChange, self).init(modelDocument)
         self.modelDocument.instanceAspectChanges.append(self)
         self.fromAspects = None
         self.toAspects = None
@@ -387,7 +387,7 @@ class ModelInstanceAspectsChange(ModelVersObject):
 
 class ModelInstanceAspects(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInstanceAspects, self).init(modelDocument)
         self.aspects = []
         
     @property
@@ -410,7 +410,7 @@ class ModelInstanceAspects(ModelVersObject):
 
 class ModelInstanceAspect(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInstanceAspect, self).init(modelDocument)
         self.members = []
 
     @property
@@ -442,7 +442,7 @@ class ModelInstanceAspect(ModelVersObject):
 
 class ModelInstanceMemberAspect(ModelVersObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelInstanceMemberAspect, self).init(modelDocument)
         
     @property
     def conceptName(self):

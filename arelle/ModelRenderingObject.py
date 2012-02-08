@@ -10,12 +10,12 @@ from arelle.ModelValue import qname
 
 class ModelRenderingResource(ModelResource):
     def __init__(self, modelDocument):
-        super().__init__(modelDocument)
+        super(ModelRenderingResource, self).__init__(modelDocument)
         
 
 class ModelTable(ModelRenderingResource):
     def __init__(self, modelDocument):
-        super().__init__(modelDocument)
+        super(ModelTable, self).__init__(modelDocument)
         
     @property
     def propertyView(self):
@@ -28,7 +28,7 @@ class ModelTable(ModelRenderingResource):
 # 2010 EU Table linkbase
 class ModelAxisCoord(ModelRenderingResource):
     def __init__(self, modelDocument):
-        super().__init__(modelDocument)
+        super(ModelAxisCoord, self).__init__(modelDocument)
         
     @property
     def abstract(self):
@@ -76,7 +76,7 @@ class ModelAxisCoord(ModelRenderingResource):
 # 2011 Table linkbase
 class ModelExplicitAxisMember(ModelRenderingResource):
     def __init__(self, modelDocument):
-        super().__init__(modelDocument)
+        super(ModelExplicitAxisMember, self).__init__(modelDocument)
         
     @property
     def abstract(self):

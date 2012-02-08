@@ -22,7 +22,6 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     elif isinstance(name, ModelObject):
         element = name
         name = None
-    elif value is None:
         element = None
         value = name
     else:
@@ -128,7 +127,7 @@ def anyURI(value):
 
 class AnyURI(str):
     def __new__(cls, value):
-        return super().__new__(cls, value)
+        return str.__new__(cls, value)
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
@@ -201,7 +200,7 @@ class DateTime(datetime.datetime):
         lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d -= lastDay; m += 1
         if m > 12: m = 1; y += 1
-        dateTime = super().__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
+        dateTime = datetime.datetime.__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
         dateTime.dateOnly = dateOnly
         return dateTime
     def __copy__(self):
@@ -224,14 +223,14 @@ class DateTime(datetime.datetime):
             return self.addYearMonthDuration(other, 1)
         else:
             if isinstance(other, Time): other = dayTimeDuration(other)
-            dt = super().__add__(other)
+            dt = super(DateTime, self).__add__(other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
     def __sub__(self, other):
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
         else:
-            dt = super().__sub__(other)
+            dt = super(DateTime, self).__sub__(other)
             if isinstance(dt,datetime.timedelta):
                 return DayTimeDuration(dt.days, 0, 0, dt.seconds)
             else:
@@ -258,11 +257,10 @@ def yearMonthDuration(value):
     return YearMonthDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
     
 class YearMonthDuration():
-    def __new__(cls, years, months):
-        yrMo = super().__new__(cls)
-        yrMo.years = years
-        yrMo.months = months
-        return yrMo
+    def __init__(self, years, months):
+        self.years = years
+        self.months = months
+
     def __repr__(self):
         return "P{0}Y{1}M".format(self.years, self.months)
     
@@ -276,7 +274,7 @@ def dayTimeDuration(value):
     
 class DayTimeDuration(datetime.timedelta):
     def __new__(cls, days, hours, minutes, seconds):
-        dyTm = super().__new__(cls,days,hours,minutes,seconds)
+        dyTm = datetime.timedelta.__new__(cls,days,hours,minutes,seconds)
         return dyTm
     def dayHrsMinsSecs(self):
         days = int(self.days)
@@ -330,7 +328,7 @@ class Time(datetime.time):
     def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None):
         hour24 = (hour == 24 and minute == 0 and second == 0 and microsecond == 0)
         if hour24: hour = 0
-        time = super().__new__(cls, hour, minute, second, microsecond, tzinfo)
+        time = datetime.time.__new__(cls, hour, minute, second, microsecond, tzinfo)
         time.hour24 = hour24
         return time
     

@@ -16,7 +16,7 @@ def viewTests(modelXbrl, outfile):
     
 class ViewTests(ViewFile.View):
     def __init__(self, modelXbrl, outfile):
-        super().__init__(modelXbrl, outfile, "Tests")
+        super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
         
     def viewTestcaseIndexElement(self, modelDocument):
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):

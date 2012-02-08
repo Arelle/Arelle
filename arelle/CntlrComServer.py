@@ -40,7 +40,7 @@ class CntlrComServer(Cntlr.Cntlr):
 
 
     def __init__(self, logFileName=None):
-        #super().__init__(logFileName=logFileName if logFileName else "logToPrint",
+        #super(CntlrComServer, self).__init__(logFileName=logFileName if logFileName else "logToPrint",
         #                 logFormat="[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
         print (sys.path)
         self.startedAt = datetime.datetime.now().microsecond

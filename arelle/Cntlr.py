@@ -14,6 +14,7 @@ class Cntlr:
     
     def __init__(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         self.hasWin32gui = False
+        self.hasGui = False
         if sys.platform == "darwin":
             self.isMac = True
             self.isMSW = False
@@ -217,7 +218,7 @@ class LogToPrintHandler(logging.Handler):
 
 class LogToXmlHandler(logging.Handler):
     def __init__(self, filename):
-        super().__init__()
+        super(LogToXmlHandler, self).__init__()
         self.filename = filename
         self.logRecordBuffer = []
     def flush(self):
@@ -238,7 +239,7 @@ class LogToXmlHandler(logging.Handler):
 
 class LogToBufferHandler(logging.Handler):
     def __init__(self):
-        super().__init__()
+        super(LogToBufferHandler, self).__init__()
         self.logRecordBuffer = []
         
     def flush(self):

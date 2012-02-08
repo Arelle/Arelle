@@ -18,7 +18,7 @@ def viewFacts(modelXbrl, outfile, arcrole=None, linkrole=None, linkqname=None, a
     
 class ViewFacts(ViewFile.View):
     def __init__(self, modelXbrl, outfile, arcrole, linkrole, linkqname, arcqname, ignoreDims, showDimDefaults, labelrole, lang):
-        super().__init__(modelXbrl, outfile, "Fact Table", lang)
+        super(ViewFacts, self).__init__(modelXbrl, outfile, "Fact Table", lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname

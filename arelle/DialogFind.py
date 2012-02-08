@@ -29,7 +29,7 @@ def find(mainWin):
 class DialogFind(Toplevel):
     def __init__(self, mainWin, options):
         parent = mainWin.parent
-        super().__init__(parent)
+        super(DialogFind, self).__init__(parent)
         self.parent = parent
         self.modelManager = mainWin.modelManager
         self.modelXbrl = None   # set when Find pressed, this blocks next prematurely

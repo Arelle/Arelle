@@ -37,7 +37,7 @@ RSSFEED = 4
 
 class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
     def __init__(self, modelXbrl, fallback=None):
-        super().__init__(fallback)
+        super(KnownNamespacesModelObjectClassLookup, self).__init__(fallback)
         self.modelXbrl = modelXbrl
         self.type = None
 
@@ -113,7 +113,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
 
 class DiscoveringClassLookup(etree.PythonElementClassLookup):
     def __init__(self, modelXbrl, baseUrl, fallback=None):
-        super().__init__(fallback)
+        super(DiscoveringClassLookup, self).__init__(fallback)
         self.modelXbrl = modelXbrl
         self.baseUrl = baseUrl
         self.discoveryAttempts = set()

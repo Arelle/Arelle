@@ -40,7 +40,8 @@ restartMain = True
 class CntlrWinMain (Cntlr.Cntlr):
 
     def __init__(self, parent):
-        super().__init__()
+        super(CntlrWinMain, self).__init__()
+        self.hasGui = True
         self.parent = parent
         self.filename = None
         self.dirty = False
@@ -759,7 +760,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowState"] = state
             self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - 4,   # remove border growth
                                                 self.tabWinTopLeft.winfo_height() - 6)
-            super().close(saveConfig=True)
+            super(CntlrWinMain, self).close(saveConfig=True)
             self.parent.unbind_all(())
             self.parent.destroy()
             if self.logFile:
@@ -1087,7 +1088,7 @@ from arelle import DialogFormulaParameters
 
 class WinMainLogHandler(logging.Handler):
     def __init__(self, cntlr):
-        super().__init__()
+        super(WinMainLogHandler, self).__init__()
         self.cntlr = cntlr
         self.level = logging.DEBUG
         #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")

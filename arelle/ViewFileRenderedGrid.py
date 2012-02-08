@@ -29,7 +29,7 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
     
 class ViewRenderedGrid(ViewFile.View):
     def __init__(self, modelXbrl, outfile, lang):
-        super().__init__(modelXbrl, outfile, "Rendering", lang, style="rendering")
+        super(ViewRenderedGrid, self).__init__(modelXbrl, outfile, "Rendering", lang, style="rendering")
         self.dimsContextElement = {}
         self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
         self.zComboBoxIndex = None

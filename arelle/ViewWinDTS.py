@@ -21,7 +21,7 @@ def viewDTS(modelXbrl, tabWin, altTabWin=None):
     
 class ViewDTS(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "DTS", True)
+        super(ViewDTS, self).__init__(modelXbrl, tabWin, "DTS", True)
         
     def view(self):
         for previousNode in self.treeView.get_children(""): 

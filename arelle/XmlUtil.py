@@ -404,9 +404,9 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
                     addQnameValue(modelDocument, name)
                 child.set(name.clarkNotation, str(value))
             else:
-                child.set(name, xsString(None, value) )
+                child.set(name, xsString(None, None, value) )
     if text:
-        child.text = xsString(None, text)
+        child.text = xsString(None, None, text)
     return child
 
 def copyNodes(parent, elts):

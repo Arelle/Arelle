@@ -18,7 +18,7 @@ def about(parent, title, imageFile, body):
 
 class DialogAbout(Toplevel):
     def __init__(self, parent, title, imageFile, body):
-        super().__init__(parent)
+        super(DialogAbout, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))

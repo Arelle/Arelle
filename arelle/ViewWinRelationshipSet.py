@@ -32,7 +32,7 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=Non
     
 class ViewRelationshipSet(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
-        super().__init__(modelXbrl, tabWin, XbrlConst.baseSetArcroleLabel(arcrole)[1:], True, lang)
+        super(ViewRelationshipSet, self).__init__(modelXbrl, tabWin, XbrlConst.baseSetArcroleLabel(arcrole)[1:], True, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname

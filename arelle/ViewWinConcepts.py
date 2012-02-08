@@ -49,7 +49,7 @@ def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
     
 class ViewConcepts(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, lang):
-        super().__init__(modelXbrl, tabWin, header, True, lang)
+        super(ViewConcepts, self).__init__(modelXbrl, tabWin, header, True, lang)
         
     def view(self):
         # sort by labels

@@ -11,7 +11,7 @@ from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
-from arelle.ViewUtilRenderedGrid import FactPrototype
+FactPrototype = None
 ModelRelationshipSet = None # dynamic import
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
@@ -360,6 +360,9 @@ class ModelXbrl:
     
     # UI thread viewModelObject
     def viewModelObject(self, objectId):
+        global FactPrototype
+        if FactPrototype is None:
+            from arelle.ViewUtilRenderedGrid import FactPrototype
         modelObject = ""
         try:
             if isinstance(objectId, (ModelObject,FactPrototype)):

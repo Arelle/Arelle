@@ -57,7 +57,7 @@ def selectDisclosureSystem(mainWin, disclosureSystem):
 class DialogOpenArchive(Toplevel):
     def __init__(self, mainWin, openType, filesource, filenames, title, colHeader, showAltViewButton=False):
         parent = mainWin.parent
-        super().__init__(parent)
+        super(DialogOpenArchive, self).__init__(parent)
         self.parent = parent
         self.showAltViewButton = showAltViewButton
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
@@ -293,7 +293,10 @@ class DialogOpenArchive(Toplevel):
             self.toolTip.configure(state="disabled")
 
 from lxml import etree
-from urllib.parse import urljoin
+if sys.version[0] >= '3':
+    from urllib.parse import urljoin
+else:
+    from urllib2.urlparse import urljoin
 from arelle import Locale
 
 def parseTxmyPkg(mainWin, metadataFile):

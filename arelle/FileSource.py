@@ -35,7 +35,7 @@ def archiveFilenameParts(filename):
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
     def __init__(self, fileName):
-        super().__init__()
+        super(FileNamedStringIO, self).__init__()
         self.fileName = fileName
 
     def __str__(self):

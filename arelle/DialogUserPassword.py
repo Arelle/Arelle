@@ -35,7 +35,7 @@ def askProxy(parent, priorProxySettings):
 
 class DialogUserPassword(Toplevel):
     def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, showUrl=False, showUser=False, showHost=True, showRealm=True):
-        super().__init__(parent)
+        super(DialogUserPassword, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))

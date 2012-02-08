@@ -17,7 +17,7 @@ def viewDTS(modelXbrl, outfile):
     
 class ViewDTS(ViewFile.View):
     def __init__(self, modelXbrl, outfile):
-        super().__init__(modelXbrl, outfile, "DTS")
+        super(ViewDTS, self).__init__(modelXbrl, outfile, "DTS")
                 
     def treeDepth(self, modelDocument, indent, visited):
         visited.add(modelDocument)

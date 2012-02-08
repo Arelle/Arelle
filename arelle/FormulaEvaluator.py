@@ -606,7 +606,7 @@ def produceOutputFact(xpCtx, formula, result):
                     if (isnan(x) or
                         (precision and (isinf(precision) or precision == 0)) or 
                         (decimals and isinf(decimals))):
-                        v = xsString(xpCtx, x)
+                        v = xsString(xpCtx, None, x)
                     elif decimals is not None:
                         v = "%.*f" % ( int(decimals), x)
                     elif precision is not None and precision != 0:
@@ -614,13 +614,13 @@ def produceOutputFact(xpCtx, formula, result):
                         log = log10(a) if a != 0 else 0
                         v = "%.*f" % ( int(precision) - int(log) - (1 if a >= 1 else 0), x)
                     else: # no implicit precision yet
-                        v = xsString(xpCtx, x)
+                        v = xsString(xpCtx, None, x)
                 elif isinstance(x,QName):
                     v = XmlUtil.addQnameValue(xbrlElt, x)
                 elif isinstance(x,datetime.datetime):
                     v = XmlUtil.dateunionValue(x)
                 else:
-                    v = xsString(xpCtx, x)
+                    v = xsString(xpCtx, None, x)
             newFact = outputXbrlInstance.createFact(conceptQname, attributes=attrs, text=v,
                                                     parent=outputLocation,
                                                     afterSibling=xpCtx.outputLastFact.get(outputInstanceQname))

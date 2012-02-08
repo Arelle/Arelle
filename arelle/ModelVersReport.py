@@ -42,7 +42,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
     def __init__(self, modelXbrl, 
                  type=ModelDocument.Type.VERSIONINGREPORT, 
                  uri=None, filepath=None, xmlDocument=None):
-        super().__init__(modelXbrl, type, uri, filepath, xmlDocument)
+        super(ModelVersReport, self).__init__(modelXbrl, type, uri, filepath, xmlDocument)
         self.fromDTS = None
         self.toDTS = None
         self.assignments = {}
@@ -61,7 +61,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.typedDomainsCorrespond = {}
         
     def close(self):
-        super().close()
+        super(ModelVersReport, self).close()
         
     def versioningReportDiscover(self, rootElement):
         actionRelatedFromMdlObjs = []

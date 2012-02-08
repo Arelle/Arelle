@@ -11,7 +11,7 @@ from arelle.ModelObject import ModelObject
 
 class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelTestcaseVariation, self).init(modelDocument)
         self.status = ""
         self.actual = []
         self.assertions = None
@@ -19,7 +19,7 @@ class ModelTestcaseVariation(ModelObject):
     @property
     def id(self):
         # if there is a real ID, use it
-        id = super().id
+        id = super(ModelTestcaseVariation, self).id
         if id is not None:
             return id
         # no ID, use the object ID so it isn't None

@@ -16,7 +16,7 @@ def viewConcepts(modelXbrl, outFile, labelrole=None, lang=None):
     
 class ViewConcepts(ViewFile.View):
     def __init__(self, modelXbrl, outFile, labelrole, lang):
-        super().__init__(modelXbrl, outFile, "concepts", lang)
+        super(ViewConcepts, self).__init__(modelXbrl, outFile, "concepts", lang)
         self.labelrole = labelrole
         
     def view(self, modelDocument):

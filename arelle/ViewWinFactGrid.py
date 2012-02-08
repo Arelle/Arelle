@@ -38,7 +38,7 @@ def viewFactsGrid(modelXbrl, tabWin, header="Fact Grid", arcrole=XbrlConst.paren
             
 class ViewFactsGrid(ViewWinGrid.ViewGrid):
     def __init__(self, modelXbrl, tabWin, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
-        super().__init__(modelXbrl, tabWin, header, True, lang)
+        super(ViewFactsGrid, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname

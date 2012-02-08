@@ -4,9 +4,11 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re, os
-from urllib.parse import urldefrag
-from urllib.parse import unquote
+import re, os, sys
+if sys.version[0] >= '3':
+    from urllib.parse import urldefrag, unquote
+else:
+    from urlparse import urldefrag, unquote
 
 def authority(url):
     if url is not None and url.startswith("http://"):

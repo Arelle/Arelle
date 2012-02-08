@@ -47,7 +47,7 @@ def main():
 class CntlrGenVersReports(Cntlr.Cntlr):
 
     def __init__(self):
-        super().__init__()
+        super(CntlrGenVersReports, self).__init__()
         
     def runFromExcel(self, options):
         #testGenFileName = options.excelfilename
@@ -367,7 +367,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
 
 class LogHandler(logging.Handler):
     def __init__(self, cntlr):
-        super().__init__()
+        super(LogHandler, self).__init__()
         self.cntlr = cntlr
         self.level = logging.DEBUG
         formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")

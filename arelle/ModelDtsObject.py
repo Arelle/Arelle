@@ -14,7 +14,7 @@ from arelle.ModelObject import ModelObject
 
 class ModelRoleType(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelRoleType, self).init(modelDocument)
         
     @property
     def isArcrole(self):
@@ -77,7 +77,7 @@ class ModelRoleType(ModelObject):
 
 class ModelNamableTerm(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelNamableTerm, self).init(modelDocument)
         
     @property
     def name(self):
@@ -174,7 +174,7 @@ anonymousTypeSuffix = "@anonymousType"
 
 class ModelConcept(ModelNamableTerm, ModelParticle):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelConcept, self).init(modelDocument)
         if self.name:  # don't index elements with ref and no name
             self.modelXbrl.qnameConcepts[self.qname] = self
             self.modelXbrl.nameConcepts[self.name].append(self)
@@ -531,7 +531,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             
 class ModelAttribute(ModelNamableTerm):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAttribute, self).init(modelDocument)
         if self.isGlobalDeclaration:
             self.modelXbrl.qnameAttributes[self.qname] = self
         
@@ -617,7 +617,7 @@ class ModelAttribute(ModelNamableTerm):
 
 class ModelAttributeGroup(ModelNamableTerm):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAttributeGroup, self).init(modelDocument)
         if self.isGlobalDeclaration:
             self.modelXbrl.qnameAttributeGroups[self.qname] = self
         
@@ -653,7 +653,7 @@ class ModelAttributeGroup(ModelNamableTerm):
         
 class ModelType(ModelNamableTerm):
     def init(self, modelDocument):
-        super().init(modelDocument)     
+        super(ModelType, self).init(modelDocument)     
         self.modelXbrl.qnameTypes[self.qname] = self
         self.particlesList = ParticlesList()
         
@@ -895,7 +895,7 @@ class ModelType(ModelNamableTerm):
     
 class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelGroupDefinition, self).init(modelDocument)
         if self.isGlobalDeclaration:
             self.modelXbrl.qnameGroupDefinitions[self.qname] = self
         else:
@@ -910,7 +910,7 @@ class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
         
 class ModelGroupCompositor(ModelObject, ModelParticle):  # sequence, choice, all
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelGroupCompositor, self).init(modelDocument)
         self.addToParticles()
         self.particlesList = self.particles = ParticlesList()
 
@@ -919,19 +919,19 @@ class ModelGroupCompositor(ModelObject, ModelParticle):  # sequence, choice, all
         
 class ModelAll(ModelGroupCompositor):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAll, self).init(modelDocument)
         
 class ModelChoice(ModelGroupCompositor):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelChoice, self).init(modelDocument)
 
 class ModelSequence(ModelGroupCompositor):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelSequence, self).init(modelDocument)
 
 class ModelAny(ModelObject, ModelParticle):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAny, self).init(modelDocument)
         self.addToParticles()
 
     def dereference(self):
@@ -939,11 +939,11 @@ class ModelAny(ModelObject, ModelParticle):
 
 class ModelAnyAttribute(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelAnyAttribute, self).init(modelDocument)
 
 class ModelEnumeration(ModelNamableTerm):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelEnumeration, self).init(modelDocument)
         
     @property
     def value(self):
@@ -951,7 +951,7 @@ class ModelEnumeration(ModelNamableTerm):
     
 class ModelLink(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
         
     @property
@@ -960,7 +960,7 @@ class ModelLink(ModelObject):
         
 class ModelResource(ModelObject):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelResource, self).init(modelDocument)
         if self.xmlLang:
             self.modelXbrl.langs.add(self.xmlLang)
         if self.localName == "label":
@@ -989,7 +989,7 @@ class ModelResource(ModelObject):
         
 class ModelLocator(ModelResource):
     def init(self, modelDocument):
-        super().init(modelDocument)
+        super(ModelLocator, self).init(modelDocument)
     
     def dereference(self):
         # resource is a loc with href document and id modelHref a tuple with href's element, modelDocument, id

@@ -5,8 +5,15 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, posixpath, sys, re, shutil, time, urllib.request, pickle
-from urllib.error import (URLError, HTTPError, ContentTooShortError)
-from urllib.parse import unquote
+if sys.version[0] >= '3':
+    from urllib.parse import unquote
+    from urllib.error import (URLError, HTTPError, ContentTooShortError)
+    from urllib import request as proxyhandlers
+else: # python 2.7.2
+    from urllib import unquote
+    from urllib import ContentTooShortError
+    from urllib2 import URLError, HTTPError
+    import urllib2 as proxyhandlers
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,tuple) and len(httpProxyTuple) == 5:
@@ -80,14 +87,14 @@ class WebCache:
             self.hasNTLM = True
         except ImportError:
             self.hasNTLM = False
-        self.proxy_handler = urllib.request.ProxyHandler(proxyDirFmt(httpProxyTuple))
-        self.proxy_auth_handler = urllib.request.ProxyBasicAuthHandler()
-        self.http_auth_handler = urllib.request.HTTPBasicAuthHandler()
+        self.proxy_handler = proxyhandlers.ProxyHandler(proxyDirFmt(httpProxyTuple))
+        self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler()
+        self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
         if self.hasNTLM:
             self.ntlm_auth_handler = HTTPNtlmAuthHandler.HTTPNtlmAuthHandler()            
-            self.opener = urllib.request.build_opener(self.proxy_handler, self.ntlm_auth_handler, self.proxy_auth_handler, self.http_auth_handler)
+            self.opener = proxyhandlers.build_opener(self.proxy_handler, self.ntlm_auth_handler, self.proxy_auth_handler, self.http_auth_handler)
         else:
-            self.opener = urllib.request.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
+            self.opener = proxyhandlers.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
 
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
@@ -308,14 +315,14 @@ class WebCache:
 class WebCacheUrlOpener(urllib.request.FancyURLopener):
     def __init__(self, cntlr, proxies=None):
         self.cntlr = cntlr
-        super().__init__(proxies)
+        super(WebCacheUrlOpener, self).__init__(proxies)
         self.version = 'Mozilla/5.0'
 
     def http_error_401(self, url, fp, errcode, errmsg, headers, data=None, retry=False):
-        super().http_error_401(url, fp, errcode, errmsg, headers, data, True)
+        super(WebCacheUrlOpener, self).http_error_401(url, fp, errcode, errmsg, headers, data, True)
         
     def http_error_407(self, url, fp, errcode, errmsg, headers, data=None, retry=False):
-        super().http_error_407(self, url, fp, errcode, errmsg, headers, data, True)
+        super(WebCacheUrlOpener, self).http_error_407(self, url, fp, errcode, errmsg, headers, data, True)
         
     def prompt_user_passwd(self, host, realm):
         return self.cntlr.internet_user_password(host, realm)

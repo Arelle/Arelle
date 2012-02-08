@@ -9,7 +9,6 @@ from tkinter.ttk import *
 import re
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ModelValue import qname
-from arelle import FunctionXs
 from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
 
 '''
@@ -25,7 +24,7 @@ def getParameters(mainWin):
 class DialogFormulaParameters(Toplevel):
     def __init__(self, mainWin, options):
         parent = mainWin.parent
-        super().__init__(parent)
+        super(DialogFormulaParameters, self).__init__(parent)
         self.parent = parent
         self.options = options
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())

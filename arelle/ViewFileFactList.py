@@ -15,7 +15,7 @@ def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
     
 class ViewFacts(ViewFile.View):
     def __init__(self, modelXbrl, outfile, labelrole, lang, cols):
-        super().__init__(modelXbrl, outfile, "Fact List", lang)
+        super(ViewFacts, self).__init__(modelXbrl, outfile, "Fact List", lang)
         self.labelrole = labelrole
         self.cols = cols
 
