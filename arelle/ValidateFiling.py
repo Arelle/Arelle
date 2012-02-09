@@ -941,7 +941,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         (self.validateSBRNL and not relFrom.isTuple and
                                          (not preferredLabel or None in preferredLabels))):
                                         if preferredLabel in preferredLabels:
-                                            rel2, relTo2 = preferredLabels[relTo]
+                                            rel2, relTo2 = preferredLabels[preferredLabel]
                                         else:
                                             rel2 = relTo2 = None
                                         self.modelXbrl.error(("EFM.6.12.05", "GFM.1.06.05", "SBR.NL.2.3.4.06"),
