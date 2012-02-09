@@ -226,11 +226,12 @@ class FileSource:
                 return (None,None)
         # check encoding
         with open(filepath, 'rb') as fb:
-            hdrBytes = fb.peek(512)
+            hdrBytes = fb.read(512)
             encoding = XmlUtil.encoding(hdrBytes)
             if encoding.lower() in ('utf-8','utf8'):
                 text = None
             else:
+                fb.seek(0)
                 text = fb.read().decode(encoding)
             # allow filepath to close
         # this may not be needed for Mac or Linux, needs confirmation!!!

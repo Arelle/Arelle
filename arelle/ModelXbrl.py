@@ -405,15 +405,19 @@ class ModelXbrl:
                         objectUrl = self.modelDocument.uri
                     except AttributeError:
                         objectUrl = self.entryLoadingUrl
-                file = UrlUtil.relativeUri(entryUrl, objectUrl)
-                extras["file"] = file
-                if isinstance(argValue,ModelObject):
-                    extras["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(argValue)
-                    extras["sourceLine"] = argValue.sourceline
-                    extras["objectId"] = argValue.objectId()
-                else:
-                    extras["href"] = file
-                    extras["sourceLine"] = ""
+                refs = []
+                for arg in (argValue if isinstance(argValue, (tuple,list)) else (argValue,)):
+                    if arg is not None:
+                        file = UrlUtil.relativeUri(entryUrl, objectUrl)
+                        ref = {}
+                        if isinstance(arg,ModelObject):
+                            ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(arg)
+                            ref["sourceLine"] = arg.sourceline
+                            ref["objectId"] = arg.objectId()
+                        else:
+                            ref["href"] = file
+                        refs.append(ref)
+                extras["refs"] = refs
             elif argName == "sourceLine":
                 extras["sourceLine"] = argValue
             elif argName != "exc_info":
@@ -427,7 +431,7 @@ class ModelXbrl:
                     fmtArgs[argName] = format_string(self.modelManager.locale, '%f', argValue)
                 else:
                     fmtArgs[argName] = argValue
-        if "href" not in extras:
+        if "refs" not in extras:
             try:
                 file = os.path.basename(self.modelDocument.uri)
             except AttributeError:
@@ -435,9 +439,7 @@ class ModelXbrl:
                     file = os.path.basename(self.entryLoadingUrl)
                 except:
                     file = ""
-            extras["file"] = file
-            extras["href"] = file
-            extras["sourceLine"] = ""
+            extras["refs"] = [{"href": file}]
         return (messageCode, 
                 (msg, fmtArgs) if fmtArgs else (msg,), 
                 extras)

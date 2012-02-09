@@ -85,7 +85,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                                         for rel in reversed(cycle))
                                 val.modelXbrl.error("xbrldte:DRSDirectedCycleError",
                                     _("Dimension relationships have a directed cycle in DRS role %(linkrole)s \nstarting from hypercube %(hypercube)s, \ndimension %(dimension)s, \npath %(path)s"),
-                                    modelObject=hcConcept, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR, path=path)
+                                    modelObject=[hcConcept] + cycle, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR, path=path)
                             cycle = drsPolymorphism(val, domELR, dimDomRels, drsPriItems(val, ELR, priItemConcept))
                             if cycle is not None:
                                 if cycle is not None:
@@ -95,7 +95,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                                         for rel in reversed(cycle))
                                 val.modelXbrl.error("xbrldte:PrimaryItemPolymorphismError",
                                     _("Dimension relationships have a polymorphism cycle in DRS role %(linkrole)s \nstarting from hypercube %(hypercube)s, \ndimension %(dimension)s, \npath %(path)s"),
-                                    modelObject=hcConcept, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR, path=path)
+                                    modelObject=[hcConcept] + cycle, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR, path=path)
     # check dimension-domain relationships
     elif arcrole == XbrlConst.dimensionDomain:
         for modelRel in relsSet.modelRelationships:

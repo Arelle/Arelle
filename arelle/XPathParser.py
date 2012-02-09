@@ -4,7 +4,14 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+import sys
+if sys.version[0] >= '3':
+    from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+                 Literal, CaselessLiteral,
+                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
+                 ParserElement, quotedString, delimitedList, Suppress, Regex)
+else:
+    from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)

@@ -103,7 +103,7 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                             f1.effectiveValue != f2.effectiveValue):
                             modelXbrl.error("HMRC.14",
                                 _("Inconsistent duplicate facts %(fact)s context %(contextID)s and %(contextID2)s."),
-                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
+                                modelObject=(f1, f2), fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
 
             if isAccounts:
                 if "StartDateForPeriodCoveredByReport" not in busItems:

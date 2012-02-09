@@ -169,7 +169,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
     def __init__(self, logFileName=None):
         super(CntlrCmdLine, self).__init__(logFileName=logFileName if logFileName else "logToPrint",
-                         logFormat="[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
+                         logFormat="[%(messageCode)s] %(message)s - %(file)s")
         
     def run(self, options):
         self.entrypointFile = options.entrypointFile

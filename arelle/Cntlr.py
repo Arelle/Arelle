@@ -7,8 +7,9 @@ Created on Oct 3, 2010
 import tempfile, os, pickle, sys, logging, gettext, json
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
+from collections import defaultdict
 
-class Cntlr:
+class Cntlr(object):
 
     __version__ = "0.0.4"
     
@@ -135,15 +136,15 @@ class Cntlr:
                                                       mode=logFileMode if logFileMode else "w", 
                                                       encoding=logFileEncoding if logFileEncoding else "utf-8")
             self.logHandler.level = logging.DEBUG
-            self.logHandler.setFormatter(logging.Formatter(logFormat if logFormat else "%(asctime)s [%(messageCode)s] %(message)s - %(file)s %(sourceLine)s \n"))
+            self.logHandler.setFormatter(LogFormatter(logFormat if logFormat else "%(asctime)s [%(messageCode)s] %(message)s - %(file)s\n"))
             self.logger.addHandler(self.logHandler)
         else:
             self.logger = None
                         
-    def addToLog(self, message, messageCode="", file="", sourceLine=""):
+    def addToLog(self, message, messageCode="", file=""):
         # if there is a default logger, use it with dummy file name and arguments
         if self.logger is not None:
-            self.logger.info(message, extra={"messageCode":messageCode,"file":file,"sourceLine":sourceLine})
+            self.logger.info(message, extra={"messageCode":messageCode,"refs":[{"href": file}]})
         else:
             print(message) # allows printing on standard out
             
@@ -211,12 +212,48 @@ class Cntlr:
             except Exception:
                 pass
         return None
+    
+class LogFormatter(logging.Formatter):
+    def __init__(self, fmt=None, datefmt=None):
+        super(LogFormatter, self).__init__(fmt, datefmt)
+        
+    def format(self, record):
+        # provide a file parameter made up from refs entries
+        fileLines = defaultdict(set)
+        for ref in record.refs:
+            fileLines[ref["href"].partition("#")[0]].add(ref.get("sourceLine"))
+        record.file = ", ".join(file + " " + ', '.join(str(line) for line in lines if line)
+                                for file, lines in sorted(fileLines.items()))
+        formattedMessage = super(LogFormatter, self).format(record)
+        del record.file
+        return formattedMessage
 
 class LogToPrintHandler(logging.Handler):
     def emit(self, logRecord):
         print(self.format(logRecord))
 
-class LogToXmlHandler(logging.Handler):
+class LogHandlerWithXml(logging.Handler):        
+    def __init__(self, filename):
+        super(LogHandlerWithXml, self).__init__()
+        
+    def recordToXml(self, logRec):
+        msg = self.format(logRec)
+        if logRec.args:
+            args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) for n, v in logRec.args.items()])
+        else:
+            args = ""
+        refs = "".join('<ref href="{0}"{1}/>'.format(
+                        ref["href"], 
+                        ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '')
+                       for ref in logRec.refs)
+        return ('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}">'
+                '<message{4}>{5}</message>{6}'
+                '</entry>\n'.format(logRec.messageCode, 
+                                    logRec.levelname.lower(), 
+                                    args, msg.replace("&","&amp;").replace("<","&lt;"), 
+                                    refs))
+
+class LogToXmlHandler(LogHandlerWithXml):
     def __init__(self, filename):
         super(LogToXmlHandler, self).__init__()
         self.filename = filename
@@ -226,18 +263,12 @@ class LogToXmlHandler(logging.Handler):
             fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
             fh.write('<log>\n')
             for logRec in self.logRecordBuffer:
-                msg = self.format(logRec)
-                if logRec.args:
-                    args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) for n, v in logRec.args.items()])
-                else:
-                    args = ""
-                fh.write('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>\n'.format(
-                        logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
+                fh.write(self.recordToXml(logRec))
             fh.write('</log>\n')  
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
 
-class LogToBufferHandler(logging.Handler):
+class LogToBufferHandler(LogHandlerWithXml):
     def __init__(self):
         super(LogToBufferHandler, self).__init__()
         self.logRecordBuffer = []
@@ -249,15 +280,7 @@ class LogToBufferHandler(logging.Handler):
         xml = ['<?xml version="1.0" encoding="utf-8"?>\n',
                '<log>']
         for logRec in self.logRecordBuffer:
-            msg = self.format(logRec)
-            if logRec.args:
-                args = "".join([' {0}="{1}"'.format(n, str(v).replace('"','&quot;')) 
-                                for n, v in logRec.args.items()
-                                if not isinstance(v,str) or v])  # skip empty arguments, they won't show in the message strings 
-            else:
-                args = ""
-            xml.append('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}"><message{4}>{5}</message></entry>'.format(
-                    logRec.messageCode, logRec.levelname.lower(), logRec.file, logRec.sourceLine, args, msg.replace("&","&amp;").replace("<","&lt;")))
+            xml.append(self.recordToXml(logRec))
         xml.append('</log>')  
         self.logRecordBuffer = []
         return '\n'.join(xml)
@@ -271,8 +294,7 @@ class LogToBufferHandler(logging.Handler):
                     message[n] = v
             entry = {"code": logRec.messageCode,
                      "level": logRec.levelname.lower(),
-                     "file": logRec.file,
-                     "sourceLine": logRec.sourceLine,
+                     "refs": logRec.refs,
                      "message": message}
             entries.append(entry)
         self.logRecordBuffer = []

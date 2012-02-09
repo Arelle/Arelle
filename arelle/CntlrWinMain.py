@@ -1092,7 +1092,7 @@ class WinMainLogHandler(logging.Handler):
         self.cntlr = cntlr
         self.level = logging.DEBUG
         #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
-        formatter = logging.Formatter("[%(messageCode)s] %(message)s - %(file)s %(sourceLine)s")
+        formatter = Cntlr.LogFormatter("[%(messageCode)s] %(message)s - %(file)s")
         self.setFormatter(formatter)
         logging.getLogger("arelle").addHandler(self)
     def flush(self):

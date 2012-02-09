@@ -25,7 +25,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         if datePattern is None:
             datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
             GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
-            signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac£¥])")
+            # note \u20zc = euro, \u00a3 = pound, \u00a5 = yen
+            signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac\u00a3\00a5])")
             usTypesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-types/")
             usRolesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-roles/")
             usDeiPattern = re.compile(r"http://(xbrl.us|xbrl.sec.gov)/dei/")
@@ -88,6 +89,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             #6.5.1 scheme, 6.5.2, 6.5.3 identifier
             entityIdentifierValue = None
+            entityIdentifierValueElt = None
             if disclosureSystem.identifierValueName:   # omit if no checks
                 for entityIdentifierElt in xbrlInstDoc.iterdescendants("{http://www.xbrl.org/2003/instance}identifier"):
                     if isinstance(entityIdentifierElt,ModelObject):
@@ -105,10 +107,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 entityIdentifer=entityIdentifier)
                         if not entityIdentifierValue:
                             entityIdentifierValue = entityIdentifier
+                            entityIdentifierValueElt = entityIdentifier
                         elif entityIdentifier != entityIdentifierValue:
                             modelXbrl.error(("EFM.6.05.03", "GFM.1.02.03"),
                                 _("Multiple %(entityIdentifierName)ss: %(entityIdentifer)s, %(entityIdentifer2)s"),
-                                modelObject=entityIdentifierElt,  
+                                modelObject=(entityIdentifierElt, entityIdentifierValueElt),  
                                 entityIdentifierName=disclosureSystem.identifierValueName,
                                 entityIdentifer=entityIdentifierValue,
                                 entityIdentifer2=entityIdentifier) 
@@ -126,7 +129,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if context.isEqualTo(uniqueContextHashes[h]):
                         modelXbrl.error(("EFM.6.05.07", "GFM.1.02.07"),
                             _("Context ID %(context)s is equivalent to context ID %(context2)s"),
-                            modelObject=context, context=contextID, context2=uniqueContextHashes[h].id)
+                            modelObject=(context, uniqueContextHashes[h]), context=contextID, context2=uniqueContextHashes[h].id)
                 else:
                     uniqueContextHashes[h] = context
                     
@@ -376,7 +379,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     if cntx != otherCntx:
                                         modelXbrl.error(("EFM.6.05.09", "GFM.1.2.9"),
                                             _("Context %(contextID)s endDate and %(contextID2)s startDate have a duration of one day; that is inconsistent with document type %(documentType)s."),
-                                            modelObject=cntx, contextID=cntx.id, contextID2=otherCntx.id, documentType=documentType)
+                                            modelObject=(cntx, otherCntx), contextID=cntx.id, contextID2=otherCntx.id, documentType=documentType)
                     if self.validateEFM and cntx.isInstantPeriod:
                         for otherStart, otherCntxs in durationCntxStartDatetimes.items():
                             duration = end - otherStart
@@ -384,7 +387,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 for otherCntx in otherCntxs:
                                     modelXbrl.error("EFM.6.05.10",
                                         _("Context %(contextID)s startDate and %(contextID2)s end (instant) have a duration of one day; that is inconsistent with document type %(documentType)s."),
-                                        modelObject=cntx, contextID=cntx.id, contextID2=otherCntx.id, documentType=documentType)
+                                        modelObject=(cntx, otherCntx), contextID=cntx.id, contextID2=otherCntx.id, documentType=documentType)
                 del durationCntxStartDatetimes
                 self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
                 
@@ -408,7 +411,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if unit.isEqualTo(uniqueUnitHashes[h]):
                         modelXbrl.error(("EFM.6.05.11", "GFM.1.02.10"),
                             _("Units %(unitID)s and %(unitID2)s are equivalent."),
-                            modelObject=unit, unitID=unit.id, unitID2=uniqueUnitHashes[h].id)
+                            modelObject=(unit, uniqueUnitHashes[h]), unitID=unit.id, unitID2=uniqueUnitHashes[h].id)
                 else:
                     uniqueUnitHashes[h] = unit
                 if self.validateEFM:  # 6.5.38
@@ -467,7 +470,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                        f1.xmlLang == f2.xmlLang:
                         modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
                             "Facts %(fact)s of context %(contextID)s and %(contextID2)s are equivalent.",
-                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
+                            modelObject=(f1, f2), fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
                 else:
                     factForConceptContextUnitLangHash[h] = f1
                 iF1 += 1
@@ -754,13 +757,15 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 elif text and lang and lang.startswith(disclosureSystem.defaultXmlLang):
                     if role == XbrlConst.standardLabel:
                         if text in defaultLangStandardLabels:
+                            concept2, modelLabel2 = defaultLangStandardLabels[text]
                             modelXbrl.error(("EFM.6.10.04", "GFM.1.05.04"),
                                 _("Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."),
-                                modelObject=modelLabel, concept=concept.qname, 
-                                concept2=defaultLangStandardLabels[text].qname, 
+                                modelObject=(concept, modelLabel, concept2, modelLabel2), 
+                                concept=concept.qname, 
+                                concept2=concept2.qname, 
                                 lang=disclosureSystem.defaultLanguage, text=text[:80])
                         else:
-                            defaultLangStandardLabels[text] = concept
+                            defaultLangStandardLabels[text] = (concept, modelLabel)
                         conceptHasDefaultLangStandardLabel = True
                     if len(text) > 511:
                         modelXbrl.error(("EFM.6.10.06", "GFM.1.05.06"),
@@ -844,7 +849,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         
         self.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
 
-        defaultLangStandardLabels = None #dereference
+        del defaultLangStandardLabels #dereference
         
         ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
         if self.validateSBRNL: # build camelCasedNamesTable
@@ -908,10 +913,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     ineffectivity=modelRel.ineffectivity)
                     if arcrole == XbrlConst.parentChild:
                         conceptsPresented = set()
-                        localPreferredLabels = defaultdict(set)
+                        localPreferredLabels = {}
                         # 6.12.2 check for distinct order attributes
                         for relFrom, rels in modelXbrl.relationshipSet(arcrole, ELR).fromModelObjects().items():
-                            targetConceptPreferredLabels = defaultdict(set)
+                            targetConceptPreferredLabels = defaultdict(dict)
                             orderRels = {}
                             firstRel = True
                             relFromUsed = True
@@ -935,11 +940,16 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     if (preferredLabel in preferredLabels or
                                         (self.validateSBRNL and not relFrom.isTuple and
                                          (not preferredLabel or None in preferredLabels))):
+                                        if preferredLabel in preferredLabels:
+                                            rel2, relTo2 = preferredLabels[relTo]
+                                        else:
+                                            rel2 = relTo2 = None
                                         self.modelXbrl.error(("EFM.6.12.05", "GFM.1.06.05", "SBR.NL.2.3.4.06"),
                                             _("Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"),
-                                            modelObject=rel, concept=relTo.qname, preferredLabel=preferredLabel, linkrole=rel.linkrole)
+                                            modelObject=(rel, relTo, rel2, relTo2), 
+                                            concept=relTo.qname, preferredLabel=preferredLabel, linkrole=rel.linkrole)
                                     else:
-                                        preferredLabels.add(preferredLabel)
+                                        preferredLabels[preferredLabel] = (rel, relTo)
                                     if relFromUsed:
                                         # 6.14.5
                                         conceptsPresented.add(relFrom.objectIndex)
@@ -948,7 +958,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if order in orderRels:
                                     self.modelXbrl.error(("EFM.6.12.02", "GFM.1.06.02", "SBR.NL.2.3.4.05"),
                                         _("Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"),
-                                        modelObject=rel, conceptFrom=relFrom.qname, order=order, linkrole=rel.linkrole, 
+                                        modelObject=(rel, orderRels[order]), conceptFrom=relFrom.qname, order=order, linkrole=rel.linkrole, 
                                         conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
                                 else:
                                     orderRels[order] = rel
@@ -959,11 +969,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                 _("Non-distinguished preferredLabel presentation relations from concept %(conceptFrom)s in base set role %(linkrole)s"),
                                                 modelObject=rel, conceptFrom=relFrom.qname, linkrole=rel.linkrole, conceptTo=relTo.qname)
                                     localPreferredLabels[relTo].add(preferredLabel)
+                            targetConceptPreferredLabels.clear()
+                            orderRels.clear()
                         for conceptPresented in conceptsPresented:
                             if conceptPresented in usedCalcsPresented:
                                 usedCalcPairingsOfConcept = usedCalcsPresented[conceptPresented]
                                 if len(usedCalcPairingsOfConcept & conceptsPresented) > 0:
                                     usedCalcPairingsOfConcept -= conceptsPresented
+                        del localPreferredLabels
                     elif arcrole == XbrlConst.summationItem:
                         if self.validateEFMorGFM:
                             # 6.14.3 check for relation concept periods
@@ -990,14 +1003,15 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     if order in orderRels and disclosureSystem.GFM:
                                         self.modelXbrl.error(("EFM.N/A", "GFM.1.07.06"),
                                             _("Duplicate calculations relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"),
-                                            modelObject=rel, linkrole=rel.linkrole, conceptFrom=relFrom.qname, order=order,
+                                            modelObject=(rel, orderRels[order]), linkrole=rel.linkrole, conceptFrom=relFrom.qname, order=order,
                                             conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
                                     else:
                                         orderRels[order] = rel
                                 if self.directedCycle(relFrom,relFrom,fromRelationships):
                                     self.modelXbrl.error(("EFM.6.14.04", "GFM.1.07.04"),
                                         _("Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"),
-                                        modelObject=rels[0], linkrole=ELR, concept=relFrom.qname)
+                                        modelObject=[relFrom] + rels, linkrole=ELR, concept=relFrom.qname)
+                                orderRels.clear()
                         elif self.validateSBRNL:
                             # find a calc relationship to get the containing document name
                             for modelRel in self.modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
@@ -1020,7 +1034,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if not (relTo.type is not None and relTo.type.isDomainItemType) and not isStandardUri(rel.modelDocument.uri):
                                     self.modelXbrl.error(("EFM.6.16.03", "GFM.1.08.03"),
                                         _("Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"),
-                                        modelObject=rel, conceptFrom=relFrom.qname, conceptTo=relTo.qname, linkrole=rel.linkrole)
+                                        modelObject=(rel, relFrom, relTo), conceptFrom=relFrom.qname, conceptTo=relTo.qname, linkrole=rel.linkrole)
 
                     elif self.validateSBRNL:
                         if arcrole == XbrlConst.dimensionDefault:
@@ -1055,7 +1069,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if order in orderRels and disclosureSystem.GFM:
                                     self.modelXbrl.error("GFM.1.08.10",
                                         _("Duplicate definitions relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"),
-                                        modelObject=rel, conceptFrom=relFrom.qname, order=order, linkrole=rel.linkrole, 
+                                        modelObject=(rel, relFrom, relTo), conceptFrom=relFrom.qname, order=order, linkrole=rel.linkrole, 
                                         conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
                                 else:
                                     orderRels[order] = rel
@@ -1063,7 +1077,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     rel.get("{http://xbrl.org/2005/xbrldt}usable") == "false"):
                                     self.modelXrl.error("GFM.1.08.11",
                                         _("Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in base set role %(linkrole)s to concept %(conceptTo)s"),
-                                        modelObject=rel, arc=rel.qname, conceptFrom=relFrom.qname, linkrole=rel.linkrole, conceptTo=rel.toModelObject.qname)
+                                        modelObject=(rel, relFrom, relTo), arc=rel.qname, conceptFrom=relFrom.qname, linkrole=rel.linkrole, conceptTo=rel.toModelObject.qname)
 
         self.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
 

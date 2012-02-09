@@ -100,7 +100,7 @@ def checkDimensions(val, drsELRs):
                                 cycleCausingConcept.append(hcDimRel)
                                 val.modelXbrl.error(("EFM.6.16.04", "GFM.1.08.04"),
                                     _("Dimension relationships have an undirected cycle in DRS role %(linkrole)s \nstarting from table %(hypercube)s, \naxis %(dimension)s, \npath %(path)s"),
-                                    modelObject=hcDimRel, linkrole=ELR, hypercube=hc.qname, dimension=dim.qname, path=cyclePath(hc,cycleCausingConcept))
+                                    modelObject=(hcDimRel, hc, dim), linkrole=ELR, hypercube=hc.qname, dimension=dim.qname, path=cyclePath(hc,cycleCausingConcept))
                             fromConceptELRs.clear()
                         elif val.validateSBRNL:
                             checkSBRNLMembers(val, hc, dim, domELR, dimDomRels, ELR, True)

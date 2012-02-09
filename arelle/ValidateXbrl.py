@@ -218,7 +218,7 @@ class ValidateXbrl:
                             for rel in reversed(cycleFound[1:]))
                         modelXbrl.error(specSect,
                             _("Relationships have a %(cycle)s cycle in arcrole %(arcrole)s \nlink role %(linkrole)s \nlink %(linkname)s, \narc %(arcname)s, \npath %(path)s"),
-                            modelObject=cycleFound[1], cycle=cycleFound[0], path=path,
+                            modelObject=cycleFound[1:], cycle=cycleFound[0], path=path,
                             arcrole=arcrole, linkrole=ELR, linkname=linkqname, arcname=arcqname), 
                         break
                 

@@ -10,14 +10,9 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import sys
-import encodings
-import encodings.aliases
 import re
 import collections
-from builtins import str as _builtin_str
 import unicodedata
-import functools
 
 CHAR_MAX = 127
 LC_ALL = 6

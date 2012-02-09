@@ -116,7 +116,8 @@ class ValidateXbrlCalcs:
                                 ancestor, contextHash, unit = sumBindKey
                                 factKey = (sumConcept, ancestor, contextHash, unit)
                                 if factKey in self.sumFacts:
-                                    for fact in self.sumFacts[factKey]:
+                                    sumFacts = self.sumFacts[factKey]
+                                    for fact in sumFacts:
                                         if fact in self.duplicatedFacts:
                                             dupBindingKeys.add(sumBindKey)
                                         elif sumBindKey not in dupBindingKeys:
@@ -125,7 +126,7 @@ class ValidateXbrlCalcs:
                                             if roundedItemsSum  != self.roundFact(fact):
                                                 self.modelXbrl.error("xbrl.5.2.5.2:calcInconsistency",
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
-                                                    modelObject=sumConcept, concept=sumConcept.qname, linkrole=ELR, 
+                                                    modelObject=[sumConcept] + sumFacts, concept=sumConcept.qname, linkrole=ELR, 
                                                     reportedSum=roundedSum, computedSum=roundedItemsSum, 
                                                     contextID=context.id, unitID=unit.id)
                     elif arcrole == XbrlConst.essenceAlias:
@@ -146,13 +147,13 @@ class ValidateXbrlCalcs:
                                             if essenceUnit != aliasUnit:
                                                 self.modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
-                                                    modelObject=essenceConcept, 
+                                                    modelObject=(modelRel, eF, aF), 
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
                                                     linkrole=ELR, contextID=context.id)
                                             if not XbrlUtil.vEqual(eF, aF):
                                                 self.modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
-                                                    modelObject=essenceConcept, 
+                                                    modelObject=(modelRel, eF, aF), 
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
                                                     linkrole=ELR, contextID=context.id)
                     elif arcrole == XbrlConst.requiresElement:

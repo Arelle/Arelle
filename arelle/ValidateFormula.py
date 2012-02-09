@@ -4,9 +4,14 @@ Created on Dec 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, sys
 from collections import defaultdict
 from arelle.pyparsing.pyparsing_py3 import (ParseException) 
+if sys.version[0] >= '3':
+    from arelle.pyparsing.pyparsing_py3 import ParseException 
+else:
+    from pyparsing import ParseException 
+
 from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVariableSet,
                                        ModelFormula, ModelTuple, ModelVariable, ModelFactVariable, 
                                        ModelVariableSetAssertion, ModelConsistencyAssertion,

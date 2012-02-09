@@ -25,7 +25,10 @@ relativeUrlPattern = re.compile(r"^(([^:/\?#]+):)?(//([^/\?#]*))?([^\?#]*)(\?([^
 
 def splitDecodeFragment(url):
     urlPart, fragPart = urldefrag(url)
-    return (urlPart, unquote(fragPart, "utf-8", errors=None))
+    if sys.version[0] >= '3':
+        return (urlPart, unquote(fragPart, "utf-8", errors=None))
+    else:
+        return urlPart, unquote(fragPart)
 
 def isValidAbsolute(url):
     global absoluteUrlPattern

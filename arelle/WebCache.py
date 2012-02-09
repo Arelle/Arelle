@@ -4,16 +4,18 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, posixpath, sys, re, shutil, time, urllib.request, pickle
+import os, posixpath, sys, re, shutil, time, pickle
 if sys.version[0] >= '3':
     from urllib.parse import unquote
     from urllib.error import (URLError, HTTPError, ContentTooShortError)
+    from urllib import request
     from urllib import request as proxyhandlers
 else: # python 2.7.2
     from urllib import unquote
     from urllib import ContentTooShortError
     from urllib2 import URLError, HTTPError
     import urllib2 as proxyhandlers
+    from urllib3 import request
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,tuple) and len(httpProxyTuple) == 5:
@@ -51,7 +53,7 @@ class WebCache:
     
     def __init__(self, cntlr, httpProxyTuple):
         self.cntlr = cntlr
-        #self.proxies = urllib.request.getproxies()
+        #self.proxies = request.getproxies()
         #self.proxies = {'ftp': 'ftp://63.192.17.1:3128', 'http': 'http://63.192.17.1:3128', 'https': 'https://63.192.17.1:3128'}
         
         
@@ -312,7 +314,7 @@ class WebCache:
         return result
 
 '''
-class WebCacheUrlOpener(urllib.request.FancyURLopener):
+class WebCacheUrlOpener(request.FancyURLopener):
     def __init__(self, cntlr, proxies=None):
         self.cntlr = cntlr
         super(WebCacheUrlOpener, self).__init__(proxies)
