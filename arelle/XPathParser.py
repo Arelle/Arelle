@@ -5,13 +5,13 @@ Created on Dec 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import sys
-if sys.version[0] >= '3':
-    from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+try: # installed for python 2.7 and clean packages, otherwise use tweaked version
+    from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
-else:
-    from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+except ImportError:
+    from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
