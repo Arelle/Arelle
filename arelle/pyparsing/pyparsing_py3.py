@@ -138,13 +138,16 @@ else:
             
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
-singleArgBuiltins = []
-import builtins
-for fname in "sum len enumerate sorted reversed list tuple set any all".split():
-    try:
-        singleArgBuiltins.append(getattr(builtins,fname))
-    except AttributeError:
-        continue
+try:  # won't convert to 2.7
+    singleArgBuiltins = []
+    import builtins
+    for fname in "sum len enumerate sorted reversed list tuple set any all".split():
+        try:
+            singleArgBuiltins.append(getattr(builtins,fname))
+        except AttributeError:
+            continue
+except ImportError: # HF: seems to be same as above and same for 2.7
+    singleArgBuiltins = [sum, len, enumerate, sorted, reversed, list, tuple, set, any, all]
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
