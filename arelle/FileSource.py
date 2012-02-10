@@ -236,7 +236,7 @@ class FileSource:
             # allow filepath to close
         # this may not be needed for Mac or Linux, needs confirmation!!!
         if text is None:  # ok to read as utf-8
-            return (open(filepath, 'rt', encoding='utf-8'), encoding)
+            return open(filepath, 'rt', encoding='utf-8'), encoding
         else:
             # strip XML declaration
             xmlDeclarationMatch = XMLdeclaration.search(text)
