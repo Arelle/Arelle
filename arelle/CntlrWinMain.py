@@ -750,6 +750,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             
     def quit(self, event=None, restartAfterQuit=False):
         if self.okayToContinue():
+            self.modelManager.close()
             logging.shutdown()
             global restartMain
             restartMain = restartAfterQuit
