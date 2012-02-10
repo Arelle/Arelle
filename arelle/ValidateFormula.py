@@ -6,7 +6,6 @@ Created on Dec 9, 2010
 '''
 import os, sys
 from collections import defaultdict
-from arelle.pyparsing.pyparsing_py3 import (ParseException) 
 if sys.version[0] >= '3':
     from arelle.pyparsing.pyparsing_py3 import ParseException 
 else:
