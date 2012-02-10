@@ -6,10 +6,6 @@ Created on Dec 9, 2010
 '''
 import os, sys
 from collections import defaultdict
-if sys.version[0] >= '3':
-    from arelle.pyparsing.pyparsing_py3 import ParseException 
-else:
-    from pyparsing import ParseException 
 
 from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVariableSet,
                                        ModelFormula, ModelTuple, ModelVariable, ModelFactVariable, 
