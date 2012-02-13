@@ -26,4 +26,9 @@ DTSes.
 This allows continual verification of tool performance as it is extended and 
 adapted by its users. 
 
-Arelle source code and bug tracker are hosted [on github](https://github.com/Arelle/Arelle) 
+Development
+===========
+* Source code is hosted [on github](https://github.com/Arelle/Arelle).
+* [Issue Tracker](https://arelle.atlassian.net/browse/ARELLE)
+* [Wiki](https://arelle.atlassian.net/wiki/display/ARELLE)
+
