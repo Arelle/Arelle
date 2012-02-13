@@ -235,20 +235,20 @@ def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
     if orFilter: 
         factSet = set()
     for varFilterRel in filterRelationships:
-        filter = varFilterRel.toModelObject
-        if isinstance(filter,ModelFilter):  # relationship not constrained to real filters
-            result = filter.filter(xpCtx, vb, facts, varFilterRel.isComplemented)
+        _filter = varFilterRel.toModelObject
+        if isinstance(_filter,ModelFilter):  # relationship not constrained to real filters
+            result = _filter.filter(xpCtx, vb, facts, varFilterRel.isComplemented)
             if xpCtx.formulaOptions.traceVariableFilterWinnowing:
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Fact Variable %(variable)s %(filterType)s %(filter)s filter %(xlinkLabel)s passes %(factCount)s facts"), 
                     modelObject=vb.var, variable=vb.qname,
-                    filterType=typeLbl, filter=filter.localName, xlinkLabel=filter.xlinkLabel, factCount=len(result)),
+                    filterType=typeLbl, filter=_filter.localName, xlinkLabel=_filter.xlinkLabel, factCount=len(result)),
             if orFilter: 
                 for fact in result: factSet.add(fact)
             else: 
                 facts = result
             if varFilterRel.isCovered:
-                vb.aspectsCovered |= filter.aspectsCovered(vb)
+                vb.aspectsCovered |= _filter.aspectsCovered(vb)
     if orFilter: 
         return factSet
     else: 
@@ -256,10 +256,10 @@ def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
             
 def coverAspectCoverFilterDims(xpCtx, vb, filterRelationships):
     for varFilterRel in filterRelationships:
-        filter = varFilterRel.toModelObject
-        if isinstance(filter,ModelAspectCover):  # relationship not constrained to real filters
+        _filter = varFilterRel.toModelObject
+        if isinstance(_filter,ModelAspectCover):  # relationship not constrained to real filters
             if varFilterRel.isCovered:
-                vb.aspectsCovered |= filter.dimAspectsCovered(vb)
+                vb.aspectsCovered |= _filter.dimAspectsCovered(vb)
             
 def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType, relBinding=None):
     for aspect in aspects:
