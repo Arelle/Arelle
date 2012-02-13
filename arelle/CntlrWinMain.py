@@ -6,6 +6,7 @@ This module is Arelle's controller in windowing interactive UI mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from arelle import PythonUtil # define 2.x or 3.x string types
 import os, subprocess, pickle, time, locale, re
 from tkinter import *
 import tkinter.tix
@@ -941,7 +942,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
-                          _("arelle\u00ae {0}\n"
+                          _("arelle\u00ae {0} {1}\n"
                               "An open source XBRL platform\n"
                               "\u00a9 2010-2011 Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -960,9 +961,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   lxml \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
                               "\n   xlrd \u00a9 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2001 D. Giffin, \u00a9 2000 A. Khan"
                               "\n   xlwt \u00a9 2007 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2005 R. V. Kiseliov"                              
-                              "{1}"
+                              "{2}"
                               )
-                            .format(Version.version,
+                            .format(self.__version__, Version.version,
                                     _("\n   Bottle \u00a9 2011 Marcel Hellkamp") if self.hasWebServer else ""))
 
     # worker threads addToLog        
