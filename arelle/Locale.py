@@ -10,7 +10,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import re
+import re, sys
 import collections
 import unicodedata
 
@@ -26,9 +26,9 @@ LC_TIME = 2
 def getUserLocale():
     # get system localeconv and reset system back to default
     import locale
-    locale.setlocale(locale.LC_ALL, '')
+    locale.setlocale(locale.LC_ALL, _STR_8BIT(''))  # str needed for 3to2 2.7 python to work
     conv = locale.localeconv()
-    locale.setlocale(locale.LC_ALL, 'C')
+    locale.setlocale(locale.LC_ALL, _STR_8BIT('C'))  # str needed for 3to2 2.7 python to work
     return conv
 
 def getLanguageCode():
@@ -256,7 +256,7 @@ def currency(conv, val, symbol=True, grouping=False, international=False):
 
     return s.replace('<', '').replace('>', '')
 
-def str(conv, val):
+def ftostr(conv, val):
     """Convert float to integer, taking the locale into account."""
     return format(conv, "%.12g", val)
 
@@ -275,5 +275,5 @@ def atof(conv, string, func=float):
 
 def atoi(conv, str):
     "Converts a string to an integer according to the locale settings."
-    return atof(conv, str, int)
+    return atof(conv, str, _INT)
 

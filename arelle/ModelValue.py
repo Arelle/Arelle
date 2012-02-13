@@ -28,7 +28,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         element = None
     if isinstance(value,QName):
         return value
-    elif not isinstance(value,str):
+    elif not isinstance(value,_STR_BASE):
         if castException: raise castException
         return None
     if value.startswith('{'): # clark notation (with optional prefix)
@@ -90,7 +90,7 @@ class QName:
             return self.localName
     def __eq__(self,other):
         ''' don't think this is used any longer
-        if isinstance(other,str):
+        if isinstance(other,_STR_BASE):
             # only compare nsnames {namespace}localname format, if other has same hash
             return self.__hash__() == other.__hash__() and self.clarkNotation == other
         el
@@ -158,7 +158,7 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         return DateTime(value.year, value.month, value.day, value.hour, value.minute, value.second, value.microsecond, tzinfo=value.tzinfo, dateOnly=dateOnly, addOneDay=addOneDay)
     elif isinstance(value, datetime.date):
         return DateTime(value.year, value.month, value.day,dateOnly=True,addOneDay=addOneDay)
-    elif castException and not isinstance(value, str):
+    elif castException and not isinstance(value, _STR_BASE):
         raise castException
     if value is None:
         return None
@@ -315,7 +315,7 @@ def time(value, castException=None):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
     elif isinstance(value, datetime.datetime):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
-    elif castException and not isinstance(value, str):
+    elif castException and not isinstance(value, _STR_BASE):
         raise castException
     if value is None:
         return None

@@ -52,19 +52,19 @@ objtype = {
         'float': float,
         'double': float,
         'decimal': float,
-        'integer': int,
-        'nonPositiveInteger': int,
-        'negativeInteger': int,
-        'long': int,
-        'int': int,
-        'short': int,
-        'byte': int,
-        'nonNegativeInteger': int,
-        'unsignedLong': int,
-        'unsignedInt': int,
-        'unsignedShort': int,
-        'unsignedByte': int,
-        'positiveInteger': int,
+        'integer': _INT,
+        'nonPositiveInteger': _INT,
+        'negativeInteger': _INT,
+        'long': _INT,
+        'int': _INT,
+        'short': _INT,
+        'byte': _INT,
+        'nonNegativeInteger': _INT,
+        'unsignedLong': _INT,
+        'unsignedInt': _INT,
+        'unsignedShort': _INT,
+        'unsignedByte': _INT,
+        'positiveInteger': _INT,
         #'gYearMonth': gYearMonth,
         #'gYear': gYear,
         #'gMonthDay': gMonthDay,
@@ -134,13 +134,13 @@ def decimal(xc, p, source):
   
 def integer(xc, p, source):
     try:
-        return int(source)
+        return _INT(source)
     except ValueError:
         raise FORG0001
   
 def nonPositiveInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 0: return i
     except ValueError:
         pass
@@ -148,7 +148,7 @@ def nonPositiveInteger(xc, p, source):
   
 def negativeInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i < 0: return i
     except ValueError:
         pass
@@ -156,13 +156,13 @@ def negativeInteger(xc, p, source):
   
 def long(xc, p, source):
     try:
-        return int(source)
+        return _INT(source)
     except ValueError:
         raise FORG0001
   
 def xs_int(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 2147483647 and i >= -2147483648: return i
     except ValueError:
         pass
@@ -170,7 +170,7 @@ def xs_int(xc, p, source):
   
 def short(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 32767 and i >= -32767: return i
     except ValueError:
         pass
@@ -178,7 +178,7 @@ def short(xc, p, source):
   
 def byte(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 127 and i >= -128: return i
     except ValueError:
         pass
@@ -186,7 +186,7 @@ def byte(xc, p, source):
   
 def nonNegativeInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i >= 0: return i
     except ValueError:
         pass
@@ -194,7 +194,7 @@ def nonNegativeInteger(xc, p, source):
   
 def unsignedLong(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i >= 0: return i
     except ValueError:
         pass
@@ -202,7 +202,7 @@ def unsignedLong(xc, p, source):
   
 def unsignedInt(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 4294967295 and i >= 0: return i
     except ValueError:
         pass
@@ -210,7 +210,7 @@ def unsignedInt(xc, p, source):
     
 def unsignedShort(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 65535 and i >= 0: return i
     except ValueError:
         pass
@@ -218,7 +218,7 @@ def unsignedShort(xc, p, source):
   
 def unsignedByte(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 255 and i >= 0: return i
     except ValueError:
         pass
@@ -226,7 +226,7 @@ def unsignedByte(xc, p, source):
   
 def positiveInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i > 0: return i
     except ValueError:
         pass
@@ -306,7 +306,7 @@ def ENTITY(xc, p, source):
 def boolean(xc, p, source):
     if isinstance(source,bool):
         return source
-    elif isinstance(source,(int,float)):
+    elif isinstance(source,(_INT,float,int)):
         if source == 1:
             return True
         elif source == 0:

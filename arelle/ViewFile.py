@@ -4,9 +4,15 @@ Created on Oct 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import csv, io, json, re
+import csv, io, json, re, sys
 from lxml import etree
 from arelle.FileSource import FileNamedStringIO
+if sys.version[0] >= '3':
+    csvOpenMode = 'w'
+    csvOpenNewline = ''
+else:
+    csvOpenMode = 'wb' # for 2.7
+    csvOpenNewline = None
 
 CSV = 0
 HTML = 1
@@ -47,7 +53,7 @@ class View:
             if isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile = self.outfile
             else:
-                self.csvFile = open(outfile, "w", newline='')
+                self.csvFile = open(outfile, csvOpenMode, newline=csvOpenNewline)
             self.csvWriter = csv.writer(self.csvFile, dialect="excel")
         elif self.type == HTML:
             if style == "rendering":

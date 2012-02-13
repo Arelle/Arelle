@@ -1214,7 +1214,7 @@ class ModelConceptRelation(ModelFilter):
     @property
     def generations(self):
         try:
-            return int( XmlUtil.childText(self, XbrlConst.crf, "generations") )
+            return _INT( XmlUtil.childText(self, XbrlConst.crf, "generations") )
         except (TypeError, ValueError):
             if self.axis in ('sibling', 'child', 'parent'): 
                 return 1
@@ -2312,7 +2312,7 @@ class ModelPrecisionFilter(ModelFilter):
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         from arelle.ValidateXbrlCalcs import inferredPrecision
         minimum = self.minimum
-        numMinimum = float('INF') if minimum == 'INF' else int(minimum)
+        numMinimum = float('INF') if minimum == 'INF' else _INT(minimum)
         return [fact for fact in facts 
                 if cmplmt ^ (self.minimum != 'INF' and
                              not fact.isNil and

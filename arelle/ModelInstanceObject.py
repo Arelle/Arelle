@@ -207,7 +207,7 @@ class ModelFact(ModelObject):
                 if dec is None or dec == "INF":
                     dec = len(val.partition(".")[2])
                 else:
-                    dec = int(dec)
+                    dec = _INT(dec)
                 return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
             except ValueError: 
                 return "(error)"
@@ -362,7 +362,7 @@ class ModelInlineFact(ModelFact):
             num = float(value)
             scale = self.scale
             if scale is not None:
-                num *= 10 ** int(self.scale)
+                num *= 10 ** _INT(self.scale)
         except ValueError:
             pass
         return "{0}".format(num * negate)
@@ -542,7 +542,7 @@ class ModelContext(ModelObject):
         return None
     
     def dimAspects(self, defaultDimensionAspects):
-        return set(self.qnameDims.keys() | defaultDimensionAspects)
+        return _DICT_SET(self.qnameDims.keys()) | defaultDimensionAspects
     
     @property
     def dimsHash(self):
@@ -644,7 +644,7 @@ class ModelContext(ModelObject):
         if self.periodHash != cntx2.periodHash or not self.isPeriodEqualTo(cntx2) or not self.isEntityIdentifierEqualTo(cntx2):
             return False
         if dimensionalAspectModel:
-            if self.qnameDims.keys() != cntx2.qnameDims.keys():
+            if _DICT_SET(self.qnameDims.keys()) != _DICT_SET(cntx2.qnameDims.keys()):
                 return False
             for dimQname, ctx1Dim in self.qnameDims.items():
                 if not ctx1Dim.isEqualTo(cntx2.qnameDims[dimQname]):

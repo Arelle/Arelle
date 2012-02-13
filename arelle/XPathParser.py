@@ -47,7 +47,7 @@ def pushFloat( sourceStr, loc, toks ):
     return num
 
 def pushInt( sourceStr, loc, toks ):
-    num = int(toks[0])
+    num = _INT(toks[0])
     exprStack.append( num )
     return num
 
@@ -143,7 +143,7 @@ class OperationDef:
         self.name = name
         if skipFirstTok:
             toks1 = toks[1] if len(toks) > 1 else None
-            if (isinstance(toks1,str) and isinstance(name,str) and
+            if (isinstance(toks1,_STR_BASE) and isinstance(name,_STR_BASE) and
                 name in ('/', '//', 'rootChild', 'rootDescendant')):
                 if toks1 == '*': 
                     toks1 = QNameDef(loc,None,'*','*')
@@ -173,11 +173,11 @@ class OperationDef:
             return ("{1} {0}".format(self.name, self.args))
 
 def pushOperation( sourceStr, loc, toks ):
-    if isinstance(toks[0], str):
+    if isinstance(toks[0], _STR_BASE):
         name = toks[0]
         removeOp = False
         for tok in toks[1:]:
-            if not isinstance(tok,str) and tok in exprStack:
+            if not isinstance(tok,_STR_BASE) and tok in exprStack:
                 removeOp = True
                 removeFrom = tok
                 break
@@ -194,7 +194,7 @@ def pushOperation( sourceStr, loc, toks ):
     return operation
 
 def pushUnaryOperation( sourceStr, loc, toks ):
-    if isinstance(toks[0], str):
+    if isinstance(toks[0], _STR_BASE):
         operation = OperationDef(sourceStr, loc, 'u' + toks[0], toks, True)
         exprStack.append(operation)
     else:
@@ -506,7 +506,7 @@ opn = { "+" : ( lambda a,b: a + b ),
         "-" : ( lambda a,b: a - b ),
         "*" : ( lambda a,b: a * b ),
         "div" : ( lambda a,b: float(a) / float(b) ),
-        "idiv" : ( lambda a,b: int(a) / int(b) ),
+        "idiv" : ( lambda a,b: _INT(a) / _INT(b) ),
         "^" : ( lambda a,b: a ** b ) }
 
 # Recursive function that evaluates the stack
@@ -712,7 +712,7 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
             rangeVars.append(var)
             localRangeVars.append(var)
             variableReferences(p.bindingSeq, varRefSet, element, rangeVars)
-        elif hasattr(p, '__iter__') and not isinstance(p, str):
+        elif hasattr(p, '__iter__') and not isinstance(p, _STR_BASE):
             variableReferences(p, varRefSet, element, rangeVars)
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
@@ -732,9 +732,9 @@ def compile(exprStack, code, inScopeVars=None):
     if inScopeVars is None: inScopeVars = []
     codeStartIndex = len(code)
     for p in exprStack:
-        if isinstance(p,str):
+        if isinstance(p,_STR_BASE):
             code.append(p.__repr__())
-        elif isinstance(p,int) or isinstance(p,float):
+        elif isinstance(p,_INT) or isinstance(p,float):
             code.append(str(p))
         elif isinstance(p,VariableRef):
             code.append((" {0} ","variables.get({0})")[p.name in inScopeVars].format(p.name))

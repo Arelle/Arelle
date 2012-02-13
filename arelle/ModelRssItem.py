@@ -80,7 +80,7 @@ class ModelRssItem(ModelObject):
             date = XmlUtil.text(XmlUtil.descendant(self, edgr, "filingDate"))
             d = date.split("/") 
             if d and len(d) == 3:
-                self._filingDate = datetime.date(int(d[2]),int(d[0]),int(d[1]))
+                self._filingDate = datetime.date(_INT(d[2]),_INT(d[0]),_INT(d[1]))
             return self._filingDate
     
     @property

@@ -139,7 +139,7 @@ class ModelParticle():
                 if m == "unbounded":
                     self._maxOccurs = sys.maxsize
                 else:
-                    self._maxOccurs = int(m)
+                    self._maxOccurs = _INT(m)
                     if self._maxOccurs < 0: 
                         raise ValueError(_("maxOccurs must be positive".format(m)))
             else:
@@ -159,7 +159,7 @@ class ModelParticle():
         except AttributeError:
             m = self.get("minOccurs")
             if m:
-                self._minOccurs = int(m)
+                self._minOccurs = _INT(m)
                 if self._minOccurs < 0: 
                     raise ValueError(_("minOccurs must be positive".format(m)))
             else:
@@ -1085,7 +1085,7 @@ class ModelRelationship(ModelObject):
                 priority = 0
             else:
                 try:
-                    priority = int(p)
+                    priority = _INT(p)
                 except (TypeError,ValueError) :
                     # XBRL validation error needed
                     priority = 0

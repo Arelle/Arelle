@@ -499,7 +499,7 @@ def datetimeValue(element, addOneDay=False, none=None):
         elif none == "maxyear":
             return datetime.datetime(datetime.MAXYEAR,12,31)
         return None
-    match = datetimePattern.match(element if isinstance(element,str) else text(element).strip())
+    match = datetimePattern.match(element if isinstance(element,_STR_BASE) else text(element).strip())
     if match is None:
         return None
     hour24 = False
@@ -645,7 +645,8 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
         writer.write(indent+"<" + tag)
         attrs = {}
         for prefix, ns in sorted((k if k is not None else '', v) 
-                                 for k, v in (node.nsmap.items() - parentNsmap.items())):
+                                 # items wrapped in set for 2.7 compatibility
+                                 for k, v in (_DICT_SET(node.nsmap.items()) - _DICT_SET(parentNsmap.items()))):
             if prefix:
                 attrs["xmlns:" + prefix] = ns
             else:

@@ -152,7 +152,7 @@ class ModelTestcaseVariation(ModelObject):
             asserTests = {}
             for atElt in XmlUtil.children(resultElement, None, "assertionTests"):
                 try:
-                    asserTests[atElt.get("assertionID")] = (int(atElt.get("countSatisfied")),int(atElt.get("countNotSatisfied")))
+                    asserTests[atElt.get("assertionID")] = (_INT(atElt.get("countSatisfied")),_INT(atElt.get("countNotSatisfied")))
                 except ValueError:
                     pass
             if asserTests:

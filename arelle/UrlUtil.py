@@ -7,8 +7,11 @@ Created on Oct 22, 2010
 import re, os, sys
 if sys.version[0] >= '3':
     from urllib.parse import urldefrag, unquote
+    isPy3 = True
 else:
-    from urlparse import urldefrag, unquote
+    from urlparse import urldefrag
+    from arelle.PythonUtil import py3unquote as unquote
+    isPy3 = False
 
 def authority(url):
     if url is not None and url.startswith("http://"):
@@ -25,10 +28,10 @@ relativeUrlPattern = re.compile(r"^(([^:/\?#]+):)?(//([^/\?#]*))?([^\?#]*)(\?([^
 
 def splitDecodeFragment(url):
     urlPart, fragPart = urldefrag(url)
-    if sys.version[0] >= '3':
+    if isPy3:
         return (urlPart, unquote(fragPart, "utf-8", errors=None))
     else:
-        return urlPart, unquote(fragPart)
+        return _STR_UNICODE(urlPart), unquote(_STR_UNICODE(fragPart), "utf-8", errors=None)
 
 def isValidAbsolute(url):
     global absoluteUrlPattern

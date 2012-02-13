@@ -93,7 +93,7 @@ class XPathContext:
         setProgHeader = False
         for p in exprStack:
             result = None
-            if isinstance(p,(str,int,float)):
+            if isinstance(p,(str,_INT,int,float)):
                 result = p
             elif isinstance(p,VariableRef):
                 if p.name in self.inScopeVars:
@@ -183,7 +183,7 @@ class XPathContext:
                         elif op == 'ne':
                             result = op1 != op2
                         elif op == 'to':
-                            result = range( int(op1), int(op2) + 1 )
+                            result = _RANGE( _INT(op1), _INT(op2) + 1 )
                 elif op in {'>', '>=', '=', '!=', '<', '<='}:
                     # general comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
@@ -287,7 +287,7 @@ class XPathContext:
                             if isinstance(t, QNameDef):
                                 if t.namespaceURI == XbrlConst.xsd:
                                     type = {
-                                           "integer": int,
+                                           "integer": _INT,
                                            "string": str,
                                            "decimal": float,
                                            "double": float,
@@ -389,7 +389,7 @@ class XPathContext:
             if len(r) == 1: # should be an expr single
                 r = r[0]
                 if isinstance(r, (tuple,list,set)):
-                    if len(r) == 1 and isinstance(r[0],range):
+                    if len(r) == 1 and isinstance(r[0],_RANGE):
                         r = r[0]
                     rvQname = p.rangeVar.name
                     hasPrevValue = rvQname in self.inScopeVars
@@ -472,7 +472,7 @@ class XPathContext:
             sourcePosition += 1
             predicateResult = self.evaluate(p.args, contextItem=item)
             if len(predicateResult) == 1: predicateResult = predicateResult[0] # first result
-            if len(predicateResult) == 1 and isinstance(predicateResult[0],(int,float)):
+            if len(predicateResult) == 1 and isinstance(predicateResult[0],(_INT,int,float)):
                 result = predicateResult[0]
                 if isinstance(result, bool):  # note that bool is subclass of int
                     if result:
@@ -493,7 +493,7 @@ class XPathContext:
                     sequence.append(atomizedItem)
             return sequence
         # individual items
-        if isinstance(x, range): 
+        if isinstance(x, _RANGE): 
             return x
         baseXsdType = None
         e = None
@@ -530,7 +530,7 @@ class XPathContext:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to a {1} does not have a proper value').format(x,baseXsdType))
         elif baseXsdType in ("integer",):
             try:
-                x = int(v)
+                x = _INT(v)
             except ValueError:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to an integer does not have a proper value').format(x))
         elif baseXsdType == "boolean":

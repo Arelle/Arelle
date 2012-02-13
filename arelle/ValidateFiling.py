@@ -451,7 +451,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         f1.decimals and f1.decimals != "INF" and not f1.isNil:
                         try:
                             vf = float(f1.value)
-                            vround = round(vf, int(f1.decimals))
+                            vround = round(vf, _INT(f1.decimals))
                             if vf != vround: 
                                 modelXbrl.error("GFM.1.02.26",
                                     _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has insignificant digits %(value2)s."),

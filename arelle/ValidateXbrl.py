@@ -369,7 +369,7 @@ class ValidateXbrl:
                                     self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
                                         _("Fact %(fact)s context %(contextID)s is a fraction with invalid numerator %(numerator)s"),
                                         modelObject=f, fact=f.qname, contextID=f.contextID, numerator=numerator)
-                                if not denominator.isnumeric() or int(denominator) == 0:
+                                if not denominator.isnumeric() or _INT(denominator) == 0:
                                     self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
                                         _("Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)")).format(
                                         modelObject=f, fact=f.qname, contextID=f.contextID, denominator=denominator)
