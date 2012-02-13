@@ -8,7 +8,7 @@ rem work off local SVN checked out files (inferring decimals)
 
 @set ARELLEDIR=C:\Users\Herm Fischer\Documents\mvsl\projects\Arelle\ArelleProject\arelle
 
-@set PYTHONDIR=c:\python31
+@set PYTHONDIR=c:\python32
 @set PYTHONPATH=..
 
 "%PYTHONDIR%\python" -m arelle.CntlrCmdLine --file "%TESTCASESINDEXFILE%" --validate --csvTestReport "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1

@@ -9,7 +9,7 @@
 
 @set FILENAME=index.xml
 
-@set PYTHONDIR=c:\python31
+@set PYTHONDIR=c:\python32
 @set PYTHONPATH=..
 
 "%PYTHONDIR%\python" -m arelle.CntlrCmdLine --file %CONFROOT%\%FILENAME% --validate --utr --csvTestReport foo.csv

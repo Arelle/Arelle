@@ -12,7 +12,7 @@ rem Run SEC Edgar Filer Manual (EFM) Conformance Suite tests
 
 @set ARELLEDIR=C:\Users\Herm Fischer\Documents\mvsl\projects\Arelle\ArelleProject\arelle
 
-@set PYTHONDIR=c:\python31
+@set PYTHONDIR=c:\python32
 @set PYTHONPATH=..
 
 "%PYTHONDIR%\python" -m arelle.CntlrCmdLine --file "%TESTCASESINDEXFILE%" --efm --validate --csvTestReport "%OUTPUTCSVFILE%" --logFile "%OUTPUTLOGFILE%" 2>  "%OUTPUTERRFILE%"
