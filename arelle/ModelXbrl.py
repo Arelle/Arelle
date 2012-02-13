@@ -11,7 +11,7 @@ from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
-FactPrototype = None
+from arelle.PrototypeInstanceObject import FactPrototype
 ModelRelationshipSet = None # dynamic import
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
@@ -350,19 +350,16 @@ class ModelXbrl:
         return newFact    
         
     def modelObject(self, objectId):
-        if isinstance(objectId,int):
+        if isinstance(objectId,(_INT,int)):  # may be long or short in 2.7
             return self.modelObjects[objectId]
         # assume it is a string with ID in a tokenized representation, like xyz_33
         try:
-            return self.modelObjects[int(objectId.rpartition("_")[2])]
+            return self.modelObjects[_INT(objectId.rpartition("_")[2])]
         except ValueError:
             return None
     
     # UI thread viewModelObject
     def viewModelObject(self, objectId):
-        global FactPrototype
-        if FactPrototype is None:
-            from arelle.ViewUtilRenderedGrid import FactPrototype
         modelObject = ""
         try:
             if isinstance(objectId, (ModelObject,FactPrototype)):
@@ -423,7 +420,7 @@ class ModelXbrl:
             elif argName != "exc_info":
                 if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO)):
                     fmtArgs[argName] = str(argValue)
-                elif isinstance(argValue,int):
+                elif isinstance(argValue,(_INT,int)):
                     # need locale-dependent formatting
                     fmtArgs[argName] = format_string(self.modelManager.locale, '%i', argValue)
                 elif isinstance(argValue,float):

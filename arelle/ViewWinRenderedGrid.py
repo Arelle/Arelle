@@ -10,8 +10,9 @@ from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, ModelObject
                     ModelXbrl, XmlValidate, Locale)
 from arelle.ModelValue import qname
 from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
-                                         inheritedExplicitDims, dimContextElement,
-                                         FactPrototype, ContextPrototype, DimValuePrototype)
+                                         inheritedExplicitDims)
+
+from arelle.PrototypeInstanceObject import dimContextElement, FactPrototype, ContextPrototype, DimValuePrototype
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
                      label, checkbox, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
