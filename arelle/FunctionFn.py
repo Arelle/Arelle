@@ -89,14 +89,14 @@ def fn_round(xc, p, contextItem, args):
     x = numericArg(xc, p, args)
     if math.isinf(x) or math.isnan(x): 
         return x
-    return int(x + .5)  # round towards +inf
+    return _INT(x + .5)  # round towards +inf
 
 def fn_round_half_to_even(xc, p, contextItem, args):
     if len(args) > 2 or len(args) == 0: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args)
     if len(args) == 2:
         precision = args[1]
-        if len(precision) != 1 or not isinstance(precision[0],int): raise XPathContext.FunctionArgType(2,"integer")
+        if len(precision) != 1 or not isinstance(precision[0],(_INT,int)): raise XPathContext.FunctionArgType(2,"integer")
         precision = precision[0]
         return round(x, precision)
     return round(x)
@@ -151,9 +151,9 @@ def substring(xc, p, contextItem, args):
     l = len(args)
     if l < 2 or l > 3: raise XPathContext.FunctionNumArgs()
     string = stringArg(xc, args, 0, "xs:string?")
-    start = round( numericArg(xc, p, args, 1) ) - 1
+    start = _INT(round( numericArg(xc, p, args, 1) )) - 1
     if l == 3:
-        length = round( numericArg(xc, p, args, 2) )
+        length = _INT(round( numericArg(xc, p, args, 2) ))
         if start < 0:
             length += start
             if length < 0: length = 0
@@ -527,7 +527,7 @@ def boolean(xc, p, contextItem, args):
             return item
         if isinstance(item, str):
             return len(item) > 0
-        if isinstance(item, int) or isinstance(item, float):
+        if isinstance(item, (_INT,float,int)):
             return not math.isnan(item) and item != 0
     raise XPathContext.XPathException(p, 'err:FORG0006', _('Effective boolean value indeterminate'))
 
