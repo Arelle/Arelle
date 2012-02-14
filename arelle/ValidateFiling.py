@@ -618,7 +618,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a default-context because only one class of stock"),
                                 modelObject=documentTypeFact, documentType=documentType)
-                        missingClasses = commonSharesClassMembers - commonSharesItemsByStockClass.keys()
+                        missingClasses = commonSharesClassMembers - _DICT_SET(commonSharesItemsByStockClass.keys())
                         if missingClasses:
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing in these stock classes: %(stockClasses)s"),
