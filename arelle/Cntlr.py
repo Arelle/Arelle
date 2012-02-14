@@ -97,7 +97,7 @@ class Cntlr:
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")
             self.localeDir = os.path.join(resources, "locale")
-        elif self.moduleDir.endswith("library.zip\\arelle"): # cx_Freexe
+        elif self.moduleDir.endswith("library.zip\\arelle") or self.moduleDir.endswith("library.zip/arelle"): # cx_Freexe
             resources = os.path.dirname(os.path.dirname(self.moduleDir))
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")

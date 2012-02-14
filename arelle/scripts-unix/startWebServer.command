@@ -1,1 +1,0 @@
-python32 ArelleCmdLine.py --webserver localhost:8080

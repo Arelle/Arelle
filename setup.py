@@ -41,6 +41,30 @@ if sys.platform == 'darwin':
         dataFiles.append((dir[7:],
                           [dir + "/" + f for f in files]))
     cx_FreezeExecutables = None
+elif sys.platform == 'linux2': # works on ubuntu with hand-built cx_Freeze
+    from setuptools import find_packages 
+    from cx_Freeze import setup, Executable  
+    packages = find_packages('.') 
+    dataFiles = None 
+    options = dict( build_exe =  { 
+        "include_files": [('arelle/config','config'), 
+                          ('arelle/images','images'), 
+                          ('arelle/locale','locale'), 
+                          ('arelle/examples','examples'), 
+                          ('arelle/scripts-unix','scripts'),
+                          ],
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath'], 
+        "packages": packages, 
+        } ) 
+    
+    cx_FreezeExecutables = [ 
+        Executable( 
+                script="arelleGUI.pyw", 
+                ), 
+        Executable( 
+                script="arelleCmdLine.py", 
+                )                             
+        ] 
 elif sys.platform == 'win32':
     from setuptools import find_packages
     from cx_Freeze import setup, Executable 
@@ -72,11 +96,14 @@ elif sys.platform == 'win32':
                 script="arelleCmdLine.py",
                 )                            
         ]
+else:  
+    print("Your platform {0} isn't supported".format(sys.platform)) 
+    sys.exit(1) 
 
 setup(name='Arelle',
       version='0.9.0',
       description='An open source XBRL platform',
-      long_description=open('README.txt').read(),
+      long_description=open('README.md').read(),
       author='arelle.org',
       author_email='support@arelle.org',
       url='http://www.arelle.org',
@@ -93,7 +120,7 @@ setup(name='Arelle',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Apache-2 License',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.1',
+          'Programming Language :: Python :: 3.2',
           'Operating System :: OS Independent',
           'Topic :: XBRL Validation and Versioning',
           ],
