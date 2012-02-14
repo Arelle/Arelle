@@ -207,7 +207,7 @@ class ModelFact(ModelObject):
                 if dec is None or dec == "INF":
                     dec = len(val.partition(".")[2])
                 else:
-                    dec = _INT(dec)
+                    dec = int(dec) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
                 return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
             except ValueError: 
                 return "(error)"

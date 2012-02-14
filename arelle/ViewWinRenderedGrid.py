@@ -371,7 +371,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     for fact in self.modelXbrl.facts:
                         if fact.qname == fp.qname:
                             factDimMem = fact.context.dimMemberQname
-                            defaultedDims = dimDefaults.keys() - fp.dimKeys
+                            defaultedDims = _DICT_SET(dimDefaults.keys()) - fp.dimKeys
                             if (all(factDimMem(dim,includeDefaults=True) == mem 
                                     for dim, mem in fp.dims) and
                                 all(factDimMem(dim,includeDefaults=True) in (dimDefaults[dim], None)

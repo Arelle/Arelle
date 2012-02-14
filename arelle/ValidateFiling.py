@@ -837,7 +837,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if qname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces:
                     facets = modelType.facets
                     if facets:
-                        lengthFacets = facets.keys() & {"minLength", "maxLength", "length"}
+                        lengthFacets = _DICT_SET(facets.keys()) & {"minLength", "maxLength", "length"}
                         if lengthFacets:
                             modelXbrl.error("SBR.NL.2.2.7.02",
                                 _("Type %(typename)s has length restriction facets %(facets)s"),

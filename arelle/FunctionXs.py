@@ -306,7 +306,7 @@ def ENTITY(xc, p, source):
 def boolean(xc, p, source):
     if isinstance(source,bool):
         return source
-    elif isinstance(source,(_INT,float,int)):
+    elif isinstance(source, _NUM_TYPES):
         if source == 1:
             return True
         elif source == 0:

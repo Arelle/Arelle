@@ -734,7 +734,7 @@ def compile(exprStack, code, inScopeVars=None):
     for p in exprStack:
         if isinstance(p,_STR_BASE):
             code.append(p.__repr__())
-        elif isinstance(p,_INT) or isinstance(p,float):
+        elif isinstance(p,_NUM_TYPES):
             code.append(str(p))
         elif isinstance(p,VariableRef):
             code.append((" {0} ","variables.get({0})")[p.name in inScopeVars].format(p.name))

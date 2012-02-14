@@ -93,7 +93,7 @@ class XPathContext:
         setProgHeader = False
         for p in exprStack:
             result = None
-            if isinstance(p,(str,_INT,int,float)):
+            if isinstance(p,_STR_NUM_TYPES):
                 result = p
             elif isinstance(p,VariableRef):
                 if p.name in self.inScopeVars:
@@ -287,7 +287,7 @@ class XPathContext:
                             if isinstance(t, QNameDef):
                                 if t.namespaceURI == XbrlConst.xsd:
                                     type = {
-                                           "integer": _INT,
+                                           "integer": _INT_TYPES,
                                            "string": str,
                                            "decimal": float,
                                            "double": float,
@@ -472,7 +472,7 @@ class XPathContext:
             sourcePosition += 1
             predicateResult = self.evaluate(p.args, contextItem=item)
             if len(predicateResult) == 1: predicateResult = predicateResult[0] # first result
-            if len(predicateResult) == 1 and isinstance(predicateResult[0],(_INT,int,float)):
+            if len(predicateResult) == 1 and isinstance(predicateResult[0],_NUM_TYPES):
                 result = predicateResult[0]
                 if isinstance(result, bool):  # note that bool is subclass of int
                     if result:

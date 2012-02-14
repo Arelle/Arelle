@@ -350,7 +350,7 @@ class ModelXbrl:
         return newFact    
         
     def modelObject(self, objectId):
-        if isinstance(objectId,(_INT,int)):  # may be long or short in 2.7
+        if isinstance(objectId, _INT_TYPES):  # may be long or short in 2.7
             return self.modelObjects[objectId]
         # assume it is a string with ID in a tokenized representation, like xyz_33
         try:
@@ -420,7 +420,7 @@ class ModelXbrl:
             elif argName != "exc_info":
                 if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO)):
                     fmtArgs[argName] = str(argValue)
-                elif isinstance(argValue,(_INT,int)):
+                elif isinstance(argValue, _INT_TYPES):
                     # need locale-dependent formatting
                     fmtArgs[argName] = format_string(self.modelManager.locale, '%i', argValue)
                 elif isinstance(argValue,float):

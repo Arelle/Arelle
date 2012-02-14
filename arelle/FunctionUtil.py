@@ -36,7 +36,7 @@ def numericArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, conve
     item = anytypeArg(xc, args, i, "numeric?", missingArgFallback)
     if item == (): return emptyFallback
     numeric = xc.atomize(p, item)
-    if not isinstance(numeric,(_INT,float,int)): 
+    if not isinstance(numeric,_NUM_TYPES): 
         if convertFallback is None:
             raise FunctionArgType(i,"numeric?")
         try:
@@ -63,8 +63,8 @@ def testTypeCompatiblity(xc, p, op, a1, a2):
         if a1.dateOnly == a2.dateOnly:
             return # can't interoperate between date and datetime
     elif ((type(a1) == type(a2)) or
-        (isinstance(a1,(_INT, float, int)) and 
-         isinstance(a2,(_INT, float, int)))):
+        (isinstance(a1,_NUM_TYPES) and isinstance(a2,_NUM_TYPES)) or
+        (isinstance(a1,_STR_BASE) and isinstance(a2,_STR_BASE))):
         return
     elif op in ('+','-'):
         if ((isinstance(a1,ModelValue.DateTime) and isinstance(a2,(ModelValue.YearMonthDuration,datetime.timedelta))) or

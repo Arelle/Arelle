@@ -11,6 +11,9 @@ if sys.version[0] >= '3':
     builtins.__dict__['_STR_BASE'] = str
     builtins.__dict__['_STR_UNICODE'] = str
     builtins.__dict__['_INT'] = int
+    builtins.__dict__['_INT_TYPES'] = int
+    builtins.__dict__['_NUM_TYPES'] = (int,float)
+    builtins.__dict__['_STR_NUM_TYPES'] = (str,int,float)
     builtins.__dict__['_RANGE'] = range
     def noop(x): return x
     builtins.__dict__['_DICT_SET'] = noop
@@ -19,6 +22,9 @@ else:
     __builtins__['_STR_BASE'] = basestring
     __builtins__['_STR_UNICODE'] = unicode
     __builtins__['_INT'] = long
+    __builtins__['_INT_TYPES'] = (int,long)
+    __builtins__['_NUM_TYPES'] = (int,long,float)
+    __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float)
     __builtins__['_RANGE'] = xrange
     __builtins__['_DICT_SET'] = set
    

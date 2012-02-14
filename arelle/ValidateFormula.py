@@ -465,7 +465,7 @@ def validate(val):
         if instqname not in orderedInstancesSet:
             # can also be satisfied from an input DTS
             missingDependentInstances = depInsts - stdInpInst
-            if val.parameters: missingDependentInstances -= val.parameters.keys() 
+            if val.parameters: missingDependentInstances -= _DICT_SET(val.parameters.keys()) 
             if instqname:
                 if missingDependentInstances:
                     val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
@@ -479,7 +479,7 @@ def validate(val):
             else:
                 val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
                     _("Unresolved dependencies of an assertion's variables on instances %(dependencies)s"),
-                    dependencies=str(depInsts - stdInpInst) )
+                    dependencies=str(_DICT_SET(depInsts) - stdInpInst) )
             '''
 
     if formulaOptions.traceVariablesOrder and len(orderedInstancesList) > 1:
@@ -517,7 +517,7 @@ def validate(val):
             val.parameters and instanceQname in val.parameters):
             namedInstance = val.parameters[instanceQname][1][0]
             ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
-            xpathContext.defaultDimensionAspects |= namedInstance.qnameDimensionDefaults.keys()
+            xpathContext.defaultDimensionAspects |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
 
     # check for variable set dependencies across output instances produced
     for instanceQname, modelVariableSets in instanceProducingVariableSets.items():
