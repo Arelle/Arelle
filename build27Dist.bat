@@ -1,8 +1,11 @@
 rem Build Arelle 27 server distribution
 
 @set PYTHON27DIR=c:\python27
+@set PYTHON64DIR=c:\python32
+"%PYTHON64DIR%\python" buildVersion.py
+
 @set CMDLINEZIP=C:\Program Files (x86)\7z\7za.exe
-@set BUILT27DIR=build\2.7
+@set BUILT27DIR=build\svr-2.7
 
 mkdir build
 rmdir %BUILT27DIR% /s/q
@@ -37,6 +40,13 @@ del %BUILT27DIR%\*.bak /s
 rem copy non-converted PythonUtil.py (to block 3to2 conversions
 copy /Y arelle\PythonUtil.py %BUILT27DIR%\arelle\PythonUtil.py
 rem copy bottle that works on 2.7
-copy /Y arelle\webserver\bottle-no2to3.py %BUILT27DIR%\arelle\webserver\bottle.py
+copy /Y arelle\webserver\bottle.py %BUILT27DIR%\arelle\webserver\bottle.py
 
-rem "%CMDLINEZIP%" a "%BUILT32DIR%\library.zip" lxml\_elementpath.pyc
+del /Q "dist\\arelle-svr-2.7*.zip"
+cd build
+"%CMDLINEZIP%" a "..\\dist\\arelle-svr-2.7.zip" svr-2.7
+cd ..
+
+rem rename for build date
+call buildRenameSvr27.bat
+
