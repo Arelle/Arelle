@@ -390,10 +390,10 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     def isRoot(self):
         return self.getparent().localName == "schema"
     
-    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False):
+    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False,linkrole=None):
         if preferredLabel is None: preferredLabel = XbrlConst.standardLabel
         if preferredLabel == XbrlConst.conceptNameLabelRole: return str(self.qname)
-        labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+        labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel,linkrole)
         if labelsRelationshipSet:
             label = labelsRelationshipSet.label(self, preferredLabel, lang)
             if label is not None:

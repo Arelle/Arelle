@@ -131,6 +131,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             type = Type.REGISTRY
         elif ln == "rss":
             type = Type.RSSFEED
+        elif ln == "ptvl":
+            type = Type.ARCSINFOSET
+        elif ln == "facts":
+            type = Type.FACTDIMSINFOSET
         else:
             type = Type.Unknown
             nestedInline = None
@@ -275,6 +279,8 @@ class Type:
     REGISTRY=9
     REGISTRYTESTCASE=10
     RSSFEED=11
+    ARCSINFOSET=12
+    FACTDIMSINFOSET=13
 
     typeName = ("unknown", 
                 "schema", 
@@ -283,11 +289,13 @@ class Type:
                 "inline XBRL instance",
                 "entry point set",
                 "versioning report",
-                "testcasesindex", 
+                "testcases index", 
                 "testcase",
                 "registry",
                 "registry testcase",
-                "RSS feed")
+                "RSS feed",
+                "arcs infoset",
+                "fact dimensions infoset")
     
 # schema elements which end the include/import scah
 schemaBottom = {"element", "attribute", "notation", "simpleType", "complexType", "group", "attributeGroup"}
@@ -770,6 +778,7 @@ class ModelDocument:
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
         if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn) or isTransformTestcase:
             self.type = Type.REGISTRYTESTCASE
+        self.outpath = self.xmlRootElement.get("outpath") 
         self.testcaseVariations = []
         priorTransformName = None
         for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, "variation"):

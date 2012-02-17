@@ -99,6 +99,21 @@ class ModelTestcaseVariation(ModelObject):
             return XmlUtil.text(resultInstance)
         return None
     
+    @property
+    def resultIsInfoset(self):
+        if self.modelDocument.outpath:
+            result = XmlUtil.descendant(self, None, "result")
+            if result is not None:
+                return XmlUtil.child(result, None, "file") is not None or XmlUtil.text(result).endswith(".xml")
+        return False
+        
+    @property
+    def resultInfosetUri(self):
+        result = XmlUtil.descendant(self, None, "result")
+        if result is not None:
+            child = XmlUtil.child(result, None, "file")
+            return os.path.join(self.modelDocument.outpath, XmlUtil.text(child if child is not None else result))
+        return None    
     
     @property
     def cfcnCall(self):
@@ -193,6 +208,7 @@ class ModelTestcaseVariation(ModelObject):
                [("status", self.status),
                 ("call", self.cfcnCall[0]) if self.cfcnCall else (),
                 ("test", self.cfcnTest[0]) if self.cfcnTest else (),
+                ("infoset", self.resultInfosetUri) if self.resultIsInfoset else (),
                 ("expected", self.expected) if self.expected else (),
                 ("actual", " ".join(str(i) for i in self.actual) if len(self.actual) > 0 else ())] + \
                 assertions

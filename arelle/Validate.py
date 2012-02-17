@@ -7,7 +7,8 @@ Created on Oct 17, 2010
 import os, sys, traceback
 from collections import defaultdict
 from arelle import (ModelXbrl, ModelVersReport, XbrlConst, ModelDocument,
-               ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula)
+               ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
+               ValidateInfoset)
 from arelle.ModelValue import (qname, QName)
 
 def validate(modelXbrl):
@@ -176,7 +177,22 @@ class Validate:
                         if dtsName:
                             parameters[dtsName] = (None, inputDTS)
                     self.instValidator.validate(modelXbrl, parameters)
-                    self.determineTestStatus(modelTestcaseVariation, modelXbrl)
+                    if modelTestcaseVariation.resultIsInfoset:
+                        infoset = ModelXbrl.load(self.modelXbrl.modelManager, 
+                                                 modelTestcaseVariation.resultInfosetUri,
+                                                   _("loading result infoset"), 
+                                                   base=baseForElement,
+                                                   useFileSource=self.useFileSource)
+                        if infoset.modelDocument is None:
+                            self.modelXbrl.error("arelle:notLoaded",
+                                _("Testcase %(id)s %(name)s result infoset not loaded: %(file)s"),
+                                modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
+                                file=os.path.basename(modelTestcaseVariation.resultXbrlInstance))
+                            modelTestcaseVariation.status = "result infoset not loadable"
+                        else:   # check infoset
+                            ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)
+                        infoset.close()
+                    self.determineTestStatus(modelTestcaseVariation, modelXbrl) # include infoset errors in status
                     self.instValidator.close()
                     if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 
                         # if an output instance is created, and no string error codes, ignoring dict of assertion results, validate it
@@ -194,7 +210,8 @@ class Validate:
                         expectedInstance = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    modelTestcaseVariation.resultXbrlInstanceUri,
                                                    _("loading expected result XBRL instance"), 
-                                                   base=baseForElement)
+                                                   base=baseForElement,
+                                                   useFileSource=self.useFileSource)
                         if expectedInstance.modelDocument is None:
                             self.modelXbrl.error("arelle:notLoaded",
                                 _("Testcase %(id)s %(name)s expected result instance not loaded: %(file)s"),
