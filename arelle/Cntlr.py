@@ -13,6 +13,7 @@ import tempfile, os, pickle, sys, logging, gettext, json
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 from collections import defaultdict
+isPy3 = (sys.version[0] >= '3')
 
 class Cntlr:
     """
@@ -282,7 +283,10 @@ class LogToPrintHandler(logging.Handler):
     CAUTION: Output is utf-8 encoded, which is fine for saving to files, but may not display correctly in terminal windows.
     """
     def emit(self, logRecord):
-        print(self.format(logRecord).encode("utf-8"))
+        if isPy3:
+            print(self.format(logRecord))
+        else:
+            print(self.format(logRecord).encode("utf-8"))
 
 class LogHandlerWithXml(logging.Handler):        
     def __init__(self):
