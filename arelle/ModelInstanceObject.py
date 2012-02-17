@@ -219,7 +219,7 @@ class ModelFact(ModelObject):
             return float(self.value)
         return self.value
     
-    def isVEqualTo(self, other):  # facts may be in different instances
+    def isVEqualTo(self, other, deemP0Equal=False):  # facts may be in different instances
         if self.isTuple or other.isTuple:
             return False
         if self.isNil:
@@ -236,7 +236,9 @@ class ModelFact(ModelObject):
                     d = min((inferredDecimals(self), inferredDecimals(other))); p = None
                 else:
                     d = None; p = min((inferredPrecision(self), inferredPrecision(other)))
-                return roundValue(float(self.value),precision=p,decimals=d) == roundValue(float(other.value),precision=p,decimals=d)
+                if p == 0 and deemP0Equal:
+                    return True
+                return roundValue(self.value,precision=p,decimals=d) == roundValue(other.value,precision=p,decimals=d)
             else:
                 return False
         selfValue = self.value
@@ -246,7 +248,7 @@ class ModelFact(ModelObject):
         else:
             return selfValue == otherValue
         
-    def isDuplicateOf(self, other, topLevel=True):  # facts may be in different instances
+    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False):  # facts may be in different instances
         if self.isItem:
             if (self == other or
                 self.qname != other or
@@ -266,10 +268,10 @@ class ModelFact(ModelObject):
                 if len(self.modelTupleFacts) == len(other.modelTupleFacts):
                     for child1 in self.modelTupleFacts:
                         if child1.isItem:
-                            if not any(child1.isVEqualTo(child2) for child2 in other.modelTupleFacts):
+                            if not any(child1.isVEqualTo(child2, deemP0Equal) for child2 in other.modelTupleFacts):
                                 return False
                         elif child1.isTuple:
-                            if not any(child1.isDuplicateOf( child2, topLevel=False) 
+                            if not any(child1.isDuplicateOf( child2, topLevel=False, deemP0Equal=deemP0Equal) 
                                        for child2 in other.modelTupleFacts):
                                 return False
                     return True

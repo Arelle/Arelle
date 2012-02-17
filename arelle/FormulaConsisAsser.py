@@ -92,7 +92,7 @@ def evaluate(xpCtx, varSet, derivedFact):
                 else:
                     p = min(derivedFactInferredPrecision, factInferredPrecision)
                     if (p == 0 or
-                        roundValue(derivedFact.vEqValue, precision=p) != roundValue(fact.vEqValue, precision=p)):
+                        roundValue(derivedFact.value, precision=p) != roundValue(fact.value, precision=p)):
                         isSatisfied = False
             else:
                 if not xEqual(fact, derivedFact, equalMode=S_EQUAL2):

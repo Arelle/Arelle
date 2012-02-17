@@ -543,7 +543,7 @@ class ValidateXbrl:
         
         if self.validateCalcLB:
             modelXbrl.modelManager.showStatus(_("Validating instance calculations"))
-            ValidateXbrlCalcs.validate(modelXbrl, inferPrecision=(not self.validateInferDecimals))
+            ValidateXbrlCalcs.validate(modelXbrl, inferDecimals=self.validateInferDecimals)
             
         if (modelXbrl.modelManager.validateUtr or
             (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
