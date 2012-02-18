@@ -64,8 +64,14 @@ class WebCache:
         
         if sys.platform == "darwin":
             self.cacheDir = cntlr.userAppDir.replace("Application Support","Caches")
+            self.illegalFileChars = re.compile(r'[:]')
+            
         else:  #windows and unix
             self.cacheDir = cntlr.userAppDir + os.sep + "cache"
+            if sys.platform.startswith("win"):
+                self.illegalFileChars = re.compile(r'[<>:"\\|?*]')
+            else:
+                self.illegalFileChars = re.compile(r'[:]')
         self.workOffline = False
         self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
         self.urlCheckPickleFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.pickle"
@@ -134,8 +140,8 @@ class WebCache:
         if base is not None:
             url = self.normalizeUrl(url, base)
         if url.startswith('http://'):
-            # form cache file name
-            filepath = self.cacheDir + os.sep + 'http' + os.sep + url[7:]
+            # form cache file name (substituting _ for any illegal file characters)
+            filepath = self.cacheDir + os.sep + 'http' + os.sep + self.illegalFileChars.sub('_', url[7:])
             # handle default directory requests
             if filepath.endswith("/"):
                 filepath += "default.unknown"
