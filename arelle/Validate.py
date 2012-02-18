@@ -278,9 +278,14 @@ class Validate:
                         break
             if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
                 status = "pass"
-            if (not modelUnderTest.errors and status == "fail" and 
-                modelTestcaseVariation.assertions and modelTestcaseVariation.assertions == expected):
-                status = "pass" # passing was previously successful and no further errors 
+            if not modelUnderTest.errors and status == "fail":
+                if modelTestcaseVariation.assertions:
+                    if modelTestcaseVariation.assertions == expected:
+                        status = "pass" # passing was previously successful and no further errors
+                elif (isinstance(expected,dict) and # no assertions fired, are all the expected zero counts?
+                      all(countSatisfied == 0 and countNotSatisfied == 0 for countSatisfied, countNotSatisfied in expected.values())):
+                    status = "pass" # passes due to no counts expected
+                         
         else:
             status = "fail"
         modelTestcaseVariation.status = status

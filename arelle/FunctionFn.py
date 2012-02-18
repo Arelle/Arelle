@@ -8,7 +8,7 @@ import math, re
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg
+from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg
 from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
 from lxml import etree
     
@@ -39,8 +39,8 @@ def nilled(xc, p, contextItem, args):
 
 def string(xc, p, contextItem, args):
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
-    x = stringArg(xc, args, 0, "item()?", missingArgFallback=contextItem, emptyFallback='')
-    return str( x )
+    x = atomicArg(xc, p, args, 0, "item()?", missingArgFallback=contextItem, emptyFallback='')
+    return FunctionXs.xsString( xc, p, x ) 
 
 def data(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()

@@ -117,6 +117,8 @@ class WebCache:
                     prot, sep, path = base.partition("://")
                     normedPath = prot + sep + posixpath.normpath(os.path.dirname(path) + "/" + url)
                 else:
+                    if '%' in base:
+                        base = unquote(base)
                     normedPath = os.path.normpath(os.path.join(os.path.dirname(base),url))
             else:
                 normedPath = url

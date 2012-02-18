@@ -2470,7 +2470,7 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
             return self._outputExpression
         except AttributeError:
             outputElt = XmlUtil.child(self, XbrlConst.cfi, "output")
-            self._outputExpression = XmlUtil.text(outputElt) if outputElt else None
+            self._outputExpression = XmlUtil.text(outputElt) if outputElt is not None else None
             return self._outputExpression
     
     def compile(self):
