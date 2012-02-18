@@ -64,14 +64,15 @@ class WebCache:
         
         if sys.platform == "darwin":
             self.cacheDir = cntlr.userAppDir.replace("Application Support","Caches")
-            self.illegalFileChars = re.compile(r'[:]')
+            self.encodeFileChars = re.compile(r'[:^]') 
             
         else:  #windows and unix
             self.cacheDir = cntlr.userAppDir + os.sep + "cache"
             if sys.platform.startswith("win"):
-                self.illegalFileChars = re.compile(r'[<>:"\\|?*]')
+                self.encodeFileChars = re.compile(r'[<>:"\\|?*^]')
             else:
-                self.illegalFileChars = re.compile(r'[:]')
+                self.encodeFileChars = re.compile(r'[:^]') 
+        self.decodeFileChars = re.compile(r'\^[0-9]{3}')
         self.workOffline = False
         self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
         self.urlCheckPickleFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.pickle"
@@ -130,10 +131,41 @@ class WebCache:
             elif os.path.sep == '\\' and '/' in normedPath:
                 normedPath = normedPath.replace('/', '\\') # convert MSFT paths into '\' when normalizing
             if normedPath.startswith(self.cacheDir):
-                urlparts = normedPath[len(self.cacheDir)+1:].partition(os.sep)
-                normedPath = urlparts[0] + '://' + urlparts[2].replace('\\','/')
+                normedPath = self.cacheFilepathToUrl(normedPath)
         return normedPath
+
+    def encodeForFilename(self, pathpart):
+        return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
     
+    def urlToCacheFilepath(self, url):
+        filepath = [self.cacheDir, 'http'] 
+        pathparts = url[7:].split('/')
+        user, sep, server = pathparts[0].partition("@")
+        if not sep:
+            server = user
+            user = None
+        host, sep, port = server.partition(':')
+        filepath.append(self.encodeForFilename(host))
+        if port:
+            filepath.append("^port" + port)
+        if user:
+            filepath.append("^user" + self.encodeForFilename(user) ) # user may have : or other illegal chars
+        filepath.extend(self.encodeForFilename(pathpart) for pathpart in pathparts[1:])
+        return os.sep.join(filepath)
+    
+    def cacheFilepathToUrl(self, cacheFilepath):
+        urlparts = cacheFilepath[len(self.cacheDir)+1:].split(os.sep)
+        urlparts[0] += ':/'  # add separator between http and file parts, less one '/'
+        if urlparts[2].startswith("^port"):
+            urlparts[1] += ":" + urlparts[2][5:]  # the port number
+            del urlparts[2]
+        if urlparts[2].startswith("^user"):
+            urlparts[1] = urlparts[2][5:] + "@" + urlparts[1]  # the user part
+            del urlparts[2]
+        return '/'.join(self.decodeFileChars  # remove cacheDir part
+                        .sub(lambda c: chr( int(c.group(0)[1:]) ), # remove ^nnn encoding
+                         urlpart) for urlpart in urlparts)
+            
     def getfilename(self, url, base=None, reload=False):
         if url is None:
             return url
@@ -141,7 +173,7 @@ class WebCache:
             url = self.normalizeUrl(url, base)
         if url.startswith('http://'):
             # form cache file name (substituting _ for any illegal file characters)
-            filepath = self.cacheDir + os.sep + 'http' + os.sep + self.illegalFileChars.sub('_', url[7:])
+            filepath = self.urlToCacheFilepath(url)
             # handle default directory requests
             if filepath.endswith("/"):
                 filepath += "default.unknown"
