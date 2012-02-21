@@ -378,7 +378,8 @@ class ModelXbrl:
         # determine logCode
         messageCode = None
         for argCode in codes if isinstance(codes,tuple) else (codes,):
-            if ((self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
+            if (isinstance(argCode, ModelValue.QName) or
+                (self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
                 (self.modelManager.disclosureSystem.GFM and argCode.startswith("GFM")) or
                 (self.modelManager.disclosureSystem.HMRC and argCode.startswith("HMRC")) or
                 (self.modelManager.disclosureSystem.SBRNL and argCode.startswith("SBR.NL")) or

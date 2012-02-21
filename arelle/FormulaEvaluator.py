@@ -174,7 +174,6 @@ def evaluateVar(xpCtx, varSet, varIndex):
                 xpCtx.modelXbrl.info("formula:trace",
                      _("Fact Variable %(variable)s filtering: start with %(factCount)s facts"), 
                      modelObject=vb.var, variable=vb.qname, factCount=len(facts))
-            coverAspectCoverFilterDims(xpCtx, vb, vb.var.filterRelationships) # filters need to know what dims are covered
             facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
             # implicit filters (relativeFilter) expect no dim aspects yet on variable binding
             facts = filterFacts(xpCtx, vb, facts, vb.var.filterRelationships, None)
@@ -182,6 +181,7 @@ def evaluateVar(xpCtx, varSet, varIndex):
             for fact in facts:
                 if fact.isItem:
                     vb.aspectsDefined |= fact.context.dimAspects(xpCtx.defaultDimensionAspects)
+            coverAspectCoverFilterDims(xpCtx, vb, vb.var.filterRelationships) # filters need to know what dims are covered
             if varSet.implicitFiltering == "true" and len(xpCtx.varBindings) > 0:
                 facts = aspectMatchFilter(xpCtx, facts, (vb.aspectsDefined - vb.aspectsCovered), xpCtx.varBindings.values(), "implicit")
             vb.facts = facts

@@ -67,10 +67,10 @@ class ViewRelationshipSet(ViewFile.View):
         if concept not in visited:
             visited.add(concept)
             for modelRel in relationshipSet.fromModelObject(concept):
-                nestedRelationshipSet = relationshipSet
                 targetRole = modelRel.targetRole
                 if targetRole is None or len(targetRole) == 0:
                     targetRole = relationshipSet.linkrole
+                    nestedRelationshipSet = relationshipSet
                 else:
                     nestedRelationshipSet = self.modelXbrl.relationshipSet(arcrole, targetRole)
                 self.treeDepth(modelRel.toModelObject, modelRel, indent + 1, arcrole, nestedRelationshipSet, visited)

@@ -332,10 +332,8 @@ def priItemElrHcRels(val, priItem, ELR=None, elrHcRels=None):
             elrHcRels[hasHcRel.linkrole].append(hasHcRel)
     # check inherited ELRs
     for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).toModelObject(priItem):
-        toELR = domMbrRel.targetRole
         relLinkrole = domMbrRel.linkrole
-        if toELR is None:
-            toELR = relLinkrole
+        toELR = (domMbrRel.targetRole or relLinkrole)
         if ELR is None or ELR == toELR:
             priItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels)
     return elrHcRels
@@ -362,15 +360,11 @@ def checkFactElrHcs(val, f, ELR, hcRels):
         if hcIsClosed and len(modelNonDimValues) > 0:
             hcValid = False
         else:
-            dimELR = hasHcRel.targetRole
-            if dimELR is None:
-                dimELR = ELR
+            dimELR = (hasHcRel.targetRole or ELR)
             for hcDimRel in val.modelXbrl.relationshipSet(
                                 XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):
                 dimConcept = hcDimRel.toModelObject
-                domELR = hcDimRel.targetRole
-                if domELR is None:
-                    domELR = dimELR
+                domELR = (hcDimRel.targetRole or dimELR)
                 if dimConcept in modelDimValues:
                     memModelDimension = modelDimValues[dimConcept]
                     contextElementDimSet.discard(dimConcept)
@@ -417,9 +411,7 @@ def memberStateInDomain(val, memConcept, rels, ELR, fromConcepts=None):
                              MEMBER_USABLE if rel.isUsable else MEMBER_NOT_USABLE)
         if toConcept not in fromConcepts:
             fromConcepts.add(toConcept)
-        toELR = rel.targetRole
-        if toELR is None:
-            toELR = ELR
+        toELR = (rel.targetRole or ELR)
         domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toConcept)
         foundState = max(foundState,
                          memberStateInDomain(val, memConcept, domMbrRels, toELR, fromConcepts))
@@ -440,17 +432,13 @@ def checkPriItemDimValueElrHcs(val, priItemConcept, matchDim, matchMem, ELR, hcR
         hcIsClosed = hasHcRel.isClosed
         hcNegating = hasHcRel.arcrole == XbrlConst.notAll
         
-        dimELR = hasHcRel.targetRole
-        if dimELR is None:
-            dimELR = ELR
+        dimELR = (hasHcRel.targetRole or ELR)
         for hcDimRel in val.modelXbrl.relationshipSet(
                             XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):
             dimConcept = hcDimRel.toModelObject
             if dimConcept != matchDim:
                 continue
-            domELR = hcDimRel.targetRole
-            if domELR is None:
-                domELR = dimELR
+            domELR = (hcDimRel.targetRole or dimELR)
             if dimensionMemberState(val, dimConcept, matchMem, domELR) != MEMBER_USABLE:
                 return hcNegating # true if all, false if not all
         if hcIsClosed:

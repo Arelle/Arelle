@@ -277,3 +277,138 @@ def atoi(conv, str):
     "Converts a string to an integer according to the locale settings."
     return atof(conv, str, _INT)
 
+# decimal formatting
+from decimal import getcontext, Decimal
+
+def format_picture(conv, value, picture):
+    monetary = False
+    decimal_point = conv['decimal_point']
+    thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
+    percent = '%'
+    per_mille = '\u2030'
+    minus_sign = '-'
+    #grouping = conv[monetary and 'mon_grouping' or 'grouping']
+
+    if isinstance(value, float):
+        value = Decimal.from_float(value)
+    elif isinstance(value, _STR_NUM_TYPES):
+        value = Decimal(value)
+    elif not isinstance(value, Decimal):
+        raise ValueError(_('Picture requires a number convertable to decimal or float').format(picture))
+        
+    if value.is_nan():
+        return 'NaN'
+    
+    isNegative = value.is_signed()
+    
+    pic, sep, negPic = picture.partition(';')
+    if negPic and ';' in negPic:
+        raise ValueError(_('Picture contains multiple picture sepearators {0}').format(picture))
+    if isNegative and negPic:
+        pic = negPic
+    
+    if len([c for c in pic if c in (percent, per_mille) ]) > 1:
+        raise ValueError(_('Picture contains multiple percent or per_mille charcters {0}').format(picture))
+    if percent in pic:
+        value *= 100
+    elif per_mille in pic:
+        value *= 1000
+        
+    intPart, sep, fractPart = pic.partition(decimal_point)
+    prefix = ''
+    numPlaces = 0
+    intPlaces = 0
+    grouping = 0
+    fractPlaces = 0
+    suffix = ''
+    if fractPart:
+        if decimal_point in fractPart:
+            raise ValueError(_('Sub-picture contains decimal point sepearators {0}').format(pic))
+    
+        for c in fractPart:
+            if c.isdecimal():
+                numPlaces += 1
+                fractPlaces += 1
+                if suffix:
+                    raise ValueError(_('Sub-picture passive character {0} between active characters {1}').format(c, fractPart))
+            else:
+                suffix += c
+
+    intPosition = 0                
+    for c in reversed(intPart):
+        if c.isdecimal() or c == '#' or c == thousands_sep:
+            if prefix:
+                raise ValueError(_('Sub-picture passive character {0} between active characters {1}').format(c, intPart))
+        if c.isdecimal():
+            numPlaces += 1
+            intPlaces += 1
+            intPosition += 1
+            prefix = ''
+        elif c == '#':
+            numPlaces += 1
+            intPosition += 1
+        elif c == thousands_sep:
+            if not grouping:
+                grouping = intPosition
+        else:
+            prefix = c + prefix
+
+    if not numPlaces and prefix != minus_sign:
+            raise ValueError(_('Sub-picture must contain at least one digit position or sign character {0}').format(pic))
+    if intPlaces == 0 and fractPlaces == 0:
+        intPlaces = 1
+    
+    return format_decimal(value, intPlaces=intPlaces, fractPlaces=fractPlaces, 
+                          sep=thousands_sep, dp=decimal_point, grouping=grouping,
+                          pos=prefix,
+                          neg=prefix if negPic else prefix + minus_sign,
+                          trailpos=suffix,
+                          trailneg=suffix)
+
+def format_decimal(value, intPlaces=1, fractPlaces=2, curr='', sep=',', grouping=3, dp='.', pos='', neg='-', trailpos='', trailneg=''):
+    """Convert Decimal to a formatted string including currency if any.
+
+    intPlaces:  required number of digits before the decimal point
+    fractPlaces:  required number of places after the decimal point
+    curr:    optional currency symbol before the sign (may be blank)
+    sep:     optional grouping separator (comma, period, space, or blank)
+    dp:      decimal point indicator (comma or period)
+             only specify as blank when places is zero
+    pos:     optional sign for positive numbers: '+', space or blank
+    neg:     optional sign for negative numbers: '-', '(', space or blank
+    trailneg:optional trailing minus indicator:  '-', ')', space or blank
+
+    >>> d = Decimal('-1234567.8901')
+    >>> format(d, curr='$')
+    '-$1,234,567.89'
+    >>> format(d, places=0, sep='.', dp='', neg='', trailneg='-')
+    '1.234.568-'
+    >>> format(d, curr='$', neg='(', trailneg=')')
+    '($1,234,567.89)'
+    >>> format(Decimal(123456789), sep=' ')
+    '123 456 789.00'
+    >>> format(Decimal('-0.02'), neg='<', trailneg='>')
+    '<0.02>'
+
+    """
+    q = Decimal(10) ** -fractPlaces      # 2 places --> '0.01'
+    sign, digits, exp = value.quantize(q).as_tuple()
+    result = []
+    digits = list(map(str, digits))
+    build, next = result.append, digits.pop
+    build(trailneg if sign else trailpos)
+    for i in range(fractPlaces):
+        build(next() if digits else '0')
+    if fractPlaces:
+        build(dp)
+    i = 0
+    while digits or intPlaces > 0:
+        build(next() if digits else '0')
+        intPlaces -= 1
+        i += 1
+        if grouping and i == grouping and digits:
+            i = 0
+            build(sep)
+    build(curr)
+    build(neg if sign else pos)
+    return ''.join(reversed(result))

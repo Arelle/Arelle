@@ -297,7 +297,7 @@ class Validate:
                     modelTestcaseVariation.assertions = error
                 else:   # error code results
                     modelTestcaseVariation.actual.append(error)
-            modelTestcaseVariation.actual.sort()
+            modelTestcaseVariation.actual.sort(key=lambda d: str(d))
             for error in modelUnderTest.errors:
                 if isinstance(error,dict):
                     modelTestcaseVariation.actual.append(error)

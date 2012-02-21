@@ -10,6 +10,7 @@ from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTim
                          YearMonthDuration, DayTimeDuration, time, Time)
 from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg
 from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
+from arelle.Locale import format_picture
 from lxml import etree
     
 class fnFunctionNotAvailable(Exception):
@@ -54,7 +55,10 @@ def document_uri(xc, p, contextItem, args):
     return xc.modelXbrl.modelDocument.uri
 
 def error(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) > 2: raise XPathContext.FunctionNumArgs()
+    qn = qnameArg(xc, p, args, 0, 'QName?', emptyFallback=None)
+    msg = stringArg(xc, args, 1, "xs:string", emptyFallback='')
+    raise XPathContext.XPathException(p, (qn or "err:FOER0000"), msg)
 
 def trace(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -702,6 +706,16 @@ def default_collation(xc, p, contextItem, args):
 def static_base_uri(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
 
+# added in XPATH 3
+def  format_number(xc, p, args):
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    value = numericArg(xc, p, args, 0, missingArgFallback='NaN', emptyFallback='NaN')
+    picture = stringArg(xc, args, 1, "xs:string", missingArgFallback='', emptyFallback='')
+    try:
+        return format_picture(xc.modelXbrl.locale, value, picture)
+    except ValueError as err:
+        raise XPathContext.XPathException(p, 'err:FODF1310', str(err) )
+    
 fnFunctions = {
     'node-name': node_name,
     'nilled': nilled,
@@ -814,5 +828,6 @@ fnFunctions = {
     'implicit-timezone': implicit_timezone,
     'default-collation': default_collation,
     'static-base-uri': static_base_uri,
+    'format-number': format_number,
     }
 

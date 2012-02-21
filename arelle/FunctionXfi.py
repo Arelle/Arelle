@@ -9,10 +9,12 @@ from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import qname, QName, dateTime, DATE, DATETIME, DATEUNION, DateTime, dateUnionEqual, anyURI
 from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg, atomicArg
-from arelle.ModelDtsObject import anonymousTypeSuffix
+from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.XmlValidate import UNKNOWN, VALID, validate
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
+from arelle.ValidateXbrlDimensions import priItemElrHcRels
+from arelle.Locale import format_picture
 from math import isnan, isinf
 
 class xfiFunctionNotAvailable(Exception):
@@ -586,7 +588,7 @@ def non_nil_facts_in_instance(xc, p, args):
 def concept(xc, p, args):
     qnConcept = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     srcConcept = xc.modelXbrl.qnameConcepts.get(qnConcept)
-    if srcConcept is None or not (srcConcept.isItem or srcConcept.isTuple): 
+    if srcConcept is None or not (srcConcept.isItem or srcConcept.isTuple) or srcConcept.qname.namespaceURI == XbrlConst.xbrli: 
         raise XPathContext.XPathException(p, 'xfie:invalidConceptQName', _('Argument 1 {0} is not a concept in the DTS.').format(qnConcept))
     return srcConcept
 
@@ -674,6 +676,68 @@ def filter_member_network_members(relationshipSet, fromRels, recurse, members, l
             members.add(toConceptQname)
             if recurse:
                 filter_member_network_members(relationshipSet, relationshipSet.fromModelObject(toConcept), recurse, members, linkQnames, arcQnames)                
+
+def filter_member_DRS_selection(xc, p, args):
+    if len(args) != 5: raise XPathContext.FunctionNumArgs()
+    qnDim = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
+    qnPriItem = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
+    qnMem = qnameArg(xc, p, args, 2, 'QName', emptyFallback=None)
+    linkroleURI = stringArg(xc, args, 3, "xs:string")
+    if not linkroleURI:  # '' or ()
+        linkroleURI = None  # select all ELRs
+    axis = stringArg(xc, args, 4, "xs:string")
+    if not axis in ('DRS-descendant', 'DRS-child'):
+        return ()
+    memSelectionQnames = set()
+    dimConcept = xc.modelXbrl.qnameConcepts.get(qnDim)
+    if dimConcept is None or dimConcept.qname.namespaceURI == XbrlConst.xbrli:
+        raise XPathContext.XPathException(p, 'xfie:invalidDimensionQName', _('Argument 1 {0} is not in the DTS.').format(qnDim))
+    priItemConcept = xc.modelXbrl.qnameConcepts.get(qnPriItem)
+    if priItemConcept is None  or priItemConcept.qname.namespaceURI == XbrlConst.xbrli:
+        raise XPathContext.XPathException(p, 'xfie:invalidPrimaryItemConceptQName', _('Argument 1 {0} is not in the DTS.').format(qnPriItem))
+    memConcept = xc.modelXbrl.qnameConcepts.get(qnMem)
+    if memConcept is None or not memConcept.isDomainMember or not dimConcept.isDimensionItem:
+        # not an error, just don't find anything
+        return ()
+    for hcELR, hcRels in priItemElrHcRels(xc, priItemConcept, linkroleURI).items():
+        if not linkroleURI or linkroleURI == hcELR:
+            for hasHcRel in hcRels:
+                hcConcept = hasHcRel.toModelObject
+                if hasHcRel.arcrole == XbrlConst.all:                
+                    dimELR = (hasHcRel.targetRole or hcELR)
+                    for hcDimRel in xc.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):
+                        if dimConcept == hcDimRel.toModelObject:
+                            filter_member_DRS_members(xc,
+                                                      xc.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, 
+                                                                                   (hcDimRel.targetRole or dimELR))
+                                                      .fromModelObject(dimConcept),
+                                                      axis,
+                                                      memConcept,
+                                                      False,
+                                                      set(),
+                                                      memSelectionQnames)
+    return memSelectionQnames
+
+def filter_member_DRS_members(xc, fromRels, axis, memConcept, inSelection, visited, memSelectionQnames):
+    for rel in fromRels:
+        toConcept = rel.toModelObject
+        toConceptQname = toConcept.qname
+        nestedSelection = inSelection
+        if rel.fromModelObject == memConcept or inSelection:  # from is the asked-for parent
+            memSelectionQnames.add(toConceptQname) # to is a child or descendant
+            nestedSelection = True
+        if toConceptQname not in visited and (not nestedSelection or axis == "DRS-descendant"):
+            visited.add(toConcept)
+            filter_member_DRS_members(xc,
+                                      xc.modelXbrl.relationshipSet(XbrlConst.domainMember, 
+                                                                   (rel.targetRole or rel.linkrole))
+                                      .fromModelObject(toConcept),
+                                      axis,
+                                      memConcept,
+                                      nestedSelection,
+                                      visited,
+                                      memSelectionQnames)
+            visited.discard(toConcept)
 
 def fact_segment_remainder(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -946,7 +1010,26 @@ def relationship_to_concept(xc, p, args):
     raise XPathContext.FunctionArgType(1,"arelle:modelRelationship")
 
 def distinct_nonAbstract_parent_concepts(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    lenArgs = len(args)
+    if lenArgs < 2 or lenArgs > 3: raise XPathContext.FunctionNumArgs()
+    linkroleURI = stringArg(xc, args, 0, "xs:string")
+    if not linkroleURI:
+        linkroleURI = XbrlConst.defaultLinkRole
+    arcroleURI = stringArg(xc, args, 1, "xs:string")
+    # TBD allow instance as arg 2
+    
+    result = set()
+    relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI, linkroleURI)
+    if relationshipSet:
+        for rel in relationshipSet.modelRelationships:
+            fromModelObject = rel.fromModelObject
+            toModelObject = rel.toModelObject
+            if (isinstance(fromModelObject, ModelConcept) and 
+                isinstance(toModelObject, ModelConcept) and
+                not fromModelObject.isAbstract and
+                not toModelObject.isAbstract):
+                result.add(fromModelObject.qname)
+    return result
 
 def relationship_element_attribute(xc, p, args, elementParent=False):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
@@ -1002,7 +1085,13 @@ def xbrl_instance(xc, p, args):
     raise xfiFunctionNotAvailable()
 
 def  format_number(xc, p, args):
-    raise xfiFunctionNotAvailable()
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    value = numericArg(xc, p, args, 0, missingArgFallback='NaN', emptyFallback='NaN')
+    picture = stringArg(xc, args, 1, "xs:string", missingArgFallback='', emptyFallback='')
+    try:
+        return format_picture(xc.modelXbrl.locale, value, picture)
+    except ValueError as err:
+        raise XPathContext.XPathException(p, 'xfie:invalidPictureSyntax', str(err) )
 
 xfiFunctions = {
     'context': context,
@@ -1075,6 +1164,7 @@ xfiFunctions = {
     'concept-data-type-derived-from' : concept_data_type_derived_from,
     'concept-substitutions': concept_substitutions,
     'filter-member-network-selection' : filter_member_network_selection,
+    'filter-member-DRS-selection' : filter_member_DRS_selection,
     'fact-segment-remainder': fact_segment_remainder,
     'fact-scenario-remainder': fact_scenario_remainder,
     'fact-has-explicit-dimension': fact_has_explicit_dimension,
