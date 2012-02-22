@@ -631,7 +631,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             elif facts[0].context.instantDatetime != commonStockMeasurementDatetime:
                                 modelXbrl.error("EFM.6.05.26",
                                     _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in stock class %(stockClass)s with measurement date %(date)s"),
-                                    modelObject=documentTypeFact, documentType=documentType, stockClasse=mem, date=commonStockMeasurementDatetime)
+                                    modelObject=documentTypeFact, documentType=documentType, stockClass=mem, date=commonStockMeasurementDatetime)
                     elif hasUndefinedDefaultStockMember and not defaultSharesOutstanding:
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-default-context fact"),
