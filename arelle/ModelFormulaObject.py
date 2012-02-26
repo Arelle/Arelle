@@ -1998,7 +1998,7 @@ class ModelRelativeFilter(ModelFilter):
     
     @property
     def viewExpression(self):
-        return self.variable
+        return "${0}".format(self.variable)
 
 class ModelSegmentFilter(ModelTestFilter):
     def init(self, modelDocument):
@@ -2185,7 +2185,7 @@ class ModelLocationFilter(ModelFilter):
     
     @property
     def viewExpression(self):
-        return "{0} {1}".format(self.location, self.variable)
+        return "{0} ${1}".format(self.location, self.variable)
 
 class ModelSiblingFilter(ModelFilter):
     def init(self, modelDocument):
@@ -2206,9 +2206,9 @@ class ModelSiblingFilter(ModelFilter):
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         otherFact = xpCtx.inScopeVars.get(self.variable)
-        if isinstance(otherFact,(list,tuple)) and len(otherFact) > 0:
-            otherFactParent = otherFact[0].parentElement
-        elif isinstance(otherFact,ModelFact):
+        while isinstance(otherFact,(list,tuple)) and len(otherFact) > 0:
+            otherFact = otherFact[0]  # dereference if in a list
+        if isinstance(otherFact,ModelFact):
             otherFactParent = otherFact.parentElement
         else:
             otherFactParent = None
@@ -2225,7 +2225,7 @@ class ModelSiblingFilter(ModelFilter):
     
     @property
     def viewExpression(self):
-        return self.variable
+        return "${0}".format(self.variable)
 
 class ModelGeneralMeasures(ModelTestFilter):
     def init(self, modelDocument):
