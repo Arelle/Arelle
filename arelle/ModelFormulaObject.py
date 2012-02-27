@@ -410,9 +410,9 @@ class ModelFormula(ModelVariableSet):
             eltName, ns, attrName, attrValue = aspectElementNameAttrValue[aspect]
             return XmlUtil.descendants(self, ns, eltName, attrName, attrValue)
         elif isinstance(aspect,QName):
-            return XmlUtil.descendants(self, XbrlConst.formula, 
-                                      ("explicitDimension", "typedDimension"), 
-                                      "dimension", aspect)
+            return [d 
+                    for d in XmlUtil.descendants(self, XbrlConst.formula, ("explicitDimension", "typedDimension"))
+                    if aspect == qname(d, d.get("dimension"))]
         return []
         
     @property

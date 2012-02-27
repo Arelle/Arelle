@@ -392,6 +392,9 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
             if len(contextElementDimSet) > 0:
                 hcValid = False # has extra stuff in the context element
         elif setPrototypeContextElements and isinstance(context,ContextPrototype) and hcValid and not hcNegating:
+            for memModelDimension in modelDimValues.values(): # be sure no ambiguous items are left, this cube is open
+                if memModelDimension.contextElement != hcContextElement: # if not moved by being explicit cube member
+                    memModelDimension.contextElement = hcContextElement # move it
             if len(oppositeContextDimValues) > 0: # move any opposite dim values into open hypercube
                 for memModelDimension in oppositeContextDimValues.values():
                     if memModelDimension.contextElement != hcContextElement: # if not moved by being explicit cube member

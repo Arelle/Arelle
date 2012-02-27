@@ -259,7 +259,7 @@ class ModelXbrl:
             # force trying a valid prototype's context Elements
             if not isFactDimensionallyValid(self, fp, setPrototypeContextElements=True):
                 self.info("arelleLinfo",
-                    _("Create context for %(priItem)s, cannot determine valid context elements, either no all relationship or validation issue"), 
+                    _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"), 
                     modelObject=self, priItem=priItem)
             fpDims = fp.context.qnameDims
             for dimQname in sorted(fpDims.keys()):
@@ -289,7 +289,7 @@ class ModelXbrl:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
                                               attributes=dimAttr)
                     if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
-                        XmlUtil.copyChildren(dimElt, [dimValue.typedMember]) # dimValue is not itself iterable for a dim value prototype
+                        XmlUtil.copyNodes(dimElt, dimValue.typedMember) 
                 elif dimMemberQname:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
                                               attributes=dimAttr,

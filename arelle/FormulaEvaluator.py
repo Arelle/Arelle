@@ -534,6 +534,12 @@ def produceOutputFact(xpCtx, formula, result):
                         dimAspects[dimQname] = dimValue
             segOCCs = aspectValue(xpCtx, formula, Aspect.NON_XDT_SEGMENT, None)
             scenOCCs = aspectValue(xpCtx, formula, Aspect.NON_XDT_SCENARIO, None)
+            for occElt in xpCtx.flattenSequence((segOCCs, scenOCCs)):
+                if isinstance(occElt, ModelObject) and occElt.namespaceURI == XbrlConst.xbrldi:
+                    xpCtx.modelXbrl.error("xbrlfe:badSubsequentOCCValue",
+                       _("Formula %(xlinkLabel)s OCC element %(occ)s covers a dimensional aspect"),
+                       modelObject=(formula,occElt), xlinkLabel=formula.xlinkLabel, 
+                       occ=occElt.elementQname)
         else:
             dimAspects = None   # non-dimensional
             segOCCs = aspectValue(xpCtx, formula, Aspect.COMPLETE_SEGMENT, None)
