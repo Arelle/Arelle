@@ -93,16 +93,16 @@ class XPathContext:
         setProgHeader = False
         for p in exprStack:
             result = None
-            if isinstance(p,_STR_NUM_TYPES):
-                result = p
-            elif isinstance(p,VariableRef):
-                if p.name in self.inScopeVars:
-                    result = self.inScopeVars[p.name]
-            elif isinstance(p,QNameDef):
+            if isinstance(p,QNameDef) or (p == '*' and parentOp in ('/', '//')): # path step QName or wildcard
                 # step axis operation
                 if len(resultStack) == 0 or not self.isNodeSequence(resultStack[-1]):
                     resultStack.append( [ contextItem, ] )
                 result = self.stepAxis(parentOp, p, resultStack.pop() )
+            elif isinstance(p,_STR_NUM_TYPES):
+                result = p
+            elif isinstance(p,VariableRef):
+                if p.name in self.inScopeVars:
+                    result = self.inScopeVars[p.name]
             elif isinstance(p,OperationDef):
                 op = p.name
                 if isinstance(op, QNameDef): # function call
@@ -462,6 +462,13 @@ class XPathContext:
                     if p.name.localName == "text":
                         targetNodes = [XmlUtil.text(node)]
                     # todo: add element, attribute, node, etc...
+            elif p == '*':  # wildcard
+                if op == '/' or op is None:
+                    if isinstance(node,(ModelObject, etree._ElementTree)):
+                        targetNodes = XmlUtil.children(node, '*', '*')
+                elif op == '//':
+                    if isinstance(node,(ModelObject, etree._ElementTree)):
+                        targetNodes = XmlUtil.descendants(node, '*', '*')
             targetSequence.extend(targetNodes)
         return targetSequence
         
