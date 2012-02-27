@@ -9,6 +9,7 @@ from collections import defaultdict
 from arelle import (UrlUtil, XbrlConst)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
+from arelle.PrototypeInstanceObject import ContextPrototype, DimValuePrototype
 
 def loadDimensionDefaults(val):
     # load dimension defaults when required without performing validations
@@ -70,7 +71,9 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                         dimConcept = hcDimRel.toModelObject
                         if dimConcept is not None:
                             if arcrole == XbrlConst.all:
-                                val.modelXbrl.qnameDimensionContextElement[dimConcept.qname] = hcContextElement
+                                cntxElt = val.modelXbrl.qnameDimensionContextElement.setdefault(dimConcept.qname, hcContextElement)
+                                if cntxElt != hcContextElement:
+                                    val.modelXbrl.qnameDimensionContextElement[dimConcept.qname] = "ambiguous"
                             domELR = hcDimRel.targetRole
                             if not domELR:
                                 domELR = dimELR
@@ -311,11 +314,11 @@ def checkFact(val, f):
             _("Fact %(fact)s context %(contextID)s dimensionally not valid"),
             modelObject=f, fact=f.concept.qname, contextID=f.context.id)
 
-def isFactDimensionallyValid(val, f):
+def isFactDimensionallyValid(val, f, setPrototypeContextElements=False):
     hasElrHc = False
     for ELR, hcRels in priItemElrHcRels(val, f.concept).items():
         hasElrHc = True
-        if checkFactElrHcs(val, f, ELR, hcRels):
+        if checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements):
             return True # meets hypercubes in this ELR
         
     if hasElrHc:
@@ -342,7 +345,7 @@ NOT_FOUND = 0
 MEMBER_USABLE = 1
 MEMBER_NOT_USABLE = 2
 
-def checkFactElrHcs(val, f, ELR, hcRels):
+def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
     context = f.context
     elrValid = True # start assuming ELR is valid
     
@@ -352,6 +355,8 @@ def checkFactElrHcs(val, f, ELR, hcRels):
         hcContextElement = hasHcRel.contextElement
         hcNegating = hasHcRel.arcrole == XbrlConst.notAll
         modelDimValues = context.dimValues(hcContextElement)
+        if setPrototypeContextElements and isinstance(context,ContextPrototype):
+            oppositeContextDimValues = context.dimValues(hcContextElement, oppositeContextElement=True)
         contextElementDimSet = set(modelDimValues.keys())
         modelNonDimValues = context.nonDimValues(hcContextElement)
         hcValid = True
@@ -371,14 +376,26 @@ def checkFactElrHcs(val, f, ELR, hcRels):
                     memConcept = memModelDimension.member
                 elif dimConcept in val.modelXbrl.dimensionDefaultConcepts:
                     memConcept = val.modelXbrl.dimensionDefaultConcepts[dimConcept]
+                    memModelDimension = None
+                elif setPrototypeContextElements and isinstance(context,ContextPrototype) and dimConcept in oppositeContextDimValues:
+                    memModelDimension = oppositeContextDimValues[dimConcept]
+                    memConcept = memModelDimension.member
                 else:
                     hcValid = False
                     continue
                 if not dimConcept.isTypedDimension:
                     if dimensionMemberState(val, dimConcept, memConcept, domELR) != MEMBER_USABLE:
                         hcValid = False 
-        if hcIsClosed and len(contextElementDimSet) > 0:
-            hcValid = False # has extra stuff in the context element
+                if hcValid and setPrototypeContextElements and isinstance(memModelDimension,DimValuePrototype) and not hcNegating:
+                    memModelDimension.contextElement = hcContextElement
+        if hcIsClosed:
+            if len(contextElementDimSet) > 0:
+                hcValid = False # has extra stuff in the context element
+        elif setPrototypeContextElements and isinstance(context,ContextPrototype) and hcValid and not hcNegating:
+            if len(oppositeContextDimValues) > 0: # move any opposite dim values into open hypercube
+                for memModelDimension in oppositeContextDimValues.values():
+                    if memModelDimension.contextElement != hcContextElement: # if not moved by being explicit cube member
+                        memModelDimension.contextElement = hcContextElement # move it
         if hcNegating:
             hcValid = not hcValid
         if not hcValid:
@@ -418,31 +435,53 @@ def memberStateInDomain(val, memConcept, rels, ELR, fromConcepts=None):
         fromConcepts.discard(toConcept)
     return foundState
 
+''' removed because no valid way to check one isolated dimension for validity without full set of others
 # check a single dimension value for primary item (not the complete set of dimension values)
-def checkPriItemDimValueValidity(val, priItemConcept, dimConcept, memConcept):
-    if priItemConcept and dimConcept and memConcept:
-        for ELR, hcRels in priItemElrHcRels(val, priItemConcept).items():
-            if checkPriItemDimValueElrHcs(val, priItemConcept, dimConcept, memConcept, ELR, hcRels):
-                return True
-    return False
+# returnn the contextElement of the hypercube where valid
+def checkPriItemDimValueValidity(val, priItemConcept, dimConcept, memConcept, srcCntxEltName=None): 
+    if priItemConcept is not None and dimConcept is not None:
+        _priItemElrHcRels = priItemElrHcRels(val, priItemConcept)
+        for ELR, hcRels in _priItemElrHcRels.items():
+            hcCntxElt = checkPriItemDimValueElrHcs(val, priItemConcept, dimConcept, memConcept, srcCntxEltName, hcRels)
+            if hcCntxElt:
+                return hcCntxElt
+        # look for open hypercubes in other ELRs
+    for hasHcRel in val.modelXbrl.relationshipSet(XbrlConst.all).modelRelationships:
+        if hasHcRel.linkrole not in _priItemElrHcRels:
+            hcCntxElt = checkPriItemDimValueElrHcs(val, priItemConcept, dimConcept, memConcept, srcCntxEltName, hcRels, openOnly=True)
+            if hcCntxElt:
+                return hcCntxElt
+    return None
 
-def checkPriItemDimValueElrHcs(val, priItemConcept, matchDim, matchMem, ELR, hcRels):
+def checkPriItemDimValueElrHcs(val, priItemConcept, matchDim, matchMem, srcCntxEltName, hcRels, openOnly=False):
+    hcCntxElt = None
     for hasHcRel in hcRels:
-        hcConcept = hasHcRel.toModelObject
-        hcIsClosed = hasHcRel.isClosed
-        hcNegating = hasHcRel.arcrole == XbrlConst.notAll
-        
-        dimELR = (hasHcRel.targetRole or ELR)
-        for hcDimRel in val.modelXbrl.relationshipSet(
-                            XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):
-            dimConcept = hcDimRel.toModelObject
-            if dimConcept != matchDim:
-                continue
-            domELR = (hcDimRel.targetRole or dimELR)
-            if dimensionMemberState(val, dimConcept, matchMem, domELR) != MEMBER_USABLE:
-                return hcNegating # true if all, false if not all
-        if hcIsClosed:
-            return False # has extra stuff in the context element
-        if hcNegating:
-            return True
-    return True
+        if hasHcRel.arcrole == XbrlConst.all:
+            hcConcept = hasHcRel.toModelObject
+            hcIsClosed = hasHcRel.isClosed
+            cntxElt = hasHcRel.contextElement
+            
+            dimELR = (hasHcRel.targetRole or hasHcRel.linkrole)
+            for hcDimRel in val.modelXbrl.relationshipSet(
+                                XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):
+                dimConcept = hcDimRel.toModelObject
+                if dimConcept != matchDim:
+                    continue
+                if matchMem is None and not openOnly:
+                    if cntxElt == srcCntxEltName:
+                        return cntxElt
+                    else:
+                        hcCntxElt = cntxElt
+                        continue
+                domELR = (hcDimRel.targetRole or dimELR)
+                state = dimensionMemberState(val, dimConcept, matchMem, domELR)
+                if state == MEMBER_USABLE and not openOnly:
+                    if cntxElt == srcCntxEltName:
+                        return cntxElt
+                    else:
+                        hcCntxElt = cntxElt
+                        continue
+            if not hcIsClosed:
+                hcCntxElt = cntxElt
+    return hcCntxElt
+'''

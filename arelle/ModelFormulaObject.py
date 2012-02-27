@@ -257,6 +257,7 @@ class ModelFormula(ModelVariableSet):
             self.hasDecimals = False
             self.aspectValues = defaultdict(list)
             self.aspectProgs = defaultdict(list)
+            self.typedDimProgAspects = set()
             exprs = []
             for ruleElt in self.iterdescendants():
                 if isinstance(ruleElt,ModelObject):
@@ -276,6 +277,10 @@ class ModelFormula(ModelVariableSet):
                         self.aspectValues[Aspect.OMIT_DIMENSIONS].append(qname(ruleElt.getparent(), ruleElt.getparent().get("dimension")))
                     elif name == "value" and ruleElt.getparent().get("dimension") is not None:
                         self.aspectValues[qname(ruleElt.getparent(), ruleElt.getparent().get("dimension"))] = XmlUtil.child(ruleElt,'*','*')
+                    elif name == "xpath" and ruleElt.getparent().get("dimension") is not None:
+                        typedDimQname = qname(ruleElt.getparent(), ruleElt.getparent().get("dimension"))
+                        self.typedDimProgAspects.add(typedDimQname)
+                        exprs = [(typedDimQname, XmlUtil.text(ruleElt))]
                     elif name == "entityIdentifier":
                         if ruleElt.get("scheme") is not None:
                             exprs.append((Aspect.SCHEME, ruleElt.get("scheme")))
@@ -322,7 +327,7 @@ class ModelFormula(ModelVariableSet):
                     elif name in ("explicitDimension", "typedDimension") and ruleElt.get("dimension") is not None:
                         qnDim = qname(ruleElt, ruleElt.get("dimension"))
                         self.aspectValues[Aspect.DIMENSIONS].append(qnDim)
-                        if not XmlUtil.hasChild(ruleElt, XbrlConst.formula, ("omit","member","value")):
+                        if not XmlUtil.hasChild(ruleElt, XbrlConst.formula, ("omit","member","value","xpath")):
                             self.aspectValues[qnDim] = XbrlConst.qnFormulaDimensionSAV
                     elif name == "precision":
                         exprs = [(Aspect.PRECISION, XmlUtil.text(ruleElt))]
@@ -369,7 +374,10 @@ class ModelFormula(ModelVariableSet):
             return [xpCtx.evaluateAtomicValue(prog, type) for prog in self.aspectProgs[aspect]]
         elif xpCtx: # return single result
             for prog in self.aspectProgs[aspect]:
-                return xpCtx.evaluateAtomicValue(prog, type)
+                if aspect in self.typedDimProgAspects:  # typed dim xpath (only), returns a node
+                    return xpCtx.flattenSequence(xpCtx.evaluate(prog, xpCtx.inputXbrlInstance.xmlRootElement))
+                else:  # atomic results
+                    return xpCtx.evaluateAtomicValue(prog, type, xpCtx.inputXbrlInstance.xmlRootElement)
         return None
                 
     def hasRule(self, aspect):

@@ -6,6 +6,7 @@ Created on Jan 9, 2011
 '''
 from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil, XmlValidate)
 from arelle.FunctionXs import xsString
+from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFormula, ModelTuple, ModelExistenceAssertion,
                                  ModelValueAssertion,
@@ -519,6 +520,16 @@ def produceOutputFact(xpCtx, formula, result):
                            _("Formula %(xlinkLabel)s dimension %(dimension)s: %(value)s"),
                            modelObject=formula, xlinkLabel=formula.xlinkLabel, 
                            dimension=dimQname, value=dimValue.msg)
+                    elif dimConcept.isTypedDimension:
+                        if isinstance(dimValue, list): # result of flatten, always a list
+                            if len(dimValue) != 1 or not isinstance(dimValue[0], ModelObject):
+                                xpCtx.modelXbrl.error("xbrlfe:wrongXpathResultForTypedDimensionRule",
+                                   _("Formula %(xlinkLabel)s dimension %(dimension)s value is not a node: %(value)s"),
+                                   modelObject=formula, xlinkLabel=formula.xlinkLabel, 
+                                   dimension=dimQname, value=dimValue)
+                                continue
+                            dimValue = dimValue[0]
+                        dimAspects[dimQname] = dimValue
                     elif dimValue is not None and xpCtx.modelXbrl.qnameDimensionDefaults.get(dimQname) != dimValue:
                         dimAspects[dimQname] = dimValue
             segOCCs = aspectValue(xpCtx, formula, Aspect.NON_XDT_SEGMENT, None)
@@ -551,7 +562,7 @@ def produceOutputFact(xpCtx, formula, result):
             newCntxElt = prevCntx
         else:
             newCntxElt = outputXbrlInstance.createContext(entityIdentScheme, entityIdentValue, 
-                          periodType, periodStart, periodEndInstant, dimAspects, segOCCs, scenOCCs,
+                          periodType, periodStart, periodEndInstant, conceptQname, dimAspects, segOCCs, scenOCCs,
                           afterSibling=xpCtx.outputLastContext.get(outputInstanceQname),
                           beforeSibling=xpCtx.outputFirstFact.get(outputInstanceQname))
             cntxId = newCntxElt.id

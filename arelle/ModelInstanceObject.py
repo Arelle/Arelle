@@ -730,7 +730,7 @@ class ModelDimensionValue(ModelObject):
 
     @property
     def memberQname(self):
-        return self.prefixedNameQname(self.elementText)
+        return self.prefixedNameQname(self.elementText) if self.isExplicit else None
         
     @property
     def member(self):

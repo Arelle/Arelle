@@ -12,7 +12,7 @@ from arelle.ModelValue import qname
 from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
                                          inheritedExplicitDims)
 
-from arelle.PrototypeInstanceObject import dimContextElement, FactPrototype, ContextPrototype, DimValuePrototype
+from arelle.PrototypeInstanceObject import FactPrototype, ContextPrototype, DimValuePrototype
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
                      label, checkbox, 
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)

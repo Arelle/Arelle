@@ -55,8 +55,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
 
         # pop up menu
         menu = self.contextMenu()
-        menu.add_cascade(label=_("Expand"), underline=0, command=self.expand)
-        menu.add_cascade(label=_("Collapse"), underline=0, command=self.collapse)
+        self.menuAddExpandCollapse()
         self.menuAddClipboard()
 
     def viewFormulaObjects(self, parentNode, fromObject, fromRel, n, visited):

@@ -789,6 +789,7 @@ def fact_explicit_dimension_value_value(xc, p, args):
             return dimValue.memberQname # known to be valid given instance is valid
         elif isinstance(dimValue, QName): #default, check if this is valid 
             ''' removed 2011-03-01 FWG clarification that default always applies
+            #note that there's no way to check one dimension without full set of others for validity
             modelItem = xc.modelItem(args[0][0])
             itemConcept = modelItem.concept
             from arelle.ValidateXbrlDimensions import checkPriItemDimValueValidity

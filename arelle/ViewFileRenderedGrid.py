@@ -8,7 +8,7 @@ from arelle import ViewFile, XbrlConst
 from lxml import etree
 from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
                                          inheritedExplicitDims)
-from arelle.PrototypeInstanceObject import dimContextElement, FactPrototype, ContextPrototype, DimValuePrototype
+from arelle.PrototypeInstanceObject import FactPrototype, ContextPrototype, DimValuePrototype
 from itertools import repeat
 
 def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None):

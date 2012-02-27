@@ -12,6 +12,7 @@ from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 ModelRelationshipSet = None # dynamic import
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
@@ -222,7 +223,7 @@ class ModelXbrl:
                     return c
         return None
                  
-    def createContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs,
+    def createContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, priItem, dims, segOCCs, scenOCCs,
                       afterSibling=None, beforeSibling=None):
         xbrlElt = self.modelDocument.xmlRootElement
         if afterSibling == AUTO_LOCATE_ELEMENT:
@@ -248,16 +249,27 @@ class ModelXbrl:
         segmentElt = None
         scenarioElt = None
         from arelle.ModelInstanceObject import ModelDimensionValue
-        if dims:
-            for dimQname in sorted(dims.keys()):
-                dimValue = dims[dimQname]
-                if isinstance(dimValue, ModelDimensionValue):
-                    if dimValue.isExplicit: 
-                        dimMemberQname = dimValue.memberQname
+        if dims: # requires primary item to determin ambiguous concepts
+            ''' in theory we have to check full set of dimensions for validity in source or any other
+                context element, but for shortcut will see if each dimension is already reported in an
+                unambiguous valid contextElement
+            '''
+            from arelle.PrototypeInstanceObject import FactPrototype, ContextPrototype, DimValuePrototype
+            fp = FactPrototype(self, priItem, dims.items())
+            # force trying a valid prototype's context Elements
+            if not isFactDimensionallyValid(self, fp, setPrototypeContextElements=True):
+                self.info("arelleLinfo",
+                    _("Create context for %(priItem)s, cannot determine valid context elements, either no all relationship or validation issue"), 
+                    modelObject=self, priItem=priItem)
+            fpDims = fp.context.qnameDims
+            for dimQname in sorted(fpDims.keys()):
+                dimValue = fpDims[dimQname]
+                if isinstance(dimValue, DimValuePrototype):
+                    dimMemberQname = dimValue.memberQname  # None if typed dimension
                     contextEltName = dimValue.contextElement
                 else: # qname for explicit or node for typed
-                    dimMemberQname = dimValue
-                    contextEltName = self.qnameDimensionContextElement.get(dimQname)
+                    dimMemberQname = None
+                    contextEltName = None
                 if contextEltName == "segment":
                     if segmentElt is None: 
                         segmentElt = XmlUtil.addChild(entityElt, XbrlConst.xbrli, "segment")
@@ -276,8 +288,8 @@ class ModelXbrl:
                 if dimConcept.isTypedDimension:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
                                               attributes=dimAttr)
-                    if isinstance(dimValue, ModelDimensionValue) and dimValue.isTyped:
-                        XmlUtil.copyChildren(dimElt, dimValue)
+                    if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
+                        XmlUtil.copyChildren(dimElt, [dimValue.typedMember]) # dimValue is not itself iterable for a dim value prototype
                 elif dimMemberQname:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
                                               attributes=dimAttr,
