@@ -4,7 +4,8 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.sax, xml.sax.handler
+#import xml.sax, xml.sax.handler
+from lxml.etree import XML, DTD, SubElement, XMLSyntaxError
 import os, re, io
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
@@ -16,6 +17,9 @@ CDATApattern = re.compile(r"<!\[CDATA\[(.+)\]\]")
 docCheckPattern = re.compile(r"&\w+;|[^0-9A-Za-z`~!@#$%&\*\(\)\.\-+ \[\]\{\}\|\\:;\"'<>,_?/=\t\n\r\m\f]") # won't match &#nnn;
 entityPattern = re.compile(r"&\w+;") # won't match &#nnn;
 
+edbodyDTD = None
+
+''' replace with lxml DTD validation
 bodyTags = {
     'a': (),
     'address': (),
@@ -111,6 +115,7 @@ htmlAttributes = {
     'vlink': ('body'),
     'width': ('hr','pre', 'table','td','th', 'img')
     }
+'''
 
 xhtmlEntities = {
     '&nbsp;': '&#160;',
@@ -406,6 +411,12 @@ def checkfile(modelXbrl, filepath):
             result = result[0:start] + result[end:]
             foundXmlDeclaration = True
     return (io.StringIO(initial_value=result), encoding)
+
+def loadDTD(modelXbrl):
+    global edbodyDTD
+    if edbodyDTD is None:
+        with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "edbody.dtd")) as fh:
+            edbodyDTD = DTD(fh)
         
 def removeEntities(text):
     entitylessText = []
@@ -421,7 +432,8 @@ def removeEntities(text):
     return ''.join(entitylessText)
 
 def validateTextBlockFacts(modelXbrl):
-    handler = TextBlockHandler(modelXbrl)
+    #handler = TextBlockHandler(modelXbrl)
+    loadDTD(modelXbrl)
     
     for f1 in modelXbrl.facts:
         # build keys table for 6.5.14
@@ -430,7 +442,7 @@ def validateTextBlockFacts(modelXbrl):
            concept is not None and \
            concept.isTextBlock and \
            XMLpattern.match(f1.value):
-            handler.fact = f1
+            #handler.fact = f1
             # test encoded entity tags
             for match in entityPattern.finditer(f1.value):
                 entity = match.group()
@@ -440,6 +452,7 @@ def validateTextBlockFacts(modelXbrl):
                         modelObject=f1, fact=f1.qname, contextID=f1.contextID, entity=entity)
             # test html
             for xmltext in [f1.value] + CDATApattern.findall(f1.value):
+                '''
                 try:
                     xml.sax.parseString(
                         "<?xml version='1.0' encoding='utf-8' ?>\n<body>\n{0}\n</body>\n".format(
@@ -452,11 +465,90 @@ def validateTextBlockFacts(modelXbrl):
                         handler.modelXbrl.error(("EFM.6.05.15", "GFM.1.02.14"),
                             _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
                             modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
-            handler.fact = None
-    handler.modelXbrl = None
+                '''
+                try:
+                    textblockXml = XML("<body>\n{0}\n</body>\n".format(removeEntities(xmltext)))
+                    if not edbodyDTD.validate( textblockXml ):
+                        errors = edbodyDTD.error_log.filter_from_errors()
+                        htmlError = any(e.type_name in ("DTD_INVALID_CHILD", "DTD_UNKNOWN_ATTRIBUTE") 
+                                        for e in errors)
+                        modelXbrl.error("EFM.6.05.16" if htmlError else ("EFM.6.05.15", "GFM.1.02.14"),
+                            _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
+                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, 
+                            error=', '.join(e.message for e in errors))
+                    for elt in textblockXml.iter():
+                        eltTag = elt.tag
+                        for attrTag, attrValue in elt.items():
+                            if ((attrTag == "href" and eltTag == "a") or 
+                                (attrTag == "src" and eltTag == "img")):
+                                if "javascript:" in attrValue:
+                                    modelXbrl.error("EFM.6.05.16",
+                                        _("Fact %(fact)s of context %(contextID) has javascript in '%(attribute)s' for <%(element)s>"),
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                        attribute=attrTag, element=eltTag)
+                                elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
+                                    pass
+                                elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
+                                    modelXbrl.error("EFM.6.05.16",
+                                        _("Fact %(fact)s of context %(contextID) has an invalid external reference in '%(attribute)s' for <%(element)s>"),
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                        attribute=attrTag, element=eltTag)
+                except (XMLSyntaxError,
+                        UnicodeDecodeError) as err:
+                    #if not err.endswith("undefined entity"):
+                    modelXbrl.error(("EFM.6.05.15", "GFM.1.02.14"),
+                        _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
+                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
+                    
+            #handler.fact = None
+    #handler.modelXbrl = None
     
-def validateFootnote(modelXbrl, footnote, parent=None):
-    handler = TextBlockHandler(modelXbrl)
+def copyHtml(sourceXml, targetHtml):
+    for sourceChild in sourceXml.iterchildren():
+        targetChild = SubElement(targetHtml,
+                                 sourceChild.localName if sourceChild.namespaceURI == XbrlConst.xhtml else sourceChild.tag)
+        for attrTag, attrValue in sourceChild.items():
+            targetChild.set(attrTag, attrValue)
+        copyHtml(sourceChild, targetChild)
+        
+def validateFootnote(modelXbrl, footnote):
+    #handler = TextBlockHandler(modelXbrl)
+    loadDTD(modelXbrl)
+    
+    try:
+        footnoteHtml = XML("<body/>")
+        copyHtml(footnote, footnoteHtml)
+        if not edbodyDTD.validate( footnoteHtml ):
+            modelXbrl.error("EFM.6.05.34",
+                _("Footnote %(xlinkLabel)s causes the XML error %(error)s"),
+                modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+                error=', '.join(e.message for e in edbodyDTD.error_log.filter_from_errors()))
+        for elt in footnoteHtml.iter():
+            eltTag = elt.tag
+            for attrTag, attrValue in elt.items():
+                if ((attrTag == "href" and eltTag == "a") or 
+                    (attrTag == "src" and eltTag == "img")):
+                    if "javascript:" in attrValue:
+                        modelXbrl.error("EFM.6.05.34",
+                            _("Footnote %(xlinkLabel)s has javascript in '%(attribute)s' for <%(element)s>"),
+                            modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+                            attribute=attrTag, element=eltTag)
+                    elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
+                        pass
+                    elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
+                        modelXbrl.error("EFM.6.05.34",
+                            _("Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
+                            modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+                            attribute=attrTag, element=eltTag, value=attrValue)
+    except (XMLSyntaxError,
+            UnicodeDecodeError) as err:
+        #if not err.endswith("undefined entity"):
+        modelXbrl.error("EFM.6.05.34",
+            _("Footnote %(xlinkLabel)s causes the XML error %(error)s"),
+            modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+            error=edbodyDTD.error_log.filter_from_errors())
+
+'''
     if parent is None:
         parent = footnote
     
@@ -493,7 +585,7 @@ def validateFootnote(modelXbrl, footnote, parent=None):
             else:
                 validateFootnote(modelXbrl, child, footnote)
 
-    handler.modelXbrl = None
+    #handler.modelXbrl = None
 
 
 class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler): 
@@ -565,4 +657,4 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
             _("Fact %(fact)s of context %(contextID) has text which causes the XML warning %(error)s line %(line)s column %(column)s"),
              modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
-        
+'''
