@@ -467,11 +467,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
                 value = bodyCell.value
                 objId = bodyCell.objectId
-                if objId and objId[0] == "f":
-                    factPrototype = self.factPrototypes[int(objId[1:])]
-                    if factPrototype.factObjectId is not None:
-                        objId = factPrototype.factObjectId
-                    else:
+                if objId:
+                    if objId[0] == "f":
+                        factPrototypeIndex = int(objId[1:])
+                        factPrototype = self.factPrototypes[factPrototypeIndex]
                         concept = factPrototype.concept
                         entityIdentScheme = self.newFactItemOptions.entityIdentScheme
                         entityIdentValue = self.newFactItemOptions.entityIdentValue
@@ -486,7 +485,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             cntxId = prevCntx.id
                         else: # need new context
                             newCntx = instance.createContext(entityIdentScheme, entityIdentValue, 
-                                          periodType, periodStart, periodEndInstant, qnameDims, [], [],
+                                          periodType, periodStart, periodEndInstant, 
+                                          concept.qname, qnameDims, [], [],
                                           afterSibling=newCntx)
                             cntxId = newCntx.id
                             # new context
@@ -513,14 +513,16 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             attrs.append(("decimals", decimals))
                             value = Locale.atof(self.modelXbrl.locale, value, str.strip)
                         newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
-                        objId = None
-                if objId is not None:
-                    fact = self.modelXbrl.modelObject(objId)
-                    if fact.concept.isNumeric:
-                        value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                    if fact.value != value:
-                        fact.text = value
-                        XmlValidate.validate(instance, fact)    
+                        bodyCell.objectId = newFact.objectId()  # switch cell to now use fact ID
+                        self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
+                    else: # instance fact, not prototype
+                        fact = self.modelXbrl.modelObject(objId)
+                        if fact.concept.isNumeric:
+                            value = Locale.atof(self.modelXbrl.locale, value, str.strip)
+                        if fact.value != value:
+                            fact.text = value
+                            XmlValidate.validate(instance, fact)
+                    bodyCell.isChanged = False  # clear change flag
         instance.saveInstance()
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
             
