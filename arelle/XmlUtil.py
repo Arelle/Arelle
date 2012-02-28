@@ -471,10 +471,14 @@ def setXmlns(modelDocument, prefix, namespaceURI):
     if prefix == "":
         prefix = None  # default xmlns prefix stores as None
     if prefix not in root.nsmap:
-        newmap = root.nsmap
-        newmap[prefix] = namespaceURI
-        newroot = etree.Element(root.tag, nsmap=newmap)
-        newroot.extend(root)
+        if root.tag == 'nsmap': # already have an xmlns-extension root element
+            newmap = root.nsmap
+            newmap[prefix] = namespaceURI
+            newroot = etree.Element('nsmap', nsmap=newmap)
+            newroot.extend(root)
+        else:  # new xmlns-extension root
+            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})
+            newroot.append(root)
         elementTree._setroot(newroot)
 
 def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeName=None, qnames=False):
