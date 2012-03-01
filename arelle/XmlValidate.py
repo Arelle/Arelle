@@ -12,6 +12,7 @@ from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
+ModelInlineFact = None
 
 UNKNOWN = 0
 INVALID = 1
@@ -146,7 +147,10 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
     # attrQname can be provided for attributes that are global and LAX
     if not hasattr(elt,"xValid"):
         text = elt.elementText
-        qnElt = qname(elt)
+        global ModelInlineFact
+        if ModelInlineFact is None:
+            from arelle.ModelInstanceObject import ModelInlineFact
+        qnElt = elt.qname if isinstance(elt, ModelInlineFact) else qname(elt)
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         facets = None
         if modelConcept is not None:

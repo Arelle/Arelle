@@ -147,8 +147,8 @@ def innerTextNodes(element, ixExclude):
            (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL")):
             for nestedText in innerTextNodes(child, ixExclude):
                 yield nestedText
-    if element.tail:
-        yield element.tail
+        if child.tail:
+            yield child.tail
 
 def parentId(element, parentNamespaceURI, parentLocalName):
     while element is not None:
@@ -693,7 +693,7 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
         firstChild = True
         text = node.text
         if text is not None:
-            text = text.replace("\u00A0","&nbsp;").strip().replace("&","&amp;").replace("<","&lt;").replace("\u00AD","&shy;")
+            text = text.replace("&","&amp;").replace("\u00A0","&nbsp;").strip().replace("<","&lt;").replace("\u00AD","&shy;")
         for child in node.iterchildren():
             hasChildNodes = True
             if firstChild:

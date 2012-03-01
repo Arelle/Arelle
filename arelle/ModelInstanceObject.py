@@ -383,6 +383,10 @@ class ModelInlineFact(ModelFact):
             return self.transformedValue(v)
 
     @property
+    def elementText(self):    # override xml-level elementText for transformed value text
+        return self.value
+    
+    @property
     def propertyView(self):
         if self.localName == "nonFraction" or self.localName == "fraction":
             numProperties = (("format", self.format),
