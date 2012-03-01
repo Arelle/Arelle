@@ -42,7 +42,7 @@ newFindOptions = {
 }
 
 def find(mainWin):
-    dialog = DialogFind(mainWin, mainWin.config.setdefault("findOptions",newFindOptions)
+    dialog = DialogFind(mainWin, mainWin.config.setdefault("findOptions", newFindOptions))
 
   
 class DialogFind(Toplevel):
@@ -63,6 +63,8 @@ class DialogFind(Toplevel):
 
         self.transient(self.parent)
         self.title(_("Find"))
+        
+        self.objsList = [] # next may be tried before anything is found
         
         frame = Frame(self)
 
@@ -206,13 +208,16 @@ class DialogFind(Toplevel):
         self.saveConfig()
         
         import threading
-        thread = threading.Thread(target=lambda: self.backgroundFind())
+        thread = threading.Thread(target=lambda
+                                  expr=self.cbExpr.value,
+                                  logViewLines=self.modelManager.cntlr.logView.lines() if self.options["messagesLog"] else None
+                                  : self.backgroundFind(expr, logViewLines))
         thread.daemon = True
         thread.start()
 
 
-    def backgroundFind(self):
-        expr = self.cbExpr.value
+    def backgroundFind(self, expr, logViewLines):
+        exprType = self.options["exprType"]
         inConceptLabel = self.options["conceptLabel"]
         inConceptName = self.options["conceptName"]
         inConceptType = self.options["conceptType"]
@@ -225,23 +230,23 @@ class DialogFind(Toplevel):
         inFactCntx = self.options["factCntx"]
         inFactUnit = self.options["factUnit"]
         inMessagesLog = self.options["messagesLog"]
-        self.nextIsDown = self.options["direction"] == "down"
+        nextIsDown = self.options["direction"] == "down"
         
         objsFound = set()
         
         try:
-            if self.options["exprType"] == "text":
+            if exprType == "text":
                 # escape regex metacharacters
                 pattern = re.compile(''.join(
                          [(('\\' + c) if c in reMetaChars else c) for c in expr]), 
                          re.IGNORECASE)
                 isRE = True
                 isXP = False
-            elif self.options["exprType"] == "regex":
+            elif exprType == "regex":
                 pattern = re.compile(expr, re.IGNORECASE)
                 isRE = True
                 isXP = False
-            elif self.options["exprType"] == "xpath":
+            elif exprType == "xpath":
                 isRE = False
                 isXP = True
                 self.resultText.setValue(_("Compiling xpath expression..."))
@@ -258,7 +263,7 @@ class DialogFind(Toplevel):
                 return  # nothing to do
             
             if inMessagesLog:
-                for lineNumber, line in enumerate(self.modelManager.cntlr.logView.lines()):
+                for lineNumber, line in enumerate(logViewLines):
                     if pattern.search(line):
                         objsFound.add(lineNumber)
             elif self.modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
@@ -267,7 +272,7 @@ class DialogFind(Toplevel):
                         objsFound.add(rssItem)  
             else: # DTS search
                 if inConceptLabel or inConceptName or inConceptType or inConceptSubs or inConceptPer or inConceptBal:
-                    self.resultText.setValue(_("Matching concepts..."))
+                    self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [_("Matching concepts...")]))
                     self.modelManager.showStatus(_("Matching concepts..."))
                     for conceptName, concepts in self.modelXbrl.nameConcepts.items():
                         for concept in concepts:
@@ -283,7 +288,7 @@ class DialogFind(Toplevel):
                                 ):
                                 objsFound.add(concept)  
                 if inFactLabel or inFactName or inFactValue or inFactCntx or inFactUnit:
-                    self.resultText.setValue(_("Matching facts..."))
+                    self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [_("Matching facts...")]))
                     self.modelManager.showStatus(_("Matching facts..."))
                     for fact in self.modelXbrl.facts:
                         if ((isXP and xpCtx.evaluateBooleanValue(xpProg, contextItem=fact)) or
@@ -299,7 +304,7 @@ class DialogFind(Toplevel):
         except XPathContext.XPathException as err:
             err = _("Find expression error: {0} \n{1}").format(err.message, err.sourceErrorIndication)
             self.modelManager.addToLog(err)
-            self.resultText.setValue(err)
+            self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [err]))
             self.modelManager.showStatus(_("Completed with errors"), 5000)
                             
         numConcepts = 0
@@ -310,7 +315,7 @@ class DialogFind(Toplevel):
         for obj in objsFound:
             if inMessagesLog:
                 numMessages += 1
-                self.objsList.append( ('m', obj) )
+                self.objsList.append( ('m', "{0:06}".format(obj), obj) )
             elif isinstance(obj,ModelConcept):
                 numConcepts += 1
                 self.objsList.append( ('c', obj.localName, obj.objectId()) )
@@ -334,13 +339,15 @@ class DialogFind(Toplevel):
         if numConcepts + numFacts + numRssItems + numMessages == 0:
             self.result += "no matches"
             self.foundIndex = -1
-            self.resultText.setValue(self.result)
+            self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [self.result]))
         else:
-            self.foundIndex = 0 if self.nextIsDown else (len(self.objsList) - 1)
+            self.foundIndex = 0 if nextIsDown else (len(self.objsList) - 1)
             self.modelManager.cntlr.uiThreadQueue.put((self.next, []))
         self.modelManager.showStatus(_("Ready..."), 2000)
                                     
     def next(self):
+        self.setOptions() # refresh options
+        nextIsDown = self.options["direction"] == "down"
         # check that asme instance applies
         if not self.options["messagesLog"]:
             if self.modelXbrl is None:
@@ -355,20 +362,23 @@ class DialogFind(Toplevel):
                             _("No matches were found.  Please try a different search."), parent=self.parent)
             return
             
-        self.result = self.result.partition("Selection")[0]
+        if self.foundIndex < 0 and nextIsDown:
+            self.foundIndex += 1
+        elif self.foundIndex >= lenObjsList and not nextIsDown:
+            self.foundIndex -= 1
         if 0 <= self.foundIndex < lenObjsList:
-            objectFound = self.objsList[self.foundIndex][1]
+            objectFound = self.objsList[self.foundIndex][2]
             if self.options["messagesLog"]:
                 self.modelManager.cntlr.logView.selectLine(objectFound)
             else:
                 self.modelManager.modelXbrl.viewModelObject(objectFound)
             self.resultText.setValue("{0}, selection {1} of {2}".format(self.result, self.foundIndex + 1, len(self.objsList) ) )
-            self.foundIndex += 1 if self.nextIsDown else -1
-        elif self.nextIsDown:
+            self.foundIndex += 1 if nextIsDown else -1
+        elif nextIsDown:
             self.resultText.setValue("{0}, selection at end".format(self.result) )
         else:
             self.resultText.setValue("{0}, selection at start".format(self.result) )
-        
+
 
     def close(self, event=None):
         self.options["geometry"] = self.geometry()
