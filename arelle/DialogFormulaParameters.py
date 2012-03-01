@@ -15,9 +15,10 @@ from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
 caller checks accepted, if True, caller retrieves url
 '''
 def getParameters(mainWin):
-    dialog = DialogFormulaParameters(mainWin, mainWin.modelManager.formulaOptions)
+    dialog = DialogFormulaParameters(mainWin, mainWin.modelManager.formulaOptions.__dict__.copy())
     if dialog.accepted:
-        mainWin.config["formulaParameters"] = dialog.options.__dict__.copy()
+        mainWin.modelManager.formulaOptions.__dict__.update(dialog.options)
+        mainWin.config["formulaParameters"] = dialog.options
         mainWin.saveConfig()
 
   
@@ -55,7 +56,7 @@ class DialogFormulaParameters(Toplevel):
         self.gridCells = []
         y = 2
         dataTypes = ("xs:string", "xs:integer", "xs:decimal", "xs:date", "xs:datetime", "xs:QName")
-        for parameter in options.parameterValues.items():
+        for parameter in options["parameterValues"].items():
             paramQname, paramValue = parameter
             self.gridCells.append( (
                 gridCell(frame, 1, y, paramQname),
@@ -169,12 +170,13 @@ class DialogFormulaParameters(Toplevel):
     def setOptions(self):
         # set formula options
         for checkbox in self.checkboxes:
-            setattr(self.options, checkbox.attr, checkbox.value)
-        self.options.parameterValues = {}
+            self.options[checkbox.attr] = checkbox.value
+        parameterValues = {}
         for paramCells in self.gridCells:
             qnameCell, typeCell, valueCell = paramCells
             if qnameCell.value != "" and valueCell.value != "":
-                self.options.parameterValues[qname(qnameCell.value)] = valueCell.value
+                parameterValues[qnameCell.value] = valueCell.value
+        self.options["parameterValues"] = parameterValues
         
     def ok(self, event=None):
         self.setOptions()

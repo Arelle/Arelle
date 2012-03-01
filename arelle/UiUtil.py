@@ -259,8 +259,8 @@ class checkbox(Checkbutton):
         self.grid(column=x, row=y, sticky=W, padx=24) 
         try:
             options = master.master.options
-            if attr and hasattr(options, attr):
-                self.valueVar.set( getattr(options,attr) )
+            if attr and options.get(attr):
+                self.valueVar.set( options[attr] )
         except AttributeError:
             pass
         

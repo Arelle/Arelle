@@ -4,7 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, posixpath, sys, re, shutil, time, pickle
+import os, posixpath, sys, re, shutil, time, calendar, io, json
 if sys.version[0] >= '3':
     from urllib.parse import unquote
     from urllib.error import (URLError, HTTPError, ContentTooShortError)
@@ -75,18 +75,18 @@ class WebCache:
         self.decodeFileChars = re.compile(r'\^[0-9]{3}')
         self.workOffline = False
         self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
-        self.urlCheckPickleFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.pickle"
+        self.urlCheckJsonFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
         try:
-            with open(self.urlCheckPickleFile, 'rb') as f:
-                self.cachedUrlCheckTimes = pickle.load(f)
+            with io.open(self.urlCheckJsonFile, 'rt', encoding='utf-8') as f:
+                self.cachedUrlCheckTimes = json.load(f)
         except Exception:
             self.cachedUrlCheckTimes = {}
         self.cachedUrlCheckTimesModified = False
             
     def saveUrlCheckTimes(self):
         if self.cachedUrlCheckTimesModified:
-            with open(self.urlCheckPickleFile, 'wb') as f:
-                pickle.dump(self.cachedUrlCheckTimes, f, pickle.HIGHEST_PROTOCOL)
+            with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
+                json.dump(self.cachedUrlCheckTimes, f, indent=0)
         self.cachedUrlCheckTimesModified = False
         
     def resetProxies(self, httpProxyTuple):
@@ -185,8 +185,13 @@ class WebCache:
                 return filepath
             filepathtmp = filepath + ".tmp"
             timeNow = time.time()
+            timeNowStr = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(timeNow))
             if not reload and os.path.exists(filepath):
-                if timeNow - self.cachedUrlCheckTimes.get(url, 0.0) > self.maxAgeSeconds:
+                if url in self.cachedUrlCheckTimes:
+                    cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], '%Y-%m-%dT%H:%M:%S UTC'))
+                else:
+                    cachedTime = 0
+                if timeNow - cachedTime > self.maxAgeSeconds:
                     # weekly check if newer file exists
                     newerOnWeb = False
                     try: # no provision here for proxy authentication!!!
@@ -197,7 +202,7 @@ class WebCache:
                         pass # for now, forget about authentication here
                     if not newerOnWeb:
                         # update ctime by copying file and return old file
-                        self.cachedUrlCheckTimes[url] = timeNow
+                        self.cachedUrlCheckTimes[url] = timeNowStr
                         self.cachedUrlCheckTimesModified = True
                         return filepath
                 else:
@@ -270,7 +275,7 @@ class WebCache:
                 webFileTime = lastModifiedTime(headers)
                 if webFileTime: # set mtime to web mtime
                     os.utime(filepath,(webFileTime,webFileTime))
-                self.cachedUrlCheckTimes[url] = timeNow
+                self.cachedUrlCheckTimes[url] = timeNowStr
                 self.cachedUrlCheckTimesModified = True
                 return filepath
         

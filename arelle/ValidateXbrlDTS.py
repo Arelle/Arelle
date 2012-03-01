@@ -276,8 +276,8 @@ def checkElements(val, modelDocument, parent):
     parentIsAppinfo = False
     if modelDocument.type == ModelDocument.Type.INLINEXBRL:
         if isinstance(parent,ModelObject): # element
-            if parent.localName == "meta" and parent.namespaceURI == XbrlConst.xhtml and \
-            parent.get("http-equiv").lower() == "content-type":
+            if (parent.localName == "meta" and parent.namespaceURI == XbrlConst.xhtml and 
+                (parent.get("http-equiv") or "").lower() == "content-type"):
                 val.metaContentTypeEncoding = HtmlUtil.attrValue(parent.get("content"), "charset")
         elif isinstance(parent,etree._ElementTree): # documentNode
             val.documentTypeEncoding = modelDocument.documentEncoding # parent.docinfo.encoding

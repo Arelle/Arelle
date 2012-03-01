@@ -7,6 +7,7 @@ Created on Oct 17, 2010
 import re
 from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst, 
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
+from arelle import FunctionIxt
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
@@ -407,6 +408,17 @@ class ValidateXbrl:
                         
                 if isinstance(f, ModelInlineFact):
                     self.footnoteRefs.update(f.footnoteRefs)
+                    fmt = f.format
+                    if fmt:
+                        if fmt.namespaceURI not in FunctionIxt.ixtNamespaceURIs:
+                            self.modelXbrl.error("ixt.14.2:invalidTransformation",
+                                _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
+                                modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
+                        elif fmt.localName not in FunctionIxt.ixtFunctions:
+                            self.modelXbrl.error("ixt.14.2:invalidTransformation",
+                                _("Fact %(fact)s has unrecognized transformation name %(name)s"),
+                                modelObject=f, fact=f.qname, name=fmt.localName)
+                        
             
             #instance checks
             for cntx in modelXbrl.contexts.values():

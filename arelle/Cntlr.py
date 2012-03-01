@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from arelle import PythonUtil # define 2.x or 3.x string types
-import tempfile, os, pickle, sys, logging, gettext, json
+import tempfile, os, io, sys, logging, gettext, json
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 from collections import defaultdict
@@ -116,12 +116,12 @@ class Cntlr:
         if not os.path.exists(self.userAppDir):
             os.makedirs(self.userAppDir)
         # load config if it exists
-        self.configPickleFile = self.userAppDir + os.sep + "config.pickle"
+        self.configJsonFile = self.userAppDir + os.sep + "config.json"
         self.config = None
-        if os.path.exists(self.configPickleFile):
+        if os.path.exists(self.configJsonFile):
             try:
-                with open(self.configPickleFile, 'rb') as f:
-                    self.config = pickle.load(f)
+                with io.open(self.configJsonFile, 'rt', encoding='utf-8') as f:
+                    self.config = json.load(f)
             except Exception as ex:
                 self.config = None # restart with a new config
         if not self.config:
@@ -184,8 +184,8 @@ class Cntlr:
     def saveConfig(self):
         """.. method:: saveConfig()
            Save user preferences configuration (in a pickle file)."""
-        with open(self.configPickleFile, 'wb') as f:
-            pickle.dump(self.config, f, pickle.HIGHEST_PROTOCOL)
+        with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
+            json.dump(self.config, f, indent=2)
             
     # default non-threaded viewModelObject                 
     def viewModelObject(self, modelXbrl, objectId):

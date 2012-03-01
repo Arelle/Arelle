@@ -14,22 +14,22 @@ edgrFile = "{http://www.sec.gov/Archives/edgar}file"
 edgrType = "{http://www.sec.gov/Archives/edgar}type"
 edgrUrl = "{http://www.sec.gov/Archives/edgar}url"
 
-class RssWatchOptions():
-    def __init__(self):
-        self.feedSource = ""
-        self.feedSourceUri = None
-        self.matchTextExpr = ""
-        self.formulaFileUri = ""
-        self.logFileUri = ""
-        self.emailAddress = ""
-        self.validateXbrlRules = False
-        self.validateDisclosureSystemRules = False
-        self.validateCalcLinkbase = False
-        self.validateFormulaAssertions = False
-        self.alertMatchedFactText = False
-        self.alertAssertionUnsuccessful = False
-        self.alertValiditionError = False
-        self.latestPubDate = None
+newRssWatchOptions = {
+    "feedSource": "",
+    "feedSourceUri": None,
+    "matchTextExpr": "",
+    "formulaFileUri": "",
+    "logFileUri": "",
+    "emailAddress": "",
+    "validateXbrlRules": False,
+    "validateDisclosureSystemRules": False,
+    "validateCalcLinkbase": False,
+    "validateFormulaAssertions": False,
+    "alertMatchedFactText": False,
+    "alertAssertionUnsuccessful": False,
+    "alertValiditionError": False,
+    "latestPubDate": None,
+}
         
         # Note: if adding to this list keep DialogRssWatch in sync
 class ModelRssItem(ModelObject):

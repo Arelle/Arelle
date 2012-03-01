@@ -269,4 +269,5 @@ class View:
                 self.tblElt = None
             elif self.type == XML:
                 self.docEltLevels = None
+        self.__dict__.clear() # dereference everything after closing document
 
