@@ -258,7 +258,7 @@ def numunitdecimal(arg):
     raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
     
 ixtFunctions = {
-                           
+                
     # 3010-04-20 functions
     'dateslashus': dateslashus,
     'dateslasheu': dateslasheu,
@@ -268,6 +268,8 @@ ixtFunctions = {
     'dateshortus': datelongus,
     'datelongeu': datelongeu,
     'dateshorteu': datelongeu,
+    'datelonguk': datelongeu,
+    'dateshortuk': datelongeu,
     'numcommadot': numcommadot,
     'numdash': numdash,
     'numspacedot': numspacedot,
@@ -297,4 +299,9 @@ ixtFunctions = {
     'zerodash': zerodash,
     'numdotdecimal': numdotdecimal,
     'numunitdecimal': numunitdecimal,
+}
+
+ixtNamespaceURIs = {
+    'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20',
+    'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31'
 }
