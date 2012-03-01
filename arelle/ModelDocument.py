@@ -696,6 +696,7 @@ class ModelDocument:
         self.schemaLinkbaseRefsDiscover(htmlElement)
         for inlineElement in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}resources"):
             self.instanceContentsDiscover(inlineElement)
+            XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
             
         tupleElements = []
         tuplesByTupleID = {}
@@ -740,6 +741,7 @@ class ModelDocument:
             tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
         else:
             self.modelXbrl.facts.append(modelFact)
+        XmlValidate.validate(self.modelXbrl, modelFact, recurse=False) # validate transformed fact (but not xhtml elements)
                 
     def factDiscover(self, modelFact, parentModelFacts=None, parentElement=None):
         if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
