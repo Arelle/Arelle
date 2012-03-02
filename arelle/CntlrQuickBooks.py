@@ -276,7 +276,7 @@ def processQbResponse(qbRequest, responseXml):
     instance.createInstance(xbrlFile) # creates an instance as this modelXbrl's entrypoing
     newCntx = instance.createContext("http://www.xbrl.org/xbrlgl/sample", "SAMPLE", 
                   "instant", None, datetime.date.today() + datetime.timedelta(1), # today midnight
-                  {}, [], [], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)
+                  None, {}, [], [], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)
     
     monetaryUnit = qname(XbrlConst.iso4217, "iso4217:USD")
     newUnit = instance.createUnit([monetaryUnit],[], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)
