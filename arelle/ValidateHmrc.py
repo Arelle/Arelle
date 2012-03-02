@@ -3,6 +3,9 @@ Created on May 20, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+
+based on http://www.hmrc.gov.uk/ebu/ct_techpack/joint-filing-validation-checks.pdf
+
 '''
 import xml.dom, xml.parsers
 import os, re, collections, datetime

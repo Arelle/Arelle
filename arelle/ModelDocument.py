@@ -723,12 +723,10 @@ class ModelDocument:
                 
     def inlineXbrlLocateFactInTuple(self, modelFact, tuplesByTupleID):
         tupleRef = modelFact.tupleRef
-        if modelFact.text == "37":
-            pass
         tuple = None
         if tupleRef:
             if tupleRef not in tuplesByTupleID:
-                self.modelXbrl.error("ixerr:tupleRefMissing",
+                self.modelXbrl.error("ix.13.1.2:tupleRefMissing",
                         _("Inline XBRL tupleRef %(tupleRef)s not found"),
                         modelObject=modelFact, tupleRef=tupleRef)
             else:

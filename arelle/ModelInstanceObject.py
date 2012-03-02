@@ -341,7 +341,7 @@ class ModelInlineFact(ModelFact):
             try:
                 orderAttr = self.get("order")
                 self._order = float(orderAttr)
-            except ValueError:
+            except (ValueError, TypeError):
                 self._order = None
             return self._order
 
@@ -374,7 +374,7 @@ class ModelInlineFact(ModelFact):
         v = XmlUtil.innerText(self, ixExclude=True)
         f = self.format
         if f is not None:
-            if (f.namespaceURI.startswith("http://www.xbrl.org/inlineXBRL/transformation") and
+            if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
                 f.localName in FunctionIxt.ixtFunctions):
                 v = FunctionIxt.ixtFunctions[f.localName](v)
         if self.localName == "nonNumeric" or self.localName == "tuple":

@@ -411,14 +411,19 @@ class ValidateXbrl:
                     fmt = f.format
                     if fmt:
                         if fmt.namespaceURI not in FunctionIxt.ixtNamespaceURIs:
-                            self.modelXbrl.error("ixt.14.2:invalidTransformation",
+                            self.modelXbrl.error("ix.14.2:invalidTransformation",
                                 _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
                                 modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
                         elif fmt.localName not in FunctionIxt.ixtFunctions:
-                            self.modelXbrl.error("ixt.14.2:invalidTransformation",
+                            self.modelXbrl.error("ix.14.2:invalidTransformation",
                                 _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                                 modelObject=f, fact=f.qname, name=fmt.localName)
-                        
+                    if f.order is not None: 
+                        self.modelXbrl.error("ix.13.1.2:tupleOrder",
+                            _("Fact %(fact)s must not have an order (%(order)s) unless in a tuple"),
+                            modelObject=f, fact=f.qname, name=fmt.localName, order=f.order)
+                    if f.isTuple:
+                        self.checkIxTupleContent(f, set())
             
             #instance checks
             for cntx in modelXbrl.contexts.values():
@@ -570,6 +575,19 @@ class ValidateXbrl:
             
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
         
+    def checkIxTupleContent(self, tf, visited):
+        visited.add(tf.qname)
+        for f in tf.modelTupleFacts:
+            if f.qname in visited:
+                self.modelXbrl.error("ix.13.1.2:tupleRecursion",
+                    _("Fact %(fact)s is recursively nested in tuple %(tuple)s"),
+                    modelObject=f, fact=f.qname, tuple=tf.qname)
+            if f.order is None: 
+                self.modelXbrl.error("ix.13.1.2:tupleOrder",
+                    _("Fact %(fact)s missing an order in tuple %(tuple)s"),
+                    modelObject=f, fact=f.qname, tuple=tf.qname)
+        visited.discard(tf.qname)
+                        
     def fwdCycle(self, relsSet, rels, noUndirected, fromConcepts, cycleType="directed", revCycleRel=None):
         for rel in rels:
             if revCycleRel is not None and rel.isIdenticalTo(revCycleRel):

@@ -127,7 +127,7 @@ class XPathContext:
                             result = FunctionXfi.call(self, p, localname, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
-                        elif ns.startswith("http://www.xbrl.org/inlineXBRL/transformation"):
+                        elif ns in FunctionIxt.ixtNamespaceURIs:
                             result = FunctionIxt.call(self, p, localname, args)
                         else:
                             raise XPathException(p, 'err:XPST0017', _('Function call not identified.'))
