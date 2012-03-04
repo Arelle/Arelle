@@ -311,7 +311,11 @@ class ModelInlineFact(ModelFact):
         
     @property
     def qname(self):
-        return self.prefixedNameQname(self.get("name")) if self.get("name") else None
+        try:
+            return self._factQname
+        except AttributeError:
+            self._factQname = self.prefixedNameQname(self.get("name")) if self.get("name") else None
+            return self._factQname
 
     @property
     def sign(self):
@@ -371,16 +375,20 @@ class ModelInlineFact(ModelFact):
     
     @property
     def value(self):
-        v = XmlUtil.innerText(self, ixExclude=True)
-        f = self.format
-        if f is not None:
-            if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
-                f.localName in FunctionIxt.ixtFunctions):
-                v = FunctionIxt.ixtFunctions[f.localName](v)
-        if self.localName == "nonNumeric" or self.localName == "tuple":
-            return v
-        else:
-            return self.transformedValue(v)
+        try:
+            return self._value
+        except AttributeError:
+            v = XmlUtil.innerText(self, ixExclude=True)
+            f = self.format
+            if f is not None:
+                if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
+                    f.localName in FunctionIxt.ixtFunctions):
+                    v = FunctionIxt.ixtFunctions[f.localName](v)
+            if self.localName == "nonNumeric" or self.localName == "tuple":
+                self._value = v
+            else:
+                self._value = self.transformedValue(v)
+            return self._value
 
     @property
     def elementText(self):    # override xml-level elementText for transformed value text
