@@ -22,23 +22,29 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
             return
         
-        busNamespacePattern = re.compile(r"^http://www\.xbrl\.org/uk/cd")
-        gaapNamespacePattern = re.compile(r"^http://www\.xbrl\.org/uk/fr/gaap/pt")
+        busNamespacePattern = re.compile(r"^http://www\.xbrl\.org/uk/cd/business")
+        gaapNamespacePattern = re.compile(r"^http://www\.xbrl\.org/uk/gaap/core")
         ifrsNamespacePattern = re.compile(r"^http://www\.iasb\.org/.*ifrs")
-        direpNamespacePattern = re.compile(r"^http://www\.xbrl\.org/uk/fr/gaap/pt")
+        direpNamespacePattern = re.compile(r"^http://www\.xbrl\.org/uk/reports/direp")
         
         # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks
         super(ValidateHmrc,self).validate(modelXbrl, parameters)
         xbrlInstDoc = modelXbrl.modelDocument.xmlDocument
         self.modelXbrl = modelXbrl
         modelXbrl.modelManager.showStatus(_("validating {0}").format(self.disclosureSystem.name))
-        
+
         isAccounts =  XmlUtil.hasAncestor(modelXbrl.modelDocument.xmlRootElement, 
                                           "http://www.govtalk.gov.uk/taxation/CT/3", 
                                           "Accounts")
         isComputation =  XmlUtil.hasAncestor(modelXbrl.modelDocument.xmlRootElement, 
                                              "http://www.govtalk.gov.uk/taxation/CT/3", 
                                              "Computation")
+        if parameters:
+            p = self.parameters.get(ModelValue.qname("type",noPrefixIsNoNamespace=True))
+            if p and len(p) == 2:  # override implicit type
+                paramType = p[1].lower()
+                isAccounts = paramType == "accounts"
+                isComputation = paramType == "computation"
 
         # instance checks
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
@@ -82,31 +88,36 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                 "DirectorSigningReport"
                 }
             direpItems = {}
-
+            
+            uniqueFacts = {}  # key = (qname, context hash, unit hash, lang)
+            
             for iF1, f1 in enumerate(modelXbrl.facts):
                 context = f1.context
                 unit = f1.unit
-                factElementName = f1.localName
-                if busNamespacePattern.match(f1.namespaceURI) and factElementName in busLocalNames:
-                        busItems[factElementName] = f1
-                elif gaapNamespacePattern.match(f1.namespaceURI) and factElementName in gaapLocalNames:
-                        gaapItems[factElementName] = f1
-                elif ifrsNamespacePattern.match(f1.namespaceURI) and factElementName in ifrsLocalNames:
-                        ifrsItems[factElementName] = f1
-                elif direpNamespacePattern.match(f1.namespaceURI) and factElementName in direpLocalNames:
-                        direpItems[factElementName] = f1
+                factNamespaceURI = f1.qname.namespaceURI
+                factLocalName = f1.qname.localName
+                if busNamespacePattern.match(factNamespaceURI) and factLocalName in busLocalNames:
+                        busItems[factLocalName] = f1
+                elif gaapNamespacePattern.match(factNamespaceURI) and factLocalName in gaapLocalNames:
+                        gaapItems[factLocalName] = f1
+                elif ifrsNamespacePattern.match(factNamespaceURI) and factLocalName in ifrsLocalNames:
+                        ifrsItems[factLocalName] = f1
+                elif direpNamespacePattern.match(factNamespaceURI) and factLocalName in direpLocalNames:
+                        direpItems[factLocalName] = f1
+                        
+                dupKey = (f1.concept,
+                          context.contextDimAwareHash if context is not None else None,
+                          unit.hash if unit is not None else None,
+                          f1.xmlLang)
 
                 if context is not None:
-                    for f2 in modelXbrl.facts[iF1:]:
-                        if (f1.qname == f2.qname and 
-                            f2.context is not None and context.isEqualTo(f2.context) and 
-                            ((unit is None and f2.unit is None) or
-                             (unit is not None and f2.unit is not None and unit.isEqualTo(f2.unit))) and
-                            f1.xmlLang == f2.xmlLang and 
-                            f1.effectiveValue != f2.effectiveValue):
+                    if f1 in uniqueFacts:
+                        f2 = uniqueFacts[f1]
+                        if (f1.effectiveValue != f2.effectiveValue):
                             modelXbrl.error("HMRC.14",
                                 _("Inconsistent duplicate facts %(fact)s context %(contextID)s and %(contextID2)s."),
                                 modelObject=(f1, f2), fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
+                uniqueFacts[dupKey] = f1
 
             if isAccounts:
                 if "StartDateForPeriodCoveredByReport" not in busItems:
@@ -164,3 +175,5 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                                 modelXbrl.error("HMRC.16.2",
                                     _("Context entity identifier (%(entityIdentifier)s) does not match Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(contextID)s)."),
                                     modelObject=modelXbrl, entityIdentifier=compRefNbr, contextID=",".join(contextIds))
+
+        modelXbrl.modelManager.showStatus(_("ready"), 2000)
