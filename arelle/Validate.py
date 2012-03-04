@@ -71,7 +71,7 @@ class Validate:
                     exc_info=True)
         else:
             try:
-                self.instValidator.validate(self.modelXbrl)
+                self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
                 self.instValidator.close()
             except Exception as err:
                 self.modelXbrl.error("exception",
