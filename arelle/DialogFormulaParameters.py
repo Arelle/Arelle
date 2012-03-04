@@ -57,10 +57,15 @@ class DialogFormulaParameters(Toplevel):
         y = 2
         dataTypes = ("xs:string", "xs:integer", "xs:decimal", "xs:date", "xs:datetime", "xs:QName")
         for parameter in options["parameterValues"].items():
-            paramQname, paramValue = parameter
+            paramQname, paramTypeValue = parameter
+            if isinstance(paramTypeValue, (tuple,list)):
+                paramType, paramValue = paramTypeValue  # similar to modelTestcaseObject, where values() are (type,value)
+            else:
+                paramType = None
+                paramValue = paramTypeValue
             self.gridCells.append( (
                 gridCell(frame, 1, y, paramQname),
-                gridCombobox(frame, 2, y, values=dataTypes),
+                gridCombobox(frame, 2, y, paramType, values=dataTypes),
                 gridCell(frame, 3, y, paramValue)) )
             y += 1
         # extra entry for new cells
@@ -175,7 +180,8 @@ class DialogFormulaParameters(Toplevel):
         for paramCells in self.gridCells:
             qnameCell, typeCell, valueCell = paramCells
             if qnameCell.value != "" and valueCell.value != "":
-                parameterValues[qnameCell.value] = valueCell.value
+                # stored as strings, so they can be saved in json files
+                parameterValues[qnameCell.value] = (typeCell.value, valueCell.value)
         self.options["parameterValues"] = parameterValues
         
     def ok(self, event=None):

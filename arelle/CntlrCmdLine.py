@@ -14,6 +14,7 @@ from optparse import OptionParser, SUPPRESS_HELP
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests)
+from arelle.ModelValue import qname
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 import logging
@@ -63,6 +64,8 @@ def main():
     parser.add_option("--gfm", action="store", dest="gfmName",
                       help=_("Specify a Global Filer Manual disclosure system name and"
                              " select disclosure system validation."))
+    parser.add_option("--hmrc", action="store_true", dest="validateHMRC",
+                      help=_("Select U.K. HRMC disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
                       help=_("Select validation with respect to Unit Type Registry."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
@@ -92,6 +95,7 @@ def main():
     parser.add_option("--logFile", action="store", dest="logFile",
                       help=_("Write log messages into file, otherwise they go to standard output.  " 
                              "If file ends in .xml it is xml-formatted, otherwise it is text. "))
+    parser.add_option("--parameters", action="store", dest="parameters", help=_("Specify parameters for formula and validation (name=value[,name=value])."))
     parser.add_option("--formulaParamExprResult", action="store_true", dest="formulaParamExprResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaParamInputValue", action="store_true", dest="formulaParamInputValue", help=_("Specify formula tracing."))
     parser.add_option("--formulaCallExprSource", action="store_true", dest="formulaCallExprSource", help=_("Specify formula tracing."))
@@ -149,7 +153,7 @@ def main():
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
     elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
-                options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.gfmName,
+                options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.gfmName,
                 options.utrValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
                 options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
                 options.logFile, options.formulaParamExprResult, options.formulaParamInputValue,
@@ -184,6 +188,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         elif options.gfmName:
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select(options.gfmName)
+        elif options.validateHMRC:
+            self.modelManager.validateDisclosureSystem = True
+            self.modelManager.disclosureSystem.select("hmrc")
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
         if options.calcDecimals:
@@ -198,6 +205,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.utrValidate:
             self.modelManager.validateUtr = True
         fo = FormulaOptions()
+        if options.parameters:
+            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value)) 
+                                       for param in options.parameters.split(',') 
+                                       for key,sep,value in (param.partition('='),) ) )   
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
         if options.formulaParamInputValue:

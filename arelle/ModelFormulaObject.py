@@ -137,6 +137,10 @@ class FormulaOptions():
         self.traceVariableExpressionResult = True
         if isinstance(savedValues, dict):
             self.__dict__.update(savedValues)
+            
+    def typedParameters(self):
+        return dict((qname(paramName), paramValue)
+                    for paramName, paramValue in self.parameterValues.items())
         
         # Note: if adding to this list keep DialogFormulaParameters in sync
     def traceSource(self, traceType):

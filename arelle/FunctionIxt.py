@@ -126,13 +126,13 @@ def datedoteu(arg):
 def datelongus(arg):
     m = dateUsPattern.match(arg)
     if m and m.lastindex == 3:
-        return "{0}-{1}-{2}".format(yr(m.group(3)), monthnumber[m.group(1)], z2(m.group(2)))
+        return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(1)], z2(m.group(2)))
     raise XPathContext.FunctionArgType(1,"xs:date")
     
 def datelongeu(arg):
     m = dateEuPattern.match(arg)
     if m and m.lastindex == 3:
-        return "{0}-{1}-{2}".format(yr(m.group(3)), monthnumber[m.group(2)], z2(m.group(1)))
+        return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(2)], z2(m.group(1)))
     raise XPathContext.FunctionArgType(1,"xs:date")
     
 def datedaymonth(arg):
