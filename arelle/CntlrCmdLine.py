@@ -65,7 +65,7 @@ def main():
                       help=_("Specify a Global Filer Manual disclosure system name and"
                              " select disclosure system validation."))
     parser.add_option("--hmrc", action="store_true", dest="validateHMRC",
-                      help=_("Select U.K. HRMC disclosure system validation."))
+                      help=_("Select U.K. HMRC disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
                       help=_("Select validation with respect to Unit Type Registry."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
