@@ -301,6 +301,8 @@ ixtFunctions = {
     'numunitdecimal': numunitdecimal,
 }
 
+deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
+
 ixtNamespaceURIs = {
     'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20',
     'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31',

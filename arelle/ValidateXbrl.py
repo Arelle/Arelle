@@ -294,6 +294,7 @@ class ValidateXbrl:
         self.footnoteRefs = set()
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+            factsWithDeprecatedIxNamespace = []
             for f in modelXbrl.facts:
                 concept = f.concept
                 if concept is not None:
@@ -418,12 +419,22 @@ class ValidateXbrl:
                             self.modelXbrl.error("ix.14.2:invalidTransformation",
                                 _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                                 modelObject=f, fact=f.qname, name=fmt.localName)
+                        if fmt.namespaceURI == FunctionIxt.deprecatedNamespaceURI:
+                            factsWithDeprecatedIxNamespace.append(f)
                     if f.order is not None: 
                         self.modelXbrl.error("ix.13.1.2:tupleOrder",
                             _("Fact %(fact)s must not have an order (%(order)s) unless in a tuple"),
                             modelObject=f, fact=f.qname, name=fmt.localName, order=f.order)
                     if f.isTuple:
                         self.checkIxTupleContent(f, set())
+                        
+            if factsWithDeprecatedIxNamespace:
+                self.modelXbrl.info("arelle:info",
+                    _("%(count)s facts have deprecated transformation namespace %(namespace)s"),
+                        modelObject=factsWithDeprecatedIxNamespace,
+                        count=len(factsWithDeprecatedIxNamespace), 
+                        namespace=FunctionIxt.deprecatedNamespaceURI)
+
             
             #instance checks
             for cntx in modelXbrl.contexts.values():
