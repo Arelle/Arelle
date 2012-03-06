@@ -857,12 +857,10 @@ class ModelType(ModelNamableTerm):
                     "{http://www.w3.org/2001/XMLSchema}pattern", "{http://www.w3.org/2001/XMLSchema}whiteSpace",  
                     "{http://www.w3.org/2001/XMLSchema}maxInclusive", "{http://www.w3.org/2001/XMLSchema}maxExclusive", "{http://www.w3.org/2001/XMLSchema}minExclusive", 
                     "{http://www.w3.org/2001/XMLSchema}totalDigits", "{http://www.w3.org/2001/XMLSchema}fractionDigits")):
-            XmlValidate.validateFacet(self, facetElt)
+            facetValue = XmlValidate.validateFacet(self, facetElt)
             facetName = facetElt.localName
-            if facetName not in facetValues:
-                facetValue = XmlValidate.validateFacet(self, facetElt)
-                if facetValue:
-                    facetValues[facetName] = facetValue
+            if facetName not in facetValues and facetValue is not None:  # facetValue can be zero but not None
+                facetValues[facetName] = facetValue
         if "enumeration" not in facetValues:
             for facetElt in XmlUtil.schemaFacets(self, ("{http://www.w3.org/2001/XMLSchema}enumeration",)):
                 facetValues.setdefault("enumeration",set()).add(facetElt.get("value"))
