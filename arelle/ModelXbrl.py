@@ -429,7 +429,8 @@ class ModelXbrl:
                         refs.append(ref)
                 extras["refs"] = refs
             elif argName == "sourceLine":
-                extras["sourceLine"] = argValue
+                if isinstance(argValue, _INT_TYPES):    # must be sortable with int's in logger
+                    extras["sourceLine"] = argValue
             elif argName != "exc_info":
                 if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO)):
                     fmtArgs[argName] = str(argValue)
