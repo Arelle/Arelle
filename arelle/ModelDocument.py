@@ -719,6 +719,10 @@ class ModelDocument:
             tupleFact.modelTupleFacts = [
                  self.modelXbrl.modelObject(objectIndex) 
                  for order,objectIndex in sorted(tupleFact.unorderedTupleFacts)]
+            
+        # validate particle structure of elements after transformations and established tuple structure
+        for rootModelFact in self.modelXbrl.facts:
+            XmlValidate.validate(self.modelXbrl, rootModelFact)
 
                 
     def inlineXbrlLocateFactInTuple(self, modelFact, tuplesByTupleID):
@@ -739,7 +743,6 @@ class ModelDocument:
             tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
         else:
             self.modelXbrl.facts.append(modelFact)
-        XmlValidate.validate(self.modelXbrl, modelFact, recurse=False) # validate transformed fact (but not xhtml elements)
                 
     def factDiscover(self, modelFact, parentModelFacts=None, parentElement=None):
         if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
