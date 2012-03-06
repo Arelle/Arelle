@@ -267,8 +267,10 @@ class LogFormatter(logging.Formatter):
         # provide a file parameter made up from refs entries
         fileLines = defaultdict(set)
         for ref in record.refs:
-            fileLines[ref["href"].partition("#")[0]].add(ref.get("sourceLine"))
-        record.file = ", ".join(file + " " + ', '.join(str(line) for line in lines if line)
+            fileLines[ref["href"].partition("#")[0]].add(ref.get("sourceLine", 0))
+        record.file = ", ".join(file + " " + ', '.join(str(line) 
+                                                       for line in sorted(lines, key=lambda l: l)
+                                                       if line)
                                 for file, lines in sorted(fileLines.items()))
         formattedMessage = super(LogFormatter, self).format(record)
         del record.file
