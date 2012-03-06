@@ -376,19 +376,19 @@ class ModelInlineFact(ModelFact):
     @property
     def value(self):
         try:
-            return self._value
+            return self._ixValue
         except AttributeError:
-            v = XmlUtil.innerText(self, ixExclude=True)
+            v = XmlUtil.innerText(self, ixExclude=True, strip=False)
             f = self.format
             if f is not None:
                 if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
                     f.localName in FunctionIxt.ixtFunctions):
                     v = FunctionIxt.ixtFunctions[f.localName](v)
             if self.localName == "nonNumeric" or self.localName == "tuple":
-                self._value = v
+                self._ixValue = v
             else:
-                self._value = self.transformedValue(v)
-            return self._value
+                self._ixValue = self.transformedValue(v)
+            return self._ixValue
 
     @property
     def elementText(self):    # override xml-level elementText for transformed value text

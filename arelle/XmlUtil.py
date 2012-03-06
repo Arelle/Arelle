@@ -126,9 +126,12 @@ def textNotStripped(element):
         return ""
     return element.elementText  # allows embedded comment nodes, returns '' if None
 
-def innerText(element, ixExclude=False):   
+def innerText(element, ixExclude=False, strip=True):   
     try:
-        return "".join(text for text in innerTextNodes(element, ixExclude)).strip()
+        text = "".join(text for text in innerTextNodes(element, ixExclude))
+        if strip:
+            return text.strip()
+        return text
     except TypeError:
         return ""
 
