@@ -8,6 +8,7 @@ from lxml import etree
 from arelle.ModelDtsObject import (ModelConcept, ModelType, ModelGroupDefinition, 
                                    ModelAll, ModelChoice, ModelSequence, 
                                    ModelAny, anonymousTypeSuffix)
+from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XmlValidate import validate
 
@@ -85,11 +86,14 @@ def validateElementSequence(modelXbrl, compositor, children, iNextChild=0):
         occured = anyChoiceHasMinOccurs0 # deemed to have occured if any choice had minoccurs=0
     else:
         occured = True
-    if isinstance(compositor, ModelType) and iNextChild < len(children) and any(True for e in children[iNextChild] if isinstance(e, ModelObject)):
-        return (iNextChild, False,
-                ("xmlSchema:elementUnexpected",
-                 _("%(compositor)s(%(particles)s) %(element)s unexpected, within %(parentElement)s")),
-                dict(compositor=compositor, particles=particles))
+    if isinstance(compositor, ModelType) and iNextChild < len(children):
+        elt = children[iNextChild]
+        eltChildren = elt.modelTupleFacts if isinstance(elt, ModelInlineFact) else elt.children[iNextChild]
+        if any(True for child in eltChildren if isinstance(child, ModelObject)): # any unexpected content elements
+            return (iNextChild, False,
+                    ("xmlSchema:elementUnexpected",
+                     _("%(compositor)s(%(particles)s) %(element)s unexpected, within %(parentElement)s")),
+                    dict(compositor=compositor, particles=particles))
     return (iNextChild, occured, None, None)
 
 def modelGroupCompositorTitle(compositor):

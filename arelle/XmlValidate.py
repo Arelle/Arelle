@@ -231,7 +231,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                     modelXbrl.error("xmlSchema:attributesRequired",
                         _("Element %(element)s type %(typeName)s missing required attributes: %(attributes)s"),
                         modelObject=elt,
-                        element=elt.elementQname,
+                        element=qnElt,
                         typeName=baseXsdType,
                         attributes=','.join(str(a) for a in missingAttributes))
                 # add default attribute values
@@ -243,13 +243,13 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                 if validateElementSequence is None:
                     from arelle.XmlValidateParticles import validateElementSequence, modelGroupCompositorTitle
                 try:
-                    childElts = list(elt)
+                    childElts = elt.modelTupleFacts if isinstance(elt, ModelInlineFact) else list(elt)
                     if isNil:
                         if childElts and any(True for e in childElts if isinstance(e, ModelObject)) or elt.text:
                             modelXbrl.error("xmlSchema:nilElementHasContent",
                                 _("Element %(element)s is nil but has contents"),
                                 modelObject=elt,
-                                element=elt.elementQname)
+                                element=qnElt)
                     else:
                         errResult = validateElementSequence(modelXbrl, type, childElts)
                         if errResult is not None and errResult[2]:
@@ -297,11 +297,11 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 if "enumeration" in facets and value not in facets["enumeration"]:
                     raise ValueError("is not in {1}".format(value, facets["enumeration"]))
                 if "length" in facets and len(value) != facets["length"]:
-                    raise ValueError("length facet {0}".format(facets["length"]))
+                    raise ValueError("length {0}, expected {1}".format(len(value), facets["length"]))
                 if "minLength" in facets and len(value) < facets["minLength"]:
-                    raise ValueError("minLength facet {0}".format(facets["minLength"]))
+                    raise ValueError("length {0}, minLength {1}".format(len(value), facets["minLength"]))
                 if "maxLength" in facets and len(value) > facets["maxLength"]:
-                    raise ValueError("maxLength facet {0}".format(facets["maxLength"]))
+                    raise ValueError("length {0}, maxLength {1}".format(len(value), facets["maxLength"]))
             if baseXsdType == "noContent":
                 if len(value) > 0 and not value.isspace():
                     raise ValueError("value content not permitted")
@@ -379,11 +379,15 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 xValue = value
                 sValue = value
         except ValueError as err:
+            if ModelInlineFact is not None and isinstance(elt, ModelInlineFact):
+                errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
+            else:
+                errElt = elt.elementQname
             if attrTag:
                 modelXbrl.error("xmlSchema:valueError",
                     _("Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s, %(error)s"),
                     modelObject=elt,
-                    element=elt.elementQname,
+                    element=errElt,
                     attribute=XmlUtil.clarkNotationToPrefixedName(elt,attrTag,isAttribute=True),
                     typeName=baseXsdType,
                     value=value,
@@ -392,7 +396,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 modelXbrl.error("xmlSchema:valueError",
                     _("Element %(element)s type %(typeName)s value error: %(value)s, %(error)s"),
                     modelObject=elt,
-                    element=elt.elementQname,
+                    element=errElt,
                     typeName=baseXsdType,
                     value=value,
                     error=err)
