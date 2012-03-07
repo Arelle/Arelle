@@ -142,15 +142,32 @@ predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("language",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
 
+def xhtmlValidate(modelXbrl, elt):
+    from lxml.etree import DTD, XMLSyntaxError
+    # copy xhtml elements to fresh tree
+    with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "xhtml1-strict.dtd")) as fh:
+        dtd = DTD(fh)
+    try:
+        if not dtd.validate( XmlUtil.ixToXhtml(elt) ):
+            modelXbrl.error("xmlDTD:error",
+                _("%(element)s error %(error)s"),
+                modelObject=elt, element=elt.localName.title(),
+                error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
+    except XMLSyntaxError as err:
+        modelXbrl.error("xmlDTD:error",
+            _("%(element)s error %(error)s"),
+            modelObject=elt, element=elt.localName.title(), error=dtd.error_log.filter_from_errors())
 
-def validate(modelXbrl, elt, recurse=True, attrQname=None):
+def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
+    global ModelInlineFact
+    if ModelInlineFact is None:
+        from arelle.ModelInstanceObject import ModelInlineFact
+    isIxFact = isinstance(elt, ModelInlineFact)
+
     # attrQname can be provided for attributes that are global and LAX
-    if not hasattr(elt,"xValid"):
+    if not hasattr(elt,"xValid") and (not isIxFact or ixFacts):
         text = elt.elementText
-        global ModelInlineFact
-        if ModelInlineFact is None:
-            from arelle.ModelInstanceObject import ModelInlineFact
-        qnElt = elt.qname if isinstance(elt, ModelInlineFact) else qname(elt)
+        qnElt = elt.qname if ixFacts and isIxFact else qname(elt)
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         facets = None
         if modelConcept is not None:
@@ -243,7 +260,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                 if validateElementSequence is None:
                     from arelle.XmlValidateParticles import validateElementSequence, modelGroupCompositorTitle
                 try:
-                    childElts = elt.modelTupleFacts if isinstance(elt, ModelInlineFact) else list(elt)
+                    childElts = elt.modelTupleFacts if ixFacts and isIxFact else list(elt)
                     if isNil:
                         if childElts and any(True for e in childElts if isinstance(e, ModelObject)) or elt.text:
                             modelXbrl.error("xmlSchema:nilElementHasContent",
@@ -265,9 +282,9 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None):
                 except AttributeError as ex:
                     pass
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
-        for child in elt:
+        for child in (elt.modelTupleFacts if ixFacts and isIxFact else elt):
             if isinstance(child, ModelObject):
-                validate(modelXbrl, child)
+                validate(modelXbrl, child, recurse, attrQname, ixFacts)
 
 def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False, facets=None):
     if baseXsdType:

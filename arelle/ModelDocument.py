@@ -693,7 +693,12 @@ class ModelDocument:
         self.modelXbrl.units[unitElement.id] = unitElement
                 
     def inlineXbrlDiscover(self, htmlElement):
-        self.schemaLinkbaseRefsDiscover(htmlElement)
+        if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
+            #load(self.modelXbrl, "http://www.w3.org/2002/08/xhtml/xhtml1-strict.xsd")
+            XmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
+        for inlineElement in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}references"):
+            self.schemaLinkbaseRefsDiscover(inlineElement)
+            XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
         for inlineElement in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}resources"):
             self.instanceContentsDiscover(inlineElement)
             XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
@@ -722,7 +727,7 @@ class ModelDocument:
             
         # validate particle structure of elements after transformations and established tuple structure
         for rootModelFact in self.modelXbrl.facts:
-            XmlValidate.validate(self.modelXbrl, rootModelFact)
+            XmlValidate.validate(self.modelXbrl, rootModelFact, ixFacts=True)
 
                 
     def inlineXbrlLocateFactInTuple(self, modelFact, tuplesByTupleID):
