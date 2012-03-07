@@ -155,8 +155,13 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error("HMRC.{0}".format(ref), msg, modelObject=modelXbrl)
                 if ("DateApprovalAccounts" not in gaapItems and
                     "DateAuthorisationFinancialStatementsForIssue" not in ifrsItems):
-                    modelXbrl.error("HMRC.08",
+                    modelXbrl.error("HMRC.07",
                         _("Balance Sheet Date of Approval (uk-gaap:DateApprovalAccounts) is missing OR Balance Sheet Date of Approval (uk-ifrs:DateAuthorisationFinancialStatementsForIssue) is missing."),
+                        modelObject=modelXbrl)
+                if ("NameDirectorSigningAccounts" not in gaapItems and
+                    "ExplanationOfBodyOfAuthorisation" not in ifrsItems):
+                    modelXbrl.error("HMRC.08",
+                        _("Name of Director Approving Balance Sheet (uk-gaap:NameDirectorSigningAccounts) is missing OR Name of Director Approving Balance Sheet (ifrs:ExplanationOfBodyOfAuthorisation) is missing."),
                         modelObject=modelXbrl)
                 if ("ProfitLossForPeriod" not in gaapItems and
                     "ProfitLoss" not in ifrsItems):
