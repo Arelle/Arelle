@@ -88,7 +88,7 @@ def validateElementSequence(modelXbrl, compositor, children, iNextChild=0):
         occured = True
     if isinstance(compositor, ModelType) and iNextChild < len(children):
         elt = children[iNextChild]
-        eltChildren = elt.modelTupleFacts if isinstance(elt, ModelInlineFact) else elt.children[iNextChild]
+        eltChildren = elt.modelTupleFacts if isinstance(elt, ModelInlineFact) else elt
         if any(True for child in eltChildren if isinstance(child, ModelObject)): # any unexpected content elements
             return (iNextChild, False,
                     ("xmlSchema:elementUnexpected",
