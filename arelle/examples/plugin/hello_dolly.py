@@ -1,10 +1,11 @@
-from arelle import PluginManager
-from random import randint
-import sys
 '''
 Hello dolly is a simple "Hello world" to demonstrate how plugins
 are written for Arelle
+
+(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
+from random import randint
+
 
 LYRICS =  ["I said hello, dolly,......well, hello, dolly", \
             "It's so nice to have you back where you belong ", \
@@ -18,7 +19,7 @@ LYRICS =  ["I said hello, dolly,......well, hello, dolly", \
 
 def randomLyric():
     ''' A random lyrics.'''
-    return LYRICS[randint(0, len(LYRICS))]
+    return LYRICS[randint(0, len(LYRICS) - 1)]
         
 def helloMenuEntender(cntlr, menu):
     menu.add_cascade(label="Hello Dolly", underline=0, command=lambda: helloMenuCommand(cntlr, "Hello Dolly") )
