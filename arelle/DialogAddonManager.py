@@ -27,6 +27,7 @@ class DialogAddonManager(Toplevel):
         self.pluginConfig = PluginManager.pluginConfig
         self.pluginConfigChanged = False
         self.uiClassMethodsChanged = False
+        self.modulesWithNewerFileDates = PluginManager.modulesWithNewerFileDates()
         
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
@@ -42,7 +43,7 @@ class DialogAddonManager(Toplevel):
         addLocalButton = Button(buttonFrame, text=_("Locally"), command=self.findLocally)
         ToolTip(addLocalButton, text=_("File chooser allows selecting python module files to add (or reload) plug ins, from the local file system."), wraplength=240)
         addWebButton = Button(buttonFrame, text=_("On Web"), command=self.findOnWeb)
-        ToolTip(addWebButton, text=_("Dialog to enter URL full path to load(or reload) plug ins, from the local file system."), wraplength=240)
+        ToolTip(addWebButton, text=_("Dialog to enter URL full path to load (or reload) plug ins, from the web or local file system."), wraplength=240)
         addLabel.grid(row=0, column=0, pady=4)
         addLocalButton.grid(row=1, column=0, pady=4)
         addWebButton.grid(row=2, column=0, pady=4)
@@ -66,7 +67,7 @@ class DialogAddonManager(Toplevel):
 
         self.modulesView.column("#0", width=120, anchor="w")
         self.modulesView.heading("#0", text=_("Name"))
-        self.modulesView["columns"] = ("author", "ver", "status", "date", "descr", "license")
+        self.modulesView["columns"] = ("author", "ver", "status", "date", "update", "descr", "license")
         self.modulesView.column("author", width=100, anchor="w", stretch=False)
         self.modulesView.heading("author", text=_("Author"))
         self.modulesView.column("ver", width=50, anchor="w", stretch=False)
@@ -75,6 +76,8 @@ class DialogAddonManager(Toplevel):
         self.modulesView.heading("status", text=_("Status"))
         self.modulesView.column("date", width=70, anchor="w", stretch=False)
         self.modulesView.heading("date", text=_("File Date"))
+        self.modulesView.column("update", width=50, anchor="w", stretch=False)
+        self.modulesView.heading("update", text=_("Update"))
         self.modulesView.column("descr", width=200, anchor="w", stretch=False)
         self.modulesView.heading("descr", text=_("Description"))
         self.modulesView.column("license", width=70, anchor="w", stretch=False)
@@ -117,18 +120,19 @@ class DialogAddonManager(Toplevel):
         self.moduleDescrLabel.grid(row=2, column=1, columnspan=3, sticky=W)
         self.moduleClassesHdr = Label(moduleInfoFrame, text=_("classes:"), state=DISABLED)
         self.moduleClassesHdr.grid(row=3, column=0, sticky=W)
-        ToolTip(self.moduleClassesHdr, text=_("List of classes that this plug-in handles."), wraplength=240)
         self.moduleClassesLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
         self.moduleClassesLabel.grid(row=3, column=1, columnspan=3, sticky=W)
+        ToolTip(self.moduleClassesLabel, text=_("List of classes that this plug-in handles."), wraplength=240)
         self.moduleUrlHdr = Label(moduleInfoFrame, text=_("URL:"), state=DISABLED)
         self.moduleUrlHdr.grid(row=4, column=0, sticky=W)
-        ToolTip(self.moduleUrlHdr, text=_("URL of plug-in module file."), wraplength=240)
         self.moduleUrlLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
         self.moduleUrlLabel.grid(row=4, column=1, columnspan=3, sticky=W)
+        ToolTip(self.moduleUrlLabel, text=_("URL of plug-in module (local file path or web loaded file)."), wraplength=240)
         self.moduleDateHdr = Label(moduleInfoFrame, text=_("date:"), state=DISABLED)
         self.moduleDateHdr.grid(row=5, column=0, sticky=W)
         self.moduleDateLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
         self.moduleDateLabel.grid(row=5, column=1, columnspan=3, sticky=W)
+        ToolTip(self.moduleDateLabel, text=_("Date of currently loaded module file (with parenthetical node when an update is available)."), wraplength=240)
         self.moduleEnableButton = Button(moduleInfoFrame, text=self.ENABLE, state=DISABLED, command=self.moduleEnable)
         ToolTip(self.moduleEnableButton, text=_("Enable/disable plug in."), wraplength=240)
         self.moduleEnableButton.grid(row=6, column=1, sticky=E)
@@ -136,7 +140,7 @@ class DialogAddonManager(Toplevel):
         ToolTip(self.moduleReloadButton, text=_("Reload/update plug in."), wraplength=240)
         self.moduleReloadButton.grid(row=6, column=2, sticky=E)
         self.moduleRemoveButton = Button(moduleInfoFrame, text=_("Remove"), state=DISABLED, command=self.moduleRemove)
-        ToolTip(self.moduleRemoveButton, text=_("Remove plug in from plug in table (does not affect the plug in's file)."), wraplength=240)
+        ToolTip(self.moduleRemoveButton, text=_("Remove plug in from plug in table (does not erase the plug in's file)."), wraplength=240)
         self.moduleRemoveButton.grid(row=6, column=3, sticky=E)
         moduleInfoFrame.grid(row=2, column=0, columnspan=5, sticky=(N, S, E, W), padx=3, pady=3)
         moduleInfoFrame.config(borderwidth=4, relief="groove")
@@ -173,11 +177,14 @@ class DialogAddonManager(Toplevel):
 
         for i, moduleItem in enumerate(sorted(self.pluginConfig.get("modules", {}).items())):
             moduleInfo = moduleItem[1]
-            node = self.modulesView.insert("", "end", moduleInfo.get("name"), text=moduleInfo.get("name"))
+            name = moduleInfo.get("name", moduleItem[0])
+            node = self.modulesView.insert("", "end", name, text=name)
             self.modulesView.set(node, "author", moduleInfo.get("author"))
             self.modulesView.set(node, "ver", moduleInfo.get("version"))
             self.modulesView.set(node, "status", moduleInfo.get("status"))
             self.modulesView.set(node, "date", moduleInfo.get("fileDate"))
+            if name in self.modulesWithNewerFileDates:
+                self.modulesView.set(node, "update", _("available"))
             self.modulesView.set(node, "descr", moduleInfo.get("description"))
             self.modulesView.set(node, "license", moduleInfo.get("license"))
         
@@ -189,6 +196,8 @@ class DialogAddonManager(Toplevel):
             className, moduleList = classItem
             node = self.classesView.insert("", "end", className, text=className)
             self.classesView.set(node, "modules", ', '.join(moduleList))
+            
+        self.moduleSelect()  # clear out prior selection
 
     def ok(self, event=None):
         if self.pluginConfigChanged:
@@ -200,18 +209,20 @@ class DialogAddonManager(Toplevel):
             messagebox.showwarning(_("User interface plug-in change"),
                                    _("A change in plug-in class methods may have affected the menus "
                                      "of the user interface.  It may be necessary to restart Arelle to "
-                                     "access the menu entries or the changes to their plug-in methods."))
+                                     "access the menu entries or the changes to their plug-in methods."),
+                                   parent=self)
         
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
                 
     def moduleSelect(self, *args):
-        node = self.modulesView.selection()[0]
+        node = (self.modulesView.selection() or (None,))[0]
         moduleInfo = self.pluginConfig.get("modules", {}).get(node)
         if moduleInfo:
             self.selectedModule = node
-            self.moduleNameLabel.config(text=moduleInfo["name"])
+            name = moduleInfo["name"]
+            self.moduleNameLabel.config(text=name)
             self.moduleAuthorHdr.config(state=ACTIVE)
             self.moduleAuthorLabel.config(text=moduleInfo["author"])
             self.moduleDescrHdr.config(state=ACTIVE)
@@ -221,7 +232,8 @@ class DialogAddonManager(Toplevel):
             self.moduleUrlHdr.config(state=ACTIVE)
             self.moduleUrlLabel.config(text=moduleInfo["moduleURL"])
             self.moduleDateHdr.config(state=ACTIVE)
-            self.moduleDateLabel.config(text=moduleInfo["fileDate"])
+            self.moduleDateLabel.config(text=moduleInfo["fileDate"] + " " +
+                    (_("(an update is available)") if name in self.modulesWithNewerFileDates else ""))
             self.moduleEnableButton.config(state=ACTIVE,
                                            text={"enabled":self.DISABLE,
                                                  "disabled":self.ENABLE}[moduleInfo["status"]])
@@ -254,19 +266,25 @@ class DialogAddonManager(Toplevel):
         if filename:
             self.cntlr.config["pluginOpenDir"] = os.path.dirname(filename)
             moduleInfo = PluginManager.moduleModuleInfo(filename)
-            if moduleInfo and moduleInfo.get("name"):
-                self.addPluginConfigModuleInfo(moduleInfo)
-                self.loadTreeViews()
+            self.loadFoundModuleInfo(moduleInfo, filename)
                 
 
     def findOnWeb(self):
         url = DialogURL.askURL(self)
         if url:  # url is the in-cache or local file
             moduleInfo = PluginManager.moduleModuleInfo(url)
-            if moduleInfo and moduleInfo.get("name"):
-                self.addPluginConfigModuleInfo(moduleInfo)
-                self.loadTreeViews()
-            self.cntlr.showStatus(_("{0} loaded").format(moduleInfo.get("name")), clearAfter=5000)
+            self.cntlr.showStatus("") # clear web loading status
+            self.loadFoundModuleInfo(moduleInfo, url)
+                
+    def loadFoundModuleInfo(self, moduleInfo, url):
+        if moduleInfo and moduleInfo.get("name"):
+            self.addPluginConfigModuleInfo(moduleInfo)
+            self.loadTreeViews()
+        else:
+            messagebox.showwarning(_("Module is not a plug-in"),
+                                   _("File does not contain a python program with an appropriate __pluginInfo__ declaration: \n\n{0}")
+                                   .format(url),
+                                   parent=self)
             
     def removePluginConfigModuleInfo(self, name):
         moduleInfo = self.pluginConfig["modules"].get(name)
@@ -284,6 +302,7 @@ class DialogAddonManager(Toplevel):
     def addPluginConfigModuleInfo(self, moduleInfo):
         name = moduleInfo["name"]
         self.removePluginConfigModuleInfo(name)  # remove any prior entry for this module
+        self.modulesWithNewerFileDates.discard(name) # no longer has an update available
         self.pluginConfig["modules"][name] = moduleInfo
         # add classes
         for classMethod in moduleInfo["classMethods"]:
@@ -312,6 +331,7 @@ class DialogAddonManager(Toplevel):
                 moduleInfo = PluginManager.moduleModuleInfo(url, reload=True)
                 if moduleInfo:
                     self.addPluginConfigModuleInfo(moduleInfo)
+                    self.loadTreeViews()
                 self.cntlr.showStatus(_("{0} reloaded").format(moduleInfo.get("name")), clearAfter=5000)
 
     def moduleRemove(self):
