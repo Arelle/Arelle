@@ -168,10 +168,10 @@ class WebCache:
                         .sub(lambda c: chr( int(c.group(0)[1:]) ), # remove ^nnn encoding
                          urlpart) for urlpart in urlparts)
             
-    def getfilename(self, url, base=None, reload=False):
+    def getfilename(self, url, base=None, reload=False, normalize=False):
         if url is None:
             return url
-        if base is not None:
+        if base is not None or normalize:
             url = self.normalizeUrl(url, base)
         if url.startswith('http://'):
             # form cache file name (substituting _ for any illegal file characters)

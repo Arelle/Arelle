@@ -12,6 +12,7 @@ from arelle import PythonUtil # define 2.x or 3.x string types
 import tempfile, os, io, sys, logging, gettext, json
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
+from arelle import PluginManager
 from collections import defaultdict
 isPy3 = (sys.version[0] >= '3')
 
@@ -135,11 +136,17 @@ class Cntlr:
             gettext.translation("arelle", self.localeDir, getLanguageCodes()).install()
         except Exception as msg:
             gettext.install("arelle", self.localeDir)
-
+            
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         self.modelManager = ModelManager.initialize(self)
         
+        # start plug in server (requres web cache initialized
+        PluginManager.init(self)
+ 
+        self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
+        
+    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         if logFileName: # use default logging
             self.logger = logging.getLogger("arelle")
             if logFileName == "logToPrint":
@@ -176,6 +183,7 @@ class Cntlr:
         """.. method:: close(saveConfig=False)
            Close controller and its logger, optionally saaving the user preferences configuration
            :param saveConfig: save the user preferences configuration"""
+        PluginManager.save(self)
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:

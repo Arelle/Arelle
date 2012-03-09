@@ -17,6 +17,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
 from arelle.ModelValue import qname
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
+from arelle.PluginManager import pluginClassMethods
 import logging
 
 def main():
@@ -26,6 +27,7 @@ def main():
     except ImportError:
         hasWebServer = False
     gettext.install("arelle") # needed for options messages
+    cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
     usage = "usage: %prog [options]"
     parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
     parser.add_option("-f", "--file", dest="entrypointFile",
@@ -116,6 +118,8 @@ def main():
     if hasWebServer:
         parser.add_option("--webserver", action="store", dest="webserver",
                           help=_("start web server on host:port for REST and web access, e.g., --webserver locahost:8080."))
+    for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+        optionsExtender(parser)
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
@@ -165,16 +169,18 @@ def main():
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.pyw --help"))
         else:
             from arelle import CntlrWebMain
-            CntlrWebMain.startWebserver(CntlrCmdLine(logFileName='logToBuffer'), options)
+            cntlr.startLogging(logFileName='logToBuffer')
+            CntlrWebMain.startWebserver(cntlr, options)
     else:
         # parse and run the FILENAME
-        CntlrCmdLine(logFileName=options.logFile).run(options)
+        cntlr.startLogging(logFileName=options.logFile if options.logFile else "logToPrint",
+                           logFormat="[%(messageCode)s] %(message)s - %(file)s")
+        cntlr.run(options)
         
 class CntlrCmdLine(Cntlr.Cntlr):
 
     def __init__(self, logFileName=None):
-        super(CntlrCmdLine, self).__init__(logFileName=logFileName if logFileName else "logToPrint",
-                         logFormat="[%(messageCode)s] %(message)s - %(file)s")
+        super(CntlrCmdLine, self).__init__()
         
     def run(self, options):
         self.entrypointFile = options.entrypointFile
@@ -248,10 +254,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
         startedAt = time.time()
         modelDiffReport = None
         success = True
-        modelXbrl = self.modelManager.load(filesource, _("views loading"))
-        if modelXbrl.errors:
+        modelXbrl = None
+        try:
+            modelXbrl = self.modelManager.load(filesource, _("views loading"))
+        except Exception as err:
+            self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
+                        err,
+                        traceback.format_tb(sys.exc_info()[2])))
             success = False    # loading errors, don't attempt to utilize loaded DTS
-        else:
+        if modelXbrl and modelXbrl.modelDocument:
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("loaded in %.2f secs at %s"), 
                                         (time.time() - startedAt, timeNow)), 
@@ -316,6 +327,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang)
                 if options.formulaeFile:
                     ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
+                for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+                    pluginXbrlMethod(self, options, modelXbrl)
+                                        
             except (IOError, EnvironmentError) as err:
                 self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err))
                 success = False
