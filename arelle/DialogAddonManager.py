@@ -1,0 +1,322 @@
+'''
+Created on March 1, 2012
+
+@author: Mark V Systems Limited
+(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+
+based on pull request 4
+
+'''
+from tkinter import Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
+from tkinter.constants import DISABLED, ACTIVE
+from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
+from arelle import PluginManager, DialogURL
+from arelle.CntlrWinTooltip import ToolTip
+import re, os
+
+class DialogAddonManager(Toplevel):
+    def __init__(self, mainWin):
+        self.ENABLE = _("Enable")
+        self.DISABLE = _("Disable")
+        parent = mainWin.parent
+        super(DialogAddonManager, self).__init__(parent)
+        self.parent = parent
+        self.cntlr = mainWin
+        
+        # copy plugins for temporary display
+        self.pluginConfig = PluginManager.pluginConfig
+        self.pluginConfigChanged = False
+        self.uiClassMethodsChanged = False
+        
+        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        dialogX = int(parentGeometry.group(3))
+        dialogY = int(parentGeometry.group(4))
+
+        self.title(_("Add on Manager"))
+        frame = Frame(self)
+        
+        # left button frame
+        buttonFrame = Frame(frame, width=40)
+        buttonFrame.columnconfigure(0, weight=1)
+        addLabel = Label(buttonFrame, text=_("Find plugin modules:"), wraplength=60, justify="center")
+        addLocalButton = Button(buttonFrame, text=_("Locally"), command=self.findLocally)
+        ToolTip(addLocalButton, text=_("File chooser allows selecting python module files to add (or reload) plug ins, from the local file system."), wraplength=240)
+        addWebButton = Button(buttonFrame, text=_("On Web"), command=self.findOnWeb)
+        ToolTip(addWebButton, text=_("Dialog to enter URL full path to load(or reload) plug ins, from the local file system."), wraplength=240)
+        addLabel.grid(row=0, column=0, pady=4)
+        addLocalButton.grid(row=1, column=0, pady=4)
+        addWebButton.grid(row=2, column=0, pady=4)
+        buttonFrame.grid(row=0, column=0, rowspan=2, sticky=(N, S, W), padx=3, pady=3)
+        
+        # right tree frame (plugins already known to arelle)
+        modulesFrame = Frame(frame, width=700)
+        vScrollbar = Scrollbar(modulesFrame, orient=VERTICAL)
+        hScrollbar = Scrollbar(modulesFrame, orient=HORIZONTAL)
+        self.modulesView = Treeview(modulesFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set, height=7)
+        self.modulesView.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.modulesView.bind('<<TreeviewSelect>>', self.moduleSelect)
+        hScrollbar["command"] = self.modulesView.xview
+        hScrollbar.grid(row=1, column=0, sticky=(E,W))
+        vScrollbar["command"] = self.modulesView.yview
+        vScrollbar.grid(row=0, column=1, sticky=(N,S))
+        modulesFrame.columnconfigure(0, weight=1)
+        modulesFrame.rowconfigure(0, weight=1)
+        modulesFrame.grid(row=0, column=1, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
+        self.modulesView.focus_set()
+
+        self.modulesView.column("#0", width=120, anchor="w")
+        self.modulesView.heading("#0", text=_("Name"))
+        self.modulesView["columns"] = ("author", "ver", "status", "date", "descr", "license")
+        self.modulesView.column("author", width=100, anchor="w", stretch=False)
+        self.modulesView.heading("author", text=_("Author"))
+        self.modulesView.column("ver", width=50, anchor="w", stretch=False)
+        self.modulesView.heading("ver", text=_("Version"))
+        self.modulesView.column("status", width=50, anchor="w", stretch=False)
+        self.modulesView.heading("status", text=_("Status"))
+        self.modulesView.column("date", width=70, anchor="w", stretch=False)
+        self.modulesView.heading("date", text=_("File Date"))
+        self.modulesView.column("descr", width=200, anchor="w", stretch=False)
+        self.modulesView.heading("descr", text=_("Description"))
+        self.modulesView.column("license", width=70, anchor="w", stretch=False)
+        self.modulesView.heading("license", text=_("License"))
+
+        classesFrame = Frame(frame)
+        vScrollbar = Scrollbar(classesFrame, orient=VERTICAL)
+        hScrollbar = Scrollbar(classesFrame, orient=HORIZONTAL)
+        self.classesView = Treeview(classesFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set, height=5)
+        self.classesView.grid(row=0, column=0, sticky=(N, S, E, W))
+        hScrollbar["command"] = self.classesView.xview
+        hScrollbar.grid(row=1, column=0, sticky=(E,W))
+        vScrollbar["command"] = self.classesView.yview
+        vScrollbar.grid(row=0, column=1, sticky=(N,S))
+        classesFrame.columnconfigure(0, weight=1)
+        classesFrame.rowconfigure(0, weight=1)
+        classesFrame.grid(row=1, column=1, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
+        self.classesView.focus_set()
+        
+        self.classesView.column("#0", width=200, anchor="w")
+        self.classesView.heading("#0", text=_("Class"))
+        self.classesView["columns"] = ("modules")
+        self.classesView.column("modules", width=500, anchor="w", stretch=False)
+        self.classesView.heading("modules", text=_("Modules"))
+        
+        # bottom frame module info details
+        moduleInfoFrame = Frame(frame, width=700)
+        moduleInfoFrame.columnconfigure(1, weight=1)
+        
+        self.moduleNameLabel = Label(moduleInfoFrame, wraplength=600, justify="left", 
+                                     font=font.Font(family='Helvetica', size=12, weight='bold'))
+        self.moduleNameLabel.grid(row=0, column=0, columnspan=4, sticky=W)
+        self.moduleAuthorHdr = Label(moduleInfoFrame, text=_("author:"), state=DISABLED)
+        self.moduleAuthorHdr.grid(row=1, column=0, sticky=W)
+        self.moduleAuthorLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
+        self.moduleAuthorLabel.grid(row=1, column=1, columnspan=3, sticky=W)
+        self.moduleDescrHdr = Label(moduleInfoFrame, text=_("description:"), state=DISABLED)
+        self.moduleDescrHdr.grid(row=2, column=0, sticky=W)
+        self.moduleDescrLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
+        self.moduleDescrLabel.grid(row=2, column=1, columnspan=3, sticky=W)
+        self.moduleClassesHdr = Label(moduleInfoFrame, text=_("classes:"), state=DISABLED)
+        self.moduleClassesHdr.grid(row=3, column=0, sticky=W)
+        ToolTip(self.moduleClassesHdr, text=_("List of classes that this plug-in handles."), wraplength=240)
+        self.moduleClassesLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
+        self.moduleClassesLabel.grid(row=3, column=1, columnspan=3, sticky=W)
+        self.moduleUrlHdr = Label(moduleInfoFrame, text=_("URL:"), state=DISABLED)
+        self.moduleUrlHdr.grid(row=4, column=0, sticky=W)
+        ToolTip(self.moduleUrlHdr, text=_("URL of plug-in module file."), wraplength=240)
+        self.moduleUrlLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
+        self.moduleUrlLabel.grid(row=4, column=1, columnspan=3, sticky=W)
+        self.moduleDateHdr = Label(moduleInfoFrame, text=_("date:"), state=DISABLED)
+        self.moduleDateHdr.grid(row=5, column=0, sticky=W)
+        self.moduleDateLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
+        self.moduleDateLabel.grid(row=5, column=1, columnspan=3, sticky=W)
+        self.moduleEnableButton = Button(moduleInfoFrame, text=self.ENABLE, state=DISABLED, command=self.moduleEnable)
+        ToolTip(self.moduleEnableButton, text=_("Enable/disable plug in."), wraplength=240)
+        self.moduleEnableButton.grid(row=6, column=1, sticky=E)
+        self.moduleReloadButton = Button(moduleInfoFrame, text=_("Reload"), state=DISABLED, command=self.moduleReload)
+        ToolTip(self.moduleReloadButton, text=_("Reload/update plug in."), wraplength=240)
+        self.moduleReloadButton.grid(row=6, column=2, sticky=E)
+        self.moduleRemoveButton = Button(moduleInfoFrame, text=_("Remove"), state=DISABLED, command=self.moduleRemove)
+        ToolTip(self.moduleRemoveButton, text=_("Remove plug in from plug in table (does not affect the plug in's file)."), wraplength=240)
+        self.moduleRemoveButton.grid(row=6, column=3, sticky=E)
+        moduleInfoFrame.grid(row=2, column=0, columnspan=5, sticky=(N, S, E, W), padx=3, pady=3)
+        moduleInfoFrame.config(borderwidth=4, relief="groove")
+        
+        okButton = Button(frame, text=_("Close"), command=self.ok)
+        ToolTip(okButton, text=_("Accept and changes (if any) and close dialog."), wraplength=240)
+        cancelButton = Button(frame, text=_("Cancel"), command=self.close)
+        ToolTip(cancelButton, text=_("Cancel changes (if any) and close dialog."), wraplength=240)
+        okButton.grid(row=3, column=3, sticky=(S,E), pady=3)
+        cancelButton.grid(row=3, column=4, sticky=(S,E), pady=3, padx=3)
+        
+        self.loadTreeViews()
+
+        frame.grid(row=0, column=0, sticky=(N,S,E,W))
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+        window = self.winfo_toplevel()
+        window.columnconfigure(0, weight=1)
+        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
+        
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.close)
+        
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.grab_set()
+        self.wait_window(self)
+        
+    def loadTreeViews(self):
+        self.selectedModule = None
+
+        # clear previous treeview entries
+        for previousNode in self.modulesView.get_children(""): 
+            self.modulesView.delete(previousNode)
+
+        for i, moduleItem in enumerate(sorted(self.pluginConfig.get("modules", {}).items())):
+            moduleInfo = moduleItem[1]
+            node = self.modulesView.insert("", "end", moduleInfo.get("name"), text=moduleInfo.get("name"))
+            self.modulesView.set(node, "author", moduleInfo.get("author"))
+            self.modulesView.set(node, "ver", moduleInfo.get("version"))
+            self.modulesView.set(node, "status", moduleInfo.get("status"))
+            self.modulesView.set(node, "date", moduleInfo.get("fileDate"))
+            self.modulesView.set(node, "descr", moduleInfo.get("description"))
+            self.modulesView.set(node, "license", moduleInfo.get("license"))
+        
+        # clear previous treeview entries
+        for previousNode in self.classesView.get_children(""): 
+            self.classesView.delete(previousNode)
+
+        for i, classItem in enumerate(sorted(self.pluginConfig.get("classes", {}).items())):
+            className, moduleList = classItem
+            node = self.classesView.insert("", "end", className, text=className)
+            self.classesView.set(node, "modules", ', '.join(moduleList))
+
+    def ok(self, event=None):
+        if self.pluginConfigChanged:
+            PluginManager.pluginConfig = self.pluginConfig
+            PluginManager.pluginConfigChanged = True
+            PluginManager.reset()  # force reloading of modules
+        self.close()
+        if self.uiClassMethodsChanged:  # may require reloading UI
+            messagebox.showwarning(_("User interface plug-in change"),
+                                   _("A change in plug-in class methods may have affected the menus "
+                                     "of the user interface.  It may be necessary to restart Arelle to "
+                                     "access the menu entries or the changes to their plug-in methods."))
+        
+    def close(self, event=None):
+        self.parent.focus_set()
+        self.destroy()
+                
+    def moduleSelect(self, *args):
+        node = self.modulesView.selection()[0]
+        moduleInfo = self.pluginConfig.get("modules", {}).get(node)
+        if moduleInfo:
+            self.selectedModule = node
+            self.moduleNameLabel.config(text=moduleInfo["name"])
+            self.moduleAuthorHdr.config(state=ACTIVE)
+            self.moduleAuthorLabel.config(text=moduleInfo["author"])
+            self.moduleDescrHdr.config(state=ACTIVE)
+            self.moduleDescrLabel.config(text=moduleInfo["description"])
+            self.moduleClassesHdr.config(state=ACTIVE)
+            self.moduleClassesLabel.config(text=', '.join(moduleInfo["classMethods"]))
+            self.moduleUrlHdr.config(state=ACTIVE)
+            self.moduleUrlLabel.config(text=moduleInfo["moduleURL"])
+            self.moduleDateHdr.config(state=ACTIVE)
+            self.moduleDateLabel.config(text=moduleInfo["fileDate"])
+            self.moduleEnableButton.config(state=ACTIVE,
+                                           text={"enabled":self.DISABLE,
+                                                 "disabled":self.ENABLE}[moduleInfo["status"]])
+            self.moduleReloadButton.config(state=ACTIVE)
+            self.moduleRemoveButton.config(state=ACTIVE)
+        else:
+            self.selectedModule = None
+            self.moduleNameLabel.config(text="")
+            self.moduleAuthorHdr.config(state=DISABLED)
+            self.moduleAuthorLabel.config(text="")
+            self.moduleDescrHdr.config(state=DISABLED)
+            self.moduleDescrLabel.config(text="")
+            self.moduleClassesHdr.config(state=DISABLED)
+            self.moduleClassesLabel.config(text="")
+            self.moduleUrlHdr.config(state=DISABLED)
+            self.moduleUrlLabel.config(text="")
+            self.moduleDateHdr.config(state=DISABLED)
+            self.moduleDateLabel.config(text="")
+            self.moduleEnableButton.config(state=DISABLED, text=self.ENABLE)
+            self.moduleReloadButton.config(state=DISABLED)
+            self.moduleRemoveButton.config(state=DISABLED)
+        
+    def findLocally(self):
+        filename = self.cntlr.uiFileDialog("open",
+                                           owner=self,
+                                           title=_("Choose plug in module file"),
+                                           initialdir=self.cntlr.config.setdefault("pluginOpenDir","."),
+                                           filetypes=[(_("Python files"), "*.py")],
+                                           defaultextension=".py")
+        if filename:
+            self.cntlr.config["pluginOpenDir"] = os.path.dirname(filename)
+            moduleInfo = PluginManager.moduleModuleInfo(filename)
+            if moduleInfo and moduleInfo.get("name"):
+                self.addPluginConfigModuleInfo(moduleInfo)
+                self.loadTreeViews()
+                
+
+    def findOnWeb(self):
+        url = DialogURL.askURL(self)
+        if url:  # url is the in-cache or local file
+            moduleInfo = PluginManager.moduleModuleInfo(url)
+            if moduleInfo and moduleInfo.get("name"):
+                self.addPluginConfigModuleInfo(moduleInfo)
+                self.loadTreeViews()
+            self.cntlr.showStatus(_("{0} loaded").format(moduleInfo.get("name")), clearAfter=5000)
+            
+    def removePluginConfigModuleInfo(self, name):
+        moduleInfo = self.pluginConfig["modules"].get(name)
+        if moduleInfo:
+            for classMethod in moduleInfo["classMethods"]:
+                classMethods = self.pluginConfig["classes"].get(classMethod)
+                if classMethods and name in classMethods:
+                    classMethods.remove(name)
+                    if not classMethods: # list has become unused
+                        del self.pluginConfig["classes"][classMethod] # remove class
+                    if classMethod.startswith("CntlrWinMain.Menu"):
+                        self.uiClassMethodsChanged = True  # may require reloading UI
+            del self.pluginConfig["modules"][name]
+
+    def addPluginConfigModuleInfo(self, moduleInfo):
+        name = moduleInfo["name"]
+        self.removePluginConfigModuleInfo(name)  # remove any prior entry for this module
+        self.pluginConfig["modules"][name] = moduleInfo
+        # add classes
+        for classMethod in moduleInfo["classMethods"]:
+            classMethods = self.pluginConfig["classes"].setdefault(classMethod, [])
+            if classMethods and name not in classMethods:
+                classMethods.append(name)
+            if classMethod.startswith("CntlrWinMain.Menu"):
+                self.uiClassMethodsChanged = True  # may require reloading UI
+
+    def moduleEnable(self):
+        if self.selectedModule in self.pluginConfig["modules"]:
+            moduleInfo = self.pluginConfig["modules"][self.selectedModule]
+            if self.moduleEnableButton['text'] == self.ENABLE:
+                moduleInfo["status"] = "enabled"
+                self.moduleEnableButton['text'] = self.DISABLE
+            elif self.moduleEnableButton['text'] == self.DISABLE:
+                moduleInfo["status"] = "disabled"
+                self.moduleEnableButton['text'] = self.ENABLE
+            self.pluginConfigChanged = True
+            self.loadTreeViews()
+            
+    def moduleReload(self):
+        if self.selectedModule in self.pluginConfig["modules"]:
+            url = self.pluginConfig["modules"][self.selectedModule].get("moduleURL")
+            if url:
+                moduleInfo = PluginManager.moduleModuleInfo(url, reload=True)
+                if moduleInfo:
+                    self.addPluginConfigModuleInfo(moduleInfo)
+                self.cntlr.showStatus(_("{0} reloaded").format(moduleInfo.get("name")), clearAfter=5000)
+
+    def moduleRemove(self):
+        if self.selectedModule in self.pluginConfig["modules"]:
+            self.removePluginConfigModuleInfo(self.selectedModule)
+            self.pluginConfigChanged = True
+            self.loadTreeViews()
+                    
