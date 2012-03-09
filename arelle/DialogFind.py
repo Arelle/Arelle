@@ -176,11 +176,11 @@ class DialogFind(Toplevel):
         self.accepted = True
         # self.close()
         
-        docType = self.modelManager.modelXbrl.modelDocument.type
+        docType = self.modelManager.modelXbrl.modelDocument.type if self.modelManager.modelXbrl else None
         if self.options["messagesLog"]:
             if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
                 messagebox.showerror(_("Find cannot be completed"),
-                         _("XPath matching is not available for searching messages, please choose text or regular expression.  "), parent=self.parent)
+                         _("XPath matching is not available for searching messages, please choose text or regular expression.  "), parent=self)
                 return
         else:
             if not self.modelManager.modelXbrl or not docType in (
@@ -192,7 +192,7 @@ class DialogFind(Toplevel):
                 
             if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
                 messagebox.showerror(_("Find cannot be completed"),
-                         _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self.parent)
+                         _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self)
                 return
                 
         self.modelXbrl = self.modelManager.modelXbrl
@@ -353,12 +353,12 @@ class DialogFind(Toplevel):
                 return
             if self.modelManager.modelXbrl != self.modelXbrl:
                 messagebox.showerror(_("Next cannot be completed"),
-                                _("A different DTS is active, than find was initiated with.  Please press 'find' to re-search with the current DTS"), parent=self.parent)
+                                _("A different DTS is active, than find was initiated with.  Please press 'find' to re-search with the current DTS"), parent=self)
                 return
         lenObjsList = len(self.objsList)
         if lenObjsList == 0:
             messagebox.showwarning(_("Next cannot be completed"),
-                            _("No matches were found.  Please try a different search."), parent=self.parent)
+                            _("No matches were found.  Please try a different search."), parent=self)
             return
             
         if self.foundIndex < 0 and nextIsDown:

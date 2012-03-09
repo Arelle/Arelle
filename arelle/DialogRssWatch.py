@@ -186,7 +186,7 @@ class DialogRssWatch(Toplevel):
             errors.append(_("Latest pub date field contents invalid"))
         if errors:
             messagebox.showwarning(_("Dialog validation error(s)"),
-                                "\n ".join(errors), parent=self.parent)
+                                "\n ".join(errors), parent=self)
             return False
         return True
         

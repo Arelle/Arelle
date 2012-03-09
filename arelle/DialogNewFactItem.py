@@ -127,7 +127,7 @@ class DialogNewFactItemOptions(Toplevel):
             errors.append(_("Non-monetary decimals invalid"))
         if errors:
             messagebox.showwarning(_("Dialog validation error(s)"),
-                                "\n ".join(errors), parent=self.parent)
+                                "\n ".join(errors), parent=self)
             return False
         return True
         
