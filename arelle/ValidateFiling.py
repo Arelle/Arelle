@@ -13,6 +13,7 @@ from arelle import (ModelDocument, ModelValue, ValidateXbrl,
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
+from arelle.PluginManager import pluginClassMethods
 
 datePattern = None
 
@@ -84,6 +85,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         validateInlineXbrlGFM = (modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and
                                  self.validateGFM)
         
+        if self.validateEFM:
+            for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Start"):
+                pluginXbrlMethod(self)
+                
         # instance checks
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
@@ -302,6 +307,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     
                         if isEntityCommonStockSharesOutstanding and not hasClassOfStockMember:
                             hasUndefinedDefaultStockMember = True   # absent dimension, may be no def LB
+                    if self.validateEFM:
+                        for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Fact"):
+                            pluginXbrlMethod(self, f)
                 #6.5.17 facts with precision
                 concept = f.concept
                 if concept is None:
@@ -1169,6 +1177,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelObject=domainElt, concept=domainElt.qname)
                     
             self.modelXbrl.profileActivity("... SBR role types and type facits checks", minTimeToShow=1.0)
+
+        if self.validateEFM:
+            for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Finally"):
+                pluginXbrlMethod(self)
+        self.modelXbrl.profileActivity("... plug in '.Finally' checks", minTimeToShow=1.0)
+        
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
     def directedCycle(self, relFrom, origin, fromRelationships):
