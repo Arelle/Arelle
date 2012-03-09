@@ -145,7 +145,7 @@ predefinedAttributeTypes = {
 def xhtmlValidate(modelXbrl, elt):
     from lxml.etree import DTD, XMLSyntaxError
     # copy xhtml elements to fresh tree
-    with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "xhtml1-strict.dtd")) as fh:
+    with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "xhtml1-strict-ix.dtd")) as fh:
         dtd = DTD(fh)
     try:
         if not dtd.validate( XmlUtil.ixToXhtml(elt) ):

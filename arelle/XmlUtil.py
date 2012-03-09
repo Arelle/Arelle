@@ -621,7 +621,16 @@ def copyNonIxChildren(fromElt, toElt):
             fromTag = fromChild.tag
             if fromTag not in {"{http://www.xbrl.org/2008/inlineXBRL}references",
                                "{http://www.xbrl.org/2008/inlineXBRL}resources"}:
-                if fromTag.startswith("{http://www.xbrl.org/2008/inlineXBRL}"):
+                if fromTag in {"{http://www.xbrl.org/2008/inlineXBRL}footnote",
+                               "{http://www.xbrl.org/2008/inlineXBRL}nonNumeric"}:
+                    toChild = etree.Element("ixNestedContent")
+                    toElt.append(toChild)
+                    copyNonIxChildren(fromChild, toChild)
+                    if fromChild.text is not None:
+                        toChild.text = fromChild.text
+                    if fromChild.tail is not None:
+                        toChild.tail = fromChild.tail
+                elif fromTag.startswith("{http://www.xbrl.org/2008/inlineXBRL}"):
                     copyNonIxChildren(fromChild, toElt)
                 else:
                     toChild = etree.Element(fromChild.localName)
