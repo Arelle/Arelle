@@ -4,9 +4,9 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
-import re, os
+from tkinter import Toplevel, StringVar, VERTICAL, HORIZONTAL, N, S, E, W, messagebox
+from tkinter.ttk import Frame, Button, Treeview, Scrollbar
+import re, os, sys
 from arelle.CntlrWinTooltip import ToolTip
 
 '''

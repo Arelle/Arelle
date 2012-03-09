@@ -4,13 +4,13 @@ Created on Jan 25, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Toplevel, PhotoImage, messagebox, N, S, E, W
+from tkinter.ttk import Frame, Button
 import tkinter.filedialog
 import re, os
 from arelle.ModelValue import dateTime
 from arelle import XmlUtil
-from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+from arelle.UiUtil import gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isValidAbsolute
 
@@ -185,7 +185,7 @@ class DialogRssWatch(Toplevel):
         if self.cellLatestPubDate.value and dateTime(self.cellLatestPubDate.value) is None:
             errors.append(_("Latest pub date field contents invalid"))
         if errors:
-            tkinter.messagebox.showwarning(_("Dialog validation error(s)"),
+            messagebox.showwarning(_("Dialog validation error(s)"),
                                 "\n ".join(errors), parent=self.parent)
             return False
         return True

@@ -4,9 +4,8 @@ Created on Nov 28, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
-import tkinter.filedialog
+from tkinter import Toplevel, N, S, E, W, messagebox
+from tkinter.ttk import Frame, Button
 import re
 from arelle.ModelInstanceObject import NewFactItemOptions
 from arelle.ModelValue import dateTime
@@ -127,7 +126,7 @@ class DialogNewFactItemOptions(Toplevel):
         if not decimalsPattern.match(self.cellNonMonetaryDecimals.value):
             errors.append(_("Non-monetary decimals invalid"))
         if errors:
-            tkinter.messagebox.showwarning(_("Dialog validation error(s)"),
+            messagebox.showwarning(_("Dialog validation error(s)"),
                                 "\n ".join(errors), parent=self.parent)
             return False
         return True

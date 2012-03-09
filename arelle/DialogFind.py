@@ -4,13 +4,12 @@ Created on May 1, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
-import tkinter.messagebox, traceback
+from tkinter import Toplevel, N, S, E, W, messagebox
+from tkinter.ttk import Frame, Button
 import re
-from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton)
+from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton
 from arelle.CntlrWinTooltip import ToolTip
-from arelle import (ModelDocument, ModelRssObject, XPathContext, XPathParser, XmlUtil)
+from arelle import ModelDocument, XPathContext, XPathParser, XmlUtil
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRssItem import ModelRssItem
@@ -180,19 +179,19 @@ class DialogFind(Toplevel):
         docType = self.modelManager.modelXbrl.modelDocument.type
         if self.options["messagesLog"]:
             if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
-                tkinter.messagebox.showerror(_("Find cannot be completed"),
+                messagebox.showerror(_("Find cannot be completed"),
                          _("XPath matching is not available for searching messages, please choose text or regular expression.  "), parent=self.parent)
                 return
         else:
             if not self.modelManager.modelXbrl or not docType in (
                  ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL,
                  ModelDocument.Type.RSSFEED):
-                tkinter.messagebox.showerror(_("Find cannot be completed"),
+                messagebox.showerror(_("Find cannot be completed"),
                          _("Find requires an opened DTS or RSS Feed"), parent=self.parent)
                 return
                 
             if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
-                tkinter.messagebox.showerror(_("Find cannot be completed"),
+                messagebox.showerror(_("Find cannot be completed"),
                          _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self.parent)
                 return
                 
@@ -353,12 +352,12 @@ class DialogFind(Toplevel):
             if self.modelXbrl is None:
                 return
             if self.modelManager.modelXbrl != self.modelXbrl:
-                tkinter.messagebox.showerror(_("Next cannot be completed"),
+                messagebox.showerror(_("Next cannot be completed"),
                                 _("A different DTS is active, than find was initiated with.  Please press 'find' to re-search with the current DTS"), parent=self.parent)
                 return
         lenObjsList = len(self.objsList)
         if lenObjsList == 0:
-            tkinter.messagebox.showwarning(_("Next cannot be completed"),
+            messagebox.showwarning(_("Next cannot be completed"),
                             _("No matches were found.  Please try a different search."), parent=self.parent)
             return
             

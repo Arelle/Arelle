@@ -4,11 +4,9 @@ Created on Jan 25, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Toplevel, N, S, E, W
+from tkinter.ttk import Frame, Button
 import re
-from arelle.ModelFormulaObject import FormulaOptions
-from arelle.ModelValue import qname
 from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
 
 '''

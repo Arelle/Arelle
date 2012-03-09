@@ -4,11 +4,11 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Toplevel, StringVar, N, S, E, W, EW, DISABLED, NORMAL
+from tkinter.ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import (checkbox)
-import re
+import re, sys
 
 '''
 caller checks accepted, if True, caller retrieves url

@@ -4,8 +4,8 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Toplevel, PhotoImage, N, S, E, W, EW, NW
+from tkinter.ttk import Label, Button, Frame
 import re
 
 '''
