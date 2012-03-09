@@ -168,7 +168,7 @@ class WebCache:
                         .sub(lambda c: chr( int(c.group(0)[1:]) ), # remove ^nnn encoding
                          urlpart) for urlpart in urlparts)
             
-    def getfilename(self, url, base=None, reload=False, normalize=False):
+    def getfilename(self, url, base=None, reload=False, checkModifiedTime=False, normalize=False):
         if url is None:
             return url
         if base is not None or normalize:
@@ -187,7 +187,7 @@ class WebCache:
             timeNow = time.time()
             timeNowStr = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(timeNow))
             if not reload and os.path.exists(filepath):
-                if url in self.cachedUrlCheckTimes:
+                if url in self.cachedUrlCheckTimes and not checkModifiedTime:
                     cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], '%Y-%m-%dT%H:%M:%S UTC'))
                 else:
                     cachedTime = 0

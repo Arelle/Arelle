@@ -106,6 +106,14 @@ moduleInfo = {
 
 
 '''
+    
+def modulesWithNewerFileDates():
+    names = set()
+    for moduleInfo in pluginConfig["modules"].values():
+        freshenedFilename = webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True)
+        if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
+            names.add(moduleInfo["name"])
+    return names
 
 def moduleModuleInfo(moduleURL, reload=False):
     #TODO several directories, eg User Application Data
