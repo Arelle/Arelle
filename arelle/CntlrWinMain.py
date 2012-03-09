@@ -157,7 +157,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         helpMenu = Menu(self.menubar, tearoff=0)
         for label, command, shortcut_text, shortcut in (
                 (_("Check for updates"), lambda: Updater.checkForUpdates(self), None, None),
-                (_("Manage add-ons"), lambda: DialogAddonManager.DialogAddonManager(self), None, None),
+                (_("Manage add-ons"), lambda: DialogAddonManager.dialogAddonManager(self), None, None),
                 (None, None, None, None),
                 (_("About..."), self.helpAbout, None, None),
                 ):

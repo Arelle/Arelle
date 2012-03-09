@@ -14,22 +14,37 @@ from arelle import PluginManager, DialogURL
 from arelle.CntlrWinTooltip import ToolTip
 import re, os
 
+def dialogAddonManager(mainWin):
+    # check for updates in background
+    import threading
+    thread = threading.Thread(target=lambda cntlr=mainWin: backgroundCheckForUpdates(cntlr))
+    thread.daemon = True
+    thread.start()
+
+def backgroundCheckForUpdates(cntlr):
+    cntlr.showStatus(_("Checking for updates to plug-ins")) # clear web loading status
+    modulesWithNewerFileDates = PluginManager.modulesWithNewerFileDates()
+    if modulesWithNewerFileDates:
+        cntlr.showStatus(_("Updates are available for these plugins: {0}")
+                              .format(', '.join(modulesWithNewerFileDates)), clearAfter=5000)
+    cntlr.uiThreadQueue.put((DialogAddonManager, [cntlr, modulesWithNewerFileDates]))
+
 class DialogAddonManager(Toplevel):
-    def __init__(self, mainWin):
+    def __init__(self, mainWin, modulesWithNewerFileDates):
+        super(DialogAddonManager, self).__init__(mainWin.parent)
+        
         self.ENABLE = _("Enable")
         self.DISABLE = _("Disable")
-        parent = mainWin.parent
-        super(DialogAddonManager, self).__init__(parent)
-        self.parent = parent
+        self.parent = mainWin.parent
         self.cntlr = mainWin
         
         # copy plugins for temporary display
         self.pluginConfig = PluginManager.pluginConfig
         self.pluginConfigChanged = False
         self.uiClassMethodsChanged = False
-        self.modulesWithNewerFileDates = PluginManager.modulesWithNewerFileDates()
+        self.modulesWithNewerFileDates = modulesWithNewerFileDates
         
-        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
 
@@ -204,13 +219,13 @@ class DialogAddonManager(Toplevel):
             PluginManager.pluginConfig = self.pluginConfig
             PluginManager.pluginConfigChanged = True
             PluginManager.reset()  # force reloading of modules
-        self.close()
         if self.uiClassMethodsChanged:  # may require reloading UI
             messagebox.showwarning(_("User interface plug-in change"),
                                    _("A change in plug-in class methods may have affected the menus "
                                      "of the user interface.  It may be necessary to restart Arelle to "
                                      "access the menu entries or the changes to their plug-in methods."),
                                    parent=self)
+        self.close()
         
     def close(self, event=None):
         self.parent.focus_set()
