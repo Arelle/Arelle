@@ -305,18 +305,19 @@ class LogHandlerWithXml(logging.Handler):
     def recordToXml(self, logRec):
         msg = self.format(logRec)
         if logRec.args:
-            args = "".join([' {0}="{1}"'.format(n, v.replace('"','&quot;')) for n, v in logRec.args.items()])
+            args = "".join([' {0}="{1}"'.format(n, str(v).replace('"','&quot;')) for n, v in logRec.args.items()])
         else:
             args = ""
-        refs = "".join('<ref href="{0}"{1}/>'.format(
+        refs = "\n".join('<ref href="{0}"{1}/>'.format(
                         ref["href"], 
                         ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '')
                        for ref in logRec.refs)
-        return ('<entry code="{0}" level="{1}" file="{2}" sourceLine="{3}">'
-                '<message{4}>{5}</message>{6}'
+        return ('<entry code="{0}" level="{1}">'
+                '<message{2}>{3}</message>{4}'
                 '</entry>\n'.format(logRec.messageCode, 
                                     logRec.levelname.lower(), 
-                                    args, msg.replace("&","&amp;").replace("<","&lt;"), 
+                                    args, 
+                                    msg.replace("&","&amp;").replace("<","&lt;"), 
                                     refs))
 
 class LogToXmlHandler(LogHandlerWithXml):
