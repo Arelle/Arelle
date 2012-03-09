@@ -1,25 +1,9 @@
-# -*- coding: utf-8 -*-
-from arelle import PluginManager
-from random import randint
-import sys
 '''
 Hello dolly is a simple "Hello world" to demonstrate how plugins
 are written for Arelle
+
+(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-
-LYRICS =  ["I said hello, dolly,......well, hello, dolly", \
-            "It's so nice to have you back where you belong ", \
-            "You're lookin' swell, dolly.......i can tell, dolly ", \
-            "You're still glowin'...you're still crowin'...you're still goin' strong ", \
-            "I feel that room swayin'......while the band's playin' ", \
-            "One of your old favourite songs from way back when ", \
-            "So..... take her wrap, fellas.......find her an empty lap, fellas ", \
-            "Dolly'll never go away again" 
-            ]
-
-def randomLyric():
-    ''' A random lyrics.'''
-    return LYRICS[randint(0, len(LYRICS))]
         
 def menuEntender(cntlr, menu):
     menu.add_cascade(label="Hello i18n", underline=0, command=lambda: menuCommand(cntlr) )
