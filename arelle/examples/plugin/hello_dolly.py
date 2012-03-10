@@ -23,7 +23,7 @@ def randomLyric():
     return LYRICS[randint(0, len(LYRICS) - 1)]
         
 def helloMenuEntender(cntlr, menu):
-    menu.add_cascade(label="Hello Dolly", underline=0, command=lambda: helloMenuCommand(cntlr, "Hello Dolly") )
+    menu.add_command(label="Hello Dolly", underline=0, command=lambda: helloMenuCommand(cntlr, "Hello Dolly") )
 
 def helloMenuCommand(cntlr, label):
     hello_dolly = randomLyric();

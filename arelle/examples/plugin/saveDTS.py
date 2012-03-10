@@ -26,7 +26,7 @@ def package(dts):
 
 def saveDtsMenuEntender(cntlr, menu):
     # Extend menu with an item for the savedts plugin
-    menu.add_cascade(label="Save DTS in a package", 
+    menu.add_command(label="Save DTS in a package", 
                      underline=0, 
                      command=lambda: saveDtsMenuCommand(cntlr) )
 

@@ -6,7 +6,7 @@ are written for Arelle
 '''
         
 def menuEntender(cntlr, menu):
-    menu.add_cascade(label="Hello i18n", underline=0, command=lambda: menuCommand(cntlr) )
+    menu.add_command(label="Hello i18n", underline=0, command=lambda: menuCommand(cntlr) )
 
 def menuCommand(cntlr):
     i10L_world = _("Hello World");

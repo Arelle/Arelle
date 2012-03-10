@@ -153,24 +153,24 @@ class ViewTree:
             self.setTreeItemOpen(childNode, open)
             
     def menuAddExpandCollapse(self):
-        self.menu.add_cascade(label=_("Expand"), underline=0, command=self.expand)
-        self.menu.add_cascade(label=_("Collapse"), underline=0, command=self.collapse)
-        self.menu.add_cascade(label=_("Expand All"), underline=0, command=self.expandAll)
-        self.menu.add_cascade(label=_("Collapse All"), underline=0, command=self.collapseAll)
+        self.menu.add_command(label=_("Expand"), underline=0, command=self.expand)
+        self.menu.add_command(label=_("Collapse"), underline=0, command=self.collapse)
+        self.menu.add_command(label=_("Expand All"), underline=0, command=self.expandAll)
+        self.menu.add_command(label=_("Collapse All"), underline=0, command=self.collapseAll)
         
     def menuAddClipboard(self):
         if self.modelXbrl.modelManager.cntlr.hasClipboard:
             clipboardMenu = Menu(self.viewFrame, tearoff=0)
-            clipboardMenu.add_cascade(label=_("Cell"), underline=0, command=self.copyCellToClipboard)
-            clipboardMenu.add_cascade(label=_("Row"), underline=0, command=self.copyRowToClipboard)
-            clipboardMenu.add_cascade(label=_("Table"), underline=0, command=self.copyTableToClipboard)
+            clipboardMenu.add_command(label=_("Cell"), underline=0, command=self.copyCellToClipboard)
+            clipboardMenu.add_command(label=_("Row"), underline=0, command=self.copyRowToClipboard)
+            clipboardMenu.add_command(label=_("Table"), underline=0, command=self.copyTableToClipboard)
             self.menu.add_cascade(label=_("Copy to clipboard"), menu=clipboardMenu, underline=0)
         
     def menuAddLangs(self):
         langsMenu = Menu(self.viewFrame, tearoff=0)
         self.menu.add_cascade(label=_("Language"), menu=langsMenu, underline=0)
         for lang in sorted(self.modelXbrl.langs):
-            langsMenu.add_cascade(label=lang, underline=0, command=lambda l=lang: self.setLang(l))
+            langsMenu.add_command(label=lang, underline=0, command=lambda l=lang: self.setLang(l))
 
     def menuAddLabelRoles(self, includeConceptName=False, menulabel=None):
         if menulabel is None: menulabel = _("Label Role")
@@ -178,21 +178,21 @@ class ViewTree:
         self.menu.add_cascade(label=menulabel, menu=rolesMenu, underline=0)
         from arelle.ModelRelationshipSet import labelroles
         for x in labelroles(self.modelXbrl, includeConceptName):
-            rolesMenu.add_cascade(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
+            rolesMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
 
     def menuAddNameStyle(self, menulabel=None):
         if menulabel is None: menulabel = _("Name Style")
         nameStyleMenu = Menu(self.viewFrame, tearoff=0)
         self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
         from arelle.ModelRelationshipSet import labelroles
-        nameStyleMenu.add_cascade(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
-        nameStyleMenu.add_cascade(label=_("No Prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
+        nameStyleMenu.add_command(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
+        nameStyleMenu.add_command(label=_("No Prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
 
     def menuAddUnitDisplay(self):
         rolesMenu = Menu(self.viewFrame, tearoff=0)
         self.menu.add_cascade(label=_("Units"), menu=rolesMenu, underline=0)
-        rolesMenu.add_cascade(label=_("Unit ID"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=True))
-        rolesMenu.add_cascade(label=_("Measures"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=False))
+        rolesMenu.add_command(label=_("Unit ID"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=True))
+        rolesMenu.add_command(label=_("Measures"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=False))
 
     def menuAddViews(self, addClose=True, tabWin=None):
         if tabWin is None: tabWin = self.tabWin
@@ -200,11 +200,11 @@ class ViewTree:
         self.menu.add_cascade(label=_("View"), menu=viewMenu, underline=0)
         newViewsMenu = Menu(self.viewFrame, tearoff=0)
         if addClose:
-            viewMenu.add_cascade(label=_("Close"), underline=0, command=self.close)
+            viewMenu.add_command(label=_("Close"), underline=0, command=self.close)
         viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
         from arelle.ModelRelationshipSet import baseSetArcroles
         for x in baseSetArcroles(self.modelXbrl):
-            newViewsMenu.add_cascade(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
+            newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
     
     def newView(self, arcrole, tabWin):
         from arelle import ViewWinRelationshipSet
