@@ -769,8 +769,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.config["windowGeometry"] = self.parent.geometry()
             if state in ("normal", "zoomed"):
                 self.config["windowState"] = state
-            self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - 4,   # remove border growth
-                                                self.tabWinTopLeft.winfo_height() - 6)
+            if self.isMSW: adjustW = 4; adjustH = 6  # tweak to prevent splitter regions from growing on reloading
+            elif self.isMac: adjustW = 54; adjustH = 39
+            else: adjustW = 2; adjustH = 2  # linux (tested on ubuntu)
+            self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - adjustW,
+                                                self.tabWinTopLeft.winfo_height() - adjustH)
             super(CntlrWinMain, self).close(saveConfig=True)
             self.parent.unbind_all(())
             self.parent.destroy()
