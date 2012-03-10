@@ -94,10 +94,14 @@ def untypedAtomic(xc, p, source):
 def dateTime(xc, p, source):
     if isinstance(source,datetime.datetime): return source
     return ModelValue.dateTime(source, type=ModelValue.DATETIME, castException=FORG0001)
+  
+def dateTimeInstantEnd(xc, p, source):
+    if isinstance(source,datetime.datetime): return source  # true for either datetime.date or datetime.datetime
+    return ModelValue.dateTime(source, addOneDay=True, type=ModelValue.DATETIME, castException=FORG0001)
 
 def xbrliDateUnion(xc, p, source):
     if isinstance(source,datetime.date): return source  # true for either datetime.date or datetime.datetime
-    raise FORG0001
+    return ModelValue.dateTime(source, type=ModelValue.DATEUNION, castException=FORG0001)
   
 def date(xc, p, source):
     return ModelValue.dateTime(source, type=ModelValue.DATE, castException=FORG0001)
@@ -343,6 +347,8 @@ def NOTATION(xc, p, source):
 xsFunctions = {
     'untypedAtomic': untypedAtomic,
     'dateTime': dateTime,
+    'DATETIME_START': dateTime,
+    'DATETIME_INSTANT_END': dateTimeInstantEnd,
     'XBRLI_DATEUNION': xbrliDateUnion,
     'date': date,
     'time': time,

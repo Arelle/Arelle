@@ -368,8 +368,10 @@ class ModelFormula(ModelVariableSet):
             type = 'xs:QName'
         elif aspect == Aspect.ENTITY_IDENTIFIER:
             type = 'xs:string'
-        elif aspect in (Aspect.INSTANT, Aspect.START, Aspect.END):
-            type = 'xs:XBRLI_DATEUNION'
+        elif aspect == Aspect.START:
+            type = 'xs:DATETIME_START'
+        elif aspect in (Aspect.INSTANT, Aspect.END):
+            type = 'xs:DATETIME_INSTANT_END'
         elif aspect in (Aspect.DECIMALS, Aspect.PRECISION):
             type = 'xs:float'
         else:
