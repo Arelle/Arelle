@@ -1217,7 +1217,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
 
     def checkConceptLabels(self, modelXbrl, labelsRelationshipSet, disclosureSystem, concept):
         hasDefaultLangStandardLabel = False
-        dupLabels = set()
+        dupLabels = {}
         for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
             modelLabel = modelLabelRel.toModelObject
             if modelLabel is not None and modelLabel.xmlLang:
@@ -1228,20 +1228,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if dupDetectKey in dupLabels:
                     modelXbrl.error(("EFM.6.10.02", "GFM.1.5.2", "SBR.NL.2.2.1.05"),
                         _("Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."),
-                        modelObject=concept, concept=concept.qname, 
-                        role=dupDetectKey[0], lang=dupDetectKey[1])
+                        modelObject=(concept, modelLabel, dupLabels[dupDetectKey]), 
+                        concept=concept.qname, role=dupDetectKey[0], lang=dupDetectKey[1])
                 else:
-                    dupLabels.add(dupDetectKey)
+                    dupLabels[dupDetectKey] = modelLabel
                 if modelLabel.role in (XbrlConst.periodStartLabel, XbrlConst.periodEndLabel):
                     modelXbrl.error("SBR.NL.2.3.8.03",
                         _("Concept %(concept)s has label for semantical role %(role)s."),
                         modelObject=modelLabel, concept=concept.qname, role=modelLabel.role)
         if self.validateSBRNL: # check for missing nl labels
-            for role, lang in dupLabels:
+            for role, lang in dupLabels.keys():
                 if role and lang != disclosureSystem.defaultXmlLang and (role,disclosureSystem.defaultXmlLang) not in dupLabels:
                     modelXbrl.error("SBR.NL.2.3.8.05",
                         _("Concept %(concept)s has en but no nl label in role %(role)s."),
-                        modelObject=concept, concept=concept.qname, role=role)
+                        modelObject=(concept,dupLabels[(role,lang)]), concept=concept.qname, role=role)
                 
         #6 10.1 en-US standard label
         if not hasDefaultLangStandardLabel:
@@ -1252,10 +1252,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             
         #6 10.3 default lang label for every role
         try:
-            dupLabels.add(("zzzz",disclosureSystem.defaultXmlLang)) #to allow following loop
+            dupLabels[("zzzz",disclosureSystem.defaultXmlLang)] = None #to allow following loop
             priorRole = None
             hasDefaultLang = True
-            for role, lang in sorted(dupLabels):
+            for role, lang in sorted(dupLabels.keys()):
                 if role != priorRole:
                     if not hasDefaultLang:
                         modelXbrl.error(("EFM.6.10.03", "GFM.1.5.3"),
