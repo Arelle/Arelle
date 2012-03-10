@@ -12,7 +12,7 @@ from tkinter.constants import DISABLED, ACTIVE
 from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
 from arelle import PluginManager, DialogURL
 from arelle.CntlrWinTooltip import ToolTip
-import re, os
+import re, os, time
 
 def dialogAddonManager(mainWin):
     # check for updates in background
@@ -27,6 +27,9 @@ def backgroundCheckForUpdates(cntlr):
     if modulesWithNewerFileDates:
         cntlr.showStatus(_("Updates are available for these plugins: {0}")
                               .format(', '.join(modulesWithNewerFileDates)), clearAfter=5000)
+    else:
+        cntlr.showStatus(_("No updates found for plugins."), clearAfter=5000)
+    time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue? 
     cntlr.uiThreadQueue.put((DialogAddonManager, [cntlr, modulesWithNewerFileDates]))
 
 class DialogAddonManager(Toplevel):
