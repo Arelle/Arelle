@@ -313,6 +313,7 @@ class DialogAddonManager(Toplevel):
                     if classMethod.startswith("CntlrWinMain.Menu"):
                         self.uiClassMethodsChanged = True  # may require reloading UI
             del self.pluginConfig["modules"][name]
+            self.pluginConfigChanged = True
 
     def addPluginConfigModuleInfo(self, moduleInfo):
         name = moduleInfo["name"]
@@ -322,10 +323,11 @@ class DialogAddonManager(Toplevel):
         # add classes
         for classMethod in moduleInfo["classMethods"]:
             classMethods = self.pluginConfig["classes"].setdefault(classMethod, [])
-            if classMethods and name not in classMethods:
+            if name not in classMethods:
                 classMethods.append(name)
             if classMethod.startswith("CntlrWinMain.Menu"):
                 self.uiClassMethodsChanged = True  # may require reloading UI
+        self.pluginConfigChanged = True
 
     def moduleEnable(self):
         if self.selectedModule in self.pluginConfig["modules"]:
