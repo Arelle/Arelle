@@ -34,6 +34,8 @@ if sys.platform == 'darwin':
 	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
     ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
     ('examples',['arelle/examples/' + f for f in os.listdir('arelle/examples')]),
+    ('examples/plugin',['arelle/examples/plugin/' + f for f in os.listdir('arelle/examples/plugin')]),
+    ('examples/plugin/locale/fr/LC_MESSAGES',['arelle/examples/plugin/locale/fr/LC_MESSAGES/' + f for f in os.listdir('arelle/examples/plugin/locale/fr/LC_MESSAGES')]),
     ('scripts',['arelle/scripts/' + f for f in os.listdir('arelle/scripts-macOS')]),
       ]
     for dir, subDirs, files in os.walk('arelle/locale'):
@@ -51,6 +53,8 @@ elif sys.platform == 'linux2': # works on ubuntu with hand-built cx_Freeze
                           ('arelle/images','images'), 
                           ('arelle/locale','locale'), 
                           ('arelle/examples','examples'), 
+                          ('arelle/examples/plugin','examples/plugin'), 
+                          ('arelle/examples/plugin/locale/fr/LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'), 
                           ('arelle/scripts-unix','scripts'),
                           ],
         "includes": ['lxml', 'lxml.etree', 'lxml._elementpath'], 
@@ -77,6 +81,8 @@ elif sys.platform == 'win32':
                          ('arelle\\images','images'),
                          ('arelle\\locale','locale'),
                          ('arelle\\examples','examples'),
+                         ('arelle\\examples\\plugin','examples/plugin'),
+                         ('arelle\\examples\\plugin\\locale\\fr\\LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'),
                          ('arelle\\scripts-windows','scripts')]
     if 'arelle.webserver' in packages:
         win32includeFiles.append('QuickBooks.qwc')
