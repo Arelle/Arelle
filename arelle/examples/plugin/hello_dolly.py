@@ -4,6 +4,7 @@ are written for Arelle
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import print_function
 from random import randint
 
 

@@ -4,6 +4,7 @@ This module is an example Arelle controller in non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import print_function
 from arelle import Cntlr
 
 class CntlrCustomLoggingExample(Cntlr.Cntlr):

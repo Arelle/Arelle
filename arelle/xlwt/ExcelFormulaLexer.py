@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 from arelle.xlwt.antlr import EOF, CommonToken as Tok, TokenStream, TokenStreamException
 import struct

@@ -11,6 +11,7 @@
 # 2007-04-22 SJM Remove experimental "trimming" facility.
 
 #for debugging only
+from __future__ import print_function
 from math import isnan
 
 import time

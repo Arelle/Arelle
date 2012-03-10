@@ -12,6 +12,7 @@ versioning reports, per Roland Hommes 2010-12-10
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 
 '''
+from __future__ import print_function
 from arelle import PythonUtil # define 2.x or 3.x string types
 import time, datetime, os, gettext, io, sys, traceback
 from lxml import etree

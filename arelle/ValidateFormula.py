@@ -60,7 +60,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             if toQname:
                 if toMdlObj is None or not val.modelXbrl.isInSubstitutionGroup(toMdlObj.elementQname, toQname):
                     val.modelXbrl.info(errCode,
-                        _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s  target"),
+                        _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s target"),
                         modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=toQname)
     if arcrole == XbrlConst.functionImplementation:
         for relFrom, rels in relsSet.fromModelObjects().items():

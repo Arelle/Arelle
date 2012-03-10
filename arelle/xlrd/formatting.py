@@ -18,6 +18,7 @@
 # 2007-09-08 SJM Work around corrupt STYLE record
 # 2007-07-11 SJM Allow for BIFF2/3-style FORMAT record in BIFF4/8 file
 
+from __future__ import print_function
 DEBUG = False
 import copy
 import re
