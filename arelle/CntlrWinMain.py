@@ -533,7 +533,7 @@ class CntlrWinMain (Cntlr.Cntlr):
     def webOpen(self, *ignore):
         if not self.okayToContinue():
             return
-        url = DialogURL.askURL(self.parent)
+        url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
             self.updateFileHistory(url, False)
             filesource = openFileSource(url,self)
@@ -922,7 +922,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     v = _("Validate {0}\nCheck disclosure system rules\n{1}{2}{3}").format(
                            valName, self.modelManager.disclosureSystem.selection,c,u)
                 else:
-                    v = _("Validate {0}{0}{1}").format(valName, c,u)
+                    v = _("Validate {0}{1}{2}").format(valName, c, u)
         else:
             v = _("Validate")
         self.validateTooltipText.set(v)
