@@ -46,123 +46,141 @@ def checkDTS(val, modelDocument, visited):
                 _("Href %(elementHref)s file not found"),
                 modelObject=hrefElt, 
                 elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-        elif hrefId:
-            if hrefId in hrefedDoc.idObjects:
-                hrefedObj = hrefedDoc.idObjects[hrefId]
-                hrefedElt = hrefedObj
-            else:
-                hrefedElt = XmlUtil.xpointerElement(hrefedDoc,hrefId)
-                if hrefedElt is None:
-                    val.modelXbrl.error("xbrl.3.5.4:hrefIdNotFound",
-                        _("Href %(elementHref)s not located"),
-                        modelObject=hrefElt, 
-                        elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-                else:
-                    # find hrefObj
-                    for docModelObject in hrefedDoc.modelObjects:
-                        if docModelObject == hrefedElt:
-                            hrefedObj = docModelObject
-                            break
         else:
-            hrefedElt = hrefedDoc.xmlRootElement
-            hrefedObj = hrefedDoc
-            
-        if hrefId:  #check scheme regardless of whether document loaded 
-            # check all xpointer schemes
-            for scheme, path in XmlUtil.xpointerSchemes(hrefId):
-                if scheme != "element":
-                    val.modelXbrl.error("xbrl.3.5.4:hrefScheme",
-                        _("Href %(elementHref)s unsupported scheme: %(scheme)s"),
-                        modelObject=hrefElt, 
-                        elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
-                        scheme=scheme)
-                    break
-                elif val.validateDisclosureSystem:
-                    val.modelXbrl.error(("EFM.6.03.06", "GFM.1.01.03"),
-                        _("Href %(elementHref)s may only have shorthand xpointers"),
-                        modelObject=hrefElt, 
-                        elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-        # check href'ed target if a linkbaseRef
-        if hrefElt.namespaceURI == XbrlConst.link and hrefedElt is not None:
-            if hrefElt.localName == "linkbaseRef":
-                # check linkbaseRef target
-                if hrefedElt.namespaceURI != XbrlConst.link or hrefedElt.localName != "linkbase":
-                    val.modelXbrl.error("xbrl.4.3.2:linkbaseRefHref",
-                        _("LinkbaseRef %(linkbaseHref)s does not identify an link:linkbase element"),
-                        modelObject=hrefElt, 
-                        linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-                if hrefElt.get("{http://www.w3.org/1999/xlink}role") is not None:
-                    role = hrefElt.get("{http://www.w3.org/1999/xlink}role")
-                    for linkNode in hrefedElt.iterchildren():
-                        if (isinstance(linkNode,ModelObject) and
-                            linkNode.get("{http://www.w3.org/1999/xlink}type") == "extended"):
-                            ln = linkNode.localName
-                            ns = linkNode.namespaceURI
-                            if (role == "http://www.xbrl.org/2003/role/calculationLinkbaseRef" and \
-                                (ns != XbrlConst.link or ln != "calculationLink")) or \
-                               (role == "http://www.xbrl.org/2003/role/definitionLinkbaseRef" and \
-                                (ns != XbrlConst.link or ln != "definitionLink")) or \
-                               (role == "http://www.xbrl.org/2003/role/presentationLinkbaseRef" and \
-                                (ns != XbrlConst.link or ln != "presentationLink")) or \
-                               (role == "http://www.xbrl.org/2003/role/labelLinkbaseRef" and \
-                                (ns != XbrlConst.link or ln != "labelLink")) or \
-                               (role == "http://www.xbrl.org/2003/role/referenceLinkbaseRef" and \
-                                (ns != XbrlConst.link or ln != "referenceLink")):
-                                val.modelXbrl.error("xbrl.4.3.4:linkbaseRefLinks",
-                                    "LinkbaseRef %(linkbaseHref)s role %(role)s has wrong extended link %(link)s",
-                                    modelObject=hrefElt, 
-                                    linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
-                                    role=role, link=linkNode.prefixedName)
-            elif hrefElt.localName == "schemaRef":
-                # check schemaRef target
-                if hrefedElt.namespaceURI != XbrlConst.xsd or hrefedElt.localName != "schema":
-                    val.modelXbrl.error("xbrl.4.2.2:schemaRefHref",
-                        _("SchemaRef %(schemaRef)s does not identify an xsd:schema element"),
-                        modelObject=hrefElt, schemaRef=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-            # check loc target 
-            elif hrefElt.localName == "loc":
-                linkElt = hrefElt.getparent()
-                if linkElt.namespaceURI ==  XbrlConst.link:
-                    acceptableTarget = False
-                    hrefEltKey = linkElt.localName
-                    if hrefElt in val.remoteResourceLocElements:
-                        hrefEltKey += "ToResource"
-                    for tgtTag in {
-                               "labelLink":("{http://www.w3.org/2001/XMLSchema}element", "{http://www.xbrl.org/2003/linkbase}label"),
-                               "labelLinkToResource":("{http://www.xbrl.org/2003/linkbase}label",),
-                               "referenceLink":("{http://www.w3.org/2001/XMLSchema}element", "{http://www.xbrl.org/2003/linkbase}reference"),
-                               "referenceLinkToResource":("{http://www.xbrl.org/2003/linkbase}reference",),
-                               "calculationLink":("{http://www.w3.org/2001/XMLSchema}element",),
-                               "definitionLink":("{http://www.w3.org/2001/XMLSchema}element",),
-                               "presentationLink":("{http://www.w3.org/2001/XMLSchema}element",),
-                               "footnoteLink":("XBRL-item-or-tuple",) }[hrefEltKey]:
-                        if tgtTag == "XBRL-item-or-tuple":
-                            concept = val.modelXbrl.qnameConcepts.get(qname(hrefedElt))
-                            acceptableTarget =  isinstance(concept, ModelDtsObject.ModelConcept) and \
-                                                (concept.isItem or concept.isTuple)
-                        elif hrefedElt.tag == tgtTag:
-                            acceptableTarget = True
-                    if not acceptableTarget:
-                        val.modelXbrl.error("xbrl.{0}:{1}LocTarget".format(
-                                        {"labelLink":"5.2.5.1",
-                                         "referenceLink":"5.2.3.1",
-                                         "calculationLink":"5.2.5.1",
-                                         "definitionLink":"5.2.6.1",
-                                         "presentationLink":"5.2.4.1",
-                                         "footnoteLink":"4.11.1.1"}[linkElt.localName],
-                                         linkElt.localName),
-                             _("%(linkElement)s loc href %(locHref)s must identify a concept or label"),
-                             modelObject=hrefElt, linkElement=linkElt.localName,
-                             locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-                    if isInstance and not XmlUtil.isDescendantOf(hrefedElt, modelDocument.xmlRootElement):
-                        val.modelXbrl.error("xbrl.4.11.1.1:instanceLoc",
-                            _("Instance loc's href %(locHref)s not an element in same instance"),
-                             modelObject=hrefElt, locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-                # non-standard link holds standard loc, href must be discovered document 
-                if not hrefedDoc.inDTS:
-                    val.modelXbrl.error("xbrl.3.5.3.7.2:instanceLocInDTS",
-                        _("Loc's href %(locHref)s does not identify an element in an XBRL document discovered as part of the DTS"),
-                        modelObject=hrefElt, locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+            if hrefedDoc.type != ModelDocument.Type.UnknownNonXML:
+                if hrefId:
+                    if hrefId in hrefedDoc.idObjects:
+                        hrefedObj = hrefedDoc.idObjects[hrefId]
+                        hrefedElt = hrefedObj
+                    else:
+                        hrefedElt = XmlUtil.xpointerElement(hrefedDoc,hrefId)
+                        if hrefedElt is None:
+                            val.modelXbrl.error("xbrl.3.5.4:hrefIdNotFound",
+                                _("Href %(elementHref)s not located"),
+                                modelObject=hrefElt, 
+                                elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+                        else:
+                            # find hrefObj
+                            for docModelObject in hrefedDoc.modelObjects:
+                                if docModelObject == hrefedElt:
+                                    hrefedObj = docModelObject
+                                    break
+                else:
+                    hrefedElt = hrefedDoc.xmlRootElement
+                    hrefedObj = hrefedDoc
+                
+            if hrefId:  #check scheme regardless of whether document loaded 
+                # check all xpointer schemes
+                for scheme, path in XmlUtil.xpointerSchemes(hrefId):
+                    if scheme != "element":
+                        val.modelXbrl.error("xbrl.3.5.4:hrefScheme",
+                            _("Href %(elementHref)s unsupported scheme: %(scheme)s"),
+                            modelObject=hrefElt, 
+                            elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
+                            scheme=scheme)
+                        break
+                    elif val.validateDisclosureSystem:
+                        val.modelXbrl.error(("EFM.6.03.06", "GFM.1.01.03"),
+                            _("Href %(elementHref)s may only have shorthand xpointers"),
+                            modelObject=hrefElt, 
+                            elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+            # check href'ed target if a linkbaseRef
+            if hrefElt.namespaceURI == XbrlConst.link:
+                if hrefElt.localName == "linkbaseRef":
+                    # check linkbaseRef target
+                    if (hrefedDoc is None or
+                        hrefedDoc.type < ModelDocument.Type.firstXBRLtype or  # range of doc types that can have linkbase
+                        hrefedDoc.type > ModelDocument.Type.lastXBRLtype or
+                        hrefedElt.namespaceURI != XbrlConst.link or hrefedElt.localName != "linkbase"):
+                        val.modelXbrl.error("xbrl.4.3.2:linkbaseRefHref",
+                            _("LinkbaseRef %(linkbaseHref)s does not identify an link:linkbase element"),
+                            modelObject=(hrefElt, hrefedDoc), 
+                            linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+                    elif hrefElt.get("{http://www.w3.org/1999/xlink}role") is not None:
+                        role = hrefElt.get("{http://www.w3.org/1999/xlink}role")
+                        for linkNode in hrefedElt.iterchildren():
+                            if (isinstance(linkNode,ModelObject) and
+                                linkNode.get("{http://www.w3.org/1999/xlink}type") == "extended"):
+                                ln = linkNode.localName
+                                ns = linkNode.namespaceURI
+                                if (role == "http://www.xbrl.org/2003/role/calculationLinkbaseRef" and \
+                                    (ns != XbrlConst.link or ln != "calculationLink")) or \
+                                   (role == "http://www.xbrl.org/2003/role/definitionLinkbaseRef" and \
+                                    (ns != XbrlConst.link or ln != "definitionLink")) or \
+                                   (role == "http://www.xbrl.org/2003/role/presentationLinkbaseRef" and \
+                                    (ns != XbrlConst.link or ln != "presentationLink")) or \
+                                   (role == "http://www.xbrl.org/2003/role/labelLinkbaseRef" and \
+                                    (ns != XbrlConst.link or ln != "labelLink")) or \
+                                   (role == "http://www.xbrl.org/2003/role/referenceLinkbaseRef" and \
+                                    (ns != XbrlConst.link or ln != "referenceLink")):
+                                    val.modelXbrl.error("xbrl.4.3.4:linkbaseRefLinks",
+                                        "LinkbaseRef %(linkbaseHref)s role %(role)s has wrong extended link %(link)s",
+                                        modelObject=hrefElt, 
+                                        linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
+                                        role=role, link=linkNode.prefixedName)
+                elif hrefElt.localName == "schemaRef":
+                    # check schemaRef target
+                    if (hrefedDoc.type != ModelDocument.Type.SCHEMA or
+                        hrefedElt.namespaceURI != XbrlConst.xsd or hrefedElt.localName != "schema"):
+                        val.modelXbrl.error("xbrl.4.2.2:schemaRefHref",
+                            _("SchemaRef %(schemaRef)s does not identify an xsd:schema element"),
+                            modelObject=hrefElt, schemaRef=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+                # check loc target 
+                elif hrefElt.localName == "loc":
+                    linkElt = hrefElt.getparent()
+                    if linkElt.namespaceURI ==  XbrlConst.link:
+                        acceptableTarget = False
+                        hrefEltKey = linkElt.localName
+                        if hrefElt in val.remoteResourceLocElements:
+                            hrefEltKey += "ToResource"
+                        for tgtTag in {
+                                   "labelLink":("{http://www.w3.org/2001/XMLSchema}element", "{http://www.xbrl.org/2003/linkbase}label"),
+                                   "labelLinkToResource":("{http://www.xbrl.org/2003/linkbase}label",),
+                                   "referenceLink":("{http://www.w3.org/2001/XMLSchema}element", "{http://www.xbrl.org/2003/linkbase}reference"),
+                                   "referenceLinkToResource":("{http://www.xbrl.org/2003/linkbase}reference",),
+                                   "calculationLink":("{http://www.w3.org/2001/XMLSchema}element",),
+                                   "definitionLink":("{http://www.w3.org/2001/XMLSchema}element",),
+                                   "presentationLink":("{http://www.w3.org/2001/XMLSchema}element",),
+                                   "footnoteLink":("XBRL-item-or-tuple",) }[hrefEltKey]:
+                            if tgtTag == "XBRL-item-or-tuple":
+                                concept = val.modelXbrl.qnameConcepts.get(qname(hrefedElt))
+                                acceptableTarget =  isinstance(concept, ModelDtsObject.ModelConcept) and \
+                                                    (concept.isItem or concept.isTuple)
+                            elif hrefedElt is not None and hrefedElt.tag == tgtTag:
+                                acceptableTarget = True
+                        if not acceptableTarget:
+                            val.modelXbrl.error("xbrl.{0}:{1}LocTarget".format(
+                                            {"labelLink":"5.2.5.1",
+                                             "referenceLink":"5.2.3.1",
+                                             "calculationLink":"5.2.5.1",
+                                             "definitionLink":"5.2.6.1",
+                                             "presentationLink":"5.2.4.1",
+                                             "footnoteLink":"4.11.1.1"}[linkElt.localName],
+                                             linkElt.localName),
+                                 _("%(linkElement)s loc href %(locHref)s must identify a concept or label"),
+                                 modelObject=hrefElt, linkElement=linkElt.localName,
+                                 locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+                        if isInstance and not XmlUtil.isDescendantOf(hrefedElt, modelDocument.xmlRootElement):
+                            val.modelXbrl.error("xbrl.4.11.1.1:instanceLoc",
+                                _("Instance loc's href %(locHref)s not an element in same instance"),
+                                 modelObject=hrefElt, locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+                    ''' is this ever needed???
+                    else: # generic link or other non-2.1 link element
+                        if (hrefElt.modelDocument.inDTS and 
+                            ModelDocument.Type.firstXBRLtype <= hrefElt.modelDocument.type <= ModelDocument.Type.lastXBRLtype and # is a discovered linkbase
+                            not ModelDocument.Type.firstXBRLtype <= hrefedDoc.type <= ModelDocument.Type.lastXBRLtype): # must discover schema or linkbase
+                            val.modelXbrl.error("xbrl.3.2.3:linkLocTarget",
+                                _("Locator %(xlinkLabel)s on link:loc in a discovered linkbase does not target a schema or linkbase"),
+                                modelObject=(hrefedElt, hrefedDoc),
+                                xlinkLabel=hrefElt.get("{http://www.w3.org/1999/xlink}label"))
+                    '''
+                    # non-standard link holds standard loc, href must be discovered document 
+                    if (hrefedDoc.type < ModelDocument.Type.firstXBRLtype or  # range of doc types that can have linkbase
+                        hrefedDoc.type > ModelDocument.Type.lastXBRLtype or
+                        not hrefedDoc.inDTS):
+                        val.modelXbrl.error("xbrl.3.5.3.7.2:instanceLocInDTS",
+                            _("Loc's href %(locHref)s does not identify an element in an XBRL document discovered as part of the DTS"),
+                            modelObject=hrefElt, locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
 
     # used in linkbase children navigation but may be errant linkbase elements                            
     val.roleRefURIs = {}
@@ -845,7 +863,7 @@ def checkElements(val, modelDocument, parent):
                 else:
                     instanceOrder = expectedSequence
 
-            if modelDocument.type == ModelDocument.Type.Unknown:
+            if modelDocument.type == ModelDocument.Type.UnknownXML:
                 if elt.localName == "xbrl" and elt.namespaceURI == XbrlConst.xbrli:
                     if elt.getparent() is not None:
                         val.modelXbrl.error("xbrl.4:xbrlRootElement",
