@@ -1,5 +1,5 @@
 '''
-Save DTS is an example of a plug in to both GUI menu and command line/web service
+Save DTS is an example of a plug-in to both GUI menu and command line/web service
 that will save the files of a DTS into a zip file.
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
@@ -56,7 +56,7 @@ def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl):
 __pluginInfo__ = {
     'name': 'Save DTS',
     'version': '0.9',
-    'description': "This plugin adds a feature to package the whole DTS into a zip archive. "
+    'description': "This plug-in adds a feature to package the whole DTS into a zip archive. "
                    "Note that remote files are not included in the package.",
     'license': 'Apache-2',
     'author': 'R\u00e9gis D\u00e9camps',

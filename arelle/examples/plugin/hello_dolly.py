@@ -1,5 +1,5 @@
 '''
-Hello dolly is a simple "Hello world" to demonstrate how plugins
+Hello dolly is a simple "Hello world" to demonstrate how plug-ins
 are written for Arelle
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
@@ -49,7 +49,7 @@ def helloCommandLineXbrlRun(cntlr, options, modelXbrl):
 __pluginInfo__ = {
     'name': 'Hello Dolly',
     'version': '0.9',
-    'description': "This is not just a plugin, it symbolizes the hope and enthusiasm "
+    'description': "This is not just a plug-in, it symbolizes the hope and enthusiasm "
 					"of an entire generation summed up in two words sung most famously "
 					"by Louis Armstrong: Hello, Dolly. When activated you will randomly "
 					"see a lyric from Hello, Dolly.",
