@@ -8,7 +8,7 @@ from collections import defaultdict
 from math import (log10, isnan, isinf, fabs, trunc, fmod, floor)
 import decimal
 import re
-from arelle import (XbrlConst, XbrlUtil)
+from arelle import Locale, XbrlConst, XbrlUtil
 
 numberPattern = re.compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
@@ -99,7 +99,8 @@ class ValidateXbrlCalcs:
                                 itemBindingKeys = self.itemConceptBindKeys[modelRel.toModelObject]
                                 boundSumKeys |= sumBindingKeys & itemBindingKeys
                             # add up rounded items
-                            boundSums = defaultdict(decimal.Decimal)
+                            boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
+                            boundSummationItems = defaultdict(list) # corresponding fact refs for messages
                             for modelRel in modelRels:
                                 weight = modelRel.weightDecimal
                                 itemConcept = modelRel.toModelObject
@@ -112,6 +113,7 @@ class ValidateXbrlCalcs:
                                                 dupBindingKeys.add(itemBindKey)
                                             else:
                                                 boundSums[itemBindKey] += roundFact(fact, self.inferDecimals) * weight
+                                                boundSummationItems[itemBindKey].append(fact)
                             for sumBindKey in boundSumKeys:
                                 ancestor, contextHash, unit = sumBindKey
                                 factKey = (sumConcept, ancestor, contextHash, unit)
@@ -124,11 +126,16 @@ class ValidateXbrlCalcs:
                                             roundedSum = roundFact(fact, self.inferDecimals)
                                             roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
                                             if roundedItemsSum  != roundFact(fact, self.inferDecimals):
+                                                d = inferredDecimals(fact)
+                                                if isnan(d) or isinf(d): d = 4
                                                 self.modelXbrl.error("xbrl.5.2.5.2:calcInconsistency",
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
-                                                    modelObject=[sumConcept] + sumFacts, concept=sumConcept.qname, linkrole=ELR, 
-                                                    reportedSum=roundedSum, computedSum=roundedItemsSum, 
+                                                    modelObject=[fact] + boundSummationItems[sumBindKey], 
+                                                    concept=sumConcept.qname, linkrole=ELR, 
+                                                    reportedSum=Locale.format(self.modelXbrl.locale, "%.*f", (d, roundedSum), True),
+                                                    computedSum=Locale.format(self.modelXbrl.locale, "%.*f", (d, roundedItemsSum), True), 
                                                     contextID=context.id, unitID=unit.id)
+                            boundSummationItems.clear() # dereference facts in list
                     elif arcrole == XbrlConst.essenceAlias:
                         for modelRel in relsSet.modelRelationships:
                             essenceConcept = modelRel.fromModelObject
