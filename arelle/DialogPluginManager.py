@@ -14,7 +14,7 @@ from arelle import PluginManager, DialogURL
 from arelle.CntlrWinTooltip import ToolTip
 import re, os, time
 
-def dialogAddonManager(mainWin):
+def dialogPluginManager(mainWin):
     # check for updates in background
     import threading
     thread = threading.Thread(target=lambda cntlr=mainWin: backgroundCheckForUpdates(cntlr))
@@ -25,16 +25,16 @@ def backgroundCheckForUpdates(cntlr):
     cntlr.showStatus(_("Checking for updates to plug-ins")) # clear web loading status
     modulesWithNewerFileDates = PluginManager.modulesWithNewerFileDates()
     if modulesWithNewerFileDates:
-        cntlr.showStatus(_("Updates are available for these plugins: {0}")
+        cntlr.showStatus(_("Updates are available for these plug-ins: {0}")
                               .format(', '.join(modulesWithNewerFileDates)), clearAfter=5000)
     else:
-        cntlr.showStatus(_("No updates found for plugins."), clearAfter=5000)
+        cntlr.showStatus(_("No updates found for plug-ins."), clearAfter=5000)
     time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue? 
-    cntlr.uiThreadQueue.put((DialogAddonManager, [cntlr, modulesWithNewerFileDates]))
+    cntlr.uiThreadQueue.put((DialogPluginManager, [cntlr, modulesWithNewerFileDates]))
 
-class DialogAddonManager(Toplevel):
+class DialogPluginManager(Toplevel):
     def __init__(self, mainWin, modulesWithNewerFileDates):
-        super(DialogAddonManager, self).__init__(mainWin.parent)
+        super(DialogPluginManager, self).__init__(mainWin.parent)
         
         self.ENABLE = _("Enable")
         self.DISABLE = _("Disable")
@@ -51,17 +51,17 @@ class DialogAddonManager(Toplevel):
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
 
-        self.title(_("Add on Manager"))
+        self.title(_("Plug-in Manager"))
         frame = Frame(self)
         
         # left button frame
         buttonFrame = Frame(frame, width=40)
         buttonFrame.columnconfigure(0, weight=1)
-        addLabel = Label(buttonFrame, text=_("Find plugin modules:"), wraplength=60, justify="center")
+        addLabel = Label(buttonFrame, text=_("Find plug-in modules:"), wraplength=60, justify="center")
         addLocalButton = Button(buttonFrame, text=_("Locally"), command=self.findLocally)
-        ToolTip(addLocalButton, text=_("File chooser allows selecting python module files to add (or reload) plug ins, from the local file system."), wraplength=240)
+        ToolTip(addLocalButton, text=_("File chooser allows selecting python module files to add (or reload) plug-ins, from the local file system."), wraplength=240)
         addWebButton = Button(buttonFrame, text=_("On Web"), command=self.findOnWeb)
-        ToolTip(addWebButton, text=_("Dialog to enter URL full path to load (or reload) plug ins, from the web or local file system."), wraplength=240)
+        ToolTip(addWebButton, text=_("Dialog to enter URL full path to load (or reload) plug-ins, from the web or local file system."), wraplength=240)
         addLabel.grid(row=0, column=0, pady=4)
         addLocalButton.grid(row=1, column=0, pady=4)
         addWebButton.grid(row=2, column=0, pady=4)
@@ -277,7 +277,7 @@ class DialogAddonManager(Toplevel):
     def findLocally(self):
         filename = self.cntlr.uiFileDialog("open",
                                            owner=self,
-                                           title=_("Choose plug in module file"),
+                                           title=_("Choose plug-in module file"),
                                            initialdir=self.cntlr.config.setdefault("pluginOpenDir","."),
                                            filetypes=[(_("Python files"), "*.py")],
                                            defaultextension=".py")
