@@ -37,7 +37,7 @@ arcroleChecks = {
     XbrlConst.booleanFilter:        (XbrlConst.qnVariableFilter, 
                                      XbrlConst.qnVariableFilter, 
                                      "xbrlbfe:info"),
-   XbrlConst.consistencyAssertionFormula:       (XbrlConst.qnConsistencyAssertion, 
+    XbrlConst.consistencyAssertionFormula:       (XbrlConst.qnConsistencyAssertion, 
                                                  None, 
                                      "xbrlca:info"),
     XbrlConst.functionImplementation: (XbrlConst.qnCustomFunctionSignature,
@@ -53,12 +53,17 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             fromMdlObj = modelRel.fromModelObject
             toMdlObj = modelRel.toModelObject
             if fromQname:
-                if fromMdlObj is None or not val.modelXbrl.isInSubstitutionGroup(fromMdlObj.elementQname, fromQname):
+                if (fromMdlObj is None or 
+                    # if not in subs group, only warn if the namespace has a loaded schema, otherwise no complaint
+                    (not val.modelXbrl.isInSubstitutionGroup(fromMdlObj.elementQname, fromQname) and
+                     fromMdlObj.elementQname.namespaceURI in val.modelXbrl.namespaceDocs)):
                     val.modelXbrl.info(errCode,
                         _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s source"),
                         modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=fromQname)
             if toQname:
-                if toMdlObj is None or not val.modelXbrl.isInSubstitutionGroup(toMdlObj.elementQname, toQname):
+                if (toMdlObj is None or 
+                    (not val.modelXbrl.isInSubstitutionGroup(toMdlObj.elementQname, toQname) and
+                     toMdlObj.elementQname.namespaceURI in val.modelXbrl.namespaceDocs)):
                     val.modelXbrl.info(errCode,
                         _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s target"),
                         modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=toQname)
