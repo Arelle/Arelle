@@ -132,8 +132,8 @@ class ValidateXbrlCalcs:
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
                                                     modelObject=[fact] + boundSummationItems[sumBindKey], 
                                                     concept=sumConcept.qname, linkrole=ELR, 
-                                                    reportedSum=Locale.format(self.modelXbrl.locale, "%.*f", (d, roundedSum), True),
-                                                    computedSum=Locale.format(self.modelXbrl.locale, "%.*f", (d, roundedItemsSum), True), 
+                                                    reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
+                                                    computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
                                                     contextID=context.id, unitID=unit.id)
                             boundSummationItems.clear() # dereference facts in list
                     elif arcrole == XbrlConst.essenceAlias:

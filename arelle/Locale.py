@@ -358,14 +358,14 @@ def format_picture(conv, value, picture):
     if intPlaces == 0 and fractPlaces == 0:
         intPlaces = 1
     
-    return format_decimal(value, intPlaces=intPlaces, fractPlaces=fractPlaces, 
+    return format_decimal(None, value, intPlaces=intPlaces, fractPlaces=fractPlaces, 
                           sep=thousands_sep, dp=decimal_point, grouping=grouping,
                           pos=prefix,
                           neg=prefix if negPic else prefix + minus_sign,
                           trailpos=suffix,
                           trailneg=suffix)
 
-def format_decimal(value, intPlaces=1, fractPlaces=2, curr='', sep=',', grouping=3, dp='.', pos='', neg='-', trailpos='', trailneg=''):
+def format_decimal(conv, value, intPlaces=1, fractPlaces=2, curr='', sep=None, grouping=None, dp=None, pos=None, neg=None, trailpos=None, trailneg=None):
     """Convert Decimal to a formatted string including currency if any.
 
     intPlaces:  required number of digits before the decimal point
@@ -391,24 +391,68 @@ def format_decimal(value, intPlaces=1, fractPlaces=2, curr='', sep=',', grouping
     '<0.02>'
 
     """
+    if conv is not None:
+        if dp is None:
+            dp = conv['decimal_point']
+        if sep is None:
+            sep = conv['thousands_sep']
+        if pos is None and trailpos is None:
+            possign = conv['positive_sign']
+            pospos = conv['p_sign_posn']
+            if pospos == '0':
+                pos = '('; trailpos = ')'
+            elif pospos == '1' or pospos == '3':
+                pos = possign; trailpos = ''
+            elif pospos == '2' or pospos == '4':
+                pos = ''; trailpos = possign
+            else:
+                pos = ''; trailpos = ''
+        if neg is None and trailneg is None:
+            negsign = conv['negative_sign']
+            negpos = conv['n_sign_posn']
+            if negpos == '0':
+                neg = '('; trailneg = ')'
+            elif negpos == '1' or negpos == '3':
+                neg = negsign; trailneg = ''
+            elif negpos == '2' or negpos == '4':
+                neg = ''; trailneg = negsign
+            else:
+                neg = ''; trailneg = ''
+        if grouping is None:
+            groups = conv['grouping']
+            grouping = groups[0]
+    else:
+        if dp is None:
+            dp = '.'
+        if sep is None:
+            sep = ','
+        if neg is None and trailneg is None:
+            neg = '-'; trailneg = ''
+        if grouping is None:
+            grouping = 3
     q = Decimal(10) ** -fractPlaces      # 2 places --> '0.01'
     sign, digits, exp = value.quantize(q).as_tuple()
     result = []
     digits = list(map(str, digits))
     build, next = result.append, digits.pop
     build(trailneg if sign else trailpos)
-    for i in range(fractPlaces):
-        build(next() if digits else '0')
-    if fractPlaces:
-        build(dp)
-    i = 0
-    while digits or intPlaces > 0:
-        build(next() if digits else '0')
-        intPlaces -= 1
-        i += 1
-        if grouping and i == grouping and digits:
-            i = 0
-            build(sep)
+    if value.is_finite():
+        for i in range(fractPlaces):
+            build(next() if digits else '0')
+        if fractPlaces:
+            build(dp)
+        i = 0
+        while digits or intPlaces > 0:
+            build(next() if digits else '0')
+            intPlaces -= 1
+            i += 1
+            if grouping and i == grouping and digits:
+                i = 0
+                build(sep)
+    elif value.is_nan():
+        result.append("NaN")
+    elif value.is_infinite():
+        result.append("ytinifnI")
     build(curr)
     build(neg if sign else pos)
     return ''.join(reversed(result))
