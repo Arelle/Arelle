@@ -183,9 +183,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
     def __init__(self, logFileName=None):
         super(CntlrCmdLine, self).__init__()
         
-    def run(self, options):
+    def run(self, options, sourceZipStream=None):
         self.entrypointFile = options.entrypointFile
-        filesource = FileSource.openFileSource(self.entrypointFile,self)
+        filesource = FileSource.openFileSource(self.entrypointFile, self, sourceZipStream)
         if options.validateEFM:
             if options.gfmName:
                 self.addToLog(_("both --efm and --gfm validation are requested, proceeding with --efm only"),
@@ -277,6 +277,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                 messageCode="info", file=importFile)
                 if modelXbrl.errors:
                     success = False    # loading errors, don't attempt to utilize loaded DTS
+        else:
+            success = False
         if success and options.diffFile and options.versReportFile:
             diffFilesource = FileSource.FileSource(options.diffFile,self)
             startedAt = time.time()

@@ -13,17 +13,23 @@ archivePathSeparators = (".zip" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
 
 XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
-def openFileSource(filename, cntlr=None):
-    archivepathSelection = archiveFilenameParts(filename)
-    if archivepathSelection is not None:
-        archivepath = archivepathSelection[0]
-        selection = archivepathSelection[1]
-        filesource = FileSource(archivepath, cntlr)
-        filesource.open()
-        filesource.select(selection)
+def openFileSource(filename, cntlr=None, sourceZipStream=None):
+    if sourceZipStream:
+        filesource = FileSource("POSTupload.zip", cntlr)
+        filesource.openZipStream(sourceZipStream)
+        filesource.select(filename)
         return filesource
-    # not archived content
-    return FileSource(filename, cntlr) 
+    else:
+        archivepathSelection = archiveFilenameParts(filename)
+        if archivepathSelection is not None:
+            archivepath = archivepathSelection[0]
+            selection = archivepathSelection[1]
+            filesource = FileSource(archivepath, cntlr)
+            filesource.open()
+            filesource.select(selection)
+            return filesource
+        # not archived content
+        return FileSource(filename, cntlr) 
 
 def archiveFilenameParts(filename):
     # check if path has an archive file plus appended in-archive content reference
@@ -128,6 +134,12 @@ class FileSource:
                 except etree.LxmlError as err:
                     return # provide error message later
 
+    def openZipStream(self, sourceZipStream):
+        if not self.isOpen:
+            self.basefile = self.url
+            self.baseurl = self.url # url gets changed by selection
+            self.fs = zipfile.ZipFile(sourceZipStream, mode="r")
+            self.isOpen = True    
                     
             
     def close(self):

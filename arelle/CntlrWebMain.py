@@ -70,29 +70,37 @@ class Options():
             setattr(self, option, None)
             
 supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'factTable', 'formulae'}
+GETorPOST = ('GET', 'POST')
 
-@route('/rest/xbrl/<file:path>/open')
-@route('/rest/xbrl/<file:path>/close')
-@route('/rest/xbrl/<file:path>/validation/xbrl')
-@route('/rest/xbrl/<file:path>/DTS')
-@route('/rest/xbrl/<file:path>/concepts')
-@route('/rest/xbrl/<file:path>/pre')
-@route('/rest/xbrl/<file:path>/cal')
-@route('/rest/xbrl/<file:path>/dim')
-@route('/rest/xbrl/<file:path>/facts')
-@route('/rest/xbrl/<file:path>/factTable')
-@route('/rest/xbrl/<file:path>/formulae')
-@route('/rest/xbrl/validation')
-@route('/rest/xbrl/view')
-@route('/rest/xbrl/open')
-@route('/rest/xbrl/close')
+@route('/rest/xbrl/<file:path>/open', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/close', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/validation/xbrl', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/DTS', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/concepts', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/pre', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/cal', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/dim', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/facts', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/factTable', method=GETorPOST)
+@route('/rest/xbrl/<file:path>/formulae', method=GETorPOST)
+@route('/rest/xbrl/validation', method=GETorPOST)
+@route('/rest/xbrl/view', method=GETorPOST)
+@route('/rest/xbrl/open', method=GETorPOST)
+@route('/rest/xbrl/close', method=GETorPOST)
 def validation(file=None):
     errors = []
     flavor = request.query.flavor or 'standard'
     media = request.query.media or 'html'
     requestPathParts = request.urlparts[2].split('/')
-    isValidation = "validation" == requestPathParts[-1] or "validation" == requestPathParts[-2]
+    isValidation = 'validation' == requestPathParts[-1] or 'validation' == requestPathParts[-2]
     view = request.query.view
+    if request.method == 'POST':
+        sourceZipStream = request.body
+        mimeType = request.get_header("Content-Type")
+        if mimeType not in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
+            errors.append(_("POST must provide a zip file, Content-Type '{0}' not recognized as a zip file.").format(mimeType))
+    else:
+        sourceZipStream = None
     if not view:
         if requestPathParts[-1] in supportedViews:
             view = requestPathParts[-1]
@@ -138,10 +146,10 @@ def validation(file=None):
     elif view:
         viewFile = FileNamedStringIO(media)
         setattr(options, view + "File", viewFile)
-    return runOptionsAndGetResult(options, media, viewFile)
+    return runOptionsAndGetResult(options, media, viewFile, sourceZipStream)
     
-def runOptionsAndGetResult(options, media, viewFile):
-    successful = cntlr.run(options)
+def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
+    successful = cntlr.run(options, sourceZipStream)
     if media == "xml":
         response.content_type = 'text/xml; charset=UTF-8'
     elif media == "csv":
@@ -181,7 +189,7 @@ def diff():
     response.content_type = 'text/xml; charset=UTF-8'
     return reportContents
 
-@get('/quickbooks/server.asmx', method='POST')
+@route('/quickbooks/server.asmx', method='POST')
 def quickbooksServer():
     from arelle import CntlrQuickBooks
     response.content_type = 'text/xml; charset=UTF-8'
@@ -296,13 +304,14 @@ def help():
 <tr><td>/about</td><td>About web page, copyrights, etc.</td></tr>
 
 <tr><th colspan="2">Validation</th></tr>
-<tr><td>/rest/xbrl/&#x200B;{file}/&#x200B;validation/&#x200B;xbrl</td><td>Validate document at {file}.</td></tr>
-<tr><td>\u00A0</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not
+<tr><td>/rest/xbrl/{file}/validation/xbrl</td><td>Validate document at {file}.</td></tr>
+<tr><td>\u00A0</td><td>For a browser request or http GET request, {file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not
 necessary).</td></tr>
-<tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;c:/a/b/c.xbrl/&#x200B;validation/&#x200B;xbrl?&#x200B;media=xml</code>: Validate entry instance
+<tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/c:/a/b/c.xbrl/validation/xbrl?media=xml</code>: Validate entry instance
 document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>
-<tr><td>/rest/xbrl/&#x200B;validation</td><td>(Alternative syntax) Validate document, file is provided as a parameter (see below).</td></tr>
-<tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;validation&#x200B;?file=c:/a/b/c.xbrl&amp;&#x200B;media=xml</code>: Validate entry instance
+<tr><td>\u00A0</td><td>For an http POST of a zip file (mime type application/zip), {file} is the relative file path inside the zip file.</td></tr>
+<tr><td>/rest/xbrl/validation</td><td>(Alternative syntax) Validate document, file is provided as a parameter (see below).</td></tr>
+<tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/validation?file=c:/a/b/c.xbrl&amp;media=xml</code>: Validate entry instance
 document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>
 <tr><td></td><td>Parameters are optional after "?" character, and are separated by "&amp;" characters, 
 as follows:</td></tr>
@@ -334,22 +343,22 @@ formulaCallExprResult, formulaVarSetExprEval, formulaFormulaRules, formulaVarsOr
 formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvaluation, formulaVarExpressionResult, and formulaVarFiltersResult.
 
 <tr><th colspan="2">Versioning Report (diff of two DTSes)</th></tr>
-<tr><td>/rest/xbrl/&#x200B;diff</td><td>Diff two DTSes, producing an XBRL versioning report relative to report directory.</td></tr>
+<tr><td>/rest/xbrl/diff</td><td>Diff two DTSes, producing an XBRL versioning report relative to report directory.</td></tr>
 <tr><td></td><td>Parameters are requred "?" character, and are separated by "&amp;" characters, 
 as follows:</td></tr>
 <tr><td style="text-indent: 1em;">fromDTS</td><td>File name or url of from DTS.</td></tr> 
 <tr><td style="text-indent: 1em;">toDTS</td><td>File name or url of to DTS.</td></tr> 
 <tr><td style="text-indent: 1em;">report</td><td>File name or url of to report (to for relative path construction).  The report is not written out, but its contents are returned by the web request to be saved by the requestor.</td></tr> 
-<tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;diff?&#x200B;fromDTS=c:/a/prev/old.xsd&amp;&#x200B;toDTS=c:/a/next/new.xsd&amp;&#x200B;report=c:/a/report/report.xml</code>: Diff two DTSes and produce versioning report.</td></tr>
+<tr><td style="text-align=right;">Example:</td><td><code>/rest/diff?fromDTS=c:/a/prev/old.xsd&amp;toDTS=c:/a/next/new.xsd&amp;report=c:/a/report/report.xml</code>: Diff two DTSes and produce versioning report.</td></tr>
 
 <tr><th colspan="2">Views</th></tr>
-<tr><td>/rest/xbrl/&#x200B;{file}/&#x200B;{view}</td><td>View document at {file}.</td></tr>
+<tr><td>/rest/xbrl/{file}/{view}</td><td>View document at {file}.</td></tr>
 <tr><td>\u00A0</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not necessary).</td></tr>
 <tr><td>\u00A0</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, or <code>formulae</code>.</td></tr>
-<tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;c:/a/b/c.xbrl/&#x200B;dim?&#x200B;media=html</code>: View dimensions of 
+<tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/c:/a/b/c.xbrl/dim?media=html</code>: View dimensions of 
 document at c:/a/b/c.xbrl (on local drive) and return html result.</td></tr>
-<tr><td>/rest/xbrl/&#x200B;view</td><td>(Alternative syntax) View document, file and view are provided as parameters (see below).</td></tr>
-<tr><td style="text-align=right;">Example:</td><td><code>/rest/&#x200B;xbrl/&#x200B;view&#x200B;?file=c:/a/b/c.xbrl&amp;&#x200B;view=dim&#x200B;&amp;media=xml</code>: Validate entry instance
+<tr><td>/rest/xbrl/view</td><td>(Alternative syntax) View document, file and view are provided as parameters (see below).</td></tr>
+<tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/view?file=c:/a/b/c.xbrl&amp;view=dim&amp;media=xml</code>: Validate entry instance
 document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>
 <tr><td></td><td>Parameters are optional after "?" character, and are separated by "&amp;" characters, 
 as follows:</td></tr>
@@ -362,7 +371,7 @@ as follows:</td></tr>
 <tr><td style="text-indent: 1em;">import</td><td>A list of files to import to the DTS, such as additional formula 
 or label linkbases.  Multiple file names are separated by a '|' character.</td></tr> 
 <tr><td style="text-indent: 1em;">factListCols</td><td>A list of column names for facts list.  Multiple names are separated by a space or comma characters.
-Example:  <code>factListCols=&#x200B;Label,unitRef,Dec,&#x200B;Value,EntityScheme,&#x200B;EntityIdentifier,&#x200B;Period,Dimensions</code></td></tr> 
+Example:  <code>factListCols=Label,unitRef,Dec,Value,EntityScheme,EntityIdentifier,Period,Dimensions</code></td></tr> 
 
 <tr><th colspan="2">Excel interface</th></tr>
 <tr><td>GUI operation:</td><td>Select data tab.<br/>Click Get External Data From Web.<br/>
@@ -428,7 +437,7 @@ def about():
 E-mail support: <a href="mailto:support@arelle.org">support@arelle.org</a>.</td></tr>
 <tr><td>Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this file 
 except in compliance with the License.  You may obtain a copy of the License at
-<a href="http://www.apache.org/licenses/LICENSE-2.0">http://&#x200B;www.apache.org/&#x200B;licenses/&#x200B;LICENSE-2.0</a>.
+<a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>.
 Unless required by applicable law or agreed to in writing, software distributed under the License 
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
 See the License for the specific language governing permissions and limitations under the License.</td></tr>
