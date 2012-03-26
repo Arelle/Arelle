@@ -32,6 +32,7 @@ def viewTests(modelXbrl, tabWin):
     view.treeView.column("actual", width=100, anchor="w")
     view.treeView.heading("actual",  text="Actual")
     view.isTransformRegistry = False
+    modelDocument = modelXbrl.modelDocument
     if modelXbrl.modelDocument.type in (ModelDocument.Type.REGISTRY, ModelDocument.Type.REGISTRYTESTCASE):
         if modelXbrl.modelDocument.xmlRootElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
             view.treeView["displaycolumns"] = ("status", "call", "test", "expected", "actual")
@@ -39,15 +40,20 @@ def viewTests(modelXbrl, tabWin):
         else:
             view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
     else:
+        # check if infoset needed
+        if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+            hasInfoset = any(getattr(refDoc, "outpath", None)  for refDoc in modelDocument.referencesDocument)
+        else:
+            hasInfoset = bool(getattr(modelDocument, "outpath", None))
         view.treeView["displaycolumns"] = (("name", "readMeFirst") +
-                                           (("infoset",) if modelXbrl.modelDocument.outpath else ()) + 
-                                           ("status", "expected", "actual"))
+                                           ( ("infoset",) if hasInfoset else () ) +
+                                           ( "status", "expected", "actual"))
         
     menu = view.contextMenu()
     view.menuAddExpandCollapse()
     view.menuAddClipboard()
 
-    view.viewTestcaseIndexElement(modelXbrl.modelDocument, "")
+    view.viewTestcaseIndexElement(modelDocument, "")
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
@@ -103,7 +109,7 @@ class ViewTests(ViewWinTree.ViewTree):
         test = modelTestcaseVariation.cfcnTest
         if test: 
             self.treeView.set(node, "test", test[0])
-        if self.modelXbrl.modelDocument.outpath and modelTestcaseVariation.resultIsInfoset:
+        if getattr(self.modelXbrl.modelDocument, "outpath", None) and modelTestcaseVariation.resultIsInfoset:
             self.treeView.set(node, "infoset", modelTestcaseVariation.resultInfosetUri)
         self.treeView.set(node, "expected", modelTestcaseVariation.expected)
         self.treeView.set(node, "actual", " ".join(modelTestcaseVariation.actual))
