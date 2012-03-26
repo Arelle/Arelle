@@ -38,14 +38,19 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
             localName = prefix
             prefix = None
     else:
-        if name is not None:
+        if isinstance(name, dict):
+            namespaceURI = None
+            namespaceDict = name
+        elif name is not None:
             if name:  # len > 0
                 namespaceURI = value
             else:
                 namespaceURI = None
+                namespaceDict = None
             value = name
         else:
             namespaceURI = None
+            namespaceDict = None
         prefix,sep,localName = value.partition(":")
         if len(localName) == 0:
             #default namespace
@@ -55,6 +60,8 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
                 return QName(None, None, localName)
     if namespaceURI:
         return QName(prefix, namespaceURI, localName)
+    elif namespaceDict and prefix in namespaceDict:
+        return QName(prefix, namespaceDict[prefix], localName)
     elif element is not None:
         from arelle import (XmlUtil)
         namespaceURI = XmlUtil.xmlns(element, prefix)
