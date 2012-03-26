@@ -25,7 +25,7 @@ if sys.platform == 'darwin':
                                iconfile='arelle/images/arelle.icns', 
                                plist=plist, 
                                includes=['lxml', 'lxml.etree',  
-                                         'lxml._elementpath', 'gzip'])) 
+                                         'lxml._elementpath', 'gzip', 'zlib'])) 
 
     packages = find_packages('.')
     dataFiles = [
@@ -57,7 +57,7 @@ elif sys.platform == 'linux2': # works on ubuntu with hand-built cx_Freeze
                           ('arelle/examples/plugin/locale/fr/LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'), 
                           ('arelle/scripts-unix','scripts'),
                           ],
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath'], 
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'zlib'], 
         "packages": packages, 
         } ) 
     

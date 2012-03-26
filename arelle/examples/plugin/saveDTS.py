@@ -8,11 +8,19 @@ that will save the files of a DTS into a zip file.
 def package(dts):
     if dts.fileSource.isArchive:
         return
-    from zipfile import ZipFile
     import os
+    from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED 
+    try:
+        import zlib
+        compression = ZIP_DEFLATED
+    except ImportError:
+        compression = ZIP_STORED
+        dts.info("info:packageDTS",
+                 _("Python's zlib module is not available, output is not compressed."),
+                 modelObject=dts)
     entryFilename = dts.fileSource.url
     pkgFilename = entryFilename + ".zip"
-    with ZipFile(pkgFilename, 'w') as zipFile:
+    with ZipFile(pkgFilename, 'w', compression) as zipFile:
         numFiles = 0
         for fileUri in sorted(dts.urlDocs.keys()):
             if not (fileUri.startswith("http://") or fileUri.startswith("https://")):
@@ -20,7 +28,7 @@ def package(dts):
                 # this has to be a relative path because the hrefs will break
                 zipFile.write(fileUri, os.path.basename(fileUri))
     dts.info("info:packageDTS",
-             _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"),
+             _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s."),
              modelObject=dts,
              entryFile=entryFilename, numberOfFiles=numFiles, packageOutputFile=pkgFilename)
 
@@ -57,7 +65,8 @@ __pluginInfo__ = {
     'name': 'Save DTS',
     'version': '0.9',
     'description': "This plug-in adds a feature to package the whole DTS into a zip archive. "
-                   "Note that remote files are not included in the package.",
+                   "Note that remote files are not included in the package. "
+                   "Python's zlib module is used for compression (if avaliable).",
     'license': 'Apache-2',
     'author': 'R\u00e9gis D\u00e9camps',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
