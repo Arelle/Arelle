@@ -307,19 +307,25 @@ class ValidateXbrl:
                         else:
                             if concept.isMonetary:
                                 measures = unit.measures
-                                if not measures or len(measures[0]) != 1 or len(measures[1]) != 0 or \
-                                    measures[0][0].namespaceURI != XbrlConst.iso4217 or \
-                                    not self.isoCurrencyPattern.match(measures[0][0].localName):
-                                        self.modelXbrl.error("xbrl.4.8.2:monetaryFactUnit",
-                                            _("Fact %(fact)s context %(contextID)s must have a monetary unit %(unitID)s"),
-                                             modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                                if not measures or len(measures[0]) != 1 or len(measures[1]) != 0:
+                                    self.modelXbrl.error("xbrl.4.8.2:monetaryFactUnit-notSingleMeasure",
+                                        _("Fact %(fact)s context %(contextID)s must have a single unit measure which is monetary %(unitID)s"),
+                                         modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                                elif (measures[0][0].namespaceURI != XbrlConst.iso4217 or
+                                      not self.isoCurrencyPattern.match(measures[0][0].localName)):
+                                    self.modelXbrl.error("xbrl.4.8.2:monetaryFactUnit-notMonetaryMeasure",
+                                        _("Fact %(fact)s context %(contextID)s must have a monetary unit measure %(unitID)s"),
+                                         modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
                             elif concept.isShares:
                                 measures = unit.measures
-                                if not measures or len(measures[0]) != 1 or len(measures[1]) != 0 or \
-                                    measures[0][0] != XbrlConst.qnXbrliShares:
-                                        self.modelXbrl.error("xbrl.4.8.2:sharesFactUnit",
-                                            _("Fact %(fact)s context %(contextID)s must have a xbrli:shares unit %(unitID)s"),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                                if not measures or len(measures[0]) != 1 or len(measures[1]) != 0:
+                                    self.modelXbrl.error("xbrl.4.8.2:sharesFactUnit-notSingleMeasure",
+                                        _("Fact %(fact)s context %(contextID)s must have a single xbrli:shares unit %(unitID)s"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                                elif measures[0][0] != XbrlConst.qnXbrliShares:
+                                    self.modelXbrl.error("xbrl.4.8.2:sharesFactUnit-notSharesMeasure",
+                                        _("Fact %(fact)s context %(contextID)s must have a xbrli:shares unit %(unitID)s"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
                     precision = f.precision
                     hasPrecision = precision is not None
                     if hasPrecision and precision != "INF" and not precision.isdigit():
