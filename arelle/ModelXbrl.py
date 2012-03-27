@@ -411,13 +411,16 @@ class ModelXbrl:
                 refs = []
                 for arg in (argValue if isinstance(argValue, (tuple,list)) else (argValue,)):
                     if arg is not None:
-                        try:
-                            objectUrl = arg.modelDocument.uri
-                        except AttributeError:
+                        if isinstance(arg, _STR_BASE):
+                            objectUrl = arg
+                        else:
                             try:
-                                objectUrl = self.modelDocument.uri
+                                objectUrl = arg.modelDocument.uri
                             except AttributeError:
-                                objectUrl = self.entryLoadingUrl
+                                try:
+                                    objectUrl = self.modelDocument.uri
+                                except AttributeError:
+                                    objectUrl = self.entryLoadingUrl
                         file = UrlUtil.relativeUri(entryUrl, objectUrl)
                         ref = {}
                         if isinstance(arg,ModelObject):
