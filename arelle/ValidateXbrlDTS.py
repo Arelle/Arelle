@@ -14,6 +14,12 @@ instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 schemaTop = {"import", "include", "redefine"}
 schemaBottom = {"element", "attribute", "notation", "simpleType", "complexType", "group", "attributeGroup"}
 xsd1_1datatypes = {qname(XbrlConst.xsd,'anyAtomicType'), qname(XbrlConst.xsd,'yearMonthDuration'), qname(XbrlConst.xsd,'dayTimeDuration'), qname(XbrlConst.xsd,'dateTimeStamp'), qname(XbrlConst.xsd,'precisionDecimal')}
+link_loc_spec_sections = {"labelLink":"5.2.2.1",
+                          "referenceLink":"5.2.3.1",
+                          "calculationLink":"5.2.5.1",
+                          "definitionLink":"5.2.6.1",
+                          "presentationLink":"5.2.4.1",
+                          "footnoteLink":"4.11.1.1"}
 
 def checkDTS(val, modelDocument, visited):
     visited.append(modelDocument)
@@ -822,6 +828,12 @@ def checkElements(val, modelDocument, parent):
                     val.modelXbrl.error("xbrl.3.5.3.8.1:resourceType",
                         _("Element %(element)s appears to be a resource missing xlink:type=\"resource\""),
                         modelObject=elt, element=elt.qname)
+                elif (xlinkType == "locator" and elt.namespaceURI != XbrlConst.link and 
+                      parent.namespaceURI == XbrlConst.link and parent.localName in link_loc_spec_sections): 
+                    val.modelXbrl.error("xbrl.{0}:customLocator".format(link_loc_spec_sections[parent.localName]),
+                        _("Element %(element)s is a custom locator in a standard %(link)s"),
+                        modelObject=(elt,parent), element=elt.qname, link=parent.qname)
+                
             if xlinkType == "resource":
                 if not elt.get("{http://www.w3.org/1999/xlink}label"):
                     val.modelXbrl.error("xbrl.3.5.3.8.2:resourceLabel",
