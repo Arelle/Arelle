@@ -576,7 +576,7 @@ def xpointerElement(modelDocument, fragmentIdentifier):
                 parent = node
                 node = None
                 for child in iter:
-                    if isinstance(child,ModelObject):
+                    if isinstance(child,etree._Element):
                         if childNbr == eltNbr:
                             node = child
                             break
@@ -590,18 +590,18 @@ def xpointerElement(modelDocument, fragmentIdentifier):
     return None
 
 def elementFragmentIdentifier(element):
-    if element.id:
-        return element.id  # "short hand pointer" for element fragment identifier
+    if isinstance(element,etree._Element) and element.get('id'):
+        return element.get('id')  # "short hand pointer" for element fragment identifier
     else:
         childSequence = [""] # "" represents document element for / (root) on the join below
         while element is not None:
-            if isinstance(element,ModelObject):
-                if element.id:  # has ID, use as start of path instead of root
-                    childSequence[0] = element.id
+            if isinstance(element,etree._Element):
+                if element.get('id'):  # has ID, use as start of path instead of root
+                    childSequence[0] = element.get('id')
                     break
                 siblingPosition = 1
                 for sibling in element.itersiblings(preceding=True):
-                    if isinstance(sibling,ModelObject):
+                    if isinstance(sibling,etree._Element):
                         siblingPosition += 1
                 childSequence.insert(1, str(siblingPosition))
             element = element.getparent()
