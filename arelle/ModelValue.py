@@ -37,6 +37,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         if len(localName) == 0:
             localName = prefix
             prefix = None
+        namespaceDict = None
     else:
         if isinstance(name, dict):
             namespaceURI = None
@@ -46,7 +47,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
                 namespaceURI = value
             else:
                 namespaceURI = None
-                namespaceDict = None
+            namespaceDict = None
             value = name
         else:
             namespaceURI = None

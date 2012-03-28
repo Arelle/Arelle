@@ -117,7 +117,8 @@ class ModelObject(etree.ElementBase):
         try:
             return self._parentQname
         except AttributeError:
-            self._parentQname = qname( self.getparent() )
+            parentObj = self.getparent()
+            self._parentQname = parentObj.elementQname if parentObj is not None else None
             return self._parentQname
 
     

@@ -675,6 +675,26 @@ class ModelFactVariable(ModelVariable):
         return self.modelXbrl.relationshipSet(XbrlConst.variableFilter).fromModelObject(self)
     
     @property
+    def conceptNameFilterRelationships(self):
+        try:
+            return self._conceptNameFilterRelationships
+        except AttributeError:
+            self._conceptNameFilterRelationships = [rel 
+                                                    for rel in self.filterRelationships 
+                                                    if isinstance(rel.toModelObject,ModelConceptName)]
+            return self._conceptNameFilterRelationships
+    
+    @property
+    def nonConceptNameFilterRelationships(self):
+        try:
+            return self._nonConceptNameFilterRelationships
+        except AttributeError:
+            self._nonConceptNameFilterRelationships = [rel 
+                                                       for rel in self.filterRelationships 
+                                                       if not isinstance(rel.toModelObject,ModelConceptName)]
+            return self._nonConceptNameFilterRelationships
+    
+    @property
     def propertyView(self):
         return (("label", self.xlinkLabel),
                 ("nils", self.nils),
@@ -976,6 +996,10 @@ class ModelConceptName(ModelFilter):
             return set()
     
     def filter(self, xpCtx, varBinding, facts, cmplmt):
+        if not cmplmt and not self.qnameExpressionProgs:
+            qnameFactsInInstance = xpCtx.modelXbrl.qnameFactsInInstance(facts) # finds either all or nonNil facts
+            if qnameFactsInInstance: # if optimizable qnamed all or nonNil facts
+                return [f for qn in self.conceptQnames for f in qnameFactsInInstance.get(qn, [])]
         return [fact for fact in facts 
                 if cmplmt ^ (fact.qname in self.conceptQnames | self.evalQnames(xpCtx,fact))] 
     

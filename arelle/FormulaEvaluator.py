@@ -162,22 +162,27 @@ def evaluateVar(xpCtx, varSet, varIndex):
         if vb.isFactVar:
             vb.aspectsDefined = set(aspectModels[varSet.aspectModel])  # has to be a mutable set
             vb.values = None
+            _vbNils = vb.var.nils == "true"
             if vb.var.fromInstanceQnames:
                 facts = [f for qn in vb.var.fromInstanceQnames 
                          for instSeq in (xpCtx.inScopeVars[qn],)
                          for inst in (instSeq if isinstance(instSeq,(list,tuple)) else (instSeq,)) 
-                         for f in inst.factsInInstance] 
-            else:
+                         for f in inst.factsInInstance
+                         if _vbNils or not f.isNil] 
+            elif _vbNils:
                 facts = xpCtx.modelXbrl.factsInInstance
-            if vb.var.nils == "false":
-                facts = [fact for fact in facts if not fact.isNil]
+            else:
+                facts = xpCtx.modelXbrl.nonNilFactsInInstance
             if xpCtx.formulaOptions.traceVariableFilterWinnowing:
                 xpCtx.modelXbrl.info("formula:trace",
                      _("Fact Variable %(variable)s filtering: start with %(factCount)s facts"), 
                      modelObject=vb.var, variable=vb.qname, factCount=len(facts))
+            # filter conceptNames first (for advantage of facts-by-qname hashtable
+            facts = filterFacts(xpCtx, vb, facts, vb.var.conceptNameFilterRelationships, None)
+            # group filters
             facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
             # implicit filters (relativeFilter) expect no dim aspects yet on variable binding
-            facts = filterFacts(xpCtx, vb, facts, vb.var.filterRelationships, None)
+            facts = filterFacts(xpCtx, vb, facts, vb.var.nonConceptNameFilterRelationships, None)
             # adding dim aspects must be done after explicit filterin
             for fact in facts:
                 if fact.isItem:

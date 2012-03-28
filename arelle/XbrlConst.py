@@ -414,19 +414,7 @@ def isStandardArcElement(element):
         
 def isStandardArcInExtLinkElement(element):
     return isStandardArcElement(element) and isStandardResourceOrExtLinkElement(element.getparent())
-        
-def isStandardExtLinkQname(qName):
-    return qName in (
-          qname("{http://www.xbrl.org/2003/linkbase}definitionLink"), 
-          qname("{http://www.xbrl.org/2003/linkbase}calculationLink"), 
-          qname("{http://www.xbrl.org/2003/linkbase}presentationLink"), 
-          qname("{http://www.xbrl.org/2003/linkbase}labelLink"), 
-          qname("{http://www.xbrl.org/2003/linkbase}referenceLink"), 
-          qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"), 
-          qname("{http://www.xbrl.org/2003/linkbase}label"), 
-          qname("{http://www.xbrl.org/2003/linkbase}footnote"), 
-          qname("{http://www.xbrl.org/2003/linkbase}reference"))
-    
+
 standardExtLinkQnames = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"), 
                          qname("{http://www.xbrl.org/2003/linkbase}calculationLink"), 
                          qname("{http://www.xbrl.org/2003/linkbase}presentationLink"), 
@@ -434,6 +422,19 @@ standardExtLinkQnames = {qname("{http://www.xbrl.org/2003/linkbase}definitionLin
                          qname("{http://www.xbrl.org/2003/linkbase}referenceLink"), 
                          qname("{http://www.xbrl.org/2003/linkbase}footnoteLink")} 
 
+standardExtLinkQnamesAndResources = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}calculationLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}presentationLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}labelLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}referenceLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}label"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}footnote"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}reference")}
+
+def isStandardExtLinkQname(qName):
+    return qName in standardExtLinkQnamesAndResources
+    
 def isStandardArcQname(qName):
     return qName in {
           qname("{http://www.xbrl.org/2003/linkbase}definitionArc"), 

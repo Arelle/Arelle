@@ -338,6 +338,35 @@ class ModelXbrl:
         XmlValidate.validate(self, newUnitElt)
         return newUnitElt
     
+    @property
+    def nonNilFactsInInstance(self): # indexed by fact (concept) qname
+        try:
+            return self._nonNilFactsInInstance
+        except AttributeError:
+            self._nonNilFactsInInstance = [f for f in self.factsInInstance if not f.isNil]
+            return self._nonNilFactsInInstance
+        
+    def qnameFactsInInstance(self, facts): # indexed by fact (concept) qname
+        if facts is self.factsInInstance: # may be all facts in inst or just nonNil factsInInst
+            try:
+                return self._qnameFactsInInstance
+            except AttributeError:
+                _qname_factsInInstance = defaultdict(list)
+                for f in self.factsInInstance:
+                    _qname_factsInInstance[f.qname].append(f)
+                self._qnameFactsInInstance = _qname_factsInInstance
+                return self._qnameFactsInInstance
+        elif facts is getattr(self,"_nonNilFactsInInstance",None):
+            try:
+                return self._qnameNonNilFactsInInstance
+            except AttributeError:
+                _qname_factsInInstance = defaultdict(list)
+                for f in self._nonNilFactsInInstance:
+                    _qname_factsInInstance[f.qname].append(f)
+                self._qnameNonNilFactsInInstance = _qname_factsInInstance
+                return self._qnameNonNilFactsInInstance
+        return None
+
     def matchFact(self, otherFact):
         for fact in self.facts:
             if (fact.isTuple):
