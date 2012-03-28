@@ -116,6 +116,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
+        for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Validation"):
+            pluginMenuExtender(self, validateMenu)
 
         formulaMenu = Menu(self.menubar, tearoff=0)
         formulaMenu.add_command(label=_("Parameters..."), underline=0, command=self.formulaParametersDialog)
@@ -165,8 +167,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 helpMenu.add_separator()
             else:
                 helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
-                self.parent.bind(shortcut, command)        
-        for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Helo"):
+                self.parent.bind(shortcut, command)
+        for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Help"):
             pluginMenuExtender(self, toolsMenu)
         self.menubar.add_cascade(label=_("Help"), menu=helpMenu, underline=0)
 

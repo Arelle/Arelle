@@ -249,7 +249,7 @@ class DialogFind(Toplevel):
                 isRE = False
                 isXP = True
                 self.resultText.setValue(_("Compiling xpath expression..."))
-                XPathParser.initializeParser(self)
+                XPathParser.initializeParser(self.modelManager)
                 self.modelManager.showStatus(_("Compiling xpath expression..."))
                 xpProg= XPathParser.parse(self, 
                                           expr, 

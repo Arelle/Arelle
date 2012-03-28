@@ -81,7 +81,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                 
 def executeCallTest(val, name, callTuple, testTuple):
     if callTuple:
-        XPathParser.initializeParser(val)
+        XPathParser.initializeParser(val.modelXbrl.modelManager)
         
         try:                            
             val.modelXbrl.modelManager.showStatus(_("Executing call"))
@@ -121,8 +121,9 @@ def validate(val):
             return
     
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
-    XPathParser.initializeParser(val)
-    val.modelXbrl.modelManager.showStatus(_("Compiling formulae"))
+    XPathParser.initializeParser(val.modelXbrl.modelManager)
+    val.modelXbrl.modelManager.showStatus(_("compiling formulae"))
+    val.modelXbrl.profileActivity()
     initialErrorCount = val.modelXbrl.logCountErr
     
     # global parameter names
@@ -168,6 +169,7 @@ def validate(val):
                     _("Cyclic dependencies in parameter %(name)s, to names %(dependencies)s"),
                     modelObject=val.modelXbrl.qnameParameters[paramQname],
                     name=paramQname, dependencies=", ".join((str(d) for d in paramsCircularDep)) )
+    val.modelXbrl.profileActivity("... formula parameter checks", minTimeToShow=1.0)
             
     for custFnSig in val.modelXbrl.modelCustomFunctionSignatures.values():
         custFnQname = custFnSig.qname
@@ -191,6 +193,7 @@ def validate(val):
                 _("Custom function implementation %(xlinkLabel)s has no relationship from any custom function signature"),
                 modelObject=custFnSig, xlinkLabel=custFnImpl.xlinkLabel)
         custFnImpl.compile()
+    val.modelXbrl.profileActivity("... custom function checks and compilation", minTimeToShow=1.0)
             
     # xpathContext is needed for filter setup for expressions such as aspect cover filter
     # determine parameter values
@@ -221,6 +224,7 @@ def validate(val):
                 val.modelXbrl.error("xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
                     _("Parameter \n%(name)s \nException: \n%(error)s"), 
                     modelObject=modelParameter, name=paramQname, error=err.message)
+    val.modelXbrl.profileActivity("... parameter checks and select evaluation", minTimeToShow=1.0)
 
     produceOutputXbrlInstance = False
     instanceProducingVariableSets = defaultdict(list)
@@ -445,6 +449,7 @@ def validate(val):
         # check aspects of formula
         if isinstance(modelVariableSet, ModelFormula):
             checkFormulaRules(val, modelVariableSet, nameVariables)
+    val.modelXbrl.profileActivity("... assertion and formula checks and compilation", minTimeToShow=1.0)
             
     # determine instance dependency order
     orderedInstancesSet = set()
@@ -514,6 +519,7 @@ def validate(val):
                     consisAsser.orderedVariableRelationships.append(consisParamRel)
             consisAsser.compile()
             modelRel.toModelObject.hasConsistencyAssertion = True
+    val.modelXbrl.profileActivity("... consistency assertion setup", minTimeToShow=1.0)
 
     # validate default dimensions in instances and accumulate multi-instance-default dimension aspects
     xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())
@@ -542,6 +548,7 @@ def validate(val):
                             modelObject=modelVariableSet, 
                             xlinkLabel1=sourceVariableSet.xlinkLabel, aspectModel1=sourceVariableSet.aspectModel,
                             xlinkLabel2=modelVariableSet.xlinkLabel, aspectModel2=modelVariableSet.aspectModel)
+    val.modelXbrl.profileActivity("... instances scopes and setup", minTimeToShow=1.0)
 
     if initialErrorCount < val.modelXbrl.logCountErr:
         return  # don't try to execute
@@ -573,7 +580,9 @@ def validate(val):
         xpathContext.inScopeVars[instanceQname] = namedInstance
         if instanceQname == XbrlConst.qnStandardOutputInstance:
             outputXbrlInstance = namedInstance
+    val.modelXbrl.profileActivity("... output instances setup", minTimeToShow=1.0)
         
+    val.modelXbrl.modelManager.showStatus(_("running formulae"))
     # evaluate consistency assertions
     
     # evaluate variable sets not in consistency assertions
@@ -621,6 +630,9 @@ def validate(val):
             # close prior instance, usually closed by caller to validate as it may affect UI on different thread
             val.modelXbrl.formulaOutputInstance.close()
         val.modelXbrl.formulaOutputInstance = outputXbrlInstance
+        
+    val.modelXbrl.modelManager.showStatus(_("formulae finished"), 2000)
+        
 
 def checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet):
     for visibleVarSetRel in val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):

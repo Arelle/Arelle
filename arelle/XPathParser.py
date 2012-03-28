@@ -572,11 +572,10 @@ def normalizeExpr(expr):
 
 isInitialized = False
 
-def initializeParser(modelObject):
+def initializeParser(modelManager):
     global isInitialized
     if not isInitialized:
-        modelManager = modelObject.modelXbrl.modelManager
-        modelManager.showStatus(_("Initializing formula xpath2 grammar"))
+        modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
         xpathExpr.parseString( "0", parseAll=True )
         modelManager.addToLog(format_string(modelManager.locale, 
