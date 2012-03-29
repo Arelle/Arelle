@@ -60,8 +60,11 @@ class ModelFact(ModelObject):
 
     @property
     def context(self):
-        context = self.modelXbrl.contexts.get(self.contextID)
-        return context
+        try:
+            return self._context
+        except AttributeError:
+            self._context = self.modelXbrl.contexts.get(self.contextID)
+            return self._context
     
     @property
     def unit(self):
@@ -79,7 +82,7 @@ class ModelFact(ModelObject):
             context = self.context
             unit = self.unit
             self._conceptContextUnitLangHash = hash( 
-                (self.concept.qname,
+                (self.qname,
                  context.contextDimAwareHash if context is not None else None,
                  unit.hash if unit is not None else None,
                  self.xmlLang) )
@@ -501,8 +504,9 @@ class ModelContext(ModelObject):
 
     @property
     def entityIdentifier(self):
-        return (self.entityIdentifierElement.get("scheme"),
-                XmlUtil.text(self.entityIdentifierElement))
+        eiElt = self.entityIdentifierElement
+        return (eiElt.get("scheme"), eiElt.xValue)
+
     @property
     def entityIdentifierHash(self):
         try:
@@ -628,7 +632,7 @@ class ModelContext(ModelObject):
             return False
         
     def isEntityIdentifierEqualTo(self, cntx2):
-        return self.entityIdentifier == cntx2.entityIdentifier
+        return self.entityIdentifierHash == cntx2.entityIdentifierHash
     
     def isEqualTo(self, cntx2, dimensionalAspectModel=None):
         if dimensionalAspectModel is None: dimensionalAspectModel = self.modelXbrl.hasXDT

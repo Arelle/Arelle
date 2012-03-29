@@ -51,6 +51,8 @@ def backgroundProfileFormula(cntlr, profileReportFile):
             self.modelXbrl = modelXbrl
             self.parameters = None
             self.validateSBRNL = False
+        def close(self):
+            self.__dict__.clear()
             
     val = Validate(cntlr.modelManager.modelXbrl)
     startedAt = time.time()
@@ -59,6 +61,9 @@ def backgroundProfileFormula(cntlr, profileReportFile):
     cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale, 
                                         _("formula profiling completed in %.2f secs"), 
                                         time.time() - startedAt))
+    # dereference val
+    val.close()
+    
     # specify a file for log
     priorStdOut = sys.stdout
     sys.stdout = open(profileReportFile, "w")

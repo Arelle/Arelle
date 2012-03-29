@@ -312,7 +312,7 @@ def checkFact(val, f):
     if not isFactDimensionallyValid(val, f):
         val.modelXbrl.error("xbrldie:PrimaryItemDimensionallyInvalidError",
             _("Fact %(fact)s context %(contextID)s dimensionally not valid"),
-            modelObject=f, fact=f.concept.qname, contextID=f.context.id)
+            modelObject=f, fact=f.qname, contextID=f.context.id)
 
 def isFactDimensionallyValid(val, f, setPrototypeContextElements=False):
     hasElrHc = False
