@@ -77,15 +77,16 @@ class ViewFormulae(ViewWinTree.ViewTree):
         self.id += 1
         if fromObject not in visited:
             visited.add(fromObject)
-            relationshipArcsShown = set()
-            for relationshipSet in (self.varSetFilterRelationshipSet,
-                                    self.allFormulaRelationshipsSet):
+            relationshipArcsShown = set()  # don't show group filters twice (in allFormulaRelSet secondly
+            for i, relationshipSet in enumerate((self.varSetFilterRelationshipSet,
+                                                 self.allFormulaRelationshipsSet)):
                 for modelRel in relationshipSet.fromModelObject(fromObject):
-                    if modelRel.arcElement not in relationshipArcsShown:
-                        relationshipArcsShown.add(modelRel.arcElement)
+                    if i == 0 or modelRel.arcElement not in relationshipArcsShown:
                         toObject = modelRel.toModelObject
                         n += 1 # child has opposite row style of parent
                         self.viewFormulaObjects(childnode, toObject, modelRel, n, visited)
+                        if i == 0:
+                            relationshipArcsShown.add(modelRel.arcElement)
             visited.remove(fromObject)
             
     def treeviewEnter(self, *args):

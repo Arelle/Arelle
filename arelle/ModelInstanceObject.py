@@ -590,14 +590,29 @@ class ModelContext(ModelObject):
     def scenarioHash(self):
         # s-equality hash
         return XbrlUtil.equalityHash( self.scenario ) # self-caching
+    
+    @property
+    def nonDimSegmentHash(self):
+        try:
+            return self._nonDimSegmentHash
+        except AttributeError:
+            self._nonDimSegmentHash = XbrlUtil.equalityHash(self.nonDimValues("segment"))
+            return self._nonDimSegmentHash
+        
+    @property
+    def nonDimScenarioHash(self):
+        try:
+            return self._nonDimScenarioHash
+        except AttributeError:
+            self._nonDimScenarioHash = XbrlUtil.equalityHash(self.nonDimValues("scenario"))
+            return self._nonDimScenarioHash
         
     @property
     def nonDimHash(self):
         try:
             return self._nonDimsHash
         except AttributeError:
-            self._nonDimsHash = hash( (XbrlUtil.equalityHash(self.nonDimValues("segment")), 
-                                       XbrlUtil.equalityHash(self.nonDimValues("scenario"))) )
+            self._nonDimsHash = hash( (self.nonDimSegmentHash, self.nonDimScenarioHash) ) 
             return self._nonDimsHash
         
     @property
@@ -819,8 +834,9 @@ class ModelUnit(ModelObject):
         return len(measures[0]) == 1 and len(measures[1]) == 0
     
     def isEqualTo(self, unit2):
-        if unit2 is None: return False
-        return self.measures == unit2.measures
+        if unit2 is None or unit2.hash != self.hash: 
+            return False
+        return unit2 is self or self.measures == unit2.measures
     
     @property
     def value(self):

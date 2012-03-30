@@ -60,12 +60,12 @@ aspectModelAspect = {   # aspect of the model that corresponds to retrievable as
     }
 
 aspectModels = {
-     "dimensional": {
-             Aspect.LOCATION, Aspect.CONCEPT, Aspect.ENTITY_IDENTIFIER, Aspect.PERIOD, Aspect.UNIT,
+     "dimensional": {  # order by likelyhood of short circuting aspect match tests
+             Aspect.CONCEPT, Aspect.PERIOD, Aspect.UNIT, Aspect.LOCATION, Aspect.ENTITY_IDENTIFIER,
              Aspect.DIMENSIONS,
              Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO},
      "non-dimensional": {
-             Aspect.LOCATION, Aspect.CONCEPT, Aspect.ENTITY_IDENTIFIER, Aspect.PERIOD, Aspect.UNIT,
+             Aspect.CONCEPT, Aspect.PERIOD, Aspect.UNIT, Aspect.LOCATION, Aspect.ENTITY_IDENTIFIER,
              Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO},
      }
 
@@ -238,7 +238,11 @@ class ModelVariableSet(ModelFormulaResource):
 
     @property
     def groupFilterRelationships(self):
-        return self.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(self)
+        try:
+            return self._groupFilterRelationships
+        except AttributeError:
+            self._groupFilterRelationships = self.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(self)
+            return self._groupFilterRelationships
         
     @property
     def propertyView(self):
@@ -672,27 +676,17 @@ class ModelFactVariable(ModelVariable):
     
     @property
     def filterRelationships(self):
-        return self.modelXbrl.relationshipSet(XbrlConst.variableFilter).fromModelObject(self)
-    
-    @property
-    def conceptNameFilterRelationships(self):
         try:
-            return self._conceptNameFilterRelationships
+            return self._filterRelationships
         except AttributeError:
-            self._conceptNameFilterRelationships = [rel 
-                                                    for rel in self.filterRelationships 
-                                                    if isinstance(rel.toModelObject,ModelConceptName)]
-            return self._conceptNameFilterRelationships
-    
-    @property
-    def nonConceptNameFilterRelationships(self):
-        try:
-            return self._nonConceptNameFilterRelationships
-        except AttributeError:
-            self._nonConceptNameFilterRelationships = [rel 
-                                                       for rel in self.filterRelationships 
-                                                       if not isinstance(rel.toModelObject,ModelConceptName)]
-            return self._nonConceptNameFilterRelationships
+            rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
+            for rel in self.modelXbrl.relationshipSet(XbrlConst.variableFilter).fromModelObject(self):
+                if isinstance(rel.toModelObject,ModelConceptName):
+                    rels.insert(0, rel)  # put conceptName filters first
+                else:
+                    rels.append(rel)
+            self._filterRelationships = rels
+            return rels
     
     @property
     def propertyView(self):
@@ -937,7 +931,6 @@ class ModelAndFilter(ModelBooleanFilter):
         super(ModelAndFilter, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        from arelle.FormulaEvaluator import filterFacts
         if self.filterRelationships:
             return filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "and")
         else:
@@ -948,7 +941,6 @@ class ModelOrFilter(ModelBooleanFilter):
         super(ModelOrFilter, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        from arelle.FormulaEvaluator import filterFacts
         if self.filterRelationships:
             return filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "or")
         else:
@@ -1372,7 +1364,6 @@ class ModelConceptRelation(ModelFilter):
         hasNoTest = self.test is None
         axis = self.axis
         isFromAxis = axis.startswith('parent') or axis.startswith('ancestor')
-        from arelle.FunctionXfi import concept_relationships
         relationships = concept_relationships(xpCtx, None, (sourceQname,
                                                             linkrole,
                                                             arcrole,
@@ -1572,7 +1563,6 @@ class ModelMatchFilter(ModelFilter):
         return super(ModelMatchFilter, self).variableRefs(None, varRefSet)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        from arelle.FormulaEvaluator import aspectMatches
         aspect = self.aspect
         otherFact = xpCtx.inScopeVars.get(self.variable)
         # check that otherFact is a single fact or otherwise all match for indicated aspect
@@ -2018,11 +2008,10 @@ class ModelRelativeFilter(ModelFilter):
         return varBinding.aspectsDefined
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        from arelle.FormulaEvaluator import aspectMatchFilter
         return aspectMatchFilter(xpCtx, 
                                  facts, 
                                  (varBinding.aspectsDefined - varBinding.aspectsCovered), 
-                                 xpCtx.varBindings.get(self.variable), 
+                                 (xpCtx.varBindings.get(self.variable),), 
                                  "relative",
                                  varBinding)
         
@@ -2348,7 +2337,6 @@ class ModelPrecisionFilter(ModelFilter):
         return self.get("minimum")
     
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        from arelle.ValidateXbrlCalcs import inferredPrecision
         minimum = self.minimum
         numMinimum = float('INF') if minimum == 'INF' else _INT(minimum)
         return [fact for fact in facts 
@@ -2604,3 +2592,7 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnCustomFunctionImplementation, ModelCustomFunctionImplementation),
      ))
 
+# import after other modules resolved to prevent circular references
+from arelle.FormulaEvaluator import filterFacts, aspectMatches, aspectMatchFilter
+from arelle.FunctionXfi import concept_relationships
+from arelle.ValidateXbrlCalcs import inferredPrecision

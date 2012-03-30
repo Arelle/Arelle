@@ -177,12 +177,10 @@ def evaluateVar(xpCtx, varSet, varIndex):
                 xpCtx.modelXbrl.info("formula:trace",
                      _("Fact Variable %(variable)s filtering: start with %(factCount)s facts"), 
                      modelObject=vb.var, variable=vb.qname, factCount=len(facts))
-            # filter conceptNames first (for advantage of facts-by-qname hashtable
-            facts = filterFacts(xpCtx, vb, facts, vb.var.conceptNameFilterRelationships, None)
+            # filter conceptNames first (for advantage of facts-by-qname hashtable)
+            facts = filterFacts(xpCtx, vb, facts, vb.var.filterRelationships, None)
             # group filters
             facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
-            # implicit filters (relativeFilter) expect no dim aspects yet on variable binding
-            facts = filterFacts(xpCtx, vb, facts, vb.var.nonConceptNameFilterRelationships, None)
             # adding dim aspects must be done after explicit filterin
             for fact in facts:
                 if fact.isItem:
@@ -268,17 +266,26 @@ def coverAspectCoverFilterDims(xpCtx, vb, filterRelationships):
                 vb.aspectsCovered |= _filter.dimAspectsCovered(vb)
             
 def aspectMatchFilter(xpCtx, facts, aspects, varBindings, filterType, relBinding=None):
-    for aspect in aspects:
-        for vb in (varBindings if hasattr(varBindings, '__iter__') else (varBindings,)):
-            if (vb.isFactVar and not vb.isFallback and not vb.hasAspectValueCovered(aspect) and
-                (relBinding is None or (relBinding.isFactVar and not relBinding.isFallback and not relBinding.hasAspectValueCovered(aspect)))):
-            #if not vb.isFallback and vb.hasAspectValueUncovered(aspect):
-                facts = [fact for fact in facts if aspectMatches(xpCtx, vb.yieldedFact, fact, aspect)]
-                if xpCtx.formulaOptions.traceVariableFilterWinnowing:
+    if relBinding is not None:
+        aspects = [aspect for aspect in aspects if not relBinding.hasAspectValueCovered(aspect)]
+    if xpCtx.formulaOptions.traceVariableFilterWinnowing:  # trace shows by aspect by bound variable match    
+        for aspect in aspects:
+            for vb in varBindings:
+                if vb.isFactVar and not vb.isFallback and not vb.hasAspectValueCovered(aspect):
+                #if not vb.isFallback and vb.hasAspectValueUncovered(aspect):
+                    facts = [fact for fact in facts if aspectMatches(xpCtx, vb.yieldedFact, fact, aspect)]
                     a = str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect]
                     xpCtx.modelXbrl.info("formula:trace",
                         _("Fact Variable %(variable)s %(filter)s filter %(aspect)s passes %(factCount)s facts"), 
-                        modelObject=vb.var, variable=vb.qname, filter=filterType, aspect=a, factCount=len(facts)),
+                        modelObject=vb.var, variable=vb.qname, filter=filterType, aspect=a, factCount=len(facts))
+                    break # done with this aspect
+            if len(facts) == 0: break
+    elif relBinding is None or (relBinding.isFactVar and not relBinding.isFallback): 
+        # not tracing, do bulk aspect filtering
+        for vb in varBindings:
+            if vb.isFactVar and not vb.isFallback:
+                matchAspects = vb.aspectsNotCovered(aspects)
+                facts = [fact for fact in facts if aspectsMatch(xpCtx, vb.yieldedFact, fact, matchAspects)]
                 if len(facts) == 0: break
     if relBinding is not None and vb.isFactVar and not vb.isFallback and relBinding.isFactVar and not relBinding.isFallback:    
         # check each dimension aspect of candidate fact (no dim aspect in aspects, only fact's apply)
@@ -313,98 +320,102 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
         return fact1.qname == fact2.qname
     elif fact1.isTuple or fact2.isTuple:
         return True # only match the aspects both facts have 
-    elif aspect == Aspect.PERIOD:
-        return fact1.context.isPeriodEqualTo(fact2.context)
-    elif aspect == Aspect.ENTITY_IDENTIFIER:
-        return fact1.context.isEntityIdentifierEqualTo(fact2.context)
-    elif aspect == Aspect.COMPLETE_SEGMENT:
-        return XbrlUtil.nodesCorrespond(fact1.modelXbrl, fact1.context.segment, fact2.context.segment, dts2=fact2.modelXbrl) 
-    elif aspect == Aspect.COMPLETE_SCENARIO:
-        return XbrlUtil.nodesCorrespond(fact1.modelXbrl, fact1.context.scenario, fact2.context.scenario, dts2=fact2.modelXbrl) 
-    elif aspect in (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
-        nXs1 = fact1.context.nonDimValues(aspect)
-        nXs2 = fact2.context.nonDimValues(aspect)
-        lXs1 = len(nXs1)
-        lXs2 = len(nXs2)
-        if lXs1 != lXs2:
-            return False
-        elif lXs1 > 0:
-            for i in range(lXs1):
-                if not XbrlUtil.nodesCorrespond(fact1.modelXbrl, nXs1[i], nXs2[i], dts2=fact2.modelXbrl): 
-                    return False
-        return True
     elif aspect == Aspect.UNIT:
         u1 = fact1.unit
         u2 = fact2.unit
-        if (u1 is None) != (u2 is None):
-            return False
-        elif u1 is not None and u2 is not None and u1.measures != u2.measures:
-            return False
-        return True
-    elif aspect == Aspect.DIMENSIONS:
-        ''' (no implicit filtering on ALL dimensions for now)
-        dimQnames1 = fact1.context.dimAspects
-        dimQnames2 = fact2.context.dimAspects
-        if len(dimQnames1 ^ dimQnames2):  # dims not in both
-            matches = False
-        else:
-            for dimQname1 in dimQnames1:
-                if dimQname1 not in dimQnames2 or \
-                   not aspectMatches(fact1, fact2, dimQname1):
-                    matches = False
-                    break
-        '''
-    elif isinstance(aspect, QName):
-        from arelle.ModelInstanceObject import ModelDimensionValue
-        dimValue1 = fact1.context.dimValue(aspect)
-        dimValue2 = fact2.context.dimValue(aspect)
-        if isinstance(dimValue1, ModelDimensionValue):
-            if dimValue1.isExplicit: 
-                if isinstance(dimValue2, QName):
-                    if dimValue1.memberQname != dimValue2:
+        if u1 is not None:
+            return u1.isEqualTo(u2)
+        return u2 is None
+    else:
+        # rest of comparisons are for context
+        c1 = fact1.context
+        c2 = fact2.context
+        if c1 is c2:
+            return True # same context
+        if aspect == Aspect.PERIOD:
+            return c1.isPeriodEqualTo(c2)
+        if aspect == Aspect.ENTITY_IDENTIFIER:
+            return c1.isEntityIdentifierEqualTo(c2)
+        if aspect == Aspect.COMPLETE_SEGMENT:
+            return XbrlUtil.nodesCorrespond(fact1.modelXbrl, c1.segment, c2.segment, dts2=fact2.modelXbrl) 
+        elif aspect == Aspect.COMPLETE_SCENARIO:
+            return XbrlUtil.nodesCorrespond(fact1.modelXbrl, c1.scenario, c2.scenario, dts2=fact2.modelXbrl) 
+        elif aspect in (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
+            nXs1 = c1.nonDimValues(aspect)
+            nXs2 = c2.nonDimValues(aspect)
+            lXs1 = len(nXs1)
+            lXs2 = len(nXs2)
+            if lXs1 != lXs2:
+                return False
+            elif lXs1 > 0:
+                for i in range(lXs1):
+                    if not XbrlUtil.nodesCorrespond(fact1.modelXbrl, nXs1[i], nXs2[i], dts2=fact2.modelXbrl): 
+                        return False
+            return True
+        elif aspect == Aspect.DIMENSIONS:
+            ''' (no implicit filtering on ALL dimensions for now)
+            dimQnames1 = fact1.context.dimAspects
+            dimQnames2 = fact2.context.dimAspects
+            if len(dimQnames1 ^ dimQnames2):  # dims not in both
+                matches = False
+            else:
+                for dimQname1 in dimQnames1:
+                    if dimQname1 not in dimQnames2 or \
+                       not aspectMatches(fact1, fact2, dimQname1):
+                        matches = False
+                        break
+            '''
+        elif isinstance(aspect, QName):
+            from arelle.ModelInstanceObject import ModelDimensionValue
+            dimValue1 = c1.dimValue(aspect)
+            dimValue2 = c2.dimValue(aspect)
+            if isinstance(dimValue1, ModelDimensionValue):
+                if dimValue1.isExplicit: 
+                    if isinstance(dimValue2, QName):
+                        if dimValue1.memberQname != dimValue2:
+                            return False
+                    elif isinstance(dimValue2, ModelDimensionValue):
+                        if dimValue2.isTyped:
+                            return False
+                        elif dimValue1.memberQname != dimValue2.memberQname:
+                            return False 
+                    elif dimValue2 is None:
+                        return False
+                elif dimValue1.isTyped:
+                    if isinstance(dimValue2, QName):
+                        return False
+                    elif isinstance(dimValue2, ModelDimensionValue):
+                        if dimValue2.isExplicit:
+                            return False
+                        elif dimValue1.dimension.typedDomainElement in xpCtx.modelXbrl.modelFormulaEqualityDefinitions:
+                            equalityDefinition = xpCtx.modelXbrl.modelFormulaEqualityDefinitions[dimValue1.dimension.typedDomainElement]
+                            return equalityDefinition.evalTest(xpCtx, fact1, fact2)
+                        elif not XbrlUtil.nodesCorrespond(fact1.modelXbrl, dimValue1.typedMember, dimValue2.typedMember, dts2=fact2.modelXbrl):
+                            return False
+                    elif dimValue2 is None:
+                        return False
+            elif isinstance(dimValue1,QName): # first dim is default value of an explicit dim
+                if isinstance(dimValue2, QName): # second dim is default value of an explicit dim
+                    # multi-instance does not consider member's qname here where it is a default
+                    # only check if qnames match if the facts are from same instance
+                    if fact1.modelXbrl == fact2.modelXbrl and dimValue1 != dimValue2:
                         return False
                 elif isinstance(dimValue2, ModelDimensionValue):
                     if dimValue2.isTyped:
                         return False
-                    elif dimValue1.memberQname != dimValue2.memberQname:
+                    elif dimValue1 != dimValue2.memberQname:
                         return False 
-                elif dimValue2 is None:
-                    return False
-            elif dimValue1.isTyped:
-                if isinstance(dimValue2, QName):
-                    return False
-                elif isinstance(dimValue2, ModelDimensionValue):
-                    if dimValue2.isExplicit:
+                elif dimValue2 is None: # no dim aspect for fact 2
+                    if fact1.modelXbrl == fact2.modelXbrl: # only allowed for multi-instance
                         return False
-                    elif dimValue1.dimension.typedDomainElement in xpCtx.modelXbrl.modelFormulaEqualityDefinitions:
-                        equalityDefinition = xpCtx.modelXbrl.modelFormulaEqualityDefinitions[dimValue1.dimension.typedDomainElement]
-                        return equalityDefinition.evalTest(xpCtx, fact1, fact2)
-                    elif not XbrlUtil.nodesCorrespond(fact1.modelXbrl, dimValue1.typedMember, dimValue2.typedMember, dts2=fact2.modelXbrl):
+            elif dimValue1 is None:
+                # absent dim member from fact1 allowed if fact2 is default in different instance
+                if isinstance(dimValue2,QName):
+                    if fact1.modelXbrl == fact2.modelXbrl:
                         return False
-                elif dimValue2 is None:
+                elif dimValue2 is not None:
                     return False
-        elif isinstance(dimValue1,QName): # first dim is default value of an explicit dim
-            if isinstance(dimValue2, QName): # second dim is default value of an explicit dim
-                # multi-instance does not consider member's qname here where it is a default
-                # only check if qnames match if the facts are from same instance
-                if fact1.modelXbrl == fact2.modelXbrl and dimValue1 != dimValue2:
-                    return False
-            elif isinstance(dimValue2, ModelDimensionValue):
-                if dimValue2.isTyped:
-                    return False
-                elif dimValue1 != dimValue2.memberQname:
-                    return False 
-            elif dimValue2 is None: # no dim aspect for fact 2
-                if fact1.modelXbrl == fact2.modelXbrl: # only allowed for multi-instance
-                    return False
-        elif dimValue1 is None:
-            # absent dim member from fact1 allowed if fact2 is default in different instance
-            if isinstance(dimValue2,QName):
-                if fact1.modelXbrl == fact2.modelXbrl:
-                    return False
-            elif dimValue2 is not None:
-                return False
-            # else if both are None, matches True for single and multiple instance
+                # else if both are None, matches True for single and multiple instance
     return True
 
 def evaluationIsUnnecessary(thisEval, otherEvals):
@@ -897,6 +908,9 @@ class VariableBinding:
     def hasAspectValueCovered(self, aspect):
         if aspect in aspectModelAspect: aspect = aspectModelAspect[aspect]
         return aspect in self.aspectsCovered
+    
+    def aspectsNotCovered(self, aspects):
+        return [a for a in aspects if not self.hasAspectValueCovered(a)]
     
     def hasAspectValueDefined(self, aspect):
         if aspect in aspectModelAspect: aspect = aspectModelAspect[aspect]
