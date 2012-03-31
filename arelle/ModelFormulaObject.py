@@ -2008,12 +2008,18 @@ class ModelRelativeFilter(ModelFilter):
         return varBinding.aspectsDefined
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        return aspectMatchFilter(xpCtx, 
-                                 facts, 
-                                 (varBinding.aspectsDefined - varBinding.aspectsCovered), 
-                                 (xpCtx.varBindings.get(self.variable),), 
-                                 "relative",
-                                 varBinding)
+        aspectsUncovered = (varBinding.aspectsDefined - varBinding.aspectsCovered)
+        otherVarBinding = xpCtx.varBindings.get(self.variable)
+        hasOtherFactVar = otherVarBinding and otherVarBinding.isFactVar and not otherVarBinding.isFallback
+        otherFact = otherVarBinding.yieldedFact if hasOtherFactVar else None
+        return [fact for fact in facts 
+                if cmplmt ^ (hasOtherFactVar and
+                             aspectsMatch(xpCtx, otherFact, fact, aspectsUncovered) and
+                             all(aspectMatches(xpCtx, otherFact, fact, dimAspect)
+                                 for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects)
+                                 if (not varBinding.hasAspectValueCovered(dimAspect) and
+                                     not otherVarBinding.hasAspectValueCovered(dimAspect)))
+                            )]
         
     @property
     def propertyView(self):
@@ -2593,6 +2599,6 @@ elementSubstitutionModelClass.update((
      ))
 
 # import after other modules resolved to prevent circular references
-from arelle.FormulaEvaluator import filterFacts, aspectMatches, aspectMatchFilter
+from arelle.FormulaEvaluator import filterFacts, aspectsMatch, aspectMatches
 from arelle.FunctionXfi import concept_relationships
 from arelle.ValidateXbrlCalcs import inferredPrecision
