@@ -11,7 +11,7 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFormula, ModelTuple, ModelExistenceAssertion,
                                  ModelValueAssertion,
                                  ModelFactVariable, ModelGeneralVariable, ModelVariable,
-                                 ModelParameter, ModelFilter, ModelAspectCover)
+                                 ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter)
 from arelle.ModelValue import (QName)
 import datetime
 
@@ -66,7 +66,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
     if variablesInScope:
         xpCtx.evaluations = stackedEvaluations
     
-def evaluateVar(xpCtx, varSet, varIndex, preFilteredFacts, uncoveredAspectFacts):
+def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
     if varIndex == len(varSet.orderedVariableRelationships):
         # check if all fact vars are fallen back
         anyFactVar = False; anyBoundFactVar = False
@@ -161,55 +161,55 @@ def evaluateVar(xpCtx, varSet, varIndex, preFilteredFacts, uncoveredAspectFacts)
         varRel = varSet.orderedVariableRelationships[varIndex]
         vb = VariableBinding(xpCtx, varRel)
         var = vb.var
-        uncoveredAspects = None
         if vb.isFactVar:
             vb.aspectsDefined = set(aspectModels[varSet.aspectModel])  # has to be a mutable set
             vb.values = None
-            hasNoVariableDependencies = var.hasNoVariableDependencies
-            _vbNils = var.nils == "true"
-            if var.fromInstanceQnames or hasNoVariableDependencies:
-                preFiltFactsKey = str(vb.qname) # multi instance vars or  non-var-dependent variables
-            elif _vbNils:
-                preFiltFactsKey = "stdInstNils"
+            varHasNoVariableDependencies = var.hasNoVariableDependencies
+            varHasNilFacts = var.nils == "true"
+            if varHasNoVariableDependencies and vb.qname in cachedFilteredFacts:
+                facts, vb.aspectsDefined, vb.aspectsCovered = cachedFilteredFacts[vb.qname]
+                if xpCtx.formulaOptions.traceVariableFilterWinnowing:
+                    xpCtx.modelXbrl.info("formula:trace",
+                         _("Fact Variable %(variable)s: start with %(factCount)s facts previously cached after explicit filters"), 
+                         modelObject=var, variable=vb.qname, factCount=len(facts))
             else:
-                preFiltFactsKey = "stdInstNonNil"
-            if preFiltFactsKey in preFilteredFacts:
-                facts, savedAspectsCovered = preFilteredFacts[preFiltFactsKey]
-                preFiltered = True
-            else:
-                preFiltered = False
                 if var.fromInstanceQnames:
-                    facts = [f for qn in var.fromInstanceQnames 
-                             for instSeq in (xpCtx.inScopeVars[qn],)
-                             for inst in (instSeq if isinstance(instSeq,(list,tuple)) else (instSeq,)) 
-                             for f in inst.factsInInstance
-                             if _vbNils or not f.isNil] 
-                elif _vbNils:
-                    facts = xpCtx.modelXbrl.factsInInstance
+                    groupFilteredFactsKey = "grp:" + str(vb.qname) # multi instance vars or  non-var-dependent variables
+                elif varHasNilFacts:
+                    groupFilteredFactsKey = "grp:stdInstWithNils"
                 else:
-                    facts = xpCtx.modelXbrl.nonNilFactsInInstance
-            if xpCtx.formulaOptions.traceVariableFilterWinnowing:
-                xpCtx.modelXbrl.info("formula:trace",
-                     _("Fact Variable %(variable)s filtering: start with %(groupFiltered)s%(factCount)s facts"), 
-                     modelObject=var, variable=vb.qname, factCount=len(facts),
-                     groupFiltered=(_("saved filter results ") if var.hasNoVariableDependencies 
-                                    else _("group filtered ")) 
-                                     if preFiltered else "")
-            if not preFiltered:
-                facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
-                if not hasNoVariableDependencies:
-                    preFilteredFacts[preFiltFactsKey] = (facts, vb.aspectsCovered)
-            if hasNoVariableDependencies and preFiltered:
-                vb.aspectsCovered = savedAspectsCovered
-            else:
+                    groupFilteredFactsKey = "grp:stdInstNonNil"
+                if groupFilteredFactsKey in cachedFilteredFacts:
+                    facts = cachedFilteredFacts[groupFilteredFactsKey]
+                    if xpCtx.formulaOptions.traceVariableFilterWinnowing:
+                        xpCtx.modelXbrl.info("formula:trace",
+                             _("Fact Variable %(variable)s: start with %(factCount)s facts previously cached before variable filters"), 
+                             modelObject=var, variable=vb.qname, factCount=len(facts))
+                else:
+                    if var.fromInstanceQnames:
+                        facts = [f for qn in var.fromInstanceQnames 
+                                 for instSeq in (xpCtx.inScopeVars[qn],)
+                                 for inst in (instSeq if isinstance(instSeq,(list,tuple)) else (instSeq,)) 
+                                 for f in inst.factsInInstance
+                                 if varHasNilFacts or not f.isNil] 
+                    elif varHasNilFacts:
+                        facts = xpCtx.modelXbrl.factsInInstance
+                    else:
+                        facts = xpCtx.modelXbrl.nonNilFactsInInstance
+                    if xpCtx.formulaOptions.traceVariableFilterWinnowing:
+                        xpCtx.modelXbrl.info("formula:trace",
+                             _("Fact Variable %(variable)s filtering: start with %(factCount)s facts"), 
+                             modelObject=var, variable=vb.qname, factCount=len(facts))
+                    facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
+                    cachedFilteredFacts[groupFilteredFactsKey] = facts
                 facts = filterFacts(xpCtx, vb, facts, var.filterRelationships, None)
-                if hasNoVariableDependencies:
-                    preFilteredFacts[preFiltFactsKey] = (facts, vb.aspectsCovered)
-            # adding dim aspects must be done after explicit filterin
-            for fact in facts:
-                if fact.isItem:
-                    vb.aspectsDefined |= fact.context.dimAspects(xpCtx.defaultDimensionAspects)
-            coverAspectCoverFilterDims(xpCtx, vb, var.filterRelationships) # filters need to know what dims are covered
+                # adding dim aspects must be done after explicit filterin
+                for fact in facts:
+                    if fact.isItem:
+                        vb.aspectsDefined |= fact.context.dimAspects(xpCtx.defaultDimensionAspects)
+                coverAspectCoverFilterDims(xpCtx, vb, var.filterRelationships) # filters need to know what dims are covered
+                if varHasNoVariableDependencies:
+                    cachedFilteredFacts[vb.qname] = (facts, vb.aspectsDefined, vb.aspectsCovered)
             if varSet.implicitFiltering == "true":
                 uncoveredAspects = vb.aspectsDefined - vb.aspectsCovered - {Aspect.DIMENSIONS}
                 if any((_vb.isFactVar and not _vb.isFallback) for _vb in xpCtx.varBindings.values()):
@@ -258,7 +258,7 @@ def evaluateVar(xpCtx, varSet, varIndex, preFilteredFacts, uncoveredAspectFacts)
                 xpCtx.modelXbrl.info("formula:trace",
                      _("%(variableType)s %(variable)s: bound value %(result)s"), 
                      modelObject=var, variableType=vb.resourceElementName, variable=vb.qname, result=str(evaluationResult))
-            evaluateVar(xpCtx, varSet, varIndex + 1, preFilteredFacts, uncoveredAspectFacts)
+            evaluateVar(xpCtx, varSet, varIndex + 1, cachedFilteredFacts, uncoveredAspectFacts)
             xpCtx.inScopeVars.pop(vb.qname)
             if overriddenInScopeVar is not None:  # restore overridden value if there was one
                 xpCtx.inScopeVars[vb.qname] = overriddenInScopeVar
@@ -274,6 +274,7 @@ def evaluateVar(xpCtx, varSet, varIndex, preFilteredFacts, uncoveredAspectFacts)
 def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
     typeLbl = filterType + " " if filterType else ""
     orFilter = filterType == "or"
+    groupFilter = filterType == "group"
     if orFilter: 
         factSet = set()
     for varFilterRel in filterRelationships:
@@ -289,7 +290,7 @@ def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
                 for fact in result: factSet.add(fact)
             else: 
                 facts = result
-            if varFilterRel.isCovered:
+            if not groupFilter and varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
                 vb.aspectsCovered |= _filter.aspectsCovered(vb)
     if orFilter: 
         return factSet
@@ -302,6 +303,8 @@ def coverAspectCoverFilterDims(xpCtx, vb, filterRelationships):
         if isinstance(_filter,ModelAspectCover):  # relationship not constrained to real filters
             if varFilterRel.isCovered:
                 vb.aspectsCovered |= _filter.dimAspectsCovered(vb)
+        elif isinstance(_filter,ModelBooleanFilter) and varFilterRel.isCovered:
+            coverAspectCoverFilterDims(xpCtx, vb, _filter.filterRelationships)
             
 def implicitFilter(xpCtx, vb, facts, aspects, uncoveredAspectFacts):
     if xpCtx.formulaOptions.traceVariableFilterWinnowing:  # trace shows by aspect by bound variable match    

@@ -888,6 +888,7 @@ class ModelAspectCover(ModelFilter):
         
     def dimAspectsCovered(self, varBinding):
         # if DIMENSIONS are provided then return all varBinding's dimensions less excluded dimensions
+        self.aspectsCovered  # must have aspectsCovered initialized before the rest of this method
         dimsCovered = set()
         if self.allDimensions:
             for varBoundAspect in varBinding.aspectsDefined:
@@ -926,6 +927,14 @@ class ModelBooleanFilter(ModelFilter):
     def filterRelationships(self):
         return self.modelXbrl.relationshipSet(XbrlConst.booleanFilter).fromModelObject(self)
     
+    def aspectsCovered(self, varBinding):
+        aspectsCovered = set()
+        for rel in self.filterRelationships:
+            if rel.isCovered:
+                _filter = rel.toModelObject
+                aspectsCovered |= _filter.aspectsCovered
+        return aspectsCovered
+        
 class ModelAndFilter(ModelBooleanFilter):
     def init(self, modelDocument):
         super(ModelAndFilter, self).init(modelDocument)
