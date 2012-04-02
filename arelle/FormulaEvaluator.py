@@ -201,8 +201,9 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                              _("Fact Variable %(variable)s filtering: start with %(factCount)s facts"), 
                              modelObject=var, variable=vb.qname, factCount=len(facts))
                     facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
+                    vb.aspectsCovered.clear()  # group boolean sub-filters may have covered aspects
                     cachedFilteredFacts[groupFilteredFactsKey] = facts
-                facts = filterFacts(xpCtx, vb, facts, var.filterRelationships, None)
+                facts = filterFacts(xpCtx, vb, facts, var.filterRelationships, None) # also finds covered aspects (except aspect cover filter dims, not known until after this complete pass)
                 # adding dim aspects must be done after explicit filterin
                 for fact in facts:
                     if fact.isItem:
@@ -337,14 +338,14 @@ def aspectsMatch(xpCtx, fact1, fact2, aspects):
 def aspectMatches(xpCtx, fact1, fact2, aspect):
     if fact1 is None or fact2 is None:  # fallback (atomic) never matches any aspect
         return False
-    if aspect == Aspect.LOCATION:
+    if aspect == 1: # Aspect.LOCATION:
         return (fact1.modelXbrl != fact2.modelXbrl or # test deemed true for multi-instance comparisons
                 fact1.getparent() == fact2.getparent())
-    elif aspect == Aspect.CONCEPT:
+    elif aspect == 2: # Aspect.CONCEPT:
         return fact1.qname == fact2.qname
     elif fact1.isTuple or fact2.isTuple:
         return True # only match the aspects both facts have 
-    elif aspect == Aspect.UNIT:
+    elif aspect == 5: # Aspect.UNIT:
         u1 = fact1.unit
         u2 = fact2.unit
         if u1 is not None:
@@ -356,15 +357,15 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
         c2 = fact2.context
         if c1 is c2:
             return True # same context
-        if aspect == Aspect.PERIOD:
+        if aspect == 4: # Aspect.PERIOD:
             return c1.isPeriodEqualTo(c2)
-        if aspect == Aspect.ENTITY_IDENTIFIER:
+        if aspect == 3: # Aspect.ENTITY_IDENTIFIER:
             return c1.isEntityIdentifierEqualTo(c2)
-        if aspect == Aspect.COMPLETE_SEGMENT:
+        if aspect == 6: # Aspect.COMPLETE_SEGMENT:
             return XbrlUtil.nodesCorrespond(fact1.modelXbrl, c1.segment, c2.segment, dts2=fact2.modelXbrl) 
-        elif aspect == Aspect.COMPLETE_SCENARIO:
+        elif aspect == 7: # Aspect.COMPLETE_SCENARIO:
             return XbrlUtil.nodesCorrespond(fact1.modelXbrl, c1.scenario, c2.scenario, dts2=fact2.modelXbrl) 
-        elif aspect in (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
+        elif aspect == 8 or aspect == 9: # aspect in (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
             nXs1 = c1.nonDimValues(aspect)
             nXs2 = c2.nonDimValues(aspect)
             lXs1 = len(nXs1)
@@ -376,7 +377,7 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                     if not XbrlUtil.nodesCorrespond(fact1.modelXbrl, nXs1[i], nXs2[i], dts2=fact2.modelXbrl): 
                         return False
             return True
-        elif aspect == Aspect.DIMENSIONS:
+        elif aspect == 10: # Aspect.DIMENSIONS:
             ''' (no implicit filtering on ALL dimensions for now)
             dimQnames1 = fact1.context.dimAspects
             dimQnames2 = fact2.context.dimAspects

@@ -65,7 +65,7 @@ class QNameDef(ModelValue.QName):
         self.isAttribute = isAttribute
         self.loc = loc
     def __hash__(self):
-        return self.hash
+        return self.qnameValueHash
     def __repr__(self):
         return ("{0}QName({1})".format('@' if self.isAttribute else '',str(self)))
     def __eq__(self,other):

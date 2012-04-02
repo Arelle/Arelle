@@ -543,11 +543,13 @@ class ModelContext(ModelObject):
     
     # returns ModelDimensionValue for instance dimensions, else QName for defaults
     def dimValue(self, dimQname):
-        if dimQname in self.qnameDims:
+        try:
             return self.qnameDims[dimQname]
-        elif dimQname in self.modelXbrl.qnameDimensionDefaults:
-            return self.modelXbrl.qnameDimensionDefaults[dimQname]
-        return None
+        except KeyError:
+            try:
+                return self.modelXbrl.qnameDimensionDefaults[dimQname]
+            except KeyError:
+                return None
     
     def dimMemberQname(self, dimQname, includeDefaults=False):
         dimValue = self.dimValue(dimQname)

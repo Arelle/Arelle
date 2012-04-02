@@ -932,7 +932,7 @@ class ModelBooleanFilter(ModelFilter):
         for rel in self.filterRelationships:
             if rel.isCovered:
                 _filter = rel.toModelObject
-                aspectsCovered |= _filter.aspectsCovered
+                aspectsCovered |= _filter.aspectsCovered(varBinding)
         return aspectsCovered
         
 class ModelAndFilter(ModelBooleanFilter):
