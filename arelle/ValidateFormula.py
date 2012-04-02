@@ -317,6 +317,7 @@ def validate(val):
                 definedNamesSet.add(varqname)
                 # check for fallback value variable references
                 if isinstance(variable, ModelFactVariable):
+                    variable.hasNoVariableDependencies = len(depVars - parameterQnames) == 0
                     for depVar in XPathParser.variableReferencesSet(variable.fallbackValueProg, variable):
                         if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
                             val.modelXbrl.error("xbrlve:fallbackValueVariableReferenceNotAllowed",

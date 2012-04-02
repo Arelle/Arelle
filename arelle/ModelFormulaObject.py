@@ -1763,10 +1763,12 @@ class ModelExplicitDimension(ModelFilter):
         
     @property
     def dimQname(self):
-        dimQname = XmlUtil.child(XmlUtil.child(self,XbrlConst.df,"dimension"), XbrlConst.df, "qname")
-        if dimQname is not None:
-            return qname( dimQname, XmlUtil.text(dimQname) )
-        return None
+        try:
+            return self._dimQname
+        except AttributeError:
+            dQn = XmlUtil.child(XmlUtil.child(self,XbrlConst.df,"dimension"), XbrlConst.df, "qname")
+            self._dimQname = qname( dQn, XmlUtil.text(dQn) ) if dQn is not None else None
+            return self._dimQname
     
     @property
     def dimQnameExpression(self):

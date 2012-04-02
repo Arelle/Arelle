@@ -761,7 +761,11 @@ class ModelDimensionValue(ModelObject):
 
     @property
     def memberQname(self):
-        return self.prefixedNameQname(self.elementText) if self.isExplicit else None
+        try:
+            return self._memberQname
+        except AttributeError:
+            self._memberQname = self.prefixedNameQname(self.elementText) if self.isExplicit else None
+            return self._memberQname
         
     @property
     def member(self):
