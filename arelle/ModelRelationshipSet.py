@@ -190,6 +190,10 @@ class ModelRelationshipSet:
             self.loadModelRelationshipsTo()
         return self.modelRelationshipsTo.get(modelTo, [])
         
+    def fromToModelObjects(self, modelFrom, modelTo):
+        self.loadModelRelationshipsFrom()
+        return [rel for rel in self.fromModelObject(modelFrom) if rel.toModelObject is modelTo]
+
     @property
     def rootConcepts(self):
         if self.modelConceptRoots is None:

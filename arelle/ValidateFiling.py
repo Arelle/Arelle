@@ -980,8 +980,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             targetConceptPreferredLabels.clear()
                             orderRels.clear()
                         for conceptPresented in conceptsPresented:
-                            if conceptPresented in usedCalcsPresented:
-                                usedCalcPairingsOfConcept = usedCalcsPresented[conceptPresented]
+                            usedConceptKey = (conceptPresented,ELR)
+                            if usedConceptKey in usedCalcsPresented:
+                                usedCalcPairingsOfConcept = usedCalcsPresented[usedConceptKey]
                                 if len(usedCalcPairingsOfConcept & conceptsPresented) > 0:
                                     usedCalcPairingsOfConcept -= conceptsPresented
                         del localPreferredLabels
@@ -1003,9 +1004,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         fromObjId = relFrom.objectIndex
                                         toObjId = relTo.objectIndex
                                         if fromObjId < toObjId:
-                                            usedCalcsPresented[fromObjId].add(toObjId)
+                                            usedCalcsPresented[(fromObjId,ELR)].add(toObjId)
                                         else:
-                                            usedCalcsPresented[toObjId].add(fromObjId)
+                                            usedCalcsPresented[(toObjId,ELR)].add(fromObjId)
                                             
                                     order = rel.order
                                     if order in orderRels and disclosureSystem.GFM:
@@ -1100,11 +1101,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     _("Concept %(concept)s does not participate in an effective presentation relationship"),
                     modelObject=concept, concept=concept.qname)
                 
-        for fromIndx, toIndxs in usedCalcsPresented.items():
+        for fromIndxKey, toIndxs in usedCalcsPresented.items():
+            fromIndx, ELR = fromIndxKey
             for toIndx in toIndxs:
+                fromModelObject = self.modelXbrl.modelObject(fromIndx)
+                toModelObject = self.modelXbrl.modelObject(toIndx)
                 self.modelXbrl.error(("EFM.6.14.05", "GFM.1.7.5"),
                     _("Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship"),
-                    modelObject=self.modelXbrl.modelObject(fromIndx), conceptFrom=self.modelXbrl.modelObject(fromIndx).qname, conceptTo=self.modelXbrl.modelObject(toIndx).qname)
+                    modelObject=[fromModelObject, toModelObject] +
+                                 modelXbrl.relationshipSet(XbrlConst.summationItem, ELR)
+                                 .fromToModelObjects(fromModelObject, toModelObject),
+                    conceptFrom=self.modelXbrl.modelObject(fromIndx).qname, conceptTo=self.modelXbrl.modelObject(toIndx).qname)
                 
         for concept, preferredLabels in conceptsUsedWithPreferredLabels.items():
             for preferredLabel in preferredLabels:
