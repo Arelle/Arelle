@@ -420,22 +420,23 @@ def dimensionMemberState(val, dimConcept, memConcept, domELR):
         dimensionMemberStates[key] = state
         return state
 
-def memberStateInDomain(val, memConcept, rels, ELR, fromConcepts=None):
+def memberStateInDomain(val, memConcept, rels, ELR, toConceptELRs=None):
     foundState = NOT_FOUND
-    if fromConcepts is None:
-        fromConcepts = set()
+    if toConceptELRs is None:
+        toConceptELRs = defaultdict(set)
     for rel in rels:
         toConcept = rel.toModelObject
         if toConcept == memConcept:
             foundState = max(foundState, 
                              MEMBER_USABLE if rel.isUsable else MEMBER_NOT_USABLE)
-        if toConcept not in fromConcepts:
-            fromConcepts.add(toConcept)
         toELR = (rel.targetRole or ELR)
-        domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toConcept)
-        foundState = max(foundState,
-                         memberStateInDomain(val, memConcept, domMbrRels, toELR, fromConcepts))
-        fromConcepts.discard(toConcept)
+        toELRs = toConceptELRs[toConcept]
+        if toELR not in toELRs:  # looping if it's already there in a visited ELR
+            toELRs.add(toELR)
+            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toConcept)
+            foundState = max(foundState,
+                             memberStateInDomain(val, memConcept, domMbrRels, toELR, toConceptELRs))
+            toELRs.discard(toELR)
     return foundState
 
 ''' removed because no valid way to check one isolated dimension for validity without full set of others
