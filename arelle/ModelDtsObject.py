@@ -1045,6 +1045,9 @@ class ModelRelationship(ModelObject):
     def itersiblings(self, **kwargs):
         return self.arcElement.itersiblings(**kwargs)
         
+    def getparent(self):
+        return self.arcElement.getparent()
+        
     @property
     def fromLabel(self):
         return self.arcElement.get("{http://www.w3.org/1999/xlink}from")
