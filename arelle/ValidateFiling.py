@@ -21,7 +21,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super(ValidateFiling, self).__init__(modelXbrl)
         
-        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, usTypesPattern, usRolesPattern, usDeiPattern
+        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, usTypesPattern, usRolesPattern, usDeiPattern, instanceFileNamePattern
         
         if datePattern is None:
             datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
@@ -31,7 +31,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             usTypesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-types/")
             usRolesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-roles/")
             usDeiPattern = re.compile(r"http://(xbrl.us|xbrl.sec.gov)/dei/")
+            instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
 
+        self._isStandardUri = {}
         
     def validate(self, modelXbrl, parameters=None):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -56,21 +58,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         super(ValidateFiling,self).validate(modelXbrl, parameters)
         xbrlInstDoc = modelXbrl.modelDocument.xmlDocument.getroot()
         disclosureSystem = self.disclosureSystem
-        _isStandardUri = {}
         
-        def isStandardUri(uri):
-            try:
-                return _isStandardUri[uri]
-            except KeyError:
-                isStd = (uri in disclosureSystem.standardTaxonomiesDict or
-                         (not uri.startswith("http://") and 
-                          # try 2011-12-23 RH: if works, remove the localHrefs
-                          # any(u.endswith(e) for u in (uri.replace("\\","/"),) for e in disclosureSystem.standardLocalHrefs)
-                          "/basis/sbr/" in uri.replace("\\","/")
-                          ))
-                _isStandardUri[uri] = isStd
-                return isStd
-
         modelXbrl.modelManager.showStatus(_("validating {0}").format(disclosureSystem.name))
         
         self.modelXbrl.profileActivity()
@@ -90,8 +78,23 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 pluginXbrlMethod(self)
                 
         # instance checks
+        self.fileNameBasePart = None # prevent testing on fileNameParts if not instance or invalid
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+            #6.3.3 filename check
+            m = instanceFileNamePattern.match(modelXbrl.modelDocument.basename)
+            if m:  # has acceptable pattern
+                self.fileNameBasePart = m.group(1)
+                self.fileNameDatePart = m.group(2)
+                if not self.fileNameBasePart:
+                    modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                        _('Invalid instance document base name part (ticker or mnemonic name) in "{base}-{yyyymmdd}.xml": %(filename)s'),
+                        modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
+            else:
+                modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                    _('Invalid instance document name, must match "{base}-{yyyymmdd}.xml": %(filename)s'),
+                    modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
+            
             #6.5.1 scheme, 6.5.2, 6.5.3 identifier
             entityIdentifierValue = None
             entityIdentifierValueElt = None
@@ -798,7 +801,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
                         _("References for extension concept %(concept)s are not allowed: %(text)s"),
                         modelObject=modelReference, concept=concept.qname, text=text)
-                elif (self.validateEFM or self.validateSBRNL) and not isStandardUri(modelRefRel.modelDocument.uri): 
+                elif (self.validateEFM or self.validateSBRNL) and not self.isStandardUri(modelRefRel.modelDocument.uri): 
                     #6.18.2 no extension to add or remove references to standard concepts
                     modelXbrl.error(("EFM.6.18.02", "SBR.NL.2.1.0.08"),
                         _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
@@ -1040,7 +1043,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             for rel in rels:
                                 relTo = rel.toModelObject
     
-                                if not (relTo.type is not None and relTo.type.isDomainItemType) and not isStandardUri(rel.modelDocument.uri):
+                                if not (relTo.type is not None and relTo.type.isDomainItemType) and not self.isStandardUri(rel.modelDocument.uri):
                                     self.modelXbrl.error(("EFM.6.16.03", "GFM.1.08.03"),
                                         _("Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"),
                                         modelObject=(rel, relFrom, relTo), conceptFrom=relFrom.qname, conceptTo=relTo.qname, linkrole=rel.linkrole)
@@ -1192,6 +1195,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
+    def isStandardUri(self, uri):
+        try:
+            return self._isStandardUri[uri]
+        except KeyError:
+            isStd = (uri in self.disclosureSystem.standardTaxonomiesDict or
+                     (not uri.startswith("http://") and 
+                      # try 2011-12-23 RH: if works, remove the localHrefs
+                      # any(u.endswith(e) for u in (uri.replace("\\","/"),) for e in disclosureSystem.standardLocalHrefs)
+                      "/basis/sbr/" in uri.replace("\\","/")
+                      ))
+            self._isStandardUri[uri] = isStd
+            return isStd
+
     def directedCycle(self, relFrom, origin, fromRelationships):
         if relFrom in fromRelationships:
             for rel in fromRelationships[relFrom]:

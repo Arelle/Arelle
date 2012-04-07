@@ -276,10 +276,12 @@ def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=
                 if attrName:
                     if child.get(attrName) == attrValue or (attrValue == "*" and child.get(attrName) is not None):
                         descendants.append(child)
+                        if breakOnFirst:
+                            break
                 else: 
                     descendants.append(child)
-                if breakOnFirst:
-                    break
+                    if breakOnFirst:
+                        break
     return descendants
     
 def isDescendantOf(element, ancestorElement):

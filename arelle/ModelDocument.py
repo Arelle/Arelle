@@ -344,6 +344,10 @@ class ModelDocument:
     @property
     def basename(self):
         return os.path.basename(self.filepath)
+    
+    @property
+    def filepathdir(self):
+        return os.path.dirname(self.filepath)
 
     @property
     def propertyView(self):
