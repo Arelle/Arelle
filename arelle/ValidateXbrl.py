@@ -240,7 +240,8 @@ class ValidateXbrl:
                         if fromBalance and toBalance:
                             if (fromBalance == toBalance and weight < 0) or \
                                (fromBalance != toBalance and weight > 0):
-                                modelXbrl.error("xbrl.5.1.1.2:balanceCalcWeight",
+                                modelXbrl.error("xbrl.5.1.1.2:balanceCalcWeightIllegal" +
+                                                ("Negative" if weight < 0 else "Positive"),
                                     _("Calculation relationship has illegal weight %(weight)s from %(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in link role %(linkrole)s (per 5.1.1.2 Table 6)"),
                                     modelObject=modelRel, weight=weight,
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR, 
