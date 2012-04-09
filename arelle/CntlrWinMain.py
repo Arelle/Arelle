@@ -23,7 +23,7 @@ import logging
 import threading, queue
 
 from arelle import Cntlr
-from arelle import (DialogURL, 
+from arelle import (DialogURL, DialogLanguage,
                     DialogPluginManager,
                     ModelDocument,
                     ModelManager,
@@ -48,8 +48,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.parent = parent
         self.filename = None
         self.dirty = False
-        overrideLang = self.config.get("overrideLang")
-        self.lang = overrideLang if overrideLang else self.modelManager.defaultLang
+        overrideLang = self.config.get("labelLangOverride")
+        self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
         
         imgpath = self.imagesDir + os.sep
@@ -150,7 +150,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         logmsgMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logmsgMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
 
-        toolsMenu.add_cascade(label=_("Language..."), underline=0, command=self.languagesDialog)
+        toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
         
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Tools"):
             pluginMenuExtender(self, toolsMenu)
@@ -383,7 +383,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     if not filename:
                         return False
                     try:
-                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.lang, sourceView=view)
+                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.labelLang, sourceView=view)
                     except (IOError, EnvironmentError) as err:
                         tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
@@ -597,7 +597,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 currentAction = "view of versioning report"
                 ViewWinVersReport.viewVersReport(modelXbrl, self.tabWinTopRt)
                 from arelle.ViewWinDiffs import ViewWinDiffs
-                ViewWinDiffs(modelXbrl, self.tabWinBtm, lang=self.lang)
+                ViewWinDiffs(modelXbrl, self.tabWinBtm, lang=self.labelLang)
             elif modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
                 currentAction = "view of RSS feed"
                 ViewWinRssFeed.viewRssFeed(modelXbrl, self.tabWinTopRt)
@@ -605,32 +605,32 @@ class CntlrWinMain (Cntlr.Cntlr):
                 currentAction = "tree view of tests"
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
                 currentAction = "view of concepts"
-                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.lang, altTabWin=self.tabWinTopRt)
+                ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.labelLang, altTabWin=self.tabWinTopRt)
                 if modelXbrl.hasTableRendering:  # show rendering grid even without any facts
-                    ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.lang)
+                    ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.labelLang)
                     if topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     currentAction = "table view of facts"
                     if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
-                        ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
+                        ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.labelLang)
                         if topView is None: topView = modelXbrl.views[-1]
                     currentAction = "tree/list of facts"
-                    ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.lang)
+                    ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.labelLang)
                     if topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.hasFormulae:
                     currentAction = "formulae view"
                     ViewWinFormulae.viewFormulae(modelXbrl, self.tabWinTopRt)
                     if topView is None: topView = modelXbrl.views[-1]
                 currentAction = "presentation linkbase view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.lang)
+                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.labelLang)
                 if topView is None: topView = modelXbrl.views[-1]
                 currentAction = "calculation linkbase view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.lang)
+                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.labelLang)
                 currentAction = "dimensions relationships view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.lang)
+                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
                 if modelXbrl.hasTableRendering:
                     currentAction = "rendering view"
-                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.lang)
+                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.labelLang)
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"
@@ -890,7 +890,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.modelManager.defaultLang, override),
                 parent=self.parent)
         if newValue is not None:
-            self.config["langOverride"] = newValue
+            self.config["labelLangOverride"] = newValue
             if newValue:
                 self.lang = newValue
             else:

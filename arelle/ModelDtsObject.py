@@ -141,7 +141,7 @@ class ModelParticle():
                 else:
                     self._maxOccurs = _INT(m)
                     if self._maxOccurs < 0: 
-                        raise ValueError(_("maxOccurs must be positive".format(m)))
+                        raise ValueError(_("maxOccurs must be positive").format(m))
             else:
                 self._maxOccurs = 1
             return self._maxOccurs
@@ -161,7 +161,7 @@ class ModelParticle():
             if m:
                 self._minOccurs = _INT(m)
                 if self._minOccurs < 0: 
-                    raise ValueError(_("minOccurs must be positive".format(m)))
+                    raise ValueError(_("minOccurs must be positive").format(m))
             else:
                 self._minOccurs = 1
             return self._minOccurs

@@ -24,7 +24,7 @@ class ModelManager:
         self.validateUtr = False
         self.loadedModelXbrls = []
         from arelle import Locale
-        self.locale = Locale.getUserLocale()
+        self.locale = Locale.getUserLocale(cntlr.config.get("userInterfaceLocaleOverride",""))
         self.defaultLang = Locale.getLanguageCode()
 
     def shutdown(self):
@@ -48,7 +48,7 @@ class ModelManager:
                 for modelXbrl in self.loadedModelXbrls:
                     if not modelXbrl.isClosed and modelXbrl.uuid == filesource.url:
                         return modelXbrl
-                raise IOError(_("Open file handle is not open: {0}".format(filesource.url)))
+                raise IOError(_("Open file handle is not open: {0}").format(filesource.url))
         except AttributeError:
             pass # filesource may be a string, which has no url attribute
         self.filesource = filesource

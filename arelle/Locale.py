@@ -23,11 +23,14 @@ LC_MONETARY = 4
 LC_NUMERIC = 1
 LC_TIME = 2
 
-def getUserLocale():
+def getUserLocale(localeCode=''):
     # get system localeconv and reset system back to default
     import locale
-    locale.setlocale(locale.LC_ALL, _STR_8BIT(''))  # str needed for 3to2 2.7 python to work
-    conv = locale.localeconv()
+    try:
+        locale.setlocale(locale.LC_ALL, _STR_8BIT(localeCode))  # str needed for 3to2 2.7 python to work
+        conv = locale.localeconv()
+    except locale.Error:
+        conv = None
     locale.setlocale(locale.LC_ALL, _STR_8BIT('C'))  # str needed for 3to2 2.7 python to work
     return conv
 
@@ -38,10 +41,181 @@ def getLanguageCode():
     except AttributeError: #language code and encoding may be None if their values cannot be determined.
         return "en"    
 
-def getLanguageCodes():
-    lang = getLanguageCode()
+def getLanguageCodes(lang=None):
+    if lang is None:
+        lang = getLanguageCode()
     # allow searching on the lang with country part, either python or standard form, or just language
     return [lang, lang.replace("-","_"), lang.partition("-")[0]]
+
+
+iso3region = {
+"AU": "aus",
+"AT": "aut",
+"BE": "bel",
+"BR": "bra",
+"CA": "can",
+"CN": "chn",
+"CZ": "cze",
+"DA": "dnk",
+"FN": "fin",
+"FR": "fra",
+"DE": "deu",
+"GR": "grc",
+"HK": "hkg",
+"HU": "hun",
+"IS": "isl",
+"IE": "irl",
+"IT": "ita",
+"JA": "jpn",
+"KO": "kor",
+"MX": "mex",
+"NL": "nld",
+"NZ": "nzl",
+"NO": "nor",
+"PL": "pol",
+"PT": "prt",
+"RU": "rus",
+"SG": "sgp",
+"SL": "svk",
+"ES": "esp",
+"SV": "swe",
+"CH": "che",
+"TW": "twn",
+"TR": "tur",
+"UK": "gbr",
+"US": "usa"}
+
+_availableLocales = None
+def availableLocales():
+    global _availableLocales
+    if _availableLocales is not None:
+        return _availableLocales
+    else:
+        import subprocess
+        localeQueryResult = subprocess.getstatusoutput("locale -a")  # Mac and Unix only
+        if localeQueryResult[0] == 0: # successful
+            _availableLocales = set(locale.partition(".")[0].replace("_", "-")
+                                    for locale in localeQueryResult[1].split("\n"))
+        else:
+            _availableLocales = set()
+        return _availableLocales
+
+_languageCodes = None
+def languageCodes():  # dynamically initialize after gettext is loaded
+    global _languageCodes
+    if _languageCodes is not None:
+        return _languageCodes
+    else:        
+        _languageCodes = { # language name (in English), code, and setlocale string which works in windows
+            _("Afrikaans (South Africa)"): "af-ZA afrikaans",
+            _("Albanian (Albania)"): "sq-AL albanian",
+            _("Arabic (Algeria)"): "ar-DZ arb_algeria",
+            _("Arabic (Bahrain)"): "ar-BH arabic_bahrain",
+            _("Arabic (Egypt)"): "ar-EG arb_egy",
+            _("Arabic (Iraq)"): "ar-IQ arb_irq",
+            _("Arabic (Jordan)"): "ar-JO arb_jor",
+            _("Arabic (Kuwait)"): "ar-KW arb_kwt",
+            _("Arabic (Lebanon)"): "ar-LB arb_lbn",
+            _("Arabic (Libya)"): "ar-LY arb_lby",
+            _("Arabic (Morocco)"): "ar-MA arb_morocco",
+            _("Arabic (Oman)"): "ar-OM arb_omn",
+            _("Arabic (Qatar)"): "ar-QA arabic_qatar",
+            _("Arabic (Saudi Arabia)"): "ar-SA arb_sau",
+            _("Arabic (Syria)"): "ar-SY arb_syr",
+            _("Arabic (Tunisia)"): "ar-TN arb_tunisia",
+            _("Arabic (U.A.E.)"): "ar-AE arb_are",
+            _("Arabic (Yemen)"): "ar-YE arb_yem",
+            _("Basque (Spain)"): "eu-ES basque",
+            _("Bulgarian (Bulgaria)"): "bg-BG bulgarian",
+            _("Belarusian (Belarus)"): "be-BY belarusian",
+            _("Catalan (Spain)"): "ca-ES catalan",
+            _("Chinese (PRC)"): "zh-CN chs",
+            _("Chinese (Taiwan)"): "zh-TW cht",
+            _("Chinese (Singapore)"): "zh-SG chs",
+            _("Croatian (Croatia)"): "hr-HR croatian",
+            _("Czech (Czech Republic)"): "cs-CZ czech",
+            _("Danish (Denmark)"): "da-DK danish",
+            _("Dutch (Belgium)"): "nl-BE nlb",
+            _("Dutch (Netherlands)"): "nl-NL nld",
+            _("English (Australia)"): "en-AU ena",
+            _("English (Belize)"): "en-BZ eng_belize",
+            _("English (Canada)"): "en-CA enc",
+            _("English (Caribbean)"): "en-029 eng_caribbean",
+            _("English (Ireland)"): "en-IE eni",
+            _("English (Jamaica)"): "en-JM enj",
+            _("English (New Zealand)"): "en-NZ enz",
+            _("English (South Africa)"): "en-ZA ens",
+            _("English (Trinidad)"): "en-TT eng",
+            _("English (United States)"): "en-US enu",
+            _("English (United Kingdom)"): "en-GB eng",
+            _("Estonian (Estonia)"): "et-EE estonian",
+            _("Faeroese (Faroe Islands)"): "fo-FO faroese",
+            _("Farsi (Iran)"): "fa-IR persian",
+            _("Finnish (Finland)"): "fi-FI fin",
+            _("French (Belgium)"): "fr-BE frb",
+            _("French (Canada)"): "fr-CA frc",
+            _("French (France)"): "fr-FR fra",
+            _("French (Luxembourg)"): "fr-LU frl",
+            _("French (Switzerland)"): "fr-CH frs",
+            _("German (Austria)"): "de-AT dea",
+            _("German (Germany)"): "de-DE deu",
+            _("German (Luxembourg)"): "de-LU del",
+            _("German (Switzerland)"): "de-CH des",
+            _("Greek (Greece)"): "el-GR ell",
+            _("Hebrew (Israel)"): "he-IL hebrew",
+            _("Hindi (India)"): "hi-IN hindi",
+            _("Hungarian (Hungary)"): "hu-HU hun",
+            _("Icelandic (Iceland)"): "is-IS icelandic",
+            _("Indonesian (Indonesia)"): "id-ID indonesian",
+            _("Italian (Italy)"): "it-IT ita",
+            _("Italian (Switzerland)"): "it-CH its",
+            _("Japanese (Japan)"): "ja-JP jpn",
+            _("Korean (Korea)"): "ko-KR kor",
+            _("Latvian (Latvia)"): "lv-LV latvian",
+            _("Lithuanian (Lituania)"): "lt-LT lithuanian",
+            _("Malaysian (Malaysia)"): "ms-MY malay",
+            _("Maltese (Malta)"): "mt-MT maltese",
+            _("Norwegian (Bokmal)"): "no-NO nor",
+            _("Norwegian (Nynorsk)"): "no-NO non",
+            _("Persian (Iran)"): "fa-IR persian",
+            _("Polish (Poland)"): "pl-PL plk",
+            _("Portuguese (Brazil)"): "pt-BR ptb",
+            _("Portuguese (Portugal)"): "pt-PT ptg",
+            _("Romanian (Romania)"): "ro-RO rom",
+            _("Russian (Russia)"): "ru-RU rus",
+            _("Serbian (Cyrillic)"): "sr-RS srb",
+            _("Serbian (Latin)"): "sr-RS srl",
+            _("Slovak (Slovakia)"): "sk-SK sky",
+            _("Slovenian (Slovania)"): "sl-SI slovenian",
+            _("Spanish (Argentina)"): "es-AR esr",
+            _("Spanish (Bolivia)"): "es-BO esb",
+            _("Spanish (Colombia)"): "es-CO eso",
+            _("Spanish (Chile)"): "es-CL esl",
+            _("Spanish (Costa Rica)"): "es-CR esc",
+            _("Spanish (Dominican Republic)"): "es-DO esd",
+            _("Spanish (Ecuador)"): "es-EC esf",
+            _("Spanish (El Salvador)"): "es-SV ese",
+            _("Spanish (Guatemala)"): "es-GT esg",
+            _("Spanish (Honduras)"): "es-HN esh",
+            _("Spanish (Mexico)"): "es-MX esm",
+            _("Spanish (Nicaragua)"): "es-NI esi",
+            _("Spanish (Panama)"): "es-PA esa",
+            _("Spanish (Paraguay)"): "es-PY esz",
+            _("Spanish (Peru)"): "es-PE esr",
+            _("Spanish (Puerto Rico)"): "es-PR esu",
+            _("Spanish (Spain)"): "es-ES esn",
+            _("Spanish (United States)"): "es-US est",
+            _("Spanish (Uruguay)"): "es-UY esy",
+            _("Spanish (Venezuela)"): "es-VE esv",
+            _("Swedish (Sweden)"): "sv-SE sve",
+            _("Swedish (Finland)"): "sv-FI svf",
+            _("Thai (Thailand)"): "th-TH thai",
+            _("Turkish (Turkey)"): "tr-TR trk",
+            _("Ukrainian (Ukraine)"): "uk-UA ukr",
+            _("Urdu (Pakistan)"): "ur-PK urdu",
+            _("Vietnamese (Vietnam)"): "vi-VN vietnamese",
+        }
+        return _languageCodes
 
 def rtlString(source, lang):
     if lang and lang[0:2] in {"ar","he"}:

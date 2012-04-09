@@ -134,9 +134,12 @@ class Cntlr:
             
         # start language translation for domain
         try:
-            gettext.translation("arelle", self.localeDir, getLanguageCodes()).install()
+            gettext.translation("arelle", 
+                                self.localeDir, 
+                                getLanguageCodes(self.config.get("userInterfaceLangOverride",None))).install()
         except Exception as msg:
-            gettext.install("arelle", self.localeDir)
+            gettext.install("arelle", 
+                            self.localeDir)
             
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))

@@ -227,11 +227,14 @@ class DialogPluginManager(Toplevel):
             PluginManager.pluginConfigChanged = True
             PluginManager.reset()  # force reloading of modules
         if self.uiClassMethodsChanged:  # may require reloading UI
-            messagebox.showwarning(_("User interface plug-in change"),
+            if messagebox.askyesno(_("User interface plug-in change"),
                                    _("A change in plug-in class methods may have affected the menus "
                                      "of the user interface.  It may be necessary to restart Arelle to "
-                                     "access the menu entries or the changes to their plug-in methods."),
-                                   parent=self)
+                                     "access the menu entries or the changes to their plug-in methods.  \n\n"
+                                     "Should Arelle restart with changed user interface language, "
+                                     "(if there are any unsaved changes they would be lost!)?"),
+                                   parent=self):
+                self.cntlr.uiThreadQueue.put((self.cntlr.quit, [None, True]))
         self.close()
         
     def close(self, event=None):
