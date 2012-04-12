@@ -14,15 +14,17 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter)
 from arelle.ModelValue import (QName)
 import datetime
+from collections import defaultdict
 
 def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
     # for each dependent variable, find bindings
     if variablesInScope:
-        stackedEvaluations = xpCtx.evaluations
+        stackedEvaluations = (xpCtx.evaluations, xpCtx.evaluationHashDicts)
     else:
         xpCtx.varBindings = {}
         uncoveredAspectFacts = {}
-    xpCtx.evaluations = []
+    xpCtx.evaluations = []  # list of evaluations 
+    xpCtx.evaluationHashDicts = [] # hash indexs of evaluations
     try:
         xpCtx.variableSet = varSet
         if isinstance(varSet, ModelExistenceAssertion):
@@ -63,8 +65,14 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                  _("Variable set %(xlinkLabel)s \nException: %(error)s"), 
                  modelObject=varSet, xlinkLabel=varSet.xlinkLabel, error=err.message)
         xpCtx.variableSet = None
+    if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+        xpCtx.modelXbrl.info("formula:trace",
+                             _("Variable set %(xlinkLabel)s evaluations: %(evaluations)s x %(variables)s"),
+                             modelObject=varSet, xlinkLabel=varSet.xlinkLabel,
+                             evaluations=len(xpCtx.evaluations), 
+                             variables=max(len(e) for e in xpCtx.evaluations) if xpCtx.evaluations else 0)
     if variablesInScope:
-        xpCtx.evaluations = stackedEvaluations
+        xpCtx.evaluations, xpCtx.evaluationHashDicts = stackedEvaluations
     
 def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
     if varIndex == len(varSet.orderedVariableRelationships):
@@ -83,13 +91,16 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
         # record completed evaluation, for fallback blocking purposes
         fbVars = set(vb.qname for vb in xpCtx.varBindings.values() if vb.isFallback)
         thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
-        if evaluationIsUnnecessary(thisEvaluation, xpCtx.evaluations):
+        if evaluationIsUnnecessary(thisEvaluation, xpCtx.evaluationHashDicts, xpCtx.evaluations):
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"),
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel)
             return
-        xpCtx.evaluations.append(thisEvaluation)
+        for i, fb in enumerate(thisEvaluation):
+            while i >= len(xpCtx.evaluationHashDicts): xpCtx.evaluationHashDicts.append(defaultdict(set))
+            xpCtx.evaluationHashDicts[i][hash(fb)].add(len(xpCtx.evaluations))  # hash and eval index        
+        xpCtx.evaluations.append(thisEvaluation)  # complete evaluations tuple
         # evaluate preconditions
         for precondition in varSet.preconditions:
             result = precondition.evalTest(xpCtx)
@@ -443,13 +454,27 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                 # else if both are None, matches True for single and multiple instance
     return True
 
-def evaluationIsUnnecessary(thisEval, otherEvals):
-    # detects evaluations which are not different (duplicate) and extra fallback evaluations
+def evaluationIsUnnecessary(thisEval, otherEvalHashDicts, otherEvals):
+    if otherEvals:
+        if all(e is None for e in thisEval):
+            return True  # evaluation not necessary, all fallen back
+        # hash check if any hashes merit further look for equality
+        otherEvalSets = [otherEvalHashDicts[i].get(hash(e), set())
+                         for i, e in enumerate(thisEval)
+                         if e is not None]
+        if otherEvalSets:
+            matchingEvals = [otherEvals[i] for i in  set.intersection(*otherEvalSets)]
+            # detects evaluations which are not different (duplicate) and extra fallback evaluations
+            return any(all([e == matchingEval[i] for i, e in enumerate(thisEval) if e is not None])
+                       for matchingEval in matchingEvals)
+    return False
+    '''
     r = range(len(thisEval))
     for otherEval in otherEvals:
         if all([thisEval[i] is None or thisEval[i] == otherEval[i] for i in r]):
             return True
     return False
+    '''
 
 def produceOutputFact(xpCtx, formula, result):
     priorErrorCount = len(xpCtx.modelXbrl.errors)
@@ -907,11 +932,13 @@ class VariableBinding:
             self.isFallback = False
             yield self.parameterValue
             
-    def matchableBoundFact(self, fbVars):
+    def matchableBoundFact(self, fbVars):  # return from this funciton has to be hashable
         if (self.isFallback or self.isParameter 
             # remove to allow different gen var evaluations: or self.isGeneralVar
             or not fbVars.isdisjoint(self.var.variableRefs())):
             return None
+        if self.isBindAsSequence:
+            return tuple(self.yieldedEvaluation)
         return self.yieldedEvaluation
         
     def hasDimension(self, dimension):
