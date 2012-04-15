@@ -48,6 +48,25 @@ class ModelTestcaseVariation(ModelObject):
         return None
 
     @property
+    def reference(self):
+        efmNameElts = XmlUtil.children(self.getparent(), None, "name")
+        for efmNameElt in efmNameElts:
+            if efmNameElt is not None and efmNameElt.text.startswith("EDGAR"):
+                return efmNameElt.text
+        referenceElement = XmlUtil.descendant(self, None, "reference")
+        if referenceElement is not None: # formula test suite
+            return "{0}#{1}".format(referenceElement.get("specification"), referenceElement.get("id"))
+        descriptionElement = XmlUtil.descendant(self, None, "description")
+        if descriptionElement is not None and descriptionElement.get("reference"):
+            return descriptionElement.get("reference")  # xdt test suite
+        if self.getparent().get("description"):
+            return self.getparent().get("description")  # base spec 2.1 test suite
+        functRegistryRefElt = XmlUtil.descendant(self.getparent(), None, "reference")
+        if functRegistryRefElt is not None: # function registry
+            return functRegistryRefElt.get("{http://www.w3.org/1999/xlink}href")
+        return None
+
+    @property
     def readMeFirstUris(self):
         try:
             return self._readMeFirstUris

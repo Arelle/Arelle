@@ -198,6 +198,7 @@ def validate(val):
     # xpathContext is needed for filter setup for expressions such as aspect cover filter
     # determine parameter values
     xpathContext = XPathContext.create(val.modelXbrl)
+    xpathContext.parameterQnames = parameterQnames  # needed for formula filters to determine variable dependencies
     for paramQname in orderedParameters:
         modelParameter = val.modelXbrl.qnameParameters[paramQname]
         if not isinstance(modelParameter, ModelInstance):
@@ -440,7 +441,8 @@ def validate(val):
                 val.modelXbrl.warning("arelle:variableSetFilterCovered",
                     _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered"),
                      modelObject=varSetFilter, xlinkLabel=modelVariableSet.xlinkLabel, filterLabel=varSetFilter.xlinkLabel)
-                modelRel._isCovered = False # block group filter from being able to covere
+                modelRel._isCovered = False # block group filter from being able to covered
+                
             for depVar in varSetFilter.variableRefs():
                 if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
                     val.modelXbrl.error("xbrlve:factVariableReferenceNotAllowed",

@@ -7,7 +7,7 @@ Created on Dec 6, 2010
 from collections import defaultdict
 import os
 from arelle import ViewWinTree, ModelObject, XbrlConst
-from arelle.ModelFormulaObject import ModelVariable
+from arelle.ModelFormulaObject import ModelVariable, ModelVariableSetAssertion, ModelConsistencyAssertion
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 
 def viewFormulae(modelXbrl, tabWin):
@@ -63,6 +63,8 @@ class ViewFormulae(ViewWinTree.ViewTree):
             return
         if isinstance(fromObject, ModelVariable) and fromRel is not None:
             text = "{0} ${1}".format(fromObject.localName, fromRel.variableQname)
+        elif isinstance(fromObject, (ModelVariableSetAssertion, ModelConsistencyAssertion)):
+            text = "{0} {1}".format(fromObject.localName, fromObject.id)
         else:
             text = fromObject.localName
         childnode = self.treeView.insert(parentNode, "end", fromObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))

@@ -91,7 +91,7 @@ class ModelXbrl:
         self.relationshipSets = {} # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults = {} # contains qname of dimension (index) and default member(value)
         self.facts = []
-        self.factsInInstance = []
+        self.factsInInstance = set()
         self.contexts = {}
         self.units = {}
         self.modelObjects = []
@@ -343,30 +343,45 @@ class ModelXbrl:
         try:
             return self._nonNilFactsInInstance
         except AttributeError:
-            self._nonNilFactsInInstance = [f for f in self.factsInInstance if not f.isNil]
+            self._nonNilFactsInInstance = set(f for f in self.factsInInstance if not f.isNil)
             return self._nonNilFactsInInstance
         
-    def qnameFactsInInstance(self, facts): # indexed by fact (concept) qname
-        if facts is self.factsInInstance: # may be all facts in inst or just nonNil factsInInst
-            try:
-                return self._qnameFactsInInstance
-            except AttributeError:
-                _qname_factsInInstance = defaultdict(list)
-                for f in self.factsInInstance:
-                    _qname_factsInInstance[f.qname].append(f)
-                self._qnameFactsInInstance = _qname_factsInInstance
-                return self._qnameFactsInInstance
-        elif facts is getattr(self,"_nonNilFactsInInstance",None):
-            try:
-                return self._qnameNonNilFactsInInstance
-            except AttributeError:
-                _qname_factsInInstance = defaultdict(list)
-                for f in self._nonNilFactsInInstance:
-                    _qname_factsInInstance[f.qname].append(f)
-                self._qnameNonNilFactsInInstance = _qname_factsInInstance
-                return self._qnameNonNilFactsInInstance
-        return None
-
+    @property
+    def factsByQname(self): # indexed by fact (concept) qname
+        try:
+            return self._factsByQname
+        except AttributeError:
+            self._factsByQname = fbqn = defaultdict(set)
+            for f in self.factsInInstance: fbqn[f.qname].add(f)
+            return fbqn
+        
+    def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
+        try:
+            return self._factsByDatatype[notStrict, typeQname]
+        except AttributeError:
+            self._factsByDatatype = {}
+            return self.factsByDatatype(notStrict, typeQname)
+        except KeyError:
+            self._factsByDatatype[notStrict, typeQname] = fbdt = set()
+            for f in self.factsInInstance:
+                c = f.concept
+                if c.typeQname == typeQname or (notStrict and c.type.isDerivedFrom(typeQname)):
+                    fbdt.add(f)
+            return fbdt
+        
+    def factsByPeriodType(self, periodType): # indexed by fact (concept) qname
+        try:
+            return self._factsByPeriodType[periodType]
+        except AttributeError:
+            self._factsByPeriodType = fbpt = defaultdict(set)
+            for f in self.factsInInstance:
+                p = f.concept.periodType
+                if p:
+                    fbpt[p].add(f)
+            return self.factsByPeriodType(periodType)
+        except KeyError:
+            return set()  # no facts for this period type
+        
     def matchFact(self, otherFact):
         for fact in self.facts:
             if (fact.isTuple):

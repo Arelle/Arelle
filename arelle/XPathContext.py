@@ -67,6 +67,17 @@ def create(modelXbrl, inputXbrlInstance=None, sourceElement=None):
                         inputXbrlInstance if inputXbrlInstance else modelXbrl.modelDocument,
                         sourceElement)
 
+# note: 2.2% execution time savings by having these sets/lists as constant instead of in expression where used
+VALUE_OPS = {'+', '-', '*', 'div', 'idiv', 'mod', 'to', 'gt', 'ge', 'eq', 'ne', 'lt', 'le'}
+GENERALCOMPARISON_OPS = {'>', '>=', '=', '!=', '<', '<='}
+NODECOMPARISON_OPS = {'is', '>>', '<<'}
+COMBINING_OPS = {'intersect','except','union','|'}
+LOGICAL_OPS = {'and', 'or'}
+UNARY_OPS = {'u+', 'u-'}
+FORSOMEEVERY_OPS = {'for','some','every'}
+PATH_OPS = {'/', '//', 'rootChild', 'rootDescendant'}
+SEQUENCE_TYPES = (tuple,list,set)
+
 class XPathContext:
     def __init__(self, modelXbrl, inputXbrlInstance, sourceElement, inScopeVars=None):
         self.modelXbrl = modelXbrl
@@ -81,6 +92,7 @@ class XPathContext:
         self.traceType = None
         self.variableSet = None
         self.inScopeVars = {} if inScopeVars is None else inScopeVars
+        self.cachedFilterResults = {}
         if inputXbrlInstance: 
             self.inScopeVars[XbrlConst.qnStandardInputInstance] = inputXbrlInstance.modelXbrl
         
@@ -140,7 +152,7 @@ class XPathContext:
                     except FunctionNotAvailable:
                         raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.')
                                              .format(str(op)))
-                elif op in {'+', '-', '*', 'div', 'idiv', 'mod', 'to', 'gt', 'ge', 'eq', 'ne', 'lt', 'le'}:
+                elif op in VALUE_OPS:
                     # binary arithmetic operations and value comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
                     s2 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
@@ -185,7 +197,7 @@ class XPathContext:
                             result = op1 != op2
                         elif op == 'to':
                             result = _RANGE( _INT(op1), _INT(op2) + 1 )
-                elif op in {'>', '>=', '=', '!=', '<', '<='}:
+                elif op in GENERALCOMPARISON_OPS:
                     # general comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
                     s2 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
@@ -208,7 +220,7 @@ class XPathContext:
                                 break
                         if result:
                             break
-                elif op in {'is', '>>', '<<'}:
+                elif op in NODECOMPARISON_OPS:
                     # node comparisons
                     s1 = resultStack.pop() if len(resultStack) > 0 else []
                     s2 = self.evaluate(p.args, contextItem=contextItem)
@@ -230,7 +242,7 @@ class XPathContext:
                                     result = op1 <= op2
                             if result:
                                 break
-                elif op in {'intersect','except','union','|'}:
+                elif op in COMBINING_OPS:
                     # node comparisons
                     s1 = resultStack.pop() if len(resultStack) > 0 else []
                     s2 = self.flattenSequence(self.evaluate(p.args, contextItem=contextItem))
@@ -246,7 +258,7 @@ class XPathContext:
                         resultset = set1 | set2
                     # convert to a list in document order
                     result = self.documentOrderedNodes(resultset)
-                elif op in {'and', 'or'}:
+                elif op in LOGICAL_OPS:
                     # general comparisons
                     if len(resultStack) == 0:
                         result = []
@@ -258,7 +270,7 @@ class XPathContext:
                             result = op1 and op2
                         elif op == 'or':
                             result = op1 or op2
-                elif op in {'u+', 'u-'}:
+                elif op in UNARY_OPS:
                     s1 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
                     if len(s1) > 1:
                         raise XPathException(p, 'err:XPTY0004', _('Unary expression sequence length error'))
@@ -320,7 +332,7 @@ class XPathContext:
                     result = self.evaluate(p.args, contextItem=contextItem)
                 elif op == 'predicate':
                     result = self.predicate(p, resultStack.pop())
-                elif op in {'for','some','every'}: # for, some, every
+                elif op in FORSOMEEVERY_OPS: # for, some, every
                     result = []
                     self.evaluateRangeVars(op, p.args[0], p.args[1:], contextItem, result)
                 elif op == 'if':
@@ -330,7 +342,7 @@ class XPathContext:
                     result = contextItem
                 elif op == '..':
                     result = XmlUtil.parent(contextItem)
-                elif op in ('/', '//', 'rootChild', 'rootDescendant'):
+                elif op in PATH_OPS:
                     if op in ('rootChild', 'rootDescendant'):
                         # fix up for multi-instance
                         resultStack.append( [self.inputXbrlInstance.xmlDocument,] )
@@ -493,7 +505,7 @@ class XPathContext:
             
     def atomize(self, p, x):
         # sequence
-        if isinstance(x, (tuple,list,set)):
+        if isinstance(x, SEQUENCE_TYPES):
             sequence = []
             for item in self.flattenSequence(x):
                 atomizedItem = self.atomize(p, item)
@@ -566,15 +578,34 @@ class XPathContext:
     # flatten into a sequence
     def flattenSequence(self, x, sequence=None):
         if sequence is None: 
-            if not isinstance(x, (tuple,list,set)):
+            if not isinstance(x, SEQUENCE_TYPES):
                 return [x]
             sequence = []
         for el in x:
-            if isinstance(el, (tuple,list,set)):
-                self.flattenSequence(el, sequence=sequence)
+            if isinstance(el, SEQUENCE_TYPES):
+                self.flattenSequence(el, sequence)
             else:
                 sequence.append(el)
         return sequence
+    '''  (note: slice operation makes the below slower than the above by about 15%)
+    def flattenSequence(self, x):
+        sequenceTypes=SEQUENCE_TYPES
+        if not isinstance(x, sequenceTypes):
+            return [x]
+        needsFlattening = False  # no need to do anything
+        for i, e in enumerate(x):
+            if isinstance(e, sequenceTypes):
+                needsFlattening = True # needs action at i
+                break            
+        if needsFlattening:
+            x = list(x) # start with fresh copy of list
+            while i < len(x):
+                if isinstance(x[i], sequenceTypes):
+                    x[i:i+1] = list(x[i])
+                else:
+                    i += 1
+        return x            
+    '''
     
     # order nodes
     def documentOrderedNodes(self, x):

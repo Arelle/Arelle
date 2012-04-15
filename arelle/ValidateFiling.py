@@ -32,13 +32,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             usRolesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-roles/")
             usDeiPattern = re.compile(r"http://(xbrl.us|xbrl.sec.gov)/dei/")
             instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
-
-        self._isStandardUri = {}
         
     def validate(self, modelXbrl, parameters=None):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
             return
         
+        self._isStandardUri = {}
         modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
         
         # find typedDomainRefs before validateXBRL pass

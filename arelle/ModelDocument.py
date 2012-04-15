@@ -766,7 +766,7 @@ class ModelDocument:
                 parentModelFacts = self.modelXbrl.facts
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
-            self.modelXbrl.factsInInstance.append( modelFact )
+            self.modelXbrl.factsInInstance.add( modelFact )
             for tupleElement in modelFact:
                 if isinstance(tupleElement,ModelObject) and tupleElement.tag not in fractionParts:
                     self.factDiscover(tupleElement, modelFact.modelTupleFacts)

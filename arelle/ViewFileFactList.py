@@ -27,7 +27,7 @@ class ViewFacts(ViewFile.View):
                 if col not in ("Label","Name","contextRef","unitRef","Dec","Prec","Lang","Value","EntityScheme","EntityIdentifier","Period","Dimensions"):
                     unrecognizedCols.append(col)
             if unrecognizedCols:
-                self.modelXbrl.error("arelle:unrecognizedCsvFactListColumn",
+                self.modelXbrl.error("arelle:unrecognizedFactListColumn",
                                      _("Unrecognized columns: %(cols)s"),
                                      modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
             if "Period" in self.cols:
@@ -37,7 +37,7 @@ class ViewFacts(ViewFile.View):
             self.cols = ["Label","contextRef","unitRef","Dec","Prec","Lang","Value"]
         col0 = self.cols[0]
         if col0 not in ("Label", "Name"):
-            self.modelXbrl.error("arelle:firstCsvFactListColumn",
+            self.modelXbrl.error("arelle:firstFactListColumn",
                                  _("First column must be Label or Name: %(col1)s"),
                                  modelXbrl=self.modelXbrl, col1=col0)
         self.isCol0Label = col0 == "Label"

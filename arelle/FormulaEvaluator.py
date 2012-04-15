@@ -197,16 +197,8 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                              _("Fact Variable %(variable)s: start with %(factCount)s facts previously cached before variable filters"), 
                              modelObject=var, variable=vb.qname, factCount=len(facts))
                 else:
-                    if var.fromInstanceQnames:
-                        facts = [f for qn in var.fromInstanceQnames 
-                                 for instSeq in (xpCtx.inScopeVars[qn],)
-                                 for inst in (instSeq if isinstance(instSeq,(list,tuple)) else (instSeq,)) 
-                                 for f in inst.factsInInstance
-                                 if varHasNilFacts or not f.isNil] 
-                    elif varHasNilFacts:
-                        facts = xpCtx.modelXbrl.factsInInstance
-                    else:
-                        facts = xpCtx.modelXbrl.nonNilFactsInInstance
+                    facts = set.union(*[(inst.factsInInstance if varHasNilFacts else inst.nonNilFactsInInstance)
+                                        for inst in vb.instances])
                     if xpCtx.formulaOptions.traceVariableFilterWinnowing:
                         xpCtx.modelXbrl.info("formula:trace",
                              _("Fact Variable %(variable)s filtering: start with %(factCount)s facts"), 
@@ -299,7 +291,7 @@ def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
                     modelObject=vb.var, variable=vb.qname,
                     filterType=typeLbl, filter=_filter.localName, xlinkLabel=_filter.xlinkLabel, factCount=len(result)),
             if orFilter: 
-                for fact in result: factSet.add(fact)
+                factSet.update(result)
             else: 
                 facts = result
             if not groupFilter and varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
@@ -846,6 +838,10 @@ class VariableBinding:
         self.yieldedFact = None
         self.yieldedFactResult = None
         self.isFallback = False
+        self.instances = ([inst
+                           for qn in self.var.fromInstanceQnames 
+                           for inst in xpCtx.flattenSequence(xpCtx.inScopeVars[qn])]
+                          if self.var.fromInstanceQnames else [xpCtx.modelXbrl])
         
     @property
     def resourceElementName(self):
