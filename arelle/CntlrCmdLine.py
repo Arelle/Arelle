@@ -95,6 +95,8 @@ def main():
                       help=_("Write formulae linkbase into FILE"))
     parser.add_option("--testReport", "--csvTestReport", action="store", dest="testReport",
                       help=_("Write test report of validation (of test cases) into FILE"))
+    parser.add_option("--testReportCols", action="store", dest="testReportCols",
+                      help=_("Columns for test report file"))
     parser.add_option("--logFile", action="store", dest="logFile",
                       help=_("Write log messages into file, otherwise they go to standard output.  " 
                              "If file ends in .xml it is xml-formatted, otherwise it is text. "))
@@ -307,12 +309,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                 _("validated in %.2f secs"), 
                                                 time.time() - startedAt),
                                                 messageCode="info", file=self.entrypointFile)
-                    if (options.testReport and 
-                        self.modelManager.modelXbrl.modelDocument.type in 
-                            (ModelDocument.Type.TESTCASESINDEX, 
-                             ModelDocument.Type.TESTCASE, 
-                             ModelDocument.Type.REGISTRY)):
-                        ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport)
+                if (options.testReport and 
+                    self.modelManager.modelXbrl.modelDocument.type in 
+                        (ModelDocument.Type.TESTCASESINDEX, 
+                         ModelDocument.Type.TESTCASE, 
+                         ModelDocument.Type.REGISTRY)):
+                    ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
                     
                 if options.DTSFile:
                     ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
