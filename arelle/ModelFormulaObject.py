@@ -956,9 +956,10 @@ class ModelAndFilter(ModelBooleanFilter):
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         if self.filterRelationships:
-            return filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "and")
+            andedFacts = filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "and")
         else:
-            return set()
+            andedFacts = set()
+        return (facts - andedFacts) if cmplmt else andedFacts
         
 class ModelOrFilter(ModelBooleanFilter):
     def init(self, modelDocument):
@@ -966,9 +967,10 @@ class ModelOrFilter(ModelBooleanFilter):
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         if self.filterRelationships:
-            return filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "or")
+            oredFacts = filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "or")
         else:
-            return set()
+            oredFacts = set()
+        return (facts - oredFacts) if cmplmt else oredFacts
 
 class ModelConceptName(ModelFilter):
     def init(self, modelDocument):
