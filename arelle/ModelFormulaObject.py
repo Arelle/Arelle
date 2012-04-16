@@ -782,6 +782,14 @@ class ModelFilter(ModelFormulaResource):
         except AttributeError:
             self._hasNoVariableDependencies = len(self.variableRefs() - xpCtx.parameterQnames) == 0
             return self._hasNoVariableDependencies
+        
+    @property
+    def isFilterShared(self):
+        try:
+            return self._isFilterShared
+        except AttributeError:
+            self._isFilterShared = len(self.modelXbrl.relationshipSet("XBRL-formulae").toModelObject(self)) > 1
+            return self._isFilterShared
     
     @property
     def propertyView(self):
@@ -1541,6 +1549,15 @@ class ModelGeneral(ModelTestFilter):
         super(ModelGeneral, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
+        if self.isFilterShared and self.hasNoFilterVariableDependencies(xpCtx): # cache this filter by fact
+            if self in xpCtx.cachedFilterResults:
+                qualifyingFacts = xpCtx.cachedFilterResults[self]
+            else:
+                xpCtx.cachedFilterResults[self] = qualifyingFacts = set(fact 
+                                                                        for inst in varBinding.instances 
+                                                                        for fact in inst.factsInInstance
+                                                                        if self.evalTest(xpCtx, fact))
+            return (facts - qualifyingFacts) if cmplmt else (facts & qualifyingFacts)            
         return set(fact for fact in facts 
                    if cmplmt ^ (self.evalTest(xpCtx, fact))) 
     
