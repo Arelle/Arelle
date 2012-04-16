@@ -39,6 +39,16 @@ def proxyDirFmt(httpProxyTuple):
     else:
         return None # use system proxy
     
+def proxyTuple(url): # system, none, or http:[user[:passowrd]@]host[:port]
+    if url == "none":
+        return (False, "", "", "", "")
+    elif url == "system":
+        return (True, "", "", "", "")
+    userpwd, sep, hostport = url.rpartition("://")[2].rpartition("@")
+    urlAddr, sep, urlPort = hostport.partition(":")
+    user, sep, password = userpwd.partition(":")
+    return (False, urlAddr, urlPort, user, password)
+    
 def lastModifiedTime(headers):
     if headers:
         headerTimeStamp = headers["last-modified"]

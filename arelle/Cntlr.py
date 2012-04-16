@@ -164,9 +164,9 @@ class Cntlr:
                 self.logHandler = logging.FileHandler(filename=logFileName, 
                                                       mode=logFileMode if logFileMode else "w", 
                                                       encoding=logFileEncoding if logFileEncoding else "utf-8")
-            self.logHandler.level = logging.DEBUG
             self.logHandler.setFormatter(LogFormatter(logFormat if logFormat else "%(asctime)s [%(messageCode)s] %(message)s - %(file)s\n"))
             self.logger.addHandler(self.logHandler)
+            self.logger.setLevel(logging.DEBUG)
         else:
             self.logger = None
                         

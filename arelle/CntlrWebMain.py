@@ -189,6 +189,16 @@ def diff():
     response.content_type = 'text/xml; charset=UTF-8'
     return reportContents
 
+@route('/rest/configure')
+def configure():
+    if not request.query.proxySetting:
+        return _("proxySetting must be specified")
+    options = Options()
+    setattr(options, "proxySetting", request.query.proxySetting)
+    cntlr.run(options)
+    response.content_type = 'text/html; charset=UTF-8'
+    return htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Configuration Request")))
+
 @route('/quickbooks/server.asmx', method='POST')
 def quickbooksServer():
     from arelle import CntlrQuickBooks
@@ -341,6 +351,7 @@ or label linkbases.  Multiple file names are separated by a '|' character.</td><
 formulaParamExprResult, formulaParamInputValue, formulaCallExprSource, formulaCallExprCode, formulaCallExprEval,
 formulaCallExprResult, formulaVarSetExprEval, formulaFormulaRules, formulaVarsOrder,
 formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvaluation, formulaVarExpressionResult, and formulaVarFiltersResult.
+</td></tr>
 
 <tr><th colspan="2">Versioning Report (diff of two DTSes)</th></tr>
 <tr><td>/rest/xbrl/diff</td><td>Diff two DTSes, producing an XBRL versioning report relative to report directory.</td></tr>
@@ -425,6 +436,14 @@ as follows:</td></tr>
 <br/><code>json</code>: JSON results.
 <br/><code>text</code>: Plain text results (no markup).</td></tr> 
 <tr><td style="text-indent: 1em;">fromDate, toDate</td><td>From &amp to dates for GL transactions</td></tr>
+
+<tr><td>/rest/configure</td><td>Configure settings:</td></tr>
+<tr><th colspan="2">Configure settings</th></tr>
+<tr><td></td><td>Parameters are required following "?" character, and are separated by "&amp;" characters, 
+as follows:</td></tr>
+<tr><td style="text-indent: 1em;">proxySetting</td><td>Modify and re-save proxy settings configuration:<br/>
+Enter 'system' to use system proxy setting, 'none' to use no proxy, 'http://[user[:password]@]host[:port]' (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080), or 'show' to show current setting." ))
+</td></tr>
 </table>'''))
 
 @route('/about')

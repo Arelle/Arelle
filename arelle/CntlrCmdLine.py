@@ -19,6 +19,7 @@ from arelle.ModelValue import qname
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.PluginManager import pluginClassMethods
+from arelle.WebCache import proxyTuple
 import logging
 
 def main():
@@ -118,6 +119,12 @@ def main():
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFilterWinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--proxySetting", action="store", dest="proxySetting",
+                      help=_("Modify and re-save proxy settings configuration.  " 
+                             "Enter 'system' to use system proxy setting, 'none' to use no proxy, "
+                             "'http://[user[:password]@]host[:port]' "
+                             " (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080), "
+                             " or 'show' to show current setting, ." ))
     if hasWebServer:
         parser.add_option("--webserver", action="store", dest="webserver",
                           help=_("start web server on host:port for REST and web access, e.g., --webserver locahost:8080."))
@@ -156,7 +163,8 @@ def main():
                 "{1}"
                 ).format(Version.version,
                          _("\n   Bottle (c) 2011 Marcel Hellkamp") if hasWebServer else ""))
-    elif len(args) != 0 or (options.entrypointFile is None and (not hasWebServer or options.webserver is None)):
+    elif len(args) != 0 or (options.entrypointFile is None and 
+                            ((not options.proxySetting) and (not hasWebServer or options.webserver is None))):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
     elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
@@ -168,7 +176,8 @@ def main():
                 options.formulaCallExprResult, options.formulaVarSetExprEval, options.formulaVarSetExprResult,
                 options.formulaAsserResultCounts, options.formulaFormulaRules, options.formulaVarsOrder,
                 options.formulaVarExpressionSource, options.formulaVarExpressionCode, options.formulaVarExpressionEvaluation,
-                options.formulaVarExpressionResult, options.formulaVarFiltersResult)):
+                options.formulaVarExpressionResult, options.formulaVarFiltersResult,
+                options.proxySetting)):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.pyw --help"))
         else:
             from arelle import CntlrWebMain
@@ -186,6 +195,30 @@ class CntlrCmdLine(Cntlr.Cntlr):
         super(CntlrCmdLine, self).__init__()
         
     def run(self, options, sourceZipStream=None):
+        if options.proxySetting:
+            if options.proxySetting != "show":
+                proxySettings = proxyTuple(options.proxySetting)
+                self.webCache.resetProxies(proxySettings)
+                self.config["proxySettings"] = proxySettings
+                self.saveConfig()
+                self.addToLog(_("Proxy configuration has been set."), messageCode="info")
+            useOsProxy, urlAddr, urlPort, user, password = self.config["proxySettings"]
+            if useOsProxy:
+                self.addToLog(_("Proxy configured to use {0}.").format(
+                    _('Microsoft Windows Internet Settings') if sys.platform.startswith("win")
+                    else (_('Mac OS X System Configuration') if sys.platform in ("darwin", "macos")
+                          else _('environment variables'))), messageCode="info")
+            elif urlAddr:
+                self.addToLog(_("Proxy setting: http://{0}{1}{2}{3}{4}").format(
+                    user if user else "",
+                    ":****" if password else "",
+                    "@" if (user or password) else "",
+                    urlAddr,
+                    ":{0}".format(urlPort) if urlPort else ""), messageCode="info")
+            else:
+                self.addToLog(_("Proxy is disabled."), messageCode="info")
+            if not options.entrypointFile:
+                return True # success
         self.entrypointFile = options.entrypointFile
         filesource = FileSource.openFileSource(self.entrypointFile, self, sourceZipStream)
         if options.validateEFM:
