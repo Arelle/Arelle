@@ -191,10 +191,13 @@ def diff():
 
 @route('/rest/configure')
 def configure():
-    if not request.query.proxySetting:
-        return _("proxySetting must be specified")
+    if not request.query.proxy and not request.query.plugins:
+        return _("proxy or plugins must be specified")
     options = Options()
-    setattr(options, "proxySetting", request.query.proxySetting)
+    if request.query.proxy:
+        setattr(options, "proxy", request.query.proxy)
+    if request.query.plugins:
+        setattr(options, "plugins", request.query.plugins)
     cntlr.run(options)
     response.content_type = 'text/html; charset=UTF-8'
     return htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Configuration Request")))
@@ -441,8 +444,14 @@ as follows:</td></tr>
 <tr><th colspan="2">Configure settings</th></tr>
 <tr><td></td><td>Parameters are required following "?" character, and are separated by "&amp;" characters, 
 as follows:</td></tr>
-<tr><td style="text-indent: 1em;">proxySetting</td><td>Modify and re-save proxy settings configuration:<br/>
-Enter 'system' to use system proxy setting, 'none' to use no proxy, 'http://[user[:password]@]host[:port]' (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080), or 'show' to show current setting." ))
+<tr><td style="text-indent: 1em;">proxy</td><td>Show or modify and re-save proxy settings:<br/>
+Enter 'show' to view current setting, 'system' to configure to use system proxy setting, 'none' to configure for no proxy, or 'http://[user[:password]@]host[:port]' (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080)." ))
+</td></tr>
+<tr><td style="text-indent: 1em;">plugins</td><td>Show or modify and re-save plug-ins configuration:<br/>
+Enter 'show' to view plug-ins configuration, , or '|' separated modules: 
++url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name, 
+ (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load,
+~Hello Dolly to reload, -Hello Dolly to remove)
 </td></tr>
 </table>'''))
 

@@ -210,4 +210,43 @@ def pluginClassMethods(className):
         for method in pluginMethodsForClass:
             yield method
 
+def addPluginModule(url):
+    moduleInfo = moduleModuleInfo(url)
+    if moduleInfo and moduleInfo.get("name"):
+        name = moduleInfo["name"]
+        removePluginModule(name)  # remove any prior entry for this module
+        pluginConfig["modules"][name] = moduleInfo
+        # add classes
+        for classMethod in moduleInfo["classMethods"]:
+            classMethods = pluginConfig["classes"].setdefault(classMethod, [])
+            if name not in classMethods:
+                classMethods.append(name)
+        global pluginConfigChanged
+        pluginConfigChanged = True
+        return moduleInfo
+    return None
 
+def reloadPluginModule(name):
+    if name in pluginConfig["modules"]:
+        url = pluginConfig["modules"][name].get("moduleURL")
+        if url:
+            moduleInfo = moduleModuleInfo(url, reload=True)
+            if moduleInfo:
+                addPluginModule(url)
+                return True
+    return False
+
+def removePluginModule(name):
+    moduleInfo = pluginConfig["modules"].get(name)
+    if moduleInfo:
+        for classMethod in moduleInfo["classMethods"]:
+            classMethods = pluginConfig["classes"].get(classMethod)
+            if classMethods and name in classMethods:
+                classMethods.remove(name)
+                if not classMethods: # list has become unused
+                    del pluginConfig["classes"][classMethod] # remove class
+        del pluginConfig["modules"][name]
+        global pluginConfigChanged
+        pluginConfigChanged = True
+        return True
+    return False # unable to remove
