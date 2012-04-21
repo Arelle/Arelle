@@ -10,6 +10,7 @@ def generateSkos(dts, skosFile):
         return
     import os, io
     from arelle import XmlUtil, XbrlConst
+    from arelle.ViewUtil import viewReferences
     skosNs = "http://www.w3.org/2004/02/skos/core#"
     rdfNs = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     file = io.StringIO('''
@@ -87,10 +88,15 @@ def generateSkos(dts, skosFile):
             elt = etree.SubElement(skosElt, "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}type")
             elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", 
                     "http://www.w3.org/2002/07/owl#Thing")
-            definition = concept.label(preferredLabel=XbrlConst.documentationLabel, lang="en", strip=True)
+            definition = concept.label(preferredLabel=XbrlConst.documentationLabel, lang="en", strip=True, fallbackToQname=False)
             if definition:
                 elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}definition")
                 elt.text = definition
+            else:   # if no definition, look for any references
+                references = viewReferences(concept)
+                if references:
+                    elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}definition")
+                    elt.text = references
             label = concept.label(strip=True)
             if label:
                 elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}prefLabel")
