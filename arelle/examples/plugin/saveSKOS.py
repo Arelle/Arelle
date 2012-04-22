@@ -70,6 +70,7 @@ def generateSkos(dts, skosFile):
     #xmlDocument.getroot().init(self)  ## is this needed ??
     for rdfElement in  xmlDocument.iter(tag="{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF"):
         break
+    numSchemes = 0
     numConcepts = 0
     
     # use presentation relationships for broader and narrower concepts
@@ -78,16 +79,41 @@ def generateSkos(dts, skosFile):
     def conceptUri(concept):
         return concept.qname.namespaceURI + "#" + concept.qname.localName
     
+    def namespaceUri(qname):
+        return qname.namespaceURI + "#" + qname.prefix
+    
+    priorSchemeSibling = None
+    schemeNamespaces = set()
+    
     for qn, concept in sorted(dts.qnameConcepts.items(), key=lambda item:str(item[0])):
         if concept.modelDocument.targetNamespace not in (
                  XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
                  XbrlConst.xbrldt):
+            if qn.namespaceURI not in schemeNamespaces:
+                # add conceptScheme
+                numSchemes += 1
+                skosElt = etree.Element("{http://www.w3.org/2004/02/skos/core#}ConceptScheme")
+                skosElt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about", namespaceUri(qn))
+                elt = etree.SubElement(skosElt, "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}type")
+                elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", 
+                        "http://www.w3.org/2002/07/owl#Thing")
+                elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}notation")
+                elt.text = str(qn.prefix)
+                schemeNamespaces.add(qn.namespaceURI)
+                if priorSchemeSibling is not None:
+                    priorSchemeSibling.addnext(skosElt)
+                else:
+                    rdfElement.append(skosElt)
+                priorSchemeSibling = skosElt
+            
             numConcepts += 1
             skosElt = etree.SubElement(rdfElement, "{http://www.w3.org/2004/02/skos/core#}Concept")
             skosElt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about", conceptUri(concept))
             elt = etree.SubElement(skosElt, "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}type")
             elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", 
                     "http://www.w3.org/2002/07/owl#Thing")
+            elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}notation")
+            elt.text = str(concept.qname)
             definition = concept.label(preferredLabel=XbrlConst.documentationLabel, lang="en", strip=True, fallbackToQname=False)
             if definition:
                 elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}definition")
@@ -97,11 +123,14 @@ def generateSkos(dts, skosFile):
                 if references:
                     elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}definition")
                     elt.text = references
-            label = concept.label(strip=True)
-            if label:
-                elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}prefLabel")
-                elt.set("{http://www.w3.org/XML/1998/namespace}lang", "en")
-                elt.text = label
+            labelsRelationshipSet = dts.relationshipSet(XbrlConst.conceptLabel)
+            if labelsRelationshipSet:
+                for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
+                    label = modelLabelRel.toModelObject
+                    if label.role == XbrlConst.standardLabel:
+                        elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}prefLabel")
+                        elt.set("{http://www.w3.org/XML/1998/namespace}lang", label.xmlLang)
+                        elt.text = label.text.strip()
             for rel in relationshipSet.fromModelObject(concept): # narrower
                 elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}narrower")
                 elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", conceptUri(rel.toModelObject))
@@ -111,7 +140,7 @@ def generateSkos(dts, skosFile):
                 
             elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}inScheme")
             elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", 
-                    "")
+                    namespaceUri(qn))
             
     fh = open(skosFile, "w", encoding="utf-8")
     XmlUtil.writexml(fh, xmlDocument, encoding="utf-8")
@@ -124,7 +153,7 @@ def generateSkos(dts, skosFile):
 
 def saveSkosMenuEntender(cntlr, menu):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save SKOS RDF file", 
+    menu.add_command(label="Save SKOS RDF", 
                      underline=0, 
                      command=lambda: saveSkosMenuCommand(cntlr) )
 
