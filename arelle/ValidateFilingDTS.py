@@ -461,7 +461,8 @@ def checkDTS(val, modelDocument, visited):
 
         #6.3.3 filename check
         expectedFilename = "{0}-{1}.xsd".format(val.fileNameBasePart, val.fileNameDatePart)
-        if modelDocument.basename != expectedFilename:
+        if modelDocument.basename != expectedFilename and not ( # skip if an edgar testcase
+           re.match("e[0-9]{8}(gd|ng)", val.fileNameBasePart) and re.match("edgar.*", modelDocument.basename)):
             val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
                 _('Invalid schema file name: %(filename)s, expected %(expectedFilename)s'),
                 modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
@@ -474,7 +475,8 @@ def checkDTS(val, modelDocument, visited):
             if extLinkElt is not None and extLinkElt.localName in extLinkEltFileNameEnding: 
                 expectedFilename = "{0}-{1}_{2}.xml".format(val.fileNameBasePart, val.fileNameDatePart, 
                                                             extLinkEltFileNameEnding[extLinkElt.localName])
-                if modelDocument.basename != expectedFilename:
+                if modelDocument.basename != expectedFilename and not ( # skip if an edgar testcase
+                    re.match("e[0-9]{8}(gd|ng)", val.fileNameBasePart) and re.match("edgar.*", modelDocument.basename)):
                     val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
                         _('Invalid linkbase file name: %(filename)s, expected %(expectedFilename)s'),
                         modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
