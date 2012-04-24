@@ -475,8 +475,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         entityIdentScheme = self.newFactItemOptions.entityIdentScheme
                         entityIdentValue = self.newFactItemOptions.entityIdentValue
                         periodType = factPrototype.concept.periodType
-                        periodStart = self.newFactItemOptions.startDate if periodType == "duration" else None
-                        periodEndInstant = self.newFactItemOptions.endDate
+                        periodStart = self.newFactItemOptions.startDateDate if periodType == "duration" else None
+                        periodEndInstant = self.newFactItemOptions.endDateDate
                         qnameDims = factPrototype.context.qnameDims
                         prevCntx = instance.matchContext(
                              entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 

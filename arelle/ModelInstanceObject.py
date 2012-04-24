@@ -15,8 +15,8 @@ class NewFactItemOptions():
     def __init__(self, savedOptions=None, xbrlInstance=None):
         self.entityIdentScheme = ""
         self.entityIdentValue = ""
-        self.startDate = None
-        self.endDate = None
+        self.startDate = ""  # use string  values so structure can be json-saved
+        self.endDate = ""
         self.monetaryUnit = ""
         self.monetaryDecimals = ""
         self.nonMonetaryDecimals = ""
@@ -28,10 +28,10 @@ class NewFactItemOptions():
                     cntx = fact.context
                     if not self.entityIdentScheme:
                         self.entityIdentScheme, self.entityIdentValue = cntx.entityIdentifier
-                    if self.startDate is None and cntx.isStartEndPeriod:
-                        self.startDate = cntx.startDatetime
-                    if self.startDate is None and (cntx.isStartEndPeriod or cntx.isInstantPeriod):
-                        self.endDate = cntx.endDatetime
+                    if not self.startDate and cntx.isStartEndPeriod:
+                        self.startDate = XmlUtil.dateunionValue(cntx.startDatetime)
+                    if not self.startDate and (cntx.isStartEndPeriod or cntx.isInstantPeriod):
+                        self.endDate = XmlUtil.dateunionValue(cntx.endDatetime, subtractOneDay=True)
                     if fact.isNumeric:
                         if fact.concept.isMonetary:
                             if not self.monetaryUnit and fact.unit.measures[0] and fact.unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
@@ -43,6 +43,13 @@ class NewFactItemOptions():
                 if self.entityIdentScheme and self.startDate and self.monetaryUnit and self.monetaryDecimals and self.nonMonetaryDecimals:
                     break 
                 
+    @property
+    def startDateDate(self):  # return a date-typed date value
+        return XmlUtil.datetimeValue(self.startDate)
+
+    @property
+    def endDateDate(self):  # return a date-typed date
+        return XmlUtil.datetimeValue(self.endDate, addOneDay=True)
                 
     
 class ModelFact(ModelObject):

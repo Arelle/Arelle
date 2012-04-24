@@ -72,12 +72,10 @@ class DialogNewFactItemOptions(Toplevel):
         self.cellEntityIdentValue = gridCell(frame, 2, 2, getattr(options,"entityIdentValue",""))
         ToolTip(self.cellEntityIdentValue, text=_("Enter the entity identifier value (e.g., stock ticker)"), wraplength=240)
         label(frame, 1, 3, "Start date:")
-        startDate = getattr(options,"startDate",None)
-        self.cellStartDate = gridCell(frame, 2, 3, XmlUtil.dateunionValue(startDate) if startDate else "")
+        self.cellStartDate = gridCell(frame, 2, 3, getattr(options,"startDate",""))
         ToolTip(self.cellStartDate, text=_("Enter the start date for the report period (e.g., 2010-01-01)"), wraplength=240)
         label(frame, 1, 4, "End date:")
-        endDate = getattr(options,"endDate",None)
-        self.cellEndDate = gridCell(frame, 2, 4, XmlUtil.dateunionValue(endDate, subtractOneDay=True) if endDate else "")
+        self.cellEndDate = gridCell(frame, 2, 4, getattr(options,"endDate",""))
         ToolTip(self.cellEndDate, text=_("Enter the end date for the report period (e.g., 2010-12-31)"), wraplength=240)
         label(frame, 1, 5, "Monetary unit:")
         self.cellMonetaryUnit = gridCombobox(frame, 2, 5, getattr(options,"monetaryUnit",""), values=monetaryUnits)
@@ -136,8 +134,8 @@ class DialogNewFactItemOptions(Toplevel):
         self.options.entityIdentScheme = self.cellEntityIdentScheme.value
         self.options.entityIdentValue = self.cellEntityIdentValue.value
         # need datetime.datetime base class for pickling, not ModelValue class (unpicklable)
-        self.options.startDate = XmlUtil.datetimeValue(self.cellStartDate.value)
-        self.options.endDate = XmlUtil.datetimeValue(self.cellEndDate.value, addOneDay=True)
+        self.options.startDate = self.cellStartDate.value
+        self.options.endDate = self.cellEndDate.value
         self.options.monetaryUnit = self.cellMonetaryUnit.value
         self.options.monetaryDecimals = self.cellMonetaryDecimals.value
         self.options.nonMonetaryDecimals = self.cellNonMonetaryDecimals.value
