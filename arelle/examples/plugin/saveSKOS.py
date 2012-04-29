@@ -10,7 +10,7 @@ def generateSkos(dts, skosFile):
         return
     import os, io
     from arelle import XmlUtil, XbrlConst
-    from arelle.ViewUtil import viewReferences
+    from arelle.ViewUtil import viewReferences, referenceURI
     skosNs = "http://www.w3.org/2004/02/skos/core#"
     rdfNs = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     file = io.StringIO('''
@@ -123,6 +123,10 @@ def generateSkos(dts, skosFile):
                 if references:
                     elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}definition")
                     elt.text = references
+                linkedReferenceURI = referenceURI(concept)
+                if linkedReferenceURI:    # link to reference
+                    elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}definition")
+                    elt.text = linkedReferenceURI
             labelsRelationshipSet = dts.relationshipSet(XbrlConst.conceptLabel)
             if labelsRelationshipSet:
                 for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
@@ -178,7 +182,11 @@ def saveSkosMenuCommand(cntlr):
     try: 
         generateSkos(cntlr.modelManager.modelXbrl, skosFile)
     except Exception as ex:
-        pass
+        dts = cntlr.modelManager.modelXbrl
+        dts.error("exception",
+            _("SKOS generation exception: %(error)s"), error=ex,
+            modelXbrl=dts,
+            exc_info=True)
 
 def saveSkosCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
