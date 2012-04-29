@@ -351,7 +351,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                         messageCode="info", file=self.entrypointFile)
             if options.importFiles:
                 for importFile in options.importFiles.split("|"):
-                    ModelDocument.load(modelXbrl, importFile.strip())
+                    fileName = importFile.strip()
+                    if sourceZipStream is not None and not (fileName.startswith('http://') or os.path.isabs(fileName)):
+                        fileName = os.path.dirname(modelXbrl.uri) + os.sep + fileName # make relative to sourceZipStream
+                    ModelDocument.load(modelXbrl, fileName)
                     self.addToLog(format_string(self.modelManager.locale, 
                                                 _("imported in %.2f secs at %s"), 
                                                 (time.time() - startedAt, timeNow)), 
