@@ -13,8 +13,11 @@ public class LoadValidatePostedZip {
 	public static void main(String[] args) throws IOException {
 		String restAPIstr =
 			"http://localhost:8080/rest/xbrl/" + 
-			"instance.xbrl" +
-			"/validation/xbrl?media=text&flavor=sec";
+			"instance-no-formula-link.xml" +
+			"/validation/xbrl" +
+			"?media=text" +
+			"&import=assertionsHtmlSchemaLoc.xml" +
+			"&formulaAsserResultCounts";
 		URL url = new URL(restAPIstr);
 		HttpURLConnection conn =
 		      (HttpURLConnection) url.openConnection();
@@ -23,7 +26,7 @@ public class LoadValidatePostedZip {
 				"application/zip");
 		conn.setDoOutput(true);
 	    //Send request
-		File zipFile = new File("C:/temp/test.zip");
+		File zipFile = new File("C:/temp/test-assertion-example.zip");
 		InputStream is = new FileInputStream(zipFile);
 		byte[] zipFileBytes = new byte[1000000];
 		int countRead = is.read(zipFileBytes, 0, 1000000);
