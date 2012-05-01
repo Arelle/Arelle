@@ -18,4 +18,4 @@ rem work off published XDT files
 @set OUTPUTLOGFILE=c:\temp\XDT-CR4-log.txt
 @set OUTPUTCSVFILE=c:\temp\XDT-CR4-report.csv
 
-"%PYTHONDIR%\python" -m arelle.CntlrCmdLine --file "%TESTCASESINDEXFILE%" --validate --csvTestReport "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1
+"%PYTHONDIR%\python" -m arelle.CntlrCmdLine --file "%TESTCASESINDEXFILE%" --validate --infoset --csvTestReport "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1

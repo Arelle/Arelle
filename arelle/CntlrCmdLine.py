@@ -72,6 +72,8 @@ def main():
                       help=_("Select U.K. HMRC disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
                       help=_("Select validation with respect to Unit Type Registry."))
+    parser.add_option("--infoset", action="store_true", dest="infosetValidate",
+                      help=_("Select validation with respect testcase infosets."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
                       help=_("Language for labels in following file options (override system settings)"))
     parser.add_option("--labelRole", action="store", dest="labelRole",
@@ -176,7 +178,7 @@ def main():
     elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.gfmName,
-                options.utrValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
+                options.utrValidate, options.infosetValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
                 options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
                 options.logFile, options.formulaParamExprResult, options.formulaParamInputValue,
                 options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
@@ -292,6 +294,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.validateCalcLB = True
         if options.utrValidate:
             self.modelManager.validateUtr = True
+        if options.infosetValidate:
+            self.modelManager.validateInfoset = True
         fo = FormulaOptions()
         if options.parameters:
             fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value)) 

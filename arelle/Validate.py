@@ -177,7 +177,7 @@ class Validate:
                         if dtsName:
                             parameters[dtsName] = (None, inputDTS)
                     self.instValidator.validate(modelXbrl, parameters)
-                    if modelTestcaseVariation.resultIsInfoset:
+                    if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
                         infoset = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                  modelTestcaseVariation.resultInfosetUri,
                                                    _("loading result infoset"), 

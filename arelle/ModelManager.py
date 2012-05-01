@@ -21,6 +21,7 @@ class ModelManager:
         self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
         self.validateCalcLB = False
         self.validateInferDecimals = False
+        self.validateInfoset = False
         self.validateUtr = False
         self.loadedModelXbrls = []
         from arelle import Locale

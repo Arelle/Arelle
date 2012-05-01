@@ -10,4 +10,4 @@ rem Please edit to change the output log and output csv file locations
 
 @set ARELLE=c:\Program Files\Arelle\arelleCmdLine.exe
 
-"%ARELLE%" --file "%TESTCASESINDEXFILE%" --validate --csvTestReport "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1
+"%ARELLE%" --file "%TESTCASESINDEXFILE%" --validate --infoset --csvTestReport "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1

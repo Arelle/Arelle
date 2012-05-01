@@ -61,6 +61,7 @@ validationOptions = {
     "hmrc": "gfmName=hmrc",
     "sbr-nl": "gfmName=sbr-nl",
     "utr": "utrValidate",
+    "infoset": "infosetValidate",
     "import": "importFiles"
                      }
 
@@ -202,6 +203,12 @@ def configure():
     response.content_type = 'text/html; charset=UTF-8'
     return htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Configuration Request")))
 
+@route('/rest/stopWebServer')
+def stopWebServer():
+    request.app.close()
+    request.app.reset()
+    raise KeyboardInterrupt()
+    
 @route('/quickbooks/server.asmx', method='POST')
 def quickbooksServer():
     from arelle import CntlrQuickBooks
@@ -346,6 +353,7 @@ or label linkbases.  Multiple file names are separated by a '|' character.</td><
 <tr><td style="text-indent: 1em;">hmrc</td><td>Specify HMRC validation.</td></tr>
 <tr><td style="text-indent: 1em;">sbr-nl</td><td>Specify SBR-NL taxonomy validation.</td></tr>
 <tr><td style="text-indent: 1em;">utr</td><td>Select validation with respect to Unit Type Registry.</td></tr> 
+<tr><td style="text-indent: 1em;">infoset</td><td>Select validation with respect to testcase infoset.</td></tr> 
 <tr><td style="text-indent: 1em;">parameters</td><td>Specify parameters for validation or formula (comma separated name=value[,name2=value2]).</td></tr> 
 <tr><td style="text-indent: 1em;">formulaAsserResultCounts</td><td>Report formula assertion counts.</td></tr> 
 <tr><td style="text-indent: 1em;">formulaVarSetExprResult</td><td>Trace variable set formula value, assertion test results.</td></tr> 
