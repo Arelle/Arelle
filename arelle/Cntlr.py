@@ -196,7 +196,8 @@ class Cntlr:
         """.. method:: saveConfig()
            Save user preferences configuration (in a pickle file)."""
         with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
-            json.dump(self.config, f, indent=2)
+            jsonStr = _STR_UNICODE(json.dumps(self.config, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+            f.write(jsonStr)  # 2.7 getss unicode this way
             
     # default non-threaded viewModelObject                 
     def viewModelObject(self, modelXbrl, objectId):
