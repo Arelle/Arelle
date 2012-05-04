@@ -8,7 +8,6 @@
    :license: Apache-2.
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
-from __future__ import print_function
 from arelle import PythonUtil # define 2.x or 3.x string types
 import tempfile, os, io, sys, logging, gettext, json
 from arelle import ModelManager

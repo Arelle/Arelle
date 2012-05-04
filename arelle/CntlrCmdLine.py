@@ -8,7 +8,6 @@ This module is Arelle's controller in command line non-interactive mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from __future__ import print_function
 from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser, SUPPRESS_HELP
@@ -211,7 +210,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.config["proxySettings"] = proxySettings
                 self.saveConfig()
                 self.addToLog(_("Proxy configuration has been set."), messageCode="info")
-            useOsProxy, urlAddr, urlPort, user, password = self.config["proxySettings"]
+            useOsProxy, urlAddr, urlPort, user, password = self.config.get("proxySettings", proxyTuple("none"))
             if useOsProxy:
                 self.addToLog(_("Proxy configured to use {0}.").format(
                     _('Microsoft Windows Internet Settings') if sys.platform.startswith("win")
