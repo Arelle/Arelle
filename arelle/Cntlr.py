@@ -178,15 +178,22 @@ class Cntlr:
             print(message) # allows printing on standard out
             
     def showStatus(self, message, clearAfter=None):
-        """.. method:: addToLog(message, clearAfter=None)
-           Dummy for subclasses to specialize, provides user feedback on status line of GUI or web page"""
+        """Dummy method for specialized controller classes to specialize, 
+        provides user feedback on status line of GUI or web page
+        
+        :param message: Message to display on status widget.
+        :type message: str
+        :param clearAfter: Time, in ms., after which to clear the message (e.g., 5000 for 5 sec.)
+        :type clearAfter: int
+        """
         pass
     
     def close(self, saveConfig=False):
-        """.. method:: close(saveConfig=False)
-           Close controller and its logger, optionally saaving the user preferences configuration
+        """Closes the controller and its logger, optionally saving the user preferences configuration
            
-           :param saveConfig: save the user preferences configuration"""
+           :param saveConfig: save the user preferences configuration
+           :type saveConfig: bool
+        """
         PluginManager.save(self)
         if saveConfig:
             self.saveConfig()
@@ -194,56 +201,62 @@ class Cntlr:
             self.logHandler.close()
         
     def saveConfig(self):
-        """.. method:: saveConfig()
-           Save user preferences configuration (in a pickle file)."""
+        """Save user preferences configuration (in json configuration file)."""
         with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
             jsonStr = _STR_UNICODE(json.dumps(self.config, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)  # 2.7 getss unicode this way
             
     # default non-threaded viewModelObject                 
     def viewModelObject(self, modelXbrl, objectId):
-        """.. method:: viewModelObject(modelXbrl, objectId)
-           Notification to watching views to show and highlight selected object
+        """Notification to watching views to show and highlight selected object.  Generally used
+        to scroll list control to object and highlight it, or if tree control, to find the object
+        and open tree branches as needed for visibility, scroll to and highlight the object.
            
-           :param modelXbrl: ModelXbrl whose views are to be notified
-           
-           :param objectId: Selected object."""
+        :param modelXbrl: ModelXbrl (DTS) whose views are to be notified
+        :type modelXbrl: ModelXbrl
+        :param objectId: Selected object id (string format corresponding to ModelObject.objectId() )
+        :type objectId: str
+        """
         modelXbrl.viewModelObject(objectId)
             
     def reloadViews(self, modelXbrl):
-        """.. method:: reloadViews(modelXbrl)
-           Notification to reload views (probably due to change within modelXbrl).  Dummy
-           for subclasses to specialize when they have a GUI or web page.
+        """Notification to reload views (probably due to change within modelXbrl).  Dummy
+        for subclasses to specialize when they have a GUI or web page.
            
-           :param modelXbrl: ModelXbrl whose views are to be reloaded"""
+        :param modelXbrl: ModelXbrl (DTS) whose views are to be notified
+        :type modelXbrl: ModelXbrl
+        """
         pass
     
     def rssWatchUpdateOption(self, **args):
-        """.. method:: rssWatchUpdateOption(**args)
-           Notification to change rssWatch options, as passed in, usually from a modal dialog."""
+        """Notification to change rssWatch options, as passed in, usually from a modal dialog."""
         pass
         
     # default web authentication password
     def internet_user_password(self, host, realm):
-        """.. method:: internet_user_password(self, host, realm)
-           Request (for an interactive UI or web page) to obtain user ID and password (usually for a proxy 
-           or when getting a web page that requires entry of a password).
+        """Request (for an interactive UI or web page) to obtain user ID and password (usually for a proxy 
+        or when getting a web page that requires entry of a password).  This function must be overridden
+        in a subclass that provides interactive user interface, as the superclass provides only a dummy
+        method. 
            
-           :param host: The host that is requesting the password
-           
-           :param realm: The domain on the host that is requesting the password
-           
-           :rtype string: xzzzzzz"""
+        :param host: The host that is requesting the password
+        :type host: str
+        :param realm: The domain on the host that is requesting the password
+        :type realm: str
+        :returns: tuple -- ('myusername','mypassword')
+        """
         return ('myusername','mypassword')
     
     # if no text, then return what is on the clipboard, otherwise place text onto clipboard
     def clipboardData(self, text=None):
-        """.. method:: clipboardData(self, text=None)
-           Places text onto the clipboard (if text is not None), otherwise retrieves and returns text from the clipboard.
-           Only supported for those platforms that have clipboard support in the current python implementation (macOS
-           or ActiveState Windows Python).
+        """Places text onto the clipboard (if text is not None), otherwise retrieves and returns text from the clipboard.
+        Only supported for those platforms that have clipboard support in the current python implementation (macOS
+        or ActiveState Windows Python).
            
-           :param text: Text to place onto clipboard if not None, otherwise retrieval of text from clipboard."""
+        :param text: Text to place onto clipboard if not None, otherwise retrieval of text from clipboard.
+        :type text: str
+        :returns: str -- text from clipboard if parameter text is None, otherwise returns None if text is provided
+        """
         if self.hasClipboard:
             try:
                 if sys.platform == "darwin":
@@ -367,8 +380,10 @@ class LogToBufferHandler(LogHandlerWithXml):
         pass # do nothing
     
     def getXml(self):
-        """.. method:: getXml()
-           Returns an XML document (as a string) representing the messages in the log buffer, and clears the buffer."""
+        """Returns an XML document (as a string) representing the messages in the log buffer, and clears the buffer.
+        
+        :reeturns: str -- XML document string of messages in the log buffer.
+        """
         xml = ['<?xml version="1.0" encoding="utf-8"?>\n',
                '<log>']
         for logRec in self.logRecordBuffer:
@@ -378,8 +393,10 @@ class LogToBufferHandler(LogHandlerWithXml):
         return '\n'.join(xml)
     
     def getJson(self):
-        """.. method:: getJson()
-           Returns an JSON string representing the messages in the log buffer, and clears the buffer."""
+        """Returns an JSON string representing the messages in the log buffer, and clears the buffer.
+        
+        :returns: str -- json representation of messages in the log buffer
+        """
         entries = []
         for logRec in self.logRecordBuffer:
             message = { "text": self.format(logRec) }
@@ -395,18 +412,21 @@ class LogToBufferHandler(LogHandlerWithXml):
         return json.dumps( {"log": entries} )
     
     def getLines(self):
-        """.. method:: getLines()
-           Returns a list of the message strings in the log buffer, and clears the buffer."""
+        """Returns a list of the message strings in the log buffer, and clears the buffer.
+        
+        :returns: [str] -- list of strings representing messages corresponding to log buffer entries
+        """
         lines = [self.format(logRec) for logRec in self.logRecordBuffer]
         self.logRecordBuffer = []
         return lines
     
     def getText(self, separator='\n'):
-        """.. method:: getText()
+        """Returns a string of the lines in the log buffer, separated by newline or provided separator.
         
-           :param separator: Line separator (default is platform's newline)
-           
-           Returns a text string of the messages in the log buffer, and clears the buffer."""
+        :param separator: Line separator (default is platform os newline character)
+        :type separator: str
+        :returns: str -- joined lines of the log buffer.
+        """
         return separator.join(self.getLines())
     
     def emit(self, logRecord):
