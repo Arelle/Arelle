@@ -7,6 +7,11 @@ Created on Jan 30, 2011
 import sys, os
 
 setup_requires = ['lxml']
+# install_requires specifies a list of package dependencies that are 
+# installed when 'python setup.py install' is run. On Linux/Mac systems 
+# this also allows installation directly from the github repository 
+# (using 'pip install -e git+git://github.com/rheimbuchArelle.git#egg=Arelle') 
+# and the install_requires packages are auto-installed as well.
 install_requires = ['lxml']
 options = {}
 scripts = []
@@ -80,7 +85,12 @@ class build_py27(_build_py):
 
 if sys.version_info[0] < 3:
     setup_requires.append('3to2')
+    # cmdclass allows you to override the distutils commands that are 
+    # run through 'python setup.py somecmd'. Under python 2.7 replace 
+    # the 'build_py' with a custom subclass (build_py27) that invokes 
+    # 3to2 refactoring on each python file as its copied to the build directory.
     cmdclass['build_py'] = build_py27
+# (Under python3 no commands are replaced, so the default command classes are used.)
 
 try:
 # Under python2.7, run build before running build_sphinx
@@ -90,13 +100,16 @@ try:
             self.run_command('build_py')
             # Ensure sphinx looks at the "built" arelle libs that
             # have passed through the 3to2 refactorings
-            # in `build_py27`
+            # in `build_py27`.
             sys.path.insert(0, os.path.abspath("./build/lib"))
             sphinx.setup_command.BuildDoc.run(self)
                 
     if sys.version_info[0] < 3:
         setup_requires.append('3to2')
         setup_requires.append('sphinx')
+        # do a similar override of the 'build_sphinx' command to ensure 
+        # that the 3to2-enabled build command runs before calling back to 
+        # the default build_sphinx superclass. 
         cmdclass['build_sphinx'] = build_sphinx_py27
 except ImportError as e:
     print("Documentation production by Sphinx is not available: %s" % e)
