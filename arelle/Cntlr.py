@@ -26,7 +26,7 @@ class Cntlr:
     - Context menu click event (TKinter)
     - Clipboard presence
     - Update URL
-    - Reloads proir config (pickled) user preferences
+    - Reloads prior config user preferences (saved in json file)
     - Sets up proxy and web cache
     - Sets up logging
     """
@@ -185,6 +185,7 @@ class Cntlr:
     def close(self, saveConfig=False):
         """.. method:: close(saveConfig=False)
            Close controller and its logger, optionally saaving the user preferences configuration
+           
            :param saveConfig: save the user preferences configuration"""
         PluginManager.save(self)
         if saveConfig:
@@ -203,7 +204,9 @@ class Cntlr:
     def viewModelObject(self, modelXbrl, objectId):
         """.. method:: viewModelObject(modelXbrl, objectId)
            Notification to watching views to show and highlight selected object
+           
            :param modelXbrl: ModelXbrl whose views are to be notified
+           
            :param objectId: Selected object."""
         modelXbrl.viewModelObject(objectId)
             
@@ -211,6 +214,7 @@ class Cntlr:
         """.. method:: reloadViews(modelXbrl)
            Notification to reload views (probably due to change within modelXbrl).  Dummy
            for subclasses to specialize when they have a GUI or web page.
+           
            :param modelXbrl: ModelXbrl whose views are to be reloaded"""
         pass
     
@@ -224,8 +228,11 @@ class Cntlr:
         """.. method:: internet_user_password(self, host, realm)
            Request (for an interactive UI or web page) to obtain user ID and password (usually for a proxy 
            or when getting a web page that requires entry of a password).
+           
            :param host: The host that is requesting the password
+           
            :param realm: The domain on the host that is requesting the password
+           
            :rtype string: xzzzzzz"""
         return ('myusername','mypassword')
     
@@ -235,6 +242,7 @@ class Cntlr:
            Places text onto the clipboard (if text is not None), otherwise retrieves and returns text from the clipboard.
            Only supported for those platforms that have clipboard support in the current python implementation (macOS
            or ActiveState Windows Python).
+           
            :param text: Text to place onto clipboard if not None, otherwise retrieval of text from clipboard."""
         if self.hasClipboard:
             try:
@@ -395,7 +403,9 @@ class LogToBufferHandler(LogHandlerWithXml):
     
     def getText(self, separator='\n'):
         """.. method:: getText()
+        
            :param separator: Line separator (default is platform's newline)
+           
            Returns a text string of the messages in the log buffer, and clears the buffer."""
         return separator.join(self.getLines())
     
