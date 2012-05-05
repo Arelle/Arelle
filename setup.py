@@ -111,6 +111,9 @@ try:
         # that the 3to2-enabled build command runs before calling back to 
         # the default build_sphinx superclass. 
         cmdclass['build_sphinx'] = build_sphinx_py27
+        # There is also a python 2.x conditional switch in 'apidocs/conf.py' 
+        # that sets sphinx to look at the 3to2 converted build files instead 
+        # of the original unconverted source.
 except ImportError as e:
     print("Documentation production by Sphinx is not available: %s" % e)
 
