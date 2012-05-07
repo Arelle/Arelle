@@ -14,6 +14,37 @@ def initialize(cntlr):
     
 
 class ModelManager:
+    """ModelManager provides an interface between modelXbrl’s and the controller.  Model manager is a 
+    singleton object, one is created in initialization of a controller.
+    
+    The ModelManager coordinates ModelXbrl instances for the Controller, and is the interface to utility 
+    functions (such as the Python web cache), and application specific formalisms (such as the SEC 
+    restrictions on referencable base taxonomies).
+
+        .. attribute:: validateDisclosureSystem
+    
+        True if disclosure system is to be validated (e.g., EFM)
+        
+        .. attribute:: disclosureSystem
+        
+        Disclosure system object.  To select the disclosure system, e.g., “gfm”, moduleManager.disclosureSystem.select(“gfm”).
+          
+        .. attribute:: validateCalcLB
+        
+        True for calculation linkbase validation.
+        
+        .. attribute:: validateInferDecimals
+        
+        True for calculation linkbase validation to infer decimals (instead of precision)
+        
+        .. attribute:: validateUTR
+        
+        True for validation of unit type registry
+        
+        .. attribute:: defaultLang
+        
+        The default language code for labels selection and views (e.g. “en-US”), set from the operating system defaults on startup.
+    """
     
     def __init__(self, cntlr):
         self.cntlr = cntlr
@@ -32,18 +63,63 @@ class ModelManager:
         self.status = "shutdown"
         
     def addToLog(self, message):
+        """Add a simple info message to the default logger
+           
+        :param message: Text of message to add to log.
+        :type message: str
+        :param messageCode: Message code (e.g., a prefix:id of a standard error)
+        :param messageCode: str
+        :param file: File name (and optional line numbers) pertaining to message
+        :type file: str
+        """
         self.cntlr.addToLog(message)
         
     def showStatus(self, message, clearAfter=None):
+        """Provide user feedback on status line of GUI or web page according to type of controller.
+        
+        :param message: Message to display on status widget.
+        :type message: str
+        :param clearAfter: Time, in ms., after which to clear the message (e.g., 5000 for 5 sec.)
+        :type clearAfter: int
+        """
         self.cntlr.showStatus(message, clearAfter)
         
     def viewModelObject(self, modelXbrl, objectId):
+        """Notify any active views to show and highlight selected object.  Generally used
+        to scroll list control to object and highlight it, or if tree control, to find the object
+        and open tree branches as needed for visibility, scroll to and highlight the object.
+           
+        :param modelXbrl: ModelXbrl (DTS) whose views are to be notified
+        :type modelXbrl: ModelXbrl
+        :param objectId: Selected object id (string format corresponding to ModelObject.objectId() )
+        :type objectId: str
+        """
         self.cntlr.viewModelObject(modelXbrl, objectId)
         
     def reloadViews(self, modelXbrl):
+        """Notify all active views to reload and redisplay their entire contents.  May be used
+        when loaded model is changed significantly, or when individual object change notifications
+        (by viewModelObject) would be difficult to identify or too numerous.
+           
+        :param modelXbrl: ModelXbrl (DTS) whose views are to be reloaded
+        :type modelXbrl: ModelXbrl
+        """
         self.cntlr.reloadViews(modelXbrl)
         
     def load(self, filesource, nextaction=None):
+        """Load an entry point modelDocument object(s), which in turn load documents they discover 
+        (for the case of instance, taxonomies, and versioning reports), but defer loading instances 
+        for test case and RSS feeds.  
+        
+        The modelXbrl that is loaded is ‘stacked’, by this class, so that any modelXbrl operations such as validate, 
+        and close, operate on the most recently loaded modelXbrl, and compareDTSes operates on the two 
+        most recently loaded modelXbrl’s.
+        
+        :param filesource: may be a FileSource object, with the entry point selected, or string file name (or web URL). 
+        :type filesource: FileSource or str
+        :param nextAction: status line text string, if any, to show upon completion
+        :type nextAction: str
+        """
         try:
             if filesource.url.startswith("urn:uuid:"): # request for an open modelXbrl
                 for modelXbrl in self.loadedModelXbrls:
@@ -70,6 +146,10 @@ class ModelManager:
         return self.modelXbrl
     
     def validate(self):
+        """Validates the most recently loaded modelXbrl (according to validation properties).
+        
+        Results of validation will be in log.
+        """
         try:
             if self.modelXbrl:
                 Validate.validate(self.modelXbrl)
@@ -79,6 +159,13 @@ class ModelManager:
                            traceback.format_tb(sys.exc_info()[2])))
         
     def compareDTSes(self, versReportFile, writeReportFile=True):
+        """Compare two most recently loaded DTSes, saving versioning report in to the file name provided.
+        
+        :param versReportFile: file name in which to save XBRL Versioning Report
+        :type versReportFile: str
+        :param writeReportFile: False to prevent writing XBRL Versioning Report file
+        :type writeReportFile: bool
+        """
         from arelle.ModelVersReport import ModelVersReport
         if len(self.loadedModelXbrls) >= 2:
             fromDTS = self.loadedModelXbrls[-2]
@@ -92,6 +179,11 @@ class ModelManager:
         return None
         
     def close(self, modelXbrl=None):
+        """Closes the specified or most recently loaded modelXbrl
+        
+        :param modelXbrl: Specific ModelXbrl to be closed (defaults to last opened ModelXbrl)
+        :type modelXbrl: ModelXbrl
+        """
         if modelXbrl is None: modelXbrl = self.modelXbrl
         if modelXbrl:
             while modelXbrl in self.loadedModelXbrls:

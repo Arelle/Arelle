@@ -310,6 +310,17 @@ fractionParts = {"{http://www.xbrl.org/2003/instance}numerator",
 
 
 class ModelDocument:
+    """
+    The modelDocument performs discovery and initialization when loading documents.  
+    For instances, schema and linkbase references are resolved, as well as non-DTS schema locations needed 
+    to ensure PSVI-validated XML elements in the instance document (for formula processing).  
+    For DTSes, schema includes and imports are resolved, linkbase references discovered, and 
+    concepts made accessible by qname by the modelXbrl and ID at the modelDocument scope.  
+    Testcase documents (and their indexing files) are loaded as modelDocument objects.
+      
+    Specialized modelDocuments are the versioning report, which must discover from and to DTSes, 
+    and an RSS feed, which has a unique XML structure.
+    """
     
     def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
         self.modelXbrl = modelXbrl

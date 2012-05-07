@@ -24,6 +24,12 @@ class ValidationException(Exception):
         return "{0}({1})={2}".format(self.code,self.severity,self.message)
     
 class Validate:
+    """Validation operations are separated from the objects that are validated, because the operations are 
+    complex, interwoven, and factored quite differently than the objects being validated. 
+    There are these validation modules at present: validation infrastructure, test suite and submission control, 
+    versioning report validation, XBRL base spec, dimensions, and formula linkbase validation, 
+    Edgar and Global Filer Manual validation. 
+    """
     def __init__(self, modelXbrl):
         self.modelXbrl = modelXbrl
         if modelXbrl.modelManager.validateDisclosureSystem:

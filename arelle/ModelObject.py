@@ -9,7 +9,20 @@ from lxml import etree
 from collections import namedtuple
 
 class ModelObject(etree.ElementBase):
+    """ModelObjects represent the XML elements within a document, and are implemented as custom 
+    lxml proxy objects.  Each modelDocument has a parser with the parser objects in ModelObjectFactory.py, 
+    to determine the type of model object to correspond to a proxied lxml XML element.  
+    Both static assignment of class, by namespace and local name, and dynamic assignment, by dynamic 
+    resolution of element namespace and local name according to the dynamically loaded schemas, are 
+    used in the ModelObjectFactory.
     
+    ModelObjects are grouped into Python modules to ensure minimal inter-package references 
+    (which causes a performance impact).  ModelDtsObjects collects DTS objects (schema and linkbase), 
+    ModelInstanceObjects collects instance objects (facts, contexts, dimensions, and units), 
+    ModelTestcaseObject collects testcase and variation objects, ModelVersioningObject has specialized 
+    objects representing versioning report contents, and ModelRssItem represents the item objects in an 
+    RSS feed.   
+    """
     def _init(self):
         self.isChanged = False
         parent = self.getparent()

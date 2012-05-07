@@ -22,6 +22,12 @@ from arelle.WebCache import proxyTuple
 import logging
 
 def main():
+    """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
+    a command line request, or initiate a web server on specified local port.
+       
+       :param argv: Command line arguments.  (Currently supported arguments can be displayed by the parameter *--help*.)
+       :type message: [str]
+       """
     try:
         from arelle import webserver
         hasWebServer = True
@@ -198,11 +204,24 @@ def main():
         cntlr.run(options)
         
 class CntlrCmdLine(Cntlr.Cntlr):
+    """
+    .. class:: CntlrCmdLin()
+    
+    Initialization sets up for platform via Cntlr.Cntlr.
+    """
 
     def __init__(self, logFileName=None):
         super(CntlrCmdLine, self).__init__()
         
     def run(self, options, sourceZipStream=None):
+        """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
+        
+        When a web server has been requested, this method may be called multiple times, once for each web service (REST) request that requires processing.
+        Otherwise (when called for a command line request) this method is called only once for the command line arguments request.
+           
+        :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
+        :type options: optparse.Values
+        """
         if options.proxy:
             if options.proxy != "show":
                 proxySettings = proxyTuple(options.proxy)

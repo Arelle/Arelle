@@ -12,6 +12,11 @@ from arelle import Version, XmlUtil
 from arelle.FileSource import FileNamedStringIO
 
 def startWebserver(_cntlr, options):
+    """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
+       
+    :param options: OptionParser options from parse_args of main argv arguments (the argument *webserver* provides hostname and port), port being used to startup the webserver on localhost.
+    :type options: optparse.Values
+    """
     global imagesDir, cntlr, optionsNames
     cntlr = _cntlr
     imagesDir = cntlr.imagesDir
@@ -21,6 +26,11 @@ def startWebserver(_cntlr, options):
     
 @get('/rest/login')
 def login_form():
+    """Request for a login form (get to */rest/login*).  Corresponds to login from other providers of XBRL validation services, but 
+    this version of Arelle does not perform accounting or charges for validation requests, so the login is ignored.
+    
+    :returns: str -- HTML login form to enter and submit via method=POST these fields: name, password
+    """
     return _('''<html><body><form method="POST"><table>
                 <tr><td>Name:</td><td><input name="name" type="text" /></td></tr>
                 <tr><td>Password:</td><td><input name="password" type="password" /></td></tr>
@@ -29,6 +39,11 @@ def login_form():
     
 @post('/rest/login')
 def login_submit():
+    """Login of fields from login form (post to */rest/login*).  Saves user ID for future use.
+    
+    :param name: User ID
+    :param password: Password
+    """
     name     = request.forms.get('name')
     password = request.forms.get('password')
     if checkLogin(name, password):
@@ -37,22 +52,38 @@ def login_submit():
         return _("<p>Login failed</p>")
     
 def checkLogin(_user, _password):
+    """Save user ID for future use.  Password not currently processed.
+    
+    :returns: bool -- True (for now, future user may interact with authentication and accounting services.)
+    """
     global user
     user = _user
     return True
 
 @get('/rest/logout')
 def logout():
+    """Request to log out (get */rest/logout*).  Removes any proior user ID from session.
+    
+    :returns: html -- Message that user has logged out
+    """
     global user
     user = None
     return _("<p>You are logged out.</p>")
 
 @route('/favicon.ico')
 def arelleIcon():
+    """Request for icon for URL display (get */favicon.ico*).
+    
+    :returns: ico -- Icon file for browsers
+    """
     return static_file("arelle.ico", root=imagesDir)
 
 @route('/images/<imgFile>')
 def image(imgFile):
+    """Request for an image file for URL display (get */images/<imgFile>*).
+    
+    :returns: image file -- Requested image file from images directory of application for browsers
+    """
     return static_file(imgFile, root=imagesDir)
 
 validationOptions = {
@@ -66,6 +97,7 @@ validationOptions = {
                      }
 
 class Options():
+    """Class to emulate options needed by CntlrCmdLine.run"""
     def __init__(self):
         for option in optionsNames:
             setattr(self, option, None)
@@ -89,6 +121,12 @@ GETorPOST = ('GET', 'POST')
 @route('/rest/xbrl/open', method=GETorPOST)
 @route('/rest/xbrl/close', method=GETorPOST)
 def validation(file=None):
+    """REST request to validate, by *get* or *post*, to URL patterns including */rest/xbrl/<file:path>/{open|close|validation|DTS...}*,
+    and */rest/xbrl/{view|open|close}*.
+    Sets up CntrlCmdLine options for request, performed by runOptionsAndGetResult using CntlrCmdLine.run with get or post arguments.
+    
+    :returns: html, xhtml, xml, json, text -- Return per media type argument and request arguments
+    """
     errors = []
     flavor = request.query.flavor or 'standard'
     media = request.query.media or 'html'
@@ -150,6 +188,10 @@ def validation(file=None):
     return runOptionsAndGetResult(options, media, viewFile, sourceZipStream)
     
 def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
+    """Execute request according to options, for result in media, with *post*ed file in sourceZipStream, if any.
+    
+    :returns: html, xml, csv, text -- Return per media type argument and request arguments
+    """
     successful = cntlr.run(options, sourceZipStream)
     if media == "xml":
         response.content_type = 'text/xml; charset=UTF-8'
@@ -177,6 +219,10 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
 
 @route('/rest/xbrl/diff')
 def diff():
+    """Execute versioning diff request for *get* request to */rest/xbrl/diff*.
+    
+    :returns: xml -- Versioning report.
+    """
     if not request.query.fromDTS or not request.query.toDTS or not request.query.report:
         return _("From DTS, to DTS, and report must be specified")
     options = Options()
@@ -192,6 +238,10 @@ def diff():
 
 @route('/rest/configure')
 def configure():
+    """Set up features for *get* requests to */rest/configure*, e.g., proxy or plug-ins.
+    
+    :returns: html -- Status of configuration request (e.g., proxy or plug-ins).
+    """
     if not request.query.proxy and not request.query.plugins:
         return _("proxy or plugins must be specified")
     options = Options()
@@ -205,12 +255,20 @@ def configure():
 
 @route('/rest/stopWebServer')
 def stopWebServer():
+    """Stop the web server by *get* requests to */rest/stopWebServer*.
+    
+    (This is not working on Windows.)
+    """
     request.app.close()
     request.app.reset()
     raise KeyboardInterrupt()
     
 @route('/quickbooks/server.asmx', method='POST')
 def quickbooksServer():
+    """Interface to QuickBooks server responding to  *post* requests to */quickbooks/server.asmx*.
+    
+    (Part of QuickBooks protocol, see module CntlrQuickBooks.)
+    """
     from arelle import CntlrQuickBooks
     response.content_type = 'text/xml; charset=UTF-8'
     return CntlrQuickBooks.server(cntlr, request.body, request.urlparts)
@@ -220,6 +278,10 @@ def quickbooksServer():
 @route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view')
 @route('/rest/quickbooks/<qbReport>/xbrl-gl/view')
 def quickbooksGLrequest(qbReport=None, file=None):
+    """Initiate request to QuickBooks server for *get* requests to */rest/quickbooks/<qbReport>/xbrl-gl/...*.
+    
+    :returns: html, xml, csv, text -- Return per media type argument and request arguments
+    """
     from arelle.CntlrQuickBooks import supportedQbReports, qbRequest 
     from arelle.ModelValue import dateTime
     errors = []
@@ -253,6 +315,10 @@ function autoRefresh(){{location.href = "/rest/quickbooks/response?ticket={0}&me
     
 @route('/rest/quickbooks/response')
 def quickbooksGLresponse():
+    """Poll for QuickBooks protocol responses for *get* requests to */rest/quickbooks/response*.
+    
+    :returns: html, xml, csv, text -- Return per media type argument and request arguments, if response is ready, otherwise javascript to requery this *get* request periodicially.
+    """
     from arelle import CntlrQuickBooks
     ticket = request.query.ticket
     media = request.query.media
@@ -291,6 +357,12 @@ def quickbooksWebPage():
 @route('/quickbooks/localhost.crt')
 @route('/localhost.crt')
 def localhostCertificate():
+    """Interface to QuickBooks server responding to  *get* requests for a host certificate */quickbooks/localhost.crt* or */localhost.crt*.
+    
+    (Supports QuickBooks protocol.)
+    
+    :returns: self-signed certificate
+    """
     return '''
 -----BEGIN CERTIFICATE-----
 MIIDljCCAn4CAQAwDQYJKoZIhvcNAQEEBQAwgZAxCzAJBgNVBAYTAlVTMRMwEQYD
@@ -318,6 +390,10 @@ QhpLdqly7hWJ23blbQQv4ILT2CiPDotJslcKDT7GzvPoDu6rIs2MpsB/4RDYejYU
     
 @route('/help')
 def help():
+    """Help web page for *get* requests to */help*.
+    
+    :returns: html - Table of CntlrWebMain web API
+    """
     return htmlBody(_('''<table>
 <tr><th colspan="2">Arelle web API</th></tr>
 <tr><td>/help</td><td>This web page.</td></tr>
@@ -465,6 +541,10 @@ Enter 'show' to view plug-ins configuration, , or '|' separated modules:
 
 @route('/about')
 def about():
+    """About web page for *get* requests to */about*.
+    
+    :returns: html - About web page
+    """
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">About arelle</th></tr>
 <tr><td rowspan="12" style="vertical-align:top;"><img src="/images/arelle32.gif"/></td><td>arelle&reg; version: %s %s. An open source XBRL platform</td></tr>
@@ -488,6 +568,10 @@ See the License for the specific language governing permissions and limitations 
 
 @route('/')
 def indexPage():
+    """Index (default) web page for *get* requests to */*.
+    
+    :returns: html - Web page of choices to navigate to */help* or */about*.
+    """
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">Arelle Web Services</th></tr>
 <tr><td>/help</td><td>Help web page, web services API.</td></tr>
@@ -496,6 +580,14 @@ def indexPage():
 
 
 def htmlBody(body, script=""):
+    """Wraps body html string in a css-styled html web page
+    
+    :param body: Contents for the *<body>* element
+    :type body: html str
+    :param script: Script to insert in generated html web page (such as a timed reload script)
+    :type script: javascript str
+    :returns: html - Web page of choices to navigate to */help* or */about*.
+    """
     return '''
 <?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -517,11 +609,28 @@ def htmlBody(body, script=""):
 ''' % (script, body)
 
 def tableRows(lines, header=None):
+    """Wraps lines of text into a one-column table (for display of text results of operations, such as processing messages and status, to web browser).
+    Replaces any *&* with *&amp;* and *<* with *&lt;*.
+    
+    :param lines: Sequence (list or tuple) of line strings.
+    :type lines: [str]
+    :param header: Optional header text for top row of table.
+    :type header: str
+    :returns: html - <table> html string.
+    """
     return '<table cellspacing="0" cellpadding="4">%s\n</table>' % (
             ("<tr><th>%s</th></tr>" % header if header else "") + 
             "\n".join("<tr><td>%s</td></tr>" % line.replace("&","&amp;").replace("<","&lt;") for line in lines))
 
 def errorReport(errors, media="html"):
+    """Wraps lines of error text into specified media type for return of result to a request.
+    
+    :param errors: Sequence (list or tuple) of error strings.
+    :type errors: [str]
+    :param media: Type of result requestd.
+    :type media: str
+    :returns: html - <table> html string.
+    """
     if media == "text":
         response.content_type = 'text/plain; charset=UTF-8'
         return '\n'.join(errors)

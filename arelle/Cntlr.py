@@ -29,6 +29,57 @@ class Cntlr:
     - Reloads prior config user preferences (saved in json file)
     - Sets up proxy and web cache
     - Sets up logging
+    
+    A controller subclass object is instantiated, CntlrWinMain for the GUI and CntlrCmdLine for command 
+    line batch operation.  (Other controller modules and/or objects may be subordinate to a CntlrCmdLine,
+    such as CntlrWebMain, and CntlrQuickBooks).
+    
+    This controller base class initialization sets up specifics such as directory paths, 
+    for its environment (Mac, Windows, or Unix), sets up a web file cache, and retrieves a 
+    configuration dictionary of prior user choices (such as window arrangement, validation choices, 
+    and proxy settings).
+    
+    The controller sub-classes (such as CntlrWinMain, CntlrCmdLine, and CntlrWebMain) most likely will 
+    load an XBRL related object, such as an XBRL instance, taxonomy, 
+    testcase file, versioning report, or RSS feed, by requesting the model manager to load and 
+    return a reference to its modelXbrl object.  The modelXbrl object loads the entry modelDocument 
+    object(s), which in turn load documents they discover (for the case of instance, taxonomies, and 
+    versioning reports), but defer loading instances for test case and RSS feeds.  The model manager 
+    may be requested to validate the modelXbrl object, or views may be requested as below.  
+    (Validating a testcase or RSS feed will validate the test case variations or RSS feed items, one by one.)
+    
+        .. attribute:: isMac
+        
+        True if system is MacOS
+        
+        .. attribute:: isMSW
+        
+        True if system is Microsoft Windows
+        
+        .. attribute:: userAppDir
+        
+        Full pathname to application directory (for persistent json files, cache, etc).
+        
+        .. attribute:: configDir
+        
+        Full pathname to config directory as installed (validation options, redirection URLs, common xsds).
+        
+        .. attribute:: imagesDir
+        
+        Full pathname to images directory as installed (images for GUI and web server).
+        
+        .. attribute:: localeDir
+        
+        Full pathname to locale directory as installed (for support of gettext localization feature).
+        
+        ... attribute:: hasClipboard
+        
+        True if a system platform clipboard is implemented on current platform
+        
+        ... attribute:: updateURL
+        
+        URL string of application download file (on arelle.org server).  Usually redirected to latest released application installable module.
+        
     """
     __version__ = "1.0.0"
     
@@ -170,8 +221,15 @@ class Cntlr:
             self.logger = None
                         
     def addToLog(self, message, messageCode="", file=""):
-        """.. method:: addToLog(message, messageCode="", file="")
-           Add a simple info message to the default logger"""
+        """Add a simple info message to the default logger
+           
+        :param message: Text of message to add to log.
+        :type message: str
+        :param messageCode: Message code (e.g., a prefix:id of a standard error)
+        :param messageCode: str
+        :param file: File name (and optional line numbers) pertaining to message
+        :type file: str
+        """
         if self.logger is not None:
             self.logger.info(message, extra={"messageCode":messageCode,"refs":[{"href": file}]})
         else:
@@ -208,7 +266,7 @@ class Cntlr:
             
     # default non-threaded viewModelObject                 
     def viewModelObject(self, modelXbrl, objectId):
-        """Notification to watching views to show and highlight selected object.  Generally used
+        """Notify any watching views to show and highlight selected object.  Generally used
         to scroll list control to object and highlight it, or if tree control, to find the object
         and open tree branches as needed for visibility, scroll to and highlight the object.
            
