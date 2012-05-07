@@ -14,6 +14,24 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
 
 def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False):
+    """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema, 
+    linkbase, and versioning report entry urls.
+    
+    :param uri: Identification of file to load by string filename or by a FileSource object with a selected content file.
+    :type uri: str or FileSource
+    :param referringElement: Source element causing discovery or loading of this document, such as an import or xlink:href
+    :type referringElement: ModelObject
+    :param isEntry: True for an entry document
+    :type isEntry: bool
+    :param isDiscovered: True if this document is discovered by XBRL rules, otherwise False (such as when schemaLocation and xmlns were the cause of loading the schema)
+    :type isDiscovered: bool
+    :param isIncluded: True if this document is the target of an xs:include
+    :type isIncluded: bool
+    :param namespace: The schema namespace of this document, if known and applicable
+    :type namespace: str
+    :param reloadCache: True if desired to reload the web cache for any web-referenced files.
+    :type reloadCache: bool
+    """
     if referringElement is None: # used for error messages
         referringElement = modelXbrl
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
@@ -201,6 +219,16 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
     return doc
             
 def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
+    """Returns a new modelDocument, created from scratch, with any necessary header elements 
+    
+    (such as the schema, instance, or RSS feed top level elements)
+    :param type: type of model document (value of ModelDocument.Types, an integer)
+    :type type: Types
+    :param schemaRefs: list of URLs when creating an empty INSTANCE, to use to discover (load) the needed DTS modelDocument objects.
+    :type schemaRefs: [str]
+    :param isEntry is True when creating an entry (e.g., instance)
+    :type isEntry: bool
+    """
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, None)
     if isEntry:
         modelXbrl.uri = normalizedUri
@@ -267,6 +295,11 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
 
     
 class Type:
+    """
+    .. class:: Type
+    
+    Static class of Enumerated type representing modelDocument type
+    """
     UnknownXML=0
     UnknownNonXML=1
     UnknownTypes=1  # to test if any unknown type, use <= Type.UnknownTypes
@@ -311,6 +344,8 @@ fractionParts = {"{http://www.xbrl.org/2003/instance}numerator",
 
 class ModelDocument:
     """
+    .. class:: ModelDocment(modelXbrl, type, uri, filepath, xmlDocument)
+
     The modelDocument performs discovery and initialization when loading documents.  
     For instances, schema and linkbase references are resolved, as well as non-DTS schema locations needed 
     to ensure PSVI-validated XML elements in the instance document (for formula processing).  
@@ -320,6 +355,79 @@ class ModelDocument:
       
     Specialized modelDocuments are the versioning report, which must discover from and to DTSes, 
     and an RSS feed, which has a unique XML structure.
+
+    :param modelXbrl: The ModelXbrl (DTS) object owning this modelDocument.
+    :type modelXbrl: ModelXbrl
+    :param uri:  The document's source entry URI (such as web site URL)
+    :type uri: str
+    :param filepath:  The file path of the source for the document (local file or web cache file name)
+    :type filepath: str
+    :param xmlDocument: lxml parsed xml document tree model of lxml proxy objects
+    :type xmlDocument: lxml document
+
+        ... attribute:: modelDocument
+        
+        Self (provided for consistency with modelObjects)
+
+        ... attribute:: modelXbrl
+        
+        The owning modelXbrl
+
+        ... attribute:: type
+        
+        The enumerated document type
+
+        ... attribute:: uri
+
+        Uri as discovered
+
+        ... attribute:: filepath
+        
+        File path as loaded (e.g., from web cache on local drive)
+
+        ... attribute:: basename
+        
+        Python basename (last segment of file path)
+
+        ... attribute:: xmlDocument
+        
+        The lxml tree model of xml proxies
+
+        ... attribute:: targetNamespace
+        
+        Target namespace (if a schema)
+
+        ... attribute:: objectIndex
+        
+        Position in lxml objects table, for use as a surrogate
+
+        ... attribute:: referencesDocument
+        
+        Dict of referenced documents, key is the modelDocument, value is why loaded (import, include, href)
+
+        ... attribute:: idObjects
+        
+        Dict by id of modelObjects in document
+
+        ... attribute:: modelObjects
+        
+        List of modelObjects discovered in document in document order
+
+        ... attribute:: hrefObjects
+        
+        List of (modelObject, modelDocument, id) for each xlink:href
+
+        ... attribute:: schemaLocationElements
+        
+        Set of modelObject elements that have xsi:schemaLocations
+
+        ... attribute:: referencedNamespaces
+        
+        Set of referenced namespaces (by import, discovery, etc)
+
+        ... attribute:: inDTS
+        
+        Qualifies as a discovered schema per XBRL 2.1
     """
     
     def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
