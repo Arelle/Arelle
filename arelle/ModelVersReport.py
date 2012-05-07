@@ -12,6 +12,13 @@ from arelle.ModelValue import qname, QName
 from arelle.FileSource import FileNamedStringIO
 
 def create(modelXbrlFromDTS, modelXbrlToDTS):
+    """Returns a new modelXbrl representing a Version Report object, by creation of its modelXbrl, its ModelVersReport (modelDocument), and diffing the from and to DTSes 
+
+    :param modelXbrlFromDTS: fromDTS DTS object
+    :type modelXbrlFromDTS: ModelXbrl
+    :param modelXbrlToDTS: toDTS DTS object
+    :type modelXbrlToDTS: ModelXbrl
+    """
     modelXbrlVersReport = ModelXbrl.create(modelXbrlFromDTS.modelManager)
     modelVersReport = ModelVersReport(
     	ModelDocument.Type.VERSIONINGREPORT)
@@ -39,6 +46,67 @@ dateRemovalPattern = re.compile(r"[/]?(draft-)?(19|20)[0-9][0-9](-[01][0-9](-[0-
 numberRemovalPattern = re.compile(r"[/]?[0-9][0-9\.]*")
 
 class ModelVersReport(ModelDocument.ModelDocument):
+    """
+    .. class:: ModelVersReport(type=ModelDocument.Type.VERSIONINGREPORT, uri=None, filepath=None, xmlDocument=None)
+    
+    ModelVersReport is a specialization of ModelDocument for Versioning Reports.
+    
+    (for parameters and inherited attributes, please see ModelDocument)
+        
+        .. attribute:: fromDTS
+
+        From DTS (modelXbrl object)
+        
+        .. attribute:: toDTS
+        
+        To DTS (modelXbrl object)
+        
+        .. attribute:: assignments
+
+        Dict by id of ModelAssignment objects
+        
+        .. attribute:: actions
+        
+        Dict by id of ModelAction objects
+        
+        .. attribute:: namespaceRenameFrom
+        
+        Dict by fromURI of ModelNamespaceRename objects
+        
+        .. attribute:: namespaceRenameTo
+        
+        Dict  by toURI of ModelNamespaceRename objects
+        
+        .. attribute:: roleChanges
+        
+        Dict by uri of ModelRoleChange objects
+        
+        .. attribute:: conceptBasicChanges
+        
+        List of ModelConceptBasicChange objects
+        
+        .. attribute:: conceptExtendedChanges
+        
+        List of ModelConceptExtendedChange objects
+        
+        .. attribute:: equivalentConcepts
+        
+        Dict by qname of equivalent qname
+        
+        .. attribute:: relatedConceptsDefaultDict by qname of list of related concept qnames
+        
+        
+        .. attribute:: relationshipSetChanges    List of ModelRelationshipSet objects
+        
+        .. attribute:: instanceAspectChanges
+        
+        List of ModelInstanceAspectChange objects
+        
+        .. attribute:: typedDomainsCorrespond
+        
+        Dict by (fromDimConcept,toDimConcept) of bool that is True if corresponding
+    """
+        
     def __init__(self, modelXbrl, 
                  type=ModelDocument.Type.VERSIONINGREPORT, 
                  uri=None, filepath=None, xmlDocument=None):
@@ -61,9 +129,16 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.typedDomainsCorrespond = {}
         
     def close(self):
+        """Closes any views, formula output instances, modelDocument(s), and dereferences all memory used 
+        """
         super(ModelVersReport, self).close()
         
     def versioningReportDiscover(self, rootElement):
+        """Initiates discovery of versioning report
+        
+        :param rootElement: lxml root element of versioning report
+        :type rootElement: xml element node
+        """
         actionRelatedFromMdlObjs = []
         actionRelatedToMdlObjs = []
         modelAction = None
@@ -198,6 +273,20 @@ class ModelVersReport(ModelDocument.ModelDocument):
         return []
     
     def diffDTSes(self, reportOutput, fromDTS, toDTS, assignment="technical", schemaDir=None):
+        """Initiates diffing of fromDTS and toDTS, populating the ModelVersReport object, and saving the 
+        versioning report file).
+        
+        :param versReporFile: file name to save the versioning report
+        :type versReporFile: str
+        :param fromDTS: first modelXbrl’s (DTSes) to be diffed
+        :type fromDTS: ModelXbrl
+        :param toDTS: second modelXbrl’s (DTSes) to be diffed
+        :type toDTS: ModelXbrl
+        :param assignment: “technical”, “business”, etc. for the assignment clause
+        :type assignment: str
+        :param schemaDir: Directory for determination of relative path for versioning xsd files (versioning-base.xsd, etc).
+        :type schemaDir: str
+        """
         versReportFile = str(reportOutput)  # may be a FileNamedStringIO, in which case str( ) is the filename
         self.uri = os.path.normpath(versReportFile)
         from arelle import FileSource

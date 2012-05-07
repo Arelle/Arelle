@@ -22,6 +22,82 @@ class ModelObject(etree.ElementBase):
     ModelTestcaseObject collects testcase and variation objects, ModelVersioningObject has specialized 
     objects representing versioning report contents, and ModelRssItem represents the item objects in an 
     RSS feed.   
+    
+    The ModelObject custom lxml proxy object is implemented as a specialization of etree.ElementBase, 
+    and used as the superclass of discovered and created objects in XML-based objects in Arelle.  
+    ModelObject is also used as a phantom proxy object, for non-XML objects that are resolved 
+    from modelDocument objects, such as the ModelRelationship object.  ModelObjects persistent 
+    with their owning ModelDocument, due to reference by modelObject list in modelDocument object.
+    
+    (The attributes and methods for ModelObject are in addition to those for lxml base class, _ElementBase.)
+
+
+        ... attribute:: modelDocument
+        
+        Self (provided for consistency with modelObjects)
+        ... attribute:: modelDocument
+        
+        Owning ModelDocument object
+        
+        ... attribute:: modelXbrl
+        
+        modelDocument’s owning ModelXbrl object
+        
+        ... attribute:: localName
+        
+        W3C DOM localName
+        
+        ... attribute:: prefixedName
+        
+        Prefix by ancestor xmlns and localName of element
+        
+        ... attribute:: namespaceURI
+        
+        W3C DOM namespaceURI (overridden for schema elements)
+        
+        ... attribute:: elementNamespaceURI
+        
+        W3C DOM namespaceURI (not overridden by subclasses)
+        
+        ... attribute:: qname
+        
+        QName of element (overridden for schema elements)
+        
+        ... attribute:: elementQname
+        
+        QName of element (not overridden by subclasses)
+        
+        ... attribute:: parentQname
+        
+        QName of parent element
+        
+        ... attribute:: id
+        
+        Id attribute or None
+        
+        ... attribute:: elementAttributesTuple
+        
+        Python tuple of (tag, value) of specified attributes of element, where tag is in Clark notation
+        
+        ... attribute:: elementAttributesStr
+        
+        String of tag=value[,tag=value…] of specified attributes of element
+        
+        ... attribute:: xValid
+        
+        XmlValidation.py validation state enumeration
+        
+        ... attribute:: xValue
+        
+        PSVI value (for formula processing)
+        
+        ... attribute:: sValue
+        
+        s-equals value (for s-equality)
+        
+        ... attribute:: xAttributes
+        
+        Dict by attrTag of ModelAttribute objects (see below) of specified and default attributes of this element.
     """
     def _init(self):
         self.isChanged = False
@@ -39,6 +115,11 @@ class ModelObject(etree.ElementBase):
             modelDocument.idObjects[id] = self
                 
     def objectId(self,refId=""):
+        """Returns a string surrogate representing the object index of the model document, 
+        prepended by the refId string.
+        :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
+        :type refId: str
+        """
         return "_{0}_{1}".format(refId, self.objectIndex)
     
     @property
@@ -158,6 +239,12 @@ class ModelObject(etree.ElementBase):
         return self.modelDocument
     
     def prefixedNameQname(self, prefixedName):
+        """Returns ModelValue.QName of prefixedName using this element and its ancestors' xmlns.
+        
+        :param prefixedName: A prefixed name string
+        :type prefixedName: str
+        :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
+        """
         if prefixedName:    # passing None would return element qname, not prefixedName None Qname
             return qname(self, prefixedName)
         else:
@@ -172,6 +259,16 @@ class ModelObject(etree.ElementBase):
         return ', '.join(["{0}='{1}'".format(name,value) for name,value in self.items()])
 
     def resolveUri(self, hrefObject=None, uri=None, dtsModelXbrl=None):
+        """Returns the modelObject within modelDocment that resolves a URI based on arguments relative
+        to this element
+        
+        :param hrefObject: an optional tuple of (hrefElement, modelDocument, id), or
+        :param uri: An (element scheme pointer), and dtsModelXbrl (both required together if for a multi-instance href)
+        :type uri: str
+        :param dtsModelXbrl: DTS of href resolution (default is the element’s own modelXbrl)
+        :type dtsModelXbrl: ModelXbrl
+        :returns: ModelObject -- Document node corresponding to the href or resolved uri
+        """
         if dtsModelXbrl is None:
             dtsModelXbrl = self.modelXbrl
         doc = None
@@ -232,6 +329,8 @@ class ModelObject(etree.ElementBase):
 from arelle.ModelValue import qname
     
 class ModelComment(etree.CommentBase):
+    """ModelConcept is a custom proxy objects for etree.
+    """
     def _init(self):
         self.isChanged = False
         parent = self.getparent()
@@ -242,10 +341,26 @@ class ModelComment(etree.CommentBase):
         self.modelDocument = modelDocument
                     
 class ModelProcessingInstruction(etree.PIBase):
+    """ModelProcessingInstruction is a custom proxy object for etree.
+    """
     def _init(self):
         pass
 
 class ModelAttribute:
+    """
+    .. class:: ModelAttribute(modelElement, attrTag, xValid, xValue, sValue, text)
+    
+    ModelAttribute is a class of slot-based instances to store PSVI attribute values for each ModelObject
+    that has been validated.  It does not correspond to, or proxy, any lxml object.
+    
+    :param modelElement: owner element of attribute node
+    :type modelElement: ModelObject
+    :param attrTag: Clark notation attribute tag (from lxml)
+    :type attrTag: str
+    :param xValid: XmlValidation.py validation state enumeration
+    :param xValue: PSVI value (for formula processing)
+    :param sValue: s-equals value (for s-equality)
+    """
     __slots__ = ("modelElement", "attrTag", "xValid", "xValue", "sValue", "text")
     def __init__(self, modelElement, attrTag, xValid, xValue, sValue, text):
         self.modelElement = modelElement
@@ -254,4 +369,3 @@ class ModelAttribute:
         self.xValue = xValue
         self.sValue = sValue
         self.text = text
-
