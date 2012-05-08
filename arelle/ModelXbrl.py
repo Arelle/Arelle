@@ -32,10 +32,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
 •   :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point’s archive.
     :type useFileSource: bool
     :returns: ModelXbrl -- a new modelXbrl, performing DTS discovery for instance, inline XBRL, schema, linkbase, and versioning report entry urls
-
-       :param argv: Command line arguments.  (Currently supported arguments can be displayed by the parameter *--help*.)
-       :type message: [str]
-       """
+   """
     if nextaction is None: nextaction = _("loading")
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager)
