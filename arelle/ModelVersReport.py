@@ -278,11 +278,11 @@ class ModelVersReport(ModelDocument.ModelDocument):
         
         :param versReporFile: file name to save the versioning report
         :type versReporFile: str
-        :param fromDTS: first modelXbrl’s (DTSes) to be diffed
+        :param fromDTS: first modelXbrl's (DTSes) to be diffed
         :type fromDTS: ModelXbrl
-        :param toDTS: second modelXbrl’s (DTSes) to be diffed
+        :param toDTS: second modelXbrl's (DTSes) to be diffed
         :type toDTS: ModelXbrl
-        :param assignment: “technical”, “business”, etc. for the assignment clause
+        :param assignment: 'technical', 'business', etc. for the assignment clause
         :type assignment: str
         :param schemaDir: Directory for determination of relative path for versioning xsd files (versioning-base.xsd, etc).
         :type schemaDir: str

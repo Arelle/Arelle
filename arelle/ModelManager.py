@@ -14,7 +14,7 @@ def initialize(cntlr):
     
 
 class ModelManager:
-    """ModelManager provides an interface between modelXbrl’s and the controller.  Model manager is a 
+    """ModelManager provides an interface between modelXbrl's and the controller.  Model manager is a 
     singleton object, one is created in initialization of a controller.
     
     The ModelManager coordinates ModelXbrl instances for the Controller, and is the interface to utility 
@@ -27,7 +27,7 @@ class ModelManager:
         
         .. attribute:: disclosureSystem
         
-        Disclosure system object.  To select the disclosure system, e.g., “gfm”, moduleManager.disclosureSystem.select(“gfm”).
+        Disclosure system object.  To select the disclosure system, e.g., 'gfm', moduleManager.disclosureSystem.select('gfm').
           
         .. attribute:: validateCalcLB
         
@@ -43,7 +43,7 @@ class ModelManager:
         
         .. attribute:: defaultLang
         
-        The default language code for labels selection and views (e.g. “en-US”), set from the operating system defaults on startup.
+        The default language code for labels selection and views (e.g. 'en-US'), set from the operating system defaults on startup.
     """
     
     def __init__(self, cntlr):
@@ -111,9 +111,9 @@ class ModelManager:
         (for the case of instance, taxonomies, and versioning reports), but defer loading instances 
         for test case and RSS feeds.  
         
-        The modelXbrl that is loaded is ‘stacked’, by this class, so that any modelXbrl operations such as validate, 
+        The modelXbrl that is loaded is 'stacked', by this class, so that any modelXbrl operations such as validate, 
         and close, operate on the most recently loaded modelXbrl, and compareDTSes operates on the two 
-        most recently loaded modelXbrl’s.
+        most recently loaded modelXbrl's.
         
         :param filesource: may be a FileSource object, with the entry point selected, or string file name (or web URL). 
         :type filesource: FileSource or str

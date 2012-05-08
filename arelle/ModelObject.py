@@ -41,7 +41,7 @@ class ModelObject(etree.ElementBase):
         
         ... attribute:: modelXbrl
         
-        modelDocument’s owning ModelXbrl object
+        modelDocument's owning ModelXbrl object
         
         ... attribute:: localName
         
@@ -81,7 +81,7 @@ class ModelObject(etree.ElementBase):
         
         ... attribute:: elementAttributesStr
         
-        String of tag=value[,tag=value…] of specified attributes of element
+        String of tag=value[,tag=value...] of specified attributes of element
         
         ... attribute:: xValid
         
@@ -265,7 +265,7 @@ class ModelObject(etree.ElementBase):
         :param hrefObject: an optional tuple of (hrefElement, modelDocument, id), or
         :param uri: An (element scheme pointer), and dtsModelXbrl (both required together if for a multi-instance href)
         :type uri: str
-        :param dtsModelXbrl: DTS of href resolution (default is the element’s own modelXbrl)
+        :param dtsModelXbrl: DTS of href resolution (default is the element's own modelXbrl)
         :type dtsModelXbrl: ModelXbrl
         :returns: ModelObject -- Document node corresponding to the href or resolved uri
         """

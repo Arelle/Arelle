@@ -14,7 +14,7 @@
     Model inline facts represent facts in a source xhtml document, but may accumulate text 
     across multiple mixed-content elements in the instance document, according to the rendering 
     transform in effect.  All inline facts are lxml proxy objects for the inline fact and have a 
-    cached value representing the transformed value content.  PSVI values for the inline fact’s 
+    cached value representing the transformed value content.  PSVI values for the inline fact's 
     value and attributes are on the model inline fact object (not necessarily the element that 
     held the mixed-content text).
 
@@ -114,6 +114,10 @@ class ModelFact(ModelObject):
     
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
+
+        ... attribute:: modelTupleFacts
+        
+        ([ModelFact]) - List of child facts in source document order
     """
     def init(self, modelDocument):
         super(ModelFact, self).init(modelDocument)
@@ -121,14 +125,17 @@ class ModelFact(ModelObject):
         
     @property
     def concept(self):
+        """(ModelConcept) -- concept of the fact."""
         return self.elementDeclaration
         
     @property
     def contextID(self):
+        """(str) -- contextRef attribute"""
         return self.get("contextRef")
 
     @property
     def context(self):
+        """(ModelContext) -- context of the fact if any else None (e.g., tuple)"""
         try:
             return self._context
         except AttributeError:
@@ -137,14 +144,18 @@ class ModelFact(ModelObject):
     
     @property
     def unit(self):
+        """(ModelUnit) -- unit of the fact if any else None (e.g., non-numeric or tuple)"""
         return self.modelXbrl.units.get(self.unitID)
     
     @property
     def unitID(self):
+        """(str) -- unitRef attribute"""
         return self.get("unitRef")
 
     @property
-    def conceptContextUnitLangHash(self): # for EFM 6.5.12
+    def conceptContextUnitLangHash(self):
+        """(int) -- Hash value of fact's concept QName, dimensions-aware 
+        context hash, unit hash, and xml:lang hash, useful for fast comparison of facts for EFM 6.5.12"""
         try:
             return self._conceptContextUnitLangHash
         except AttributeError:
@@ -159,6 +170,7 @@ class ModelFact(ModelObject):
 
     @property
     def isItem(self):
+        """(bool) -- concept.isItem"""
         try:
             return self._isItem
         except AttributeError:
@@ -168,6 +180,7 @@ class ModelFact(ModelObject):
 
     @property
     def isTuple(self):
+        """(bool) -- concept.isTuple"""
         try:
             return self._isTuple
         except AttributeError:
@@ -177,6 +190,7 @@ class ModelFact(ModelObject):
 
     @property
     def isNumeric(self):
+        """(bool) -- concept.isNumeric (note this is false for fractions)"""
         try:
             return self._isNumeric
         except AttributeError:
@@ -186,6 +200,7 @@ class ModelFact(ModelObject):
 
     @property
     def isFraction(self):
+        """(bool) -- concept.isFraction"""
         try:
             return self._isFraction
         except AttributeError:
@@ -195,10 +210,12 @@ class ModelFact(ModelObject):
         
     @property
     def parentElement(self):
+        """(ModelObject) -- parent element (tuple or xbrli:xbrl)"""
         return self.getparent()
 
     @property
     def ancestorQnames(self):
+        """(set) -- Set of QNames of ancestor elements (tuple and xbrli:xbrl)"""
         try:
             return self._ancestorQnames
         except AttributeError:
@@ -207,6 +224,7 @@ class ModelFact(ModelObject):
 
     @property
     def decimals(self):
+        """(str) -- Value of decimals attribute, or fixed or default value for decimals on concept type declaration"""
         try:
             return self._decimals
         except AttributeError:
@@ -220,6 +238,7 @@ class ModelFact(ModelObject):
 
     @property
     def precision(self):
+        """(str) -- Value of precision attribute, or fixed or default value for precision on concept type declaration"""
         try:
             return self._precision
         except AttributeError:
@@ -233,6 +252,7 @@ class ModelFact(ModelObject):
 
     @property
     def xmlLang(self):
+        """(str) -- xml:lang attribute, if none and non-numeric, disclosure-system specified default lang"""
         lang = self.get("{http://www.w3.org/XML/1998/namespace}lang")
         if lang is None and self.modelXbrl.modelManager.validateDisclosureSystem:
             concept = self.concept
@@ -242,15 +262,18 @@ class ModelFact(ModelObject):
     
     @property
     def xsiNil(self):
+        """(str) -- value of xsi:nil or 'false' if absent"""
         nil = self.get("{http://www.w3.org/2001/XMLSchema-instance}nil")
         return nil if nil else "false"
     
     @property
     def isNil(self):
+        """(bool) -- True if xsi:nil is 'true'"""
         return self.xsiNil == "true"
     
     @property
     def value(self):
+        """(str) -- Text value of fact or default or fixed if any, otherwise None"""
         v = self.elementText
         if not v:
             if self.concept.default is not None:
@@ -261,11 +284,14 @@ class ModelFact(ModelObject):
     
     @property
     def fractionValue(self):
+        """( (str,str) ) -- (text value of numerator, text value of denominator)"""
         return (XmlUtil.text(XmlUtil.child(self, None, "numerator")),
                 XmlUtil.text(XmlUtil.child(self, None, "denominator")))
     
     @property
     def effectiveValue(self):
+        """(str) -- Effective value for views, (nil) if isNil, None if no value, 
+        locale-formatted string of decimal value (if decimals specified) , otherwise string value"""
         concept = self.concept
         if concept is None or concept.isTuple:
             return None
@@ -286,12 +312,17 @@ class ModelFact(ModelObject):
         return self.value
 
     @property
-    def vEqValue(self): #v-equals value (numeric or string)
+    def vEqValue(self):
+        """(float or str) -- v-equal value, float if numeric, otherwise string value"""
         if self.concept.isNumeric:
             return float(self.value)
         return self.value
     
-    def isVEqualTo(self, other, deemP0Equal=False):  # facts may be in different instances
+    def isVEqualTo(self, other, deemP0Equal=False):
+        """(bool) -- v-equality of two facts
+        
+        Note that facts may be in different instances
+        """
         if self.isTuple or other.isTuple:
             return False
         if self.isNil:
@@ -320,7 +351,16 @@ class ModelFact(ModelObject):
         else:
             return selfValue == otherValue
         
-    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False):  # facts may be in different instances
+    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False): 
+        """(bool) -- fact is duplicate of other fact
+        
+        Note that facts may be in different instances
+        
+        :param topLevel:  fact parent is xbrli:instance, otherwise nested in a tuple
+        :type topLevel: bool
+        :param deemPOEqual: True to deem any precision=0 facts equal ignoring value
+        :type deepPOEqual: bool
+        """
         if self.isItem:
             if (self == other or
                 self.qname != other or
@@ -378,11 +418,20 @@ class ModelFact(ModelObject):
         return self.concept
 
 class ModelInlineFact(ModelFact):
+    """
+    .. class:: ModelInlineFact(modelDocument)
+    
+    Model inline fact (inline XBRL facts)
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
     def init(self, modelDocument):
         super(ModelInlineFact, self).init(modelDocument)
         
     @property
     def qname(self):
+        """(QName) -- QName of concept from the name attribute, overrides and corresponds to the qname property of a ModelFact (inherited from ModelObject)"""
         try:
             return self._factQname
         except AttributeError:
@@ -391,10 +440,12 @@ class ModelInlineFact(ModelFact):
 
     @property
     def sign(self):
+        """(str) -- sign attribute of inline element"""
         return self.get("sign")
     
     @property
     def tupleID(self):
+        """(str) -- tupleId attribute of inline element"""
         try:
             return self._tupleId
         except AttributeError:
@@ -403,6 +454,7 @@ class ModelInlineFact(ModelFact):
     
     @property
     def tupleRef(self):
+        """(str) -- tupleRef attribute of inline element"""
         try:
             return self._tupleRef
         except AttributeError:
@@ -411,6 +463,7 @@ class ModelInlineFact(ModelFact):
 
     @property
     def order(self):
+        """(float) -- order attribute of inline element or None if absent or float conversion error"""
         try:
             return self._order
         except AttributeError:
@@ -423,17 +476,21 @@ class ModelInlineFact(ModelFact):
 
     @property
     def footnoteRefs(self):
+        """([str]) -- list of footnoteRefs attribute contents of inline element"""
         return self.get("footnoteRefs").split() if self.get("footnoteRefs") else []
 
     @property
     def format(self):
+        """(QName) -- format attribute of inline element"""
         return self.prefixedNameQname(self.get("format"))
 
     @property
     def scale(self):
+        """(str) -- scale attribute of inline element"""
         return self.get("scale")
     
     def transformedValue(self, value):
+        """helper function for value"""
         num = 0
         negate = -1 if self.sign else 1
         try:
@@ -447,6 +504,8 @@ class ModelInlineFact(ModelFact):
     
     @property
     def value(self):
+        """(str) -- Overrides and corresponds to value property of ModelFact, 
+        for relevant inner text nodes aggregated and transformed as needed."""
         try:
             return self._ixValue
         except AttributeError:
@@ -463,7 +522,8 @@ class ModelInlineFact(ModelFact):
             return self._ixValue
 
     @property
-    def elementText(self):    # override xml-level elementText for transformed value text
+    def elementText(self):
+        """(str) -- override xml-level elementText for transformed value text"""
         return self.value
     
     @property
@@ -481,6 +541,38 @@ class ModelInlineFact(ModelFact):
         return ("modelInlineFact[{0}]{1})".format(self.objectId(),self.propertyView))
                
 class ModelContext(ModelObject):
+    """
+    .. class:: ModelContext(modelDocument)
+    
+    Model context
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+
+        ... attribute:: segDimValues
+        
+        (dict) - Dict by dimension ModelConcept of segment dimension ModelDimensionValues
+
+        ... attribute:: scenDimValues
+        
+        (dict) - Dict by dimension ModelConcept of scenario dimension ModelDimensionValues
+
+        ... attribute:: qnameDims
+        
+        (dict) - Dict by dimension concept QName of ModelDimensionValues (independent of whether segment or scenario)
+
+        ... attribute:: errorDimValues
+        
+        (list) - List of ModelDimensionValues whose dimension concept could not be determined or which were duplicates
+
+        ... attribute:: segNonDimValues
+        
+        (list) - List of segment child non-dimension ModelObjects
+
+        ... attribute:: scenNonDimValues
+        
+        (list) - List of scenario child non-dimension ModelObjects
+    """
     def init(self, modelDocument):
         super(ModelContext, self).init(modelDocument)
         self.segDimValues = {}
@@ -493,6 +585,7 @@ class ModelContext(ModelObject):
         
     @property
     def isStartEndPeriod(self):
+        """(bool) -- True for startDate/endDate period"""
         try:
             return self._isStartEndPeriod
         except AttributeError:
@@ -501,6 +594,7 @@ class ModelContext(ModelObject):
                                 
     @property
     def isInstantPeriod(self):
+        """(bool) -- True for instant period"""
         try:
             return self._isInstantPeriod
         except AttributeError:
@@ -509,6 +603,7 @@ class ModelContext(ModelObject):
 
     @property
     def isForeverPeriod(self):
+        """(bool) -- True for forever period"""
         try:
             return self._isForeverPeriod
         except AttributeError:
@@ -517,6 +612,7 @@ class ModelContext(ModelObject):
 
     @property
     def startDatetime(self):
+        """(datetime) -- startDate attribute"""
         try:
             return self._startDatetime
         except AttributeError:
@@ -525,6 +621,7 @@ class ModelContext(ModelObject):
 
     @property
     def endDatetime(self):
+        """(datetime) -- endDate or instant attribute, with adjustment to end-of-day midnight as needed"""
         try:
             return self._endDatetime
         except AttributeError:
@@ -533,6 +630,7 @@ class ModelContext(ModelObject):
         
     @property
     def instantDatetime(self):
+        """(datetime) -- instant attribute, with adjustment to end-of-day midnight as needed"""
         try:
             return self._instantDatetime
         except AttributeError:
@@ -541,6 +639,7 @@ class ModelContext(ModelObject):
     
     @property
     def period(self):
+        """(ModelObject) -- period element"""
         try:
             return self._period
         except AttributeError:
@@ -549,6 +648,7 @@ class ModelContext(ModelObject):
 
     @property
     def periodHash(self):
+        """(int) -- hash of period start and end datetimes"""
         try:
             return self._periodHash
         except AttributeError:
@@ -557,6 +657,7 @@ class ModelContext(ModelObject):
 
     @property
     def entity(self):
+        """(ModelObject) -- entity element"""
         try:
             return self._entity
         except AttributeError:
@@ -565,6 +666,7 @@ class ModelContext(ModelObject):
 
     @property
     def entityIdentifierElement(self):
+        """(ModelObject) -- entity identifier element"""
         try:
             return self._entityIdentifierElement
         except AttributeError:
@@ -573,11 +675,13 @@ class ModelContext(ModelObject):
 
     @property
     def entityIdentifier(self):
+        """( (str,str) ) -- tuple of (scheme value, identifier value)"""
         eiElt = self.entityIdentifierElement
         return (eiElt.get("scheme"), eiElt.xValue)
 
     @property
     def entityIdentifierHash(self):
+        """(int) -- hash of entityIdentifier"""
         try:
             return self._entityIdentifierHash
         except AttributeError:
@@ -586,21 +690,30 @@ class ModelContext(ModelObject):
 
     @property
     def hasSegment(self):
+        """(bool) -- True if a xbrli:segment element is present"""
         return XmlUtil.hasChild(self.entity, XbrlConst.xbrli, "segment")
 
     @property
     def segment(self):
+        """(ModelObject) -- xbrli:segment element"""
         return XmlUtil.child(self.entity, XbrlConst.xbrli, "segment")
 
     @property
     def hasScenario(self):
+        """(bool) -- True if a xbrli:scenario element is present"""
         return XmlUtil.hasChild(self, XbrlConst.xbrli, "scenario")
     
     @property
     def scenario(self):
+        """(ModelObject) -- xbrli:scenario element"""
         return XmlUtil.child(self, XbrlConst.xbrli, "scenario")
     
     def dimValues(self, contextElement):
+        """(dict) -- Indicated context element's dimension dict (indexed by ModelConcepts)
+        
+        :param contextElement: 'segment' or 'scenario'
+        :returns: dict of ModelDimension objects indexed by ModelConcept dimension object, or empty dict
+        """
         if contextElement == "segment":
             return self.segDimValues
         elif contextElement == "scenario":
@@ -608,10 +721,12 @@ class ModelContext(ModelObject):
         return {}
     
     def hasDimension(self, dimQname):
+        """(bool) -- True if dimension concept qname is reported by context (in either context element), not including defaulted dimensions."""
         return dimQname in self.qnameDims
     
     # returns ModelDimensionValue for instance dimensions, else QName for defaults
     def dimValue(self, dimQname):
+        """(ModelDimension or QName) -- ModelDimension object if dimension is reported (in either context element), or QName of dimension default if there is a default, otherwise None"""
         try:
             return self.qnameDims[dimQname]
         except KeyError:
@@ -621,6 +736,7 @@ class ModelContext(ModelObject):
                 return None
     
     def dimMemberQname(self, dimQname, includeDefaults=False):
+        """(QName) -- QName of explicit dimension if reported (or defaulted if includeDefaults is True), else None"""
         dimValue = self.dimValue(dimQname)
         if isinstance(dimValue, ModelDimensionValue) and dimValue.isExplicit:
             return dimValue.memberQname
@@ -631,10 +747,12 @@ class ModelContext(ModelObject):
         return None
     
     def dimAspects(self, defaultDimensionAspects):
+        """(set) -- For formula and instance aspects processing, set of all dimensions reported or defaulted."""
         return _DICT_SET(self.qnameDims.keys()) | defaultDimensionAspects
     
     @property
     def dimsHash(self):
+        """(int) -- A hash of the set of reported dimension values."""
         try:
             return self._dimsHash
         except AttributeError:
@@ -642,6 +760,12 @@ class ModelContext(ModelObject):
             return self._dimsHash
     
     def nonDimValues(self, contextElement):
+        """([ModelObject]) -- ContextElement is either string or Aspect code for segment or scenario, returns nonXDT ModelObject children of context element.
+        
+        :param contextElement: one of 'segment', 'scenario', Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO, Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO
+        :type contextElement: str or Aspect type 
+        :returns: list of ModelObjects 
+        """
         if contextElement in ("segment", Aspect.NON_XDT_SEGMENT):
             return self.segNonDimValues
         elif contextElement in ("scenario", Aspect.NON_XDT_SCENARIO):
@@ -654,16 +778,17 @@ class ModelContext(ModelObject):
     
     @property
     def segmentHash(self):
-        # s-equality hash
+        """(int) -- Hash of the segment, based on s-equality values"""
         return XbrlUtil.equalityHash( self.segment ) # self-caching
         
     @property
     def scenarioHash(self):
-        # s-equality hash
+        """(int) -- Hash of the scenario, based on s-equality values"""
         return XbrlUtil.equalityHash( self.scenario ) # self-caching
     
     @property
     def nonDimSegmentHash(self):
+        """(int) -- Hash, of s-equality values, of non-XDT segment objects"""
         try:
             return self._nonDimSegmentHash
         except AttributeError:
@@ -672,6 +797,7 @@ class ModelContext(ModelObject):
         
     @property
     def nonDimScenarioHash(self):
+        """(int) -- Hash, of s-equality values, of non-XDT scenario objects"""
         try:
             return self._nonDimScenarioHash
         except AttributeError:
@@ -680,6 +806,7 @@ class ModelContext(ModelObject):
         
     @property
     def nonDimHash(self):
+        """(int) -- Hash, of s-equality values, of non-XDT segment and scenario objects"""
         try:
             return self._nonDimsHash
         except AttributeError:
@@ -688,6 +815,7 @@ class ModelContext(ModelObject):
         
     @property
     def contextDimAwareHash(self):
+        """(int) -- Hash of period, entityIdentifier, dim, and nonDims"""
         try:
             return self._contextDimAwareHash
         except AttributeError:
@@ -696,6 +824,7 @@ class ModelContext(ModelObject):
         
     @property
     def contextNonDimAwareHash(self):
+        """(int) -- Hash of period, entityIdentifier, segment, and scenario (s-equal based)"""
         try:
             return self._contextNonDimAwareHash
         except AttributeError:
@@ -704,6 +833,7 @@ class ModelContext(ModelObject):
         
     
     def isPeriodEqualTo(self, cntx2):
+        """(bool) -- True if periods are datetime equal (based on 2.1 date offsets)"""
         if self.isForeverPeriod:
             return cntx2.isForeverPeriod
         elif self.isStartEndPeriod:
@@ -718,6 +848,7 @@ class ModelContext(ModelObject):
             return False
         
     def isEntityIdentifierEqualTo(self, cntx2):
+        """(bool) -- True if entityIdentifier values are equal (scheme and text value)"""
         return self.entityIdentifierHash == cntx2.entityIdentifierHash
     
     def isEqualTo(self, cntx2, dimensionalAspectModel=None):
@@ -730,6 +861,9 @@ class ModelContext(ModelObject):
             return result
         
     def isEqualTo_(self, cntx2, dimensionalAspectModel):
+        """(bool) -- If dimensionalAspectModel is absent, True is assumed.  
+        False means comparing based on s-equality of segment, scenario, while 
+        True means based on dimensional values and nonDimensional values separately."""
         if cntx2 is None:
             return False
         if cntx2 == self:   # same context
@@ -793,6 +927,14 @@ class ModelContext(ModelObject):
 
 
 class ModelDimensionValue(ModelObject):
+    """
+    .. class:: ModelDimensionValue(modelDocument)
+    
+    Model dimension value (both explicit and typed, non-default values)
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
     def init(self, modelDocument):
         super(ModelDimensionValue, self).init(modelDocument)
         
@@ -804,10 +946,12 @@ class ModelDimensionValue(ModelObject):
        
     @property
     def dimensionQname(self):
+        """(QName) -- QName of the dimension concept"""
         return self.prefixedNameQname(self.get("dimension"))
         
     @property
     def dimension(self):
+        """(ModelConcept) -- Dimension concept"""
         try:
             return self._dimension
         except AttributeError:
@@ -816,11 +960,15 @@ class ModelDimensionValue(ModelObject):
         
     @property
     def isExplicit(self):
+        """(bool) -- True if explicitMember element"""
         return self.localName == "explicitMember"
     
     @property
     def typedMember(self):
-        # to get <typedMember> element use 'self'; this get's its contents
+        """(ModelConcept) -- Child ModelObject that is the dimension member element
+        
+        (To get <typedMember> element use 'self').
+        """
         for child in self.iterchildren():
             if isinstance(child, ModelObject):  # skip comment and processing nodes
                 return child
@@ -828,10 +976,12 @@ class ModelDimensionValue(ModelObject):
 
     @property
     def isTyped(self):
+        """(bool) -- True if typedMember element"""
         return self.localName == "typedMember"
 
     @property
     def memberQname(self):
+        """(QName) -- QName of an explicit dimension member"""
         try:
             return self._memberQname
         except AttributeError:
@@ -840,6 +990,7 @@ class ModelDimensionValue(ModelObject):
         
     @property
     def member(self):
+        """(ModelConcept) -- Concept of an explicit dimension member"""
         try:
             return self._member
         except AttributeError:
@@ -847,6 +998,10 @@ class ModelDimensionValue(ModelObject):
             return  self._member
         
     def isEqualTo(self, other, equalMode=XbrlUtil.XPATH_EQ):
+        """(bool) -- True if explicit member QNames equal or typed member nodes correspond, given equalMode (s-equal, s-equal2, or xpath-equal for formula)
+        
+        :param equalMode: XbrlUtil.S_EQUAL (ordinary S-equality from 2.1 spec), XbrlUtil.S_EQUAL2 (XDT definition of equality, adding QName comparisions), or XbrlUtil.XPATH_EQ (XPath EQ on all types)
+        """
         if isinstance(other, ModelValue.QName):
             return self.isExplicit and self.memberQname == other
         elif other is None:
@@ -859,6 +1014,7 @@ class ModelDimensionValue(ModelObject):
         
     @property
     def contextElement(self):
+        """(str) -- 'segment' or 'scenario'"""
         return self.getparent().localName
     
     @property
@@ -875,11 +1031,21 @@ def measuresStr(m):
     return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)
 
 class ModelUnit(ModelObject):
+    """
+    .. class:: ModelUnit(modelDocument)
+    
+    Model unit
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
     def init(self, modelDocument):
         super(ModelUnit, self).init(modelDocument)
         
     @property
     def measures(self):
+        """([QName],[Qname]) -- Returns a tuple of multiply measures list and divide members list 
+        (empty if not a divide element).  Each list of QNames is in prefixed-name order."""
         try:
             return self._measures
         except AttributeError:
@@ -892,6 +1058,7 @@ class ModelUnit(ModelObject):
 
     @property
     def hash(self):
+        """(bool) -- Hash of measures in both multiply and divide lists."""
         try:
             return self._hash
         except AttributeError:
@@ -901,20 +1068,26 @@ class ModelUnit(ModelObject):
 
     @property
     def isDivide(self):
+        """(bool) -- True if unit has a divide element"""
         return XmlUtil.hasChild(self, XbrlConst.xbrli, "divide")
     
     @property
     def isSingleMeasure(self):
+        """(bool) -- True for a single multiply and no divide measures"""
         measures = self.measures
         return len(measures[0]) == 1 and len(measures[1]) == 0
     
     def isEqualTo(self, unit2):
+        """(bool) -- True if measures are equal"""
         if unit2 is None or unit2.hash != self.hash: 
             return False
         return unit2 is self or self.measures == unit2.measures
     
     @property
     def value(self):
+        """(str) -- String value for view purposes, space separated list of string qnames 
+        of multiply measures, and if any divide, a '/' character and list of string qnames 
+        of divide measure qnames."""
         mul, div = self.measures
         return ' '.join([measuresStr(m) for m in mul] + (['/'] + [measuresStr(d) for d in div] if div else []))
 

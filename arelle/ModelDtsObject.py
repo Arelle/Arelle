@@ -324,7 +324,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     def niceType(self):
         """Provides a type name suited for user interfaces: hypercubes as Table, dimensions as Axis, 
         types ending in ItemType have ItemType removed and first letter capitalized (e.g., 
-        stringItemType as String).  Otherwise returns the type’s localName portion.
+        stringItemType as String).  Otherwise returns the type's localName portion.
         """
         if self.isHypercubeItem: return "Table"
         if self.isDimensionItem: return "Axis"
@@ -367,7 +367,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     
     @property
     def baseXbrliType(self):
-        """(str) -- Attempts to return the base xsd type localName that this concept’s type 
+        """(str) -- Attempts to return the base xsd type localName that this concept's type 
         is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType, 
         decimal is returned."""
         try:
@@ -429,12 +429,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     
     @property
     def isTextBlock(self):
-        """(bool) -- Element’s type.isTextBlock."""
+        """(bool) -- Element's type.isTextBlock."""
         return self.type.isTextBlock
     
     @property
     def type(self):
-        """Element’s modelType object (if any)"""
+        """Element's modelType object (if any)"""
         try:
             return self._type
         except AttributeError:
@@ -727,7 +727,7 @@ class ModelAttribute(ModelNamableTerm):
     
     @property
     def type(self):
-        """(ModelType) -- Attribute’s modelType object (if any)"""
+        """(ModelType) -- Attribute's modelType object (if any)"""
         try:
             return self._type
         except AttributeError:
@@ -736,7 +736,7 @@ class ModelAttribute(ModelNamableTerm):
     
     @property
     def baseXsdType(self):
-        """(str) -- Attempts to return the base xsd type localName that this attribute’s type 
+        """(str) -- Attempts to return the base xsd type localName that this attribute's type 
         is derived from.  If not determinable *anyType* is returned"""
         try:
             return self._baseXsdType
@@ -1092,7 +1092,7 @@ class ModelType(ModelNamableTerm):
         return facetValues
                 
     def fixedOrDefaultAttrValue(self, attrName):
-        """(str) -- Descendant attribute declaration value if fixed or default, argument is attribute name (string), e.g., “precision”."""
+        """(str) -- Descendant attribute declaration value if fixed or default, argument is attribute name (string), e.g., 'precision'."""
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
         if attr is not None:
             if attr.get("fixed"):
@@ -1363,7 +1363,6 @@ class ModelRelationship(ModelObject):
     # simulate etree operations
     def get(self, attrname):
         """Method proxy for the arc element of the effective relationship so that the non-proxy 
-        ModelRelationship can be used in terms as if it were the arc’s ModelObject.
         """
         return self.arcElement.get(attrname)
     

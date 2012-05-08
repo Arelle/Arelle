@@ -27,9 +27,9 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
     :type url: str or FileSource
     :param nextaction: text to use as status line prompt on conclusion of loading and discovery
     :type nextaction: str
-    :param base: the base URL if any (such as a versioning report’s URL when loading to/from DTS modelXbrl).
+    :param base: the base URL if any (such as a versioning report's URL when loading to/from DTS modelXbrl).
     :type base: str
-•   :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point’s archive.
+    :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
     :type useFileSource: bool
     :returns: ModelXbrl -- a new modelXbrl, performing DTS discovery for instance, inline XBRL, schema, linkbase, and versioning report entry urls
    """
@@ -129,7 +129,7 @@ class ModelXbrl:
 
         ... attribute:: baseSets
         
-        Dict of base sets by (arcrole, linkrole, arc qname, link qname), (arcrole, linkrole, *, *), (arcrole, *, *, *), and in addition, collectively for dimensions, formula,  and rendering, as arcroles ‘XBRL-dimensions’, ‘XBRL-formula’, and ‘Table-rendering’.
+        Dict of base sets by (arcrole, linkrole, arc qname, link qname), (arcrole, linkrole, *, *), (arcrole, *, *, *), and in addition, collectively for dimensions, formula,  and rendering, as arcroles 'XBRL-dimensions', 'XBRL-formula', and 'Table-rendering'.
 
         ... attribute:: relationshipSets
 
@@ -185,7 +185,7 @@ class ModelXbrl:
 
         ... attribute:: labelRoles
 
-        Set of label roles in use by modelXbrl’s linkbases
+        Set of label roles in use by modelXbrl's linkbases
 
         ... attribute:: hasXDT
 
@@ -302,7 +302,7 @@ class ModelXbrl:
         
         Resolve and determine relationship set.  If a relationship set of the same parameters was previously resolved, it is returned from a cache.
         
-        :param arcrole: Required arcrole, or special collective arcroles ‘XBRL-dimensions’, ‘XBRL-formula’, and ‘Table-rendering’
+        :param arcrole: Required arcrole, or special collective arcroles 'XBRL-dimensions', 'XBRL-formula', and 'Table-rendering'
         :type arcrole: str
         :param linkrole: Linkrole (wild if None)
         :type linkrole: str
@@ -710,7 +710,7 @@ class ModelXbrl:
         return newFact    
         
     def modelObject(self, objectId):
-        """Finds a model object by an ordinal ID which may be buried in a tkinter view id string (e.g., ‘somedesignation_ordinalnumber’).
+        """Finds a model object by an ordinal ID which may be buried in a tkinter view id string (e.g., 'somedesignation_ordinalnumber').
         
         :param objectId: string which includes _ordinalNumber, produced by ModelObject.objectId(), or integer object index
         :type objectId: str or int
