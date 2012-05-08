@@ -1,10 +1,36 @@
-'''
-Created on Oct 5, 2010
-Refactored from ModelObject on Jun 11, 2011
+"""
+:mod:`arelle.ModelInstanceObjuect`
+~~~~~~~~~~~~~~~~~~~
 
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
-'''
+.. module:: arelle.ModelInstanceObject
+   :copyright: Copyright 2010-2012 Mark V Systems Limited, All rights reserved.
+   :license: Apache-2.
+   :synopsis: This module contains Instance-specialized ModelObject classes: ModelFact (xbrli:item 
+   and xbrli:tuple elements of an instance document), ModelInlineFact specializes ModelFact when 
+   in an inline XBRL document, ModelContext (xblrli:context element), ModelDimensionValue 
+   (xbrldi:explicitMember and xbrli:typedMember elements), and ModelUnit (xbrli:unit elements). 
+
+    Model facts represent XBRL instance facts (that are elements in the instance document).  
+    Model inline facts represent facts in a source xhtml document, but may accumulate text 
+    across multiple mixed-content elements in the instance document, according to the rendering 
+    transform in effect.  All inline facts are lxml proxy objects for the inline fact and have a 
+    cached value representing the transformed value content.  PSVI values for the inline fact’s 
+    value and attributes are on the model inline fact object (not necessarily the element that 
+    held the mixed-content text).
+
+    Model context objects are the lxml proxy object of the context XML element, but cache and 
+    interface context semantics that may either be internal to the context, or inferred from 
+    the DTS (such as default dimension values).   PSVI values for elements internal to the context, 
+    including segment and scenario elements, are on the individual model object lxml custom proxy 
+    elements.  For fast comparison of dimensions and segment/scenario, hash values are retained 
+    for each comparable item.
+
+    Model dimension objects not only represent proxy objects for the XML elements, but have resolved 
+    model DTS concepts of the dimension and member, and access to the typed member contents.
+
+    Model unit objects represent algebraically usable set objects for the numerator and denominator 
+    measure sets.
+"""
 from collections import defaultdict
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
@@ -12,6 +38,32 @@ from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundV
 from arelle.ModelObject import ModelObject
 
 class NewFactItemOptions():
+    """
+    .. class:: NewFactItemOptions(savedOptions=None, xbrlInstance=None)
+    
+    NewFactItemOptions persists contextual parameters for interactive creation of new facts,
+    such as when entering into empty table linkbase rendering pane cells.
+    
+    If savedOptions is provided (from configuration saved json file), then persisted last used
+    values of item contextual options are used.  If no saved options, then the first fact in
+    an existing instance (xbrlInstance) is used to glean prototype contextual parameters.
+    
+    Note that all attributes of this class must be compatible with json conversion, e.g., datetime
+    must be persisted in string, not datetime object, form.
+    
+    Properties of this class (all str):
+    
+    - entityIdentScheme
+    - entityIdentValue
+    - startDate
+    - endDate
+    - monetaryUnit (str prefix:localName, e.g, iso4217:JPY)
+    - monetaryDecimals (decimals attribute for numeric monetary facts)
+    - nonMonetaryDecimals (decimals attribute for numeric non-monetary facts, e.g., shares)
+    
+    :param savedOptions: prior persisted dict of this class's attributes
+    :param xbrlInstance: an open instance document from which to glean prototpye contextual parameters.
+    """
     def __init__(self, savedOptions=None, xbrlInstance=None):
         self.entityIdentScheme = ""
         self.entityIdentValue = ""
@@ -44,15 +96,25 @@ class NewFactItemOptions():
                     break 
                 
     @property
-    def startDateDate(self):  # return a date-typed date value
+    def startDateDate(self):
+        """(datetime) -- date-typed date value of startDate (which is persisted in str form)"""
         return XmlUtil.datetimeValue(self.startDate)
 
     @property
     def endDateDate(self):  # return a date-typed date
+        """(datetime) -- date-typed date value of endDate (which is persisted in str form)"""
         return XmlUtil.datetimeValue(self.endDate, addOneDay=True)
                 
     
 class ModelFact(ModelObject):
+    """
+    .. class:: ModelFact(modelDocument)
+    
+    Model fact (both instance document facts and inline XBRL facts)
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
     def init(self, modelDocument):
         super(ModelFact, self).init(modelDocument)
         self.modelTupleFacts = []
