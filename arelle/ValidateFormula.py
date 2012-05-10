@@ -225,6 +225,21 @@ def validate(val):
                 val.modelXbrl.error("xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
                     _("Parameter \n%(name)s \nException: \n%(error)s"), 
                     modelObject=modelParameter, name=paramQname, error=err.message)
+        else: # is a modelInstance
+            if val.parameters and paramQname in val.parameters:
+                instanceModelXbrls = val.parameters[paramQname][1]
+                instanceUris = set()
+                for instanceModelXbrl in instanceModelXbrls:
+                    if instanceModelXbrl.uri in instanceUris:
+                        val.modelXbrl.error("xbrlvarinste:inputInstanceDuplication",
+                            _("Input instance resource %(instName)s has multiple XBRL instances %(uri)s"), 
+                            modelObject=modelParameter, instName=paramQname, uri=instanceModelXbrl.uri)
+                    instanceUris.add(instanceModelXbrl.uri)
+        if val.parameters and XbrlConst.qnStandardInputInstance in val.parameters: # standard input instance has
+            if len(val.parameters[XbrlConst.qnStandardInputInstance][1]) != 1:
+                val.modelXbrl.error("xbrlvarinste:standardInputInstanceNotUnique",
+                    _("Standard input instance resource parameter has multiple XBRL instances"), 
+                    modelObject=modelParameter)
     val.modelXbrl.profileActivity("... parameter checks and select evaluation", minTimeToShow=1.0)
 
     produceOutputXbrlInstance = False
@@ -529,9 +544,9 @@ def validate(val):
     for instanceQname in instanceQnames:
         if (instanceQname not in (XbrlConst.qnStandardInputInstance,XbrlConst.qnStandardOutputInstance) and
             val.parameters and instanceQname in val.parameters):
-            namedInstance = val.parameters[instanceQname][1][0]
-            ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
-            xpathContext.defaultDimensionAspects |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+            for namedInstance in val.parameters[instanceQname][1]:
+                ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
+                xpathContext.defaultDimensionAspects |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
 
     # check for variable set dependencies across output instances produced
     for instanceQname, modelVariableSets in instanceProducingVariableSets.items():
@@ -568,7 +583,7 @@ def validate(val):
         if instanceQname == XbrlConst.qnStandardInputInstance:
             continue    # always present the standard way
         if val.parameters and instanceQname in val.parameters:
-            namedInstance = val.parameters[instanceQname][1]
+            namedInstance = val.parameters[instanceQname][1] # this is a sequence
         else:   # empty intermediate instance 
             uri = val.modelXbrl.modelDocument.filepath[:-4] + "-output-XBRL-instance"
             if instanceQname != XbrlConst.qnStandardOutputInstance:

@@ -9,6 +9,7 @@ from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import qname, QName, dateTime, DATE, DATETIME, DATEUNION, DateTime, dateUnionEqual, anyURI
 from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg, atomicArg
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.XmlValidate import UNKNOWN, VALID, validate
@@ -31,10 +32,15 @@ def call(xc, p, localname, args):
         raise XPathContext.FunctionNotAvailable("xfi:{0}".format(localname))
 
 def instance(xc, p, args, i=0):
-    if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
+    if i >= len(args):  # missing argument means to use the standard input instance
+        return xc.modelXbrl
+    if len(args[i]) != 1: # a sequence of instances isn't acceptable to these classes of functions
+        raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
     xbrliXbrl = anytypeArg(xc, args, i, "xbrli:xbrl")
     if isinstance(xbrliXbrl, ModelObject) and xbrliXbrl.elementQname == XbrlConst.qnXbrliXbrl:
         return xbrliXbrl.modelXbrl
+    elif isinstance(xbrliXbrl, ModelXbrl):
+        return xbrliXbrl
     raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
 
 def item(xc, args, i=0):
@@ -846,9 +852,10 @@ def fact_dimension_s_equal2(xc, p, args):
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
 def linkbase_link_roles(xc, p, args):
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    if len(args) > 2: raise XPathContext.FunctionNumArgs()
+    inst = instance(xc, p, args, 1)
     arcroleURI = stringArg(xc, args, 0, "xs:string")
-    relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI)
+    relationshipSet = inst.relationshipSet(arcroleURI)
     if relationshipSet:
         return [anyURI(linkrole) for linkrole in relationshipSet.linkRoleUris]
     return ()
@@ -857,10 +864,10 @@ def navigate_relationships(xc, p, args):
     raise xfiFunctionNotAvailable()
 
 def concept_label(xc, p, args):
-    if len(args) == 5: raise xfiFunctionNotAvailable()
-    if len(args) != 4: raise XPathContext.FunctionNumArgs()
+    if not 4 <= len(args) <= 5: raise XPathContext.FunctionNumArgs()
+    inst = instance(xc, p, args, 4)
     qnSource = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
-    srcConcept = xc.modelXbrl.qnameConcepts.get(qnSource)
+    srcConcept = inst.qnameConcepts.get(qnSource)
     if srcConcept is None:
         return ""
     linkroleURI = stringArg(xc, args, 1, "xs:string", emptyFallback='')
@@ -868,7 +875,7 @@ def concept_label(xc, p, args):
     labelroleURI = stringArg(xc, args, 2, "xs:string", emptyFallback='')
     if not labelroleURI: labelroleURI = XbrlConst.standardLabel
     lang = stringArg(xc, args, 3, "xs:string", emptyFallback='')
-    relationshipSet = xc.modelXbrl.relationshipSet(XbrlConst.conceptLabel,linkroleURI)
+    relationshipSet = inst.relationshipSet(XbrlConst.conceptLabel,linkroleURI)
     if relationshipSet is not None:
         label = relationshipSet.label(srcConcept, labelroleURI, lang)
         if label is not None: return label
@@ -876,24 +883,28 @@ def concept_label(xc, p, args):
 
 
 def arcrole_definition(xc, p, args):
-    if len(args) == 2: raise XPathContext.FunctionNumArgs()
+    if len(args) > 2: raise XPathContext.FunctionNumArgs()
+    inst = instance(xc, p, args, 1)
     arcroleURI = stringArg(xc, args, 0, "xs:string", emptyFallback='')
-    modelArcroleTypes = xc.modelXbrl.arcroleTypes.get(arcroleURI)
+    modelArcroleTypes = inst.arcroleTypes.get(arcroleURI)
     if modelArcroleTypes is not None and len(modelArcroleTypes) > 0:
         arcroledefinition = modelArcroleTypes[0].definition
         if arcroledefinition is not None: return arcroledefinition
     return ()
 
 def role_definition(xc, p, args):
+    if len(args) > 2: raise XPathContext.FunctionNumArgs()
+    inst = instance(xc, p, args, 1)
     roleURI = stringArg(xc, args, 0, "xs:string", emptyFallback='')
-    modelRoleTypes = xc.modelXbrl.roleTypes.get(roleURI)
+    modelRoleTypes = inst.roleTypes.get(roleURI)
     if modelRoleTypes is not None and len(modelRoleTypes) > 0:
         roledefinition = modelRoleTypes[0].definition
         if roledefinition is not None: return roledefinition
     return ()
 
 def fact_footnotes(xc, p, args):
-    if len(args) != 5: raise XPathContext.FunctionNumArgs()
+    if len(args) > 6: raise XPathContext.FunctionNumArgs()
+    inst = instance(xc, p, args, 5)
     itemObj = item(xc, args)
     linkroleURI = stringArg(xc, args, 1, "xs:string", emptyFallback='')
     if not linkroleURI: linkroleURI = XbrlConst.defaultLinkRole
@@ -902,14 +913,15 @@ def fact_footnotes(xc, p, args):
     footnoteroleURI = stringArg(xc, args, 3, "xs:string", emptyFallback='')
     if not footnoteroleURI: footnoteroleURI = XbrlConst.footnote
     lang = stringArg(xc, args, 4, "xs:string", emptyFallback='')
-    relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI,linkroleURI)
+    relationshipSet = inst.relationshipSet(arcroleURI,linkroleURI)
     if relationshipSet:
         return relationshipSet.label(itemObj, footnoteroleURI, lang, returnMultiple=True)
     return ()
 
 def concept_relationships(xc, p, args):
     lenArgs = len(args)
-    if lenArgs < 4 or lenArgs > 8: raise XPathContext.FunctionNumArgs()
+    if not 4 <= lenArgs <= 8: raise XPathContext.FunctionNumArgs()
+    inst = instance(xc, p, args, 7)
     qnSource = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     linkroleURI = stringArg(xc, args, 1, "xs:string")
     if not linkroleURI:
@@ -919,7 +931,7 @@ def concept_relationships(xc, p, args):
     if not axis in ('descendant', 'child', 'ancestor', 'parent', 'sibling', 'sibling-or-self'):
         return ()
     if qnSource != XbrlConst.qnXfiRoot:
-        srcConcept = xc.modelXbrl.qnameConcepts.get(qnSource)
+        srcConcept = inst.qnameConcepts.get(qnSource)
         if srcConcept is None:
             return ()
     if lenArgs > 4:
@@ -944,7 +956,7 @@ def concept_relationships(xc, p, args):
         qnArc = None
         
     removeSelf = axis == 'sibling'
-    relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI, linkroleURI, qnLink, qnArc)
+    relationshipSet = inst.relationshipSet(arcroleURI, linkroleURI, qnLink, qnArc)
     if relationshipSet:
         result = []
         visited = {qnSource}
@@ -1012,7 +1024,8 @@ def relationship_to_concept(xc, p, args):
 
 def distinct_nonAbstract_parent_concepts(xc, p, args):
     lenArgs = len(args)
-    if lenArgs < 2 or lenArgs > 3: raise XPathContext.FunctionNumArgs()
+    if not 2 <= lenArgs <= 3: raise XPathContext.FunctionNumArgs()
+    inst = instance(xc, p, args, 2)
     linkroleURI = stringArg(xc, args, 0, "xs:string")
     if not linkroleURI:
         linkroleURI = XbrlConst.defaultLinkRole
@@ -1020,7 +1033,7 @@ def distinct_nonAbstract_parent_concepts(xc, p, args):
     # TBD allow instance as arg 2
     
     result = set()
-    relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI, linkroleURI)
+    relationshipSet = inst.relationshipSet(arcroleURI, linkroleURI)
     if relationshipSet:
         for rel in relationshipSet.modelRelationships:
             fromModelObject = rel.fromModelObject

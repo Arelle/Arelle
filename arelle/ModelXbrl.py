@@ -390,10 +390,12 @@ class ModelXbrl:
             if isinstance(view, ViewWinDTS.ViewDTS):
                 self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
                 
-    def saveInstance(self):
+    def saveInstance(self, overrideFilepath=None):
         """Saves current instance document file.
+        
+        :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
         """
-        with open(self.modelDocument.filepath, "w", encoding='utf-8') as fh:
+        with open( (overrideFilepath or self.modelDocument.filepath), "w", encoding='utf-8') as fh:
             XmlUtil.writexml(fh, self.modelDocument.xmlDocument, encoding="utf-8")
     
     def matchContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs):

@@ -180,8 +180,10 @@ class Validate:
                     modelXbrl = inputDTSes[None][0]
                     parameters = modelTestcaseVariation.parameters.copy()
                     for dtsName, inputDTS in inputDTSes.items():  # input instances are also parameters
-                        if dtsName:
-                            parameters[dtsName] = (None, inputDTS)
+                        if dtsName: # named instance
+                            parameters[dtsName] = (None, inputDTS) #inputDTS is a list of modelXbrl's (instance DTSes)
+                        elif len(inputDTS) > 1: # standard-input-instance with multiple instance documents
+                            parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
                     self.instValidator.validate(modelXbrl, parameters)
                     if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
                         infoset = ModelXbrl.load(self.modelXbrl.modelManager, 
@@ -237,6 +239,8 @@ class Validate:
                                         formulaOutputInstance.error("formula:expectedFactMissing",
                                             _("Formula output missing expected fact %(fact)s"),
                                             modelXbrl=fact, fact=fact.qname)
+                            # for debugging uncomment next line to save generated instance document
+                            # formulaOutputInstance.saveInstance(r"c:\temp\test-out-inst.xml")
                         self.determineTestStatus(modelTestcaseVariation, formulaOutputInstance)
                         formulaOutputInstance.close()
                         formulaOutputInstance = None
