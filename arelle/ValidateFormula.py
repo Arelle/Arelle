@@ -509,6 +509,10 @@ def validate(val):
                     _("Unresolved dependencies of an assertion's variables on instances %(dependencies)s"),
                     dependencies=str(_DICT_SET(depInsts) - stdInpInst) )
             '''
+        elif instqname in depInsts: # check for direct cycle
+            val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
+                _("Cyclic dependencies of instance %(name)s produced by its own variables"),
+                modelObject=val.modelXbrl, name=instqname )
 
     if formulaOptions.traceVariablesOrder and len(orderedInstancesList) > 1:
         val.modelXbrl.info("formula:trace",
