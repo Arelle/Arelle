@@ -834,6 +834,7 @@ class VariableBinding:
         self.isFactVar = isinstance(self.var, ModelFactVariable)
         self.isGeneralVar = isinstance(self.var, ModelGeneralVariable)
         self.isParameter = isinstance(self.var, ModelParameter)
+        self.isFormulaResult = isinstance(self.var, ModelFormula)
         self.isBindAsSequence = self.var.bindAsSequence == "true" if isinstance(self.var,ModelVariable) else False
         self.yieldedFact = None
         self.yieldedFactResult = None
@@ -935,6 +936,8 @@ class VariableBinding:
             return None
         if self.isBindAsSequence:
             return tuple(self.yieldedEvaluation)
+        if self.isFormulaResult:
+            return self.yieldedFact
         return self.yieldedEvaluation
         
     def hasDimension(self, dimension):
