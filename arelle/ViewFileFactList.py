@@ -73,7 +73,11 @@ class ViewFacts(ViewFile.View):
             if concept is not None:
                 if modelFact.isItem:
                     for col in self.cols[1:]:
-                        if col == "contextRef":
+                        if col == "Label": # label or name may be 2nd to nth col if name or label is 1st col
+                            cols.append( concept.label(preferredLabel=self.labelrole, lang=self.lang) )
+                        elif col == "Name":
+                            cols.append( modelFact.qname )
+                        elif col == "contextRef":
                             cols.append( modelFact.contextID )
                         elif col == "unitRef":
                             cols.append( modelFact.unitID )
