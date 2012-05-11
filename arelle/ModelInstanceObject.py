@@ -351,7 +351,7 @@ class ModelFact(ModelObject):
         else:
             return selfValue == otherValue
         
-    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False): 
+    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False, unmatchedFactsStack=None): 
         """(bool) -- fact is duplicate of other fact
         
         Note that facts may be in different instances
@@ -361,6 +361,10 @@ class ModelFact(ModelObject):
         :param deemPOEqual: True to deem any precision=0 facts equal ignoring value
         :type deepPOEqual: bool
         """
+        if unmatchedFactsStack is not None: 
+            if topLevel: del unmatchedFactsStack[0:]
+            entryDepth = len(unmatchedFactsStack)
+            unmatchedFactsStack.append(self)
         if self.isItem:
             if (self == other or
                 self.qname != other or
@@ -369,26 +373,29 @@ class ModelFact(ModelObject):
             # parent test can only be done if in same instauce
             if self.modelXbrl == other.modelXbrl and self.parentElement != other.parentElement:
                 return False
-            return  (self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
-                     (not self.isNumeric or self.unit.isEqualTo(other.unit)))
+            if not (self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
+                    (not self.isNumeric or self.unit.isEqualTo(other.unit))):
+                return False
         elif self.isTuple:
             if (self == other or
                 self.qname != other.qname or
                 (topLevel and self.parentElement.qname != other.parentElement.qname)):
                 return False    # can't be identical
-            if self.isTuple:
-                if len(self.modelTupleFacts) == len(other.modelTupleFacts):
-                    for child1 in self.modelTupleFacts:
-                        if child1.isItem:
-                            if not any(child1.isVEqualTo(child2, deemP0Equal) for child2 in other.modelTupleFacts):
-                                return False
-                        elif child1.isTuple:
-                            if not any(child1.isDuplicateOf( child2, topLevel=False, deemP0Equal=deemP0Equal) 
-                                       for child2 in other.modelTupleFacts):
-                                return False
-                    return True
+            if len(self.modelTupleFacts) != len(other.modelTupleFacts):
+                return False
+            for child1 in self.modelTupleFacts:
+                if child1.isItem:
+                    if not any(child1.isVEqualTo(child2, deemP0Equal) for child2 in other.modelTupleFacts if child1.qname == child2.qname):
+                        return False
+                elif child1.isTuple:
+                    if not any(child1.isDuplicateOf( child2, False, deemP0Equal, unmatchedFactsStack) 
+                               for child2 in other.modelTupleFacts):
+                        return False
         else:
             return False
+        if unmatchedFactsStack is not None: 
+            del unmatchedFactsStack[entryDepth:]
+        return True
 
     @property
     def propertyView(self):

@@ -235,10 +235,15 @@ class Validate:
                                          expectedFacts=len(expectedInstance.facts))
                             else:
                                 for fact in expectedInstance.facts:
-                                    if formulaOutputInstance.matchFact(fact) is None:
+                                    unmatchedFactsStack = []
+                                    if formulaOutputInstance.matchFact(fact, unmatchedFactsStack) is None:
+                                        if unmatchedFactsStack: # get missing nested tuple fact, if possible
+                                            missingFact = unmatchedFactsStack[-1]
+                                        else:
+                                            missingFact = fact
                                         formulaOutputInstance.error("formula:expectedFactMissing",
                                             _("Formula output missing expected fact %(fact)s"),
-                                            modelXbrl=fact, fact=fact.qname)
+                                            modelXbrl=missingFact, fact=missingFact.qname)
                             # for debugging uncomment next line to save generated instance document
                             # formulaOutputInstance.saveInstance(r"c:\temp\test-out-inst.xml")
                         self.determineTestStatus(modelTestcaseVariation, formulaOutputInstance)

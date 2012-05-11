@@ -254,6 +254,7 @@ def validate(val):
                 if isinstance(instance, ModelInstance):
                     if instanceQname is None:
                         instanceQname = instance.qname
+                        modelVariableSet.fromInstanceQnames = {instanceQname} # required if referred to by variables scope chaining
                     else:
                         val.modelXbrl.info("arelle:multipleOutputInstances",
                             _("Multiple output instances for formula %(xlinkLabel)s, to names %(instanceTo)s, %(instanceTo2)s"),
@@ -262,6 +263,7 @@ def validate(val):
             if instanceQname is None: 
                 instanceQname = XbrlConst.qnStandardOutputInstance
                 instanceQnames.add(instanceQname)
+                modelVariableSet.fromInstanceQnames = None # required if referred to by variables scope chaining
             modelVariableSet.outputInstanceQname = instanceQname
             if val.validateSBRNL:
                 val.modelXbrl.error("SBR.NL.2.3.9.03",

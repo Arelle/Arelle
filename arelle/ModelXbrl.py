@@ -666,7 +666,7 @@ class ModelXbrl:
         except KeyError:
             return set()  # no facts for this period type
         
-    def matchFact(self, otherFact):
+    def matchFact(self, otherFact, unmatchedFactsStack=None):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
         
@@ -676,7 +676,7 @@ class ModelXbrl:
         """
         for fact in self.facts:
             if (fact.isTuple):
-                if fact.isDuplicateOf(otherFact):
+                if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
                     return fact
             elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact)):
                 if not fact.isNumeric:
