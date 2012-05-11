@@ -19,7 +19,7 @@ else: # python 2.7.2
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 
 def proxyDirFmt(httpProxyTuple):
-    if isinstance(httpProxyTuple,tuple) and len(httpProxyTuple) == 5:
+    if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
         useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple
         if useOsProxy:
             return None
@@ -98,7 +98,8 @@ class WebCache:
     def saveUrlCheckTimes(self):
         if self.cachedUrlCheckTimesModified:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
-                json.dump(self.cachedUrlCheckTimes, f, indent=0)
+                jsonStr = _STR_UNICODE(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+                f.write(jsonStr)  # 2.7 getss unicode this way
         self.cachedUrlCheckTimesModified = False
         
     def resetProxies(self, httpProxyTuple):
