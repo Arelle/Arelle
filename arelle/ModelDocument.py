@@ -236,7 +236,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         modelXbrl.uriDir = os.path.dirname(normalizedUri)
         for i in range(modelXbrl.modelManager.disclosureSystem.maxSubmissionSubdirectoryEntryNesting):
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir)
-    filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+    filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri, filenameOnly=True)
     # XML document has nsmap root element to replace nsmap as new xmlns entries are required
     if type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)

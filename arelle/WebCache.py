@@ -6,12 +6,12 @@ Created on Oct 5, 2010
 '''
 import os, posixpath, sys, re, shutil, time, calendar, io, json
 if sys.version[0] >= '3':
-    from urllib.parse import unquote
+    from urllib.parse import quote, unquote
     from urllib.error import (URLError, HTTPError, ContentTooShortError)
     from urllib import request
     from urllib import request as proxyhandlers
 else: # python 2.7.2
-    from urllib import unquote
+    from urllib import quote, unquote
     from urllib import ContentTooShortError
     from urllib2 import URLError, HTTPError
     import urllib2 as proxyhandlers
@@ -185,20 +185,23 @@ class WebCache:
                         .sub(lambda c: chr( int(c.group(0)[1:]) ), # remove ^nnn encoding
                          urlpart) for urlpart in urlparts)
             
-    def getfilename(self, url, base=None, reload=False, checkModifiedTime=False, normalize=False):
+    def getfilename(self, url, base=None, reload=False, checkModifiedTime=False, normalize=False, filenameOnly=False):
         if url is None:
             return url
         if base is not None or normalize:
             url = self.normalizeUrl(url, base)
-        if url.startswith('http://'):
+        urlScheme, schemeSep, urlSchemeSpecificPart = url.partition("://")
+        if schemeSep and urlScheme == "http":
             # form cache file name (substituting _ for any illegal file characters)
             filepath = self.urlToCacheFilepath(url)
+            # quotedUrl has scheme-specific-part quoted except for parameter separators
+            quotedUrl = urlScheme + schemeSep + quote(urlSchemeSpecificPart, '/?=&')
             # handle default directory requests
             if filepath.endswith("/"):
                 filepath += DIRECTORY_INDEX_FILE
             if os.sep == '\\':
                 filepath = filepath.replace('/', '\\')
-            if self.workOffline:
+            if self.workOffline or filenameOnly:
                 return filepath
             filepathtmp = filepath + ".tmp"
             timeNow = time.time()
@@ -212,7 +215,7 @@ class WebCache:
                     # weekly check if newer file exists
                     newerOnWeb = False
                     try: # no provision here for proxy authentication!!!
-                        remoteFileTime = lastModifiedTime( self.getheaders(url) )
+                        remoteFileTime = lastModifiedTime( self.getheaders(quotedUrl) )
                         if remoteFileTime and remoteFileTime > os.path.getmtime(filepath):
                             newerOnWeb = True
                     except:
@@ -237,7 +240,7 @@ class WebCache:
                     self.progressUrl = url
                     savedfile, headers = self.retrieve(
                     #savedfile, headers = self.opener.retrieve(
-                                      url,
+                                      quotedUrl,
                                       filename=filepathtmp,
                                       reporthook=self.reportProgress)
                     retryCount = 0
@@ -249,26 +252,26 @@ class WebCache:
                     # handle file is bad
                 except (HTTPError, URLError) as err:
                     try:
-                        if err.code == 401 and 'www-authenticate' in err.headers:
-                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.headers['www-authenticate'])
+                        if err.code == 401 and 'www-authenticate' in err.hdrs:
+                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['www-authenticate'])
                             if match:
                                 scheme, realm = match.groups()
                                 if scheme.lower() == 'basic':
-                                    host = os.path.dirname(url)
+                                    host = os.path.dirname(quotedUrl)
                                     userPwd = self.cntlr.internet_user_password(host, realm)
-                                    if isinstance(userPwd,tuple):
+                                    if isinstance(userPwd,(tuple,list)):
                                         self.http_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1]) 
                                         retryCount -= 1
                                         continue
                                 self.cntlr.addToLog(_("'{0}' www-authentication for realm '{1}' is required to access {2}\n{3}").format(scheme, realm, url, err))
-                        elif err.code == 407 and 'proxy-authenticate' in err.headers:
-                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.headers['proxy-authenticate'])
+                        elif err.code == 407 and 'proxy-authenticate' in err.hdrs:
+                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['proxy-authenticate'])
                             if match:
                                 scheme, realm = match.groups()
                                 host = self.proxy_handler.proxies.get('http')
                                 if scheme.lower() == 'basic':
                                     userPwd = self.cntlr.internet_user_password(host, realm)
-                                    if isinstance(userPwd,tuple):
+                                    if isinstance(userPwd,(tuple,list)):
                                         self.proxy_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1]) 
                                         retryCount -= 1
                                         continue
