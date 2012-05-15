@@ -39,40 +39,40 @@ from arelle import ModelDocument
 
 logging.basicConfig(level=logging.DEBUG)
 
-# store variation in a named tuple so actual variation object is dereferenced
-variation = namedtuple('Variation', 'id name status expected actual')
-
 def test_checker(name, test, variation):
     logging.info("Name: %s Test: %s Variation: %s" %
-                 ( name, test, variation.id))
+                 ( name, test, variation['id']))
     logging.info("\tVariation Details: %s %s %s %s" %
-                 (variation.name, variation.status,
-                  variation.expected, variation.actual))
-    assert variation.status == "pass", ("%s (%s != %s)" %
-                                        (variation.status,
-                                         variation.expected,
-                                         variation.actual))
+                 (variation['name'], variation['status'],
+                  variation['expected'], variation['actual']))
+    assert variation['status'] == "pass", ("%s (%s != %s)" %
+                                           (variation['status'],
+                                            variation['expected'],
+                                            variation['actual']))
 
 # Pytest test parameter generator
 def pytest_generate_tests(metafunc):
     print ("gen tests") # ?? print does not come out to console or log, want to show progress
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(allow_no_value=True) # allow no value
     if not os.path.exists(metafunc.config.option.tests):
         raise IOError('--test file does not exist: %s' %
                       metafunc.config.option.tests)
     config.read(metafunc.config.option.tests)
-    for section in config.sections():
+    for i, section in enumerate(config.sections()):
         arelleRunArgs = ['--keepOpen']  # don't close, so we can inspect results below
         for optionName, optionValue in config.items(section):
-            arelleRunArgs.append('--' + optionName)
-            if optionValue.lower() not in ('yes', 'true'):
-                arelleRunArgs.append(optionValue)
+            if not optionName.startswith('_'):
+                arelleRunArgs.append('--' + optionName)
+                if optionValue:
+                    arelleRunArgs.append(optionValue)
+        print("section {0} run arguments {1}".format(section, " ".join(arelleRunArgs)))
         cntlr_run = runTest(arelleRunArgs)
         for index, test, variation in cntlr_run:
             metafunc.addcall(funcargs=dict(name=section,
                                            test=test,
                                            variation=variation))
-            
+        if i == 1: break # stop on first test
+    
 def runTest(args):
     print ("run tests") # ?? print does not come out to console or log, want to show progress
     
@@ -93,7 +93,11 @@ def runTest(args):
                     if hasattr(tc, "testcaseVariations"):
                         for mv in tc.testcaseVariations:
                             outcomes.append((index, test_case,
-                                             Variation(id=mv.id, name=mv.name, status=mv.status, expected=mv.expected, actual=mv.actual)))
+                                             {'id': mv.id, 
+                                              'name': mv.name, 
+                                              'status': mv.status, 
+                                              'expected': mv.expected, 
+                                              'actual': mv.actual}))
             elif modelDocument.type in (ModelDocument.Type.TESTCASE,
                                         ModelDocument.Type.REGISTRYTESTCASE):
                 tc = modelDocument
@@ -101,8 +105,12 @@ def runTest(args):
                 if hasattr(tc, "testcaseVariations"):
                     for mv in tc.testcaseVariations:
                         outcomes.append((None, test_case,
-                                         Variation(id=mv.id, name=mv.name, status=mv.status, expected=mv.expected, actual=mv.actual)))
+                                             {'id': mv.id, 
+                                              'name': mv.name, 
+                                              'status': mv.status, 
+                                              'expected': mv.expected, 
+                                              'actual': mv.actual}))
 
-    cntlr.modelManager.modelXbrl.close()
+    cntlr.modelManager.close()
     return outcomes        
             
