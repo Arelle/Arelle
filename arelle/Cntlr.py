@@ -200,8 +200,10 @@ class Cntlr:
  
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
         
-    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
-        if logFileName: # use default logging
+    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, logger=None):
+        if logger is not None:
+            self.logger = logger # custom logger
+        elif logFileName: # use default logging
             self.logger = logging.getLogger("arelle")
             if logFileName == "logToPrint":
                 self.logHandler = LogToPrintHandler()

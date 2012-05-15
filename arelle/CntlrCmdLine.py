@@ -28,14 +28,24 @@ def main():
        :param argv: Command line arguments.  (Currently supported arguments can be displayed by the parameter *--help*.)
        :type message: [str]
        """
+    envArgs = os.getenv("ARELLE_ARGS")
+    if envArgs:
+        args = shlex.split(envArgs)
+    else:
+        args = None # defaults to sys.argv[1:]
+        
+    gettext.install("arelle") # needed for options messages
+    parseAndRun(args)
+       
+def parseAndRun(args, logger=None):
     try:
         from arelle import webserver
         hasWebServer = True
     except ImportError:
         hasWebServer = False
-    gettext.install("arelle") # needed for options messages
     cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
     usage = "usage: %prog [options]"
+    
     parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
@@ -43,6 +53,10 @@ def main():
                              "inline XBRL instance, testcase file, "
                              "testcase index file.  FILENAME may be "
                              "a local file or a URI to a web located file."))
+    parser.add_option("--username", dest="username",
+                      help=_("user name if needed (with password) for web file retrieval"))
+    parser.add_option("--password", dest="password",
+                      help=_("password if needed (with user name) for web retrieval"))
     # special option for web interfaces to suppress closing an opened modelXbrl
     parser.add_option("--keepOpen", dest="keepOpen", action="store_true", help=SUPPRESS_HELP)
     parser.add_option("-i", "--import", dest="importFiles",
@@ -147,12 +161,7 @@ def main():
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
     
-    envArgs = os.getenv("ARELLE_ARGS")
-    if envArgs:
-        argvFromEnv = shlex.split(envArgs)
-        (options, args) = parser.parse_args(argvFromEnv)
-    else:
-        (options, args) = parser.parse_args()
+    (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
         print(_("\narelle(r) {0}\n\n"
                 "An open source XBRL platform\n"
@@ -176,9 +185,9 @@ def main():
                 "{1}"
                 ).format(Version.version,
                          _("\n   Bottle (c) 2011 Marcel Hellkamp") if hasWebServer else ""))
-    elif len(args) != 0 or (options.entrypointFile is None and 
-                            ((not options.proxy) and (not options.plugins)
-                             and (not hasWebServer or options.webserver is None))):
+    elif len(leftoverArgs) != 0 or (options.entrypointFile is None and 
+                                    ((not options.proxy) and (not options.plugins)
+                                     and (not hasWebServer or options.webserver is None))):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
     elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
@@ -194,14 +203,17 @@ def main():
                 options.proxy, options.plugins)):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.pyw --help"))
         else:
+            cntlr.startLogging(logger=logger, logFileName='logToBuffer')
             from arelle import CntlrWebMain
-            cntlr.startLogging(logFileName='logToBuffer')
             CntlrWebMain.startWebserver(cntlr, options)
     else:
         # parse and run the FILENAME
-        cntlr.startLogging(logFileName=options.logFile if options.logFile else "logToPrint",
+        cntlr.startLogging(logger=logger, 
+                           logFileName=options.logFile if options.logFile else "logToPrint",
                            logFormat="[%(messageCode)s] %(message)s - %(file)s")
         cntlr.run(options)
+        
+        return cntlr
         
 class CntlrCmdLine(Cntlr.Cntlr):
     """
@@ -285,6 +297,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.proxy or options.plugins:
             if not options.entrypointFile:
                 return True # success
+        self.username = options.username
+        self.password = options.password
         self.entrypointFile = options.entrypointFile
         filesource = FileSource.openFileSource(self.entrypointFile, self, sourceZipStream)
         if options.validateEFM:
@@ -452,7 +466,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 modelDiffReport.close()
             elif modelXbrl:
                 modelXbrl.close()
+        self.username = self.password = None #dereference password
         return success
+
+    # default web authentication password
+    def internet_user_password(self, host, realm):
+        return (self.username, self.password)
 
 if __name__ == "__main__":
     '''
