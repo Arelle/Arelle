@@ -33,10 +33,14 @@ except ImportError:
     exit()
     
 import os, configparser, logging
+from collections import namedtuple
 from arelle.CntlrCmdLine import parseAndRun
 from arelle import ModelDocument
 
 logging.basicConfig(level=logging.DEBUG)
+
+# store variation in a named tuple so actual variation object is dereferenced
+variation = namedtuple('Variation', 'id name status expected actual')
 
 def test_checker(name, test, variation):
     logging.info("Name: %s Test: %s Variation: %s" %
@@ -51,7 +55,7 @@ def test_checker(name, test, variation):
 
 # Pytest test parameter generator
 def pytest_generate_tests(metafunc):
-    print ("gen tests")
+    print ("gen tests") # ?? print does not come out to console or log, want to show progress
     config = configparser.ConfigParser()
     if not os.path.exists(metafunc.config.option.tests):
         raise IOError('--test file does not exist: %s' %
@@ -70,7 +74,9 @@ def pytest_generate_tests(metafunc):
                                            variation=variation))
             
 def runTest(args):
-    print ("run tests")
+    print ("run tests") # ?? print does not come out to console or log, want to show progress
+    
+    # something locks garbage collection during run, not freeing up same way as when running from shell
     cntlr = parseAndRun(args, logger=logging.getLogger()) # use root logger
         
     outcomes = []
@@ -86,14 +92,16 @@ def runTest(args):
                     test_case = os.path.basename(tc.uri)
                     if hasattr(tc, "testcaseVariations"):
                         for mv in tc.testcaseVariations:
-                            outcomes.append((index, test_case, mv))
+                            outcomes.append((index, test_case,
+                                             Variation(id=mv.id, name=mv.name, status=mv.status, expected=mv.expected, actual=mv.actual)))
             elif modelDocument.type in (ModelDocument.Type.TESTCASE,
                                         ModelDocument.Type.REGISTRYTESTCASE):
                 tc = modelDocument
                 test_case = os.path.basename(tc.uri)
                 if hasattr(tc, "testcaseVariations"):
                     for mv in tc.testcaseVariations:
-                        outcomes.append((None, test_case, mv))
+                        outcomes.append((None, test_case,
+                                         Variation(id=mv.id, name=mv.name, status=mv.status, expected=mv.expected, actual=mv.actual)))
 
     cntlr.modelManager.modelXbrl.close()
     return outcomes        

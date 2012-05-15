@@ -78,9 +78,9 @@ def parseAndRun(args, logger=None):
                              "disclosure system validation (if --gfm=XXX selected). "
                              "If a test suite or testcase, the test case variations "
                              "are individually so validated."))
-    parser.add_option("--calcDecimals", action="store_true", dest="calcDecimals",
+    parser.add_option("--calcDecimals", "--calcdecimals", action="store_true", dest="calcDecimals",
                       help=_("Specify calculation linkbase validation inferring decimals."))
-    parser.add_option("--calcPrecision", action="store_true", dest="calcPrecision",
+    parser.add_option("--calcPrecision", "--calcprecision", action="store_true", dest="calcPrecision",
                       help=_("Specify calculation linkbase validation inferring precision."))
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation."))
