@@ -73,7 +73,9 @@ class build_py27(_build_py):
             try:
                 print("3to2 converting: %s => %s" % (source, target))
                 with open(source, 'rt') as input:
-                    nval = self.rtool.refactor_string(input.read(), source)
+                    # ensure file contents have trailing newline
+                    source_content = input.read() + "\n"
+                    nval = self.rtool.refactor_string(source_content, source)
                 if nval is not None:
                     with open(target, 'wt') as output:
                         output.write('from __future__ import print_function\n')
