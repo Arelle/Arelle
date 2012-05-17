@@ -39,16 +39,10 @@ from arelle import ModelDocument
 
 logging.basicConfig(level=logging.DEBUG)
 
-def test_checker(name, test, variation):
-    logging.info("Name: %s Test: %s Variation: %s" %
-                 ( name, test, variation['id']))
-    logging.info("\tVariation Details: %s %s %s %s" %
-                 (variation['name'], variation['status'],
-                  variation['expected'], variation['actual']))
-    assert variation['status'] == "pass", ("%s (%s != %s)" %
-                                           (variation['status'],
-                                            variation['expected'],
-                                            variation['actual']))
+def test_checker(variation):
+    logging.info("Name: %(section)s Test: %(testcase)s Variation: %(id)s" % variation)
+    logging.info("\tVariation Details: %(name)s %(status)s %(expected)s %(actual)s" % variation)
+    assert variation['status'] == "pass", ("%(status)s (%(expected)s != %(actual)s)" % variation)
 
 # Pytest test parameter generator
 def pytest_generate_tests(metafunc):
@@ -66,14 +60,12 @@ def pytest_generate_tests(metafunc):
                 if optionValue:
                     arelleRunArgs.append(optionValue)
         print("section {0} run arguments {1}".format(section, " ".join(arelleRunArgs)))
-        cntlr_run = runTest(arelleRunArgs)
-        for index, test, variation in cntlr_run:
-            metafunc.addcall(funcargs=dict(name=section,
-                                           test=test,
-                                           variation=variation))
-        if i == 1: break # stop on first test
+        cntlr_run = runTest(section, arelleRunArgs)
+        for variation in cntlr_run:
+            metafunc.addcall(funcargs=dict(variation=variation))
+        # if i == 1: break # stop on first test  -- uncomment to do just counted number of tests
     
-def runTest(args):
+def runTest(section, args):
     print ("run tests") # ?? print does not come out to console or log, want to show progress
     
     # something locks garbage collection during run, not freeing up same way as when running from shell
@@ -92,24 +84,28 @@ def runTest(args):
                     test_case = os.path.basename(tc.uri)
                     if hasattr(tc, "testcaseVariations"):
                         for mv in tc.testcaseVariations:
-                            outcomes.append((index, test_case,
-                                             {'id': mv.id, 
-                                              'name': mv.name, 
-                                              'status': mv.status, 
-                                              'expected': mv.expected, 
-                                              'actual': mv.actual}))
+                            outcomes.append({'section': section,
+                                             'index': index,
+                                             'testcase': test_case,
+                                             'id': mv.id, 
+                                             'name': mv.name, 
+                                             'status': mv.status, 
+                                             'expected': mv.expected, 
+                                             'actual': mv.actual})
             elif modelDocument.type in (ModelDocument.Type.TESTCASE,
                                         ModelDocument.Type.REGISTRYTESTCASE):
                 tc = modelDocument
                 test_case = os.path.basename(tc.uri)
                 if hasattr(tc, "testcaseVariations"):
                     for mv in tc.testcaseVariations:
-                        outcomes.append((None, test_case,
-                                             {'id': mv.id, 
-                                              'name': mv.name, 
-                                              'status': mv.status, 
-                                              'expected': mv.expected, 
-                                              'actual': mv.actual}))
+                        outcomes.append({'section': section,
+                                         'index': None,
+                                         'testcase': test_case,
+                                         'id': mv.id, 
+                                         'name': mv.name, 
+                                         'status': mv.status, 
+                                         'expected': mv.expected, 
+                                         'actual': mv.actual})
 
     cntlr.modelManager.close()
     return outcomes        
