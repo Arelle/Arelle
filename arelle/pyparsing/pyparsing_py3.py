@@ -366,7 +366,8 @@ class ParseResults(object):
 
     def __len__( self ): return len( self.__toklist )
     def __bool__(self): return len( self.__toklist ) > 0
-    __nonzero__ = __bool__
+    # removed by RH for py3to2
+    #__nonzero__ = __bool__
     def __iter__( self ): return iter( self.__toklist )
     def __reversed__( self ): return iter( reversed(self.__toklist) )
     def keys( self ):
@@ -2860,7 +2861,8 @@ class OneOrMore(ParseElementEnhance):
 class _NullToken(object):
     def __bool__(self):
         return False
-    __nonzero__ = __bool__
+    # removed by RH for py3to2
+    #__nonzero__ = __bool__
     def __str__(self):
         return ""
 
