@@ -78,10 +78,12 @@ def parseAndRun(args, logger=None):
                              "disclosure system validation (if --gfm=XXX selected). "
                              "If a test suite or testcase, the test case variations "
                              "are individually so validated."))
-    parser.add_option("--calcDecimals", "--calcdecimals", action="store_true", dest="calcDecimals",
+    parser.add_option("--calcDecimals", action="store_true", dest="calcDecimals",
                       help=_("Specify calculation linkbase validation inferring decimals."))
-    parser.add_option("--calcPrecision", "--calcprecision", action="store_true", dest="calcPrecision",
+    parser.add_option("--calcdecimals", action="store_true", dest="calcDecimals", help=SUPPRESS_HELP)
+    parser.add_option("--calcPrecision", action="store_true", dest="calcPrecision",
                       help=_("Specify calculation linkbase validation inferring precision."))
+    parser.add_option("--calcprecision", action="store_true", dest="calcPrecision", help=SUPPRESS_HELP)
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation."))
     parser.add_option("--gfm", action="store", dest="gfmName",
@@ -95,8 +97,10 @@ def parseAndRun(args, logger=None):
                       help=_("Select validation with respect testcase infosets."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
                       help=_("Language for labels in following file options (override system settings)"))
+    parser.add_option("--labellang", action="store", dest="labelLang", help=SUPPRESS_HELP)
     parser.add_option("--labelRole", action="store", dest="labelRole",
                       help=_("Label role for labels in following file options (instead of standard label)"))
+    parser.add_option("--labelrole", action="store", dest="labelRole", help=SUPPRESS_HELP)
     parser.add_option("--DTS", "--csvDTS", action="store", dest="DTSFile",
                       help=_("Write DTS tree into FILE (may be .csv or .html)"))
     parser.add_option("--facts", "--csvFacts", action="store", dest="factsFile",
@@ -117,11 +121,14 @@ def parseAndRun(args, logger=None):
                       help=_("Write formulae linkbase into FILE"))
     parser.add_option("--testReport", "--csvTestReport", action="store", dest="testReport",
                       help=_("Write test report of validation (of test cases) into FILE"))
+    parser.add_option("--testreport", "--csvtestreport", action="store", dest="testReport", help=SUPPRESS_HELP)
     parser.add_option("--testReportCols", action="store", dest="testReportCols",
                       help=_("Columns for test report file"))
+    parser.add_option("--testreportcols", action="store", dest="testReportCols", help=SUPPRESS_HELP)
     parser.add_option("--logFile", action="store", dest="logFile",
                       help=_("Write log messages into file, otherwise they go to standard output.  " 
                              "If file ends in .xml it is xml-formatted, otherwise it is text. "))
+    parser.add_option("--logfile", action="store", dest="logFile", help=SUPPRESS_HELP)
     parser.add_option("--parameters", action="store", dest="parameters", help=_("Specify parameters for formula and validation (name=value[,name=value])."))
     parser.add_option("--formulaParamExprResult", action="store_true", dest="formulaParamExprResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaParamInputValue", action="store_true", dest="formulaParamInputValue", help=_("Specify formula tracing."))

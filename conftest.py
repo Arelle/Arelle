@@ -17,7 +17,7 @@ def pytest_addoption(parser):
     tests_default = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  os.path.join('arelle',
                                               os.path.join('config',
-                                                           'test_conformance.ini')))
+                                                           'arelle_test.ini')))
     parser.addoption('--tests', default=tests_default,
-                     help='.ini file to load test suites from (default is arelle/confi/test_conformance.ini)')
+                     help='.ini file to load test suites from (default is arelle/confi/arelle_test.ini)')
 

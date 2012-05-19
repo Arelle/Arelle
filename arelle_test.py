@@ -19,11 +19,18 @@ $ py.test test_conformance.py
 It can take an optional parameter --tests to specify a .ini file for
 loading additional test suites.
 
-$ py.test --tests ~/Desktop/custom_tests.ini
+$ py.test --tests=~/Desktop/custom_tests.ini
 
 c:arelleSrcTopDirectory> \python32\scripts\py.test 
 
 The default test suites are specified in test_conformance.ini .
+
+In order to use SVN tests, you will need an XII user name and password (in [DEFAULT] section of ini file)
+
+To get a standard xml file out of the test run, add --junittests=foo.xml, e.g.:
+
+c:arelleSrcTopDirectory> \python32\scripts\py.test --tests=myIniWithPassword.ini -junittests=foo.xml
+ 
 '''
 
 try:
@@ -36,13 +43,29 @@ import os, configparser, logging
 from collections import namedtuple
 from arelle.CntlrCmdLine import parseAndRun
 from arelle import ModelDocument
+            
+# clean out non-ansi characters in log
+class TestLogHandler(logging.Handler):        
+    def __init__(self):
+        super(TestLogHandler, self).__init__()
+        self.setFormatter(TestLogFormatter())
+        
+    def emit(self, logRecord):
+        print(self.format(logRecord))
+                
+class TestLogFormatter(logging.Formatter):
+    def __init__(self, fmt=None, datefmt=None):
+        super(TestLogFormatter, self).__init__(fmt, datefmt)
+        
+    def format(self, record):
+        formattedMessage = super(TestLogFormatter, self).format(record)
+        return ''.join(c if ord(c) < 128 else '*' for c in formattedMessage)
 
 logging.basicConfig(level=logging.DEBUG)
+testLogHandler = TestLogHandler()
 
-def test_checker(variation):
-    logging.info("Name: %(section)s Test: %(testcase)s Variation: %(id)s" % variation)
-    logging.info("\tVariation Details: %(name)s %(status)s %(expected)s %(actual)s" % variation)
-    assert variation['status'] == "pass", ("%(status)s (%(expected)s != %(actual)s)" % variation)
+def test_checker(section, testcase, variation, name, status, expected, actual):
+    assert status == "pass", ("[%s] %s:%s %s (%s != %s)" % (section, testcase, variation, name, expected, actual))
 
 # Pytest test parameter generator
 def pytest_generate_tests(metafunc):
@@ -53,7 +76,8 @@ def pytest_generate_tests(metafunc):
                       metafunc.config.option.tests)
     config.read(metafunc.config.option.tests)
     for i, section in enumerate(config.sections()):
-        arelleRunArgs = ['--keepOpen']  # don't close, so we can inspect results below
+        # don't close, so we can inspect results below; log to std err
+        arelleRunArgs = ['--keepOpen', '--logFile', 'logToStdErr']  
         for optionName, optionValue in config.items(section):
             if not optionName.startswith('_'):
                 arelleRunArgs.append('--' + optionName)
@@ -62,14 +86,13 @@ def pytest_generate_tests(metafunc):
         print("section {0} run arguments {1}".format(section, " ".join(arelleRunArgs)))
         cntlr_run = runTest(section, arelleRunArgs)
         for variation in cntlr_run:
-            metafunc.addcall(funcargs=dict(variation=variation))
+            metafunc.addcall(funcargs=variation)
         # if i == 1: break # stop on first test  -- uncomment to do just counted number of tests
     
 def runTest(section, args):
     print ("run tests") # ?? print does not come out to console or log, want to show progress
     
-    # something locks garbage collection during run, not freeing up same way as when running from shell
-    cntlr = parseAndRun(args, logger=logging.getLogger()) # use root logger
+    cntlr = parseAndRun(args) # log to print (only failed assertions are captured)
         
     outcomes = []
     if '--validate' in args:
@@ -85,9 +108,8 @@ def runTest(section, args):
                     if hasattr(tc, "testcaseVariations"):
                         for mv in tc.testcaseVariations:
                             outcomes.append({'section': section,
-                                             'index': index,
                                              'testcase': test_case,
-                                             'id': mv.id, 
+                                             'variation': mv.id, 
                                              'name': mv.name, 
                                              'status': mv.status, 
                                              'expected': mv.expected, 
@@ -99,14 +121,14 @@ def runTest(section, args):
                 if hasattr(tc, "testcaseVariations"):
                     for mv in tc.testcaseVariations:
                         outcomes.append({'section': section,
-                                         'index': None,
                                          'testcase': test_case,
-                                         'id': mv.id, 
+                                         'variation': mv.id, 
                                          'name': mv.name, 
                                          'status': mv.status, 
                                          'expected': mv.expected, 
                                          'actual': mv.actual})
 
     cntlr.modelManager.close()
+
     return outcomes        
             

@@ -250,8 +250,7 @@ class ModelXbrl:
         self.hasTableRendering = False
         self.hasFormulae = False
         self.formulaOutputInstance = None
-        self.log = logging.getLogger("arelle")
-        self.log.setLevel(logging.DEBUG)
+        self.log = self.modelManager.cntlr.logger
         self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):

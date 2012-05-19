@@ -205,8 +205,8 @@ class Cntlr:
             self.logger = logger # custom logger
         elif logFileName: # use default logging
             self.logger = logging.getLogger("arelle")
-            if logFileName == "logToPrint":
-                self.logHandler = LogToPrintHandler()
+            if logFileName in ("logToPrint", "logToStdErr"):
+                self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
             elif logFileName.endswith(".xml"):
@@ -376,12 +376,26 @@ class LogToPrintHandler(logging.Handler):
     A log handler that emits log entries to standard out as they are logged.
     
     CAUTION: Output is utf-8 encoded, which is fine for saving to files, but may not display correctly in terminal windows.
+
+    :param logOutput: 'logToStdErr' to cause log printint to stderr instead of stdout
+    :type logOutput: str
     """
+    def __init__(self, logOutput):
+        super(LogToPrintHandler, self).__init__()
+        if logOutput == "logToStdErr":
+            self.logFile = sys.stderr
+        else:
+            self.logFile = None
+        
     def emit(self, logRecord):
         if isPy3:
-            print(self.format(logRecord))
+            logEntry = self.format(logRecord)
         else:
-            print(self.format(logRecord).encode("utf-8"))
+            logEntry = self.format(logRecord).encode("utf-8")
+        if self.logFile:
+            print(logEntry, file=sys.stderr)
+        else:
+            print(logEntry)
 
 class LogHandlerWithXml(logging.Handler):        
     def __init__(self):
