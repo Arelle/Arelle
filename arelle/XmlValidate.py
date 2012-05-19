@@ -4,7 +4,6 @@ Created on Feb 20, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from lxml import etree
 import os, re
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI
@@ -50,94 +49,6 @@ baseXsdTypePatterns = {
                 "IDREF": NCNamePattern,
                 "ENTITY": NCNamePattern,                
             }
-def schemaValidate(modelXbrl):
-    class schemaResolver(etree.Resolver):
-        def resolve(self, url, id, context): 
-            if url.startswith("file:///__"):
-                url = importedFilepaths[int(url[10:])]
-            filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(url)
-            return self.resolve_filename(filepath, context)
-          
-    entryDocument = modelXbrl.modelDocument
-    # test of schema validation using lxml (trial experiment, commented out for production use)
-    from arelle import ModelDocument
-    imports = []
-    importedNamespaces = set()
-    importedFilepaths = []
-
-    '''    
-    for mdlSchemaDoc in entryDocument.referencesDocument.keys():
-        if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and 
-            mdlSchemaDoc.targetNamespace not in importedNamespaces):
-            # actual file won't pass through properly, fake with table reference
-            imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
-                mdlSchemaDoc.targetNamespace, len(importedFilepaths)))
-            importedNamespaces.add(mdlSchemaDoc.targetNamespace)
-            importedFilepaths.append(mdlSchemaDoc.filepath)
-    '''    
-
-    def importReferences(referencingDocument):
-        for mdlSchemaDoc in referencingDocument.referencesDocument.keys():
-            if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and 
-                mdlSchemaDoc.targetNamespace not in importedNamespaces):
-                importedNamespaces.add(mdlSchemaDoc.targetNamespace)
-                importReferences(mdlSchemaDoc)  # do dependencies first
-                # actual file won't pass through properly, fake with table reference
-                imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
-                    mdlSchemaDoc.targetNamespace, len(importedFilepaths)))
-                importedFilepaths.append(mdlSchemaDoc.filepath)
-    importReferences(entryDocument)
-   # add schemas used in xml validation but not DTS discovered
-    for mdlDoc in modelXbrl.urlDocs.values():
-        if mdlDoc.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.LINKBASE):
-            schemaLocation = mdlDoc.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
-            if schemaLocation:
-                ns = None
-                for entry in schemaLocation.split():
-                    if ns is None:
-                        ns = entry
-                    else:
-                        if ns not in importedNamespaces:
-                            imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
-                                ns, len(importedFilepaths)))
-                            importedNamespaces.add(ns)
-                            importedFilepaths.append(entry)
-                        ns = None
-    schemaXml = '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">\n{0}</xsd:schema>\n'.format(
-                   '\n'.join(imports))
-    # trace schema files referenced
-    with open("c:\\temp\\test.xml", "w") as fh:
-        fh.write(schemaXml)
-    modelXbrl.modelManager.showStatus(_("lxml validator loading xml schema"))
-    schema_root = etree.XML(schemaXml)
-    import time
-    startedAt = time.time()
-    parser = etree.XMLParser()
-    parser.resolvers.add(schemaResolver())
-    schemaDoc = etree.fromstring(schemaXml, parser=parser, base_url=entryDocument.filepath+"-dummy-import.xsd")
-    schema = etree.XMLSchema(schemaDoc)
-    from arelle.Locale import format_string
-    modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
-                                 _("schema loaded in %.2f secs"), 
-                                        time.time() - startedAt))
-    modelXbrl.modelManager.showStatus(_("lxml schema validating"))
-    # check instance documents and linkbases (sort for inst doc before linkbases, and in file name order)
-    for mdlDoc in sorted(modelXbrl.urlDocs.values(), key=lambda mdlDoc: (-mdlDoc.type, mdlDoc.filepath)):
-        if mdlDoc.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.LINKBASE):
-            startedAt = time.time()
-            docXmlTree = etree.parse(mdlDoc.filepath)
-            modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
-                                                _("schema validated in %.3f secs"), 
-                                                time.time() - startedAt),
-                                                modelDocument=mdlDoc)
-            if not schema.validate(docXmlTree):
-                for error in schema.error_log:
-                    modelXbrl.error("lxmlSchema:{0}".format(error.type_name.lower()),
-                            error.message,
-                            modelDocument=mdlDoc,
-                            sourceLine=error.line)
-    modelXbrl.modelManager.showStatus(_("lxml validation done"), clearAfter=3000)
-    
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("language",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
