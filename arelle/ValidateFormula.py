@@ -607,6 +607,8 @@ def validate(val):
     val.modelXbrl.profileActivity("... output instances setup", minTimeToShow=1.0)
         
     val.modelXbrl.modelManager.showStatus(_("running formulae"))
+    
+    runIDs = (formulaOptions.runIDs or '').split()
     # evaluate consistency assertions
     
     # evaluate variable sets not in consistency assertions
@@ -614,13 +616,19 @@ def validate(val):
         for modelVariableSet in instanceProducingVariableSets[instanceQname]:
             # produce variable evaluations if no dependent variables-scope relationships
             if not val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
-                from arelle.FormulaEvaluator import evaluate
-                try:
-                    evaluate(xpathContext, modelVariableSet)
-                except XPathContext.XPathException as err:
-                    val.modelXbrl.error(err.code,
-                        _("Variable set \n%(variableSet)s \nException: \n%(error)s"), 
-                        modelObject=modelVariableSet, variableSet=str(modelVariableSet), error=err.message)
+                if (not runIDs or 
+                    modelVariableSet.id in runIDs or
+                    (modelVariableSet.hasConsistencyAssertion and 
+                     any(modelRel.fromModelObject.id in runIDs
+                         for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet)
+                         if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion)))):
+                    from arelle.FormulaEvaluator import evaluate
+                    try:
+                        evaluate(xpathContext, modelVariableSet)
+                    except XPathContext.XPathException as err:
+                        val.modelXbrl.error(err.code,
+                            _("Variable set \n%(variableSet)s \nException: \n%(error)s"), 
+                            modelObject=modelVariableSet, variableSet=str(modelVariableSet), error=err.message)
             
     # log assertion result counts
     asserTests = {}

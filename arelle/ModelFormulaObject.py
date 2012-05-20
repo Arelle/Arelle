@@ -115,6 +115,7 @@ aspectElementNameAttrValue = {
 class FormulaOptions():
     def __init__(self, savedValues=None):
         self.parameterValues = {} # index is QName, value is typed value
+        self.runIDs = None # formula and assertion/assertionset IDs to execute
         self.traceParameterExpressionResult = True
         self.traceParameterInputValue = True
         self.traceCallExpressionSource = False
