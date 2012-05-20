@@ -539,7 +539,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact else "unknown")
         
                 if amendmentDescription and ((not amendmentFlag) or amendmentFlag == "false"):
-                    modelXbrl.error("EFM.6.05.20",
+                    modelXbrl.error("EFM.6.05.20.extraneous",
                         _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
                         modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
                     
