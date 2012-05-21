@@ -369,7 +369,10 @@ class LogFormatter(logging.Formatter):
                                                        for line in sorted(lines, key=lambda l: l)
                                                        if line)
                                 for file, lines in sorted(fileLines.items()))
-        formattedMessage = super(LogFormatter, self).format(record)
+        try:
+            formattedMessage = super(LogFormatter, self).format(record)
+        except KeyError as ex:
+            formattedMessage = "Message: " + record.args.get('error','') + " \nMessage log error: " + str(ex)
         del record.file
         return formattedMessage
 
