@@ -250,7 +250,8 @@ class ModelXbrl:
         self.hasTableRendering = False
         self.hasFormulae = False
         self.formulaOutputInstance = None
-        self.log = self.modelManager.cntlr.logger
+        self.log = logging.getLogger("arelle")
+        self.log.setLevel(logging.DEBUG)
         self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):
@@ -263,6 +264,8 @@ class ModelXbrl:
             if hasattr(self,"fileSource") and self.closeFileSource:
                 self.fileSource.close()
             modelDocument = self.modelDocument if hasattr(self,"modelDocument") else None
+            for relSet in self.relationshipSets.values():
+                relSet.clear()
             self.__dict__.clear() # dereference everything before closing document
             if modelDocument:
                 modelDocument.close()

@@ -1360,6 +1360,9 @@ class ModelRelationship(ModelObject):
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject
         
+    def clear(self):
+        self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
+        
     # simulate etree operations
     def get(self, attrname):
         """Method proxy for the arc element of the effective relationship so that the non-proxy 

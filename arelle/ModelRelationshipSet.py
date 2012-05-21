@@ -150,6 +150,18 @@ class ModelRelationshipSet:
                                    for modelRel in orderRels[order]]
         modelXbrl.relationshipSets[relationshipSetKey] = self
         
+    def clear(self):
+        # this object is slotted, clear slotted variables
+        self.modelXbrl = None
+        del self.modelRelationships[:]
+        if self.modelRelationshipsTo is not None:
+            self.modelRelationshipsTo.clear()
+        if self.modelRelationshipsFrom is not None:
+            self.modelRelationshipsFrom.clear()
+        if self.modelConceptRoots is not None:
+            del self.modelConceptRoots[:]
+        self.linkqname = self.arcqname = None
+        
     @property
     def linkRoleUris(self):
         if self.modellinkRoleUris is None:

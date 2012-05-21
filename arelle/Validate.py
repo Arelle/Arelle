@@ -214,6 +214,7 @@ class Validate:
                     for inputDTSlist in inputDTSes.values():
                         for inputDTS in inputDTSlist:
                             inputDTS.close()
+                    del inputDTSes # dereference
                     if resultIsXbrlInstance and formulaOutputInstance and formulaOutputInstance.modelDocument:
                         expectedInstance = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    modelTestcaseVariation.resultXbrlInstanceUri,
@@ -226,7 +227,6 @@ class Validate:
                                 modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
                                 file=os.path.basename(modelTestcaseVariation.resultXbrlInstance))
                             modelTestcaseVariation.status = "result not loadable"
-                            expectedInstance.close()
                         else:   # compare facts
                             if len(expectedInstance.facts) != len(formulaOutputInstance.facts):
                                 formulaOutputInstance.error("formula:resultFactCounts",
@@ -246,9 +246,11 @@ class Validate:
                                             modelXbrl=missingFact, fact=missingFact.qname)
                             # for debugging uncomment next line to save generated instance document
                             # formulaOutputInstance.saveInstance(r"c:\temp\test-out-inst.xml")
+                        expectedInstance.close()
+                        del expectedInstance # dereference
                         self.determineTestStatus(modelTestcaseVariation, formulaOutputInstance)
                         formulaOutputInstance.close()
-                        formulaOutputInstance = None
+                        del formulaOutputInstance
                 # update ui thread via modelManager (running in background here)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
                     

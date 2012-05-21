@@ -622,6 +622,7 @@ def parse(modelObject, xpathExpression, element, name, traceType):
     exprStack = []
     global xmlElement
     xmlElement = element
+    returnProg = None
 
     # throws ParseException
     if xpathExpression and len(xpathExpression) > 0:
@@ -682,8 +683,11 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             "info", "formula:trace")
         return pyCode
         '''
-        return exprStack
-    return None
+        returnProg = exprStack
+    exprStack = [] # dereference
+    xmlElement = None
+    modelXbrl = None
+    return returnProg
 
 def variableReferencesSet(exprStack, element):
     varRefSet = set()
@@ -716,6 +720,21 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)
+
+def clearProg(exprStack):
+    if exprStack:
+        for p in exprStack:
+            if isinstance(p, ProgHeader):
+                p.element = None
+                break
+        del exprStack[:]
+    
+def clearNamedProg(ownerObject, progName):
+    clearProg(ownerObject.getattr(progName, []))
+
+def clearNamedProgs(ownerObject, progsListName):
+    for prog in ownerObject.getattr(progsListName, []):
+        clearProg(prog)
 
 '''
 pyOpForXPathOp = {

@@ -258,6 +258,17 @@ class ModelVariableSet(ModelFormulaResource):
 class ModelFormula(ModelVariableSet):
     def init(self, modelDocument):
         super(ModelFormula, self).init(modelDocument)
+        
+    def clear(self):
+        if hasattr(self, "valueProg"):
+            XPathParser.clearProg(self.valueProg)
+            self.aspectValues.clear()
+            for prog in self.aspectProgs.values():
+                XPathParser.clearProg(prog)
+            self.aspectValues.clear()
+            self.aspectProgs.clear()
+            self.typedDimProgAspects.clear()
+        super(ModelFormula, self).clear()
     
     def compile(self):
         if not hasattr(self, "valueProg"):
@@ -445,6 +456,10 @@ class ModelVariableSetAssertion(ModelVariableSet):
     def init(self, modelDocument):
         super(ModelVariableSetAssertion, self).init(modelDocument)
     
+    def clear(self):
+        XPathParser.clearNamedProg(self, "testProg")
+        super(ModelVariableSetAssertion, self).clear()
+    
     def compile(self):
         if not hasattr(self, "testProg"):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE_SET)
@@ -497,6 +512,10 @@ class ModelConsistencyAssertion(ModelFormulaResource):
         super(ModelConsistencyAssertion, self).init(modelDocument)
         self.modelXbrl.hasFormulae = True
                 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "radiusProg")
+        super(ModelConsistencyAssertion, self).clear()
+    
     def compile(self):
         if not hasattr(self, "radiusProg"):
             self.radiusProg = XPathParser.parse(self, self.radiusExpression, self, "radius", Trace.VARIABLE_SET)
@@ -568,6 +587,10 @@ class ModelParameter(ModelFormulaResource):
                 modelObject=self, name=self.qname)
         else:
             self.modelXbrl.qnameParameters[self.qname] = self
+    
+    def clear(self):
+        XPathParser.clearNamedProg(self, "selectProg")
+        super(ModelParameter, self).clear()
     
     def compile(self):
         if not hasattr(self, "selectProg"):
@@ -647,6 +670,11 @@ class ModelFactVariable(ModelVariable):
     def init(self, modelDocument):
         super(ModelFactVariable, self).init(modelDocument)
     
+    def clear(self):
+        XPathParser.clearNamedProg(self, "fallbackValueProg")
+        del self._filterRelationships[:]
+        super(ModelFactVariable, self).clear()
+    
     def compile(self):
         if not hasattr(self, "fallbackValueProg"):
             self.fallbackValueProg = XPathParser.parse(self, self.fallbackValue, self, "fallbackValue", Trace.VARIABLE)
@@ -708,6 +736,10 @@ class ModelGeneralVariable(ModelVariable):
     def init(self, modelDocument):
         super(ModelGeneralVariable, self).init(modelDocument)
     
+    def clear(self):
+        XPathParser.clearNamedProg(self, "selectProg")
+        super(ModelGeneralVariable, self).clear()
+    
     def compile(self):
         if not hasattr(self, "selectProg"):
             self.selectProg = XPathParser.parse(self, self.select, self, "select", Trace.VARIABLE)
@@ -736,6 +768,10 @@ class ModelGeneralVariable(ModelVariable):
 class ModelPrecondition(ModelFormulaResource):
     def init(self, modelDocument):
         super(ModelPrecondition, self).init(modelDocument)
+    
+    def clear(self):
+        XPathParser.clearNamedProg(self, "testProg")
+        super(ModelPrecondition, self).clear()
     
     def compile(self):
         if not hasattr(self, "testProg"):
@@ -803,6 +839,10 @@ class ModelTestFilter(ModelFilter):
     def init(self, modelDocument):
         super(ModelTestFilter, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "testProg")
+        super(ModelTestFilter, self).clear()
+    
     def compile(self):
         if not hasattr(self, "testProg"):
             self.testProg = XPathParser.parse(self, self.test, self, "test", Trace.VARIABLE)
@@ -865,6 +905,11 @@ class ModelAspectCover(ModelFilter):
     def init(self, modelDocument):
         super(ModelAspectCover, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProgs(self, "excludedDimQnameProgs")
+        XPathParser.clearNamedProgs(self, "includedDimQnameProgs")
+        super(ModelAspectCover, self).clear()
+    
     def aspectsCovered(self, varBinding, xpCtx=None):
         try:
             return self._aspectsCovered
@@ -977,6 +1022,10 @@ class ModelConceptName(ModelFilter):
     def init(self, modelDocument):
         super(ModelConceptName, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProgs(self, "qnameExpressionProgs")
+        super(ModelConceptName, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
         
@@ -1094,6 +1143,10 @@ class ModelConceptFilterWithQnameExpression(ModelFilter):
     def init(self, modelDocument):
         super(ModelConceptFilterWithQnameExpression, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProgs(self, "qnameExpressionProgs")
+        super(ModelConceptFilterWithQnameExpression, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
         
@@ -1128,6 +1181,10 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
     def init(self, modelDocument):
         super(ModelConceptCustomAttribute, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "valueProg")
+        super(ModelConceptCustomAttribute, self).clear()
+    
     @property
     def value(self):
         return self.get("value")
@@ -1236,6 +1293,15 @@ class ModelConceptRelation(ModelFilter):
     def init(self, modelDocument):
         super(ModelConceptRelation, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "sourceQnameExpressionProg")
+        XPathParser.clearNamedProg(self, "linkroleExpressionProg")
+        XPathParser.clearNamedProg(self, "linknameExpressionProg")
+        XPathParser.clearNamedProg(self, "arcroleExpressionProg")
+        XPathParser.clearNamedProg(self, "arcnameExpressionProg")
+        XPathParser.clearNamedProg(self, "testExpressionProg")
+        super(ModelConceptRelation, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.CONCEPT}
         
@@ -1454,6 +1520,11 @@ class ModelEntitySpecificIdentifier(ModelFilter):
     def init(self, modelDocument):
         super(ModelEntitySpecificIdentifier, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "schemeProg")
+        XPathParser.clearNamedProg(self, "valueProg")
+        super(ModelEntitySpecificIdentifier, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
         
@@ -1494,6 +1565,10 @@ class ModelEntityScheme(ModelFilter):
     def init(self, modelDocument):
         super(ModelEntityScheme, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "schemeProg")
+        super(ModelEntityScheme, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.ENTITY_IDENTIFIER}
         
@@ -1661,6 +1736,11 @@ class ModelDateTimeFilter(ModelFilter):
     def init(self, modelDocument):
         super(ModelDateTimeFilter, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "dateProg")
+        XPathParser.clearNamedProg(self, "timeProg")
+        super(ModelDateTimeFilter, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.PERIOD}
         
@@ -1800,6 +1880,14 @@ class ModelExplicitDimension(ModelFilter):
     def init(self, modelDocument):
         super(ModelExplicitDimension, self).init(modelDocument)
 
+    def clear(self):
+        if hasattr(self, "dimQnameExpressionProg"):
+            XPathParser.clearProg(self.dimQnameExpressionProg)
+            for memberModel in self.memberProgs:
+                XPathParser.clearProg(memberModel.qnameExprProg)
+                memberModel.__dict__.clear()  # dereference
+        super(ModelExplicitDimension, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {self.dimQname}
         
@@ -2159,6 +2247,10 @@ class ModelParentFilter(ModelFilter):
     def init(self, modelDocument):
         super(ModelParentFilter, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "qnameExpressionProg")
+        super(ModelParentFilter, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
         
@@ -2214,6 +2306,10 @@ class ModelLocationFilter(ModelFilter):
     def init(self, modelDocument):
         super(ModelLocationFilter, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "locationProg")
+        super(ModelLocationFilter, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.LOCATION}
         
@@ -2320,6 +2416,10 @@ class ModelSingleMeasure(ModelFilter):
     def init(self, modelDocument):
         super(ModelSingleMeasure, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "qnameExpressionProg")
+        super(ModelSingleMeasure, self).clear()
+    
     def aspectsCovered(self, varBinding):
         return {Aspect.UNIT}
         
@@ -2423,6 +2523,10 @@ class ModelMessage(ModelFormulaResource):
     def init(self, modelDocument):
         super(ModelMessage, self).init(modelDocument)
 
+    def clear(self):
+        XPathParser.clearNamedProgs(self, "expressionProgs")
+        super(ModelMessage, self).clear()
+    
     @property
     def separator(self):
         return self.get("separator")
@@ -2522,6 +2626,11 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
         super(ModelCustomFunctionImplementation, self).init(modelDocument)
         self.modelXbrl.modelCustomFunctionImplementations.add(self)
 
+    def clear(self):
+        XPathParser.clearNamedProg(self, "outputProg")
+        XPathParser.clearNamedProgs(self, "stepProgs")
+        super(ModelCustomFunctionImplementation, self).clear()
+    
     @property
     def inputNames(self):
         try:

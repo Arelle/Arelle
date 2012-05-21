@@ -102,18 +102,17 @@ def runTest(section, args):
             if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX,
                                       ModelDocument.Type.REGISTRY):
                 index = os.path.basename(modelDocument.uri)
-                for tci in modelDocument.referencesDocument.keys():
-                    tc = cntlr.modelManager.modelXbrl.modelObject(tci.objectId())
+                for tc in sorted(modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
                     test_case = os.path.basename(tc.uri)
                     if hasattr(tc, "testcaseVariations"):
                         for mv in tc.testcaseVariations:
                             outcomes.append({'section': section,
                                              'testcase': test_case,
-                                             'variation': mv.id, 
-                                             'name': mv.name, 
-                                             'status': mv.status, 
-                                             'expected': mv.expected, 
-                                             'actual': mv.actual})
+                                             'variation': str(mv.id), # copy string to dereference mv
+                                             'name': str(mv.name), 
+                                             'status': str(mv.status), 
+                                             'expected': str(mv.expected), 
+                                             'actual': str(mv.actual)})
             elif modelDocument.type in (ModelDocument.Type.TESTCASE,
                                         ModelDocument.Type.REGISTRYTESTCASE):
                 tc = modelDocument
@@ -122,13 +121,14 @@ def runTest(section, args):
                     for mv in tc.testcaseVariations:
                         outcomes.append({'section': section,
                                          'testcase': test_case,
-                                         'variation': mv.id, 
-                                         'name': mv.name, 
-                                         'status': mv.status, 
-                                         'expected': mv.expected, 
-                                         'actual': mv.actual})
-
+                                         'variation': str(mv.id), 
+                                         'name': str(mv.name), 
+                                         'status': str(mv.status), 
+                                         'expected': str(mv.expected), 
+                                         'actual': str(mv.actual)})
+        del modelDocument # dereference
     cntlr.modelManager.close()
+    del cntlr # dereference
 
     return outcomes        
             

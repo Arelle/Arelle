@@ -78,7 +78,9 @@ class ViewFactTable(ViewWinTree.ViewTree):
                     for dimQname in sorted(dims.keys(), key=lambda d: str(d)):
                         dimvalue = dims[dimQname]
                         if dimvalue.isExplicit:
-                            values.append(dimvalue.member.label(self.labelrole,lang=self.lang))
+                            values.append(dimvalue.member.label(self.labelrole,lang=self.lang)
+                                          if dimvalue.member is not None 
+                                          else str(dimvalue.memberQname))
                         else:
                             values.append(XmlUtil.innerText(dimvalue.typedMember))
                             

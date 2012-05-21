@@ -105,6 +105,10 @@ class ModelObject(etree.ElementBase):
         if parent is not None and hasattr(parent, "modelDocument"):
             self.init(parent.modelDocument)
             
+    def clear(self):
+        self.__dict__.clear()  # delete local attributes
+        super(ModelObject, self).clear()  # delete children
+                   
     def init(self, modelDocument):
         self.modelDocument = modelDocument
         self.objectIndex = len(modelDocument.modelXbrl.modelObjects)

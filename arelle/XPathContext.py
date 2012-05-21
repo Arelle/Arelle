@@ -95,6 +95,16 @@ class XPathContext:
         self.cachedFilterResults = {}
         if inputXbrlInstance: 
             self.inScopeVars[XbrlConst.qnStandardInputInstance] = inputXbrlInstance.modelXbrl
+            
+    def close(self):
+        self.outputLastContext.clear() # dereference
+        self.outputLastUnit.clear()
+        self.outputLastFact.clear()
+        self.outputFirstFact.clear()
+        self.inScopeVars.clear()
+        self.cachedFilterResults.clear()
+        self.__dict__.clear() # dereference everything
+        
         
     @property
     def formulaOptions(self):

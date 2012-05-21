@@ -106,6 +106,9 @@ def executeCallTest(val, name, callTuple, testTuple):
                     val.modelXbrl.error("cfcn:testFail",
                                         _("Test %(name)s result %(result)s"), 
                                         modelObject=testTuple[1], name=name, result=str(testResult))
+                    
+            xpathContext.close()  # dereference
+
         except XPathContext.XPathException as err:
             val.modelXbrl.error(err.code,
                 _("%(name)s evaluation error: %(error)s \n%(errorSource)s"),
@@ -410,6 +413,9 @@ def validate(val):
         for varqname in orderedNameList:
             if varqname in qnameRels:
                 modelVariableSet.orderedVariableRelationships.append(qnameRels[varqname])
+        
+        orderedNameSet.clear()       
+        del orderedNameList[:]  # dereference            
                 
         # check existence assertion variable dependencies
         if isinstance(modelVariableSet, ModelExistenceAssertion):
@@ -469,6 +475,13 @@ def validate(val):
         # check aspects of formula
         if isinstance(modelVariableSet, ModelFormula):
             checkFormulaRules(val, modelVariableSet, nameVariables)
+
+        nameVariables.clear() # dereference
+        qnameRels.clear()
+        definedNamesSet.clear()
+        variableDependencies.clear()
+        varSetInstanceDependencies.clear()
+
     val.modelXbrl.profileActivity("... assertion and formula checks and compilation", minTimeToShow=1.0)
             
     # determine instance dependency order
@@ -609,6 +622,10 @@ def validate(val):
     val.modelXbrl.modelManager.showStatus(_("running formulae"))
     
     runIDs = (formulaOptions.runIDs or '').split()
+    if runIDs:
+        val.modelXbrl.info("formula:trace",
+                           _("Formua/assertion IDs restriction: %(ids)s"), 
+                           modelXbrl=val.modelXbrl, ids=', '.join(runIDs))
     # evaluate consistency assertions
     
     # evaluate variable sets not in consistency assertions
@@ -665,6 +682,15 @@ def validate(val):
         
     val.modelXbrl.modelManager.showStatus(_("formulae finished"), 2000)
         
+    instanceProducingVariableSets.clear() # dereference
+    parameterQnames.clear()
+    instanceQnames.clear()
+    parameterDependencies.clear()
+    instanceDependencies.clear()
+    dependencyResolvedParameters.clear()
+    orderedInstancesSet.clear()
+    del orderedParameters, orderedInstances, orderedInstancesList
+    xpathContext.close()  # dereference everything
 
 def checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet):
     for visibleVarSetRel in val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
