@@ -422,6 +422,7 @@ as follows:</td></tr>
 or label linkbases.  Multiple file names are separated by a '|' character.</td></tr> 
 <tr><td style="text-indent: 1em;">labelLang</td><td>Label language to override system settings, e.g., <code>&labelLang=ja</code>.</td></tr> 
 <tr><td style="text-indent: 1em;">labelRole</td><td>Label role instead of standard label, e.g., <code>&labelRole=http://www.xbrl.org/2003/role/verboseLabel</code>.  To use the concept QName instead of a label, specify <code>&labelRole=XBRL-concept-name</code>.</td></tr> 
+<tr><td style="text-indent: 1em;">uiLang</td><td>User interface language to override system settings, e.g., <code>&uiLang=fr</code>.  Changes setting for current session (but not saved setting).</td></tr> 
 <tr><td style="text-indent: 1em;">calcDecimals</td><td>Specify calculation linkbase validation inferring decimals.</td></tr> 
 <tr><td style="text-indent: 1em;">calcPrecision</td><td>Specify calculation linkbase validation inferring precision.</td></tr> 
 <tr><td style="text-indent: 1em;">efm</td><td>Select Edgar Filer Manual (U.S. SEC) disclosure system validation. (Alternative to flavor parameter.)</td></tr> 

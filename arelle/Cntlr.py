@@ -183,13 +183,7 @@ class Cntlr:
             }
             
         # start language translation for domain
-        try:
-            gettext.translation("arelle", 
-                                self.localeDir, 
-                                getLanguageCodes(self.config.get("userInterfaceLangOverride",None))).install()
-        except Exception as msg:
-            gettext.install("arelle", 
-                            self.localeDir)
+        self.setUiLanguage(self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
             
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
@@ -199,6 +193,16 @@ class Cntlr:
         PluginManager.init(self)
  
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
+        
+    def setUiLanguage(self, lang, fallbackToDefault=False):
+        try:
+            gettext.translation("arelle", 
+                                self.localeDir, 
+                                getLanguageCodes(lang)).install()
+        except Exception:
+            if fallbackToDefault:
+                gettext.install("arelle", 
+                                self.localeDir)
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, logger=None):
         if logger is not None:

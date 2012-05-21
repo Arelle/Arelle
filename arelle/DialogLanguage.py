@@ -123,10 +123,7 @@ class DialogLanguage(Toplevel):
             else: # use system default
                 self.mainWin.config.pop("userInterfaceLangOverride", None)
                 self.mainWin.config.pop("userInterfaceLocaleOverride", None)
-            try:
-                gettext.translation("arelle", self.mainWin.localeDir, getLanguageCodes(lang=langCode)).install()
-            except:
-                gettext.install("arelle", self.mainWin.localeDir)
+            self.mainWin.setUiLanguage(langCode)
             
             if messagebox.askyesno(
                     _("User interface language changed"), 

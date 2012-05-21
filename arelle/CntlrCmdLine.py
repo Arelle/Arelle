@@ -147,6 +147,9 @@ def parseAndRun(args, logger=None):
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFilterWinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--uiLang", action="store", dest="uiLang",
+                      help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
+    parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
     parser.add_option("--proxy", action="store", dest="proxy",
                       help=_("Modify and re-save proxy settings configuration.  " 
                              "Enter 'system' to use system proxy setting, 'none' to use no proxy, "
@@ -241,6 +244,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
+        if options.uiLang: # set current UI Lang (but not config setting)
+            self.setUiLanguage(options.uiLang)
         if options.proxy:
             if options.proxy != "show":
                 proxySettings = proxyTuple(options.proxy)
