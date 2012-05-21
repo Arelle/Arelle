@@ -352,7 +352,7 @@ msgstr "%(elementName)s est requis et non trouvé dans le contexte par "
 #: ModelDocument.py:85
 msgid "%(error)s, %(fileName)s, %(sourceAction)s source "
 "element"
-msgstr "%(error)s, fichier %(filename)s, élément source "
+msgstr "%(error)s, fichier %(fileName)s, élément source "
 "%(sourceAction)s"
 
 #: ValidateVersReport.py:318
