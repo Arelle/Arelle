@@ -78,8 +78,8 @@ class ViewRenderedGrid(ViewFile.View):
     def zAxis(self, row, zAxisObj, zFilters):
         priorZfilter = len(zFilters)
         
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(zAxisObj):
-            zAxisObj = axisMbrRel.toModelObject
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(zAxisObj):
+            zAxisObj = axisSubtreeRel.toModelObject
             zFilters.append((inheritedPrimaryItemQname(self, zAxisObj),
                              inheritedExplicitDims(self, zAxisObj),
                              zAxisObj.genLabel(lang=self.lang),
@@ -89,7 +89,7 @@ class ViewRenderedGrid(ViewFile.View):
         if row is not None:
             nextZfilter = len(zFilters)
             if nextZfilter > priorZfilter + 1:  # combo box, use header on zAxis
-                label = axisMbrRel.fromModelObject.genLabel(lang=self.lang)
+                label = axisSubtreeRel.fromModelObject.genLabel(lang=self.lang)
             else: # no combo box, use label on coord
                 label = zAxisObj.genLabel(lang=self.lang)
             etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
@@ -128,9 +128,9 @@ class ViewRenderedGrid(ViewFile.View):
         rightCol = leftCol
         widthToSpanParent = 0
         sideBorder = not xFilters
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(xAxisParentObj):
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(xAxisParentObj):
             noDescendants = False
-            xAxisHdrObj = axisMbrRel.toModelObject
+            xAxisHdrObj = axisSubtreeRel.toModelObject
             rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xAxisHdrObj, xFilters, # nested items before totals
                                                         childrenFirst, childrenFirst, False)
             if row - 1 < parentRow:
@@ -202,8 +202,8 @@ class ViewRenderedGrid(ViewFile.View):
             
     def yAxis(self, leftCol, row, yAxisParentObj, childrenFirst, renderNow, atLeft):
         nestedBottomRow = row
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
-            yAxisHdrObj = axisMbrRel.toModelObject
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(yAxisParentObj):
+            yAxisHdrObj = axisSubtreeRel.toModelObject
             nestRow, nextRow = self.yAxis(leftCol + 1, row, yAxisHdrObj,  # nested items before totals
                                     childrenFirst, childrenFirst, False)
             
@@ -303,15 +303,15 @@ class ViewRenderedGrid(ViewFile.View):
     
     def bodyCells(self, row, yAxisParentObj, xFilters, zFilters, yChildrenFirst):
         dimDefaults = self.modelXbrl.qnameDimensionDefaults
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
-            yAxisHdrObj = axisMbrRel.toModelObject
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(yAxisParentObj):
+            yAxisHdrObj = axisSubtreeRel.toModelObject
             if yChildrenFirst:
                 row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
             if yAxisHdrObj.abstract == "false":
                 yAxisPriItemQname = inheritedPrimaryItemQname(self, yAxisHdrObj)
                 yAxisExplicitDims = inheritedExplicitDims(self, yAxisHdrObj)
                     
-                # data for columns of row
+                # data for columns of rows
                 ignoreDimValidity = self.ignoreDimValidity.get()
                 zPriItemQname = None
                 zDims = set()

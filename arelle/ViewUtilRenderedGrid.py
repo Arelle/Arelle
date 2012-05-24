@@ -17,10 +17,10 @@ def setDefaults(view):
 def getTblAxes(view, viewTblELR):
     tblAxisRelSet = view.modelXbrl.relationshipSet(XbrlConst.euTableAxis, viewTblELR)
     if len(tblAxisRelSet.modelRelationships) > 0:
-        view.axisMbrRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
         tblAxisRelSet = view.modelXbrl.relationshipSet(XbrlConst.tableAxis, viewTblELR)
-        view.axisMbrRelSet = view.modelXbrl.relationshipSet(XbrlConst.aspectRuleAxisMember, viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.tableAxisSubtree, viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(view.arcrole))
         return (None, None, None, None)
@@ -47,20 +47,20 @@ def getTblAxes(view, viewTblELR):
         xAxisObj = yAxisObj = None
         zAxisObjs = []
         for tblAxisRel in tblAxisRelSet.fromModelObject(table):
-            axisType = tblAxisRel.axisType
+            axisDisposition = tblAxisRel.axisDisposition
             axisObj = tblAxisRel.toModelObject
-            if axisType == "xAxis": 
+            if axisDisposition == "x": 
                 xAxisObj = axisObj
                 if xAxisObj.parentChildOrder is not None:
                     view.xAxisChildrenFirst.set(xAxisObj.parentChildOrder == "children-first")
-            elif axisType == "yAxis": 
+            elif axisDisposition == "y": 
                 yAxisObj = axisObj
                 if yAxisObj.parentChildOrder is not None:
                     view.yAxisChildrenFirst.set(yAxisObj.parentChildOrder == "children-first")
-            elif axisType == "zAxis": 
+            elif axisDisposition == "z": 
                 zAxisObj = axisObj
                 zAxisObjs.append(axisObj)
-            analyzeHdrs(view, axisObj, 1, axisType)
+            analyzeHdrs(view, axisObj, 1, axisDisposition)
         view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
         view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols))
         view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
@@ -74,14 +74,14 @@ def getTblAxes(view, viewTblELR):
     
     return (None, None, None, None)
                   
-def analyzeHdrs(view, axisModelObj, depth, axisType):
-    for axisMbrRel in view.axisMbrRelSet.fromModelObject(axisModelObj):
-        axisMbrModelObject = axisMbrRel.toModelObject
-        if axisType == "zAxis":
+def analyzeHdrs(view, axisModelObj, depth, axisDisposition):
+    for axisSubtreeRel in view.axisSubtreeRelSet.fromModelObject(axisModelObj):
+        axisMbrModelObject = axisSubtreeRel.toModelObject
+        if axisDisposition == "z":
             view.zAxisRows += 1 
              
             continue # no recursion
-        elif axisType == "xAxis":
+        elif axisDisposition == "x":
             if axisMbrModelObject.abstract == "false":
                 view.dataCols += 1
             if depth > view.colHdrRows: view.colHdrRows = depth 
@@ -92,7 +92,7 @@ def analyzeHdrs(view, axisModelObj, depth, axisType):
             if not view.colHdrCodeRow:
                 if axisMbrModelObject.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                     view.colHdrCodeRow = True
-        elif axisType == "yAxis":
+        elif axisDisposition == "y":
             if axisMbrModelObject.abstract == "false":
                 view.dataRows += 1
             if depth > view.rowHdrCols: 
@@ -111,23 +111,23 @@ def analyzeHdrs(view, axisModelObj, depth, axisType):
             if not view.rowHdrCodeCol:
                 if axisMbrModelObject.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                     view.rowHdrCodeCol = True
-        analyzeHdrs(view, axisMbrModelObject, depth+1, axisType) #recurse
+        analyzeHdrs(view, axisMbrModelObject, depth+1, axisDisposition) #recurse
 
     
 def inheritedPrimaryItemQname(view, axisMbrObj):
     primaryItemQname = axisMbrObj.primaryItemQname
     if primaryItemQname:
         return primaryItemQname
-    for axisMbrRel in view.axisMbrRelSet.toModelObject(axisMbrObj):
-        primaryItemQname = inheritedPrimaryItemQname(view, axisMbrRel.fromModelObject)
+    for axisSubtreeRel in view.axisSubtreeRelSet.toModelObject(axisMbrObj):
+        primaryItemQname = inheritedPrimaryItemQname(view, axisSubtreeRel.fromModelObject)
         if primaryItemQname:
             return primaryItemQname
     return None
         
 def inheritedExplicitDims(view, axisMbrObj, dims=None):
     if dims is None: dims = {}
-    for axisMbrRel in view.axisMbrRelSet.toModelObject(axisMbrObj):
-        inheritedExplicitDims(view, axisMbrRel.fromModelObject, dims=dims)
+    for axisSubtreeRel in view.axisSubtreeRelSet.toModelObject(axisMbrObj):
+        inheritedExplicitDims(view, axisSubtreeRel.fromModelObject, dims=dims)
     for dim, mem in axisMbrObj.explicitDims:
         dims[dim] = mem
     return dims.items()

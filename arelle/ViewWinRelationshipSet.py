@@ -81,7 +81,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             elif self.arcrole == "Table-rendering":    # add columns for dimensional information
                 self.treeView.column("#0", width=160, anchor="w")
                 self.treeView["columns"] = ("axis", "abstract", "header", "priItem", "dims")
-                self.treeView.column("axis", width=50, anchor="center", stretch=False)
+                self.treeView.column("axis", width=28, anchor="center", stretch=False)
                 self.treeView.heading("axis", text="Axis")
                 self.treeView.column("abstract", width=24, anchor="center", stretch=False)
                 self.treeView.heading("abstract", text="Abs")
@@ -156,8 +156,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if concept.get("abstract") == "true":
                 self.treeView.set(childnode, "abstract", '\u2713') # checkmark unicode character
             if isRelation:
-                self.treeView.set(childnode, "axis", modelObject.get("axisType"))
-                if isinstance(concept, (ModelAxisCoord,ModelExplicitAxisMember)):
+                self.treeView.set(childnode, "axis", modelObject.get("axisDisposition"))
+                if isinstance(concept, (ModelAxisCoord,ModelRuleAxis)):
                     self.treeView.set(childnode, "priItem", concept.primaryItemQname)
                     self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim[0],dim[1]) for dim in concept.explicitDims)))
         self.id += 1
@@ -232,4 +232,4 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             return self.hasAncestor(self.treeView.parent(node), ancestor)
         return False
     
-from arelle.ModelRenderingObject import ModelAxisCoord, ModelExplicitAxisMember
+from arelle.ModelRenderingObject import ModelAxisCoord, ModelRuleAxis

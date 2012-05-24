@@ -135,8 +135,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def zAxis(self, row, zAxisObj, zFilters):
         priorZfilter = len(zFilters)
         
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(zAxisObj):
-            zAxisObj = axisMbrRel.toModelObject
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(zAxisObj):
+            zAxisObj = axisSubtreeRel.toModelObject
             zFilters.append((inheritedPrimaryItemQname(self, zAxisObj),
                              inheritedExplicitDims(self, zAxisObj),
                              zAxisObj.genLabel(lang=self.lang),
@@ -149,7 +149,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
             gridBorder(self.gridColHdr, self.dataFirstCol, row, RIGHTBORDER, columnspan=2)
             if nextZfilter > priorZfilter + 1:  # combo box, use header on zAxis
-                label = axisMbrRel.fromModelObject.genLabel(lang=self.lang)
+                label = axisSubtreeRel.fromModelObject.genLabel(lang=self.lang)
             else: # no combo box, use label on coord
                 label = zAxisObj.genLabel(lang=self.lang)
             hdr = gridHdr(self.gridColHdr, self.dataFirstCol, row,
@@ -190,9 +190,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         sideBorder = not xFilters
         if atTop and sideBorder and childrenFirst:
             gridBorder(self.gridColHdr, self.dataFirstCol, 1, LEFTBORDER, rowspan=self.dataFirstRow)
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(xAxisParentObj):
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(xAxisParentObj):
             noDescendants = False
-            xAxisHdrObj = axisMbrRel.toModelObject
+            xAxisHdrObj = axisSubtreeRel.toModelObject
             rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xAxisHdrObj, xFilters, # nested items before totals
                                                         childrenFirst, childrenFirst, False)
             if row - 1 < parentRow:
@@ -266,8 +266,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
                        BOTTOMBORDER, 
                        columnspan=(self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol))
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
-            yAxisHdrObj = axisMbrRel.toModelObject
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(yAxisParentObj):
+            yAxisHdrObj = axisSubtreeRel.toModelObject
             nestRow, nextRow = self.yAxis(leftCol + 1, row, yAxisHdrObj,  # nested items before totals
                                     childrenFirst, childrenFirst, False)
             
@@ -340,8 +340,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         priItemQnameErrors = set()
         dimQnameErrors = set()
         memQnameErrors = set()
-        for axisMbrRel in self.axisMbrRelSet.fromModelObject(yAxisParentObj):
-            yAxisHdrObj = axisMbrRel.toModelObject
+        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(yAxisParentObj):
+            yAxisHdrObj = axisSubtreeRel.toModelObject
             if yChildrenFirst:
                 row = self.bodyCells(row, yAxisHdrObj, xFilters, zFilters, yChildrenFirst)
             if yAxisHdrObj.abstract == "false":

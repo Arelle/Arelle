@@ -1604,17 +1604,18 @@ class ModelRelationship(ModelObject):
             return self._isCovered
         
     @property
-    def axisType(self):
-        """(str) -- Value of axisType (on applicable table linkbase arcs"""
+    def axisDisposition(self):
+        """(str) -- Value of axisDisposition (on applicable table linkbase arcs"""
         try:
             return self._tableAxis
         except AttributeError:
-            aType = self.get("axisType")
-            if aType in ("xAxis","x-axis"): self._axisType = "xAxis"
-            elif aType in ("yAxis","y-axis"): self._axisType = "yAxis"
-            elif aType in ("zAxis","z-axis"): self._axisType = "zAxis"
-            else: self._axisType = None
-            return self._axisType
+            aType = self.get("axisDisposition")  # XII
+            if aType is None: aType = self.get("axisType")  # Eurofiling
+            if aType in ("xAxis","x"): self._axisDisposition = "x"
+            elif aType in ("yAxis","y"): self._axisDisposition = "y"
+            elif aType in ("zAxis","z"): self._axisDisposition = "z"
+            else: self._axisDisposition = None
+            return self._axisDisposition
         
     @property
     def equivalenceKey(self):
