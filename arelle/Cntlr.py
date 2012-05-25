@@ -3,7 +3,7 @@
 :mod:`arelle.cntlr`
 ~~~~~~~~~~~~~~~~~~~
 
-.. module:: arelle.cntlr
+.. py:module:: arelle.cntlr
    :copyright: Copyright 2010-2012 Mark V Systems Limited, All rights reserved.
    :license: Apache-2.
    :synopsis: Common controller class to initialize for platform and setup common logger functions
@@ -17,9 +17,7 @@ from collections import defaultdict
 isPy3 = (sys.version[0] >= '3')
 
 class Cntlr:
-    """
-    .. class:: Cntlr(logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None)
-    
+    """    
     Initialization sets up for platform
     
     - Platform directories for application, configuration, locale, and cache
@@ -49,35 +47,27 @@ class Cntlr:
     (Validating a testcase or RSS feed will validate the test case variations or RSS feed items, one by one.)
     
         .. attribute:: isMac
-        
         True if system is MacOS
         
         .. attribute:: isMSW
-        
         True if system is Microsoft Windows
         
         .. attribute:: userAppDir
-        
         Full pathname to application directory (for persistent json files, cache, etc).
         
         .. attribute:: configDir
-        
         Full pathname to config directory as installed (validation options, redirection URLs, common xsds).
         
         .. attribute:: imagesDir
-        
         Full pathname to images directory as installed (images for GUI and web server).
         
         .. attribute:: localeDir
-        
         Full pathname to locale directory as installed (for support of gettext localization feature).
         
-        ... attribute:: hasClipboard
-        
+        .. attribute:: hasClipboard
         True if a system platform clipboard is implemented on current platform
         
-        ... attribute:: updateURL
-        
+        .. attribute:: updateURL
         URL string of application download file (on arelle.org server).  Usually redirected to latest released application installable module.
         
     """

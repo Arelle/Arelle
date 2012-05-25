@@ -115,7 +115,7 @@ class ModelFact(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
 
-        ... attribute:: modelTupleFacts
+        .. attribute:: modelTupleFacts
         
         ([ModelFact]) - List of child facts in source document order
     """
@@ -556,27 +556,27 @@ class ModelContext(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
 
-        ... attribute:: segDimValues
+        .. attribute:: segDimValues
         
         (dict) - Dict by dimension ModelConcept of segment dimension ModelDimensionValues
 
-        ... attribute:: scenDimValues
+        .. attribute:: scenDimValues
         
         (dict) - Dict by dimension ModelConcept of scenario dimension ModelDimensionValues
 
-        ... attribute:: qnameDims
+        .. attribute:: qnameDims
         
         (dict) - Dict by dimension concept QName of ModelDimensionValues (independent of whether segment or scenario)
 
-        ... attribute:: errorDimValues
+        .. attribute:: errorDimValues
         
         (list) - List of ModelDimensionValues whose dimension concept could not be determined or which were duplicates
 
-        ... attribute:: segNonDimValues
+        .. attribute:: segNonDimValues
         
         (list) - List of segment child non-dimension ModelObjects
 
-        ... attribute:: scenNonDimValues
+        .. attribute:: scenNonDimValues
         
         (list) - List of scenario child non-dimension ModelObjects
     """

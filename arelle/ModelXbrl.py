@@ -91,119 +91,123 @@ class ModelXbrl:
     :param modelManager: The controller's modelManager object for the current session or command line process.
     :type modelManager: ModelManager
 
-        ... attribute:: urlDocs
+        .. attribute:: urlDocs
         
         Dict, by URL, of loaded modelDocuments
         
-        ... attribute:: errors
+        .. attribute:: errors
         
         List of error codes and assertion results, which were sent to logger, via error() method above, used for validation and post-processing
         
-        ... attribute:: logErrorCount, logWarningCoutn, logInfoCount
+        .. attribute:: logErrorCount, logWarningCoutn, logInfoCount
         
         Counts of respective error levels processed by modelXbrl logger
 
-        ... attribute:: arcroleTypes
+        .. attribute:: arcroleTypes
 
         Dict by arcrole of defining modelObjects
         
-        ... attribute:: roleTypes
+        .. attribute:: roleTypes
 
         Dict by role of defining modelObjects
 
-        ... attribute:: qnameConcepts
+        .. attribute:: qnameConcepts
 
         Dict by qname (QName) of all top level schema elements, regardless of whether discovered or not discoverable (not in DTS)
         
-        ... attribute:: qnameAttributes
+        .. attribute:: qnameAttributes
         
         Dict by qname of all top level schema attributes
 
-        ... attribute:: qnameAttributeGroups
+        .. attribute:: qnameAttributeGroups
 
         Dict by qname of all top level schema attribute groups
 
-        ... attribute:: qnameTypes
+        .. attribute:: qnameTypes
 
         Dict by qname of all top level and anonymous types
 
-        ... attribute:: baseSets
+        .. attribute:: baseSets
         
         Dict of base sets by (arcrole, linkrole, arc qname, link qname), (arcrole, linkrole, *, *), (arcrole, *, *, *), and in addition, collectively for dimensions, formula,  and rendering, as arcroles 'XBRL-dimensions', 'XBRL-formula', and 'Table-rendering'.
 
-        ... attribute:: relationshipSets
+        .. attribute:: relationshipSets
 
         Dict of effective relationship sets indexed same as baseSets (including collective indices), but lazily resolved when requested.
 
-        ... attribute:: qnameDimensionDefaults
+        .. attribute:: qnameDimensionDefaults
 
         Dict of dimension defaults by qname of dimension
 
-        ... attribute:: facts
+        .. attribute:: facts
 
         List of top level facts (not nested in tuples), document order
 
-        ... attribute:: factsInInstance
+        .. attribute:: factsInInstance
 
         List of all facts in instance (including nested in tuples), document order
 
-        ... attribute:: contexts
+        .. attribute:: contexts
 
         Dict of contexts by id
 
-        ... attribute:: units
+        .. attribute:: units
 
         Dict of units by id
 
-        ... attribute:: modelObjects
+        .. attribute:: modelObjects
 
         Model objects in loaded order, allowing object access by ordinal index (for situations, such as tkinter, where a reference to an object would create a memory freeing difficulty).
 
-        ... attribute:: qnameParameters
+        .. attribute:: qnameParameters
 
         Dict of formula parameters by their qname
 
-        ... attribute:: modelVariableSets
+        .. attribute:: modelVariableSets
 
         Set of variableSets in formula linkbases
 
-        ... attribute:: modelCustomFunctionSignatures
+        .. attribute:: modelCustomFunctionSignatures
 
         Dict of custom function signatures by qname
 
-        ... attribute:: modelCustomFunctionImplementations
+        .. attribute:: modelCustomFunctionImplementations
 
         Dict of custom function implementations by qname
 
-        ... attribute:: views
+        .. attribute:: views
 
         List of view objects
 
-        ... attribute:: langs
+        .. attribute:: langs
 
         Set of langs in use by modelXbrl
 
-        ... attribute:: labelRoles
+        .. attribute:: labelRoles
 
         Set of label roles in use by modelXbrl's linkbases
 
-        ... attribute:: hasXDT
+        .. attribute:: hasXDT
 
         True if dimensions discovered
 
-        ... attribute:: hasTableRendering
+        .. attribute:: hasTableRendering
 
         True if table rendering discovered
 
-        ... attribute:: hasFormulae
+        .. attribute:: hasFormulae
 
         True if formulae discovered
 
-        ... attribute:: formulaOutputInstance
+        .. attribute:: formulaOutputInstance
 
         Standard output instance if formulae produce one. 
 
-        ... attribute:: Log
+        .. attribute:: hasRendering
+
+        True if rendering tables are discovered
+
+        .. attribute:: Log
         
         Logger for modelXbrl
 
@@ -241,6 +245,7 @@ class ModelXbrl:
         self.modelVariableSets = set()
         self.modelCustomFunctionSignatures = {}
         self.modelCustomFunctionImplementations = set()
+        self.modelRenderingTables = set()
         if not keepViews:
             self.views = []
         self.langs = {self.modelManager.defaultLang}

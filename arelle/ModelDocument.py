@@ -365,67 +365,67 @@ class ModelDocument:
     :param xmlDocument: lxml parsed xml document tree model of lxml proxy objects
     :type xmlDocument: lxml document
 
-        ... attribute:: modelDocument
+        .. attribute:: modelDocument
         
         Self (provided for consistency with modelObjects)
 
-        ... attribute:: modelXbrl
+        .. attribute:: modelXbrl
         
         The owning modelXbrl
 
-        ... attribute:: type
+        .. attribute:: type
         
         The enumerated document type
 
-        ... attribute:: uri
+        .. attribute:: uri
 
         Uri as discovered
 
-        ... attribute:: filepath
+        .. attribute:: filepath
         
         File path as loaded (e.g., from web cache on local drive)
 
-        ... attribute:: basename
+        .. attribute:: basename
         
         Python basename (last segment of file path)
 
-        ... attribute:: xmlDocument
+        .. attribute:: xmlDocument
         
         The lxml tree model of xml proxies
 
-        ... attribute:: targetNamespace
+        .. attribute:: targetNamespace
         
         Target namespace (if a schema)
 
-        ... attribute:: objectIndex
+        .. attribute:: objectIndex
         
         Position in lxml objects table, for use as a surrogate
 
-        ... attribute:: referencesDocument
+        .. attribute:: referencesDocument
         
         Dict of referenced documents, key is the modelDocument, value is why loaded (import, include, href)
 
-        ... attribute:: idObjects
+        .. attribute:: idObjects
         
         Dict by id of modelObjects in document
 
-        ... attribute:: modelObjects
+        .. attribute:: modelObjects
         
         List of modelObjects discovered in document in document order
 
-        ... attribute:: hrefObjects
+        .. attribute:: hrefObjects
         
         List of (modelObject, modelDocument, id) for each xlink:href
 
-        ... attribute:: schemaLocationElements
+        .. attribute:: schemaLocationElements
         
         Set of modelObject elements that have xsi:schemaLocations
 
-        ... attribute:: referencedNamespaces
+        .. attribute:: referencedNamespaces
         
         Set of referenced namespaces (by import, discovery, etc)
 
-        ... attribute:: inDTS
+        .. attribute:: inDTS
         
         Qualifies as a discovered schema per XBRL 2.1
     """
