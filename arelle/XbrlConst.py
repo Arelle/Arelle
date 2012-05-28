@@ -265,6 +265,7 @@ qnTableFilterAxis = qname("{http://xbrl.org/2011/table}table:filterAxis")
 qnTableConceptRelationshipAxis = qname("{http://xbrl.org/2011/table}table:conceptRelationshipAxis")
 qnTableDimensionRelationshipAxis = qname("{http://xbrl.org/2011/table}table:dimensionRelationshipAxis")
 qnTableRuleAxis = qname("{http://xbrl.org/2011/table}table:ruleAxis")
+qnTablePredefinedAxis = qname("{http://xbrl.org/2011/table}table:predefinedAxis")
 qnTableSelectionAxis = qname("{http://xbrl.org/2011/table}table:selectionAxis")
 qnTableTupleAxis = qname("{http://xbrl.org/2011/table}table:tupleAxis")
 

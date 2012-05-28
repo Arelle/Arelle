@@ -6,33 +6,17 @@ Created on Mar 7, 2011
 '''
 from arelle import XmlUtil, XbrlConst, XPathParser
 from arelle.ModelDtsObject import ModelResource
-from arelle.ModelValue import qname
-from arelle.ModelFormulaObject import Trace, ModelFormulaResource, ModelConceptName
+from arelle.ModelValue import qname, QName
+from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
+                                       Aspect)
 
 # Root class for rendering is formula, to allow linked and nested compiled expressions
 
-class ModelTable(ModelFormulaResource):
-    def __init__(self, modelDocument):
-        super(ModelTable, self).__init__(modelDocument)
+# 2010 EU Table linkbase
+class ModelEuTable(ModelResource):
+    def init(self, modelDocument):
+        super(ModelEuTable, self).init(modelDocument)
         
-    @property
-    def descendantArcroles(self):        
-        return (XbrlConst.tableFilter,)
-                
-    @property
-    def filterRelationships(self):
-        try:
-            return self._filterRelationships
-        except AttributeError:
-            rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
-            for rel in self.modelXbrl.relationshipSet(XbrlConst.tableFilter).fromModelObject(self):
-                if isinstance(rel.toModelObject, ModelConceptName):
-                    rels.insert(0, rel)  # put conceptName filters first
-                else:
-                    rels.append(rel)
-            self._filterRelationships = rels
-            return rels
-    
     @property
     def propertyView(self):
         return (("id", self.id),
@@ -41,10 +25,9 @@ class ModelTable(ModelFormulaResource):
     def __repr__(self):
         return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
 
-# 2010 EU Table linkbase
-class ModelAxisCoord(ModelFormulaResource):
-    def __init__(self, modelDocument):
-        super(ModelAxisCoord, self).__init__(modelDocument)
+class ModelEuAxisCoord(ModelResource):
+    def init(self, modelDocument):
+        super(ModelEuAxisCoord, self).init(modelDocument)
         
     @property
     def abstract(self):
@@ -90,13 +73,60 @@ class ModelAxisCoord(ModelFormulaResource):
         return ("axisCoord[{0}]{1})".format(self.objectId(),self.propertyView))
 
 # 2011 Table linkbase
-class ModelOpenAxis(ModelFormulaResource):
-    def __init__(self, modelDocument):
-        super(ModelOpenAxis, self).__init__(modelDocument)
+class ModelTable(ModelFormulaResource):
+    def init(self, modelDocument):
+        super(ModelTable, self).init(modelDocument)
+        self.modelXbrl.modelRenderingTables.add(self)
+        self.modelXbrl.hasRenderingTables = True
+        
+    @property
+    def aspectModel(self):
+        return self.get("aspectModel")
+
+    @property
+    def descendantArcroles(self):        
+        return (XbrlConst.tableFilter, XbrlConst.tableAxis)
                 
+    @property
+    def filterRelationships(self):
+        try:
+            return self._filterRelationships
+        except AttributeError:
+            rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
+            for rel in self.modelXbrl.relationshipSet(XbrlConst.tableFilter).fromModelObject(self):
+                if isinstance(rel.toModelObject, ModelConceptName):
+                    rels.insert(0, rel)  # put conceptName filters first
+                else:
+                    rels.append(rel)
+            self._filterRelationships = rels
+            return rels
+    
+    @property
+    def propertyView(self):
+        return (("id", self.id),
+                ("label", self.xlinkLabel))
+        
+    def __repr__(self):
+        return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
+
+class ModelOpenAxis(ModelFormulaResource):
+    def init(self, modelDocument):
+        super(ModelOpenAxis, self).init(modelDocument)
+                
+    @property
+    def variablename(self):
+        """(str) -- name attribute"""
+        return self.getStripped("name")
+
+    @property
+    def variableQname(self):
+        """(QName) -- resolved name for an XPath bound result having a QName name attribute"""
+        varName = self.variablename
+        return qname(self, varName, noPrefixIsNoNamespace=True) if varName else None
+
 class ModelPredefinedAxis(ModelOpenAxis):
-    def __init__(self, modelDocument):
-        super(ModelPredefinedAxis, self).__init__(modelDocument)
+    def init(self, modelDocument):
+        super(ModelPredefinedAxis, self).init(modelDocument)
         
     @property
     def abstract(self):
@@ -112,14 +142,10 @@ class ModelPredefinedAxis(ModelOpenAxis):
     def descendantArcroles(self):        
         return (XbrlConst.tableAxisSubtree,)
     
-class ModelRuleAxis(ModelPredefinedAxis):
-    def __init__(self, modelDocument):
-        super(ModelRuleAxis, self).__init__(modelDocument)
+class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
+    def init(self, modelDocument):
+        super(ModelRuleAxis, self).init(modelDocument)
         
-    @property
-    def parentChildOrder(self):
-        return self.get("parentChildOrder")
-    
     @property   
     def primaryItemQname(self):
         conceptRule = XmlUtil.child(self, XbrlConst.formula, "concept")
@@ -131,11 +157,16 @@ class ModelRuleAxis(ModelPredefinedAxis):
     
     @property
     def explicitDims(self):
-        return {(self.prefixedNameQname(e.get("dimension")),
-                 self.prefixedNameQname(XmlUtil.text(qn)))
-                for e in XmlUtil.children(self, XbrlConst.formula, "explicitDimension")
-                for m in XmlUtil.children(e, XbrlConst.formula, "member")
-                for qn in XmlUtil.children(m, XbrlConst.formula, "qname")}
+        dims = set()
+        for e in XmlUtil.children(self, XbrlConst.formula, "explicitDimension"):
+            d = self.prefixedNameQname(e.get("dimension"))
+            if XmlUtil.children(e, XbrlConst.formula, "omit"):
+                dims.add( (d, "omit") )
+            else:
+                for m in XmlUtil.children(e, XbrlConst.formula, "member"):
+                    for qn in XmlUtil.children(m, XbrlConst.formula, "qname"):
+                        dims.add( (d, self.prefixedNameQname(XmlUtil.text(qn))) )
+        return dims
     
     @property
     def instant(self):
@@ -160,24 +191,46 @@ class ModelRuleAxis(ModelPredefinedAxis):
         return ("explicitAxisMember[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class ModelCompositionAxis(ModelPredefinedAxis):
-    def __init__(self, modelDocument):
-        super(ModelCompositionAxis, self).__init__(modelDocument)
+    def init(self, modelDocument):
+        super(ModelCompositionAxis, self).init(modelDocument)
         
 class ModelConceptRelationshipAxis(ModelPredefinedAxis):
-    def __init__(self, modelDocument):
-        super(ModelConceptRelationshipAxis, self).__init__(modelDocument)
+    def init(self, modelDocument):
+        super(ModelConceptRelationshipAxis, self).init(modelDocument)
         
 class ModelDimensionRelationshipAxis(ModelPredefinedAxis):
-    def __init__(self, modelDocument):
-        super(ModelDimensionRelationshipAxis, self).__init__(modelDocument)
+    def init(self, modelDocument):
+        super(ModelDimensionRelationshipAxis, self).init(modelDocument)
         
+        
+coveredAspectToken = {"concept": Aspect.CONCEPT, 
+                      "entity-identifier": Aspect.VALUE, 
+                      "period-start": Aspect.START, "period-end": Aspect.END, 
+                      "period-instant": Aspect.INSTANT, "period-instant-end": Aspect.INSTANT_END, 
+                      "unit": Aspect.UNIT}
+
 class ModelSelectionAxis(ModelOpenAxis):
-    def __init__(self, modelDocument):
-        super(ModelSelectionAxis, self).__init__(modelDocument)
+    def init(self, modelDocument):
+        super(ModelSelectionAxis, self).init(modelDocument)
         
     def clear(self):
         XPathParser.clearNamedProg(self, "selectProg")
         super(ModelSelectionAxis, self).clear()
+    
+    def coveredAspect(self, varBinding, xpCtx=None):
+        try:
+            return self._coveredAspect
+        except AttributeError:
+            coveredAspect = self.get("coveredAspect")
+            if coveredAspect in coveredAspectToken:
+                self._coveredAspect = coveredAspectToken[coveredAspect]
+            else:  # must be a qname
+                self._coveredAspect = qname(self, coveredAspect)
+            return self._coveredAspect
+
+    @property
+    def select(self):
+        return self.get("select")
     
     def compile(self):
         if not hasattr(self, "selectProg"):
@@ -194,8 +247,8 @@ class ModelSelectionAxis(ModelOpenAxis):
             return None
             
 class ModelFilterAxis(ModelOpenAxis):
-    def __init__(self, modelDocument):
-        super(ModelFilterAxis, self).__init__(modelDocument)
+    def init(self, modelDocument):
+        super(ModelFilterAxis, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):        
@@ -216,18 +269,22 @@ class ModelFilterAxis(ModelOpenAxis):
             return rels
     
 class ModelTupleAxis(ModelOpenAxis):
-    def __init__(self, modelDocument):
-        super(ModelTupleAxis, self).__init__(modelDocument)
+    def init(self, modelDocument):
+        super(ModelTupleAxis, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableAxisFilter,)
+        return (XbrlConst.tableTupleContent,)
+        
+    @property
+    def contentRelationships(self):
+        return self.modelXbrl.relationshipSet(XbrlConst.tableTupleContent).fromModelObject(self)
         
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((
-    (XbrlConst.qnEuTable, ModelTable),
+    (XbrlConst.qnEuTable, ModelEuTable),
+    (XbrlConst.qnEuAxisCoord, ModelEuAxisCoord),
     (XbrlConst.qnTableTable, ModelTable),
-    (XbrlConst.qnEuAxisCoord, ModelAxisCoord),
     (XbrlConst.qnTableRuleAxis, ModelRuleAxis),
     (XbrlConst.qnTableCompositionAxis, ModelCompositionAxis),
     (XbrlConst.qnTableConceptRelationshipAxis, ModelConceptRelationshipAxis),

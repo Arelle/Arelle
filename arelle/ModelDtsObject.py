@@ -1587,7 +1587,7 @@ class ModelRelationship(ModelObject):
 
     @property
     def isComplemented(self):
-        """(bool) -- True if complemented is true (on applicable formula arcs, defaults to False if absent)"""
+        """(bool) -- True if complemented is true (on applicable formula/rendering arcs, defaults to False if absent)"""
         try:
             return self._isComplemented
         except AttributeError:
@@ -1596,7 +1596,7 @@ class ModelRelationship(ModelObject):
     
     @property
     def isCovered(self):
-        """(bool) -- True if cover is true (on applicable formula arcs, defaults to False if absent)"""
+        """(bool) -- True if cover is true (on applicable formula/rendering arcs, defaults to False if absent)"""
         try:
             return self._isCovered
         except AttributeError:

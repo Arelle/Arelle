@@ -1,6 +1,6 @@
 '''
-Save SKOS is an example of a plug-in to both GUI menu and command line/web service
-that will save the concepts a DTS into an RDF file.
+Update Table Linkbase is an example of a plug-in to both GUI menu and command line/web service
+that updates a table linkbase from Eurofiling 2010 syntax to XII 2011 PWD syntax and saves it.
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
@@ -9,7 +9,7 @@ def generateUpdatedTableLB(dts, updatedTableLinkbaseFile):
     import os, io
     from arelle import XmlUtil, XbrlConst
     from arelle.ViewUtil import viewReferences, referenceURI
-    from arelle.ModelRenderingObject import ModelAxisCoord
+    from arelle.ModelRenderingObject import ModelEuAxisCoord
     
     if dts.fileSource.isArchive:
         dts.error("genTblLB:outFileIsArchive",
@@ -84,7 +84,7 @@ http://xbrl.org/2008/filter/dimension http://www.xbrl.org/2008/dimension-filter.
         if srcTblElt is not None:
             for rel in tblAxisRelSet.fromModelObject(srcTblElt):
                 srcAxisElt = rel.toModelObject
-                if isinstance(srcAxisElt, ModelAxisCoord):
+                if isinstance(srcAxisElt, ModelEuAxisCoord):
                     visited.add(srcAxisElt)
                     newAxisElt = etree.SubElement(newLinkElt, "{http://xbrl.org/2011/table}ruleAxis")
                     copyAttrs(srcAxisElt, newAxisElt, ("id", 
@@ -105,7 +105,7 @@ http://xbrl.org/2008/filter/dimension http://www.xbrl.org/2008/dimension-filter.
     def generateAxis(newLinkElt, newAxisParentElt, srcAxisElt, axisMbrRelSet, visited):
         for rel in axisMbrRelSet.fromModelObject(srcAxisElt):
             tgtAxisElt = rel.toModelObject
-            if isinstance(tgtAxisElt, ModelAxisCoord) and tgtAxisElt not in visited:
+            if isinstance(tgtAxisElt, ModelEuAxisCoord) and tgtAxisElt not in visited:
                 visited.add(tgtAxisElt)
                 newAxisElt = etree.SubElement(newLinkElt, "{http://xbrl.org/2011/table}ruleAxis")
                 copyAttrs(tgtAxisElt, newAxisElt, ("id", 

@@ -43,6 +43,24 @@ arcroleChecks = {
     XbrlConst.functionImplementation: (XbrlConst.qnCustomFunctionSignature,
                                       XbrlConst.qnCustomFunctionImplementation,
                                       "xbrlcfie:info"),
+    XbrlConst.tableAxis:            (XbrlConst.qnTableTable,
+                                     (XbrlConst.qnTablePredefinedAxis, 
+                                      XbrlConst.qnTableFilterAxis,
+                                      XbrlConst.qnTableSelectionAxis, 
+                                      XbrlConst.qnTableTupleAxis),
+                                     "xbrlte:info"),
+    XbrlConst.tableFilter:          (XbrlConst.qnTableTable, 
+                                     XbrlConst.qnVariableFilter, 
+                                     "xbrlte:info"),
+    XbrlConst.tableAxisSubtree:     (XbrlConst.qnTablePredefinedAxis, 
+                                     XbrlConst.qnTablePredefinedAxis, 
+                                     "xbrlte:info"),
+    XbrlConst.tableAxisFilter:      (XbrlConst.qnTableFilterAxis, 
+                                     XbrlConst.qnVariableFilter, 
+                                     "xbrlte:info"),
+    XbrlConst.tableTupleContent:    (XbrlConst.qnTableTupleAxis, 
+                                     XbrlConst.qnTableRuleAxis, 
+                                     "xbrlte:info"),
     }
 def checkBaseSet(val, arcrole, ELR, relsSet):
     # check hypercube-dimension relationships
@@ -483,6 +501,17 @@ def validate(val):
         varSetInstanceDependencies.clear()
 
     val.modelXbrl.profileActivity("... assertion and formula checks and compilation", minTimeToShow=1.0)
+            
+    for modelTable in val.modelXbrl.modelRenderingTables:
+        modelTable.fromInstanceQnames = None # required if referred to by variables scope chaining
+        if modelTable.aspectModel not in ("non-dimensional", "dimensional"):
+            val.modelXbrl.error("xbrlte:unknownAspectModel",
+                _("Table %(xlinkLabel)s, aspect model %(aspectModel)s not recognized"),
+                modelObject=modelTable, xlinkLabel=modelTable.xlinkLabel, aspectModel=modelTable.aspectModel)
+        modelTable.compile()
+        # TBD check ruleAxes
+
+    val.modelXbrl.profileActivity("... rendering tables and axes checks and compilation", minTimeToShow=1.0)
             
     # determine instance dependency order
     orderedInstancesSet = set()

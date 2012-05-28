@@ -286,7 +286,7 @@ class ValidateXbrl:
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
             elif modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith):
                 ValidateXbrlDimensions.checkBaseSet(self, arcrole, ELR, relsSet)             
-            elif modelXbrl.hasFormulae and arcrole.startswith(XbrlConst.formulaStartsWith):
+            elif (modelXbrl.hasFormulae or modelXbrl.hasTableRendering) and arcrole.startswith(XbrlConst.formulaStartsWith):
                 ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)
         modelXbrl.isDimensionsValidated = True
                             
@@ -588,7 +588,7 @@ class ValidateXbrl:
             (self.validateEFM and any(modelDoc.definesUTR for modelDoc in self.modelXbrl.urlDocs.values()))):
             ValidateUtr.validate(modelXbrl)
             
-        if modelXbrl.hasFormulae:
+        if modelXbrl.hasFormulae or modelXbrl.modelRenderingTables:
             ValidateFormula.validate(self)
             
         modelXbrl.modelManager.showStatus(_("ready"), 2000)

@@ -282,6 +282,8 @@ def checkContext(val, cntx):
                     if isinstance(element,ModelObject):
                         if problem is None:
                             problem = _("multiple contents")
+                        elif typedDomainConcept is None:
+                            problem = _("Missing domain element schema definition for {0}").format(dimensionConcept.typedDomainRef)
                         elif element.localName != typedDomainConcept.name or \
                             element.namespaceURI != typedDomainConcept.qname.namespaceURI:
                             problem = _("wrong content {0}").format(element.prefixedName)

@@ -6,18 +6,18 @@ Created on Dec 9, 2010
 '''
 from collections import defaultdict
 import datetime, re
-from arelle import (XmlUtil, XbrlConst, XPathParser, XPathContext)
-from arelle.ModelValue import (qname, QName)
+from arelle import XmlUtil, XbrlConst, XPathParser, XPathContext
+from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
-from arelle.XbrlUtil import (typedValue)
+from arelle.XbrlUtil import typedValue
 
 class Aspect:
     LOCATION = 1; LOCATION_RULE = 101
     CONCEPT = 2
     ENTITY_IDENTIFIER = 3; VALUE = 31; SCHEME = 32
-    PERIOD = 4; PERIOD_TYPE = 41; START = 42; END = 43; INSTANT = 44
+    PERIOD = 4; PERIOD_TYPE = 41; START = 42; END = 43; INSTANT = 44; INSTANT_END = 45
     UNIT = 5; UNIT_MEASURES = 51; MULTIPLY_BY = 52; DIVIDE_BY = 53; AUGMENT = 54
     COMPLETE_SEGMENT = 6
     COMPLETE_SCENARIO = 7
@@ -55,7 +55,7 @@ aspectModelAspect = {   # aspect of the model that corresponds to retrievable as
     Aspect.VALUE: Aspect.ENTITY_IDENTIFIER, Aspect.SCHEME:Aspect.ENTITY_IDENTIFIER,
     Aspect.PERIOD_TYPE: Aspect.PERIOD, 
     Aspect.START: Aspect.PERIOD, Aspect.END: Aspect.PERIOD, 
-    Aspect.INSTANT: Aspect.PERIOD,
+    Aspect.INSTANT: Aspect.PERIOD, Aspect.INSTANT_END: Aspect.PERIOD,
     Aspect.UNIT_MEASURES: Aspect.UNIT, Aspect.MULTIPLY_BY: Aspect.UNIT, Aspect.DIVIDE_BY: Aspect.UNIT
     }
 
@@ -102,6 +102,7 @@ aspectElementNameAttrValue = {
         Aspect.INSTANT: ("period", XbrlConst.formula, None, None),
         Aspect.START: ("period", XbrlConst.formula, None, None),
         Aspect.END: ("period", XbrlConst.formula, None, None),
+        Aspect.INSTANT_END: ("period", XbrlConst.formula, None, None),
         Aspect.UNIT: ("unit", XbrlConst.formula, None, None),
         Aspect.UNIT_MEASURES: ("unit", XbrlConst.formula, None, None),
         Aspect.MULTIPLY_BY: ("multiplyBy", XbrlConst.formula, "source", "*"),
@@ -255,9 +256,9 @@ class ModelVariableSet(ModelFormulaResource):
     def __repr__(self):
         return ("modelVariableSet[{0}]{1})".format(self.objectId(),self.propertyView))
 
-class ModelFormula(ModelVariableSet):
+class ModelFormulaRules:
     def init(self, modelDocument):
-        super(ModelFormula, self).init(modelDocument)
+        super(ModelFormulaRules, self).init(modelDocument)
         
     def clear(self):
         if hasattr(self, "valueProg"):
@@ -268,7 +269,7 @@ class ModelFormula(ModelVariableSet):
             self.aspectValues.clear()
             self.aspectProgs.clear()
             self.typedDimProgAspects.clear()
-        super(ModelFormula, self).clear()
+        super(ModelFormulaRules, self).clear()
     
     def compile(self):
         if not hasattr(self, "valueProg"):
@@ -361,10 +362,10 @@ class ModelFormula(ModelVariableSet):
                             aspect, expr = aspectExpr
                             self.aspectProgs[aspect].append(XPathParser.parse(self, expr, ruleElt, ruleElt.localName, Trace.FORMULA_RULES))
                         exprs = []
-            super(ModelFormula, self).compile()
+            super(ModelFormulaRules, self).compile()
 
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(ModelFormula, self).variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet)
+        return super(ModelFormulaRules, self).variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet)
 
     def evaluate(self, xpCtx):
         return xpCtx.atomize( xpCtx.progHeader, xpCtx.evaluate( self.valueProg ) )
@@ -386,7 +387,7 @@ class ModelFormula(ModelVariableSet):
             type = 'xs:string'
         elif aspect == Aspect.START:
             type = 'xs:DATETIME_START'
-        elif aspect in (Aspect.INSTANT, Aspect.END):
+        elif aspect in (Aspect.INSTANT, Aspect.END, Aspect.INSTANT_END):
             type = 'xs:DATETIME_INSTANT_END'
         elif aspect in (Aspect.DECIMALS, Aspect.PRECISION):
             type = 'xs:float'
@@ -436,6 +437,10 @@ class ModelFormula(ModelVariableSet):
                     for d in XmlUtil.descendants(self, XbrlConst.formula, ("explicitDimension", "typedDimension"))
                     if aspect == qname(d, d.get("dimension"))]
         return []
+        
+class ModelFormula(ModelFormulaRules, ModelVariableSet):
+    def init(self, modelDocument):
+        super(ModelFormula, self).init(modelDocument)
         
     @property
     def propertyView(self):
