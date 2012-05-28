@@ -176,7 +176,7 @@ def saveSkosMenuCommand(cntlr):
     if not skosFile:
         return False
     import os
-    cntlr.config["skosfileDir"] = os.path.dirname(skosFile)
+    cntlr.config["skosFileDir"] = os.path.dirname(skosFile)
     cntlr.saveConfig()
 
     try: 
