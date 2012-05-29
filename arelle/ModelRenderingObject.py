@@ -124,6 +124,14 @@ class ModelOpenAxis(ModelFormulaResource):
         varName = self.variablename
         return qname(self, varName, noPrefixIsNoNamespace=True) if varName else None
 
+    @property   
+    def primaryItemQname(self):  # for compatibility with viewRelationsihps
+        return None
+        
+    @property
+    def explicitDims(self):
+        return set()
+    
 class ModelPredefinedAxis(ModelOpenAxis):
     def init(self, modelDocument):
         super(ModelPredefinedAxis, self).init(modelDocument)
