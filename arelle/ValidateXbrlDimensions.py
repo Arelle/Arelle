@@ -105,7 +105,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             fromConcept = modelRel.fromModelObject
             toConcept = modelRel.toModelObject
             if fromConcept is not None and toConcept is not None:   # none if failed to load
-                if not fromConcept.isDimensionItem:
+                if not isinstance(fromConcept, ModelConcept) or not fromConcept.isDimensionItem:
                     val.modelXbrl.error("xbrldte:DimensionDomainSourceError",
                         _("Dimension-domain relationship from %(source)s to %(target)s in link role %(linkrole)s must have a dimension declaration source"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
@@ -113,7 +113,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     val.modelXbrl.error("xbrldte:DimensionDomainSourceError",
                         _("Dimension-domain relationship from %(source)s to %(target)s in link role %(linkrole)s has a typed dimension source"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-                if not toConcept.isDomainMember:
+                if not isinstance(toConcept, ModelConcept) or not toConcept.isDomainMember:
                     val.modelXbrl.error("xbrldte:DimensionDomainTargetError",
                         _("Dimension-domain relationship from %(source)s to %(target)s in link role %(linkrole)s must have a domain member target"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
@@ -123,7 +123,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             fromConcept = modelRel.fromModelObject
             toConcept = modelRel.toModelObject
             if fromConcept is not None and toConcept is not None:
-                if not fromConcept.isDimensionItem:
+                if not isinstance(fromConcept, ModelConcept) or not fromConcept.isDimensionItem:
                     val.modelXbrl.error("xbrldte:DimensionDefaultSourceError",
                         _("Dimension-default relationship from %(source)s to %(target)s in link role %(linkrole)s must have a dimension declaration source"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
@@ -131,7 +131,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     val.modelXbrl.error("xbrldte:DimensionDefaultSourceError",
                         _("Dimension-default relationship from %(source)s to %(target)s in link role %(linkrole)s has a typed dimension source"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-                if not toConcept.isDomainMember:
+                if not isinstance(toConcept, ModelConcept) or not toConcept.isDomainMember:
                     val.modelXbrl.error("xbrldte:DimensionDefaultTargetError",
                         _("Dimension-default relationship from %(source)s to %(target)s in link role %(linkrole)s must have a domain member target"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
@@ -151,11 +151,11 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                 for domMbrRel in rels:
                     toConcept = domMbrRel.toModelObject
                     if toConcept is not None:
-                        if not priItemConcept.isDomainMember:
+                        if not isinstance(priItemConcept, ModelConcept) or not priItemConcept.isDomainMember:
                             val.modelXbrl.error("xbrldte:DomainMemberSourceError",
                                 _("Domain-Member relationship from %(source)s to %(target)s in link role %(linkrole)s must have a domain primary item or domain member source"),
                                 modelObject=domMbrRel, source=priItemConcept.qname, target=toConcept.qname, linkrole=ELR)
-                        if not toConcept.isDomainMember:
+                        if not isinstance(toConcept, ModelConcept) or not toConcept.isDomainMember:
                             val.modelXbrl.error("xbrldte:DomainMemberTargetError",
                                 _("Domain-Member relationship from %(source)s to %(target)s in link role %(linkrole)s must have a domain primary item or domain member target"),
                                 modelObject=domMbrRel, source=priItemConcept.qname, target=toConcept.qname, linkrole=ELR)
