@@ -156,7 +156,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if concept.get("abstract") == "true":
                 self.treeView.set(childnode, "abstract", '\u2713') # checkmark unicode character
             if isRelation:
-                self.treeView.set(childnode, "axis", modelObject.get("axisDisposition"))
+                self.treeView.set(childnode, "axis", modelObject.axisDisposition)
                 if isinstance(concept, (ModelEuAxisCoord,ModelRuleAxis)):
                     self.treeView.set(childnode, "priItem", concept.primaryItemQname)
                     self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim[0],dim[1]) for dim in concept.explicitDims)))

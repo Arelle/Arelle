@@ -105,7 +105,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.viewFrame.clearGrid()
 
         tblAxisRelSet, xAxisObj, yAxisObj, zAxisObjs = getTblAxes(self, viewTblELR) 
-        if self.zComboBoxIndex is None:
+        if self.zComboBoxIndex is None or viewTblELR is not None: # always reload when going to new table
             self.zComboBoxIndex = list(repeat(0, len(zAxisObjs))) # start with 0 indices
             self.zFilterIndex = list(repeat(0, len(zAxisObjs)))
         
