@@ -632,11 +632,11 @@ def avg(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return sum( xc.atomize( p, args[0] ) ) / len( args[0] )
 
-def max(xc, p, contextItem, args):
+def fn_max(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return max( xc.atomize( p, args[0] ) )
 
-def min(xc, p, contextItem, args):
+def fn_min(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return min( xc.atomize( p, args[0] ) )
 
@@ -812,8 +812,8 @@ fnFunctions = {
     'deep-equal': deep_equal,
     'count': count,
     'avg': avg,
-    'max': max,
-    'min': min,
+    'max': fn_max,
+    'min': fn_min,
     'sum': fn_sum,
     'id': id,
     'idref': idref,
