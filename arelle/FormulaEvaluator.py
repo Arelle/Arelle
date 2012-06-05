@@ -303,7 +303,7 @@ def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
                     modelObject=vb.var, variable=vb.qname,
                     filterType=typeLbl, filter=_filter.localName, xlinkLabel=_filter.xlinkLabel, factCount=len(result)),
             if orFilter: 
-                factSet.update(result)
+                factSet |= result
             else: 
                 facts = result
             if not groupFilter and varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks

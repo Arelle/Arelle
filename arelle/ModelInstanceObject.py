@@ -400,7 +400,7 @@ class ModelFact(ModelObject):
     @property
     def propertyView(self):
         try:
-            concept = self.modelXbrl.qnameConcepts[self.qname]
+            concept = self.concept
             lbl = (("label", concept.label(lang=self.modelXbrl.modelManager.defaultLang)),)
         except KeyError:
             lbl = (("name", self.qname),)
@@ -683,8 +683,12 @@ class ModelContext(ModelObject):
     @property
     def entityIdentifier(self):
         """( (str,str) ) -- tuple of (scheme value, identifier value)"""
-        eiElt = self.entityIdentifierElement
-        return (eiElt.get("scheme"), eiElt.xValue)
+        try:
+            return self._entityIdentifier
+        except AttributeError:
+            eiElt = self.entityIdentifierElement
+            self._entityIdentifier = (eiElt.get("scheme"), eiElt.xValue)
+            return self._entityIdentifier
 
     @property
     def entityIdentifierHash(self):
@@ -1100,11 +1104,12 @@ class ModelUnit(ModelObject):
 
     @property
     def propertyView(self):
-        if self.isDivide:
-            return tuple(('mul',m) for m in self.measures[0]) + \
-                   tuple(('div',d) for d in self.measures[1]) 
+        measures = self.measures
+        if measures[1]:
+            return tuple(('mul',m) for m in measures[0]) + \
+                   tuple(('div',d) for d in measures[1]) 
         else:
-            return tuple(('',m) for m in self.measures[0])
+            return tuple(('',m) for m in measures[0])
 
 from arelle.ModelFormulaObject import Aspect
 from arelle import FunctionIxt

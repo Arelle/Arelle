@@ -122,6 +122,7 @@ variable = "http://xbrl.org/2008/variable"
 qnVariableSet = qname("{http://xbrl.org/2008/variable}variable:variableSet")
 qnVariableVariable = qname("{http://xbrl.org/2008/variable}variable:variable")
 qnVariableFilter = qname("{http://xbrl.org/2008/variable}variable:filter")
+qnVariableFilterArc = qname("{http://xbrl.org/2008/variable}variable:variableFilterArc")
 qnParameter = qname("{http://xbrl.org/2008/variable}variable:parameter")
 qnFactVariable = qname("{http://xbrl.org/2008/variable}variable:factVariable")
 qnGeneralVariable = qname("{http://xbrl.org/2008/variable}variable:generalVariable")

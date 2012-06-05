@@ -8,6 +8,8 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 from lxml import etree
 from collections import namedtuple
 
+emptySet = set()
+
 class ModelObject(etree.ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom 
     lxml proxy objects.  Each modelDocument has a parser with the parser objects in ModelObjectFactory.py, 
@@ -116,6 +118,10 @@ class ModelObject(etree.ElementBase):
         
     def attr(self, attrname):
         return self.get(attrname)
+    
+    @property
+    def slottedAttributesNames(self):
+        return emptySet
 
     def setNamespaceLocalName(self):
         ns, sep, ln = self.tag.partition("}")

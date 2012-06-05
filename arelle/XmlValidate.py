@@ -13,11 +13,12 @@ validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
 ModelInlineFact = None
 
-UNKNOWN = 0
-INVALID = 1
-NONE = 2
-VALID = 3 # values >= VALID are valid
-VALID_ID = 4
+UNVALIDATED = 0
+UNKNOWN = 1
+INVALID = 2
+NONE = 3
+VALID = 4 # values >= VALID are valid
+VALID_ID = 5
 
 normalizeWhitespacePattern = re.compile(r"\s")
 collapseWhitespacePattern = re.compile(r"\s+")
@@ -53,6 +54,8 @@ predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("language",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
 
+xAttributesSharedEmptyDict = {}
+
 def xhtmlValidate(modelXbrl, elt):
     from lxml.etree import DTD, XMLSyntaxError
     # copy xhtml elements to fresh tree
@@ -76,9 +79,9 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
     isIxFact = isinstance(elt, ModelInlineFact)
 
     # attrQname can be provided for attributes that are global and LAX
-    if not hasattr(elt,"xValid") and (not isIxFact or ixFacts):
+    if (not hasattr(elt,"xValid") or elt.xValid == UNVALIDATED) and (not isIxFact or ixFacts):
         text = elt.elementText
-        qnElt = elt.qname if ixFacts and isIxFact else qname(elt)
+        qnElt = elt.qname if ixFacts and isIxFact else elt.elementQname
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         facets = None
         if modelConcept is not None:
@@ -111,8 +114,6 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
             else:
                 definedAttributes = {}
             presentAttributes = set()
-        if not hasattr(elt, "xAttributes"):
-            elt.xAttributes = {}
         # validate attributes
         # find missing attributes for default values
         for attrTag, attrValue in elt.items():
@@ -152,9 +153,15 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 elif qn in predefinedAttributeTypes:
                     baseXsdAttrType, facets = predefinedAttributeTypes[qn]
             validateValue(modelXbrl, elt, attrTag, baseXsdAttrType, attrValue, facets=facets)
+        # if no attributes assigned above, there won't be an xAttributes, if so assign a shared dict to save memory
+        try:
+            elt.xAttributes
+        except AttributeError:
+            elt.xAttributes = xAttributesSharedEmptyDict
+            
         if type is not None:
             if attrQname is None:
-                missingAttributes = type.requiredAttributeQnames - presentAttributes
+                missingAttributes = type.requiredAttributeQnames - presentAttributes - elt.slottedAttributesNames
                 if missingAttributes:
                     modelXbrl.error("xmlSchema:attributesRequired",
                         _("Element %(element)s type %(typeName)s missing required attributes: %(attributes)s"),
@@ -335,7 +342,11 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
         xValue = sValue = None
         xValid = UNKNOWN
     if attrTag:
-        elt.xAttributes[attrTag] = ModelAttribute(elt, attrTag, xValid, xValue, sValue, value)
+        try:  # dynamically allocate attributes (otherwise given shared empty set)
+            xAttributes = elt.xAttributes
+        except AttributeError:
+            elt.xAttributes = xAttributes = {}
+        xAttributes[attrTag] = ModelAttribute(elt, attrTag, xValid, xValue, sValue, value)
     else:
         elt.xValid = xValid
         elt.xValue = xValue

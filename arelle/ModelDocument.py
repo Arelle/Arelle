@@ -4,14 +4,16 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, sys
 from lxml import etree
+from xml.sax import SAXParseException
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
+from arelle.PluginManager import pluginClassMethods
 
 def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False):
     """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema, 
@@ -86,6 +88,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         else:
             file, _encoding = modelXbrl.fileSource.file(filepath)
         _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
+        xmlDocument = None
+        isPluginParserDocument = False
+        for pluginMethod in pluginClassMethods("ModelDocument.CustomLoader"):
+            modelDocument = pluginMethod(modelXbrl, file, mappedUri, filepath)
+            if modelDocument is not None:
+                return modelDocument
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         file.close()
     except (EnvironmentError, KeyError) as err:  # missing zip file raises KeyError
@@ -100,6 +108,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
         return None
     except (etree.LxmlError,
+            SAXParseException,
             ValueError) as err:  # ValueError raised on bad format of qnames, xmlns'es, or parameters
         if file:
             file.close()
