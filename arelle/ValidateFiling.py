@@ -900,6 +900,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             
         conceptsUsedWithPreferredLabels = defaultdict(list)
         usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
+        localPreferredLabels = defaultdict(set)
         drsELRs = set()
         
         # do calculation, then presentation, then other arcroles
@@ -923,7 +924,6 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     ineffectivity=modelRel.ineffectivity)
                     if arcrole == XbrlConst.parentChild:
                         conceptsPresented = set()
-                        localPreferredLabels = {}
                         # 6.12.2 check for distinct order attributes
                         for relFrom, rels in modelXbrl.relationshipSet(arcrole, ELR).fromModelObjects().items():
                             targetConceptPreferredLabels = defaultdict(dict)
@@ -981,12 +981,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     localPreferredLabels[relTo].add(preferredLabel)
                             targetConceptPreferredLabels.clear()
                             orderRels.clear()
+                        localPreferredLabels.clear() # clear for next relationship
                         for conceptPresented in conceptsPresented:
                             if conceptPresented in usedCalcsPresented:
                                 usedCalcPairingsOfConcept = usedCalcsPresented[conceptPresented]
                                 if len(usedCalcPairingsOfConcept & conceptsPresented) > 0:
                                     usedCalcPairingsOfConcept -= conceptsPresented
-                        del localPreferredLabels
                     elif arcrole == XbrlConst.summationItem:
                         if self.validateEFMorGFM:
                             # 6.14.3 check for relation concept periods
@@ -1089,6 +1089,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in base set role %(linkrole)s to concept %(conceptTo)s"),
                                         modelObject=(rel, relFrom, relTo), arc=rel.qname, conceptFrom=relFrom.qname, linkrole=rel.linkrole, conceptTo=rel.toModelObject.qname)
 
+        del localPreferredLabels # dereference
         self.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
 
                                 

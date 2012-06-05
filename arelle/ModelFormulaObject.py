@@ -1360,9 +1360,9 @@ class ModelConceptRelation(ModelFilter):
 
     @property
     def arcQname(self):
-        arcname = XmlUtil.child(self, XbrlConst.crf, "arcname")
-        if arcname:
-            return qname( arcname, XmlUtil.text(arcname) )
+        arcnameElt = XmlUtil.child(self, XbrlConst.crf, "arcname")
+        if arcnameElt is not None:
+            return qname( arcnameElt, XmlUtil.text(arcnameElt) )
         return None
 
     @property
