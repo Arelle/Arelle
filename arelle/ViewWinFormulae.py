@@ -69,7 +69,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
             text = fromObject.localName
         childnode = self.treeView.insert(parentNode, "end", fromObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
         self.treeView.set(childnode, "label", fromObject.xlinkLabel)
-        if fromRel is not None and fromRel.arcrole == XbrlConst.variableFilter:
+        if fromRel is not None and fromRel.elementQname == XbrlConst.qnVariableFilterArc:
             self.treeView.set(childnode, "cover", "true" if fromRel.isCovered else "false")
             self.treeView.set(childnode, "complement", "true" if fromRel.isComplemented else "false")
         if isinstance(fromObject, ModelVariable):

@@ -62,7 +62,7 @@ class ViewFormulae(ViewFile.View):
             text = fromObject.localName
             xmlRowEltAttr = {"type": str(fromObject.localName)}
         cols = [text, fromObject.xlinkLabel] # label
-        if fromRel is not None and fromRel.arcrole == XbrlConst.variableFilter:
+        if fromRel is not None and fromRel.elementQname == XbrlConst.qnVariableFilterArc:
             cols.append("true" if fromRel.isCovered else "false") # cover
             cols.append("true" if fromRel.isComplemented else "false") #complement
         else:
