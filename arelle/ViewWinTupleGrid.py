@@ -29,7 +29,7 @@ def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
         view.blockViewModelObject = 0
         view.viewFrame.bind("<Enter>", view.cellEnter, '+')
         view.viewFrame.bind("<Leave>", view.cellLeave, '+')
-        modelXbrl.modelManager.showStatus(_("Ready..."), clearAfter=2000)
+        return view
     else:
         modelXbrl.modelManager.showStatus(_("viewing tuples requires selecting the tuple to report"), clearAfter=2000)
             
