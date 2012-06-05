@@ -37,8 +37,8 @@ def init(cntlr):
     webCache = cntlr.webCache
     
 def reset():  # force reloading modules and plugin infos
-    modulePluginInfos = {}  # dict of loaded module pluginInfo objects by module names
-    pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
+    modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
+    pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
     
 def orderedPluginConfig():
     return OrderedDict(
@@ -70,6 +70,7 @@ def save(cntlr):
 def close():  # close all loaded methods
     modulePluginInfos.clear()
     pluginMethodsForClasses.clear()
+    global webCache
     webCache = None
 
 ''' pluginInfo structure:
@@ -111,8 +112,11 @@ def modulesWithNewerFileDates():
     names = set()
     for moduleInfo in pluginConfig["modules"].values():
         freshenedFilename = webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True)
-        if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
-            names.add(moduleInfo["name"])
+        try:
+            if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
+                names.add(moduleInfo["name"])
+        except Exception:
+            pass
     return names
 
 def moduleModuleInfo(moduleURL, reload=False):
@@ -200,12 +204,13 @@ def pluginClassMethods(className):
                 for moduleName in pluginConfig["classes"].get(className):
                     if moduleName and moduleName in pluginConfig["modules"]:
                         moduleInfo = pluginConfig["modules"][moduleName]
-                        if moduleName not in modulePluginInfos:
-                            loadModule(moduleInfo)
-                        if moduleName in modulePluginInfos:
-                            pluginInfo = modulePluginInfos[moduleName]
-                            if className in pluginInfo:
-                                pluginMethodsForClass.append(pluginInfo[className])
+                        if moduleInfo["status"] == "enabled":
+                            if moduleName not in modulePluginInfos:
+                                loadModule(moduleInfo)
+                            if moduleName in modulePluginInfos:
+                                pluginInfo = modulePluginInfos[moduleName]
+                                if className in pluginInfo:
+                                    pluginMethodsForClass.append(pluginInfo[className])
             pluginMethodsForClasses[className] = pluginMethodsForClass
         for method in pluginMethodsForClass:
             yield method
