@@ -135,6 +135,17 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         # type classification
         if ns == XbrlConst.xsd and ln == "schema":
             type = Type.SCHEMA
+            if not isEntry and not isIncluded:
+                # check if already loaded under a different url
+                targetNamespace = rootNode.get("targetNamespace")
+                if targetNamespace and modelXbrl.namespaceDocs.get(targetNamespace):
+                    otherModelDoc = modelXbrl.namespaceDocs[targetNamespace][0]
+                    if otherModelDoc.basename == os.path.basename(uri):
+                        modelXbrl.urlDocs[uri] = otherModelDoc
+                        modelXbrl.warning("info:duplicatedSchema",
+                                _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
+                                modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
+                        return otherModelDoc 
         elif ns == XbrlConst.link:
             if ln == "linkbase":
                 type = Type.LINKBASE
