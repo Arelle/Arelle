@@ -483,16 +483,25 @@ def validateTextBlockFacts(modelXbrl):
                                 (attrTag == "src" and eltTag == "img")):
                                 if "javascript:" in attrValue:
                                     modelXbrl.error("EFM.6.05.16",
-                                        _("Fact %(fact)s of context %(contextID) has javascript in '%(attribute)s' for <%(element)s>"),
+                                        _("Fact %(fact)s of context %(contextID)s has javascript in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
                                 elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
                                     pass
                                 elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
                                     modelXbrl.error("EFM.6.05.16",
-                                        _("Fact %(fact)s of context %(contextID) has an invalid external reference in '%(attribute)s' for <%(element)s>"),
+                                        _("Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
+                                if attrTag == "src" and attrValue.lower()[-4:] not in ('.jpg', '.gif'):
+                                    modelXbrl.error("EFM.6.05.16",
+                                        _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                        attribute=attrValue, element=eltTag)
+                        if eltTag == "table" and any(a is not None for a in elt.iterancestors("table")):
+                            modelXbrl.error("EFM.6.05.16",
+                                _("Fact %(fact)s of context %(contextID)s has nested <table> elements."),
+                                modelObject=f1, fact=f1.qname, contextID=f1.contextID)
                 except (XMLSyntaxError,
                         UnicodeDecodeError) as err:
                     #if not err.endswith("undefined entity"):
@@ -540,6 +549,15 @@ def validateFootnote(modelXbrl, footnote):
                             _("Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
                             modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
                             attribute=attrTag, element=eltTag, value=attrValue)
+                    if attrTag == "src" and attrValue.lower()[-4:] not in ('.jpg', '.gif'):
+                        modelXbrl.error("EFM.6.05.34",
+                            _("Footnote %(xlinkLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
+                            modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+                            attribute=attrValue, element=eltTag)
+            if eltTag == "table" and any(a is not None for a in elt.iterancestors("table")):
+                modelXbrl.error("EFM.6.05.34",
+                    _("Footnote %(xlinkLabel)s has nested <table> elements."),
+                    modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"))
     except (XMLSyntaxError,
             UnicodeDecodeError) as err:
         #if not err.endswith("undefined entity"):
