@@ -266,7 +266,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 deiItems[factElementName] = value
                                 if entityIdentifierValue != value:
                                     self.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s is must match the context entity identifier %(entityIdentifer)s"),
+                                        _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifer)s"),
                                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
                                         value=value, entityIdentifer=entityIdentifierValue)
                                 if paramFilerIdentifier and value != paramFilerIdentifier:
