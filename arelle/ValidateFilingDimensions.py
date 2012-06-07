@@ -169,12 +169,18 @@ def checkDimensions(val, drsELRs):
                                 modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, arcrole=os.path.basename(modelRel.arcrole), 
                                 fromConcept=modelRel.fromModelObject.qname, toConcept=modelRel.toModelObject.qname)
         domainsInLinkrole = defaultdict(set)
-        dimDomsByLinkrole = defaultdict(set)
+        dimDomMemsByLinkrole = defaultdict(set)
         for rel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain).modelRelationships:
             relFrom = rel.fromModelObject
             relTo = rel.toModelObject
             domainsInLinkrole[rel.targetRole].add(relFrom)
-            dimDomsByLinkrole[(rel.linkrole,relFrom)].add(relTo)
+            domMems = set() # determine usable dom and mems of dimension in this linkrole
+            if rel.isUsable:
+                domMems.add(relTo)
+            for relMem in val.modelXbrl.relationshipSet(XbrlConst.domainMember, (rel.targetRole or rel.linkrole)).fromModelObject(relTo):
+                if relMem.isUsable:
+                    domMems.add(relMem.toModelObject)
+            dimDomMemsByLinkrole[(rel.linkrole,relFrom)].update(domMems)
             if rel.isUsable and val.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.targetRole).fromModelObject(relTo):
                 val.modelXbrl.error("SBR.NL.2.3.7.05",
                     _("Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain with members %(domain)s"),
@@ -197,16 +203,16 @@ def checkDimensions(val, drsELRs):
                     _("Linkrole %(linkrole)s, has multiple domains %(domains)s"),
                     modelObject=val.modelXbrl, linkrole=linkrole, domains=", ".join([str(dom.qname) for dom in domains]))
         del domainsInLinkrole   # dereference
-        linkrolesByDimDoms = defaultdict(set)
-        for linkroleDim, doms in dimDomsByLinkrole.items():
+        linkrolesByDimDomMems = defaultdict(set)
+        for linkroleDim, domMems in dimDomMemsByLinkrole.items():
             linkrole, dim = linkroleDim
-            linkrolesByDimDoms[(dim,tuple(doms))].add(linkrole)
-        for dimDoms, linkroles in linkrolesByDimDoms.items():
+            linkrolesByDimDomMems[(dim,tuple(domMems))].add(linkrole)
+        for dimDomMems, linkroles in linkrolesByDimDomMems.items():
             if len(linkroles) > 1:
                 val.modelXbrl.error("SBR.NL.2.3.6.02",
-                    _("Dimension %(dimension)s domains same in linkroles %(linkroles)s"),
-                    modelObject=val.modelXbrl, dimension=dimDoms[0].qname, linkroles=', '.join(l for l in linkroles))
-        del dimDomsByLinkrole, linkrolesByDimDoms
+                    _("Dimension %(dimension)s  usable members same in linkroles %(linkroles)s"),
+                    modelObject=val.modelXbrl, dimension=dimDomMems[0].qname, linkroles=', '.join(l for l in linkroles))
+        del dimDomMemsByLinkrole, linkrolesByDimDomMems
         for rel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).modelRelationships:
             if val.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.targetRole).fromModelObject(rel.toModelObject):
                 val.modelXbrl.error("SBR.NL.2.3.7.03",
@@ -367,17 +373,16 @@ def checkSBRNLMembers(val, hc, dim, domELR, rels, ELR, isDomMbr, members=None, a
     for rel in rels:
         relFrom = rel.fromModelObject
         relTo = rel.toModelObject
-        toELR = rel.targetRole
-        if not toELR: 
-            toELR = rel.linkrole
+        toELR = (rel.targetRole or rel.linkrole)
         
         if isDomMbr or not relTo.isAbstract:
             if relTo in members:
                 val.modelXbrl.relationshipSet(XbrlConst.all).toModelObject(hc)
                 if isDomMbr:
-                    val.modelXbrl.error("SBR.NL.2.3.6.02",
-                        _("Dimension %(dimension)s in DRS role %(linkrole)s for hypercube %(hypercube)s, non-unique member %(concept)s"),
-                        modelObject=relTo, dimension=dim.qname, linkrole=ELR, hypercube=hc.qname, concept=relTo.qname) 
+                    pass # removed by RH, now checking dom/mem usable set in entirety for 2.3.6.02 above
+                    #val.modelXbrl.error("SBR.NL.2.3.6.02",
+                    #    _("Dimension %(dimension)s in DRS role %(linkrole)s for hypercube %(hypercube)s, non-unique member %(concept)s"),
+                    #    modelObject=relTo, dimension=dim.qname, linkrole=ELR, hypercube=hc.qname, concept=relTo.qname) 
                 else:
                     val.modelXbrl.error("SBR.NL.2.3.5.01",
                         _("Primary items for hypercube %(hypercube)s ELR %(ELR)s, have non-unique (inheritance) member %(concept)s in DRS role %(linkrole)s"),
