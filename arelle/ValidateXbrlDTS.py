@@ -433,7 +433,7 @@ def checkElements(val, modelDocument, parent):
                                     val.modelXbrl.error("SBR.NL.2.2.2.14",
 		                                _('Schema %(element)s must have minOccurs and maxOccurs'),
 		                                modelObject=elt, element=eltDecl.qname)
-                                elif elt.get("maxOccurs") != "1":
+                                elif elt.get("maxOccurs") != "1" and eltDecl.isItem:
                                     val.modelXbrl.error("SBR.NL.2.2.2.30",
 	                                    _("Tuple concept %(concept)s must have maxOccurs='1'"),
 	                                    modelObject=elt, concept=eltDecl.qname)
