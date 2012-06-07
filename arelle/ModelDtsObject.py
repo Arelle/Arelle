@@ -274,7 +274,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def abstract(self):
         """(str) -- Value of abstract attribute or 'false' if absent"""
-        return self.get("abstract") if self.get("abstract") else 'false'
+        return self.get("abstract", 'false')
     
     @property
     def isAbstract(self):
@@ -482,7 +482,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def nillable(self):
         """(str) --Value of the nillable attribute or its default"""
-        return self.get("nillable") if self.get("nillable") else 'false'
+        return self.get("nillable", 'false')
     
     @property
     def isNillable(self):
