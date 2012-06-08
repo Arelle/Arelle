@@ -829,6 +829,20 @@ def fact_typed_dimension_value(xc, p, args):
         return result if result is not None else ()
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
+def fact_explicit_dimensions(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    context = item_context(xc, args)
+    if context is not None:
+        return set(qn for qn, dim in context.qnameDims.items() if dim.isExplicit) | _DICT_SET(xc.modelXbrl.qnameDimensionDefaults.keys())
+    return set()
+
+def fact_typed_dimensions(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    context = item_context(xc, args)
+    if context is not None:
+        return set(qn for qn, dim in context.qnameDims.items() if dim.isTyped)
+    return set()
+
 def fact_dimension_s_equal2(xc, p, args):
     if len(args) != 3: raise XPathContext.FunctionNumArgs()
     context1 = item_context(xc, args, i=0)
@@ -1186,6 +1200,8 @@ xfiFunctions = {
     'fact-has-explicit-dimension-value': fact_has_explicit_dimension_value,
     'fact-explicit-dimension-value': fact_explicit_dimension_value,
     'fact-typed-dimension-value': fact_typed_dimension_value,
+    'fact-explicit-dimensions': fact_explicit_dimensions,
+    'fact-typed-dimensions': fact_typed_dimensions,
     'fact-dimension-s-equal2': fact_dimension_s_equal2,
     'linkbase-link-roles': linkbase_link_roles,
     'concept-label': concept_label,
