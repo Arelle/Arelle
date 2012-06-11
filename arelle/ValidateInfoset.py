@@ -8,6 +8,7 @@ from collections import defaultdict
 from arelle.ModelDocument import Type
 from arelle.ModelValue import qname
 from arelle import XmlUtil, XbrlConst
+from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals            
 
 def validate(val, modelXbrl, infosetModelXbrl):
     infoset = infosetModelXbrl.modelDocument
@@ -43,6 +44,8 @@ def validate(val, modelXbrl, infosetModelXbrl):
                 else:
                     ptvPeriodType = infosetFact.get("{http://www.xbrl.org/2003/ptv}periodType")
                     ptvBalance = infosetFact.get("{http://www.xbrl.org/2003/ptv}balance")
+                    ptvDecimals = infosetFact.get("{http://www.xbrl.org/2003/ptv}decimals")
+                    ptvPrecision = infosetFact.get("{http://www.xbrl.org/2003/ptv}precision")
                     if ptvPeriodType and ptvPeriodType != instFact.concept.periodType:
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s periodType mismatch %(concept)s expected %(expectedPeriodType)s found %(foundPeriodType)s"),
@@ -59,6 +62,22 @@ def validate(val, modelXbrl, infosetModelXbrl):
                                         concept=instFact.qname,
                                         expectedBalance=ptvBalance,
                                         foundBalance=instFact.concept.balance)
+                    if ptvDecimals and ptvDecimals != str(inferredDecimals(fact)):
+                        modelXbrl.error("arelle:infosetTest",
+                            _("Fact %(factNumber)s inferred decimals mismatch %(concept)s expected %(expectedDecimals)s found %(inferredDecimals)s"),
+                            modelObject=(instFact, infosetFact),
+                                        factNumber=(i+1), 
+                                        concept=instFact.qname,
+                                        expectedDecimals=ptvDecimals,
+                                        inferredDecimals=str(inferredDecimals(fact)))
+                    if ptvPrecision and ptvPrecision != str(inferredPrecision(fact)):
+                        modelXbrl.error("arelle:infosetTest",
+                            _("Fact %(factNumber)s inferred precision mismatch %(concept)s expected %(expectedPrecision)s found %(inferredPrecision)s"),
+                            modelObject=(instFact, infosetFact),
+                                        factNumber=(i+1), 
+                                        concept=instFact.qname,
+                                        expectedPrecisions=ptvPrecision,
+                                        inferredPrecision=str(inferredPrecision(fact)))
             
     elif infoset.type == Type.ARCSINFOSET:
         # compare arcs

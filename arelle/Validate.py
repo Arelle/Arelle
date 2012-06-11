@@ -10,6 +10,7 @@ from arelle import (ModelXbrl, ModelVersReport, XbrlConst, ModelDocument,
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
                ValidateInfoset)
 from arelle.ModelValue import (qname, QName)
+from arelle.PluginManager import pluginClassMethods
 
 def validate(modelXbrl):
     validate = Validate(modelXbrl)
@@ -186,6 +187,8 @@ class Validate:
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
                     self.instValidator.validate(modelXbrl, parameters)
                     if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
+                        for pluginXbrlMethod in pluginClassMethods("Validate.Infoset"):
+                            pluginXbrlMethod(modelXbrl, modelTestcaseVariation.resultInfosetUri)
                         infoset = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                  modelTestcaseVariation.resultInfosetUri,
                                                    _("loading result infoset"), 

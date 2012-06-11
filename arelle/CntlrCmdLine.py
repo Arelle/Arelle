@@ -397,6 +397,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                         _("loaded in %.2f secs at %s"), 
                                         (time.time() - startedAt, timeNow)), 
                                         messageCode="info", file=self.entrypointFile)
+            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
+                pluginXbrlMethod(self, options, modelXbrl)
             if options.importFiles:
                 for importFile in options.importFiles.split("|"):
                     fileName = importFile.strip()
