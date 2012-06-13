@@ -401,7 +401,9 @@ class LogHandlerWithXml(logging.Handler):
     def recordToXml(self, logRec):
         msg = self.format(logRec)
         if logRec.args:
-            args = "".join([' {0}="{1}"'.format(n, str(v).replace('"','&quot;')) for n, v in logRec.args.items()])
+            args = "".join([' {0}="{1}"'.format(n, 
+                                                str(v).replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')) 
+                            for n, v in logRec.args.items()])
         else:
             args = ""
         refs = "\n".join('<ref href="{0}"{1}/>'.format(
