@@ -472,7 +472,7 @@ def validateTextBlockFacts(modelXbrl):
                         errors = edbodyDTD.error_log.filter_from_errors()
                         htmlError = any(e.type_name in ("DTD_INVALID_CHILD", "DTD_UNKNOWN_ATTRIBUTE") 
                                         for e in errors)
-                        modelXbrl.error("EFM.6.05.16" if htmlError else ("EFM.6.05.15", "GFM.1.02.14"),
+                        modelXbrl.error("EFM.6.05.16" if htmlError else ("EFM.6.05.15.dtdError", "GFM.1.02.14"),
                             _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
                             modelObject=f1, fact=f1.qname, contextID=f1.contextID, 
                             error=', '.join(e.message for e in errors))
@@ -482,24 +482,37 @@ def validateTextBlockFacts(modelXbrl):
                             if ((attrTag == "href" and eltTag == "a") or 
                                 (attrTag == "src" and eltTag == "img")):
                                 if "javascript:" in attrValue:
-                                    modelXbrl.error("EFM.6.05.16",
+                                    modelXbrl.error("EFM.6.05.16.activeContent",
                                         _("Fact %(fact)s of context %(contextID)s has javascript in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
                                 elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
                                     pass
                                 elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
-                                    modelXbrl.error("EFM.6.05.16",
+                                    modelXbrl.error("EFM.6.05.16.externalReference",
                                         _("Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
-                                if attrTag == "src" and attrValue.lower()[-4:] not in ('.jpg', '.gif'):
-                                    modelXbrl.error("EFM.6.05.16",
-                                        _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
-                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID,
-                                        attribute=attrValue, element=eltTag)
+                                if attrTag == "src":
+                                    if attrValue.lower()[-4:] not in ('.jpg', '.gif'):
+                                        modelXbrl.error("EFM.6.05.16.graphicFileType",
+                                            _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
+                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                            attribute=attrValue, element=eltTag)
+                                    else:   # test file contents
+                                        try:
+                                            if validateGraphicFile(f1, attrValue) != attrValue.lower()[-3:]:
+                                                modelXbrl.error("EFM.6.05.16.graphicFileContent",
+                                                    _("Fact %(fact)s of context %(contextID)s references a graphics file which doesn't have expected content '%(attribute)s' for <%(element)s>"),
+                                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                                    attribute=attrValue, element=eltTag)
+                                        except IOError as err:
+                                            modelXbrl.error("EFM.6.05.16.graphicFileError",
+                                                _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't openable '%(attribute)s' for <%(element)s>, error: %(error)s"),
+                                                modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                                attribute=attrValue, element=eltTag, error=err)
                         if eltTag == "table" and any(a is not None for a in elt.iterancestors("table")):
-                            modelXbrl.error("EFM.6.05.16",
+                            modelXbrl.error("EFM.6.05.16.nestedTable",
                                 _("Fact %(fact)s of context %(contextID)s has nested <table> elements."),
                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID)
                 except (XMLSyntaxError,
@@ -528,7 +541,7 @@ def validateFootnote(modelXbrl, footnote):
         footnoteHtml = XML("<body/>")
         copyHtml(footnote, footnoteHtml)
         if not edbodyDTD.validate( footnoteHtml ):
-            modelXbrl.error("EFM.6.05.34",
+            modelXbrl.error("EFM.6.05.34.dtdError",
                 _("Footnote %(xlinkLabel)s causes the XML error %(error)s"),
                 modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
                 error=', '.join(e.message for e in edbodyDTD.error_log.filter_from_errors()))
@@ -538,24 +551,37 @@ def validateFootnote(modelXbrl, footnote):
                 if ((attrTag == "href" and eltTag == "a") or 
                     (attrTag == "src" and eltTag == "img")):
                     if "javascript:" in attrValue:
-                        modelXbrl.error("EFM.6.05.34",
+                        modelXbrl.error("EFM.6.05.34.activeContent",
                             _("Footnote %(xlinkLabel)s has javascript in '%(attribute)s' for <%(element)s>"),
                             modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
                             attribute=attrTag, element=eltTag)
                     elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
                         pass
                     elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
-                        modelXbrl.error("EFM.6.05.34",
+                        modelXbrl.error("EFM.6.05.34.externalReference",
                             _("Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
                             modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
                             attribute=attrTag, element=eltTag, value=attrValue)
-                    if attrTag == "src" and attrValue.lower()[-4:] not in ('.jpg', '.gif'):
-                        modelXbrl.error("EFM.6.05.34",
-                            _("Footnote %(xlinkLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
-                            modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
-                            attribute=attrValue, element=eltTag)
+                    if attrTag == "src":
+                        if attrValue.lower()[-4:] not in ('.jpg', '.gif'):
+                            modelXbrl.error("EFM.6.05.34.graphicFileType",
+                                _("Footnote %(xlinkLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
+                                modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+                                attribute=attrValue, element=eltTag)
+                        else:   # test file contents
+                            try:
+                                if validateGraphicFile(footnote, attrValue) != attrValue.lower()[-3:]:
+                                    modelXbrl.error("EFM.6.05.34.graphicFileContent",
+                                        _("Footnote %(xlinkLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for <%(element)s>"),
+                                        modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+                                        attribute=attrValue, element=eltTag)
+                            except IOError as err:
+                                modelXbrl.error("EFM.6.05.34.graphicFileError",
+                                    _("Footnote %(xlinkLabel)s references a graphics file which isn't openable '%(attribute)s' for <%(element)s>, error: %(error)s"),
+                                    modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
+                                    attribute=attrValue, element=eltTag, error=err)
             if eltTag == "table" and any(a is not None for a in elt.iterancestors("table")):
-                modelXbrl.error("EFM.6.05.34",
+                modelXbrl.error("EFM.6.05.34.nestedTable",
                     _("Footnote %(xlinkLabel)s has nested <table> elements."),
                     modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"))
     except (XMLSyntaxError,
@@ -676,3 +702,16 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
              modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
 '''
+
+def validateGraphicFile(elt, graphicFile):
+    base = elt.modelDocument.baseForElement(elt)
+    normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(graphicFile, base)
+    # all Edgar graphic files must be resolved locally
+    #normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+    with open(normalizedUri,'rb') as fh:
+        data = fh.read(11)
+        if data[:4] == b'\xff\xd8\xff\xe0' and data[6:] == b'JFIF\0': 
+            return "jpg"
+        if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b'):
+            return "gif"
+    return None
