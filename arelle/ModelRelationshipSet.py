@@ -74,7 +74,7 @@ def labelroles(modelXbrl, includeConceptName=False):
 class ModelRelationshipSet:
     __slots__ = ("isChanged", "modelXbrl", "arcrole", "linkrole", "linkqname", "arcqname",
                  "modelRelationshipsFrom", "modelRelationshipsTo", "modelConceptRoots", "modellinkRoleUris",
-                 "modelRelationships")
+                 "modelRelationships", "_testHintedLabelLinkrole")
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         self.isChanged = False
         self.modelXbrl = modelXbrl
@@ -236,11 +236,32 @@ class ModelRelationshipSet:
                     visited.discard(toConcept)
         return False
     
-    def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True):
+    def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True, linkroleHint=None):
         shorterLangInLabel = longerLangInLabel = None
         shorterLangLabels = longerLangLabels = None
         langLabels = []
-        for modelLabelRel in self.fromModelObject(modelFrom):
+        labels = self.fromModelObject(modelFrom)
+        if linkroleHint:  # order of preference of linkroles to find label
+            try:
+                testHintedLinkrole = self._testHintedLabelLinkrole
+            except AttributeError:
+                self._testHintedLabelLinkrole = testHintedLinkrole = (len(self.linkRoleUris) > 1)
+            if testHintedLinkrole:
+                labelsHintedLink = []
+                labelsDefaultLink = []
+                labelsOtherLinks = []
+                for modelLabelRel in labels:
+                    label = modelLabelRel.toModelObject
+                    if role == label.role:
+                        linkrole = modelLabelRel.linkrole
+                        if linkrole == linkroleHint:
+                            labelsHintedLink.append(modelLabelRel)
+                        elif linkrole == XbrlConst.defaultLinkRole:
+                            labelsDefaultLink.append(modelLabelRel)
+                        else:
+                            labelsOtherLinks.append(modelLabelRel)
+                labels = (labelsHintedLink or labelsDefaultLink or labelsOtherLinks)
+        for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
             if role == label.role:
                 labelLang = label.xmlLang

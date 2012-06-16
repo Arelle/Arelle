@@ -514,7 +514,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         """(bool) -- True if parent of element definition is xsd schema element"""
         return self.getparent().localName == "schema"
     
-    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False,linkrole=None):
+    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False,linkrole=None,linkroleHint=None):
         """Returns effective label for concept, using preferredLabel role (or standard label if None), 
         absent label falls back to element qname (prefixed name) if specified, lang falls back to 
         tool-config language if none, leading/trailing whitespace stripped (trimmed) if specified.  
@@ -536,7 +536,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         if preferredLabel == XbrlConst.conceptNameLabelRole: return str(self.qname)
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel,linkrole)
         if labelsRelationshipSet:
-            label = labelsRelationshipSet.label(self, preferredLabel, lang)
+            label = labelsRelationshipSet.label(self, preferredLabel, lang, linkroleHint=linkroleHint)
             if label is not None:
                 if strip: return label.strip()
                 return Locale.rtlString(label, lang=lang)

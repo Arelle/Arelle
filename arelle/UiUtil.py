@@ -163,7 +163,6 @@ class gridCell(Entry):
         Entry.__init__(self, master=master) 
         self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
-        self.isChanged = False
         self.config(textvariable=self.valueVar,
                     #relief="ridge", 
                     #bg="#ff8ff8ff8", fg="#000000000", 
@@ -190,6 +189,7 @@ class gridCell(Entry):
             self.bind("<Configure>", master.master.master._configure_cell)
         if onClick:
             self.bind("<1>", onClick)
+        self.isChanged = False
         
     @property
     def value(self):
@@ -205,6 +205,7 @@ class gridCombobox(ttk.Combobox):
     def __init__(self, master, x, y, value="", values=(), columnspan=None, selectindex=None, comboboxselected=None): 
         ttk.Combobox.__init__(self, master=master) 
         self.valueVar = StringVar() 
+        self.valueVar.trace('w', self.valueChanged)
         self.config(textvariable=self.valueVar,
                     background="#ff8ff8ff8", foreground="#000000000", 
                    # justify='center'
@@ -231,6 +232,7 @@ class gridCombobox(ttk.Combobox):
             pass
         if comboboxselected:
             self.bind("<<ComboboxSelected>>", comboboxselected)
+        self.isChanged = False
         
     @property
     def value(self):
@@ -244,7 +246,9 @@ class gridCombobox(ttk.Combobox):
             return values.index(value)
         return -1
         
-    
+    def valueChanged(self, *args):
+        self.isChanged = True
+        
 class label(Label):
     def __init__(self, master, x, y, text):
         Label.__init__(self, master=master, text=text) 
@@ -252,17 +256,21 @@ class label(Label):
         self.grid(column=x, row=y, sticky=W, padx=8) 
     
 class checkbox(Checkbutton):
-    def __init__(self, master, x, y, text, attr=None):
+    def __init__(self, master, x, y, text, attr=None, columnspan=None):
         self.attr = attr 
         self.valueVar = StringVar() 
+        self.valueVar.trace('w', self.valueChanged)
         Checkbutton.__init__(self, master=master, text=text, variable=self.valueVar) 
         self.grid(column=x, row=y, sticky=W, padx=24) 
+        if columnspan:
+            self.grid(columnspan=columnspan)
         try:
             options = master.master.options
             if attr in options:
                 self.valueVar.set( options[attr] )
         except AttributeError:
             pass
+        self.isChanged = False
         
     @property
     def value(self):
@@ -270,6 +278,9 @@ class checkbox(Checkbutton):
             return True
         else:
             return False
+        
+    def valueChanged(self, *args):
+        self.isChanged = True
         
 class radiobutton(Radiobutton):
     def __init__(self, master, x, y, text, value, attr=None, valueVar=None):

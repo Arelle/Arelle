@@ -92,8 +92,8 @@ class ViewTree:
         if tvColId != self.toolTipColId or tvRowId != self.toolTipRowId:
             self.toolTipColId = tvColId
             self.toolTipRowId = tvRowId
-            newValue = None
-            if tvRowId and len(tvRowId) > 0:
+            newValue = self.getToolTip(tvRowId, tvColId)
+            if newValue is None and tvRowId and len(tvRowId) > 0:
                 try:
                     col = int(tvColId[1:])
                     if col == 0:
@@ -105,6 +105,9 @@ class ViewTree:
                 except ValueError:
                     pass
             self.setToolTip(newValue, tvColId)
+            
+    def getToolTip(self, rowId, colId):
+        return None
                 
     def setToolTip(self, text, colId="#0"):
         self.toolTip._hide()
@@ -155,8 +158,8 @@ class ViewTree:
     def menuAddExpandCollapse(self):
         self.menu.add_command(label=_("Expand"), underline=0, command=self.expand)
         self.menu.add_command(label=_("Collapse"), underline=0, command=self.collapse)
-        self.menu.add_command(label=_("Expand All"), underline=0, command=self.expandAll)
-        self.menu.add_command(label=_("Collapse All"), underline=0, command=self.collapseAll)
+        self.menu.add_command(label=_("Expand all"), underline=0, command=self.expandAll)
+        self.menu.add_command(label=_("Collapse all"), underline=0, command=self.collapseAll)
         
     def menuAddClipboard(self):
         if self.modelXbrl.modelManager.cntlr.hasClipboard:
@@ -173,7 +176,7 @@ class ViewTree:
             langsMenu.add_command(label=lang, underline=0, command=lambda l=lang: self.setLang(l))
 
     def menuAddLabelRoles(self, includeConceptName=False, menulabel=None):
-        if menulabel is None: menulabel = _("Label Role")
+        if menulabel is None: menulabel = _("Label role")
         rolesMenu = Menu(self.viewFrame, tearoff=0)
         self.menu.add_cascade(label=menulabel, menu=rolesMenu, underline=0)
         from arelle.ModelRelationshipSet import labelroles
@@ -186,7 +189,7 @@ class ViewTree:
         self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
         from arelle.ModelRelationshipSet import labelroles
         nameStyleMenu.add_command(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
-        nameStyleMenu.add_command(label=_("No Prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
+        nameStyleMenu.add_command(label=_("No prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
 
     def menuAddUnitDisplay(self):
         rolesMenu = Menu(self.viewFrame, tearoff=0)
@@ -202,6 +205,7 @@ class ViewTree:
         if addClose:
             viewMenu.add_command(label=_("Close"), underline=0, command=self.close)
         viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
+        newViewsMenu.add_command(label=_("Arcrole group..."), underline=0, command=lambda: self.newArcroleGroupView(tabWin))
         from arelle.ModelRelationshipSet import baseSetArcroles
         for x in baseSetArcroles(self.modelXbrl):
             newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
@@ -209,6 +213,13 @@ class ViewTree:
     def newView(self, arcrole, tabWin):
         from arelle import ViewWinRelationshipSet
         ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)
+            
+    def newArcroleGroupView(self, tabWin):
+        from arelle.DialogArcroleGroup import getArcroleGroup
+        from arelle import ViewWinRelationshipSet
+        arcroleGroup = getArcroleGroup(self.modelXbrl.modelManager.cntlr, self.modelXbrl)
+        if arcroleGroup: 
+            ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcroleGroup, lang=self.lang)
             
     def setLang(self, lang):
         self.lang = lang

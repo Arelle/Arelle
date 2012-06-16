@@ -6,6 +6,7 @@ Created on Mar 21, 2011
 '''
 from arelle import (XmlUtil, XbrlConst)
 from arelle.ModelObject import ModelObject
+from arelle.ModelRelationshipSet import ModelRelationshipSet
 
 # clean references for viewability
 def viewReferences(concept):
@@ -25,3 +26,22 @@ def referenceURI(concept):
                     return XmlUtil.text(resourceElt)
     return None
             
+def groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname):
+    if isinstance(arcrole, (list,tuple)): # (group-name, [arcroles])
+        arcroles = arcrole[1]
+        relationshipSet = ModelRelationshipSet(modelXbrl, arcroles[0], linkrole, linkqname, arcqname)
+        for arcrole in arcroles[1:]:
+            rels = modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
+            if rels:                                                    
+                relationshipSet.modelRelationships.extend(rels.modelRelationships)
+        relationshipSet.modelRelationships.sort(key=lambda rel: rel.order)
+    else:
+        relationshipSet = modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
+    return relationshipSet
+
+def groupRelationshipLabel(arcrole):
+    if isinstance(arcrole, (list,tuple)): # (group-name, [arcroles])
+        arcroleName = arcrole[0]
+    else:
+        arcroleName = XbrlConst.baseSetArcroleLabel(arcrole)[1:]
+    return arcroleName

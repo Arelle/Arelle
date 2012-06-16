@@ -7,6 +7,7 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 '''
 from lxml import etree
 from collections import namedtuple
+from arelle import Locale
 
 emptySet = set()
 
@@ -300,7 +301,7 @@ class ModelObject(etree.ElementBase):
             label = labelsRelationshipSet.label(self, role, lang)
             if label is not None:
                 if strip: return label.strip()
-                return label
+                return Locale.rtlString(label, lang=lang)
         if fallbackToQname:
             return str(self.qname)
         elif fallbackToXlinkLabel and hasattr(self,"xlinkLabel"):

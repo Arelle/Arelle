@@ -14,6 +14,7 @@ datetimePattern = re.compile('\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0
                              '\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*')
 xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>")
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
+xmlnsStripPattern = re.compile(r'\s*xmlns(:\w+)?="[^"]*"')
 
 def xmlns(element, prefix):
     return element.nsmap.get(prefix)
@@ -644,7 +645,14 @@ def copyNonIxChildren(fromElt, toElt):
                         toChild.text = fromChild.text
                     if fromChild.tail is not None:
                         toChild.tail = fromChild.tail
-    
+                        
+def xmlstring(elt, stripXmlns=False, prettyPrint=False):
+    xml = etree.tounicode(elt, pretty_print=prettyPrint)
+    if stripXmlns:
+        return xmlnsStripPattern.sub('', xml)
+    else:
+        return xml
+
 def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
     # customized from xml.minidom to provide correct indentation for data items
     if isinstance(node,etree._ElementTree):
