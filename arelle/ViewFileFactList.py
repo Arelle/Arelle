@@ -64,7 +64,7 @@ class ViewFacts(ViewFile.View):
             xmlRowElementName = 'item'
             attr = {"name": str(modelFact.qname)}
             if concept is not None and self.isCol0Label:
-                lbl = concept.label(preferredLabel=self.labelrole, lang=self.lang)
+                lbl = concept.label(preferredLabel=self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
                 xmlCol0skipElt = False # provide label as a row element
             else:
                 lbl = modelFact.qname

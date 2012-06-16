@@ -81,7 +81,7 @@ class ViewRelationshipSet(ViewFile.View):
             return
         isRelation = isinstance(modelObject, ModelRelationship)
         if isinstance(concept, ModelDtsObject.ModelConcept):
-            text = labelPrefix + concept.label(preferredLabel,lang=self.lang)
+            text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
             if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
                 concept.isTypedDimension and 
                 concept.typedDomainElement is not None):

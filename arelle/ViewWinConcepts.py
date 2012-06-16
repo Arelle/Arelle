@@ -87,7 +87,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     '''
                     node = self.treeView.insert("", "end", 
                                                 concept.objectId(), 
-                                                text=concept.label(role,lang=lang),
+                                                text=concept.label(role,lang=lang,linkroleHint=XbrlConst.defaultLinkRole),
                                                 tags=("odd" if nodeNum & 1 else "even",))
                     nodeNum += 1
                     self.treeView.set(node, "conceptname", concept.qname if nameIsPrefixed else concept.name)

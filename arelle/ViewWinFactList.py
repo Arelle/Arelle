@@ -4,7 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ViewWinTree, ModelDtsObject)
+from arelle import ViewWinTree, ModelDtsObject, XbrlConst
 
 def viewFacts(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))
@@ -82,7 +82,7 @@ class ViewFactList(ViewWinTree.ViewTree):
             try:
                 concept = modelFact.concept
                 if concept is not None:
-                    lbl = concept.label(self.labelrole, lang=self.lang)
+                    lbl = concept.label(self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
                     objectIds = (modelFact.objectId(),concept.objectId())
                 else:
                     lbl = modelFact.qname

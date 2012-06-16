@@ -171,7 +171,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
         if concept is None or concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem:
             return
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id),
-                    text=labelPrefix + concept.label(preferredLabel,lang=self.lang), 
+                    text=labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole), 
                     tags=("odd" if n & 1 else "even",))
         self.setRowFacts(childnode,concept,preferredLabel)
         self.id += 1

@@ -31,7 +31,7 @@ class ViewConcepts(ViewFile.View):
                 if concept.modelDocument.targetNamespace not in (
                          XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
                          XbrlConst.xbrldt):
-                    self.addRow([concept.label(preferredLabel=self.labelrole, lang=self.lang, strip=True),
+                    self.addRow([concept.label(preferredLabel=self.labelrole, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole),
                                  concept.name,
                                  concept.id,
                                  concept.abstract,
@@ -43,5 +43,5 @@ class ViewConcepts(ViewFile.View):
                                        sorted(value) if isinstance(value,set) else value
                                        ) for name,value in sorted(concept.type.facets.items())) \
                                        if concept.type is not None and concept.type.facets else '',
-                                 concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True)
+                                 concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole)
                                 ])

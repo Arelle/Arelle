@@ -155,7 +155,7 @@ class ViewFacts(ViewFile.View):
         if concept is None or concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem:
             return
         cols = ['' for i in range(self.numCols)]
-        cols[0] = labelPrefix + concept.label(preferredLabel,lang=self.lang)
+        cols[0] = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
         self.setRowFacts(cols,concept,preferredLabel)
         attr = {"concept": str(concept.qname)}
         self.addRow(cols, treeIndent=n, 
