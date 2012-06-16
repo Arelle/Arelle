@@ -11,17 +11,14 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
-    if isinstance(arcrole, (list,tuple)): # group of arcroles
-        arcroleName = arcrole[0]
-    else:
-        relationshipSet =  modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
-        if relationshipSet is None or len(relationshipSet.modelRelationships) == 0:
-            modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcrole))
-            return False
-        arcroleName = os.path.basename(arcrole)
+    arcroleName = groupRelationshipLabel(arcrole)
+    relationshipSet = groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname)
+    if not relationshipSet:
+        modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
+        return False
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(arcroleName))
     view = ViewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole, linkqname, arcqname, lang, treeColHdr)
-    view.view(firstTime=True)
+    view.view(firstTime=True, relationshipSet=relationshipSet)
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
     view.treeView.bind("<Leave>", view.treeviewLeave, '+')
@@ -49,12 +46,13 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         self.treeColHdr = treeColHdr
         self.isResourceArcrole = False
         
-    def view(self, firstTime=False):
+    def view(self, firstTime=False, relationshipSet=None):
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
         self.tag_has = defaultdict(list) # temporary until Tk 8.6
         # relationship set based on linkrole parameter, to determine applicable linkroles
-        relationshipSet = groupRelationshipSet(self.modelXbrl, self.arcrole, self.linkrole, self.linkqname, self.arcqname)
+        if relationshipSet is None:
+            relationshipSet = groupRelationshipSet(self.modelXbrl, self.arcrole, self.linkrole, self.linkqname, self.arcqname)
         if not relationshipSet:
             self.modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(groupRelationshipLabel(self.arcrole)))
             return False

@@ -296,6 +296,8 @@ errMsgPrefixNS = {
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
     }
 
+arcroleGroupDetect = "*detect*"
+
 def baseSetArcroleLabel(arcrole): # with sort char in first position
     if arcrole == "XBRL-dimensions": return _("1Dimension")
     if arcrole == "XBRL-formulae": return _("1Formula")

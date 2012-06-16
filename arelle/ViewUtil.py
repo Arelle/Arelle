@@ -31,9 +31,10 @@ def groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname):
         arcroles = arcrole[1]
         relationshipSet = ModelRelationshipSet(modelXbrl, arcroles[0], linkrole, linkqname, arcqname)
         for arcrole in arcroles[1:]:
-            rels = modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
-            if rels:                                                    
-                relationshipSet.modelRelationships.extend(rels.modelRelationships)
+            if arcrole != XbrlConst.arcroleGroupDetect:
+                rels = modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
+                if rels:                                                    
+                    relationshipSet.modelRelationships.extend(rels.modelRelationships)
         relationshipSet.modelRelationships.sort(key=lambda rel: rel.order)
     else:
         relationshipSet = modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
