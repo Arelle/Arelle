@@ -27,6 +27,7 @@ from arelle import (DialogURL, DialogLanguage,
                     DialogPluginManager,
                     ModelDocument,
                     ModelManager,
+                    RenderingEvaluator,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
                     ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
@@ -51,6 +52,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         overrideLang = self.config.get("labelLangOverride")
         self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
+
+        tkinter.CallWrapper = TkinterCallWrapper 
+
         
         imgpath = self.imagesDir + os.sep
 
@@ -570,6 +574,9 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("%s in %.2f secs"), 
                                         (action, time.time() - startedAt)))
+            if modelXbrl.hasTableRendering:
+                self.showStatus(_("Initializing table rendering"))
+                RenderingEvaluator.init(modelXbrl)
             self.showStatus(_("{0}, preparing views").format(action))
             self.waitForUiThreadQueue() # force status update
             self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS, selectTopView]))
@@ -630,6 +637,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if modelXbrl.hasTableRendering:
                     currentAction = "rendering view"
                     ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.labelLang)
+                for name, arcroles in sorted(self.config.get("arcroleGroups", {}).items()):
+                    if XbrlConst.arcroleGroupDetect in arcroles:
+                        currentAction = name + " view"
+                        ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
+                
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"
@@ -1109,6 +1121,32 @@ class WinMainLogHandler(logging.Handler):
         except:
             pass
 
+class TkinterCallWrapper: 
+    """Replacement for internal tkinter class. Stores function to call when some user
+    defined Tcl function is called e.g. after an event occurred."""
+    def __init__(self, func, subst, widget):
+        """Store FUNC, SUBST and WIDGET as members."""
+        self.func = func
+        self.subst = subst
+        self.widget = widget
+    def __call__(self, *args):
+        """Apply first function SUBST to arguments, than FUNC."""
+        try:
+            if self.subst:
+                args = self.subst(*args)
+            return self.func(*args)
+        except SystemExit as msg:
+            raise SystemExit(msg)
+        except Exception:
+            # this was tkinter's standard coding: self.widget._report_exception()
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            msg = ''.join(traceback.format_exception_only(exc_type, exc_value))
+            tracebk = ''.join(traceback.format_tb(exc_traceback, limit=7))
+            tkinter.messagebox.showerror(_("Exception"), 
+                                         _("{0}\nCall trace\n{1}").format(msg, tracebk))
+                
+
+
 def main():
     # this is the entry called by arelleGUI.pyw for windows
     global restartMain
@@ -1117,7 +1155,7 @@ def main():
         application = Tk()
         cntlrWinMain = CntlrWinMain(application)
         application.protocol("WM_DELETE_WINDOW", cntlrWinMain.quit)
-        application.mainloop()
+        application.mainloop()            
 
 if __name__ == "__main__":
     # this is the entry called by MacOS open and MacOS shell scripts
