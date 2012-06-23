@@ -62,6 +62,7 @@ class ValidateXbrl:
         self.validateInferDecimals = modelXbrl.modelManager.validateInferDecimals
         
         # xlink validation
+        modelXbrl.profileStat(None)
         modelXbrl.modelManager.showStatus(_("validating links"))
         modelLinks = set()
         self.remoteResourceLocElements = set()
@@ -179,6 +180,7 @@ class ValidateXbrl:
                                 linkrole=modelLink.role, 
                                 xlinkLabel=resourceArcToLabel)
             resourceArcTos = None # dereference arcs
+        modelXbrl.profileStat(_("validateLinks"))
 
         modelXbrl.dimensionDefaultConcepts = {}
         modelXbrl.qnameDimensionDefaults = {}
@@ -289,6 +291,7 @@ class ValidateXbrl:
             elif (modelXbrl.hasFormulae or modelXbrl.hasTableRendering) and arcrole.startswith(XbrlConst.formulaStartsWith):
                 ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)
         modelXbrl.isDimensionsValidated = True
+        modelXbrl.profileStat(_("validateRelationships"))
                             
         # instance checks
         modelXbrl.modelManager.showStatus(_("validating instance"))
@@ -360,8 +363,7 @@ class ValidateXbrl:
                                 self.modelXbrl.error("xbrl.4.7.2:contextPeriodType",
                                     _("Fact %(fact)s context %(contextID)s has period type %(periodType)s conflict with context"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID, periodType=periodType)
-                            if modelXbrl.hasXDT:
-                                ValidateXbrlDimensions.checkFact(self, f)
+                                
                         # check precision and decimals
                         if f.xsiNil == "true":
                             if hasPrecision or hasDecimals:
@@ -464,8 +466,6 @@ class ValidateXbrl:
                             modelObject=cntx, contextID=cntx.id, error=err)
                 self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
                 self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
-                if modelXbrl.hasXDT:
-                    ValidateXbrlDimensions.checkContext(self,cntx)
                 
             for unit in modelXbrl.units.values():
                 mulDivMeasures = unit.measures
@@ -482,7 +482,18 @@ class ValidateXbrl:
                             self.modelXbrl.error("xbrl.4.8.4:measureBothNumDenom",
                                 _("Unit %(unitID)s numerator measure: %(measure)s also appears as denominator measure"),
                                 modelObject=unit, unitID=unit.id, measure=numeratorMeasure)
+            modelXbrl.profileStat(_("validateInstance"))
+
+            if modelXbrl.hasXDT:            
+                modelXbrl.modelManager.showStatus(_("validating dimensions"))
+                for f in modelXbrl.facts:
+                    if concept.isItem and f.context is not None:
+                        ValidateXbrlDimensions.checkFact(self, f)
+                for cntx in modelXbrl.contexts.values():
+                    ValidateXbrlDimensions.checkContext(self,cntx)
+                modelXbrl.profileStat(_("validateDimensions"))
                     
+        # dimensional validity
         #concepts checks
         modelXbrl.modelManager.showStatus(_("validating concepts"))
         for concept in modelXbrl.qnameConcepts.values():
@@ -564,6 +575,7 @@ class ValidateXbrl:
                             modelObject=concept, concept=concept.qname)
             if modelXbrl.hasXDT:
                 ValidateXbrlDimensions.checkConcept(self, concept)
+        modelXbrl.profileStat(_("validateConcepts"))
             
         modelXbrl.modelManager.showStatus(_("validating DTS"))
         self.DTSreferenceResourceIDs = {}
@@ -575,10 +587,12 @@ class ValidateXbrl:
             from arelle.XmlValidateParticles import validateUniqueParticleAttribution
         for modelType in modelXbrl.qnameTypes.values():
             validateUniqueParticleAttribution(modelXbrl, modelType.particlesList, modelType)
+        modelXbrl.profileStat(_("validateDTS"))
         
         if self.validateCalcLB:
             modelXbrl.modelManager.showStatus(_("Validating instance calculations"))
             ValidateXbrlCalcs.validate(modelXbrl, inferDecimals=self.validateInferDecimals)
+            modelXbrl.profileStat(_("validateCalculations"))
             
         if (modelXbrl.modelManager.validateUtr or
             (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
@@ -587,9 +601,13 @@ class ValidateXbrl:
              #    for concept in self.modelXbrl.nameConcepts.get("UTR",())))):
             (self.validateEFM and any(modelDoc.definesUTR for modelDoc in self.modelXbrl.urlDocs.values()))):
             ValidateUtr.validate(modelXbrl)
+            modelXbrl.profileStat(_("validateUTR"))
             
         if modelXbrl.hasFormulae or modelXbrl.modelRenderingTables:
-            ValidateFormula.validate(self)
+            ValidateFormula.validate(self, 
+                                     statusMsg=_("compiling formulae and rendering tables") if (modelXbrl.hasFormulae and modelXbrl.modelRenderingTables)
+                                     else (_("compiling formulae") if modelXbrl.hasFormulae
+                                           else _("compiling rendering tables")))
             
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
         
