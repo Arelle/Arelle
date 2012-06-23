@@ -162,6 +162,9 @@ class ModelRelationshipSet:
             del self.modelConceptRoots[:]
         self.linkqname = self.arcqname = None
         
+    def __bool__(self):  # some modelRelationships exist
+        return len(self.modelRelationships) > 0
+        
     @property
     def linkRoleUris(self):
         if self.modellinkRoleUris is None:
