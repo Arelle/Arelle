@@ -153,15 +153,14 @@ class XPathContext:
                         elif ns in FunctionIxt.ixtNamespaceURIs:
                             result = FunctionIxt.call(self, p, localname, args)
                         else:
-                            raise XPathException(p, 'err:XPST0017', _('Function call not identified.'))
+                            raise XPathException(p, 'err:XPST0017', _('Function call not identified: {0}.').format(op))
                     except FunctionNumArgs:
-                        raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity.'))
+                        raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity: {0}').format(op))
                     except FunctionArgType as err:
-                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1}.')
-                                             .format(err.argNum, err.expectedType))
+                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1} for {2}.')
+                                             .format(err.argNum, err.expectedType, op))
                     except FunctionNotAvailable:
-                        raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.')
-                                             .format(str(op)))
+                        raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.').format(op))
                 elif op in VALUE_OPS:
                     # binary arithmetic operations and value comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
