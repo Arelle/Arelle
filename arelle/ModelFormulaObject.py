@@ -59,6 +59,12 @@ aspectModelAspect = {   # aspect of the model that corresponds to retrievable as
     Aspect.UNIT_MEASURES: Aspect.UNIT, Aspect.MULTIPLY_BY: Aspect.UNIT, Aspect.DIVIDE_BY: Aspect.UNIT
     }
 
+aspectRuleAspects = {   # aspect correspondence to rule-retrievable aspects
+    Aspect.ENTITY_IDENTIFIER: (Aspect.VALUE, Aspect.SCHEME),
+    Aspect.PERIOD: (Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT),
+    Aspect.UNIT: (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY)
+    }
+
 aspectModels = {
      "dimensional": {  # order by likelyhood of short circuting aspect match tests
              Aspect.CONCEPT, Aspect.PERIOD, Aspect.UNIT, Aspect.LOCATION, Aspect.ENTITY_IDENTIFIER,
@@ -127,6 +133,7 @@ class FormulaOptions():
         self.traceVariableSetExpressionCode = False
         self.traceVariableSetExpressionEvaluation = False
         self.traceVariableSetExpressionResult = False
+        self.timeVariableSetEvaluation = False
         self.traceAssertionResultCounts = False
         self.traceFormulaRules = False
         self.traceVariablesDependencies = False
@@ -170,7 +177,7 @@ class Trace():
     CUSTOM_FUNCTION = 6
     CALL = 7 #such as testcase call or API formula call
     TEST = 8 #such as testcase test or API formula test
-
+    
 class ModelFormulaResource(ModelResource):
     def init(self, modelDocument):
         super(ModelFormulaResource, self).init(modelDocument)
@@ -245,6 +252,10 @@ class ModelVariableSet(ModelFormulaResource):
         except AttributeError:
             self._groupFilterRelationships = self.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(self)
             return self._groupFilterRelationships
+    
+    @property
+    def xmlElementView(self):        
+        return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
         
     @property
     def propertyView(self):
@@ -396,11 +407,12 @@ class ModelFormulaRules:
         if aspect in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY): # return list of results
             return [xpCtx.evaluateAtomicValue(prog, type) for prog in self.aspectProgs[aspect]]
         elif xpCtx: # return single result
-            for prog in self.aspectProgs[aspect]:
-                if aspect in self.typedDimProgAspects:  # typed dim xpath (only), returns a node
-                    return xpCtx.flattenSequence(xpCtx.evaluate(prog, xpCtx.inputXbrlInstance.xmlRootElement))
-                else:  # atomic results
-                    return xpCtx.evaluateAtomicValue(prog, type, xpCtx.inputXbrlInstance.xmlRootElement)
+            if aspect in self.aspectProgs: # defaultDict, for loop would add an empty list even if not there
+                for prog in self.aspectProgs[aspect]:
+                    if aspect in self.typedDimProgAspects:  # typed dim xpath (only), returns a node
+                        return xpCtx.flattenSequence(xpCtx.evaluate(prog, xpCtx.inputXbrlInstance.xmlRootElement))
+                    else:  # atomic results
+                        return xpCtx.evaluateAtomicValue(prog, type, xpCtx.inputXbrlInstance.xmlRootElement)
         return None
                 
     def hasRule(self, aspect):
@@ -444,7 +456,9 @@ class ModelFormula(ModelFormulaRules, ModelVariableSet):
         
     @property
     def propertyView(self):
-        return super(ModelFormula, self).propertyView + (("value", self.value),)
+        return super(ModelFormula, self).propertyView + (
+                 ("value", self.value),
+                 ("formula", XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)))
         
     def __repr__(self):
         return ("formula({0}, '{1}')".format(self.id if self.id else self.xlinkLabel, self.value))
@@ -481,9 +495,7 @@ class ModelVariableSetAssertion(ModelVariableSet):
         if preferredMessage is None: preferredMessage = XbrlConst.standardMessage
         msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)
         if msgsRelationshipSet:
-            msg = msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
-            if msg is not None:
-                return msg
+            return msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
         return None
     
     @property
@@ -571,6 +583,10 @@ class ModelConsistencyAssertion(ModelFormulaResource):
         elif self.get("absoluteAcceptanceRadius") is not None:
             return "absoluteAcceptanceRadius=" + self.get("absoluteAcceptanceRadius")
         return ""
+    
+    @property
+    def xmlElementView(self):        
+        return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
 
     @property
     def propertyView(self):
@@ -1460,11 +1476,9 @@ class ModelConceptRelation(ModelFilter):
         if not sourceQname:
             return set()
         linkrole = self.evalLinkrole(xpCtx, None)
-        linkQname = self.evalLinkQname(xpCtx, None)
-        if linkQname is None: linkQname = ()
+        linkQname = (self.evalLinkQname(xpCtx, None) or () )
         arcrole = self.evalArcrole(xpCtx, None)
-        arcQname = self.evalArcQname(xpCtx, None)
-        if arcQname is None: arcQname = ()
+        arcQname = (self.evalArcQname(xpCtx, None) or () )
         hasNoTest = self.test is None
         axis = self.axis
         isFromAxis = axis.startswith('parent') or axis.startswith('ancestor')
@@ -1507,6 +1521,10 @@ class ModelConceptRelation(ModelFilter):
     
     def viewExpression(self):
         return XmlUtil.innerTextList(self)
+    
+    @property
+    def xmlElementView(self):        
+        return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
 
 class ModelEntityIdentifier(ModelTestFilter):
     def init(self, modelDocument):
