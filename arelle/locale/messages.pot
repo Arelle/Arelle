@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-05-01 13:58+Pacific Daylight Time\n"
+"POT-Creation-Date: 2012-06-22 13:19+Pacific Daylight Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,143 +15,159 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: arelle\CntlrCmdLine.py:36
+#: arelle\CntlrCmdLine.py:51
 msgid "FILENAME is an entry point, which may be an XBRL instance, schema, linkbase file, inline XBRL instance, testcase file, testcase index file.  FILENAME may be a local file or a URI to a web located file."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:44
-msgid "FILENAME is a list of files to import to the DTS, such as additional formula or label linkbases.  Multiple file names are separated by a '|' character. "
+#: arelle\CntlrCmdLine.py:57
+msgid "user name if needed (with password) for web file retrieval"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:48
-msgid "FILENAME is a second entry point when comparing (diffing) two DTSes producing a versioning report."
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:51
-msgid "FILENAME is the filename to save as the versioning report."
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:54
-msgid "Validate the file according to the entry file type.  If an XBRL file, it is validated according to XBRL validation 2.1, calculation linkbase validation if either --calcDecimals or --calcPrecision are specified, and SEC Edgar Filing Manual (if --efm selected) or Global Filer Manual disclosure system validation (if --gfm=XXX selected). If a test suite or testcase, the test case variations are individually so validated."
+#: arelle\CntlrCmdLine.py:59
+msgid "password if needed (with user name) for web retrieval"
 msgstr ""
 
 #: arelle\CntlrCmdLine.py:63
-msgid "Specify calculation linkbase validation inferring decimals."
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:65
-msgid "Specify calculation linkbase validation inferring precision."
+msgid "FILENAME is a list of files to import to the DTS, such as additional formula or label linkbases.  Multiple file names are separated by a '|' character. "
 msgstr ""
 
 #: arelle\CntlrCmdLine.py:67
-msgid "Select Edgar Filer Manual (U.S. SEC) disclosure system validation."
+msgid "FILENAME is a second entry point when comparing (diffing) two DTSes producing a versioning report."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:69
-msgid "Specify a Global Filer Manual disclosure system name and select disclosure system validation."
+#: arelle\CntlrCmdLine.py:70
+msgid "FILENAME is the filename to save as the versioning report."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:72
-msgid "Select U.K. HMRC disclosure system validation."
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:74
-msgid "Select validation with respect to Unit Type Registry."
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:76
-msgid "Select validation with respect testcase infosets."
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:78
-msgid "Language for labels in following file options (override system settings)"
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:80
-msgid "Label role for labels in following file options (instead of standard label)"
+#: arelle\CntlrCmdLine.py:73
+msgid "Validate the file according to the entry file type.  If an XBRL file, it is validated according to XBRL validation 2.1, calculation linkbase validation if either --calcDecimals or --calcPrecision are specified, and SEC Edgar Filing Manual (if --efm selected) or Global Filer Manual disclosure system validation (if --gfm=XXX selected). If a test suite or testcase, the test case variations are individually so validated."
 msgstr ""
 
 #: arelle\CntlrCmdLine.py:82
-msgid "Write DTS tree into FILE (may be .csv or .html)"
+msgid "Specify calculation linkbase validation inferring decimals."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:84
-msgid "Write fact list into FILE"
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:86
-msgid "Columns for fact list file"
+#: arelle\CntlrCmdLine.py:85
+msgid "Specify calculation linkbase validation inferring precision."
 msgstr ""
 
 #: arelle\CntlrCmdLine.py:88
-msgid "Write fact table into FILE"
+msgid "Select Edgar Filer Manual (U.S. SEC) disclosure system validation."
 msgstr ""
 
 #: arelle\CntlrCmdLine.py:90
-msgid "Write concepts into FILE"
+msgid "Specify a Global Filer Manual disclosure system name and select disclosure system validation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:92
-msgid "Write presentation linkbase into FILE"
+#: arelle\CntlrCmdLine.py:93
+msgid "Select U.K. HMRC disclosure system validation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:94
-msgid "Write calculation linkbase into FILE"
+#: arelle\CntlrCmdLine.py:95
+msgid "Select validation with respect to Unit Type Registry."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:96
-msgid "Write dimensions (of definition) linkbase into FILE"
+#: arelle\CntlrCmdLine.py:97
+msgid "Select validation with respect testcase infosets."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:98
-msgid "Write formulae linkbase into FILE"
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:100
-msgid "Write test report of validation (of test cases) into FILE"
+#: arelle\CntlrCmdLine.py:99
+msgid "Language for labels in following file options (override system settings)"
 msgstr ""
 
 #: arelle\CntlrCmdLine.py:102
+msgid "Label role for labels in following file options (instead of standard label)"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:105
+msgid "Write DTS tree into FILE (may be .csv or .html)"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:107
+msgid "Write fact list into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:109
+msgid "Columns for fact list file"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:111
+msgid "Write fact table into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:113
+msgid "Write concepts into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:115
+msgid "Write presentation linkbase into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:117
+msgid "Write calculation linkbase into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:119
+msgid "Write dimensions (of definition) linkbase into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:121
+msgid "Write formulae linkbase into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:123
+msgid "Write test report of validation (of test cases) into FILE"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:126
 msgid "Columns for test report file"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:104
+#: arelle\CntlrCmdLine.py:129
 msgid "Write log messages into file, otherwise they go to standard output.  If file ends in .xml it is xml-formatted, otherwise it is text. "
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:106
+#: arelle\CntlrCmdLine.py:132
 msgid "Specify parameters for formula and validation (name=value[,name=value])."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:107 arelle\CntlrCmdLine.py:108
-#: arelle\CntlrCmdLine.py:109 arelle\CntlrCmdLine.py:110
-#: arelle\CntlrCmdLine.py:111 arelle\CntlrCmdLine.py:112
-#: arelle\CntlrCmdLine.py:113 arelle\CntlrCmdLine.py:114
-#: arelle\CntlrCmdLine.py:115 arelle\CntlrCmdLine.py:116
-#: arelle\CntlrCmdLine.py:117 arelle\CntlrCmdLine.py:118
-#: arelle\CntlrCmdLine.py:119 arelle\CntlrCmdLine.py:120
-#: arelle\CntlrCmdLine.py:121 arelle\CntlrCmdLine.py:122
-#: arelle\CntlrCmdLine.py:123
+#: arelle\CntlrCmdLine.py:133 arelle\CntlrCmdLine.py:134
+#: arelle\CntlrCmdLine.py:135 arelle\CntlrCmdLine.py:136
+#: arelle\CntlrCmdLine.py:137 arelle\CntlrCmdLine.py:138
+#: arelle\CntlrCmdLine.py:139 arelle\CntlrCmdLine.py:140
+#: arelle\CntlrCmdLine.py:141 arelle\CntlrCmdLine.py:142
+#: arelle\CntlrCmdLine.py:143 arelle\CntlrCmdLine.py:144
+#: arelle\CntlrCmdLine.py:145 arelle\CntlrCmdLine.py:146
+#: arelle\CntlrCmdLine.py:147 arelle\CntlrCmdLine.py:148
+#: arelle\CntlrCmdLine.py:149
 msgid "Specify formula tracing."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:125
+#: arelle\CntlrCmdLine.py:151
+msgid "Language for user interface (override system settings, such as program messages).  Does not save setting."
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:154
 msgid "Modify and re-save proxy settings configuration.  Enter 'system' to use system proxy setting, 'none' to use no proxy, 'http://[user[:password]@]host[:port]'  (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080),  or 'show' to show current setting, ."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:131
+#: arelle\CntlrCmdLine.py:160
 msgid "Modify and re-save plug-in configuration.  Enter 'show' to show current plug-in configuration, or '|' separated modules: +url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name,  (e.g., '+http://arelle.org/files/hello_web.py', '+C:\\Program Files\\Arelle\\examples\\plugin\\hello_dolly.py' to load, ~Hello Dolly to reload, -Hello Dolly to remove)"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:138
+#: arelle\CntlrCmdLine.py:165
+msgid "Abort process on major error, such as when load is unable to find an entry or discovered file."
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:168
 msgid "start web server on host:port for REST and web access, e.g., --webserver locahost:8080."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:143
+#: arelle\CntlrCmdLine.py:173
 msgid "Show product version, copyright, and license."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:152
+#: arelle\CntlrCmdLine.py:177
 msgid ""
 "\n"
 "arelle(r) {0}\n"
@@ -180,136 +196,143 @@ msgid ""
 "   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov{1}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:173
+#: arelle\CntlrCmdLine.py:198
 msgid ""
 "\n"
 "   Bottle (c) 2011 Marcel Hellkamp"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:177
+#: arelle\CntlrCmdLine.py:202
 msgid ""
 "incorrect arguments, please try\n"
 "  python CntlrCmdLine.pyw --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:190
+#: arelle\CntlrCmdLine.py:215
 msgid ""
 "incorrect arguments with --webserver, please try\n"
 "  python CntlrCmdLine.pyw --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:213
+#: arelle\CntlrCmdLine.py:256
 msgid "Proxy configuration has been set."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:216
+#: arelle\CntlrCmdLine.py:259
 msgid "Proxy configured to use {0}."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:217 arelle\DialogUserPassword.py:76
+#: arelle\CntlrCmdLine.py:260 arelle\DialogUserPassword.py:76
 msgid "Microsoft Windows Internet Settings"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:218 arelle\DialogUserPassword.py:78
+#: arelle\CntlrCmdLine.py:261 arelle\DialogUserPassword.py:78
 msgid "Mac OS X System Configuration"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:219 arelle\DialogUserPassword.py:80
+#: arelle\CntlrCmdLine.py:262 arelle\DialogUserPassword.py:80
 msgid "environment variables"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:221
+#: arelle\CntlrCmdLine.py:264
 msgid "Proxy setting: http://{0}{1}{2}{3}{4}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:228
+#: arelle\CntlrCmdLine.py:271
 msgid "Proxy is disabled."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:238
+#: arelle\CntlrCmdLine.py:281
 msgid "Addition of plug-in {0} successful."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:242
+#: arelle\CntlrCmdLine.py:285
 msgid "Unable to load plug-in."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:245
+#: arelle\CntlrCmdLine.py:288
 msgid "Reload of plug-in successful."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:248
+#: arelle\CntlrCmdLine.py:291
 msgid "Unable to reload plug-in."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:251
+#: arelle\CntlrCmdLine.py:294
 msgid "Deletion of plug-in successful."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:254
+#: arelle\CntlrCmdLine.py:297
 msgid "Unable to delete plug-in."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:256
+#: arelle\CntlrCmdLine.py:299
 msgid "Plug-in action not recognized (may need +uri or [~-]module."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:260
+#: arelle\CntlrCmdLine.py:303
 msgid "Plug-in modules:"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:263
+#: arelle\CntlrCmdLine.py:306
 msgid "Plug-in: {0}; author: {1}; version: {2}; status: {3}; date: {4}; description: {5}; license {6}."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:274
+#: arelle\CntlrCmdLine.py:319
 msgid "both --efm and --gfm validation are requested, proceeding with --efm only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:288
+#: arelle\CntlrCmdLine.py:333
 msgid "both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:345 arelle\CntlrCmdLine.py:373
-#: arelle\CntlrGenVersReports.py:323 arelle\CntlrProfiler.py:20
-#: arelle\CntlrWinMain.py:560
+#: arelle\CntlrCmdLine.py:392 arelle\CntlrCmdLine.py:425
+#: arelle\CntlrGenVersReports.py:322 arelle\CntlrProfiler.py:20
+#: arelle\CntlrWinMain.py:563
 msgid "views loading"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:347 arelle\CntlrCmdLine.py:428
+#: arelle\CntlrCmdLine.py:396 arelle\CntlrCmdLine.py:487
 msgid ""
 "[Exception] Failed to complete request: \n"
 "{0} \n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:353
+#: arelle\CntlrCmdLine.py:402
 msgid "loaded in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:363
+#: arelle\CntlrCmdLine.py:414
 msgid "imported in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:380
+#: arelle\CntlrCmdLine.py:432
 msgid "diff comparison DTS loaded in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:386 arelle\CntlrWinMain.py:731
+#: arelle\CntlrCmdLine.py:438 arelle\CntlrWinMain.py:735
 msgid "compared in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:395 arelle\CntlrWinMain.py:688
+#: arelle\CntlrCmdLine.py:445
+msgid ""
+"[Exception] Failed to doad diff file: \n"
+"{0} \n"
+"{1}"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:454 arelle\CntlrWinMain.py:703
 msgid "validated in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:425
+#: arelle\CntlrCmdLine.py:484
 msgid ""
 "[IOError] Failed to save output:\n"
 " {0}"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:32
+#: arelle\CntlrGenVersReports.py:31
 msgid ""
 "FILENAME is an excel 95-2003 index file containing columns: \n"
 "Dir is a test directory, \n"
@@ -323,35 +346,35 @@ msgid ""
 "report files are generated in '/report' under fromURI's directory."
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:42
+#: arelle\CntlrGenVersReports.py:41
 msgid "Date if desired to use (instead of today) in generated testcase elements."
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:74
+#: arelle\CntlrGenVersReports.py:73
 msgid "[info] xls loaded in {0:.2} secs at {1}"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:118 arelle\CntlrGenVersReports.py:338
+#: arelle\CntlrGenVersReports.py:117 arelle\CntlrGenVersReports.py:337
 msgid "[info] testcase uriFrom {0}"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:121 arelle\CntlrGenVersReports.py:342
+#: arelle\CntlrGenVersReports.py:120 arelle\CntlrGenVersReports.py:341
 msgid "loading from DTS"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:121 arelle\CntlrGenVersReports.py:346
+#: arelle\CntlrGenVersReports.py:120 arelle\CntlrGenVersReports.py:345
 msgid "loading to DTS"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:284
+#: arelle\CntlrGenVersReports.py:283
 msgid "Exception: %(error)s, Excel row: %(excelRow)s"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:324
+#: arelle\CntlrGenVersReports.py:323
 msgid "[info] loaded in {0:.2} secs"
 msgstr ""
 
-#: arelle\CntlrGenVersReports.py:329
+#: arelle\CntlrGenVersReports.py:328
 msgid "[info] testcases {0}"
 msgstr ""
 
@@ -371,7 +394,7 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:24
+#: arelle\CntlrWebMain.py:34
 msgid ""
 "<html><body><form method=\"POST\"><table>\n"
 "                <tr><td>Name:</td><td><input name=\"name\" type=\"text\" /></td></tr>\n"
@@ -380,100 +403,100 @@ msgid ""
 "                </table></form></body></html>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:35
+#: arelle\CntlrWebMain.py:50
 msgid "<p>You are logged in as user: {0}</p>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:37
+#: arelle\CntlrWebMain.py:52
 msgid "<p>Login failed</p>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:48
+#: arelle\CntlrWebMain.py:71
 msgid "<p>You are logged out.</p>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:102
+#: arelle\CntlrWebMain.py:140
 msgid "POST must provide a zip file, Content-Type '{0}' not recognized as a zip file."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:110
+#: arelle\CntlrWebMain.py:148
 msgid "Only validation or one view can be specified in one requested."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:112
+#: arelle\CntlrWebMain.py:150
 msgid "Media '{0}' is not supported for validation (please select xhtml, html, xml, json or text)"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:115
+#: arelle\CntlrWebMain.py:153
 msgid "Media '{0}' is not supported for view (please select xhtml, html, xml, csv, or json)"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:117
+#: arelle\CntlrWebMain.py:155
 msgid "Neither validation nor view requested, nothing to do."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:119
+#: arelle\CntlrWebMain.py:157
 msgid "Flavor '{0}' is not supported"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:121
+#: arelle\CntlrWebMain.py:159
 msgid "View '{0}' is not supported"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:123
+#: arelle\CntlrWebMain.py:161
 msgid "URL: "
 msgstr ""
 
-#: arelle\CntlrWebMain.py:175 arelle\CntlrWebMain.py:530
+#: arelle\CntlrWebMain.py:217 arelle\CntlrWebMain.py:640
 msgid "Messages"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:181
+#: arelle\CntlrWebMain.py:227
 msgid "From DTS, to DTS, and report must be specified"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:196
+#: arelle\CntlrWebMain.py:246
 msgid "proxy or plugins must be specified"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:204
+#: arelle\CntlrWebMain.py:254
 msgid "Configuration Request"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:232
+#: arelle\CntlrWebMain.py:294
 msgid "QuickBooks report '{0}' is not supported (please select from: {1})"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:235
+#: arelle\CntlrWebMain.py:297
 msgid "Media '{0}' is not supported for xbrl-gl (please select xhtml, html or xml)"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:237
+#: arelle\CntlrWebMain.py:299
 msgid "FromDate '{0}' missing or not valid"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:239
+#: arelle\CntlrWebMain.py:301
 msgid "ToDate '{0}' missing or not valid"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:243
+#: arelle\CntlrWebMain.py:305
 msgid "Request queued for QuickBooks..."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:243 arelle\CntlrWebMain.py:262
-#: arelle\CntlrWebMain.py:265
+#: arelle\CntlrWebMain.py:305 arelle\CntlrWebMain.py:328
+#: arelle\CntlrWebMain.py:331
 msgid "Quickbooks Request"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:262
+#: arelle\CntlrWebMain.py:328
 msgid "QuickBooks ticket not found, request canceled."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:264
+#: arelle\CntlrWebMain.py:330
 msgid "{0}, Waiting 20 seconds..."
 msgstr ""
 
-#: arelle\CntlrWebMain.py:285
+#: arelle\CntlrWebMain.py:351
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">Arelle QuickBooks Global Ledger Interface</th></tr>\n"
@@ -482,7 +505,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:321
+#: arelle\CntlrWebMain.py:397
 msgid ""
 "<table>\n"
 "<tr><th colspan=\"2\">Arelle web API</th></tr>\n"
@@ -512,6 +535,7 @@ msgid ""
 "or label linkbases.  Multiple file names are separated by a '|' character.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">labelLang</td><td>Label language to override system settings, e.g., <code>&labelLang=ja</code>.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">labelRole</td><td>Label role instead of standard label, e.g., <code>&labelRole=http://www.xbrl.org/2003/role/verboseLabel</code>.  To use the concept QName instead of a label, specify <code>&labelRole=XBRL-concept-name</code>.</td></tr> \n"
+"<tr><td style=\"text-indent: 1em;\">uiLang</td><td>User interface language to override system settings, e.g., <code>&uiLang=fr</code>.  Changes setting for current session (but not saved setting).</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">calcDecimals</td><td>Specify calculation linkbase validation inferring decimals.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">calcPrecision</td><td>Specify calculation linkbase validation inferring precision.</td></tr> \n"
 "<tr><td style=\"text-indent: 1em;\">efm</td><td>Select Edgar Filer Manual (U.S. SEC) disclosure system validation. (Alternative to flavor parameter.)</td></tr> \n"
@@ -630,7 +654,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:468
+#: arelle\CntlrWebMain.py:549
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">About arelle</th></tr>\n"
@@ -654,7 +678,7 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWebMain.py:491
+#: arelle\CntlrWebMain.py:576
 msgid ""
 "<table width=\"700p\">\n"
 "<tr><th colspan=\"2\">Arelle Web Services</th></tr>\n"
@@ -663,443 +687,448 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:75
+#: arelle\CntlrWinMain.py:79
 msgid "Open File..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:76
+#: arelle\CntlrWinMain.py:80
 msgid "Open Web..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:77
+#: arelle\CntlrWinMain.py:81
 msgid "Import File..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:78
+#: arelle\CntlrWinMain.py:82
 msgid "Save..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:79
+#: arelle\CntlrWinMain.py:83
 msgid "Save DTS Package"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:80 arelle\CntlrWinMain.py:191
+#: arelle\CntlrWinMain.py:84 arelle\CntlrWinMain.py:194
 #: arelle\DialogFind.py:142 arelle\DialogPluginManager.py:170
-#: arelle\ViewWinFactGrid.py:31 arelle\ViewWinTree.py:203
-#: arelle\ViewWinTupleGrid.py:27
+#: arelle\ViewWinFactGrid.py:31 arelle\ViewWinTree.py:206
+#: arelle\ViewWinTupleGrid.py:25
 msgid "Close"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:82
+#: arelle\CntlrWinMain.py:86
 msgid "Quit"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:94 arelle\DialogOpenArchive.py:32
+#: arelle\CntlrWinMain.py:98 arelle\DialogOpenArchive.py:32
 #: arelle\DialogOpenArchive.py:40 arelle\DialogOpenArchive.py:257
 #: arelle\DialogOpenArchive.py:259
 msgid "File"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:99
+#: arelle\CntlrWinMain.py:103
 msgid "Validation"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:100 arelle\CntlrWinMain.py:929
+#: arelle\CntlrWinMain.py:104 arelle\CntlrWinMain.py:933
 #: arelle\ViewWinXml.py:19
 msgid "Validate"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:101
-msgid "Schema validate (experimental)"
-msgstr ""
-
-#: arelle\CntlrWinMain.py:105
+#: arelle\CntlrWinMain.py:108
 msgid "Disclosure system checks"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:106
+#: arelle\CntlrWinMain.py:109
 msgid "Select disclosure system..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:110
+#: arelle\CntlrWinMain.py:113
 msgid "Calc Linkbase checks"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:114
+#: arelle\CntlrWinMain.py:117
 msgid "Infer Decimals in calculations"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:118
+#: arelle\CntlrWinMain.py:121
 msgid "Unit Type Registry validation"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:123
+#: arelle\CntlrWinMain.py:126
 msgid "Parameters..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:125 arelle\FormulaEvaluator.py:852
+#: arelle\CntlrWinMain.py:128 arelle\FormulaEvaluator.py:904
 msgid "Formula"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:128
+#: arelle\CntlrWinMain.py:131
 msgid "Compare DTSes..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:132 arelle\ViewWinRssFeed.py:43
+#: arelle\CntlrWinMain.py:135 arelle\ViewWinRssFeed.py:43
 msgid "Options..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:133 arelle\ViewWinRssFeed.py:44
+#: arelle\CntlrWinMain.py:136 arelle\ViewWinRssFeed.py:44
 msgid "Start"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:134 arelle\ViewWinRssFeed.py:45
+#: arelle\CntlrWinMain.py:137 arelle\ViewWinRssFeed.py:45
 msgid "Stop"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:136 arelle\ViewWinRssFeed.py:46
+#: arelle\CntlrWinMain.py:139 arelle\ViewWinRssFeed.py:46
 msgid "RSS Watch"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:139
+#: arelle\CntlrWinMain.py:142
 msgid "Internet"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:143
+#: arelle\CntlrWinMain.py:146
 msgid "Work offline"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:144
+#: arelle\CntlrWinMain.py:147
 msgid "Clear cache"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:145
+#: arelle\CntlrWinMain.py:148
 msgid "Manage cache"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:146 arelle\DialogUserPassword.py:30
+#: arelle\CntlrWinMain.py:149 arelle\DialogUserPassword.py:30
 msgid "Proxy Server"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:149
+#: arelle\CntlrWinMain.py:152
 msgid "Messages log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:150 arelle\CntlrWinMain.py:245
+#: arelle\CntlrWinMain.py:153 arelle\CntlrWinMain.py:248
 msgid "Clear"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:151 arelle\CntlrWinMain.py:246
+#: arelle\CntlrWinMain.py:154 arelle\CntlrWinMain.py:249
 #: arelle\ViewWinList.py:103
 msgid "Save to file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:153
+#: arelle\CntlrWinMain.py:156
 msgid "Language..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:157
+#: arelle\CntlrWinMain.py:160
 msgid "Tools"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:161
+#: arelle\CntlrWinMain.py:164
 msgid "Check for updates"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:162
+#: arelle\CntlrWinMain.py:165
 msgid "Manage plug-ins"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:164
+#: arelle\CntlrWinMain.py:167
 msgid "About..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:173
+#: arelle\CntlrWinMain.py:176
 msgid "Help"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:177 arelle\CntlrWinMain.py:649
-#: arelle\CntlrWinMain.py:666 arelle\DialogFind.py:345
+#: arelle\CntlrWinMain.py:180 arelle\CntlrWinMain.py:664
+#: arelle\CntlrWinMain.py:681 arelle\DialogFind.py:345
+#: arelle\ViewWinFactList.py:69
 msgid "Ready..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:188
+#: arelle\CntlrWinMain.py:191
 msgid "Open by choosing a local XBRL file, testcase, or archive file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:188
+#: arelle\CntlrWinMain.py:191
 msgid "Open local file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:189
+#: arelle\CntlrWinMain.py:192
 msgid "Enter an http:// URL of an XBRL file or testcase"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:189
+#: arelle\CntlrWinMain.py:192
 msgid "Open web file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:190
+#: arelle\CntlrWinMain.py:193
 msgid "Save file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:190
+#: arelle\CntlrWinMain.py:193
 msgid "Saves currently selected local XBRL file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:191
+#: arelle\CntlrWinMain.py:194
 msgid "Closes currently selected instance/DTS or testcase(s)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:193
+#: arelle\CntlrWinMain.py:196
 msgid "Find dialog for scope and method of searching"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:193 arelle\DialogFind.py:64 arelle\DialogFind.py:138
+#: arelle\CntlrWinMain.py:196 arelle\DialogFind.py:64 arelle\DialogFind.py:138
 msgid "Find"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:195
+#: arelle\CntlrWinMain.py:198
 msgid "Validate currently selected DTS or testcase(s)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:196
+#: arelle\CntlrWinMain.py:199
 msgid "Compare DTSes"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:196
+#: arelle\CntlrWinMain.py:199
 msgid "compare two DTSes"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:198
+#: arelle\CntlrWinMain.py:201
 msgid "Clears the messages log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:198
+#: arelle\CntlrWinMain.py:201
 msgid "Messages Log | Clear"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:242
+#: arelle\CntlrWinMain.py:245
 msgid "messages"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:248 arelle\ViewWinList.py:105
-#: arelle\ViewWinTree.py:167
+#: arelle\CntlrWinMain.py:251 arelle\ViewWinList.py:105
+#: arelle\ViewWinTree.py:170
 msgid "Copy to clipboard"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:318 arelle\CntlrWinMain.py:356
-#: arelle\CntlrWinMain.py:672
+#: arelle\CntlrWinMain.py:321 arelle\CntlrWinMain.py:359
+#: arelle\CntlrWinMain.py:687
 msgid "arelle - Unnamed"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:339
+#: arelle\CntlrWinMain.py:342
 msgid "Recent files"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:346
+#: arelle\CntlrWinMain.py:349
 msgid "Recent imports"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:363
+#: arelle\CntlrWinMain.py:366
 msgid "arelle - Unsaved Changes"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:364
+#: arelle\CntlrWinMain.py:367
 msgid "Save unsaved changes?"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:379
+#: arelle\CntlrWinMain.py:382
 msgid "arelle - Save HTML-rendered Table"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:381
+#: arelle\CntlrWinMain.py:384
 msgid "HTML file .htm"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:381
+#: arelle\CntlrWinMain.py:384
 msgid "HTML file .html"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:388 arelle\CntlrWinMain.py:411
-#: arelle\CntlrWinMain.py:430 arelle\CntlrWinMain.py:456
-#: arelle\CntlrWinMain.py:757 arelle\CntlrWinMain.py:1011
+#: arelle\CntlrWinMain.py:391 arelle\CntlrWinMain.py:414
+#: arelle\CntlrWinMain.py:433 arelle\CntlrWinMain.py:459
+#: arelle\CntlrWinMain.py:761 arelle\CntlrWinMain.py:1015
 msgid "arelle - Error"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:389 arelle\CntlrWinMain.py:412
-#: arelle\CntlrWinMain.py:431 arelle\CntlrWinMain.py:457
-#: arelle\CntlrWinMain.py:1012
+#: arelle\CntlrWinMain.py:392 arelle\CntlrWinMain.py:415
+#: arelle\CntlrWinMain.py:434 arelle\CntlrWinMain.py:460
+#: arelle\CntlrWinMain.py:1016
 msgid ""
 "Failed to save {0}:\n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:395
+#: arelle\CntlrWinMain.py:398
 msgid "arelle - Save Instance"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:397
+#: arelle\CntlrWinMain.py:400
 msgid "XBRL instance .xbrl"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:397
+#: arelle\CntlrWinMain.py:400
 msgid "XBRL instance .xml"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:402
+#: arelle\CntlrWinMain.py:405
 msgid "arelle - Save Test Results"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:404
+#: arelle\CntlrWinMain.py:407
 msgid "CSV file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:418
+#: arelle\CntlrWinMain.py:421
 msgid "arelle - Save Formula Result Instance Document"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:420
+#: arelle\CntlrWinMain.py:423
 msgid "XBRL output instance .xbrl"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:420
+#: arelle\CntlrWinMain.py:423
 msgid "XBRL output instance .xml"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:428
+#: arelle\CntlrWinMain.py:431
 msgid "[info] Saved formula output instance to {0}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:437
+#: arelle\CntlrWinMain.py:440
 msgid "arelle - Save File"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:439
+#: arelle\CntlrWinMain.py:442
 msgid "Xbrl file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:450
+#: arelle\CntlrWinMain.py:453
 msgid "Saved {0} items to {1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:453 arelle\CntlrWinMain.py:589
-#: arelle\CntlrWinMain.py:753
+#: arelle\CntlrWinMain.py:456 arelle\CntlrWinMain.py:599
+#: arelle\CntlrWinMain.py:757
 msgid "arelle - {0}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:469
+#: arelle\CntlrWinMain.py:472
 msgid "arelle - Open file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:471 arelle\CntlrWinMain.py:491
+#: arelle\CntlrWinMain.py:474 arelle\CntlrWinMain.py:494
 #: arelle\DialogRssWatch.py:148
 msgid "XBRL files"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:474 arelle\CntlrWinMain.py:494
+#: arelle\CntlrWinMain.py:477 arelle\CntlrWinMain.py:497
 msgid "Loading web-accessed files"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:475 arelle\CntlrWinMain.py:495
+#: arelle\CntlrWinMain.py:478 arelle\CntlrWinMain.py:498
 msgid "Please open web-accessed files with the second toolbar button, \"Open web file\", or the File menu, second entry, \"Open web...\""
 msgstr ""
 
-#: arelle\CntlrWinMain.py:485 arelle\CntlrWinMain.py:709
+#: arelle\CntlrWinMain.py:488 arelle\CntlrWinMain.py:713
 msgid "arelle - Warning"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:486
+#: arelle\CntlrWinMain.py:489
 msgid "Import requires an opened DTS"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:489
+#: arelle\CntlrWinMain.py:492
 msgid "arelle - Import file into opened DTS"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:554
+#: arelle\CntlrWinMain.py:557
 msgid "imported"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:559 arelle\DisclosureSystem.py:135
+#: arelle\CntlrWinMain.py:562 arelle\DisclosureSystem.py:135
 msgid "loaded"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:562
+#: arelle\CntlrWinMain.py:565 arelle\CntlrWinMain.py:575
+msgid "Loading terminated, unrecoverable error"
+msgstr ""
+
+#: arelle\CntlrWinMain.py:568
 msgid "Exception loading {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:572
+#: arelle\CntlrWinMain.py:579
 msgid "%s in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:574
+#: arelle\CntlrWinMain.py:582
+msgid "Initializing table rendering"
+msgstr ""
+
+#: arelle\CntlrWinMain.py:584
 msgid "{0}, preparing views"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:579
+#: arelle\CntlrWinMain.py:589
 msgid "not successfully %s in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:638
+#: arelle\CntlrWinMain.py:653
 msgid "views %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:643
+#: arelle\CntlrWinMain.py:658
 msgid "Exception preparing {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:647 arelle\CntlrWinMain.py:664
+#: arelle\CntlrWinMain.py:662 arelle\CntlrWinMain.py:679
 msgid "Exception preparing view"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:660
+#: arelle\CntlrWinMain.py:675
 msgid "Exception {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:710
+#: arelle\CntlrWinMain.py:714
 msgid "Two DTSes are required for the Compare DTSes operation, {0} found"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:714
+#: arelle\CntlrWinMain.py:718
 msgid "arelle - Save Versioning Report File"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:716
+#: arelle\CntlrWinMain.py:720
 msgid "Versioning report file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:750
+#: arelle\CntlrWinMain.py:754
 msgid "Loaded {0} items from {1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:758
+#: arelle\CntlrWinMain.py:762
 msgid ""
 "Failed to load {0}\n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:796
+#: arelle\CntlrWinMain.py:800
 msgid "arelle - Clear Internet Cache"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:797
+#: arelle\CntlrWinMain.py:801
 msgid "Are you sure you want to clear the internet cache?"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:849
+#: arelle\CntlrWinMain.py:853
 msgid "RSS Watch Control Error"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:850
+#: arelle\CntlrWinMain.py:854
 msgid "RSS Feed is not set up, please select options and select feed"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:885
+#: arelle\CntlrWinMain.py:889
 msgid "arelle - Labels language code setting"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:886
+#: arelle\CntlrWinMain.py:890
 msgid ""
 "The system default language is: {0} \n"
 "\n"
@@ -1109,44 +1138,44 @@ msgid ""
 "(Leave empty to use the system default language.)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:910
+#: arelle\CntlrWinMain.py:914
 msgid "Validate versioning report"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:914
+#: arelle\CntlrWinMain.py:918
 msgid ""
 "\n"
 "Check calculations (infer decimals)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:916
+#: arelle\CntlrWinMain.py:920
 msgid ""
 "\n"
 "Check calculations (infer precision)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:920
+#: arelle\CntlrWinMain.py:924
 msgid ""
 "\n"
 "Check unit type registry"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:924
+#: arelle\CntlrWinMain.py:928
 msgid ""
 "Validate {0}\n"
 "Check disclosure system rules\n"
 "{1}{2}{3}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:927
+#: arelle\CntlrWinMain.py:931
 msgid "Validate {0}{1}{2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:957
+#: arelle\CntlrWinMain.py:961
 msgid "About arelle"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:959
+#: arelle\CntlrWinMain.py:963
 msgid ""
 "arelle® {0} {1}\n"
 "An open source XBRL platform\n"
@@ -1169,25 +1198,85 @@ msgid ""
 "   xlwt © 2007 Stephen J. Machin, Lingfo Pty Ltd, © 2005 R. V. Kiseliov{2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:981
+#: arelle\CntlrWinMain.py:985
 msgid ""
 "\n"
 "   Bottle © 2011 Marcel Hellkamp"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1002
+#: arelle\CntlrWinMain.py:1006
 msgid "arelle - Save Messages Log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1004
+#: arelle\CntlrWinMain.py:1008
 msgid "Txt file"
 msgstr ""
 
-#: arelle\DialogAbout.py:33 arelle\DialogFormulaParameters.py:153
-#: arelle\DialogLanguage.py:74 arelle\DialogNewFactItem.py:92
-#: arelle\DialogOpenArchive.py:112 arelle\DialogRssWatch.py:126
-#: arelle\DialogURL.py:40 arelle\DialogUserPassword.py:125
+#: arelle\CntlrWinMain.py:1149
+msgid "Exception"
+msgstr ""
+
+#: arelle\CntlrWinMain.py:1150
+msgid ""
+"{0}\n"
+"Call trace\n"
+"{1}"
+msgstr ""
+
+#: arelle\DialogAbout.py:33 arelle\DialogArcroleGroup.py:102
+#: arelle\DialogFormulaParameters.py:159 arelle\DialogLanguage.py:74
+#: arelle\DialogNewFactItem.py:92 arelle\DialogOpenArchive.py:112
+#: arelle\DialogRssWatch.py:126 arelle\DialogURL.py:40
+#: arelle\DialogUserPassword.py:125
 msgid "OK"
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:35
+msgid "Select Arcrole Group"
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:49
+msgid "Group:"
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:61
+msgid "Select an existing arcrole group, or enter a name for a new arcrole group.  If selecting an existing group, it can be edited, and changes will be saved in the config file.  If nothing is changed for an existing group, the saved setting is not disturbed.  Arcroles with checkboxes below are shown only for arcroles that have relationships in the loaded DTS, but if an existing group is selected with more arcroles (that were not in the current DTS) then the prior setting with not-present arcroles is preserved. "
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:72
+msgid "Remove the currently selected arcrole group from the config file. After removing, you may select another arcrole, but must select 'OK' for the removal to be saved. "
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:76
+msgid "Arcroles:"
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:77
+msgid "Shows all the arcroles that are present in this DTS. "
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:97
+msgid "detect"
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:100
+msgid "If checked, this arcrole group will be detected if any arcrole of the group is present in a DTS, for example to open a treeview pane. "
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:103 arelle\DialogFormulaParameters.py:160
+#: arelle\DialogLanguage.py:75 arelle\DialogNewFactItem.py:90
+#: arelle\DialogOpenArchive.py:113 arelle\DialogPluginManager.py:172
+#: arelle\DialogRssWatch.py:124 arelle\DialogURL.py:41
+#: arelle\DialogUserPassword.py:126
+msgid "Cancel"
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:106
+msgid "Open a treeview with named arcrole group and selected arcroles. If any changes were made to checkboxes or name, save in the config. "
+msgstr ""
+
+#: arelle\DialogArcroleGroup.py:109
+msgid "Close this dialog, without saving arcrole group changes or opening a view pane. "
 msgstr ""
 
 #: arelle\DialogFind.py:75
@@ -1288,13 +1377,6 @@ msgstr ""
 msgid "Formula Parameters and Trace Options"
 msgstr ""
 
-#: arelle\DialogFormulaParameters.py:154 arelle\DialogLanguage.py:75
-#: arelle\DialogNewFactItem.py:90 arelle\DialogOpenArchive.py:113
-#: arelle\DialogPluginManager.py:172 arelle\DialogRssWatch.py:124
-#: arelle\DialogURL.py:41 arelle\DialogUserPassword.py:126
-msgid "Cancel"
-msgstr ""
-
 #: arelle\DialogLanguage.py:29
 msgid "arelle - User Interface and Labels language code settings"
 msgstr ""
@@ -1323,15 +1405,15 @@ msgstr ""
 msgid "Locale setting {0} ({1}) is not supported on this system"
 msgstr ""
 
-#: arelle\DialogLanguage.py:132 arelle\DialogLanguage.py:138
+#: arelle\DialogLanguage.py:129 arelle\DialogLanguage.py:135
 msgid "User interface language changed"
 msgstr ""
 
-#: arelle\DialogLanguage.py:133
+#: arelle\DialogLanguage.py:130
 msgid "Should Arelle restart with changed user interface language, if there are any unsaved changes they would be lost!"
 msgstr ""
 
-#: arelle\DialogLanguage.py:139
+#: arelle\DialogLanguage.py:136
 msgid "Please restart Arelle for the change in user interface language."
 msgstr ""
 
@@ -1811,7 +1893,7 @@ msgid "Disclosure system and mappings {0}: {1}"
 msgstr ""
 
 #: arelle\DisclosureSystem.py:154 arelle\DisclosureSystem.py:200
-#: arelle\ModelDocument.py:62
+#: arelle\ModelDocument.py:87
 msgid "parsing {0}"
 msgstr ""
 
@@ -1831,172 +1913,188 @@ msgstr ""
 msgid "Consistency assertion %(id)s result %(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:53
+#: arelle\FormulaEvaluator.py:58
 msgid ""
 "Existence Assertion %(xlinkLabel)s \n"
 "Result: %(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:60
+#: arelle\FormulaEvaluator.py:65
 msgid "Variable set %(xlinkLabel)s had no xpCtx.evaluations"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:65
+#: arelle\FormulaEvaluator.py:69
+msgid "Variable set %(xlinkLabel)s time for %(count)s evaluations: %(time)s"
+msgstr ""
+
+#: arelle\FormulaEvaluator.py:75
 msgid ""
 "Variable set %(xlinkLabel)s \n"
 "Exception: %(error)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:70
+#: arelle\FormulaEvaluator.py:80
 msgid "Variable set %(xlinkLabel)s evaluations: %(evaluations)s x %(variables)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:88
+#: arelle\FormulaEvaluator.py:106
 msgid "Variable set %(xlinkLabel)s skipped evaluation, all fact variables have fallen back"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:97
+#: arelle\FormulaEvaluator.py:115
 msgid "Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:109
+#: arelle\FormulaEvaluator.py:121
+msgid "Variable set %(xlinkLabel)s skipped evaluation %(count)s: %(time)s sec"
+msgstr ""
+
+#: arelle\FormulaEvaluator.py:135
 msgid ""
 "Variable set %(xlinkLabel)s \n"
 "Precondition %(precondition)s \n"
 "Result: %(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:130
+#: arelle\FormulaEvaluator.py:142
+msgid "Variable set %(xlinkLabel)s precondition blocked evaluation %(count)s: %(time)s sec"
+msgstr ""
+
+#: arelle\FormulaEvaluator.py:164
 msgid "unlabeled variableSet"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:136
+#: arelle\FormulaEvaluator.py:170
 msgid ""
 "%(variableSetType)s %(xlinkLabel)s \n"
 "Result: \n"
 "%(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:167
+#: arelle\FormulaEvaluator.py:184
+msgid "Variable set %(xlinkLabel)s completed evaluation %(count)s: %(time)s sec"
+msgstr ""
+
+#: arelle\FormulaEvaluator.py:212
 msgid ""
 "Variable set chained in scope of variable set %(variableset)s \n"
 "Exception: \n"
 "%(error)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:184
+#: arelle\FormulaEvaluator.py:230
 msgid "Fact Variable %(variable)s: start with %(factCount)s facts previously cached after explicit filters"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:197
+#: arelle\FormulaEvaluator.py:243
 msgid "Fact Variable %(variable)s: start with %(factCount)s facts previously cached before variable filters"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:204
+#: arelle\FormulaEvaluator.py:250
 msgid "Fact Variable %(variable)s filtering: start with %(factCount)s facts"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:224
+#: arelle\FormulaEvaluator.py:270
 msgid "Fact Variable %(variable)s: filters result %(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:230
+#: arelle\FormulaEvaluator.py:276
 msgid "Fact Variable %(variable)s: fallbackValue result %(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:244
+#: arelle\FormulaEvaluator.py:290
 msgid "General Variable %(variable)s: select result %(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:263
+#: arelle\FormulaEvaluator.py:309
 msgid "%(variableType)s %(variable)s: bound value %(result)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:290
+#: arelle\FormulaEvaluator.py:337
 msgid "Fact Variable %(variable)s %(filterType)s %(filter)s filter %(xlinkLabel)s passes %(factCount)s facts"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:320
+#: arelle\FormulaEvaluator.py:367
 msgid "Fact Variable %(variable)s implicit filter %(aspect)s passes %(factCount)s facts"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:479
+#: arelle\FormulaEvaluator.py:526
 msgid "Formula %(xlinkLabel)s concept: %(concept)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:486
+#: arelle\FormulaEvaluator.py:533
 msgid "Formula %(xlinkLabel)s concept %(concept)s is not a %(element)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:496
+#: arelle\FormulaEvaluator.py:543
 msgid "Formula %(xlinkLabel)s entity identifier scheme: %(scheme)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:503
+#: arelle\FormulaEvaluator.py:550
 msgid "Formula %(xlinkLabel)s entity identifier value: %(entityIdentifier)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:512
+#: arelle\FormulaEvaluator.py:559
 msgid "Formula %(xlinkLabel)s period type: %(periodType)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:518 arelle\FormulaEvaluator.py:529
+#: arelle\FormulaEvaluator.py:565 arelle\FormulaEvaluator.py:576
 msgid "Formula %(xlinkLabel)s period end: %(period)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:524
+#: arelle\FormulaEvaluator.py:571
 msgid "Formula %(xlinkLabel)s period start: %(period)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:538 arelle\FormulaEvaluator.py:545
+#: arelle\FormulaEvaluator.py:585 arelle\FormulaEvaluator.py:592
 msgid "Formula %(xlinkLabel)s unit: %(unit)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:578
+#: arelle\FormulaEvaluator.py:625
 msgid "Formula %(xlinkLabel)s dimension %(dimension)s: %(value)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:585
+#: arelle\FormulaEvaluator.py:632
 msgid "Formula %(xlinkLabel)s dimension %(dimension)s value is not a node: %(value)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:598
+#: arelle\FormulaEvaluator.py:645
 msgid "Formula %(xlinkLabel)s OCC element %(occ)s covers a dimensional aspect"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:659
+#: arelle\FormulaEvaluator.py:706
 msgid "Formula %(xlinkLabel)s value is a sequence of length %(valueSequenceLength)s"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:736
+#: arelle\FormulaEvaluator.py:783
 msgid "neither source {0}, nor an aspect rule, were found."
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:750
+#: arelle\FormulaEvaluator.py:797
 msgid "source, {0}, contains the QName of a fact variable that binds as a sequence where that fact's aspect rule covers this filtered aspect"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:848
+#: arelle\FormulaEvaluator.py:900
 msgid "Fact Variable"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:849
+#: arelle\FormulaEvaluator.py:901
 msgid "General Variable"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:850
+#: arelle\FormulaEvaluator.py:902
 msgid "Parameter"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:851
+#: arelle\FormulaEvaluator.py:903
 msgid "Tuple"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:853
+#: arelle\FormulaEvaluator.py:905
 msgid "ValueAssertion"
 msgstr ""
 
-#: arelle\FormulaEvaluator.py:854
+#: arelle\FormulaEvaluator.py:906
 msgid "ExistenceAssertion"
 msgstr ""
 
@@ -2056,53 +2154,53 @@ msgstr ""
 msgid "Value operation {0} incompatible arguments {1} and {2}"
 msgstr ""
 
-#: arelle\FunctionXfi.py:22
+#: arelle\FunctionXfi.py:23
 msgid "xfi function not available"
 msgstr ""
 
-#: arelle\FunctionXfi.py:175
+#: arelle\FunctionXfi.py:181
 msgid "Period is not instant"
 msgstr ""
 
-#: arelle\FunctionXfi.py:177
+#: arelle\FunctionXfi.py:183
 msgid "Period is forever"
 msgstr ""
 
-#: arelle\FunctionXfi.py:263
+#: arelle\FunctionXfi.py:269
 msgid "Argument 1 {0} is not inferrable."
 msgstr ""
 
-#: arelle\FunctionXfi.py:265
+#: arelle\FunctionXfi.py:271
 msgid "Argument 1 is not reported with {0}."
 msgstr ""
 
-#: arelle\FunctionXfi.py:298 arelle\FunctionXfi.py:331
-#: arelle\FunctionXfi.py:351
+#: arelle\FunctionXfi.py:304 arelle\FunctionXfi.py:337
+#: arelle\FunctionXfi.py:357
 msgid "Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}"
 msgstr ""
 
-#: arelle\FunctionXfi.py:300 arelle\FunctionXfi.py:333
-#: arelle\FunctionXfi.py:353
+#: arelle\FunctionXfi.py:306 arelle\FunctionXfi.py:339
+#: arelle\FunctionXfi.py:359
 msgid "Function xff:uncovered-aspect cannot be used with implicitFiltering=false"
 msgstr ""
 
-#: arelle\FunctionXfi.py:592
+#: arelle\FunctionXfi.py:598
 msgid "Argument 1 {0} is not a concept in the DTS."
 msgstr ""
 
-#: arelle\FunctionXfi.py:641 arelle\FunctionXfi.py:763
+#: arelle\FunctionXfi.py:647 arelle\FunctionXfi.py:769
 msgid "Argument 1 {0} is not a dimension concept QName."
 msgstr ""
 
-#: arelle\FunctionXfi.py:694 arelle\FunctionXfi.py:697
+#: arelle\FunctionXfi.py:700 arelle\FunctionXfi.py:703
 msgid "Argument 1 {0} is not in the DTS."
 msgstr ""
 
-#: arelle\FunctionXfi.py:786
+#: arelle\FunctionXfi.py:792
 msgid "dimension does not specify an explicit dimension"
 msgstr ""
 
-#: arelle\FunctionXfi.py:821
+#: arelle\FunctionXfi.py:827
 msgid "dimension does not specify a typed dimension"
 msgstr ""
 
@@ -2574,127 +2672,143 @@ msgstr ""
 msgid "Sub-picture must contain at least one digit position or sign character {0}"
 msgstr ""
 
-#: arelle\ModelDocument.py:31
+#: arelle\ModelDocument.py:51
 msgid "Prohibited file for filings %(blockedIndicator)s: %(url)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:32
+#: arelle\ModelDocument.py:52
 msgid " blocked"
 msgstr ""
 
-#: arelle\ModelDocument.py:53
+#: arelle\ModelDocument.py:74
+msgid ""
+"File can not be loaded: %(fileName)s \n"
+"Loading terminated."
+msgstr ""
+
+#: arelle\ModelDocument.py:78
 msgid "File can not be loaded: %(fileName)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:81
+#: arelle\ModelDocument.py:113
+msgid ""
+"%(fileName)s: file error: %(error)s \n"
+"Loading terminated."
+msgstr ""
+
+#: arelle\ModelDocument.py:117
 msgid "%(fileName)s: file error: %(error)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:92
+#: arelle\ModelDocument.py:129
 msgid "%(error)s, %(fileName)s, %(sourceAction)s source element"
 msgstr ""
 
-#: arelle\ModelDocument.py:100
+#: arelle\ModelDocument.py:137
 msgid "loading {0}"
 msgstr ""
 
-#: arelle\ModelDocument.py:404
+#: arelle\ModelDocument.py:156
+msgid "Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"
+msgstr ""
+
+#: arelle\ModelDocument.py:551
 msgid "Discovery of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:410
+#: arelle\ModelDocument.py:557
 msgid "Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:460
+#: arelle\ModelDocument.py:607
 msgid "Prohibited base attribute: %(attribute)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:489
+#: arelle\ModelDocument.py:636
 msgid "Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s"
 msgstr ""
 
-#: arelle\ModelDocument.py:561
+#: arelle\ModelDocument.py:708
 msgid "Linkbase reference for %(linkbaseRefElement)s href attribute missing or malformed"
 msgstr ""
 
-#: arelle\ModelDocument.py:594
+#: arelle\ModelDocument.py:741
 msgid "Locator href attribute missing or malformed in standard extended link"
 msgstr ""
 
-#: arelle\ModelDocument.py:598
+#: arelle\ModelDocument.py:745
 msgid "Locator href attribute missing or malformed in non-standard extended link"
 msgstr ""
 
-#: arelle\ModelDocument.py:637
+#: arelle\ModelDocument.py:784
 msgid "Linkbase extended link %(element)s missing schema definition"
 msgstr ""
 
-#: arelle\ModelDocument.py:748
+#: arelle\ModelDocument.py:895
 msgid "Inline XBRL tupleRef %(tupleRef)s not found"
 msgstr ""
 
-#: arelle\ModelDocument.py:775
+#: arelle\ModelDocument.py:922
 msgid "Instance fact %(element)s missing schema definition "
 msgstr ""
 
-#: arelle\ModelDtsObject.py:144
+#: arelle\ModelDtsObject.py:222
 msgid "maxOccurs must be positive"
 msgstr ""
 
-#: arelle\ModelDtsObject.py:164
+#: arelle\ModelDtsObject.py:244
 msgid "minOccurs must be positive"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:188
+#: arelle\ModelFormulaObject.py:197
 msgid "Invalid formula object %(element)s"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:566
+#: arelle\ModelFormulaObject.py:607
 msgid "Parameter name used on multiple parameters %(name)s"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:1621
+#: arelle\ModelFormulaObject.py:1720
 msgid "Matched variable sequence includes fact {0} inconsistent in aspect {1}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:1868
+#: arelle\ModelFormulaObject.py:1980
 msgid "%(dimension)s is not an explicit dimension concept QName."
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:1982
+#: arelle\ModelFormulaObject.py:2094
 msgid "dimension not available"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2509 arelle\ModelFormulaObject.py:2567
+#: arelle\ModelFormulaObject.py:2637 arelle\ModelFormulaObject.py:2700
 msgid "input {0}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2516
+#: arelle\ModelFormulaObject.py:2644
 msgid "{0}({1}) as {2}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2568
+#: arelle\ModelFormulaObject.py:2701
 msgid "step {0}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2576
+#: arelle\ModelFormulaObject.py:2709
 msgid ""
 "step ${0}: \n"
 "{1}"
 msgstr ""
 
-#: arelle\ModelFormulaObject.py:2577
+#: arelle\ModelFormulaObject.py:2710
 msgid ""
 "output: \n"
 "{0}"
 msgstr ""
 
-#: arelle\ModelManager.py:52
+#: arelle\ModelManager.py:128
 msgid "Open file handle is not open: {0}"
 msgstr ""
 
-#: arelle\ModelManager.py:77
+#: arelle\ModelManager.py:157
 msgid "[exception] Validation exception: {0} at {1}"
 msgstr ""
 
@@ -2712,6 +2826,12 @@ msgid ""
 "arc (priority {0}, {1} - {2}) is ineffective due to equivalent arc (priority {3}, {4} - {5})\n"
 msgstr ""
 
+#: arelle\ModelRenderingObject.py:102
+msgid ""
+"%(element)s set %(xlinkLabel)s \n"
+"Exception: %(error)s"
+msgstr ""
+
 #: arelle\ModelRssItem.py:41
 msgid "tested"
 msgstr ""
@@ -2720,102 +2840,106 @@ msgstr ""
 msgid "not tested"
 msgstr ""
 
-#: arelle\ModelVersReport.py:252
+#: arelle\ModelVersReport.py:341
 msgid "Comparing namespaces"
 msgstr ""
 
-#: arelle\ModelVersReport.py:254
+#: arelle\ModelVersReport.py:343
 msgid "Comparing roles"
 msgstr ""
 
-#: arelle\ModelVersReport.py:256
+#: arelle\ModelVersReport.py:345
 msgid "Comparing concepts"
 msgstr ""
 
-#: arelle\ModelVersReport.py:259
+#: arelle\ModelVersReport.py:348
 msgid "Comparing {0} relationships"
 msgstr ""
 
-#: arelle\ModelVersReport.py:262
+#: arelle\ModelVersReport.py:351
 msgid "Comparing dimension defaults"
 msgstr ""
 
-#: arelle\ModelVersReport.py:265
+#: arelle\ModelVersReport.py:354
 msgid "Comparing explicit dimensions"
 msgstr ""
 
-#: arelle\ModelVersReport.py:291
+#: arelle\ModelVersReport.py:380
 msgid "Checking report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:294
+#: arelle\ModelVersReport.py:383
 msgid "Writing report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:303
+#: arelle\ModelVersReport.py:392
 msgid "C report file"
 msgstr ""
 
-#: arelle\ModelVersReport.py:304 arelle\Validate.py:240
-#: arelle\ValidateFiling.py:1193 arelle\ValidateFormula.py:114
-#: arelle\ValidateHmrc.py:184 arelle\ValidateXbrl.py:594
+#: arelle\ModelVersReport.py:393 arelle\Validate.py:260
+#: arelle\ValidateFiling.py:1192 arelle\ValidateFormula.py:137
+#: arelle\ValidateHmrc.py:184 arelle\ValidateXbrl.py:597
 msgid "ready"
 msgstr ""
 
-#: arelle\ModelVersReport.py:574 arelle\ModelVersReport.py:588
+#: arelle\ModelVersReport.py:663 arelle\ModelVersReport.py:677
 msgid "corresponding relationship {0} toDTS toName=\"{1}\""
 msgstr ""
 
-#: arelle\ModelVersReport.py:576
+#: arelle\ModelVersReport.py:665
 msgid "toDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:590
+#: arelle\ModelVersReport.py:679
 msgid "fromDTS does not have a corresponding relationship at position {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:835
+#: arelle\ModelVersReport.py:924
 msgid "typed domain element {0}"
 msgstr ""
 
-#: arelle\ModelVersReport.py:837
+#: arelle\ModelVersReport.py:926
 msgid "typedDomainRef={0} (element qname cannot be determined)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:908
+#: arelle\ModelVersReport.py:997
 msgid "from value: {0} "
 msgstr ""
 
-#: arelle\ModelVersReport.py:912 arelle\ModelVersReport.py:929
+#: arelle\ModelVersReport.py:1001 arelle\ModelVersReport.py:1018
 msgid "({0} does not have an id attribute)"
 msgstr ""
 
-#: arelle\ModelVersReport.py:925
+#: arelle\ModelVersReport.py:1014
 msgid "to value: {0} "
 msgstr ""
 
-#: arelle\ModelXbrl.py:21
+#: arelle\ModelXbrl.py:36
 msgid "loading"
 msgstr ""
 
-#: arelle\ModelXbrl.py:52 arelle\ModelXbrl.py:135
+#: arelle\ModelXbrl.py:67 arelle\ModelXbrl.py:296
 msgid "xbrl loading finished, {0}..."
 msgstr ""
 
-#: arelle\ModelXbrl.py:262
+#: arelle\ModelXbrl.py:514
 msgid "Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"
 msgstr ""
 
-#: arelle\ModelXbrl.py:283
+#: arelle\ModelXbrl.py:535
 msgid "Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"
 msgstr ""
 
-#: arelle\ModelXbrl.py:429
+#: arelle\ModelXbrl.py:753
 msgid "Exception viewing properties {0} {1} at {2}"
 msgstr ""
 
-#: arelle\ModelXbrl.py:557
+#: arelle\ModelXbrl.py:923
 msgid "DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"
+msgstr ""
+
+#: arelle\RenderingEvaluator.py:49 arelle\ValidateXbrl.py:595
+msgid "compiling rendering tables"
 msgstr ""
 
 #: arelle\Updater.py:19
@@ -2847,59 +2971,59 @@ msgstr ""
 msgid "Download ompleted"
 msgstr ""
 
-#: arelle\Validate.py:57
+#: arelle\Validate.py:64
 msgid "Testcase validation exception: %(error)s, testcase: %(testcase)s"
 msgstr ""
 
-#: arelle\Validate.py:67
+#: arelle\Validate.py:74
 msgid "Versioning report exception: %(error)s, testcase: %(reportFile)s"
 msgstr ""
 
-#: arelle\Validate.py:78
+#: arelle\Validate.py:85
 msgid "Instance validation exception: %(error)s, instance: %(instance)s"
 msgstr ""
 
-#: arelle\Validate.py:99
+#: arelle\Validate.py:106
 msgid "Variation %(id)s %(name)s: %(expected)s"
 msgstr ""
 
-#: arelle\Validate.py:127 arelle\WatchRss.py:67 arelle\WatchRss.py:70
+#: arelle\Validate.py:134 arelle\WatchRss.py:67 arelle\WatchRss.py:70
 msgid "validating"
 msgstr ""
 
-#: arelle\Validate.py:132
+#: arelle\Validate.py:139
 msgid "Testcase %(id)s %(name)s document not loaded: %(file)s"
 msgstr ""
 
-#: arelle\Validate.py:155
+#: arelle\Validate.py:162
 msgid "validating existing version report"
 msgstr ""
 
-#: arelle\Validate.py:166
+#: arelle\Validate.py:173
 msgid "Testcase %(id)s %(name)s DTSes not loaded, unable to generate versioning report: %(file)s"
 msgstr ""
 
-#: arelle\Validate.py:183
+#: arelle\Validate.py:194
 msgid "loading result infoset"
 msgstr ""
 
-#: arelle\Validate.py:188
+#: arelle\Validate.py:199
 msgid "Testcase %(id)s %(name)s result infoset not loaded: %(file)s"
 msgstr ""
 
-#: arelle\Validate.py:212
+#: arelle\Validate.py:224
 msgid "loading expected result XBRL instance"
 msgstr ""
 
-#: arelle\Validate.py:217
+#: arelle\Validate.py:229
 msgid "Testcase %(id)s %(name)s expected result instance not loaded: %(file)s"
 msgstr ""
 
-#: arelle\Validate.py:225
+#: arelle\Validate.py:236
 msgid "Formula output %(countFacts)s facts, expected %(expectedFacts)s facts"
 msgstr ""
 
-#: arelle\Validate.py:232
+#: arelle\Validate.py:248
 msgid "Formula output missing expected fact %(fact)s"
 msgstr ""
 
@@ -2964,7 +3088,7 @@ msgid "parameters for cikList and cikNameList different list entry counts: %(cik
 msgstr ""
 
 #: arelle\ValidateFiling.py:269
-msgid "dei:%(elementName)s %(value)s is must match the context entity identifier %(entityIdentifer)s"
+msgid "dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifer)s"
 msgstr ""
 
 #: arelle\ValidateFiling.py:274
@@ -3123,67 +3247,67 @@ msgstr ""
 msgid "Footnote %(xlinkLabel)s has disallowed role %(role)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:740
+#: arelle\ValidateFiling.py:741
 msgid "FootnoteLink %(footnoteLinkNumber)s footnote %(xlinkLabel)s has no linked fact"
 msgstr ""
 
-#: arelle\ValidateFiling.py:765
+#: arelle\ValidateFiling.py:766
 msgid "Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:772
+#: arelle\ValidateFiling.py:773
 msgid "Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:782
+#: arelle\ValidateFiling.py:783
 msgid "Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:793
+#: arelle\ValidateFiling.py:794
 msgid "Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:801
+#: arelle\ValidateFiling.py:802
 msgid "References for extension concept %(concept)s are not allowed: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:806
+#: arelle\ValidateFiling.py:807
 msgid "References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:812
+#: arelle\ValidateFiling.py:813
 msgid "Concept %(concept)s missing standard label in local language."
 msgstr ""
 
-#: arelle\ValidateFiling.py:819
+#: arelle\ValidateFiling.py:820
 msgid "Concept %(concept)s not referred to by presentation relationship."
 msgstr ""
 
-#: arelle\ValidateFiling.py:826
+#: arelle\ValidateFiling.py:827
 msgid "DTS concept %(concept)s not referred to by presentation relationship."
 msgstr ""
 
-#: arelle\ValidateFiling.py:831
+#: arelle\ValidateFiling.py:832
 msgid "Concept %(concept)s has a substitutionGroup of a non-standard concept."
 msgstr ""
 
-#: arelle\ValidateFiling.py:840
+#: arelle\ValidateFiling.py:838
 msgid "Tuple %(concept)s has mismatch between content and presentation children: %(missingQname)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:853
+#: arelle\ValidateFiling.py:851
 msgid "Type %(typename)s has length restriction facets %(facets)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:857
+#: arelle\ValidateFiling.py:855
 msgid "Concept %(concept)s has enumeration and is not based on stringItemType"
 msgstr ""
 
-#: arelle\ValidateFiling.py:898
+#: arelle\ValidateFiling.py:896
 msgid "References for conflicting standard taxonomies %(namespaceConflicts)s are not allowed in same DTS"
 msgstr ""
 
-#: arelle\ValidateFiling.py:920
+#: arelle\ValidateFiling.py:919
 msgid ""
 "Ineffective arc %(arc)s in \n"
 "link role %(linkrole)s \n"
@@ -3193,107 +3317,107 @@ msgid ""
 "%(ineffectivity)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:947
+#: arelle\ValidateFiling.py:945
 msgid "Preferred label on presentation relationships not allowed"
 msgstr ""
 
-#: arelle\ValidateFiling.py:958
+#: arelle\ValidateFiling.py:956
 msgid "Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:970
+#: arelle\ValidateFiling.py:968
 msgid "Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:979
+#: arelle\ValidateFiling.py:977
 msgid "Non-distinguished preferredLabel presentation relations from concept %(conceptFrom)s in base set role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1015
+#: arelle\ValidateFiling.py:1013
 msgid "Duplicate calculations relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1022
+#: arelle\ValidateFiling.py:1020
 msgid "Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1029
+#: arelle\ValidateFiling.py:1027
 msgid "Calculation linkbase linkrole %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1046
+#: arelle\ValidateFiling.py:1044
 msgid "Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1053
+#: arelle\ValidateFiling.py:1051
 msgid "Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1066
+#: arelle\ValidateFiling.py:1064
 msgid "The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1081
+#: arelle\ValidateFiling.py:1079
 msgid "Duplicate definitions relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1089
+#: arelle\ValidateFiling.py:1087
 msgid "Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in base set role %(linkrole)s to concept %(conceptTo)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1102
+#: arelle\ValidateFiling.py:1101
 msgid "Concept %(concept)s does not participate in an effective presentation relationship"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1110
+#: arelle\ValidateFiling.py:1109
 msgid "Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1127
+#: arelle\ValidateFiling.py:1126
 msgid "Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1148
+#: arelle\ValidateFiling.py:1147
 msgid "Presentation linkrole %(linkrole)s missing order number relationship set"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1156
+#: arelle\ValidateFiling.py:1155
 msgid "Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1162
+#: arelle\ValidateFiling.py:1161
 msgid "Presentation linkrole %(linkrole)s missing order number"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1172
+#: arelle\ValidateFiling.py:1171
 msgid "ArcroleType missing nl or en generic label: %(arcrole)s"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1179
+#: arelle\ValidateFiling.py:1178
 msgid "Typed dimension domain element %(concept)s must have a generic label"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1183
+#: arelle\ValidateFiling.py:1182
 msgid "Typed dimension domain element %(concept)s has disallowed complex content"
 msgstr ""
 
-#: arelle\ValidateFiling.py:1250
+#: arelle\ValidateFiling.py:1249
 msgid "Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1257
+#: arelle\ValidateFiling.py:1256
 msgid "Concept %(concept)s has label for semantical role %(role)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1263
+#: arelle\ValidateFiling.py:1262
 msgid "Concept %(concept)s has en but no nl label in role %(role)s."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1269
+#: arelle\ValidateFiling.py:1268
 msgid "Concept %(concept)s is missing an %(lang)s standard label."
 msgstr ""
 
-#: arelle\ValidateFiling.py:1282
+#: arelle\ValidateFiling.py:1281
 msgid "Concept %(concept)s is missing an %(lang)s label for role %(role)s."
 msgstr ""
 
@@ -3540,11 +3664,11 @@ msgstr ""
 msgid "A schema that defines non-abstract items MUST have a linked (2.1) reference linkbase AND/OR a label linkbase with @xlink:role=documentation"
 msgstr ""
 
-#: arelle\ValidateFilingDTS.py:467
+#: arelle\ValidateFilingDTS.py:468
 msgid "Invalid schema file name: %(filename)s, expected %(expectedFilename)s"
 msgstr ""
 
-#: arelle\ValidateFilingDTS.py:481
+#: arelle\ValidateFilingDTS.py:482
 msgid "Invalid linkbase file name: %(filename)s, expected %(expectedFilename)s"
 msgstr ""
 
@@ -3615,59 +3739,55 @@ msgstr ""
 msgid "ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube, from %(fromConcept)s to %(toConcept)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:180
+#: arelle\ValidateFilingDimensions.py:186
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain with members %(domain)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:184
+#: arelle\ValidateFilingDimensions.py:190
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s, has nonAbsract domain %(domain)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:188
+#: arelle\ValidateFilingDimensions.py:194
 msgid "Domain item %(domain)s in DRS role %(linkrole)s, in dimension %(dimension)s is not a domainItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:192
+#: arelle\ValidateFilingDimensions.py:198
 msgid "Dimension %(dimension)s in DRS role %(linkrole)s, missing targetrole to consecutive domain relationship"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:197
+#: arelle\ValidateFilingDimensions.py:203
 msgid "Linkrole %(linkrole)s, has multiple domains %(domains)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:207
-msgid "Dimension %(dimension)s domains same in linkroles %(linkroles)s"
+#: arelle\ValidateFilingDimensions.py:213
+msgid "Dimension %(dimension)s  usable members same in linkroles %(linkroles)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:213
+#: arelle\ValidateFilingDimensions.py:219
 msgid "Domain member %(member)s in DRS role %(linkrole)s, has nested members"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:222
+#: arelle\ValidateFilingDimensions.py:228
 msgid "Domain member item %(member)s in DRS role %(linkrole)s is not a domainMemberItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:227
+#: arelle\ValidateFilingDimensions.py:233
 msgid "Domain item %(domain)s in DRS role %(linkrole)s is not a domainItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:232
+#: arelle\ValidateFilingDimensions.py:238
 msgid "Abstract domain item %(domain)s in DRS role %(linkrole)s is not a primaryDomainItem"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:253
+#: arelle\ValidateFilingDimensions.py:259
 msgid "Hypercube %(hypercube)s has same dimensions in ELR roles %(linkrole)s and %(linkrole2)s: %(dimensions)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:379
-msgid "Dimension %(dimension)s in DRS role %(linkrole)s for hypercube %(hypercube)s, non-unique member %(concept)s"
-msgstr ""
-
-#: arelle\ValidateFilingDimensions.py:383
+#: arelle\ValidateFilingDimensions.py:388
 msgid "Primary items for hypercube %(hypercube)s ELR %(ELR)s, have non-unique (inheritance) member %(concept)s in DRS role %(linkrole)s"
 msgstr ""
 
-#: arelle\ValidateFilingDimensions.py:390
+#: arelle\ValidateFilingDimensions.py:395
 msgid "Primary item %(concept)s in DRS role %(linkrole)s for hypercube %(hypercube)s, has parent %(concept2)s which is not a primaryDomainItem"
 msgstr ""
 
@@ -3683,105 +3803,133 @@ msgstr ""
 msgid "Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s"
 msgstr ""
 
-#: arelle\ValidateFilingText.py:476 arelle\ValidateFilingText.py:500
+#: arelle\ValidateFilingText.py:476 arelle\ValidateFilingText.py:522
 msgid "Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"
 msgstr ""
 
 #: arelle\ValidateFilingText.py:486
-msgid "Fact %(fact)s of context %(contextID) has javascript in '%(attribute)s' for <%(element)s>"
+msgid "Fact %(fact)s of context %(contextID)s has javascript in '%(attribute)s' for <%(element)s>"
 msgstr ""
 
 #: arelle\ValidateFilingText.py:493
-msgid "Fact %(fact)s of context %(contextID) has an invalid external reference in '%(attribute)s' for <%(element)s>"
+msgid "Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"
 msgstr ""
 
-#: arelle\ValidateFilingText.py:523 arelle\ValidateFilingText.py:547
+#: arelle\ValidateFilingText.py:499
+msgid "Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"
+msgstr ""
+
+#: arelle\ValidateFilingText.py:506
+msgid "Fact %(fact)s of context %(contextID)s references a graphics file which doesn't have expected content '%(attribute)s' for <%(element)s>"
+msgstr ""
+
+#: arelle\ValidateFilingText.py:511
+msgid "Fact %(fact)s of context %(contextID)s references a graphics file which isn't openable '%(attribute)s' for <%(element)s>, error: %(error)s"
+msgstr ""
+
+#: arelle\ValidateFilingText.py:516
+msgid "Fact %(fact)s of context %(contextID)s has nested <table> elements."
+msgstr ""
+
+#: arelle\ValidateFilingText.py:545 arelle\ValidateFilingText.py:591
 msgid "Footnote %(xlinkLabel)s causes the XML error %(error)s"
 msgstr ""
 
-#: arelle\ValidateFilingText.py:533
+#: arelle\ValidateFilingText.py:555
 msgid "Footnote %(xlinkLabel)s has javascript in '%(attribute)s' for <%(element)s>"
 msgstr ""
 
-#: arelle\ValidateFilingText.py:540
+#: arelle\ValidateFilingText.py:562
 msgid "Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:61
+#: arelle\ValidateFilingText.py:568
+msgid "Footnote %(xlinkLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"
+msgstr ""
+
+#: arelle\ValidateFilingText.py:575
+msgid "Footnote %(xlinkLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for <%(element)s>"
+msgstr ""
+
+#: arelle\ValidateFilingText.py:580
+msgid "Footnote %(xlinkLabel)s references a graphics file which isn't openable '%(attribute)s' for <%(element)s>, error: %(error)s"
+msgstr ""
+
+#: arelle\ValidateFilingText.py:585
+msgid "Footnote %(xlinkLabel)s has nested <table> elements."
+msgstr ""
+
+#: arelle\ValidateFormula.py:81
 msgid "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s source"
 msgstr ""
 
-#: arelle\ValidateFormula.py:68
+#: arelle\ValidateFormula.py:88
 msgid "Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s target"
 msgstr ""
 
-#: arelle\ValidateFormula.py:74
+#: arelle\ValidateFormula.py:94
 msgid "Function-implementation relationship from signature %(name)s has more than one implementation target"
 msgstr ""
 
-#: arelle\ValidateFormula.py:79
+#: arelle\ValidateFormula.py:99
 msgid "Function implementation %(xlinkLabel)s must be the target of only one function-implementation relationship"
 msgstr ""
 
-#: arelle\ValidateFormula.py:87
+#: arelle\ValidateFormula.py:107
 msgid "Executing call"
 msgstr ""
 
-#: arelle\ValidateFormula.py:93
+#: arelle\ValidateFormula.py:113
 msgid "%(name)s result %(result)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:97
+#: arelle\ValidateFormula.py:117
 msgid "Executing test"
 msgstr ""
 
-#: arelle\ValidateFormula.py:103 arelle\ValidateFormula.py:107
+#: arelle\ValidateFormula.py:123 arelle\ValidateFormula.py:127
 msgid "Test %(name)s result %(result)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:111
+#: arelle\ValidateFormula.py:134
 msgid ""
 "%(name)s evaluation error: %(error)s \n"
 "%(errorSource)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:119
+#: arelle\ValidateFormula.py:142
 msgid "Formula validation skipped due to %(error)s error"
 msgstr ""
 
-#: arelle\ValidateFormula.py:125
-msgid "compiling formulae"
-msgstr ""
-
-#: arelle\ValidateFormula.py:164
+#: arelle\ValidateFormula.py:187
 msgid "Undefined dependencies in parameter %(name)s, to names %(dependencies)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:169
+#: arelle\ValidateFormula.py:192
 msgid "Cyclic dependencies in parameter %(name)s, to names %(dependencies)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:178
+#: arelle\ValidateFormula.py:201
 msgid "Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:186
+#: arelle\ValidateFormula.py:209
 msgid "Custom function %(name)s signature has %(parameterCountSignature)s parameters but implementation has %(parameterCountImplementation)s, must be matching"
 msgstr ""
 
-#: arelle\ValidateFormula.py:193
+#: arelle\ValidateFormula.py:216
 msgid "Custom function implementation %(xlinkLabel)s has no relationship from any custom function signature"
 msgstr ""
 
-#: arelle\ValidateFormula.py:215
+#: arelle\ValidateFormula.py:243
 msgid "Parameter %(name)s input value %(input)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:221
+#: arelle\ValidateFormula.py:249
 msgid "Parameter %(name)s select result %(result)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:226
+#: arelle\ValidateFormula.py:254
 msgid ""
 "Parameter \n"
 "%(name)s \n"
@@ -3789,99 +3937,119 @@ msgid ""
 "%(error)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:244
+#: arelle\ValidateFormula.py:263
+msgid "Input instance resource %(instName)s has multiple XBRL instances %(uri)s"
+msgstr ""
+
+#: arelle\ValidateFormula.py:269
+msgid "Standard input instance resource parameter has multiple XBRL instances"
+msgstr ""
+
+#: arelle\ValidateFormula.py:288
 msgid "Multiple output instances for formula %(xlinkLabel)s, to names %(instanceTo)s, %(instanceTo2)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:253
+#: arelle\ValidateFormula.py:298
 msgid "Formula:formula %(xlinkLabel)s is not allowed"
 msgstr ""
 
-#: arelle\ValidateFormula.py:264
+#: arelle\ValidateFormula.py:309
 msgid "Variable set %(xlinkLabel)s, aspect model %(aspectModel)s not recognized"
 msgstr ""
 
-#: arelle\ValidateFormula.py:284
+#: arelle\ValidateFormula.py:329
 msgid "Multiple variables named %(xlinkLabel)s in variable set %(name)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:301
+#: arelle\ValidateFormula.py:346
 msgid "Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:315
+#: arelle\ValidateFormula.py:360
 msgid "Variable set %(xlinkLabel)s, variable %(name)s, dependences %(dependencies)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:325
+#: arelle\ValidateFormula.py:370
 msgid "Variable set %(xlinkLabel)s fallbackValue '%(fallbackValue)s' cannot refer to variable %(dependency)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:357
+#: arelle\ValidateFormula.py:402
 msgid "Undefined variable dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:362
+#: arelle\ValidateFormula.py:407
 msgid "Cyclic dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:370
+#: arelle\ValidateFormula.py:415
 msgid "Undefined variable dependency in variable set %(xlinkLabel)s, %(name)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:383
+#: arelle\ValidateFormula.py:428
 msgid "Variable set %(xlinkLabel)s, variables order: %(dependencies)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:389
+#: arelle\ValidateFormula.py:434
 msgid "Variable set %(xlinkLabel)s, instance dependences %(dependencies)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:402
+#: arelle\ValidateFormula.py:450
 msgid "Existence Assertion %(xlinkLabel)s, cannot refer to variable %(name)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:429
+#: arelle\ValidateFormula.py:477
 msgid "Multiple typed domain definitions from %(typedDomain)s to %(equalityDefinition1)s and %(equalityDefinition2)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:442
+#: arelle\ValidateFormula.py:490
 msgid "Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered"
 msgstr ""
 
-#: arelle\ValidateFormula.py:449
+#: arelle\ValidateFormula.py:497
 msgid "Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot refer to variable %(name)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:485
+#: arelle\ValidateFormula.py:516
+msgid "Table %(xlinkLabel)s, aspect model %(aspectModel)s not recognized"
+msgstr ""
+
+#: arelle\ValidateFormula.py:551
 msgid "Cyclic dependencies of instance %(name)s produced by a formula, with variables consuming instances %(dependencies)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:500
+#: arelle\ValidateFormula.py:565
+msgid "Cyclic dependencies of instance %(name)s produced by its own variables"
+msgstr ""
+
+#: arelle\ValidateFormula.py:570
 msgid "Variable instances processing order: %(dependencies)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:512
+#: arelle\ValidateFormula.py:582
 msgid "Consistency assertion %(xlinkLabel)s has both absolute and proportional acceptance radii"
 msgstr ""
 
-#: arelle\ValidateFormula.py:518
+#: arelle\ValidateFormula.py:588
 msgid "Consistency assertion %(xlinkLabel)s has relationship to a %(elementTo)s %(xlinkLabelTo)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:544
+#: arelle\ValidateFormula.py:614
 msgid "Variable set %(xlinkLabel1)s in instance %(instance1)s has variables scope relationship to varaible set %(xlinkLabel2)s in instance %(instance2)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:550
+#: arelle\ValidateFormula.py:620
 msgid "Variable set %(xlinkLabel1)s aspectModel (%(aspectModel1)s) differs from varaible set %(xlinkLabel2)s aspectModel (%(aspectModel2)s)"
 msgstr ""
 
-#: arelle\ValidateFormula.py:588
+#: arelle\ValidateFormula.py:658
 msgid "running formulae"
 msgstr ""
 
-#: arelle\ValidateFormula.py:601
+#: arelle\ValidateFormula.py:663
+msgid "Formua/assertion IDs restriction: %(ids)s"
+msgstr ""
+
+#: arelle\ValidateFormula.py:683
 msgid ""
 "Variable set \n"
 "%(variableSet)s \n"
@@ -3889,103 +4057,131 @@ msgid ""
 "%(error)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:611
+#: arelle\ValidateFormula.py:693
 msgid "%(assertionType)s Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"
 msgstr ""
 
-#: arelle\ValidateFormula.py:623
+#: arelle\ValidateFormula.py:705
 msgid "Consistency Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"
 msgstr ""
 
-#: arelle\ValidateFormula.py:637
+#: arelle\ValidateFormula.py:719
 msgid "formulae finished"
 msgstr ""
 
-#: arelle\ValidateFormula.py:676
+#: arelle\ValidateFormula.py:768
 msgid "Variable set %(xlinkLabel)s, aspect cover filter %(filterLabel)s, aspect %(aspect)s, conflicts with %(filterLabel2)s with inconsistent cover attribute"
 msgstr ""
 
-#: arelle\ValidateFormula.py:690
+#: arelle\ValidateFormula.py:782
 msgid "Variable set %(xlinkLabel)s, aspect model %(aspectModel)s filter %(filterName)s %(filterLabel)s can cover aspect not in aspect model"
 msgstr ""
 
-#: arelle\ValidateFormula.py:702
+#: arelle\ValidateFormula.py:796
 msgid "Formula %(xlinkLabel)s concept rule does not have a nearest source and does not have a child element"
 msgstr ""
 
-#: arelle\ValidateFormula.py:706
+#: arelle\ValidateFormula.py:800
 msgid "Formula %(xlinkLabel)s omits a rule for the concept aspect"
 msgstr ""
 
-#: arelle\ValidateFormula.py:713
+#: arelle\ValidateFormula.py:807
 msgid "Formula %(xlinkLabel)s entity identifier rule does not have a nearest source and does not have either a @scheme or a @value attribute"
 msgstr ""
 
-#: arelle\ValidateFormula.py:717
+#: arelle\ValidateFormula.py:811
 msgid "Formula %(xlinkLabel)s omits a rule for the entity identifier aspect"
 msgstr ""
 
-#: arelle\ValidateFormula.py:722
+#: arelle\ValidateFormula.py:816
 msgid "Formula %(xlinkLabel)s period rule does not have a nearest source and does not have a child element"
 msgstr ""
 
-#: arelle\ValidateFormula.py:726
+#: arelle\ValidateFormula.py:820
 msgid "Formula %(xlinkLabel)s omits a rule for the period aspect"
 msgstr ""
 
-#: arelle\ValidateFormula.py:746
+#: arelle\ValidateFormula.py:840
 msgid "Formula %(xlinkLabel)s unit rule does not have a source and does not have a child element"
 msgstr ""
 
-#: arelle\ValidateFormula.py:750
+#: arelle\ValidateFormula.py:844
 msgid "Formula %(xlinkLabel)s omits a rule for the unit aspect"
 msgstr ""
 
-#: arelle\ValidateFormula.py:755
+#: arelle\ValidateFormula.py:849
 msgid "Formula %(xlinkLabel)s has a rule for the unit aspect of a non-numeric concept %(concept)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:761
+#: arelle\ValidateFormula.py:855
 msgid "Formula %(xlinkLabel)s has a rule for the %(aspectPeriodType)s period aspect of a %(conceptPeriodType)s concept %(concept)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:772
+#: arelle\ValidateFormula.py:866
 msgid "Formula %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension."
 msgstr ""
 
-#: arelle\ValidateFormula.py:776
+#: arelle\ValidateFormula.py:870
 msgid "Formula %(xlinkLabel)s %(dimension)s dimension rule does not have any child elements and does not have a SAV for the %(dimensionType)s dimension that is identified by its dimension attribute."
 msgstr ""
 
-#: arelle\ValidateFormula.py:784
+#: arelle\ValidateFormula.py:878
 msgid "Formula %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:795
+#: arelle\ValidateFormula.py:889
 msgid "Formula %(xlinkLabel)s, not implicit filtering element has formulaUncovered source: %(name)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:799
+#: arelle\ValidateFormula.py:893
 msgid "Variable set %(xlinkLabel)s, source %(name)s is not in the variable set"
 msgstr ""
 
-#: arelle\ValidateFormula.py:807
+#: arelle\ValidateFormula.py:901
 msgid "Variable set %(xlinkLabel)s, source %(name)s not a factVariable but is a %(element)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:811
+#: arelle\ValidateFormula.py:905
 msgid "Formula %(xlinkLabel)s: source %(name)s is a fact variable that has a fallback value"
 msgstr ""
 
-#: arelle\ValidateFormula.py:815
+#: arelle\ValidateFormula.py:909
 msgid "Formula %(xlinkLabel)s: formula source %(name)s is a fact variable that binds as a sequence"
 msgstr ""
 
-#: arelle\ValidateFormula.py:861
+#: arelle\ValidateFormula.py:925
+msgid "FilterAxis %(xlinkLabel)s does not cover any aspects."
+msgstr ""
+
+#: arelle\ValidateFormula.py:937
+msgid "RuleAxis %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension."
+msgstr ""
+
+#: arelle\ValidateFormula.py:942
+msgid "RuleAxis rule %(xlinkLabel)s contains a member QName %(memQname)s which is not in the DTS."
+msgstr ""
+
+#: arelle\ValidateFormula.py:950
+msgid "RuleAxis %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s"
+msgstr ""
+
+#: arelle\ValidateFormula.py:959
+msgid "RuleAxis rule %(xlinkLabel)s contains a @source attribute %(qnSource)s which is not applicable to table rule axes."
+msgstr ""
+
+#: arelle\ValidateFormula.py:964
+msgid "RuleAxis rule %(xlinkLabel)s contains a concept QName %(conceptQname)s which is not in the DTS."
+msgstr ""
+
+#: arelle\ValidateFormula.py:972
+msgid "%(axis)s rule %(xlinkLabel)s contains a %(qnameAttr)s QName %(qname)s which is not in the DTS."
+msgstr ""
+
+#: arelle\ValidateFormula.py:1023
 msgid "Message %(xlinkLabel)s: unbalanced %(character)s character(s) in: %(text)s"
 msgstr ""
 
-#: arelle\ValidateFormula.py:886
+#: arelle\ValidateFormula.py:1048
 msgid "Undefined variable dependency in message %(xlinkLabel)s, %(name)s"
 msgstr ""
 
@@ -4049,63 +4245,71 @@ msgstr ""
 msgid "Context entity identifier (%(entityIdentifier)s) does not match Company Reference Number (uk-bus:UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(contextID)s)."
 msgstr ""
 
-#: arelle\ValidateInfoset.py:21
+#: arelle\ValidateInfoset.py:22
 msgid "Fact counts mismatch, testcase instance %(foundFactCount)s, infoset instance %(expectedFactCount)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:39
+#: arelle\ValidateInfoset.py:40
 msgid "Fact %(factNumber)s mismatch %(concept)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:48
+#: arelle\ValidateInfoset.py:51
 msgid "Fact %(factNumber)s periodType mismatch %(concept)s expected %(expectedPeriodType)s found %(foundPeriodType)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:56
+#: arelle\ValidateInfoset.py:59
 msgid "Fact %(factNumber)s balance mismatch %(concept)s expected %(expectedBalance)s found %(foundBalance)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:72
+#: arelle\ValidateInfoset.py:67
+msgid "Fact %(factNumber)s inferred decimals mismatch %(concept)s expected %(expectedDecimals)s found %(inferredDecimals)s"
+msgstr ""
+
+#: arelle\ValidateInfoset.py:75
+msgid "Fact %(factNumber)s inferred precision mismatch %(concept)s expected %(expectedPrecision)s found %(inferredPrecision)s"
+msgstr ""
+
+#: arelle\ValidateInfoset.py:91
 msgid "Arc fromPath not found: %(fromPath)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:83
+#: arelle\ValidateInfoset.py:102
 msgid "Label expected='%(expectedLabel)s', found='%(foundLabel)s'"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:95
+#: arelle\ValidateInfoset.py:114
 msgid "Reference inner text expected='%(expectedRef)s, found='%(foundRef)s'"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:102
+#: arelle\ValidateInfoset.py:121
 msgid "%(linkType)s not found containing '%(text)s' linkRole %(linkRole)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:108
+#: arelle\ValidateInfoset.py:127
 msgid "Arc toPath not found: %(toPath)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:126
+#: arelle\ValidateInfoset.py:145
 msgid "Arc not found: from %(toPath)s, to %(toPath)s, role %(arcRole)s, linkRole $(extRole)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:139
+#: arelle\ValidateInfoset.py:158
 msgid "Fact %(sPointer)s mismatch Qname, expected %(qnElt)s, observed %(factQname)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:143
+#: arelle\ValidateInfoset.py:162
 msgid "Fact %(sPointer)s has no context: %(qnElt)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:158
+#: arelle\ValidateInfoset.py:177
 msgid "Fact %(sPointer)s (qnElt)s dimension mismatch %(qnDim)s"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:162
+#: arelle\ValidateInfoset.py:181
 msgid "Fact %(sPointer)s (qnElt)s dimensions count mismatch"
 msgstr ""
 
-#: arelle\ValidateInfoset.py:166
+#: arelle\ValidateInfoset.py:185
 msgid "Invalid entity fact dimensions infoset sPointer: %(test)s, error details: %(error)s"
 msgstr ""
 
@@ -4564,23 +4768,31 @@ msgstr ""
 msgid "Validating instance calculations"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:601
+#: arelle\ValidateXbrl.py:593
+msgid "compiling formulae and rendering tables"
+msgstr ""
+
+#: arelle\ValidateXbrl.py:594
+msgid "compiling formulae"
+msgstr ""
+
+#: arelle\ValidateXbrl.py:604
 msgid "Fact %(fact)s is recursively nested in tuple %(tuple)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:605
+#: arelle\ValidateXbrl.py:608
 msgid "Fact %(fact)s missing an order in tuple %(tuple)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:657
+#: arelle\ValidateXbrl.py:660
 msgid "Context %(contextID)s %(contextElement)s cannot have xbrli element %(elementName)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:663
+#: arelle\ValidateXbrl.py:666
 msgid "Context %(contextID)s %(contextElement)s cannot have item or tuple element %(elementName)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:672
+#: arelle\ValidateXbrl.py:675
 msgid "Context %(contextID)s %(contextElement)s cannot be empty"
 msgstr ""
 
@@ -5248,19 +5460,23 @@ msgstr ""
 msgid "multiple contents"
 msgstr ""
 
-#: arelle\ValidateXbrlDimensions.py:287
+#: arelle\ValidateXbrlDimensions.py:286
+msgid "Missing domain element schema definition for {0}"
+msgstr ""
+
+#: arelle\ValidateXbrlDimensions.py:289
 msgid "wrong content {0}"
 msgstr ""
 
-#: arelle\ValidateXbrlDimensions.py:292
+#: arelle\ValidateXbrlDimensions.py:294
 msgid "Context %(contextID)s typed dimension %(dimension)s has %(error)s"
 msgstr ""
 
-#: arelle\ValidateXbrlDimensions.py:301 arelle\ValidateXbrlDimensions.py:308
+#: arelle\ValidateXbrlDimensions.py:303 arelle\ValidateXbrlDimensions.py:310
 msgid "Context %(contextID)s dimension %(dimension)s is a repeated dimension value"
 msgstr ""
 
-#: arelle\ValidateXbrlDimensions.py:314
+#: arelle\ValidateXbrlDimensions.py:316
 msgid "Fact %(fact)s context %(contextID)s dimensionally not valid"
 msgstr ""
 
@@ -5298,11 +5514,11 @@ msgid "viewing formulae"
 msgstr ""
 
 #: arelle\ViewFileRelationshipSet.py:12 arelle\ViewWinFactTable.py:13
-#: arelle\ViewWinRelationshipSet.py:17
+#: arelle\ViewWinRelationshipSet.py:19
 msgid "viewing relationships {0}"
 msgstr ""
 
-#: arelle\ViewFileRenderedGrid.py:15 arelle\ViewWinRenderedGrid.py:24
+#: arelle\ViewFileRenderedGrid.py:16 arelle\ViewWinRenderedGrid.py:30
 msgid "viewing rendering"
 msgstr ""
 
@@ -5314,7 +5530,7 @@ msgstr ""
 msgid "no relationships for XBRL formulae"
 msgstr ""
 
-#: arelle\ViewUtilRenderedGrid.py:25
+#: arelle\ViewUtilRenderedGrid.py:28
 msgid "no table relationships for {0}"
 msgstr ""
 
@@ -5351,12 +5567,12 @@ msgid "Show Dimension Defaults"
 msgstr ""
 
 #: arelle\ViewWinFactGrid.py:30 arelle\ViewWinFactTable.py:28
-#: arelle\ViewWinRenderedGrid.py:42
+#: arelle\ViewWinRenderedGrid.py:45
 msgid "Options"
 msgstr ""
 
-#: arelle\ViewWinFactGrid.py:54 arelle\ViewWinFactTable.py:52
-#: arelle\ViewWinRelationshipSet.py:15 arelle\ViewWinRelationshipSet.py:49
+#: arelle\ViewWinFactGrid.py:54 arelle\ViewWinFactTable.py:55
+#: arelle\ViewWinRelationshipSet.py:17 arelle\ViewWinRelationshipSet.py:57
 msgid "no relationships for {0}"
 msgstr ""
 
@@ -5388,11 +5604,11 @@ msgstr ""
 msgid "View Tuple Children"
 msgstr ""
 
-#: arelle\ViewWinFormulae.py:14
+#: arelle\ViewWinFormulae.py:16
 msgid "viewing formulas"
 msgstr ""
 
-#: arelle\ViewWinGrid.py:136 arelle\ViewWinTree.py:171
+#: arelle\ViewWinGrid.py:136 arelle\ViewWinTree.py:174
 msgid "Language"
 msgstr ""
 
@@ -5400,71 +5616,75 @@ msgstr ""
 msgid "viewing properties"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:54
+#: arelle\ViewWinRelationshipSet.py:63
 msgid "{0} Relationships"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:60
+#: arelle\ViewWinRelationshipSet.py:69
 msgid "Type"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:62
+#: arelle\ViewWinRelationshipSet.py:71
 msgid "References"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:67
+#: arelle\ViewWinRelationshipSet.py:76
 msgid "Weight"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:69
+#: arelle\ViewWinRelationshipSet.py:78
 msgid "Balance"
 msgstr ""
 
-#: arelle\ViewWinRelationshipSet.py:93
+#: arelle\ViewWinRelationshipSet.py:102
 msgid "Dimensions"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:35
+#: arelle\ViewWinRenderedGrid.py:38
 msgid "New fact item options"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:37
+#: arelle\ViewWinRenderedGrid.py:40
 msgid "Ignore Dimensional Validity"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:39
+#: arelle\ViewWinRenderedGrid.py:42
 msgid "X-Axis Children First"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:41
+#: arelle\ViewWinRenderedGrid.py:44
 msgid "Y-Axis Children First"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:44
+#: arelle\ViewWinRenderedGrid.py:47
 msgid "Tables"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:48
+#: arelle\ViewWinRenderedGrid.py:51
 msgid "HTML file"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:49
+#: arelle\ViewWinRenderedGrid.py:52
 msgid "XBRL instance"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:50
+#: arelle\ViewWinRenderedGrid.py:53
 msgid "Save"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:457
+#: arelle\ViewWinRenderedGrid.py:368
+msgid "Aspect %(aspect)s covered by multiple axes."
+msgstr ""
+
+#: arelle\ViewWinRenderedGrid.py:506
 msgid "creating new instance {0}"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:461
+#: arelle\ViewWinRenderedGrid.py:510
 msgid "Saving {0}"
 msgstr ""
 
-#: arelle\ViewWinRenderedGrid.py:527
+#: arelle\ViewWinRenderedGrid.py:576
 msgid "Saved {0}"
 msgstr ""
 
@@ -5480,72 +5700,80 @@ msgstr ""
 msgid "Filing"
 msgstr ""
 
-#: arelle\ViewWinTree.py:156 arelle\ViewWinVersReport.py:20
+#: arelle\ViewWinTree.py:159 arelle\ViewWinVersReport.py:20
 msgid "Expand"
 msgstr ""
 
-#: arelle\ViewWinTree.py:157 arelle\ViewWinVersReport.py:21
+#: arelle\ViewWinTree.py:160 arelle\ViewWinVersReport.py:21
 msgid "Collapse"
 msgstr ""
 
-#: arelle\ViewWinTree.py:158
-msgid "Expand All"
+#: arelle\ViewWinTree.py:161
+msgid "Expand all"
 msgstr ""
 
-#: arelle\ViewWinTree.py:159
-msgid "Collapse All"
+#: arelle\ViewWinTree.py:162
+msgid "Collapse all"
 msgstr ""
 
-#: arelle\ViewWinTree.py:164
+#: arelle\ViewWinTree.py:167
 msgid "Cell"
 msgstr ""
 
-#: arelle\ViewWinTree.py:165
+#: arelle\ViewWinTree.py:168
 msgid "Row"
 msgstr ""
 
-#: arelle\ViewWinTree.py:166
+#: arelle\ViewWinTree.py:169
 msgid "Table"
 msgstr ""
 
-#: arelle\ViewWinTree.py:176
-msgid "Label Role"
+#: arelle\ViewWinTree.py:179
+msgid "Label role"
 msgstr ""
 
-#: arelle\ViewWinTree.py:184
+#: arelle\ViewWinTree.py:187
 msgid "Name Style"
 msgstr ""
 
-#: arelle\ViewWinTree.py:188
+#: arelle\ViewWinTree.py:191
 msgid "Prefixed"
 msgstr ""
 
-#: arelle\ViewWinTree.py:189
-msgid "No Prefix"
+#: arelle\ViewWinTree.py:192
+msgid "No prefix"
 msgstr ""
 
-#: arelle\ViewWinTree.py:193
+#: arelle\ViewWinTree.py:196
 msgid "Units"
 msgstr ""
 
-#: arelle\ViewWinTree.py:194
+#: arelle\ViewWinTree.py:197
 msgid "Unit ID"
 msgstr ""
 
-#: arelle\ViewWinTree.py:195
+#: arelle\ViewWinTree.py:198
 msgid "Measures"
 msgstr ""
 
-#: arelle\ViewWinTree.py:200
+#: arelle\ViewWinTree.py:203
 msgid "View"
 msgstr ""
 
-#: arelle\ViewWinTree.py:204
+#: arelle\ViewWinTree.py:207
 msgid "Additional view"
 msgstr ""
 
-#: arelle\ViewWinTupleGrid.py:13
-msgid "viewing tuples"
+#: arelle\ViewWinTree.py:208
+msgid "Arcrole group..."
+msgstr ""
+
+#: arelle\ViewWinTupleGrid.py:15
+msgid "viewing tuples {0}"
+msgstr ""
+
+#: arelle\ViewWinTupleGrid.py:34
+msgid "viewing tuples requires selecting the tuple to report"
 msgstr ""
 
 #: arelle\ViewWinVersReport.py:15
@@ -5635,40 +5863,40 @@ msgstr ""
 msgid "RSS watch, stop requested"
 msgstr ""
 
-#: arelle\WebCache.py:244 arelle\WebCache.py:278
+#: arelle\WebCache.py:249 arelle\WebCache.py:283
 msgid ""
 "{0} \n"
 "retrieving {1}"
 msgstr ""
 
-#: arelle\WebCache.py:262
+#: arelle\WebCache.py:267
 msgid ""
 "'{0}' www-authentication for realm '{1}' is required to access {2}\n"
 "{3}"
 msgstr ""
 
-#: arelle\WebCache.py:274
+#: arelle\WebCache.py:279
 msgid ""
 "'{0}' proxy-authentication for realm '{1}' is required to access {2}\n"
 "{3}"
 msgstr ""
 
-#: arelle\WebCache.py:282
+#: arelle\WebCache.py:287
 msgid ""
 "{0} \n"
 "unsuccessful retrieval of {1} \n"
 "switching to work offline"
 msgstr ""
 
-#: arelle\WebCache.py:306
+#: arelle\WebCache.py:311
 msgid "web caching {0}: {1:.0f} of {2:.0f} KB"
 msgstr ""
 
-#: arelle\WebCache.py:311
+#: arelle\WebCache.py:316
 msgid "web caching {0}: {1:.0f} KB"
 msgstr ""
 
-#: arelle\WebCache.py:371
+#: arelle\WebCache.py:376
 msgid "retrieval incomplete: got only %i out of %i bytes"
 msgstr ""
 
@@ -5692,55 +5920,55 @@ msgstr ""
 msgid "Exception, function not available: {0}"
 msgstr ""
 
-#: arelle\XPathContext.py:146
-msgid "Function call not identified."
+#: arelle\XPathContext.py:156
+msgid "Function call not identified: {0}."
 msgstr ""
 
-#: arelle\XPathContext.py:148
-msgid "Number of arguments do not match signature arity."
+#: arelle\XPathContext.py:158
+msgid "Number of arguments do not match signature arity: {0}"
 msgstr ""
 
-#: arelle\XPathContext.py:150
-msgid "Argument {0} does not match expected type {1}."
+#: arelle\XPathContext.py:160
+msgid "Argument {0} does not match expected type {1} for {2}."
 msgstr ""
 
-#: arelle\XPathContext.py:153
+#: arelle\XPathContext.py:163
 msgid "Function {0} is not available in this build."
 msgstr ""
 
-#: arelle\XPathContext.py:161
+#: arelle\XPathContext.py:170
 msgid "Value operation '{0}' sequence length error"
 msgstr ""
 
-#: arelle\XPathContext.py:184
+#: arelle\XPathContext.py:193
 msgid "Attempt to divide by zero: {0} {1} {2}."
 msgstr ""
 
-#: arelle\XPathContext.py:228
+#: arelle\XPathContext.py:237
 msgid "Node comparison sequence error"
 msgstr ""
 
-#: arelle\XPathContext.py:250
+#: arelle\XPathContext.py:259
 msgid "Node operation sequence error"
 msgstr ""
 
-#: arelle\XPathContext.py:276
+#: arelle\XPathContext.py:285
 msgid "Unary expression sequence length error"
 msgstr ""
 
-#: arelle\XPathContext.py:439
+#: arelle\XPathContext.py:448
 msgid "Axis step {0} context item is not a node: {1}"
 msgstr ""
 
-#: arelle\XPathContext.py:522
+#: arelle\XPathContext.py:531
 msgid "Atomizing tuple {0} that does not have a typed value"
 msgstr ""
 
-#: arelle\XPathContext.py:550
+#: arelle\XPathContext.py:559
 msgid "Atomizing {0} to a {1} does not have a proper value"
 msgstr ""
 
-#: arelle\XPathContext.py:555
+#: arelle\XPathContext.py:564
 msgid "Atomizing {0} to an integer does not have a proper value"
 msgstr ""
 
@@ -5776,87 +6004,67 @@ msgstr ""
 msgid "Formula xpath2 grammar initialized in %.2f secs"
 msgstr ""
 
-#: arelle\XPathParser.py:654
+#: arelle\XPathParser.py:655
 msgid "Code %(name)s %(source)s"
 msgstr ""
 
-#: arelle\XPathParser.py:661
+#: arelle\XPathParser.py:662
 msgid ""
 "Parse error in %(name)s error: %(error)s \n"
 "%(source)s"
 msgstr ""
 
-#: arelle\XPathParser.py:668
+#: arelle\XPathParser.py:669
 msgid ""
 "Parsing terminated in %(name)s due to error: %(error)s \n"
 "%(source)s"
 msgstr ""
 
-#: arelle\XbrlConst.py:292
+#: arelle\XbrlConst.py:302
 msgid "1Dimension"
 msgstr ""
 
-#: arelle\XbrlConst.py:293
+#: arelle\XbrlConst.py:303
 msgid "1Formula"
 msgstr ""
 
-#: arelle\XbrlConst.py:294
+#: arelle\XbrlConst.py:304
 msgid "1Rendering"
 msgstr ""
 
-#: arelle\XbrlConst.py:295
+#: arelle\XbrlConst.py:305
 msgid "1Presentation"
 msgstr ""
 
-#: arelle\XbrlConst.py:296
+#: arelle\XbrlConst.py:306
 msgid "1Calculation"
 msgstr ""
 
-#: arelle\XbrlConst.py:300
+#: arelle\XbrlConst.py:310
 msgid "1Standard Label"
 msgstr ""
 
-#: arelle\XbrlConst.py:301
+#: arelle\XbrlConst.py:311
 msgid "0Name"
 msgstr ""
 
-#: arelle\XmlValidate.py:111
-msgid "lxml validator loading xml schema"
-msgstr ""
-
-#: arelle\XmlValidate.py:121
-msgid "schema loaded in %.2f secs"
-msgstr ""
-
-#: arelle\XmlValidate.py:123
-msgid "lxml schema validating"
-msgstr ""
-
-#: arelle\XmlValidate.py:130
-msgid "schema validated in %.3f secs"
-msgstr ""
-
-#: arelle\XmlValidate.py:139
-msgid "lxml validation done"
-msgstr ""
-
-#: arelle\XmlValidate.py:153 arelle\XmlValidate.py:158
+#: arelle\XmlValidate.py:67 arelle\XmlValidate.py:72
 msgid "%(element)s error %(error)s"
 msgstr ""
 
-#: arelle\XmlValidate.py:249
+#: arelle\XmlValidate.py:167
 msgid "Element %(element)s type %(typeName)s missing required attributes: %(attributes)s"
 msgstr ""
 
-#: arelle\XmlValidate.py:267
+#: arelle\XmlValidate.py:185
 msgid "Element %(element)s is nil but has contents"
 msgstr ""
 
-#: arelle\XmlValidate.py:405
+#: arelle\XmlValidate.py:323
 msgid "Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s, %(error)s"
 msgstr ""
 
-#: arelle\XmlValidate.py:414
+#: arelle\XmlValidate.py:332
 msgid "Element %(element)s type %(typeName)s value error: %(value)s, %(error)s"
 msgstr ""
 
