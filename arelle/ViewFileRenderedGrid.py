@@ -16,9 +16,6 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang)
     
-    # dimension defaults required in advance of validation
-    from arelle import ValidateXbrlDimensions
-    ValidateXbrlDimensions.loadDimensionDefaults(view)
     setDefaults(view)
     if sourceView is not None:
         viewTblELR = sourceView.tblELR
@@ -84,16 +81,16 @@ class ViewRenderedGrid(ViewFile.View):
             if isinstance(zAxisObj, (ModelEuAxisCoord, ModelOpenAxis)):
                 zFilters.append((inheritedPrimaryItemQname(self, zAxisObj),
                                  inheritedExplicitDims(self, zAxisObj),
-                                 zAxisObj.genLabel(lang=self.lang),
+                                 zAxisObj.header(lang=self.lang),
                                  zAxisObj.objectId()))
                 self.zAxis(None, zAxisObj, zFilters)
             
         if row is not None:
             nextZfilter = len(zFilters)
             if nextZfilter > priorZfilter + 1:  # combo box, use header on zAxis
-                label = axisSubtreeRel.fromModelObject.genLabel(lang=self.lang)
+                label = axisSubtreeRel.fromModelObject.header(lang=self.lang)
             else: # no combo box, use label on coord
-                label = zAxisObj.genLabel(lang=self.lang)
+                label = zAxisObj.header(lang=self.lang)
             etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
                              attrib={"class":"zAxisHdr",
                                      "style":"max-width:200pt;text-align:left;border-bottom:.5pt solid windowtext",
@@ -144,7 +141,7 @@ class ViewRenderedGrid(ViewFile.View):
                 if nonAbstract:
                     width += 100 # width for this label
                 widthToSpanParent += width
-                label = xAxisHdrObj.genLabel(lang=self.lang)
+                label = xAxisHdrObj.header(lang=self.lang)
                 if childrenFirst:
                     thisCol = rightCol
                 else:
@@ -181,14 +178,14 @@ class ViewRenderedGrid(ViewFile.View):
                             else:
                                 self.rowElts[topRow].insert(leftCol,elt)
                         if self.colHdrDocRow:
-                            doc = xAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
+                            doc = xAxisHdrObj.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
                             elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                 attrib={"class":"xAxisHdr",
                                                         "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
                             elt.text = doc if doc else "\u00A0"
                             self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
                         if self.colHdrCodeRow:
-                            code = xAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                            code = xAxisHdrObj.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
                             elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                 attrib={"class":"xAxisHdr",
                                                         "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
@@ -213,7 +210,7 @@ class ViewRenderedGrid(ViewFile.View):
                 
                 isNonAbstract = yAxisHdrObj.abstract == "false"
                 isAbstract = not isNonAbstract
-                label = yAxisHdrObj.genLabel(lang=self.lang)
+                label = yAxisHdrObj.header(lang=self.lang)
                 topRow = row
                 #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
                 if renderNow:
@@ -273,7 +270,7 @@ class ViewRenderedGrid(ViewFile.View):
                         hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
                         if self.rowHdrDocCol:
                             docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
-                            doc = yAxisHdrObj.genLabel(role="http://www.xbrl.org/2008/role/documentation")
+                            doc = yAxisHdrObj.header(role="http://www.xbrl.org/2008/role/documentation")
                             etree.SubElement(self.rowElts[hdrRow - 1], 
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":hdrClass,
@@ -281,7 +278,7 @@ class ViewRenderedGrid(ViewFile.View):
                                              ).text = doc if doc else "\u00A0"
                         if self.rowHdrCodeCol:
                             codeCol = self.dataFirstCol - 1
-                            code = yAxisHdrObj.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                            code = yAxisHdrObj.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
                             etree.SubElement(self.rowElts[hdrRow - 1], 
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":hdrClass,

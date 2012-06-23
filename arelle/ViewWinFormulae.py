@@ -7,7 +7,9 @@ Created on Dec 6, 2010
 from collections import defaultdict
 import os
 from arelle import ViewWinTree, ModelObject, XbrlConst
-from arelle.ModelFormulaObject import ModelVariable, ModelVariableSetAssertion, ModelConsistencyAssertion
+from arelle.ModelFormulaObject import (ModelVariable, ModelVariableSet, ModelVariableSetAssertion, 
+                                       ModelConsistencyAssertion)
+from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 
 def viewFormulae(modelXbrl, tabWin):
@@ -90,7 +92,19 @@ class ViewFormulae(ViewWinTree.ViewTree):
                         if i == 0:
                             relationshipArcsShown.add(modelRel.arcElement)
             visited.remove(fromObject)
-            
+                   
+    def getToolTip(self, tvRowId, tvColId):
+        # override tool tip when appropriate
+        if tvColId == "#0":
+            try:
+                modelObject = self.modelXbrl.modelObject(tvRowId)
+                if isinstance(modelObject, ModelRelationship):
+                    modelObject = modelObject.toModelObject
+                return modelObject.xmlElementView
+            except (AttributeError, KeyError):
+                pass 
+        return None
+    
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
 

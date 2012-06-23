@@ -11,7 +11,7 @@ from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
-from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 ModelRelationshipSet = None # dynamic import
 
@@ -257,6 +257,7 @@ class ModelXbrl:
         self.formulaOutputInstance = None
         self.log = logging.getLogger("arelle")
         self.log.setLevel(logging.DEBUG)
+        self.profileStats = defaultdict(float)
         self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):
@@ -505,8 +506,9 @@ class ModelXbrl:
                 context element, but for shortcut will see if each dimension is already reported in an
                 unambiguous valid contextElement
             '''
-            from arelle.PrototypeInstanceObject import FactPrototype, ContextPrototype, DimValuePrototype
-            fp = FactPrototype(self, priItem, dims.items())
+            dims[2] = priItem # Aspect.CONCEPT: prototype needs primary item as an aspect
+            fp = FactPrototype(self, dims)
+            del dims[2] # Aspect.CONCEPT
             # force trying a valid prototype's context Elements
             if not isFactDimensionallyValid(self, fp, setPrototypeContextElements=True):
                 self.info("arelleLinfo",
@@ -878,7 +880,27 @@ class ModelXbrl:
         """
         messageCode, logArgs, extras = self.logArguments(codes, msg, args)
         self.log.exception(*logArgs, exc_info=args.get("exc_info"), extra=extras)
-                    
+        
+    def logProfileStats(self):
+        """Logs profile stats that were collected
+        """
+        self.info("info:profileStats",
+                _("Profile statistics \n") +
+                ' \n'.join(format_string(self.modelManager.locale, _("%s %.3f secs"), (statName, statValue))
+                           for statName, statValue in sorted(self.profileStats.items(), key=lambda item: item[0])) +
+                " \n", # put instance reference on fresh line in traces
+                modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats)
+    
+    def profileStat(self, name=None, stat=None):
+        if self.modelManager.collectProfileStats:
+            import time
+            try:
+                if name:
+                    self.profileStats[name] += stat if stat is not None else time.time() - self._startedTimeStat
+            except AttributeError:
+                pass
+            if stat is None:
+                self._startedTimeStat = time.time()
         
     def profileActivity(self, activityCompleted=None, minTimeToShow=0):
         """Used to provide interactive GUI messages of long-running processes.
@@ -895,12 +917,12 @@ class ModelXbrl:
         import time
         try:
             if activityCompleted:
-                timeTaken = time.time() - self._startedAt
+                timeTaken = time.time() - self._startedProfiledActivity
                 if timeTaken > minTimeToShow:
                     self.modelManager.addToLog("{0} {1:.2f} secs".format(activityCompleted, timeTaken))
         except AttributeError:
             pass
-        self._startedAt = time.time()
+        self._startedProfiledActivity = time.time()
 
     def saveDTSpackage(self):
         """Contributed program to save DTS package as a zip file.  Refactored into a plug-in (and may be removed from main code).

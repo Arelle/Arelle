@@ -1,4 +1,8 @@
 
+
+from arelle.ModelValue import QName
+Aspect = None
+
 '''
 def dimContextElement(view, dimConcept):
     # should replace this with modelXbrl.qnameDimensionContextElement if not ambiguous, else same logic as create context
@@ -19,13 +23,24 @@ def dimContextElement(view, dimConcept):
 '''
         
 class FactPrototype():      # behaves like a fact for dimensional validity testing
-    def __init__(self, v, qname, dims):
-        self.qname = qname
-        self.concept = v.modelXbrl.qnameConcepts.get(qname)
-        self.context = ContextPrototype(v, dims)
-        self.dims = dims # dim items
-        self.dimKeys = set(dim for dim,mem in dims)
+    def __init__(self, v, aspectValues):
+        global Aspect
+        if Aspect is None:
+            from arelle.ModelFormulaObject import Aspect
+        self.modelXbrl = v.modelXbrl
+        if Aspect.CONCEPT in aspectValues:
+            qname = aspectValues[Aspect.CONCEPT]
+            self.qname = qname
+            self.concept = v.modelXbrl.qnameConcepts.get(qname)
+            self.isItem = self.concept.isItem
+            self.isTuple = self.concept.isTuple
+        self.context = ContextPrototype(v, aspectValues)
         self.factObjectId = None
+
+    def clear(self):
+        if self.context is not None:
+            self.context.clear()
+        self.__dict__.clear()  # delete local attributes
         
     def objectId(self):
         return "_factPrototype_" + str(self.qname)
@@ -43,30 +58,66 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         return self
 
 class ContextPrototype():  # behaves like a context
-    def __init__(self, v, dims):
+    def __init__(self, v, aspectValues):
+        self.modelXbrl = v.modelXbrl
         self.segDimVals = {}
         self.scenDimVals = {}
         self.qnameDims = {}
-        for dimQname,mem in dims:
-            try: # if a DimVal, then it has a suggested context element
-                contextElement = mem.contextElement
-                mem = (mem.memberQname or mem.typedMember)
-            except AttributeError: # probably is a QName, not a dim value or dim prototype
-                contextElement = v.modelXbrl.qnameDimensionContextElement.get(dimQname)
-            if v.modelXbrl.qnameDimensionDefaults.get(dimQname) != mem: # not a default
-                try:
-                    dimConcept = v.modelXbrl.qnameConcepts[dimQname]
-                    #if contextElement is None:
-                    #    contextElement = dimContextElement(v, dimConcept)
-                    dimValPrototype = DimValuePrototype(v, dimConcept, dimQname, mem, contextElement)
-                    self.qnameDims[dimQname] = dimValPrototype
-                    if contextElement != "scenario": # could be segment, ambiguous, or no information
-                        self.segDimVals[dimConcept] = dimValPrototype
-                    else:
-                        self.scenDimVals[dimConcept] = dimValPrototype
-                except KeyError:
-                    pass
+        for aspect, aspectValue in aspectValues.items():
+            if aspect == Aspect.PERIOD_TYPE:
+                if aspectValue == "forever":
+                    self.isStartEndPeriod = self.isInstantPeriod = False
+                    self._isForeverPeriod = True
+                elif aspectValue == "instant":
+                    self.isStartEndPeriod = self.isForeverPeriod = False
+                    self.isInstantPeriod = True
+                elif aspectValue == "duration":
+                    self.isStartEndPeriod = self.isInstantPeriod = False
+                    self.isStartEndPeriod = True
+            elif aspect == Aspect.START:
+                self.startDatetime = aspectValue
+            elif aspect == Aspect.END:
+                self.endDatetime = aspectValue
+            elif aspect == Aspect.INSTANT:
+                self.endDatetime = self.instantDatetime = aspectValue
+            elif isinstance(aspect, QName):
+                try: # if a DimVal, then it has a suggested context element
+                    contextElement = aspectValue.contextElement
+                    aspectValue = (aspectValue.memberQname or aspectValue.typedMember)
+                except AttributeError: # probably is a QName, not a dim value or dim prototype
+                    contextElement = v.modelXbrl.qnameDimensionContextElement.get(aspect)
+                if v.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue: # not a default
+                    try:
+                        dimConcept = v.modelXbrl.qnameConcepts[aspect]
+                        #if contextElement is None:
+                        #    contextElement = dimContextElement(v, dimConcept)
+                        dimValPrototype = DimValuePrototype(v, dimConcept, aspect, aspectValue, contextElement)
+                        self.qnameDims[aspect] = dimValPrototype
+                        if contextElement != "scenario": # could be segment, ambiguous, or no information
+                            self.segDimVals[dimConcept] = dimValPrototype
+                        else:
+                            self.scenDimVals[dimConcept] = dimValPrototype
+                    except KeyError:
+                        pass
+
+    def clear(self):
+        try:
+            for dim in self.qnameDims.values():
+                dim.clear()
+        except AttributeError:
+            pass
+        self.__dict__.clear()  # delete local attributes
         
+    def dimValue(self, dimQname):
+        """(ModelDimension or QName) -- ModelDimension object if dimension is reported (in either context element), or QName of dimension default if there is a default, otherwise None"""
+        try:
+            return self.qnameDims[dimQname]
+        except KeyError:
+            try:
+                return self.modelXbrl.qnameDimensionDefaults[dimQname]
+            except KeyError:
+                return None
+
     def dimValues(self, contextElement, oppositeContextElement=False):
         if not oppositeContextElement:
             return self.segDimVals if contextElement == "segment" else self.scenDimVals
@@ -94,3 +145,6 @@ class DimValuePrototype():
             self.typedMember = mem
             self.memberQname = None
             self.member = None
+
+    def clear(self):
+        self.__dict__.clear()  # delete local attributes
