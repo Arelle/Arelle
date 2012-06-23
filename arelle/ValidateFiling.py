@@ -675,10 +675,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelObject=footnoteLinkElt, footnoteLinkNumber=footnoteLinkNbr, linkrole=linkrole)
         
                     # find modelLink of this footnoteLink
-                    modelLink = modelXbrl.baseSetModelLink(footnoteLinkElt)
+                    # modelLink = modelXbrl.baseSetModelLink(footnoteLinkElt)
                     relationshipSet = modelXbrl.relationshipSet("XBRL-footnotes", linkrole)
-                    if (modelLink is None) or (not relationshipSet):
-                        continue    # had no child elements to parse
+                    #if (modelLink is None) or (not relationshipSet):
+                    #    continue    # had no child elements to parse
                     locNbr = 0
                     arcNbr = 0
                     for child in footnoteLinkElt:
@@ -731,10 +731,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 # find modelResource for this element
                                 foundFact = False
                                 if XmlUtil.text(child) != "":
-                                    for relationship in relationshipSet.toModelObject(child):
-                                        if isinstance(relationship.fromModelObject, ModelFact):
-                                            foundFact = True
-                                            break
+                                    if relationshipSet:
+                                        for relationship in relationshipSet.toModelObject(child):
+                                            if isinstance(relationship.fromModelObject, ModelFact):
+                                                foundFact = True
+                                                break
                                     if not foundFact:
                                         modelXbrl.error(("EFM.6.05.33", "GFM.1.02.24"),
                                             _("FootnoteLink %(footnoteLinkNumber)s footnote %(xlinkLabel)s has no linked fact"),
@@ -1187,6 +1188,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Finally"):
                 pluginXbrlMethod(self)
         self.modelXbrl.profileActivity("... plug in '.Finally' checks", minTimeToShow=1.0)
+        self.modelXbrl.profileStat(_("validate") + modelXbrl.modelManager.disclosureSystem.validationType)
         
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
