@@ -141,10 +141,11 @@ class WebCache:
             normedPath = url
         
         if normedPath:
-            if normedPath.startswith('http:'):
-                return normedPath.replace('\\','/')
-            elif os.path.sep == '\\' and '/' in normedPath:
-                normedPath = normedPath.replace('/', '\\') # convert MSFT paths into '\' when normalizing
+            if normedPath.startswith('http://'):
+                pathpart = normedPath[7:].replace('\\','/')
+                endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
+                return "http://" + posixpath.normpath(pathpart) + endingSep
+            normedPath = os.path.normpath(normedPath)
             if normedPath.startswith(self.cacheDir):
                 normedPath = self.cacheFilepathToUrl(normedPath)
         return normedPath
