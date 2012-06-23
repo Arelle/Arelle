@@ -6,7 +6,7 @@
 
 @set ARELLEDIR=C:\Users\Herm Fischer\Documents\mvsl\projects\Arelle\ArelleProject\arelle
 
-@set PYTHONDIR=c:\python31
+@set PYTHONDIR=c:\python32
 @set PYTHONPATH=..
 
 "%PYTHONDIR%\python" -m arelle.CntlrGenVersReports --excelfile "%EXCELINDEXFILE%" --testfiledate "2011-03-01"
