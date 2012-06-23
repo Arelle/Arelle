@@ -35,6 +35,7 @@ from collections import defaultdict
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
+from math import isnan
 from arelle.ModelObject import ModelObject
 
 class NewFactItemOptions():
@@ -337,10 +338,12 @@ class ModelFact(ModelObject):
                     return False
                 if self.modelXbrl.modelManager.validateInferDecimals:
                     d = min((inferredDecimals(self), inferredDecimals(other))); p = None
+                    if isnan(d) and deemP0Equal:
+                        return True
                 else:
                     d = None; p = min((inferredPrecision(self), inferredPrecision(other)))
-                if p == 0 and deemP0Equal:
-                    return True
+                    if p == 0 and deemP0Equal:
+                        return True
                 return roundValue(self.value,precision=p,decimals=d) == roundValue(other.value,precision=p,decimals=d)
             else:
                 return False
@@ -1033,7 +1036,7 @@ class ModelDimensionValue(ModelObject):
         if self.isExplicit:
             return (str(self.dimensionQname),str(self.memberQname))
         else:
-            return (str(self.dimensionQname), etree.tounicode( XmlUtil.child(self) ) )
+            return (str(self.dimensionQname), XmlUtil.xmlstring( XmlUtil.child(self), stripXmlns=True, prettyPrint=True ) )
         
 def measuresOf(parent):
     return sorted([m.xValue for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") if isinstance(m, ModelObject) and m.xValue])
