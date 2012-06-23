@@ -555,12 +555,17 @@ class CntlrWinMain (Cntlr.Cntlr):
         try:
             if importToDTS:
                 action = _("imported")
+                profileStat = "import"
                 modelXbrl = self.modelManager.modelXbrl
                 if modelXbrl:
                     ModelDocument.load(modelXbrl, filesource.url)
             else:
                 action = _("loaded")
+                profileStat = "load"
                 modelXbrl = self.modelManager.load(filesource, _("views loading"))
+        except ModelDocument.LoadingException:
+            self.showStatus(_("Loading terminated, unrecoverable error"), 20000)
+            return
         except Exception as err:
             msg = _("Exception loading {0}: {1}, at {2}").format(
                      filesource.url,
@@ -569,11 +574,14 @@ class CntlrWinMain (Cntlr.Cntlr):
             # not sure if message box can be shown from background thread
             # tkinter.messagebox.showwarning(_("Exception loading"),msg, parent=self.parent)
             self.addToLog(msg);
+            self.showStatus(_("Loading terminated, unrecoverable error"), 20000)
             return
         if modelXbrl and modelXbrl.modelDocument:
+            statTime = time.time() - startedAt
+            modelXbrl.profileStat(profileStat, statTime)
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("%s in %.2f secs"), 
-                                        (action, time.time() - startedAt)))
+                                        (action, statTime)))
             if modelXbrl.hasTableRendering:
                 self.showStatus(_("Initializing table rendering"))
                 RenderingEvaluator.init(modelXbrl)
@@ -645,9 +653,10 @@ class CntlrWinMain (Cntlr.Cntlr):
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"
+            viewTime = time.time() - startedAt
+            modelXbrl.profileStat("view", viewTime)
             self.addToLog(format_string(self.modelManager.locale, 
-                                        _("views %.2f secs"), 
-                                        time.time() - startedAt))
+                                        _("views %.2f secs"), viewTime))
             if selectTopView and topView:
                 topView.select()
         except Exception as err:

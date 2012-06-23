@@ -218,7 +218,7 @@ def languageCodes():  # dynamically initialize after gettext is loaded
         return _languageCodes
 
 def rtlString(source, lang):
-    if lang and lang[0:2] in {"ar","he"}:
+    if lang and source and lang[0:2] in {"ar","he"}:
         line = []
         lineInsertion = 0
         words = []

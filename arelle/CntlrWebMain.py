@@ -434,12 +434,15 @@ or label linkbases.  Multiple file names are separated by a '|' character.</td><
 <tr><td style="text-indent: 1em;">parameters</td><td>Specify parameters for validation or formula (comma separated name=value[,name2=value2]).</td></tr> 
 <tr><td style="text-indent: 1em;">formulaAsserResultCounts</td><td>Report formula assertion counts.</td></tr> 
 <tr><td style="text-indent: 1em;">formulaVarSetExprResult</td><td>Trace variable set formula value, assertion test results.</td></tr> 
+<tr><td style="text-indent: 1em;">formulaVarSetTiming</td><td>Trace variable set execution times.</td></tr> 
 <tr><td style="text-indent: 1em;">formulaVarFilterWinnowing</td><td>Trace variable set filter winnowing.</td></tr> 
 <tr><td style="text-indent: 1em;">{other}</td><td>Other detailed formula trace parameters:<br/>
 formulaParamExprResult, formulaParamInputValue, formulaCallExprSource, formulaCallExprCode, formulaCallExprEval,
 formulaCallExprResult, formulaVarSetExprEval, formulaFormulaRules, formulaVarsOrder,
 formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvaluation, formulaVarExpressionResult, and formulaVarFiltersResult.
 </td></tr>
+<tr><td style="text-indent: 1em;">abortOnMajorError</td><td>Abort process on major error, such as when load is unable to find an entry or discovered file.</td></tr> 
+<tr><td style="text-indent: 1em;">collectProfileStats</td><td>Collect profile statistics, such as timing of validation activities and formulae.</td></tr> 
 
 <tr><th colspan="2">Versioning Report (diff of two DTSes)</th></tr>
 <tr><td>/rest/xbrl/diff</td><td>Diff two DTSes, producing an XBRL versioning report relative to report directory.</td></tr>

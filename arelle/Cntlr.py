@@ -506,4 +506,3 @@ class LogToBufferHandler(LogHandlerWithXml):
         self.logRecordBuffer.append(logRecord)
 
 
-

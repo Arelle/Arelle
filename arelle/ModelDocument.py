@@ -69,6 +69,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if filepath:
             uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
     if filepath is None: # error such as HTTPerror is already logged
+        if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
+            modelXbrl.error("FileNotLoadable",
+                    _("File can not be loaded: %(fileName)s \nLoading terminated."),
+                    modelObject=referringElement, fileName=mappedUri)
+            raise LoadingException()
         modelXbrl.error("FileNotLoadable",
                 _("File can not be loaded: %(fileName)s"),
                 modelObject=referringElement, fileName=mappedUri)
@@ -103,6 +108,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if not isIncluded and namespace and namespace in XbrlConst.standardNamespaceSchemaLocations and uri != XbrlConst.standardNamespaceSchemaLocations[namespace]:
             return load(modelXbrl, XbrlConst.standardNamespaceSchemaLocations[namespace], 
                         base, referringElement, isEntry, isDiscovered, isIncluded, namespace, reloadCache)
+        if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
+            modelXbrl.error("IOerror",
+                _("%(fileName)s: file error: %(error)s \nLoading terminated."),
+                modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
+            raise LoadingException()
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
@@ -965,3 +975,6 @@ class ModelDocument:
                             if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:
                                 self.referencesDocument[testcaseDoc] = "registryIndex"
             
+class LoadingException(Exception):
+    pass
+

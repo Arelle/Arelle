@@ -12,7 +12,6 @@ def initialize(cntlr):
     modelManager.modelXbrl = None
     return modelManager
     
-
 class ModelManager:
     """ModelManager provides an interface between modelXbrl's and the controller.  Model manager is a 
     singleton object, one is created in initialization of a controller.
@@ -54,6 +53,8 @@ class ModelManager:
         self.validateInferDecimals = False
         self.validateInfoset = False
         self.validateUtr = False
+        self.abortOnMajorError = False
+        self.collectProfileStats = False
         self.loadedModelXbrls = []
         from arelle import Locale
         self.locale = Locale.getUserLocale(cntlr.config.get("userInterfaceLocaleOverride",""))

@@ -12,8 +12,10 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelValueAssertion,
                                  ModelFactVariable, ModelGeneralVariable, ModelVariable,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter)
+from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ModelValue import (QName)
-import datetime
+import datetime, time
+from arelle.Locale import format_string
 from collections import defaultdict
 
 def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
@@ -29,6 +31,9 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
         xpCtx.variableSet = varSet
         if isinstance(varSet, ModelExistenceAssertion):
             varSet.evaluationsCount = 0
+        if xpCtx.formulaOptions.timeVariableSetEvaluation:
+            varSet.timeEvaluationStarted = timeEvaluationsStarted = time.time()
+            varSet.evaluationNumber = 0
         initialTraceCount = xpCtx.modelXbrl.logCountInfo
         evaluateVar(xpCtx, varSet, 0, {}, uncoveredAspectFacts)
         if isinstance(varSet, ModelExistenceAssertion):
@@ -56,9 +61,14 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
             if msg:
                 xpCtx.modelXbrl.error(msg.evaluate(xpCtx), "info", "message:" + varSet.id)
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCountInfo:
-                xpCtx.modelXbrl.info("formula:trace",
-                     _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
-                     modelObject=varSet, xlinkLabel=varSet.xlinkLabel)
+            xpCtx.modelXbrl.info("formula:trace",
+                 _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
+                 modelObject=varSet, xlinkLabel=varSet.xlinkLabel)
+        if xpCtx.formulaOptions.timeVariableSetEvaluation:
+            xpCtx.modelXbrl.info("formula:time",
+                 _("Variable set %(xlinkLabel)s time for %(count)s evaluations: %(time)s"), 
+                 modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
+                 time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", time.time() - timeEvaluationsStarted))
         xpCtx.variableSet = None
     except XPathContext.XPathException as err:
         xpCtx.modelXbrl.error(err.code,
@@ -104,6 +114,14 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"),
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel)
+            if xpCtx.formulaOptions.timeVariableSetEvaluation:
+                varSet.evaluationNumber += 1
+                now = time.time()
+                xpCtx.modelXbrl.info("formula:time",
+                     _("Variable set %(xlinkLabel)s skipped evaluation %(count)s: %(time)s sec"), 
+                     modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
+                     time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted))
+                varSet.timeEvaluationStarted = now
             return
         for i, fb in enumerate(thisEvaluation):
             while i >= len(xpCtx.evaluationHashDicts): xpCtx.evaluationHashDicts.append(defaultdict(set))
@@ -117,6 +135,14 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                      _("Variable set %(xlinkLabel)s \nPrecondition %(precondition)s \nResult: %(result)s"), 
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, precondition=precondition.xlinkLabel, result=result)
             if not result: # precondition blocks evaluation
+                if xpCtx.formulaOptions.timeVariableSetEvaluation:
+                    varSet.evaluationNumber += 1
+                    now = time.time()
+                    xpCtx.modelXbrl.info("formula:time",
+                         _("Variable set %(xlinkLabel)s precondition blocked evaluation %(count)s: %(time)s sec"), 
+                         modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
+                         time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted))
+                    varSet.timeEvaluationStarted = now
                 return
             
         # evaluate variable set
@@ -150,6 +176,15 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             if varSet.hasConsistencyAssertion:
                 from arelle import FormulaConsisAsser
                 FormulaConsisAsser.evaluate(xpCtx, varSet, newFact)
+                
+            if xpCtx.formulaOptions.timeVariableSetEvaluation:
+                varSet.evaluationNumber += 1
+                now = time.time()
+                xpCtx.modelXbrl.info("formula:time",
+                     _("Variable set %(xlinkLabel)s completed evaluation %(count)s: %(time)s sec"), 
+                     modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
+                     time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted))
+                varSet.timeEvaluationStarted = now
                 
             # do dependent variable scope relationships
             for varScopeRel in xpCtx.modelXbrl.relationshipSet(XbrlConst.variablesScope).fromModelObject(varSet):
@@ -414,7 +449,7 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                     if isinstance(dimValue2, QName):
                         if dimValue1.memberQname != dimValue2:
                             return False
-                    elif isinstance(dimValue2, ModelDimensionValue):
+                    elif isinstance(dimValue2, (ModelDimensionValue,DimValuePrototype)):
                         if dimValue2.isTyped:
                             return False
                         elif dimValue1.memberQname != dimValue2.memberQname:
@@ -424,7 +459,7 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                 elif dimValue1.isTyped:
                     if isinstance(dimValue2, QName):
                         return False
-                    elif isinstance(dimValue2, ModelDimensionValue):
+                    elif isinstance(dimValue2, (ModelDimensionValue,DimValuePrototype)):
                         if dimValue2.isExplicit:
                             return False
                         elif dimValue1.dimension.typedDomainElement in xpCtx.modelXbrl.modelFormulaEqualityDefinitions:
@@ -440,7 +475,7 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                     # only check if qnames match if the facts are from same instance
                     if fact1.modelXbrl == fact2.modelXbrl and dimValue1 != dimValue2:
                         return False
-                elif isinstance(dimValue2, ModelDimensionValue):
+                elif isinstance(dimValue2, (ModelDimensionValue,DimValuePrototype)):
                     if dimValue2.isTyped:
                         return False
                     elif dimValue1 != dimValue2.memberQname:

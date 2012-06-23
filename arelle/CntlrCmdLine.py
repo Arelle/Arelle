@@ -13,7 +13,7 @@ import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser, SUPPRESS_HELP
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
-                    ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests)
+                    ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ModelManager)
 from arelle.ModelValue import qname
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
@@ -138,6 +138,7 @@ def parseAndRun(args, logger=None):
     parser.add_option("--formulaCallExprResult", action="store_true", dest="formulaCallExprResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarSetExprEval", action="store_true", dest="formulaVarSetExprEval", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarSetExprResult", action="store_true", dest="formulaVarSetExprResult", help=_("Specify formula tracing."))
+    parser.add_option("--formulaVarSetTiming", action="store_true", dest="timeVariableSetEvaluation", help=_("Specify showing times of variable set evaluation."))
     parser.add_option("--formulaAsserResultCounts", action="store_true", dest="formulaAsserResultCounts", help=_("Specify formula tracing."))
     parser.add_option("--formulaFormulaRules", action="store_true", dest="formulaFormulaRules", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarsOrder", action="store_true", dest="formulaVarsOrder", help=_("Specify formula tracing."))
@@ -162,6 +163,8 @@ def parseAndRun(args, logger=None):
                              "+url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name, "
                              " (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
                              "~Hello Dolly to reload, -Hello Dolly to remove)" ))
+    parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
+    parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
     if hasWebServer:
         parser.add_option("--webserver", action="store", dest="webserver",
                           help=_("start web server on host:port for REST and web access, e.g., --webserver locahost:8080."))
@@ -340,6 +343,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.validateUtr = True
         if options.infosetValidate:
             self.modelManager.validateInfoset = True
+        if options.abortOnMajorError:
+            self.modelManager.abortOnMajorError = True
+        if options.collectProfileStats:
+            self.modelManager.collectProfileStats = True
         fo = FormulaOptions()
         if options.parameters:
             fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value)) 
@@ -375,8 +382,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableExpressionEvaluation = True
         if options.formulaVarExpressionResult:
             fo.traceVariableExpressionResult = True
+        if options.timeVariableSetEvaluation:
+            fo.timeVariableSetEvaluation = True
         if options.formulaVarFilterWinnowing:
             fo.traceVariableFilterWinnowing = True
+        if options.formulaVarFiltersResult:
+            fo.traceVariableFiltersResult = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
         self.modelManager.formulaOptions = fo
@@ -387,15 +398,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
         modelXbrl = None
         try:
             modelXbrl = self.modelManager.load(filesource, _("views loading"))
+        except ModelDocument.LoadingException:
+            pass
         except Exception as err:
             self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
                         err,
                         traceback.format_tb(sys.exc_info()[2])))
             success = False    # loading errors, don't attempt to utilize loaded DTS
         if modelXbrl and modelXbrl.modelDocument:
+            loadTime = time.time() - startedAt
+            modelXbrl.profileStat(_("load"), loadTime)
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("loaded in %.2f secs at %s"), 
-                                        (time.time() - startedAt, timeNow)), 
+                                        (loadTime, timeNow)), 
                                         messageCode="info", file=self.entrypointFile)
             for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
                 pluginXbrlMethod(self, options, modelXbrl)
@@ -405,33 +420,47 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if sourceZipStream is not None and not (fileName.startswith('http://') or os.path.isabs(fileName)):
                         fileName = os.path.dirname(modelXbrl.uri) + os.sep + fileName # make relative to sourceZipStream
                     ModelDocument.load(modelXbrl, fileName)
+                    loadTime = time.time() - startedAt
                     self.addToLog(format_string(self.modelManager.locale, 
-                                                _("imported in %.2f secs at %s"), 
-                                                (time.time() - startedAt, timeNow)), 
+                                                _("import in %.2f secs at %s"), 
+                                                (loadingTime, timeNow)), 
                                                 messageCode="info", file=importFile)
+                    modelXbrl.profileStat(_("import"), loadTime)
                 if modelXbrl.errors:
                     success = False    # loading errors, don't attempt to utilize loaded DTS
         else:
             success = False
         if success and options.diffFile and options.versReportFile:
-            diffFilesource = FileSource.FileSource(options.diffFile,self)
-            startedAt = time.time()
-            modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))
-            if modelXbrl2.errors:
-                if not options.keepOpen:
-                    modelXbrl2.close()
-                success = False
-            else:
-                self.addToLog(format_string(self.modelManager.locale, 
-                                            _("diff comparison DTS loaded in %.2f secs"), 
-                                            time.time() - startedAt), 
-                                            messageCode="info", file=self.entrypointFile)
+            try:
+                diffFilesource = FileSource.FileSource(options.diffFile,self)
                 startedAt = time.time()
-                modelDiffReport = self.modelManager.compareDTSes(options.versReportFile)
-                self.addToLog(format_string(self.modelManager.locale, 
-                                            _("compared in %.2f secs"), 
-                                            time.time() - startedAt), 
-                                            messageCode="info", file=self.entrypointFile)
+                modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))
+                if modelXbrl2.errors:
+                    if not options.keepOpen:
+                        modelXbrl2.close()
+                    success = False
+                else:
+                    loadTime = time.time() - startedAt
+                    modelXbrl.profileStat(_("load"), loadTime)
+                    self.addToLog(format_string(self.modelManager.locale, 
+                                                _("diff comparison DTS loaded in %.2f secs"), 
+                                                loadTime), 
+                                                messageCode="info", file=self.entrypointFile)
+                    startedAt = time.time()
+                    modelDiffReport = self.modelManager.compareDTSes(options.versReportFile)
+                    diffTime = time.time() - startedAt
+                    modelXbrl.profileStat(_("diff"), diffTime)
+                    self.addToLog(format_string(self.modelManager.locale, 
+                                                _("compared in %.2f secs"), 
+                                                diffTime), 
+                                                messageCode="info", file=self.entrypointFile)
+            except ModelDocument.LoadingException:
+                success = False
+            except Exception as err:
+                success = False
+                self.addToLog(_("[Exception] Failed to doad diff file: \n{0} \n{1}").format(
+                            err,
+                            traceback.format_tb(sys.exc_info()[2])))
         if success:
             try:
                 if options.validate:
@@ -475,6 +504,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             err,
                             traceback.format_tb(sys.exc_info()[2])))
                 success = False
+        if options.collectProfileStats and modelXbrl:
+            modelXbrl.logProfileStats()
         if not options.keepOpen:
             if modelDiffReport:
                 modelDiffReport.close()
