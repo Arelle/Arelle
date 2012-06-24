@@ -46,6 +46,7 @@ def init(modelXbrl):
         # formula processor is needed for 2011 XBRL tables but not for 2010 Eurofiling tables
         modelXbrl.rendrCntx = XPathContext.create(modelXbrl, instance)
         
+        modelXbrl.profileStat(None)
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
             
         for msgRel in modelXbrl.relationshipSet(XbrlConst.tableAxisMessage).modelRelationships:
@@ -54,4 +55,5 @@ def init(modelXbrl):
         for modelTable in modelXbrl.modelRenderingTables:
             modelTable.fromInstanceQnames = None # required if referred to by variables scope chaining
             modelTable.compile()
+        modelXbrl.profileStat(_("compileTables"))
 

@@ -4,7 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, threading
+import os, threading, time
 from tkinter import Menu, constants
 from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, ModelObject, XbrlConst, 
                     ModelXbrl, XmlValidate, Locale)
@@ -105,6 +105,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.view()
         
     def view(self, viewTblELR=None, newInstance=None):
+        startedAt = time.time()
         self.blockMenuEvents += 1
         if newInstance is not None:
             self.modelXbrl = newInstance # a save operation has created a new instance to use subsequently
@@ -159,6 +160,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 
             # data cells
                 
+        self.modelXbrl.profileStat("viewTable_" + os.path.basename(viewTblELR), time.time() - startedAt)
+
         #self.gridView.config(scrollregion=self.gridView.bbox(constants.ALL))
         self.blockMenuEvents -= 1
 

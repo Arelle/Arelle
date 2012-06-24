@@ -583,6 +583,8 @@ def initializeParser(modelManager):
                                     time.time() - startedAt))
         modelManager.showStatus(None)
         isInitialized = True
+        return True # was initialized on this call
+    return False # had already been initialized
 
 def exceptionErrorIndication(exception):
     errorAt = exception.column

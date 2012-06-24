@@ -145,8 +145,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
     
     val.modelXbrl.profileStat()
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
-    XPathParser.initializeParser(val.modelXbrl.modelManager)
-    val.modelXbrl.profileStat(_("initializeXPath2Grammar"))
+    if XPathParser.initializeParser(val.modelXbrl.modelManager):
+        val.modelXbrl.profileStat(_("initializeXPath2Grammar")) # only provide stat when not yet initialized
     val.modelXbrl.modelManager.showStatus(statusMsg)
     val.modelXbrl.profileActivity()
     initialErrorCount = val.modelXbrl.logCountErr
@@ -221,6 +221,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
     val.modelXbrl.profileActivity("... custom function checks and compilation", minTimeToShow=1.0)
     
     if parametersOnly:
+        val.modelXbrl.profileStat(_("validateParameters"))
         return
             
     # xpathContext is needed for filter setup for expressions such as aspect cover filter

@@ -152,6 +152,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         toolsMenu.add_cascade(label=_("Messages log"), menu=logmsgMenu, underline=0)
         logmsgMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logmsgMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
+        self.modelManager.collectProfileStats = self.config.setdefault("collectProfileStats",False)
+        self.collectProfileStats = BooleanVar(value=self.modelManager.collectProfileStats)
+        self.collectProfileStats.trace("w", self.setCollectProfileStats)
+        logmsgMenu.add_checkbutton(label=_("Collect profile stats"), underline=0, variable=self.collectProfileStats, onvalue=True, offvalue=False)
+        logmsgMenu.add_command(label=_("Log profile stats"), underline=0, command=self.showProfileStats)
+        logmsgMenu.add_command(label=_("Clear profile stats"), underline=0, command=self.clearProfileStats)
 
         toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
         
@@ -685,6 +691,16 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(msg);
         self.showStatus(_("Ready..."), 2000)
         
+    def showProfileStats(self):
+        modelXbrl = self.modelManager.modelXbrl
+        if modelXbrl and self.modelManager.collectProfileStats:
+            modelXbrl.logProfileStats()
+        
+    def clearProfileStats(self):
+        modelXbrl = self.modelManager.modelXbrl
+        if modelXbrl and self.modelManager.collectProfileStats:
+            modelXbrl.profileStats.clear()
+        
     def fileClose(self):
         if not self.okayToContinue():
             return
@@ -955,6 +971,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.config["validateUtr"] = self.modelManager.validateUtr
         self.saveConfig()
         self.setValidateTooltipText()
+        
+    def setCollectProfileStats(self, *args):
+        self.modelManager.collectProfileStats = self.collectProfileStats.get()
+        self.config["collectProfileStats"] = self.modelManager.collectProfileStats
+        self.saveConfig()
         
     def find(self, *args):
         from arelle.DialogFind import find
