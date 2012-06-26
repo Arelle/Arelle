@@ -14,6 +14,7 @@ from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 from arelle import PluginManager
 from collections import defaultdict
+osPrcs = None
 isPy3 = (sys.version[0] >= '3')
 
 class Cntlr:
@@ -345,6 +346,21 @@ class Cntlr:
             except Exception:
                 pass
         return None
+    
+    @property
+    def memoryUsed(self):
+        try:
+            global osPrcs
+            if self.isMSW:
+                if osPrcs is None:
+                    import win32process as osPrcs
+                return osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize'] / 1024
+            else: # unix
+                import resource as osPrcs
+                return osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss # in KB
+        except Exception:
+            pass
+        return 0
 
 class LogFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None):

@@ -886,7 +886,7 @@ class ModelXbrl:
         """
         self.info("info:profileStats",
                 _("Profile statistics \n") +
-                ' \n'.join(format_string(self.modelManager.locale, _("%s %.3f secs"), (statName, statValue))
+                ' \n'.join(format_string(self.modelManager.locale, _("%s %.3f secs, %.0fK"), (statName, statValue[0], statValue[1]), grouping=True)
                            for statName, statValue in sorted(self.profileStats.items(), key=lambda item: item[0])) +
                 " \n", # put instance reference on fresh line in traces
                 modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats)
@@ -896,7 +896,10 @@ class ModelXbrl:
             import time
             try:
                 if name:
-                    self.profileStats[name] += stat if stat is not None else time.time() - self._startedTimeStat
+                    thisTime = stat if stat is not None else time.time() - self._startedTimeStat
+                    mem = self.modelXbrl.modelManager.cntlr.memoryUsed
+                    prevTime = self.profileStats.get(name, (0,0))[0]
+                    self.profileStats[name] = (thisTime + prevTime, mem) 
             except AttributeError:
                 pass
             if stat is None:
