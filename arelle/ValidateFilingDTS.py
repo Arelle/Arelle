@@ -10,6 +10,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
 
 targetNamespaceDatePattern = None
+efmFilenamePattern = None
 roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
@@ -21,10 +22,11 @@ extLinkEltFileNameEnding = {
     "referenceLink": "ref"}
 
 def checkDTS(val, modelDocument, visited):
-    global targetNamespaceDatePattern, roleTypePattern, arcroleTypePattern, arcroleDefinitionPattern
+    global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, arcroleDefinitionPattern
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
+        efmFilenamePattern = re.compile(r"^[a-z0-9][a-z0-9_\.\-]{0,27}(\.xsd|\.xml)$")
         roleTypePattern = re.compile(r".*/role/[^/]+")
         arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
@@ -44,6 +46,14 @@ def checkDTS(val, modelDocument, visited):
             
     if val.disclosureSystem.standardTaxonomiesDict is None:
         pass
+
+    if (val.validateEFM and 
+        modelDocument.uri not in val.disclosureSystem.standardTaxonomiesDict and 
+        not efmFilenamePattern.match(modelDocument.basename)):
+        val.modelXbrl.error("EFM.5.01.01",
+            _("Document file name %(filename)s must start with a-z or 0-9, contain lower case letters, ., -, _, and end with .xsd or .xml, and not exceed 32 characters."),
+            modelObject=modelDocument, filename=modelDocument.basename)
+    
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
         modelDocument.uri.startswith(val.modelXbrl.uriDir)):
@@ -83,9 +93,9 @@ def checkDTS(val, modelDocument, visited):
         if match is not None:
             try:
                 if match.lastindex == 3:
-                    datetime.date(int(match.group(1)),int(match.group(2)),int(match.group(3)))
+                    date = datetime.date(int(match.group(1)),int(match.group(2)),int(match.group(3)))
                 elif match.lastindex == 6:
-                    datetime.date(int(match.group(4)),int(match.group(5)),int(match.group(6)))
+                    date = datetime.date(int(match.group(4)),int(match.group(5)),int(match.group(6)))
                 else:
                     match = None
             except ValueError:
@@ -94,11 +104,20 @@ def checkDTS(val, modelDocument, visited):
             val.modelXbrl.error(("EFM.6.07.04", "GFM.1.03.04"),
                 _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must have format http://{authority}/{versionDate}"),
                 modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
+        elif val.fileNameDate and date > val.fileNameDate:
+            val.modelXbrl.info(("EFM.6.07.06", "GFM.1.03.06"),
+                _("Warning: Taxonomy schema %(schema)s namespace %(targetNamespace)s has date later than document name date %(docNameDate)s"),
+                modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace,
+                docNameDate=val.fileNameDate)
 
         if modelDocument.targetNamespace is not None:
             # 6.7.5 check prefix for _
             prefix = XmlUtil.xmlnsprefix(modelDocument.xmlRootElement,modelDocument.targetNamespace)
-            if prefix and "_" in prefix:
+            if not prefix:
+                val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
+                    _("Taxonomy schema %(schema)s namespace %(targetNamespace)s missing prefix for the namespace."),
+                    modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
+            elif "_" in prefix:
                 val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s prefix %(prefix)s must not have an '_'"),
                     modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, prefix=prefix)

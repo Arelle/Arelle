@@ -78,6 +78,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 
         # instance checks
         self.fileNameBasePart = None # prevent testing on fileNameParts if not instance or invalid
+        self.fileNameDate = None
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             #6.3.3 filename check
@@ -89,6 +90,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
                         _('Invalid instance document base name part (ticker or mnemonic name) in "{base}-{yyyymmdd}.xml": %(filename)s'),
                         modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
+                else:
+                    try:
+                        self.fileNameDate = datetime.datetime.strptime(self.fileNameDatePart,"%Y%m%d").date()
+                    except ValueError:
+                        modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                            _('Invalid instance document base name part (date) in "{base}-{yyyymmdd}.xml": %(filename)s'),
+                            modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
             else:
                 modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
                     _('Invalid instance document name, must match "{base}-{yyyymmdd}.xml": %(filename)s'),
@@ -898,6 +906,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             
         conceptsUsedWithPreferredLabels = defaultdict(list)
         usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
+        usedCalcFromTosELR = {}
         localPreferredLabels = defaultdict(set)
         drsELRs = set()
         
@@ -905,7 +914,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         for arcroleFilter in (XbrlConst.summationItem, XbrlConst.parentChild, "*"):
             for baseSetKey, baseSetModelLinks  in modelXbrl.baseSets.items():
                 arcrole, ELR, linkqname, arcqname = baseSetKey
-                if ELR and not arcrole.startswith("XBRL-"):
+                if ELR and linkqname and arcqname and not arcrole.startswith("XBRL-"):
                     # assure summationItem, then parentChild, then others
                     if not (arcroleFilter == arcrole or
                             arcroleFilter == "*" and arcrole not in (XbrlConst.summationItem, XbrlConst.parentChild)):
@@ -989,6 +998,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         if self.validateEFMorGFM:
                             # 6.14.3 check for relation concept periods
                             fromRelationships = modelXbrl.relationshipSet(arcrole,ELR).fromModelObjects()
+                            allElrRelSet = modelXbrl.relationshipSet(arcrole)
                             for relFrom, rels in fromRelationships.items():
                                 orderRels = {}
                                 for rel in rels:
@@ -1020,6 +1030,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"),
                                         modelObject=[relFrom] + rels, linkrole=ELR, concept=relFrom.qname)
                                 orderRels.clear()
+                            # if relFrom used by fact and multiple calc networks from relFrom, test 6.15.04
+                            if rels and relFrom in conceptsUsed:
+                                relFromAndTos = (relFrom.objectIndex,) + tuple(sorted((rel.toModelObject.objectIndex 
+                                                                                           for rel in rels)))
+                                if relFromAndTos in usedCalcFromTosELR:
+                                    otherRels = usedCalcFromTosELR[relFromAndTos]
+                                    otherELR = otherRels[0].linkrole
+                                    self.modelXbrl.error(("EFM.6.15.04", "GFM.2.06.04"),
+                                        _("Calculation relationships have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s"),
+                                        modelObject=[relFrom] + rels + otherRels, linkrole=ELR, linkrole2=otherELR, concept=relFrom.qname)
+                                else:
+                                    usedCalcFromTosELR[relFromAndTos] = rels
+                                    
                         elif self.validateSBRNL:
                             # find a calc relationship to get the containing document name
                             for modelRel in self.modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
@@ -1088,6 +1111,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         modelObject=(rel, relFrom, relTo), arc=rel.qname, conceptFrom=relFrom.qname, linkrole=rel.linkrole, conceptTo=rel.toModelObject.qname)
 
         del localPreferredLabels # dereference
+        del usedCalcFromTosELR
         self.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
 
                                 
