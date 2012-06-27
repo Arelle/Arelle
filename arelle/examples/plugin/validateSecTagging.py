@@ -88,14 +88,15 @@ def factCheck(val, fact):
     if not ((defLabel and val.twoWayPriItemDefLabelPattern.search(defLabel)) or
             (stdLabel and val.twoWayPriItemStdLabelPattern.search(stdLabel)) or
             context is not None and (
+                # only check non-default members (for now)
                 any((val.twoWayPriItemStdLabelPattern.search(dim.member.label(lang="en", fallbackToQname=False)) or
                      val.twoWayMbrQnamePattern.match(str(dim.memberQname)))
                     for dim in context.qnameDims.values()
                     if dim.isExplicit)
                          )
             ) and fact.isNumeric and fact.xValue < 0:
-            val.modelXbrl.error("arelle.nonNegativeFact",
-                _("%(fact)s in context %(contextID)s"),
+            val.modelXbrl.warning("arelle.nonNegativeFact",
+                _("%(fact)s in context %(contextID)s should be nonnegative"),
                 modelObject=fact, fact=fact.qname, contextID=fact.contextID)
 
 def final(val):
