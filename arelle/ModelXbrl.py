@@ -15,6 +15,8 @@ from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 ModelRelationshipSet = None # dynamic import
 
+profileStatNumber = 0
+
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
 
 def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
@@ -257,7 +259,7 @@ class ModelXbrl:
         self.formulaOutputInstance = None
         self.log = logging.getLogger("arelle")
         self.log.setLevel(logging.DEBUG)
-        self.profileStats = defaultdict(float)
+        self.profileStats = {}
         self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):
@@ -886,20 +888,29 @@ class ModelXbrl:
         """
         self.info("info:profileStats",
                 _("Profile statistics \n") +
-                ' \n'.join(format_string(self.modelManager.locale, _("%s %.3f secs, %.0fK"), (statName, statValue[0], statValue[1]), grouping=True)
-                           for statName, statValue in sorted(self.profileStats.items(), key=lambda item: item[0])) +
+                ' \n'.join(format_string(self.modelManager.locale, _("%s %.3f secs, %.0fK"), (statName, statValue[1], statValue[2]), grouping=True)
+                           for statName, statValue in sorted(self.profileStats.items(), key=lambda item: item[1])) +
                 " \n", # put instance reference on fresh line in traces
                 modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats)
     
     def profileStat(self, name=None, stat=None):
+        '''
+        order 1xx - load, import, setup, etc
+        order 2xx - views, 26x - table lb
+        3xx diff, other utilities
+        5xx validation
+        6xx formula
+        '''
         if self.modelManager.collectProfileStats:
             import time
+            global profileStatNumber
             try:
                 if name:
                     thisTime = stat if stat is not None else time.time() - self._startedTimeStat
                     mem = self.modelXbrl.modelManager.cntlr.memoryUsed
-                    prevTime = self.profileStats.get(name, (0,0))[0]
-                    self.profileStats[name] = (thisTime + prevTime, mem) 
+                    prevTime = self.profileStats.get(name, (0,0,0))[1]
+                    self.profileStats[name] = (profileStatNumber, thisTime + prevTime, mem)
+                    profileStatNumber += 1
             except AttributeError:
                 pass
             if stat is None:

@@ -219,10 +219,6 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
                 modelObject=custFnSig, xlinkLabel=custFnImpl.xlinkLabel)
         custFnImpl.compile()
     val.modelXbrl.profileActivity("... custom function checks and compilation", minTimeToShow=1.0)
-    
-    if parametersOnly:
-        val.modelXbrl.profileStat(_("validateParameters"))
-        return
             
     # xpathContext is needed for filter setup for expressions such as aspect cover filter
     # determine parameter values
@@ -272,6 +268,14 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
                     _("Standard input instance resource parameter has multiple XBRL instances"), 
                     modelObject=modelParameter)
     val.modelXbrl.profileActivity("... parameter checks and select evaluation", minTimeToShow=1.0)
+    
+    val.modelXbrl.profileStat(_("parametersProcessing"))
+    if parametersOnly:
+        return
+
+    for modelVariableSet in val.modelXbrl.modelVariableSets:
+        modelVariableSet.compile()
+    val.modelXbrl.profileStat(_("formulaCompilation"))
 
     produceOutputXbrlInstance = False
     instanceProducingVariableSets = defaultdict(list)
@@ -311,7 +315,6 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
             val.modelXbrl.error("xbrlve:unknownAspectModel",
                 _("Variable set %(xlinkLabel)s, aspect model %(aspectModel)s not recognized"),
                 modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, aspectModel=modelVariableSet.aspectModel)
-        modelVariableSet.compile()
         modelVariableSet.hasConsistencyAssertion = False
             
         #determine dependencies within variable sets
@@ -626,7 +629,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
                             xlinkLabel2=modelVariableSet.xlinkLabel, aspectModel2=modelVariableSet.aspectModel)
     val.modelXbrl.profileActivity("... instances scopes and setup", minTimeToShow=1.0)
 
-    val.modelXbrl.profileStat(_("validateFormulae"))
+    val.modelXbrl.profileStat(_("formulaValidation"))
     if initialErrorCount < val.modelXbrl.logCountErr:
         return  # don't try to execute
         
