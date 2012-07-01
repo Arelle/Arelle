@@ -33,7 +33,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
             varSet.evaluationsCount = 0
         if xpCtx.formulaOptions.timeVariableSetEvaluation:
             varSet.timeEvaluationStarted = timeEvaluationsStarted = time.time()
-            varSet.evaluationNumber = 0
+        varSet.evaluationNumber = 0
         initialTraceCount = xpCtx.modelXbrl.logCountInfo
         evaluateVar(xpCtx, varSet, 0, {}, uncoveredAspectFacts)
         if isinstance(varSet, ModelExistenceAssertion):
@@ -114,15 +114,17 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"),
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel)
+            varSet.evaluationNumber += 1
             if xpCtx.formulaOptions.timeVariableSetEvaluation:
-                varSet.evaluationNumber += 1
                 now = time.time()
                 xpCtx.modelXbrl.info("formula:time",
                      _("Variable set %(xlinkLabel)s skipped evaluation %(count)s: %(time)s sec"), 
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
                      time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted))
                 varSet.timeEvaluationStarted = now
+            xpCtx.modelXbrl.profileActivity("...   evaluation {0} (skipped)".format(varSet.evaluationNumber), minTimeToShow=10.0)
             return
+        xpCtx.modelXbrl.profileActivity("...   evaluation {0}".format(varSet.evaluationNumber), minTimeToShow=10.0)
         for i, fb in enumerate(thisEvaluation):
             while i >= len(xpCtx.evaluationHashDicts): xpCtx.evaluationHashDicts.append(defaultdict(set))
             xpCtx.evaluationHashDicts[i][hash(fb)].add(len(xpCtx.evaluations))  # hash and eval index        
@@ -260,16 +262,24 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 coverAspectCoverFilterDims(xpCtx, vb, var.filterRelationships) # filters need to know what dims are covered
                 if varHasNoVariableDependencies:
                     cachedFilteredFacts[varQname] = (facts, vb.aspectsDefined, vb.aspectsCovered)
+            considerFallback = bool(var.fallbackValueProg)
             if varSet.implicitFiltering == "true":
                 uncoveredAspects = vb.aspectsDefined - vb.aspectsCovered - {Aspect.DIMENSIONS}
                 if any((_vb.isFactVar and not _vb.isFallback) for _vb in xpCtx.varBindings.values()):
+                    factCount = len(facts)
                     facts = implicitFilter(xpCtx, vb, facts, uncoveredAspects, uncoveredAspectFacts)
+                    if (considerFallback and varHasNoVariableDependencies and 
+                        factCount and
+                        factCount - len(facts) == 0 and
+                        len(xpCtx.varBindings) > 1 and
+                        all((len(_vb.aspectsDefined) == len(vb.aspectsDefined) for _vb in xpCtx.varBindings.values()))):
+                        considerFallback = False
             vb.facts = facts
             if xpCtx.formulaOptions.traceVariableFiltersResult:
                 xpCtx.modelXbrl.info("formula:trace",
                      _("Fact Variable %(variable)s: filters result %(result)s"), 
                      modelObject=var, variable=varQname, result=str(vb.facts))
-            if var.fallbackValueProg:
+            if considerFallback:
                 vb.values = xpCtx.evaluate(var.fallbackValueProg)
                 if xpCtx.formulaOptions.traceVariableExpressionResult:
                     xpCtx.modelXbrl.info("formula:trace",
