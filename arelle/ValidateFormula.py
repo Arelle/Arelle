@@ -636,6 +636,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
 
     # formula output instances    
     if instanceQnames:      
+        val.modelXbrl.modelManager.showStatus(_("initializing formula output instances"))
         schemaRefs = [val.modelXbrl.modelDocument.relativeUri(referencedDoc.uri)
                         for referencedDoc in val.modelXbrl.modelDocument.referencesDocument.keys()
                             if referencedDoc.type == ModelDocument.Type.SCHEMA]
@@ -674,6 +675,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
     # evaluate consistency assertions
     
     # evaluate variable sets not in consistency assertions
+    val.modelXbrl.profileActivity("... evaluations", minTimeToShow=1.0)
     for instanceQname in orderedInstancesList:
         for modelVariableSet in instanceProducingVariableSets[instanceQname]:
             # produce variable evaluations if no dependent variables-scope relationships
@@ -686,8 +688,12 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
                          if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion)))):
                     from arelle.FormulaEvaluator import evaluate
                     try:
+                        varSetId = (modelVariableSet.id or modelVariableSet.xlinkLabel)
+                        val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=10.0)
+                        val.modelXbrl.modelManager.showStatus(_("evaluating {0}".format(varSetId)))
+                        val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=1.0)
                         evaluate(xpathContext, modelVariableSet)
-                        val.modelXbrl.profileStat(modelVariableSet.localName + "_" + (modelVariableSet.id or modelVariableSet.xlinkLabel))
+                        val.modelXbrl.profileStat(modelVariableSet.localName + "_" + varSetId)
                     except XPathContext.XPathException as err:
                         val.modelXbrl.error(err.code,
                             _("Variable set \n%(variableSet)s \nException: \n%(error)s"), 
