@@ -230,7 +230,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     raise ValueError("pattern facet " + facets["pattern"].pattern if facets and "pattern" in facets else "pattern mismatch")
             if facets:
                 if "enumeration" in facets and value not in facets["enumeration"]:
-                    raise ValueError("is not in {1}".format(value, facets["enumeration"]))
+                    raise ValueError("{0} is not in {1}".format(value, facets["enumeration"]))
                 if "length" in facets and len(value) != facets["length"]:
                     raise ValueError("length {0}, expected {1}".format(len(value), facets["length"]))
                 if "minLength" in facets and len(value) < facets["minLength"]:
@@ -261,8 +261,23 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     if "fractionDigits" in facets and ( '.' in value and
                         len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
                         raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
-            elif baseXsdType in ("integer",):
+            elif baseXsdType in {"integer",
+                                 "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
+                                 "long","unsignedLong",
+                                 "int","unsignedInt",
+                                 "short","unsignedShort",
+                                 "byte","unsignedByte"}:
                 xValue = sValue = int(value)
+                if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"} 
+                     and xValue < 0) or
+                    (baseXsdType == "nonPositiveInteger" and xValue > 0) or
+                    (baseXsdType == "positiveInteger" and xValue <= 0) or
+                    (baseXsdType == "byte" and not -128 <= xValue < 127) or
+                    (baseXsdType == "unsignedByte" and not 0 <= xValue < 255) or
+                    (baseXsdType == "short" and not -32768 <= xValue < 32767) or
+                    (baseXsdType == "unsignedShort" and not 0 <= xValue < 65535) or
+                    (baseXsdType == "positiveInteger" and xValue <= 0)):
+                    raise ValueError("{0} is not {1}".format(value, baseXsdType))
             elif baseXsdType == "boolean":
                 if value in ("true", "1"):  
                     xValue = sValue = True
