@@ -272,7 +272,7 @@ def checkContext(val, cntx):
                         dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
                 if val.modelXbrl.dimensionDefaultConcepts.get(dimensionConcept) == memberConcept:
                     val.modelXbrl.error("xbrldie:DefaultValueUsedInInstanceError",
-                        _("Context %(contextID)s explicit dimension %(dimension)s member {2} is a default member item"),
+                        _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is a default member item"),
                         modelObject=modelDimValue, contextID=cntx.id, 
                         dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
             elif modelDimValue.isTyped:

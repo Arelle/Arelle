@@ -290,11 +290,12 @@ class Validate:
                         break
                 elif type(testErr) == type(expected):
                     if (testErr == expected or
-                        (expected == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
-                        (expected == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.2.1.1")) or
-                        (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
-                        (expected == "EFM.6.05.35" and testErr.startswith("utr:")) or
-                        (expected.startswith("EFM.") and testErr.startswith(expected))):
+                        (isinstance(expected, _STR_BASE) and (
+                         (expected == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
+                         (expected == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.2.1.1")) or
+                         (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
+                         (expected == "EFM.6.05.35" and testErr.startswith("utr:")) or
+                         (expected.startswith("EFM.") and testErr.startswith(expected))))):
                         status = "pass"
                         break
             if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable

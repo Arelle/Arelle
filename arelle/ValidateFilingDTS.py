@@ -14,6 +14,8 @@ efmFilenamePattern = None
 roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
+linroleDefinitionStatementSheet = None
+namePattern = None
 extLinkEltFileNameEnding = {
     "calculationLink": "cal",
     "definitionLink": "def",
@@ -22,7 +24,8 @@ extLinkEltFileNameEnding = {
     "referenceLink": "ref"}
 
 def checkDTS(val, modelDocument, visited):
-    global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, arcroleDefinitionPattern
+    global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, \
+            arcroleDefinitionPattern, linroleDefinitionStatementSheet, namePattern
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
@@ -30,6 +33,13 @@ def checkDTS(val, modelDocument, visited):
         roleTypePattern = re.compile(r".*/role/[^/]+")
         arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
+        linroleDefinitionStatementSheet = re.compile(r"-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
+                                                     re.IGNORECASE)
+        namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
+    nonDomainItemNameProblemPattern = re.compile(
+        r"({0})|(FirstQuarter|SecondQuarter|ThirdQuarter|FourthQuarter|[1-4]Qtr|Qtr[1-4]|ytd|YTD|HalfYear)(?:$|[A-Z\W])"
+        .format(re.sub(r"\W", "", (val.entityRegistrantName or "").title())))
+    
         
     visited.append(modelDocument)
     definesLabelLinkbase = False
@@ -241,7 +251,73 @@ def checkDTS(val, modelDocument, visited):
                         val.modelXbrl.error(("EFM.6.07.28", "GFM.1.03.30"),
                             _("Concept %(concept)s is a domainItemType and must be periodType duration"),
                             modelObject=modelConcept, concept=modelConcept.qname)
-                    
+                        
+                    # 6.8.5 semantic check, check LC3 name
+                    if not name[0].isupper():
+                        val.modelXbrl.error(("EFM.6.08.05.firstLetter", "GFM.2.03.05.firstLetter"),
+                            _("Concept %(concept)s name must start with a capital letter"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+                    if namePattern.search(name):
+                        val.modelXbrl.error(("EFM.6.08.05.disallowedCharacter", "GFM.2.03.05.disallowedCharacter"),
+                            _("Concept %(concept)s has disallowed name character"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+                    if len(name) > 200:
+                        val.modelXbrl.error("EFM.6.08.05.nameLength",
+                            _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
+                            modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
+                        
+                    if val.validateEFM:
+                        label = modelConcept.label(lang="en-US", fallbackToQname=False)
+                        if label:
+                            lc3name = ''.join(w.title()
+                                              for w in re.findall(r"\w+", label)
+                                              if w.lower() not in ("the", "a", "an"))
+                            if name != lc3name:
+                                val.modelXbrl.info("EFM.6.08.05.LC3",
+                                    _("Concept %(concept)s should match expected LC3 composition %(lc3name)s"),
+                                    modelObject=modelConcept, concept=modelConcept.qname, lc3name=lc3name)
+                                
+                    if conceptType is not None:
+                        # 6.8.6 semantic check
+                        if not isDomainItemType and conceptType.qname != XbrlConst.qnXbrliDurationItemType:
+                            nameProblems = nonDomainItemNameProblemPattern.findall(name)
+                            if any(any(t) for t in nameProblems):  # list of tuples with possibly nonempty strings
+                                val.modelXbrl.info(("EFM.6.08.06", "GFM.2.03.06"),
+                                    _("Concept %(concept)s should not contain company or period information, found: %(matches)s"),
+                                    modelObject=modelConcept, concept=modelConcept.qname, 
+                                    matches=", ".join(''.join(t) for t in nameProblems))
+                        
+                        if conceptType.qname == XbrlConst.qnXbrliMonetaryItemType:
+                            if not modelConcept.balance:
+                                # 6.8.11 may not appear on a financial statement
+                                if any(linroleDefinitionStatementSheet.match(roleType.definition)
+                                       for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(modelConcept)
+                                       for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,())):
+                                    val.modelXbrl.error(("EFM.6.08.11", "GFM.2.03.11"),
+                                        _("Concept %(concept)s must have a balance because it appears in a statement of income or balance sheet"),
+                                        modelObject=modelConcept, concept=modelConcept.qname)
+                                    break
+                                # 6.11.5 semantic check, must have a documentation label
+                                stdLabel = modelConcept.label(lang="en-US", fallbackToQname=False)
+                                defLabel = modelConcept.label(preferredLabel=XbrlConst.documentationLabel, lang="en-US", fallbackToQname=False)
+                                if not defLabel or ( # want different words than std label
+                                    stdLabel and re.findall(r"\w+", stdLabel) == re.findall(r"\w+", defLabel)):
+                                    val.modelXbrl.error(("EFM.6.11.05", "GFM.2.04.04"),
+                                        _("Concept %(concept)s is monetary without a balance and must have a documentation label that disambiguates its sign"),
+                                        modelObject=modelConcept, concept=modelConcept.qname)
+                        
+                        # 6.8.16 semantic check
+                        if conceptType.qname == XbrlConst.qnXbrliDateItemType and modelConcept.periodType != "duration":
+                            val.modelXbrl.error(("EFM.6.08.16", "GFM.2.03.16"),
+                                _("Concept %(concept)s of type xbrli:dateItemType must have periodType duration"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        
+                        # 6.8.17 semantic check
+                        if conceptType.qname == XbrlConst.qnXbrliStringItemType and modelConcept.periodType != "duration":
+                            val.modelXbrl.error(("EFM.6.08.17", "GFM.2.03.17"),
+                                _("Concept %(concept)s of type xbrli:stringItemType must have periodType duration"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        
                     if val.validateSBRNL:
                         if modelConcept.isTuple:
                             if modelConcept.substitutionGroupQname.localName == "presentationTuple" and modelConcept.substitutionGroupQname.namespaceURI.endswith("/basis/sbr/xbrl/xbrl-syntax-extension"): # namespace may change each year
@@ -321,6 +397,10 @@ def checkDTS(val, modelDocument, visited):
         requiredUsedOns = {XbrlConst.qnLinkPresentationLink,
                            XbrlConst.qnLinkCalculationLink,
                            XbrlConst.qnLinkDefinitionLink}
+        
+        standardUsedOns = {XbrlConst.qnLinkLabel, XbrlConst.qnLinkReference, XbrlConst.qnLinkFootnote,
+                           XbrlConst.qnLinkDefinitionArc, XbrlConst.qnLinkCalculationArc, XbrlConst.qnLinkPresentationArc, 
+                           XbrlConst.qnLinkLabelArc, XbrlConst.qnLinkReferenceArc, XbrlConst.qnLinkFootnoteArc}
 
         # 6.7.9 role types authority
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}roleType"):
@@ -359,7 +439,12 @@ def checkDTS(val, modelDocument, visited):
                             val.modelXbrl.error(("EFM.6.07.12", "GFM.1.03.12-14"),
                                 _("RoleType %(roleType)s definition \"%(definition)s\" must match {Sortcode} - {Type} - {Title}"),
                                 modelObject=e, roleType=roleURI, definition=definition)
-                        
+
+                    if usedOns & standardUsedOns: # semantics check
+                        val.modelXbrl.error(("EFM.6.08.03", "GFM.2.03.03"),
+                            _("RoleType %(roleuri)s is defined using role types already defined by standard %(roletype)ss in: %(qnames)s"),
+                            modelObject=e, roleuri=roleURI, qnames=', '.join(str(qn) for qn in usedOns & standardUsedOns))
+
                     if val.validateSBRNL:
                         if usedOns & XbrlConst.standardExtLinkQnames or XbrlConst.qnGenLink in usedOns:
                             definesLinkroles = True
@@ -405,6 +490,13 @@ def checkDTS(val, modelDocument, visited):
                         _("ArcroleType %(arcroleType)s definition must be non-empty"),
                         modelObject=e, arcroleType=arcroleURI)
     
+                # semantic checks
+                usedOns = modelRoleTypes[0].usedOns
+                if usedOns & standardUsedOns: # semantics check
+                    val.modelXbrl.error(("EFM.6.08.03", "GFM.2.03.03"),
+                        _("ArcroleType %(arcroleuri)s is defined using role types already defined by standard %(roletype)ss in: %(qnames)s"),
+                        modelObject=e, arcroleuri=arcroleURI, qnames=', '.join(str(qn) for qn in usedOns & standardUsedOns))
+
                 if val.validateSBRNL:
                     definesArcroles = True
                     val.modelXbrl.error("SBR.NL.2.2.4.01",
