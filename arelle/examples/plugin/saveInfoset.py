@@ -17,14 +17,19 @@ def generateInfoset(dts, infosetFile):
     numFacts = 0
     
     for fact in dts.facts:
-        if fact.concept.periodType:
-            fact.set("{http://www.xbrl.org/2003/ptv}periodType", fact.concept.periodType)
-        if fact.concept.balance:
-            fact.set("{http://www.xbrl.org/2003/ptv}balance", fact.concept.balance)
-        if fact.isNumeric:
-            fact.set("{http://www.xbrl.org/2003/ptv}decimals", str(inferredDecimals(fact)))
-            fact.set("{http://www.xbrl.org/2003/ptv}precision", str(inferredPrecision(fact)))
-        numFacts += 1
+        try:
+            if fact.concept.periodType:
+                fact.set("{http://www.xbrl.org/2003/ptv}periodType", fact.concept.periodType)
+            if fact.concept.balance:
+                fact.set("{http://www.xbrl.org/2003/ptv}balance", fact.concept.balance)
+            if fact.isNumeric and not fact.isNil:
+                fact.set("{http://www.xbrl.org/2003/ptv}decimals", str(inferredDecimals(fact)))
+                fact.set("{http://www.xbrl.org/2003/ptv}precision", str(inferredPrecision(fact)))
+            numFacts += 1
+        except Exception as err:
+            dts.error("saveInfoset.exception",
+                     _("Facts exception %(fact)s %(value)s %(error)s."),
+                     modelObject=fact, fact=fact.qname, value=fact.effectiveValue, error = err)
 
     fh = open(infosetFile, "w", encoding="utf-8")
     XmlUtil.writexml(fh, dts.modelDocument.xmlDocument, encoding="utf-8")
