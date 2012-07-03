@@ -4,7 +4,8 @@ from arelle import XbrlConst
 import re
 
 def compile(list):
-    return re.compile('($|\W+)|'.join(list)
+    return re.compile("(^|\s)" +  # always be sure first word starts at start or after space
+                      "($|\W+)|(^|\s)".join(list)
                       .replace(r" ",r"\W+") + "($|\W+)", 
                       re.IGNORECASE)
     
@@ -16,8 +17,8 @@ def setup(val):
             # Cash Flow
             r"increase (\w+ )?decrease",
             r"provided by (\w+ )?used in",
-            r"(^|\s)net",
-            r"(^|\s)change in",
+            r"net",
+            r"change in",
             r"proceeds from (\w+ )?payments (for|to)",
             # Income statement
             r"(gain|profit) loss",
@@ -26,63 +27,76 @@ def setup(val):
             # Statement of Stockholders Equity
             r"equity",
             r"retained earnings",
-            r"conversion of units",
+            # removed? r"conversion of units",
             ])
     # standard label tests, indicate two-way label
     val.twoWayPriItemStdLabelPattern = compile([
             # from Eric Cohen
-            r"appreciation depreciation",
-            r"asset liability",
-            r"assets acquired liabilities assumed",
-            r"benefit expense",
-            r"expense benefit",
-            r"cost credit",
-            r"costs credits",
-            r"deductions charges",
-            r"discount premium",
-            r"due from to",
-            r"earnings losses",
-            r"earnings deficit",
-            r"excess shortage",
-            r"gains losses",
-            r"impairment recovery",
-            r"income loss",
-            r"liability refund",
-            r"loss recovery",
-            r"obligation asset",
-            r"obligations assets",
-            r"proceeds from repayments of",
-            r"proceeds from repurchase of",
-            r"provided by used in",
-            r"provisions recoveries",
-            r"retained earnings accumulated deficit",
-            r"\w+ per \w+",
+            r"Increase \(Decrease\)",
+            r"Provided by \(Used in\)",
+            r"Net",
+            r"Change in",
+            r"Proceeds from \(Payments for\)",
+            r"Proceeds from \(Payments to\)",
+            r"Payments for \(Proceeds from\)",
+            r"Proceeds from \(Repayments of\)",
+            r"Gain \(Loss\)",
+            r"Profit \(Loss\)",
+            r"Loss \(Gain\)",
+            r"Income \(Loss\)",
+            r"Income \(Expense\)",
+            r"Per Share",
+            r"Per Basic Share",
+            r"Per Diluted Share",
+            r"Per Basic and Diluted",
+            r"Appreciation \(Depreciation\)",
+            r"Asset \(Liability\)",
+            r"Assets Acquired \(Liabilities Assumed\)",
+            r"Benefit \(Expense\)",
+            r"Expense \(Benefit\)",
+            r"Cost[s] \(Credit[s]\)",
+            r"Deductions \(Charges\)",
+            r"Discount \(Premium\)",
+            r"Due from \(to\)",
+            r"Earnings \((Losses|Deficit)\)",
+            r"Excess \(Shortage\)",
+            r"Gains \(Losses\)",
+            r"Impairment \(Recovery\)",
+            r"Income \(Loss\)",
+            r"Liability \(Refund\)",
+            r"Loss \(Recovery\)",
+            r"Obligation[s] \(Asset[s]\)",
+            r"Proceeds from \((Repayments|Repurchase) of\)",
+            r"Provided by \(Used in\)",
+            r"Provisions \(Recoveries\)",
+            r"Retained Earnings \(Accumulated Deficit\)",
+            r"per (\w+ )+",
             ])
     # determination of a one-way concept based on standard label
     val.oneWayPriItemStdLabelPattern = compile([
-            r"payments of (\w+ )*(dividends|capital)",
-            r"(stocks|shares) (\w+ )*issued",
-            r"stock (\w+ )*repurchase(d)?",
-            r"treasury stock (\w+ )*(beginning|ending|acquired|reissued|retired)",
-            r"accumulated depreciation (\w+ )*amortization",
-            r"accumulated other-than-temporary impairments",
-            r"allowance (\w+ )*doubtful accounts",
-            r"amortization (\w+ )*pension costs",
-            r"available for sale securities (\w+ )*continuous loss position",
-            r"available for sale securities gross unrealized losses",
+            r"Payments of (\w+ )*\((Dividends|Capital)\)",
+            r"(Stock|Shares) Issued",
+            r"Stock (\w+ )*Repurchased",
+            r"(Stock|Shares) (\w+ )*Repurchase[d]?",
+            r"Treasury Stock (\w+ )*(Beginning (\w+ )*Balance[s]?|Ending (\w+ )*Balance[s]?|Acquired|Reissued|Retired)",
+            r"Accumulated Depreciation (\w+ )*Amortization",
+            r"Accumulated Other Than Temporary Impairments",
+            r"Allowance (\w+ )*Doubtful Accounts",
+            r"Amortization (\w+ )*Pension Costs",
+            r"Available for Sale Securities (\w+ )*Continuous Loss Position",
+            r"Available for Sale Securities Bross Unrealized Losses",
             ])
     # determination of a two way fact based on any of fact's dimension member label
     val.twoWayMemberStdLabelPattern = compile([
             # per Eric Cohen
-            r"(^|\s)change (in|during) \w+", # don't match word with change in it like exchange
-            r"\w+ elimination \w+",
-            r"adjustment",
-            r"adjustments for \w+",
-            r"effect\s",
-            r"gain loss \w+",
-            r"gains losses \w+",
-            r"income loss \w+",
-            r"(^|\s)net(ting)?",  # don't want to match word with net in it like internet
+            r"Change (in|during) \w+", # don't match word with change in it like exchange
+            r"\w+ Elimination \w+",
+            r"Adjustment",
+            r"Adjustments for \w+",
+            r"Effect\s",
+            r"Gain(s)? (\w+ )*Loss(es)?",
+            r"Income \(Loss\)",
+            r"Net(ting)?",  # don't want to match word with net in it like internet
             ])
 
 def factCheck(val, fact):
@@ -94,8 +108,7 @@ def factCheck(val, fact):
     try:
         if fact.isNumeric and not fact.isNil and fact.xValue is not None and fact.xValue < 0 and (
             (not ((defLabel is not None and val.twoWayPriItemDefLabelPattern.search(defLabel)) or
-                  (defLabel is None and stdLabel is not None and val.twoWayPriItemDefLabelPattern.search(stdLabel) or
-                  (stdLabel is not None and val.twoWayPriItemStdLabelPattern.search(stdLabel))) or
+                  (stdLabel is not None and val.twoWayPriItemStdLabelPattern.search(stdLabel)) or
                    context is not None and (
                       any((val.twoWayMemberStdLabelPattern.search(dim.member.label(lang="en-US", fallbackToQname=False))
                           )
@@ -124,7 +137,8 @@ def final(val):
 def saveDtsMatches(dts, secDtsTagMatchesFile):
     setup(dts)
     
-    priItemsTwoWay = []
+    priItemsDefTwoWay = []
+    priItemsStdTwoWay = []
     priItemsOneWay = []
     membersTwoWay = []
     
@@ -135,18 +149,20 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
             if concept.type is not None and concept.type.isDomainItemType:
                 if stdLabel is not None and dts.twoWayMemberStdLabelPattern.search(stdLabel):
                     membersTwoWay.append(str(qname))
-            else: # not dimension domain/member
-                if ((defLabel is not None and dts.twoWayPriItemDefLabelPattern.search(defLabel)) or
-                    (defLabel is not None and stdLabel is not None and dts.twoWayPriItemDefLabelPattern.search(stdLabel)) or
-                    (stdLabel is not None and dts.twoWayPriItemStdLabelPattern.search(stdLabel))):
-                    priItemsTwoWay.append(str(qname))
+            elif concept.isNumeric and not concept.isAbstract: # not dimension domain/member
+                if (defLabel is not None and dts.twoWayPriItemDefLabelPattern.search(defLabel)):
+                    priItemsDefTwoWay.append(str(qname))
+                elif (stdLabel is not None and dts.twoWayPriItemStdLabelPattern.search(stdLabel)):
+                    priItemsStdTwoWay.append(str(qname))
                 elif (stdLabel is not None and dts.oneWayPriItemStdLabelPattern.search(stdLabel)):
                     priItemsOneWay.append(str(qname))
     
     with open(secDtsTagMatchesFile, "w", encoding='utf-8') as fh:
-        fh.write('DTS Primary Item Two-way Matches\n\n')
-        fh.write('\n'.join(priItemsTwoWay))
-        fh.write('\n\nDTS Primary Item One-way Matches\n\n')
+        fh.write('DTS Primary Item Two-way Definition Matches\n\n')
+        fh.write('\n'.join(priItemsDefTwoWay))
+        fh.write('\n\nDTS Primary Item Two-way Standard Label Matches\n\n')
+        fh.write('\n'.join(priItemsStdTwoWay))
+        fh.write('\n\nDTS Primary Item One-way Standard Label Matches\n\n')
         fh.write('\n'.join(priItemsOneWay))
         fh.write('\n\nDTS Dimension Member Two-way Matches\n\n')
         fh.write('\n'.join(membersTwoWay))
