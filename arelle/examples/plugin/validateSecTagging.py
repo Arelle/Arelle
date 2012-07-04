@@ -2,102 +2,143 @@ from arelle import PluginManager
 from arelle.ModelValue import qname
 from arelle import XbrlConst
 import re
+from collections import defaultdict
 
-def compile(list):
-    return re.compile("(^|\s)" +  # always be sure first word starts at start or after space
-                      "($|\W+)|(^|\s)".join(list)
-                      .replace(r" ",r"\W+") + "($|\W+)", 
-                      re.IGNORECASE)
+def compile(list, traceRows):
+    if traceRows:
+        # compile so each row can be traced by separate expression (slow)
+        return [(rowNbr, re.compile("(^|\s)" + pattern + "($|\W+)", re.IGNORECASE))
+                for rowNbr, pattern in list]
+    else:
+        # compile single expression for fast execution
+        return re.compile("(^|\s)" +  # always be sure first word starts at start or after space
+                          "($|\W+)|(^|\s)".join(pattern for rowNbr, pattern in list)
+                          .replace(r" ",r"\W+") + "($|\W+)", 
+                          re.IGNORECASE)
     
-def setup(val):
+def setup(val, traceRows=False):
     # determiniation of two way concept label based on pattern
     # definitions (from documentation label) are used if present, otherwise standard label for these tests
     val.twoWayPriItemDefLabelPattern = compile([
             # from http://www.sec.gov/spotlight/xbrl/staff-review-observations-061511.shtml 
             # Cash Flow
-            r"increase (\w+ )?decrease",
-            r"provided by (\w+ )?used in",
-            r"net",
-            r"change in",
-            r"proceeds from (\w+ )?payments (for|to)",
+            (4, r"increase (\w+ )?decrease"),
+            (5, r"provided by (\w+ )?used in"),
+            (7, r"net cash inflow or outflow"),
+            (6, r"net"),
+            (8, r"change in"),
+            (9, r"proceeds from (\w+ )?payments (for|to)"),
             # Income statement
-            r"(gain|profit) loss",
-            r"income (expense|loss)",
-            r"per share",
+            (13, r"(gain|profit) loss"),
+            (16, r"income (expense|loss)"),
+            (18, r"per share"),
             # Statement of Stockholders Equity
-            r"equity",
-            r"retained earnings",
+            (22, r"equity"),
+            (23, r"retained earnings"),
             # removed? r"conversion of units",
-            ])
+            ], traceRows)
     # standard label tests, indicate two-way label
     val.twoWayPriItemStdLabelPattern = compile([
             # from Eric Cohen
-            r"Increase \(Decrease\)",
-            r"Provided by \(Used in\)",
-            r"Net",
-            r"Change in",
-            r"Proceeds from \(Payments for\)",
-            r"Proceeds from \(Payments to\)",
-            r"Payments for \(Proceeds from\)",
-            r"Proceeds from \(Repayments of\)",
-            r"Gain \(Loss\)",
-            r"Profit \(Loss\)",
-            r"Loss \(Gain\)",
-            r"Income \(Loss\)",
-            r"Income \(Expense\)",
-            r"Per Share",
-            r"Per Basic Share",
-            r"Per Diluted Share",
-            r"Per Basic and Diluted",
-            r"Appreciation \(Depreciation\)",
-            r"Asset \(Liability\)",
-            r"Assets Acquired \(Liabilities Assumed\)",
-            r"Benefit \(Expense\)",
-            r"Expense \(Benefit\)",
-            r"Cost[s] \(Credit[s]\)",
-            r"Deductions \(Charges\)",
-            r"Discount \(Premium\)",
-            r"Due from \(to\)",
-            r"Earnings \((Losses|Deficit)\)",
-            r"Excess \(Shortage\)",
-            r"Gains \(Losses\)",
-            r"Impairment \(Recovery\)",
-            r"Income \(Loss\)",
-            r"Liability \(Refund\)",
-            r"Loss \(Recovery\)",
-            r"Obligation[s] \(Asset[s]\)",
-            r"Proceeds from \((Repayments|Repurchase) of\)",
-            r"Provided by \(Used in\)",
-            r"Provisions \(Recoveries\)",
-            r"Retained Earnings \(Accumulated Deficit\)",
-            r"per (\w+ )+",
-            ])
+            (4, r"Increase \(Decrease\)"),
+            (5, r"Provided by \(Used in\)"),
+            (6, r"Net"),
+            (8, r"Change in"),
+            (9, r"Proceeds from \(Payments for\)"),
+            (10, r"Proceeds from \(Payments to\)"),
+            (11, r"Payments for \(Proceeds from\)"),
+            (12, r"Proceeds from \(Repayments of\)"),
+            (13, r"Gain \(Loss\)"),
+            (14, r"Profit \(Loss\)"),
+            (15, r"Loss \(Gain\)"),
+            (16, r"Income \(Loss\)"),
+            (17, r"Income \(Expense\)"),
+            (18, r"Per Share"),
+            (19, r"Per Basic Share"),
+            (20, r"Per Diluted Share"),
+            (21, r"Per Basic and Diluted"),
+            (24, r"Appreciation \(Depreciation\)"),
+            (25, r"Asset \(Liability\)"),
+            (26, r"Assets Acquired \(Liabilities Assumed\)"),
+            (27, r"Benefit \(Expense\)"),
+            (28, r"Expense \(Benefit\)"),
+            (29, r"Cost[s] \(Credit[s]\)"),
+            (30, r"Deductions \(Charges\)"),
+            (31, r"Discount \(Premium\)"),
+            (32, r"Due from \(to\)"),
+            (33, r"Earnings \(Losses\)"),
+            (34, r"Earnings \(Deficit\)"),
+            (35, r"Excess \(Shortage\)"),
+            (36, r"Gains \(Losses\)"),
+            (37, r"Impairment \(Recovery\)"),
+            (38, r"Income \(Loss\)"),
+            (39, r"Liability \(Refund\)"),
+            (40, r"Loss \(Recovery\)"),
+            (41, r"Obligation[s] \(Asset[s]\)"),
+            (42, r"Proceeds from \(Repayments of\)"),
+            (43, r"Proceeds from \(Repurchase of\)"),
+            (44, r"Provided by \(Used in\)"),
+            (45, r"Provisions \(Recoveries\)"),
+            (46, r"Retained Earnings \(Accumulated Deficit\)"),
+            (47, r"per (\w+ )+"),
+            (70, r"Conversion of Units"),
+            (71, r"Effective (\w+ )?Rate"),
+            ], traceRows)
     # determination of a one-way concept based on standard label
+    val.oneWayPriItemDefLabelPattern = compile([
+            (49, r"dividend (\w+ )*(paid|received)"),
+            ], traceRows)
+
     val.oneWayPriItemStdLabelPattern = compile([
-            r"Payments of (\w+ )*\((Dividends|Capital)\)",
-            r"(Stock|Shares) Issued",
-            r"Stock (\w+ )*Repurchased",
-            r"(Stock|Shares) (\w+ )*Repurchase[d]?",
-            r"Treasury Stock (\w+ )*(Beginning (\w+ )*Balance[s]?|Ending (\w+ )*Balance[s]?|Acquired|Reissued|Retired)",
-            r"Accumulated Depreciation (\w+ )*Amortization",
-            r"Accumulated Other Than Temporary Impairments",
-            r"Allowance (\w+ )*Doubtful Accounts",
-            r"Amortization (\w+ )*Pension Costs",
-            r"Available for Sale Securities (\w+ )*Continuous Loss Position",
-            r"Available for Sale Securities Bross Unrealized Losses",
-            ])
+            (48, r"Payments of (\w+ )*\((Dividends|Capital)\)"),
+            (49, r"Dividends (\w+ )*\((Pay(ment)?|Receive|Outstanding)\)"),
+            (50, r"(Stock|Shares) Issued"),
+            (51, r"Stock (\w+ )*Repurchased"),
+            (52, r"(Stock|Shares) (\w+ )*Repurchase[d]?"),
+            (53, r"Treasury Stock (\w+ )*(Beginning (\w+ )*Balance[s]?|Ending (\w+ )*Balance[s]?)"),
+            (54, r"Treasury Stock (\w+ )*Acquired"),
+            (55, r"Treasury Stock (\w+ )*Reissued"),
+            (56, r"Treasury Stock (\w+ )*Retired"),
+            (57, r"Accumulated Depreciation (\w+ )*Amortization"),
+            (58, r"Accumulated Other Than Temporary Impairments"),
+            (59, r"Allowance (\w+ )*Doubtful Accounts"),
+            (60, r"Amortization (\w+ )*Pension Costs"),
+            (61, r"Available for Sale Securities (\w+ )*Continuous Loss Position"),
+            (62, r"Available for Sale Securities Bross Unrealized Losses"),
+            (63, r"Accounts"),
+            ], traceRows)
     # determination of a two way fact based on any of fact's dimension member label
     val.twoWayMemberStdLabelPattern = compile([
             # per Eric Cohen
-            r"Change (in|during) \w+", # don't match word with change in it like exchange
-            r"\w+ Elimination \w+",
-            r"Adjustment",
-            r"Adjustments for \w+",
-            r"Effect\s",
-            r"Gain(s)? (\w+ )*Loss(es)?",
-            r"Income \(Loss\)",
-            r"Net(ting)?",  # don't want to match word with net in it like internet
-            ])
+            (64, r"Change (in|during) \w+"), # don't match word with change in it like exchange
+            (65, r"\w+ Elimination \w+"),
+            (66, r"Adjustment"),
+            (67, r"Effect\s"),
+            (68, r"Gain(s)? (\w+ )*Loss(es)?"),
+            (69, r"Income \(Loss\)"),
+            (70, r"Net(ting)?"),  # don't want to match word with net in it like internet
+            ], traceRows)
+    val.schedules = {}
+    val.elrMatches = (("1statement", re.compile(r"-\s+Statement\s+-\s+", re.IGNORECASE)),
+                      ("2disclosure", re.compile(r"-\s+Disclosure\s+-\s+", re.IGNORECASE)),
+                      ("3schedule", re.compile(r"-\s+Schedule\s+-\s+", re.IGNORECASE)))
+
+def schedules(val, concept):
+    try:
+        return val.schedules[concept.qname]
+    except KeyError:
+        schedules = defaultdict(int)
+        for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(concept):
+            for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()):
+                for elrType, elrPattern in val.elrMatches:
+                    if elrPattern.search(roleType.definition):
+                        schedules[elrType] += 1
+        scheduleStr = ""
+        for elrType, num in sorted(schedules.items()):
+            scheduleStr += ", {0} {1}{2}".format(num, elrType[1:], "s" if num > 1 else "")
+        val.schedules[concept.qname] = scheduleStr
+        return scheduleStr
+    
 
 def factCheck(val, fact):
     concept = fact.concept
@@ -106,75 +147,125 @@ def factCheck(val, fact):
     defLabel = concept.label(preferredLabel=XbrlConst.documentationLabel, lang="en-US", fallbackToQname=False)
     
     try:
-        if fact.isNumeric and not fact.isNil and fact.xValue is not None and fact.xValue < 0 and (
-            (not ((defLabel is not None and val.twoWayPriItemDefLabelPattern.search(defLabel)) or
-                  (stdLabel is not None and val.twoWayPriItemStdLabelPattern.search(stdLabel)) or
-                   context is not None and (
-                      any((val.twoWayMemberStdLabelPattern.search(dim.member.label(lang="en-US", fallbackToQname=False))
-                          )
-                          for dim in context.qnameDims.values()
-                          if dim.isExplicit)
-                                           )
-                  )) or
-            ((stdLabel is not None and val.oneWayPriItemStdLabelPattern.search(stdLabel)))
-                ):
-                val.modelXbrl.warning("secStaffObservation.nonNegativeFact",
-                    _("%(fact)s in context %(contextID)s unit %(unitID)s value %(value)s should be nonnegative"),
+        if fact.isNumeric and not fact.isNil and fact.xValue is not None and fact.xValue < 0:
+            # is fact an explicit non neg
+            if ((defLabel is not None and val.oneWayPriItemDefLabelPattern.search(defLabel)) or
+                (stdLabel is not None and val.oneWayPriItemStdLabelPattern.search(stdLabel))):
+                if context.qnameDims:  # if fact has a member
+                    if any((val.twoWayMemberStdLabelPattern.search(dim.member.label(lang="en-US", fallbackToQname=False))
+                            for dim in context.qnameDims.values()
+                            if dim.isExplicit)):  # any two way exception member
+                        val.modelXbrl.info("secStaffObservation.nonNegativeFact.info.A",
+                            _("Negative fact of an explicit non-negative concept is tagged with a member expected to allow negative values: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
+                            modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                            value=fact.effectiveValue, elrTypes=schedules(val,concept))
+                    else:
+                        val.modelXbrl.warning("secStaffObservation.nonNegativeFact.warning.B",
+                            _("Negative fact of an explicit non-negative concept, member may or not justify a negative value: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
+                            modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                            value=fact.effectiveValue, elrTypes=schedules(val,concept))
+                else: # no member
+                    val.modelXbrl.error("secStaffObservation.nonNegativeFact.error.C",
+                        _("Negative fact of an explicit non-negative concept: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s %(elrTypes)s"),
+                        modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                        value=fact.effectiveValue, elrTypes=schedules(val,concept))
+            # else test if fact meets two way rules
+            elif ((defLabel is not None and val.twoWayPriItemDefLabelPattern.search(defLabel)) or
+                  (stdLabel is not None and val.twoWayPriItemStdLabelPattern.search(stdLabel))):
+                val.modelXbrl.info("secStaffObservation.nonNegativeFact.info.D",
+                    _("Negative fact of concept expected to have positive and negative values: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                     modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
-                    value=fact.effectiveValue)
+                    value=fact.effectiveValue, elrTypes=schedules(val,concept))
+            else:
+                if context.qnameDims:  # if fact has a member
+                    if any((val.twoWayMemberStdLabelPattern.search(dim.member.label(lang="en-US", fallbackToQname=False))
+                            for dim in context.qnameDims.values()
+                            if dim.isExplicit)):  # any two way exception member
+                        val.modelXbrl.info("secStaffObservation.nonNegativeFact.info.E",
+                            _("Negative fact for typically non-negative concept, but tagged with a member expected to allow negative values: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
+                            modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                            value=fact.effectiveValue, elrTypes=schedules(val,concept))
+                    else:
+                        val.modelXbrl.warning("secStaffObservation.nonNegativeFact.warning.F",
+                            _("Negative fact of a typically non-negative concept, member may or not justify a negative value: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
+                            modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                            value=fact.effectiveValue, elrTypes=schedules(val,concept))
+                else: # no member
+                    val.modelXbrl.error("secStaffObservation.nonNegativeFact.error.G",
+                        _("Negative fact of a \"presumed by default\" non-negative concept: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
+                        modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                        value=fact.effectiveValue, elrTypes=schedules(val,concept))
     except Exception as ex:
         val.modelXbrl.warning("arelle:nonNegFactTestException",
-            _("%(fact)s in context %(contextID)s unit %(unitID)s value %(value)s cannot be tested nonnegative"),
+            _("%(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s cannot be tested nonnegative"),
             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
-            value=fact.effectiveValue)
+            value=fact.effectiveValue, elrTypes=schedules(val,fact))
 
 def final(val):
     del val.twoWayPriItemDefLabelPattern
     del val.twoWayPriItemStdLabelPattern
     del val.oneWayPriItemStdLabelPattern
     del val.twoWayMemberStdLabelPattern
+    del val.schedules
     
 def saveDtsMatches(dts, secDtsTagMatchesFile):
-    setup(dts)
+    setup(dts, True)
     
-    priItemsDefTwoWay = []
-    priItemsStdTwoWay = []
-    priItemsOneWay = []
-    membersTwoWay = []
+    import sys, csv
+    if sys.version[0] >= '3':
+        csvOpenMode = 'w'
+        csvOpenNewline = ''
+    else:
+        csvOpenMode = 'wb' # for 2.7
+        csvOpenNewline = None
+
+    csvFile = open(secDtsTagMatchesFile, csvOpenMode, newline=csvOpenNewline)
+    csvWriter = csv.writer(csvFile, dialect="excel")
+    csvWriter.writerow(("Concept", "Rule", "Row", "Pattern", "Label", "Documentation"))
+    
+    num1wayConcepts = 0
+    num2wayConcepts = 0
+    num2wayMembers = 0
     
     for qname, concept in sorted(dts.qnameConcepts.items(), key=lambda item: item[0]):
         if concept.isItem and concept.isPrimaryItem: # both pri item and domain members
             stdLabel = concept.label(lang="en-US", fallbackToQname=False)
             defLabel = concept.label(preferredLabel=XbrlConst.documentationLabel, lang="en-US", fallbackToQname=False)
             if concept.type is not None and concept.type.isDomainItemType:
-                if stdLabel is not None and dts.twoWayMemberStdLabelPattern.search(stdLabel):
-                    membersTwoWay.append(str(qname))
+                if stdLabel is not None:
+                    for rowNbr, pattern in dts.twoWayMemberStdLabelPattern:
+                        if pattern.search(stdLabel):
+                            csvWriter.writerow((str(qname), "member-2-way", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            num2wayMembers += 1
             elif concept.isNumeric and not concept.isAbstract: # not dimension domain/member
-                if (defLabel is not None and dts.twoWayPriItemDefLabelPattern.search(defLabel)):
-                    priItemsDefTwoWay.append(str(qname))
-                elif (stdLabel is not None and dts.twoWayPriItemStdLabelPattern.search(stdLabel)):
-                    priItemsStdTwoWay.append(str(qname))
-                elif (stdLabel is not None and dts.oneWayPriItemStdLabelPattern.search(stdLabel)):
-                    priItemsOneWay.append(str(qname))
+                if defLabel is not None:
+                    for rowNbr, pattern in dts.twoWayPriItemDefLabelPattern:
+                        if pattern.search(defLabel):
+                            csvWriter.writerow((str(qname), "concept-2-way-doc", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            num2wayConcepts += 1
+                    for rowNbr, pattern in dts.oneWayPriItemDefLabelPattern:
+                        if pattern.search(defLabel):
+                            csvWriter.writerow((str(qname), "concept-1-way-doc", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            num1wayConcepts += 1
+                if stdLabel is not None:
+                    for rowNbr, pattern in dts.twoWayPriItemStdLabelPattern:
+                        if pattern.search(stdLabel):
+                            csvWriter.writerow((str(qname), "concept-2-way-lbl", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            num2wayConcepts += 1
+                    for rowNbr, pattern in dts.oneWayPriItemStdLabelPattern:
+                        if pattern.search(stdLabel):
+                            csvWriter.writerow((str(qname), "concept-1-way-lbl", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            num1wayConcepts += 1
     
-    with open(secDtsTagMatchesFile, "w", encoding='utf-8') as fh:
-        fh.write('DTS Primary Item Two-way Definition Matches\n\n')
-        fh.write('\n'.join(priItemsDefTwoWay))
-        fh.write('\n\nDTS Primary Item Two-way Standard Label Matches\n\n')
-        fh.write('\n'.join(priItemsStdTwoWay))
-        fh.write('\n\nDTS Primary Item One-way Standard Label Matches\n\n')
-        fh.write('\n'.join(priItemsOneWay))
-        fh.write('\n\nDTS Dimension Member Two-way Matches\n\n')
-        fh.write('\n'.join(membersTwoWay))
-        fh.write('\n') # ending newline for file
+    csvFile.close()
 
     dts.info("info:saveSecDtsTagMatches",
              _("SecDtsTagMatches entry %(entryFile)s has %(numberOfTwoWayPriItems)s two way primary items, %(numberOfOneWayPriItems)s one way primary items, %(numberOfTwoWayMembers)s two way members in output file %(secDtsTagMatchesFile)s."),
              modelObject=dts,
              entryFile=dts.uri, 
-             numberOfTwoWayPriItems=len(priItemsTwoWay), 
-             numberOfOneWayPriItems=len(priItemsOneWay), 
-             numberOfTwoWayMembers=len(membersTwoWay),
+             numberOfTwoWayPriItems=num2wayConcepts,
+             numberOfOneWayPriItems=num1wayConcepts,
+             numberOfTwoWayMembers=num2wayMembers,
              secDtsTagMatchesFile=secDtsTagMatchesFile)
 
     final(dts)
@@ -193,8 +284,8 @@ def saveDtsMatchesMenuCommand(cntlr):
 
         # get file name into which to save log file while in foreground thread
     secDtsTagMatchesFile = cntlr.uiFileDialog("save",
-            title=_("Save SEC DTS tag matches text file"),
-            filetypes=[(_("DTS tag matches .txt file"), "*.txt")],
+            title=_("Save SEC DTS tag matches file"),
+            filetypes=[(_("DTS tag matches .csv file"), "*.csv")],
             defaultextension=".txt")
     if not secDtsTagMatchesFile:
         return False
@@ -213,7 +304,7 @@ def saveDtsMatchesCommandLineOptionExtender(parser):
     parser.add_option("--save-sec-tag-dts-matches", 
                       action="store", 
                       dest="secDtsTagMatchesFile", 
-                      help=_("Save SEC DTS tag matches text file."))
+                      help=_("Save SEC DTS tag matches CSV file."))
 
 def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
