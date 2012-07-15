@@ -78,7 +78,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 #(_("New..."), self.fileNew, "Ctrl+N", "<Control-n>"),
                 (_("Open File..."), self.fileOpen, "Ctrl+O", "<Control-o>"),
                 (_("Open Web..."), self.webOpen, "Shift+Alt+O", "<Shift-Alt-o>"),
-                (_("Import File..."), self.importOpen, None, None),
+                (_("Import File..."), self.importFileOpen, None, None),
+                (_("Import Web..."), self.importWebOpen, None, None),
                 (_("Save..."), self.fileSave, "Ctrl+S", "<Control-s>"),
                 (_("Save DTS Package"), self.saveDTSpackage, None, None),
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
@@ -488,7 +489,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             
         self.fileOpenFile(filename)
     
-    def importOpen(self, *ignore):
+    def importFileOpen(self, *ignore):
         if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
              ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             tkinter.messagebox.showwarning(_("arelle - Warning"),
@@ -501,7 +502,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             defaultextension=".xml")
         if self.isMSW and "/Microsoft/Windows/Temporary Internet Files/Content.IE5/" in filename:
             tkinter.messagebox.showerror(_("Loading web-accessed files"),
-                _('Please open web-accessed files with the second toolbar button, "Open web file", or the File menu, second entry, "Open web..."'), parent=self.parent)
+                _('Please import web-accessed files with the File menu, fourth entry, "Import web..."'), parent=self.parent)
             return
         if os.sep == "\\":
             filename = filename.replace("/", "\\")
@@ -556,6 +557,17 @@ class CntlrWinMain (Cntlr.Cntlr):
             thread.daemon = True
             thread.start()
             
+    def importWebOpen(self, *ignore):
+        if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
+             ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+            tkinter.messagebox.showwarning(_("arelle - Warning"),
+                            _("Import requires an opened DTS"), parent=self.parent)
+            return False
+        url = DialogURL.askURL(self.parent, buttonSEC=False, buttonRSS=False)
+        if url:
+            self.fileOpenFile(url, importToDTS=True)
+    
+        
     def backgroundLoadXbrl(self, filesource, importToDTS, selectTopView):
         startedAt = time.time()
         try:
@@ -565,6 +577,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 modelXbrl = self.modelManager.modelXbrl
                 if modelXbrl:
                     ModelDocument.load(modelXbrl, filesource.url)
+                    modelXbrl.relationshipSets.clear() # relationships have to be re-cached
             else:
                 action = _("loaded")
                 profileStat = "load"
@@ -701,7 +714,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if modelXbrl and self.modelManager.collectProfileStats:
             modelXbrl.profileStats.clear()
         
-    def fileClose(self):
+    def fileClose(self, *ignore):
         if not self.okayToContinue():
             return
         self.modelManager.close()
