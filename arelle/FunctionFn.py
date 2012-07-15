@@ -4,7 +4,7 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import math, re
+import math, re, sre_constants
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
@@ -264,14 +264,25 @@ def matches(xc, p, contextItem, args):
     if not 2 <= len(args) <= 3: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    return bool(re.match(pattern,input,flags=regexFlags(xc, p, args, 2)))
+    try:
+        return bool(re.search(pattern,input,flags=regexFlags(xc, p, args, 2)))
+    except sre_constants.error as err:
+        raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:matches regular expression pattern error: {0}').format(err))
+        
 
 def replace(xc, p, contextItem, args):
     if not 3 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    replacement = stringArg(xc, args, 2, "xs:string", emptyFallback=())
-    return re.sub(pattern,replacement,input,flags=regexFlags(xc, p, args, 3))
+    fnReplacement = stringArg(xc, args, 2, "xs:string", emptyFallback=())
+    if re.findall(r"(^|[^\\])[$]|[$][^0-9]", fnReplacement):
+        raise XPathContext.XPathException(p, 'err:FORX0004', _('fn:replace pattern \'$\' error in: {0}').format(fnReplacement))
+    reReplacement = re.sub(r"[\\][$]", "$", 
+                         re.sub(r"(^|[^\\])[$]([1-9])", r"\\\2", fnReplacement))
+    try:
+        return re.sub(pattern,reReplacement,input,flags=regexFlags(xc, p, args, 3))
+    except sre_constants.error as err:
+        raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:replace regular expression pattern error: {0}').format(err))
 
 def tokenize(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
