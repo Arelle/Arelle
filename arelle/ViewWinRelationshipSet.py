@@ -8,6 +8,7 @@ from collections import defaultdict
 import os
 from arelle import ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil, Locale
 from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.ModelFormulaObject import ModelFilter
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
@@ -154,7 +155,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if self.showReferences:
                 text = (concept.viewText() or concept.localName)
             else:
-                text = (Locale.rtlString(concept.text, lang=concept.xmlLang) or concept.localName)
+                text = (Locale.rtlString(concept.elementText.strip(), lang=concept.xmlLang) or concept.localName)
         else:   # just a resource
             text = concept.localName
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
@@ -174,7 +175,10 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                 self.treeView.set(childnode, "usable", modelObject.usable)
         elif self.arcrole == "Table-rendering": # extra columns
-            header = concept.genLabel(lang=self.lang,strip=True)
+            try:
+                header = concept.header(lang=self.lang,strip=True,evaluate=False)
+            except AttributeError:
+                header = None # could be a filter
             if isRelation and header is None:
                 header = "{0} {1}".format(os.path.basename(modelObject.arcrole), concept.xlinkLabel)
             self.treeView.set(childnode, "header", header)
@@ -191,7 +195,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.set(childnode, "arcrole", os.path.basename(modelObject.arcrole))
             if isinstance(concept, ModelDtsObject.ModelResource):
                 self.treeView.set(childnode, "resource", concept.localName)
-                self.treeView.set(childnode, "resourcerole", os.path.basename(concept.role))
+                self.treeView.set(childnode, "resourcerole", os.path.basename(concept.role or ''))
                 self.treeView.set(childnode, "lang", concept.xmlLang)
         self.id += 1
         self.tag_has[modelObject.objectId()].append(childnode)
@@ -226,7 +230,15 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 modelObject = self.modelXbrl.modelObject(tvRowId) # this is a relationship object
                 return modelObject.toModelObject.ordinateView
             except (AttributeError, KeyError):
-                pass 
+                try: # rendering filter relationships
+                    filterObj = modelObject.toModelObject
+                    return "{0}: {1}\ncomplement: {2}\ncover: {3}\n{4}".format(
+                            filterObj.localName, filterObj.viewExpression,
+                            str(modelObject.isComplemented).lower(),
+                            str(modelObject.isCovered).lower(),
+                            '\n'.join("{0}: {1}".format(label, value) for label,value in filterObj.propertyView))
+                except (AttributeError, KeyError):
+                    pass
         return None
 
     def treeviewEnter(self, *args):
