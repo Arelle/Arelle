@@ -3,25 +3,6 @@
 from arelle.ModelValue import QName
 Aspect = None
 
-'''
-def dimContextElement(view, dimConcept):
-    # should replace this with modelXbrl.qnameDimensionContextElement if not ambiguous, else same logic as create context
-    contextElement = view.modelXbrl.qnameDimensionContextElement.get(dimConcept.qname)
-    try:
-        return view.dimsContextElement[dimConcept]
-    except KeyError:
-        if contextElement and contextElement != "ambiguous":
-            return contextElement
-        if view.hcDimRelSet:
-            for dimHcRel in view.hcDimRelSet.toModelObject(dimConcept):
-                if dimHcRel.fromModelObject is not None:
-                    for hcRel in view.hcDimRelSet.toModelObject(dimHcRel.fromModelObject):
-                        contextElement = hcRel.contextElement
-                        view.dimsContextElement[dimConcept] = contextElement
-                        return contextElement
-        return None
-'''
-        
 class FactPrototype():      # behaves like a fact for dimensional validity testing
     def __init__(self, v, aspectValues):
         global Aspect
@@ -75,10 +56,16 @@ class ContextPrototype():  # behaves like a context
                     self.isStartEndPeriod = self.isInstantPeriod = False
                     self.isStartEndPeriod = True
             elif aspect == Aspect.START:
+                self.isStartEndPeriod = self.isInstantPeriod = False
+                self.isStartEndPeriod = True
                 self.startDatetime = aspectValue
             elif aspect == Aspect.END:
+                self.isStartEndPeriod = self.isInstantPeriod = False
+                self.isStartEndPeriod = True
                 self.endDatetime = aspectValue
             elif aspect == Aspect.INSTANT:
+                self.isStartEndPeriod = self.isForeverPeriod = False
+                self.isInstantPeriod = True
                 self.endDatetime = self.instantDatetime = aspectValue
             elif isinstance(aspect, QName):
                 try: # if a DimVal, then it has a suggested context element
@@ -89,8 +76,6 @@ class ContextPrototype():  # behaves like a context
                 if v.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue: # not a default
                     try:
                         dimConcept = v.modelXbrl.qnameConcepts[aspect]
-                        #if contextElement is None:
-                        #    contextElement = dimContextElement(v, dimConcept)
                         dimValPrototype = DimValuePrototype(v, dimConcept, aspect, aspectValue, contextElement)
                         self.qnameDims[aspect] = dimValPrototype
                         if contextElement != "scenario": # could be segment, ambiguous, or no information

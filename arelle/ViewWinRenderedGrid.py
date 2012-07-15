@@ -5,25 +5,22 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, threading, time
-from tkinter import Menu, constants
-from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, ModelObject, XbrlConst, 
+from tkinter import Menu
+from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, Locale)
-from arelle.ModelValue import qname, QName
-from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedPrimaryItemQname,
-                                         inheritedExplicitDims)
-from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelOpenAxis, ordObjects
+from arelle.ModelValue import qname
+from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedAspectValue)
+from arelle.ModelRenderingObject import ordObjects
 from arelle.ModelFormulaObject import Aspect, aspectStr, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.FormulaEvaluator import aspectMatches
 
-from arelle.PrototypeInstanceObject import FactPrototype, ContextPrototype, DimValuePrototype
+from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
-                     label, checkbox, 
-                     TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
+                           label,  
+                           TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
 from arelle.DialogNewFactItem import getNewFactItemOptions
 from collections import defaultdict
-from itertools import repeat
 
-emptySet = set()
 emptyList = []
 
 def viewRenderedGrid(modelXbrl, tabWin, lang=None):
@@ -61,11 +58,9 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
 class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def __init__(self, modelXbrl, tabWin, lang):
         super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, "Rendering", True, lang)
-        self.dimsContextElement = {}
-        self.hcDimRelSet = self.modelXbrl.relationshipSet("XBRL-dimensions")
-        self.zComboBoxIndex = None
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
         self.factPrototypes = []
+        self.zOrdinateChoices = None
             
     def close(self):
         super(ViewRenderedGrid, self).close()
@@ -109,22 +104,22 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.blockMenuEvents += 1
         if newInstance is not None:
             self.modelXbrl = newInstance # a save operation has created a new instance to use subsequently
-            clearComboBoxIndexes = False
+            clearZchoices = False
         if viewTblELR:  # specific table selection
             self.tblELR = viewTblELR
-            clearComboBoxIndexes = True
+            clearZchoices = True
         else:   # first or subsequenct reloading (language, dimensions, other change)
             self.loadTablesMenu()  # load menus (and initialize if first time
             viewTblELR = self.tblELR
-            clearComboBoxIndexes = self.zComboBoxIndex is None
+            clearZchoices = self.zOrdinateChoices is None
+
+        if clearZchoices:
+            self.zOrdinateChoices = {}
 
         # remove old widgets
         self.viewFrame.clearGrid()
 
-        tblAxisRelSet, xOrdCntx, yOrdCntx, zAxisObjs = getTblAxes(self, viewTblELR) 
-        if clearComboBoxIndexes: # always reload when going to new table
-            self.zComboBoxIndex = list(repeat(0, len(zAxisObjs))) # start with 0 indices
-            self.zOrdIndex = list(repeat(0, len(zAxisObjs)))
+        tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = getTblAxes(self, viewTblELR) 
         
         if tblAxisRelSet:
             
@@ -134,26 +129,14 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     #columnspan=(self.dataFirstCol - 1),
                     #rowspan=(self.dataFirstRow),
                     wraplength=200) # in screen units
-            zOrds = []
-            for i, zAxisObj in enumerate(zAxisObjs):
-                self.zAxis(1 + i, zAxisObj, zOrds)
             zAspects = defaultdict(set)
-            for zIndex in self.zOrdIndex:
-                zOrd = zOrds[zIndex]
-                for aspect in aspectModels[self.aspectModel]:
-                    for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                        if zOrd.hasAspect(ruleAspect):
-                            if ruleAspect == Aspect.DIMENSIONS:
-                                for dim in (zOrd.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                    zAspects[dim].add(zOrd)
-                            else:
-                                zAspects[ruleAspect].add(zOrd)
+            self.zAxis(1, zOrdCntx, zAspects, clearZchoices)
             xOrdCntxs = []
             self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                        xOrdCntx, xOrdCntxs, self.xAxisChildrenFirst.get(), True, True)
             self.yAxis(1, self.dataFirstRow,
                        yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
-            for fp in self.factPrototypes:
+            for fp in self.factPrototypes: # dereference prior facts
                 fp.clear()
             self.factPrototypes = []
             self.bodyCells(self.dataFirstRow, yOrdCntx, xOrdCntxs, zAspects, self.yAxisChildrenFirst.get())
@@ -166,52 +149,51 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.blockMenuEvents -= 1
 
             
-    def zAxis(self, row, zAxisObj, zOrds):
-        priorZord = len(zOrds)
-        
-        for axisSubtreeRel in self.axisSubtreeRelSet.fromModelObject(zAxisObj):
-            zAxisObj = axisSubtreeRel.toModelObject
-            if isinstance(zAxisObj, (ModelEuAxisCoord, ModelOpenAxis)):
-                zOrds.append(zAxisObj)
-                self.zAxis(None, zAxisObj, zOrds)
-            
-        if row is not None:
-            nextZord = len(zOrds)
+    def zAxis(self, row, zOrdCntx, zAspects, clearZchoices):
+        if zOrdCntx is not None:
             gridBorder(self.gridColHdr, self.dataFirstCol, row, TOPBORDER, columnspan=2)
             gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
             gridBorder(self.gridColHdr, self.dataFirstCol, row, RIGHTBORDER, columnspan=2)
-            if nextZord > priorZord + 1:  # combo box, use header on zAxis
-                label = axisSubtreeRel.fromModelObject.header(lang=self.lang)
-            else: # no combo box, use label on coord
-                label = zAxisObj.header(lang=self.lang)
+            label = zOrdCntx.header(lang=self.lang)
             hdr = gridHdr(self.gridColHdr, self.dataFirstCol, row,
                           label, 
                           anchor="w", columnspan=2,
                           wraplength=200, # in screen units
-                          objectId=zAxisObj.objectId(),
+                          objectId=zOrdCntx.objectId(),
                           onClick=self.onClick)
-            if nextZord > priorZord + 1:    # multiple choices, use combo box
-                zIndex = row - 1
-                selectIndex = self.zComboBoxIndex[zIndex]
+    
+            if zOrdCntx.choiceOrdinateContexts: # combo box
+                valueHeaders = [''.ljust(zChoiceOrdCntx.indent * 4) + # indent if nested choices 
+                                zChoiceOrdCntx.header(lang=self.lang)
+                                for zChoiceOrdCntx in zOrdCntx.choiceOrdinateContexts]
                 combobox = gridCombobox(
                              self.gridColHdr, self.dataFirstCol + 2, row,
-                             values=[zOrdinate.header(lang=self.lang) for zOrdinate in zOrds[priorZord:nextZord]],
-                             selectindex=selectIndex,
+                             values=valueHeaders,
+                             selectindex=zOrdCntx.choiceOrdinateIndex,
                              columnspan=2,
-                             comboboxselected=self.comboBoxSelected)
-                combobox.zIndex = zIndex
-                zOrdIndex = priorZord + selectIndex
-                self.zOrdIndex[zIndex] = zOrdIndex
-                combobox.objectId = hdr.objectId = zOrds[zOrdIndex].objectId()
+                             comboboxselected=self.onComboBoxSelected)
+                combobox.zOrdCntx = zOrdCntx
+                combobox.zChoiceOrdIndex = row - 1
+                combobox.objectId = hdr.objectId = zOrdCntx.objectId()
                 gridBorder(self.gridColHdr, self.dataFirstCol + 3, row, RIGHTBORDER)
-                row += 1
-
-        #if not zFilters:
-        #    zFilters.append( (None,set()) )  # allow empty set operations
-        
-    def comboBoxSelected(self, *args):
+    
+            if zOrdCntx.subOrdinateContexts:
+                for zOrdCntx in zOrdCntx.subOrdinateContexts:
+                    self.zAxis(row + 1, zOrdCntx, zAspects, clearZchoices)
+            else: # nested-nost element, aspects process inheritance
+                for aspect in aspectModels[self.aspectModel]:
+                    for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
+                        if zOrdCntx.hasAspect(ruleAspect): #implies inheriting from other z axes
+                            if ruleAspect == Aspect.DIMENSIONS:
+                                for dim in (zOrdCntx.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                    zAspects[dim].add(zOrdCntx)
+                            else:
+                                zAspects[ruleAspect].add(zOrdCntx)
+            
+    def onComboBoxSelected(self, *args):
         combobox = args[0].widget
-        self.zComboBoxIndex[combobox.zIndex] = combobox.valueIndex
+        self.zOrdinateChoices[combobox.zOrdCntx._axisObject] = \
+            combobox.zOrdCntx.choiceOrdinateIndex = combobox.valueIndex
         self.view() # redraw grid
             
     def xAxis(self, leftCol, topRow, rowBelow, xParentOrdCntx, xOrdCntxs, childrenFirst, renderNow, atTop):
@@ -316,7 +298,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
                                columnspan=(self.rowHdrCols - leftCol))
                 gridHdr(self.gridRowHdr, leftCol, row, 
-                        label if label else "         ", 
+                        label if label is not None else "         ", 
                         anchor=("w" if isNonAbstract or nestRow == row else "center"),
                         columnspan=columnspan,
                         rowspan=(nestRow - row if isAbstract else None),
@@ -364,16 +346,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 dummy, row = self.yAxis(leftCol + 1, row, yOrdCntx, childrenFirst, renderNow, False) # render on this pass
         return (nestedBottomRow, row)
     
-    def aspectValue(self, aspect, xAspects, yAspects, zAspects):
-        ords = xAspects.get(aspect, emptySet) | yAspects.get(aspect, emptySet) | zAspects.get(aspect, emptySet)
-        if len(ords) > 1:
-            self.modelXbrl.error("xbrlte:axisAspectClash",
-                _("Aspect %(aspect)s covered by multiple axes."),
-                modelObject=ordObjects(ords), aspect=aspectStr(aspect))
-        if ords:
-            return ords.pop().aspectValue(aspect)
-        return None 
-
     def bodyCells(self, row, yParentOrdCntx, xOrdCntxs, zAspects, yChildrenFirst):
         dimDefaults = self.modelXbrl.qnameDimensionDefaults
         for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
@@ -406,7 +378,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     cellAspectValues = {}
                     matchableAspects = set()
                     for aspect in _DICT_SET(xAspects.keys()) | _DICT_SET(yAspects.keys()) | _DICT_SET(zAspects.keys()):
-                        aspectValue = self.aspectValue(aspect, xAspects, yAspects, zAspects)
+                        aspectValue = inheritedAspectValue(self, aspect, xAspects, yAspects, zAspects)
                         if dimDefaults.get(aspect) != aspectValue: # don't include defaulted dimensions
                             cellAspectValues[aspect] = aspectValue
                         matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect

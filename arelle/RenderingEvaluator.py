@@ -47,10 +47,16 @@ def init(modelXbrl):
         modelXbrl.rendrCntx = XPathContext.create(modelXbrl, instance)
         
         modelXbrl.profileStat(None)
+        
+        # setup fresh parameters from formula optoins
+        modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters()
+        
+        # validate parameters and custom function signatures
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
             
-        for msgRel in modelXbrl.relationshipSet(XbrlConst.tableAxisMessage).modelRelationships:
-            ValidateFormula.compileMessage(modelXbrl, msgRel.toModelObject)
+        for msgArcrole in (XbrlConst.tableAxisMessage, XbrlConst.tableAxisSelectionMessage):
+            for msgRel in modelXbrl.relationshipSet(msgArcrole).modelRelationships:
+                ValidateFormula.compileMessage(modelXbrl, msgRel.toModelObject)
     
         for modelTable in modelXbrl.modelRenderingTables:
             modelTable.fromInstanceQnames = None # required if referred to by variables scope chaining

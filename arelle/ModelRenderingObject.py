@@ -15,12 +15,14 @@ def ordObjects(ords):
 
 # table linkbase ordinate context for rendering
 class OrdinateContext:
-    def __init__(self, parentOrdinateContext, axisObject):
+    def __init__(self, parentOrdinateContext, axisObject, zInheritance=None):
         self.parentOrdinateContext = parentOrdinateContext
-        self.axisObject = axisObject
+        self._axisObject = axisObject
         self.variables = {}
         self.aspects = {}
         self.subOrdinateContexts = []
+        self.choiceOrdinateContexts = []
+        self.zInheritance = zInheritance
         
     @property
     def isAbstract(self):
@@ -31,7 +33,13 @@ class OrdinateContext:
         
     @property
     def cardinalityAndDepth(self):
-        return self.axisObject.cardinalityAndDepth
+        return self.axisObject.cardinalityAndDepth(self)
+    
+    @property
+    def axisObject(self):
+        if self.choiceOrdinateContexts:
+            return self.choiceOrdinateContexts[getattr(self,"choiceOrdinateIndex",0)]._axisObject
+        return self._axisObject
     
     def hasAspect(self, aspect, inherit=True):
         return (aspect in self.aspects or 
@@ -55,7 +63,11 @@ class OrdinateContext:
         if aspect in self.aspects:
             return self.aspects[aspect]
         elif self.axisObject.hasAspect(aspect):
-            return self.axisObject.aspectValue(aspect)
+            if isinstance(self._axisObject, ModelSelectionAxis):
+                # result is in the indicated variable of ordCntx
+                return self.variables.get(self._axisObject.variableQname)
+            else:
+                return self.axisObject.aspectValue(aspect)
         elif inherit and self.parentOrdinateContext is not None:
             return self.parentOrdinateContext.aspectValue(aspect)
         return None
@@ -73,27 +85,41 @@ class OrdinateContext:
     '''
         
     def objectId(self, refId=""):
-        return self.axisObject.objectId(refId)
+        return self._axisObject.objectId(refId)
         
-    def header(self, role=None, lang=None):
+    def header(self, role=None, lang=None, evaluate=True):
+        # if ord is a nested selectionAxis selection, use selection-message or text contents instead of axis headers
+        isSelection = isinstance(self._axisObject, ModelSelectionAxis) and hasattr(self, "indent")
         if role is None:
             # check for message before checking for genLabel
-            msgsRelationshipSet = self.axisObject.modelXbrl.relationshipSet(XbrlConst.tableAxisMessage)
+            msgsRelationshipSet = self._axisObject.modelXbrl.relationshipSet(
+                    XbrlConst.tableAxisSelectionMessage if isSelection else XbrlConst.tableAxisMessage)
             if msgsRelationshipSet:
-                msg = msgsRelationshipSet.label(self.axisObject, XbrlConst.standardMessage, lang, returnText=False)
+                msg = msgsRelationshipSet.label(self._axisObject, XbrlConst.standardMessage, lang, returnText=False)
                 if msg is not None:
-                    return self.evaluate(msg, msg.evaluate)
-        return self.axisObject.genLabel(role=role, lang=lang)
+                    if evaluate:
+                        return self.evaluate(msg, msg.evaluate)
+                    else:
+                        return XmlUtil.text(msg)
+        if isSelection: # no message, return text of selection
+            return self.variables.get(self._axisObject.variableQname, "selection")
+        return self._axisObject.genLabel(role=role, lang=lang)
     
     def evaluate(self, evalObject, evalMethod, xc=None):
         if xc is None: xc = self.axisObject.modelXbrl.rendrCntx
+        if self.choiceOrdinateContexts and hasattr(self,"choiceOrdinateIndex"):
+            variables = self.choiceOrdinateContexts[self.choiceOrdinateIndex].variables
+        else:
+            variables = self.variables
         removeVarQnames = []
-        for qn, value in self.variables.items():
+        for qn, value in variables.items():
             if qn not in xc.inScopeVars:
                 removeVarQnames.append(qn)
                 xc.inScopeVars[qn] = value
         if self.parentOrdinateContext is not None:
             result = self.parentOrdinateContext.evaluate(evalObject, evalMethod, xc)
+        elif self.zInheritance is not None:
+            result = self.zInheritance.evaluate(evalObject, evalMethod, xc)
         else:
             try:
                 result = evalMethod(xc)
@@ -125,6 +151,9 @@ class ModelEuTable(ModelResource):
     def propertyView(self):
         return (("id", self.id),
                 ("label", self.xlinkLabel))
+        
+    def header(self, role=None, lang=None, strip=False, evaluate=True):
+        return self.genLabel(role=role, lang=lang, strip=strip)
         
     def __repr__(self):
         return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
@@ -219,12 +248,11 @@ class ModelEuAxisCoord(ModelResource):
                                      addOneDay=True)
     '''
 
-    @property
-    def cardinalityAndDepth(self):
+    def cardinalityAndDepth(self, ordCntx):
         return (1, 1)
         
-    def header(self, role=None, lang=None):
-        return self.genLabel(role=role, lang=lang)
+    def header(self, role=None, lang=None, strip=False, evaluate=True):
+        return self.genLabel(role=role, lang=lang, strip=strip)
     
     @property
     def propertyView(self):
@@ -272,6 +300,9 @@ class ModelTable(ModelFormulaResource):
                     rels.append(rel)
             self._filterRelationships = rels
             return rels
+        
+    def header(self, role=None, lang=None, strip=False, evaluate=True):
+        return self.genLabel(role=role, lang=lang, strip=strip)
     
     @property
     def propertyView(self):
@@ -321,14 +352,34 @@ class ModelOpenAxis(ModelFormulaResource):
     def explicitDims(self):
         return set()
     '''
+        
+    @property
+    def isAbstract(self):
+        return False
+    
+    def cardinalityAndDepth(self, ordCntx):
+        return (1, 
+                1 if (ordCntx.header(evaluate=False) is not None) else 0)
+        
+    def header(self, role=None, lang=None, strip=False, evaluate=True):
+        if role is None:
+            # check for message before checking for genLabel
+            msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.tableAxisMessage)
+            if msgsRelationshipSet:
+                msg = msgsRelationshipSet.label(self, XbrlConst.standardMessage, lang, returnText=False)
+                if msg is not None:
+                    if evaluate:
+                        result = msg.evaluate(self.modelXbrl.rendrCntx)
+                    else:
+                        result = XmlUtil.text(msg)
+                    if strip:
+                        return result.strip()
+                    return result
+        return self.genLabel(role=role, lang=lang, strip=strip)
     
     @property
-    def cardinalityAndDepth(self):
-        return (1, 
-                1 if self.header() is not None else 0)
-        
-    def header(self, role=None, lang=None):
-        return self.genLabel(role=role, lang=lang)
+    def ordinateView(self):        
+        return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
     
 class ModelPredefinedAxis(ModelOpenAxis):
     def init(self, modelDocument):
@@ -351,10 +402,6 @@ class ModelPredefinedAxis(ModelOpenAxis):
     @property
     def descendantArcroles(self):        
         return (XbrlConst.tableAxisSubtree, XbrlConst.tableAxisMessage)
-    
-    @property
-    def ordinateView(self):        
-        return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
     
 class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def init(self, modelDocument):
@@ -392,9 +439,8 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
                                   "duration": Aspect.END}[periodType])
     '''
     
-    @property
-    def cardinalityAndDepth(self):
-        if self.aspectValues or self.aspectProgs or self.header() is not None:
+    def cardinalityAndDepth(self, ordCntx):
+        if self.aspectValues or self.aspectProgs or self.header(evaluate=False) is not None:
             return (1, 1)
         else:
             return (0, 0)
@@ -403,7 +449,7 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def propertyView(self):
         return (("id", self.id),
                 ("xlink:label", self.xlinkLabel),
-                ("header label", self.genLabel()),
+                ("header label", self.header()),
                 ("header doc", self.genLabel(role="http://www.xbrl.org/2008/role/documentation")),
                 ("header code", self.genLabel(role="http://www.eurofiling.info/role/2010/coordinate-code")),
                 ("abstract", self.abstract),
@@ -489,7 +535,7 @@ class ModelRelationshipAxis(ModelPredefinedAxis):
                                                              self.generationsExpressionProg)
                                         if p], varRefSet)
 
-    def evalRrelationshipSourceQname(self, xpCtx, fact):
+    def evalRrelationshipSourceQname(self, xpCtx, fact=None):
         try:
             if self.relationshipSourceQname:
                 return self.relationshipSourceQname
@@ -497,7 +543,7 @@ class ModelRelationshipAxis(ModelPredefinedAxis):
         except:
             return None
     
-    def evalLinkrole(self, xpCtx, fact):
+    def evalLinkrole(self, xpCtx, fact=None):
         try:
             if self.linkrole:
                 return self.linkrole
@@ -505,7 +551,7 @@ class ModelRelationshipAxis(ModelPredefinedAxis):
         except:
             return None
     
-    def evalAxis(self, xpCtx, fact):
+    def evalAxis(self, xpCtx, fact=None):
         try:
             if self.axis:
                 return self.axis
@@ -513,7 +559,7 @@ class ModelRelationshipAxis(ModelPredefinedAxis):
         except:
             return None
     
-    def evalGenerations(self, xpCtx, fact):
+    def evalGenerations(self, xpCtx, fact=None):
         try:
             if self.generations:
                 return self.generations
@@ -521,9 +567,8 @@ class ModelRelationshipAxis(ModelPredefinedAxis):
         except:
             return None
 
-    @property
-    def cardinalityAndDepth(self):
-        return self.lenDepth(self.relationships(self.modelXbrl.rendrCntx), 
+    def cardinalityAndDepth(self, ordCntx):
+        return self.lenDepth(self.relationships(ordCntx), 
                              self.axis.endswith('-or-self'))
     
     def lenDepth(self, nestedRelationships, includeSelf):
@@ -596,7 +641,7 @@ class ModelConceptRelationshipAxis(ModelRelationshipAxis):
                                                              self.linkQnameExpressionProg, self.arcQnameExpressionProg)
                                                  if p], varRefSet)
 
-    def evalArcrole(self, xpCtx, fact):
+    def evalArcrole(self, xpCtx, fact=None):
         try:
             if self.arcrole:
                 return self.arcrole
@@ -604,7 +649,7 @@ class ModelConceptRelationshipAxis(ModelRelationshipAxis):
         except:
             return None
     
-    def evalLinkQname(self, xpCtx, fact):
+    def evalLinkQname(self, xpCtx, fact=None):
         try:
             if self.linkQname:
                 return self.linkQname
@@ -612,7 +657,7 @@ class ModelConceptRelationshipAxis(ModelRelationshipAxis):
         except:
             return None
     
-    def evalArcQname(self, xpCtx, fact):
+    def evalArcQname(self, xpCtx, fact=None):
         try:
             if self.arcQname:
                 return self.arcQname
@@ -635,24 +680,26 @@ class ModelConceptRelationshipAxis(ModelRelationshipAxis):
     def coveredAspect(self, xpCtx=None):
         return Aspect.CONCEPT
 
-    def relationships(self, xpCtx):
-        sourceQname = (self.evalRrelationshipSourceQname(xpCtx, None) or XbrlConst.qnXfiRoot)
-        linkrole = self.evalLinkrole(xpCtx, None)
+    def relationships(self, ordCntx):
+        sourceQname = (ordCntx.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot)
+        linkrole = ordCntx.evaluate(self, self.evalLinkrole)
         if not linkrole:
             linkrole = "XBRL-all-linkroles"
-        linkQname = (self.evalLinkQname(xpCtx, None) or () )
-        arcrole = (self.evalArcrole(xpCtx, None) or () )
-        arcQname = (self.evalArcQname(xpCtx, None) or () )
+        linkQname = (ordCntx.evaluate(self, self.evalLinkQname) or () )
+        arcrole = (ordCntx.evaluate(self, self.evalArcrole) or () )
+        arcQname = (ordCntx.evaluate(self, self.evalArcQname) or () )
         axis = self.axis
-        generations = (self.evalGenerations(xpCtx, None) or () )
-        return concept_relationships(xpCtx, None, (sourceQname,
-                                                   linkrole,
-                                                   arcrole,
-                                                   axis.replace('-or-self',''),
-                                                   generations,
-                                                   linkQname,
-                                                   arcQname),
-                                      True) # return nested lists representing concept tree nesting
+        generations = (ordCntx.evaluate(self, self.evalGenerations) or () )
+        return concept_relationships(self.modelXbrl.rendrCntx, 
+                                     None, 
+                                     (sourceQname,
+                                      linkrole,
+                                      arcrole,
+                                      axis.replace('-or-self',''),
+                                      generations,
+                                      linkQname,
+                                      arcQname),
+                                     True) # return nested lists representing concept tree nesting
     
 class ModelDimensionRelationshipAxis(ModelRelationshipAxis):
     def init(self, modelDocument):
@@ -685,7 +732,7 @@ class ModelDimensionRelationshipAxis(ModelRelationshipAxis):
     def variableRefs(self, progs=[], varRefSet=None):
         return super(ModelDimensionRelationshipAxis, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
 
-    def evalDimensionQname(self, xpCtx, fact):
+    def evalDimensionQname(self, xpCtx, fact=None):
         try:
             if self.dimensionQname:
                 return self.dimensionQname
@@ -755,6 +802,10 @@ class ModelSelectionAxis(ModelOpenAxis):
     def init(self, modelDocument):
         super(ModelSelectionAxis, self).init(modelDocument)
         
+    @property
+    def descendantArcroles(self):        
+        return (XbrlConst.tableAxisMessage, XbrlConst.tableAxisSelectionMessage)
+        
     def clear(self):
         XPathParser.clearNamedProg(self, "selectProg")
         super(ModelSelectionAxis, self).clear()
@@ -770,6 +821,9 @@ class ModelSelectionAxis(ModelOpenAxis):
                 self._coveredAspect = qname(self, coveredAspect)
             return self._coveredAspect
 
+    def hasAspect(self, aspect):
+        return aspect == self.coveredAspect() or (isinstance(self._coveredAspect,QName) and aspect == Aspect.DIMENSIONS)
+    
     @property
     def select(self):
         return self.get("select")
@@ -782,9 +836,12 @@ class ModelSelectionAxis(ModelOpenAxis):
     def variableRefs(self, progs=[], varRefSet=None):
         return super(ModelSelectionAxis, self).variableRefs(self.selectProg, varRefSet)
         
-    def evaluate(self, xpCtx, typeQname):
+    def evaluate(self, xpCtx, typeQname=None):
         try:
-            return xpCtx.evaluateAtomicValue(self.selectProg, typeQname)
+            if typeQname:
+                return xpCtx.evaluateAtomicValue(self.selectProg, typeQname)
+            else:
+                return xpCtx.flattenSequence(xpCtx.evaluate(self.selectProg, None))
         except AttributeError:
             return None
             
@@ -810,6 +867,21 @@ class ModelFilterAxis(ModelOpenAxis):
             self._filterRelationships = rels
             return rels
     
+    def hasAspect(self, aspect):
+        return aspect in self.aspectsCovered()
+    
+    def aspectsCovered(self, varBinding=None):
+        aspectsCovered = set()
+        for rel in self.filterRelationships:
+            if rel.isCovered:
+                _filter = rel.toModelObject
+                aspectsCovered |= _filter.aspectsCovered(varBinding)
+        return aspectsCovered
+
+    def aspectValue(self, aspect, inherit=None):
+        # does not apply to filter, value can only come from a bound fact
+        return None
+
 class ModelTupleAxis(ModelOpenAxis):
     def init(self, modelDocument):
         super(ModelTupleAxis, self).init(modelDocument)
