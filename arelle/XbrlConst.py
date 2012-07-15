@@ -263,6 +263,7 @@ tableAxisSubtree = "http://xbrl.org/arcrole/2011/axis-subtree"
 tableAxisFilter = "http://xbrl.org/arcrole/2011/axis-filter"
 tableTupleContent = "http://xbrl.org/arcrole/2011/axis/tuple-content"
 tableAxisMessage = "http://xbrl.org/arcrole/2011/axis-message"
+tableAxisSelectionMessage = "http://xbrl.org/arcrole/2011/axis-selection-message"
 qnTableTable = qname("{http://xbrl.org/2011/table}table:table")
 qnTableCompositionAxis = qname("{http://xbrl.org/2011/table}table:compositionAxis")
 qnTableFilterAxis = qname("{http://xbrl.org/2011/table}table:filterAxis")
