@@ -1591,7 +1591,7 @@ class ModelRelationship(ModelObject):
         try:
             return self._isComplemented
         except AttributeError:
-            self._isComplemented = self.get("complement") == "true" if self.get("complement") else False
+            self._isComplemented = self.get("complement") == "true"
             return self._isComplemented
     
     @property
@@ -1600,7 +1600,7 @@ class ModelRelationship(ModelObject):
         try:
             return self._isCovered
         except AttributeError:
-            self._isCovered = self.get("cover") == "true" if self.get("cover") else False
+            self._isCovered = self.get("cover") == "true"
             return self._isCovered
         
     @property
