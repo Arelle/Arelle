@@ -12,6 +12,7 @@ from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
 from arelle.XmlValidate import UNKNOWN, VALID, validate
+from arelle.PluginManager import pluginClassMethods
 from lxml import etree
 
 class XPathException(Exception):
@@ -95,6 +96,10 @@ class XPathContext:
         self.cachedFilterResults = {}
         if inputXbrlInstance: 
             self.inScopeVars[XbrlConst.qnStandardInputInstance] = inputXbrlInstance.modelXbrl
+        self.customFunctions = {}
+        for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
+            self.customFunctions.update(pluginXbrlMethod())
+        
             
     def close(self):
         self.outputLastContext.clear() # dereference
@@ -448,7 +453,7 @@ class XPathContext:
                 raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
             if isinstance(p,QNameDef):
-                ns = p.namespaceURI; localname = p.localName
+                ns = p.namespaceURI; localname = p.localName; axis = p.axis
                 if p.isAttribute:
                     if isinstance(node,ModelObject):
                         attrTag = p.localName if p.unprefixed else p.clarkNotation
@@ -469,10 +474,68 @@ class XPathContext:
                         elif modelAttribute.xValid >= VALID:
                                 targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
-                    if isinstance(node,(ModelObject, etree._ElementTree)):
-                        targetNodes = XmlUtil.children(node, ns, localname)
+                    if axis is None or axis == "child":
+                        if isinstance(node,(ModelObject, etree._ElementTree)):
+                            targetNodes = XmlUtil.children(node, ns, localname)
+                    elif axis == "parent":
+                        if isinstance(node,ModelAttribute):
+                            paretNode = [ node.modelElement ]
+                        else:
+                            parentNode = [ XmlUtil.parent(node) ]
+                        if (isinstance(node,ModelObject) and
+                                (not ns or ns == parentNode.namespaceURI or ns == "*") and
+                            (localname == parentNode.localName or localname == "*")):
+                            targetNodes = [ parentNode ]
+                    elif axis == "self":
+                        if (isinstance(node,ModelObject) and
+                                (not ns or ns == node.namespaceURI or ns == "*") and
+                            (localname == node.localName or localname == "*")):
+                            targetNodes = [ node ]
+                    elif axis.startswith("descendant"):
+                        if isinstance(node,(ModelObject, etree._ElementTree)):
+                            targetNodes = XmlUtil.descendants(node, ns, localname)
+                            if (axis.endswith("-or-self") and
+                                isinstance(node,ModelObject) and
+                                (not ns or ns == node.namespaceURI or ns == "*") and
+                                (localname == node.localName or localname == "*")):
+                                targetNodes.append(node) 
+                    elif axis.startswith("ancestor"):
+                        if isinstance(node,ModelObject):
+                            targetNodes = [ancestor
+                                           for ancestor in XmlUtil.ancestors(node)
+                                           if ((not ns or ns == ancestor.namespaceURI or ns == "*") and
+                                               (localname == ancestor.localName or localname == "*"))]
+                            if (axis.endswith("-or-self") and
+                                isinstance(node,ModelObject) and
+                                (not ns or ns == node.namespaceURI or ns == "*") and
+                                (localname == node.localName or localname == "*")):
+                                targetNodes.insert(0, node) 
+                    elif axis.endswith("-sibling"):
+                        if isinstance(node,ModelObject):
+                            targetNodes = [sibling
+                                           for sibling in node.itersiblings(preceding=axis.startswith("preceding"))
+                                           if ((not ns or ns == ancestor.namespaceURI or ns == "*") and
+                                               (localname == ancestor.localName or localname == "*"))]
+                    elif axis == "preceding":
+                        if isinstance(node,ModelObject):
+                            for preceding in node.getroottree().iter():
+                                if preceding == node:
+                                    break
+                                elif ((not ns or ns == preceding.namespaceURI or ns == "*") and
+                                      (localname == preceding.localName or localname == "*")):
+                                    targetNodes.append(preceding)
+                    elif axis == "following":
+                        if isinstance(node,ModelObject):
+                            foundNode = False
+                            for following in node.getroottree().iter():
+                                if following == node:
+                                    foundNode = True
+                                elif (foundNode and
+                                      (not ns or ns == following.namespaceURI or ns == "*") and
+                                      (localname == following.localName or localname == "*")):
+                                    targetNodes.append(following)
                 elif op == '//':
-                    if isinstance(node,(ModelObject, etree._ElementTree)):
+                    if isinstance(node,(ModelObject, etree. _ElementTree)):
                         targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
                     if isinstance(node,ModelAttribute):

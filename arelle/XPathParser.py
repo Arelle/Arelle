@@ -59,18 +59,19 @@ def pushQuotedString( sourceStr, loc, toks ):
     return dequotedStr
 
 class QNameDef(ModelValue.QName):
-    def __init__(self, loc, prefix, namespaceURI, localName, isAttribute=False):
+    def __init__(self, loc, prefix, namespaceURI, localName, isAttribute=False, axis=None):
         super(QNameDef, self).__init__(prefix, namespaceURI, localName)
         self.unprefixed = prefix is None
-        self.isAttribute = isAttribute
+        self.isAttribute = isAttribute or axis == "attribute"
         self.loc = loc
+        self.axis = (axis or None) # store "" from rpartition of step as None
     def __hash__(self):
         return self.qnameValueHash
     def __repr__(self):
         return ("{0}QName({1})".format('@' if self.isAttribute else '',str(self)))
     def __eq__(self,other):
         if isinstance(other,QNameDef):
-            return other.loc == self.loc and super(QNameDef, self).__eq__(other) 
+            return other.loc == self.loc and super(QNameDef, self).__eq__(other) and other.axis == self.axis 
         else:
             return super(QNameDef, self).__eq__(other)
     def __ne__(self,other):
@@ -81,25 +82,46 @@ defaultNsmap = {
     "xml":"http://www.w3.org/XML/1998/namespace",
     }
 
+axesSupported = {"", "child", "descendant", "attribute", "self", "descendant-or-self",
+                 "following-sibling", "following", "namespace", "parent", "ancestor",
+                 "preceding-sibling", "preceding", "ancestor-or-self"}
+
 def pushQName( sourceStr, loc, toks ):
-    qname = toks[0]
+    step = toks[0]
+    axis, sep, qname = step.rpartition("::") # axes are not splitting correctly
+    if axis not in axesSupported:
+        modelXbrl.error("err:XPST0010",
+            _("Axis %(axis)s is not supported in %(step)s"),
+            modelObject=xmlElement,
+            axis=axis, step=step)
+        return
     if xmlElement is not None:
-        nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
-        if nsLocalname is None:
-            modelXbrl.error("err:XPST0081",
-                _("QName prefix not defined for %(name)s"),
-                modelObject=xmlElement,
-                name=qname)
-            return
-        if (nsLocalname == (XbrlConst.xff,"uncovered-aspect") and
-            xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion")):
+        if qname == '*': # prevent simple wildcard from taking the default namespace
+            nsLocalname = (None, '*', None)
+        else:
+            nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
+            if nsLocalname is None:
+                if qname.startswith("*:"): # wildcad QName special case
+                    prefix,sep,localName = qname.partition(":")
+                    q = QNameDef(loc, prefix, prefix, localName, axis=axis)
+                    if len(exprStack) == 0 or exprStack[-1] != q:
+                        exprStack.append( q )
+                    return q
+                modelXbrl.error("err:XPST0081",
+                    _("QName prefix not defined for %(name)s"),
+                    modelObject=xmlElement,
+                    name=qname)
+                return
+            
+        if (nsLocalname == (XbrlConst.xff,"uncovered-aspect","xff") and
+            xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message")):
                 modelXbrl.error("xffe:invalidFunctionUse",
                     _("Function %(name)s cannot be used on an XPath expression associated with a %(name2)s"),
                     modelObject=xmlElement,
                     name=qname, name2=xmlElement.localName)
     else:
         nsLocalname = (None,qname)
-    q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1])
+    q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1], axis=axis)
     if qname not in ("INF", "NaN", "for", "some", "every", "return") and \
         len(exprStack) == 0 or exprStack[-1] != q:
         exprStack.append( q )
@@ -301,7 +323,23 @@ def pushExpr( sourceStr, loc, toks ):
 ParserElement.enablePackrat()
 # define grammar
 variableRef = Word( '$', alphanums + ':_-.')
-qName = Word(alphas + '_',alphanums + ':_-.')
+# for now :: axis step is expected in QName production (processed in parser's QName structure)
+#qName = Word(alphas + '_',alphanums + ':_-.*') # note: this will pick up forward and reverse axes and handle by pushQName
+
+# try to match axis step, prefix, and localname, allowin wildcard prefix or localname
+# don't grab occurence indicator if on qname, e.g., not * of xs:string*
+qName = Regex("([A-Za-z-]+::)?"  # axis step part
+              "([A-Za-z_][A-Za-z0-9_.-]*:|[*]:)?"  # prefix or wildcard-prefix part
+              "([A-Za-z_][A-Za-z0-9_.-]*|[*])"  # localname or wildcard-localname part
+              )
+''' above qName definition allows double :: and excludes non-ascii letters
+qName = Regex("[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
+              r"[_\-\." 
+              "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*"
+              "[:]?"
+              r"[_\-\." 
+              "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
+'''    
 ncName = Word(alphas + '_',alphanums + '_-.')
 prefixOp = Literal(":")
 
@@ -440,6 +478,7 @@ reverseAxis = ((Keyword("parent") + axisOp) |
                (Keyword("ancestor-or-self") + axisOp))
 abbrevReverseStep = Literal("..")
 reverseStep = ( ( reverseAxis + nodeTest ) | abbrevReverseStep )
+step = ( forwardStep | reverseStep )
 
 expr = Forward()
 atom = ( 
@@ -462,8 +501,10 @@ atom = (
          ( qName ).setParseAction(pushQName) |
          ( Suppress(lParen) - Optional(expr) - ZeroOrMore( commaOp.setParseAction(pushOp) - expr ) - Suppress(rParen) ).setParseAction(pushSequence)
        )
+#stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) | 
+#             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
 stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) | 
-             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
+             ( step + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
 relativePathExpr = stepExpr + ZeroOrMore( ( ( pathDescOp | pathStepOp ) + stepExpr ).setParseAction( pushOperation ) )
 pathExpr = ( ( pathDescOp + relativePathExpr ).setParseAction( pushRootStep ) |
              ( pathStepOp + relativePathExpr ).setParseAction( pushRootStep ) |
