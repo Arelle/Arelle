@@ -122,6 +122,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
                      time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted))
                 varSet.timeEvaluationStarted = now
+            if xpCtx.isRunTimeExceeded: raise XPathContext.RunTimeExceededException()
             xpCtx.modelXbrl.profileActivity("...   evaluation {0} (skipped)".format(varSet.evaluationNumber), minTimeToShow=10.0)
             return
         xpCtx.modelXbrl.profileActivity("...   evaluation {0}".format(varSet.evaluationNumber), minTimeToShow=10.0)
@@ -145,6 +146,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                          modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
                          time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted))
                     varSet.timeEvaluationStarted = now
+                if xpCtx.isRunTimeExceeded: raise XPathContext.RunTimeExceededException()
                 return
             
         # evaluate variable set
@@ -187,6 +189,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, count=varSet.evaluationNumber,
                      time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted))
                 varSet.timeEvaluationStarted = now
+            if xpCtx.isRunTimeExceeded: raise XPathContext.RunTimeExceededException()
                 
             # do dependent variable scope relationships
             for varScopeRel in xpCtx.modelXbrl.relationshipSet(XbrlConst.variablesScope).fromModelObject(varSet):
@@ -318,6 +321,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 xpCtx.modelXbrl.info("formula:trace",
                      _("%(variableType)s %(variable)s: bound value %(result)s"), 
                      modelObject=var, variableType=vb.resourceElementName, variable=varQname, result=str(evaluationResult))
+            if xpCtx.isRunTimeExceeded: raise XPathContext.RunTimeExceededException()
             evaluateVar(xpCtx, varSet, varIndex + 1, cachedFilteredFacts, uncoveredAspectFacts)
             xpCtx.inScopeVars.pop(varQname)
             if overriddenInScopeVar is not None:  # restore overridden value if there was one

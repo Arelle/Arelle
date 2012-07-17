@@ -15,7 +15,7 @@ def anytypeArg(xc, args, i, type, missingArgFallback=None):
     else:
         item = missingArgFallback
     if isinstance(item, (tuple,list)):
-        if len(item) > 1: raise FunctionArgType(i,type)
+        if len(item) > 1: raise FunctionArgType(i,type,item)
         if len(item) == 0: return ()
         item = item[0]
     return item
@@ -38,7 +38,7 @@ def numericArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, conve
     numeric = xc.atomize(p, item)
     if not isinstance(numeric,_NUM_TYPES): 
         if convertFallback is None:
-            raise FunctionArgType(i,"numeric?")
+            raise FunctionArgType(i,"numeric?",numeric)
         try:
             numeric = float(numeric)
         except ValueError:
@@ -49,13 +49,13 @@ def qnameArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
     qn = xc.atomize(p, item)
-    if not isinstance(qn, ModelValue.QName): raise FunctionArgType(i,type)
+    if not isinstance(qn, ModelValue.QName): raise FunctionArgType(i,type,qn)
     return qn
 
 def nodeArg(xc, args, i, type, missingArgFallback=None, emptyFallback=None):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
-    if not isinstance(item, (ModelObject,ModelAttribute)): raise FunctionArgType(i,type)
+    if not isinstance(item, (ModelObject,ModelAttribute)): raise FunctionArgType(i,type,item)
     return item
 
 def testTypeCompatiblity(xc, p, op, a1, a2):

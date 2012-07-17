@@ -173,7 +173,7 @@ def string_length(xc, p, contextItem, args):
 nonSpacePattern = re.compile(r"\S+")
 def normalize_space(xc, p, contextItem, args):
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
-    return ' '.join( p.findall( stringArg(xc, args, 0, "xs:string", missingArgFallback=contextItem) ) )
+    return ' '.join( nonSpacePattern.findall( stringArg(xc, args, 0, "xs:string", missingArgFallback=contextItem) ) )
 
 def normalize_unicode(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -641,19 +641,35 @@ def count(xc, p, contextItem, args):
 
 def avg(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return sum( xc.atomize( p, args[0] ) ) / len( args[0] )
+    addends = xc.atomize( p, args[0] )
+    try:
+        return sum( addends / len( args[0] ) )
+    except TypeError:
+        raise XPathContext.FunctionArgType(1,"sumable values", addends, errCode='err:FORG0001')
 
 def fn_max(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return max( xc.atomize( p, args[0] ) )
+    comparands = xc.atomize( p, args[0] )
+    try:
+        return max( comparands )
+    except TypeError:
+        raise XPathContext.FunctionArgType(1,"comparable values", comparands, errCode='err:FORG0001')
 
 def fn_min(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return min( xc.atomize( p, args[0] ) )
+    comparands = xc.atomize( p, args[0] )
+    try:
+        return min( comparands )
+    except TypeError:
+        raise XPathContext.FunctionArgType(1,"comparable values", comparands, errCode='err:FORG0001')
 
 def fn_sum(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return sum( xc.atomize( p, args[0] ) )
+    addends = xc.atomize( p, args[0] )
+    try:
+        return sum( addends )
+    except TypeError:
+        raise XPathContext.FunctionArgType(1,"summable sequence", addends, errCode='err:FORG0001')
 
 def id(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()

@@ -47,10 +47,11 @@ class FunctionNumArgs(Exception):
         return _("Exception: Number of arguments mismatch")
     
 class FunctionArgType(Exception):
-    def __init__(self, argIndex, expectedType, errCode='err:XPTY0004'):
+    def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004'):
         self.errCode = errCode
         self.argNum = argIndex + 1
         self.expectedType = expectedType
+        self.foundObject = foundObject
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _("Exception: Arg {0} expected type {1}").format(self.argNum, self.expectedType)
@@ -62,6 +63,12 @@ class FunctionNotAvailable(Exception):
     def __repr__(self):
         return _("Exception, function not available: {0}").format(self.name)
     
+class RunTimeExceededException(Exception):
+    def __init__(self):
+        self.args = ( self.__repr__(), )
+    def __repr__(self):
+        return _("Formula run time exceeded")
+
    
 def create(modelXbrl, inputXbrlInstance=None, sourceElement=None):
     return XPathContext(modelXbrl, 
@@ -82,6 +89,7 @@ SEQUENCE_TYPES = (tuple,list,set)
 class XPathContext:
     def __init__(self, modelXbrl, inputXbrlInstance, sourceElement, inScopeVars=None):
         self.modelXbrl = modelXbrl
+        self.isRunTimeExceeded = False
         self.inputXbrlInstance = inputXbrlInstance
         self.outputLastContext = {}   # last context element output per output instance
         self.outputLastUnit = {}
@@ -110,6 +118,8 @@ class XPathContext:
         self.cachedFilterResults.clear()
         self.__dict__.clear() # dereference everything
         
+    def runTimeExceededCallback(self):
+        self.isRunTimeExceeded = True
         
     @property
     def formulaOptions(self):
@@ -162,8 +172,8 @@ class XPathContext:
                     except FunctionNumArgs:
                         raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity: {0}').format(op))
                     except FunctionArgType as err:
-                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1} for {2}.')
-                                             .format(err.argNum, err.expectedType, op))
+                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1} for {2} {3}.')
+                                             .format(err.argNum, err.expectedType, op, err.foundObject))
                     except FunctionNotAvailable:
                         raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.').format(op))
                 elif op in VALUE_OPS:

@@ -6,6 +6,7 @@ Created on Dec 9, 2010
 '''
 import os, sys, time
 from collections import defaultdict
+from threading import Timer
 
 from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVariableSet,
                                        ModelFormula, ModelTuple, ModelVariable, ModelFactVariable, 
@@ -448,9 +449,9 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
         orderedNameSet.clear()       
         del orderedNameList[:]  # dereference            
                 
-        # check existence assertion variable dependencies
+        # check existence assertion @test variable dependencies (not including precondition references)
         if isinstance(modelVariableSet, ModelExistenceAssertion):
-            for depVar in modelVariableSet.variableRefs():
+            for depVar in XPathParser.variableReferencesSet(modelVariableSet.testProg, modelVariableSet):
                 if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject,ModelVariable):
                     val.modelXbrl.error("xbrleae:variableReferenceNotAllowed",
                         _("Existence Assertion %(xlinkLabel)s, cannot refer to variable %(name)s"),
@@ -630,7 +631,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
     val.modelXbrl.profileActivity("... instances scopes and setup", minTimeToShow=1.0)
 
     val.modelXbrl.profileStat(_("formulaValidation"))
-    if initialErrorCount < val.modelXbrl.logCountErr:
+    if initialErrorCount < val.modelXbrl.logCountErr or getattr(val, "validateFormulaCompileOnly", False):
         return  # don't try to execute
         
 
@@ -672,33 +673,46 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
         val.modelXbrl.info("formula:trace",
                            _("Formua/assertion IDs restriction: %(ids)s"), 
                            modelXbrl=val.modelXbrl, ids=', '.join(runIDs))
+        
     # evaluate consistency assertions
-    
-    # evaluate variable sets not in consistency assertions
-    val.modelXbrl.profileActivity("... evaluations", minTimeToShow=1.0)
-    for instanceQname in orderedInstancesList:
-        for modelVariableSet in instanceProducingVariableSets[instanceQname]:
-            # produce variable evaluations if no dependent variables-scope relationships
-            if not val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
-                if (not runIDs or 
-                    modelVariableSet.id in runIDs or
-                    (modelVariableSet.hasConsistencyAssertion and 
-                     any(modelRel.fromModelObject.id in runIDs
-                         for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet)
-                         if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion)))):
-                    from arelle.FormulaEvaluator import evaluate
-                    try:
-                        varSetId = (modelVariableSet.id or modelVariableSet.xlinkLabel)
-                        val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=10.0)
-                        val.modelXbrl.modelManager.showStatus(_("evaluating {0}".format(varSetId)))
-                        val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=1.0)
-                        evaluate(xpathContext, modelVariableSet)
-                        val.modelXbrl.profileStat(modelVariableSet.localName + "_" + varSetId)
-                    except XPathContext.XPathException as err:
-                        val.modelXbrl.error(err.code,
-                            _("Variable set \n%(variableSet)s \nException: \n%(error)s"), 
-                            modelObject=modelVariableSet, variableSet=str(modelVariableSet), error=err.message)
+    try:
+        if hasattr(val, "maxFormulaRunTime") and val.maxFormulaRunTime > 0:
+            maxFormulaRunTimeTimer = Timer(val.maxFormulaRunTime * 60.0, xpathContext.runTimeExceededCallback)
+            maxFormulaRunTimeTimer.start()
+        else:
+            maxFormulaRunTimeTimer = None
             
+        # evaluate variable sets not in consistency assertions
+        val.modelXbrl.profileActivity("... evaluations", minTimeToShow=1.0)
+        for instanceQname in orderedInstancesList:
+            for modelVariableSet in instanceProducingVariableSets[instanceQname]:
+                # produce variable evaluations if no dependent variables-scope relationships
+                if not val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
+                    if (not runIDs or 
+                        modelVariableSet.id in runIDs or
+                        (modelVariableSet.hasConsistencyAssertion and 
+                         any(modelRel.fromModelObject.id in runIDs
+                             for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet)
+                             if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion)))):
+                        from arelle.FormulaEvaluator import evaluate
+                        try:
+                            varSetId = (modelVariableSet.id or modelVariableSet.xlinkLabel)
+                            val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=10.0)
+                            val.modelXbrl.modelManager.showStatus(_("evaluating {0}".format(varSetId)))
+                            val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=1.0)
+                            evaluate(xpathContext, modelVariableSet)
+                            val.modelXbrl.profileStat(modelVariableSet.localName + "_" + varSetId)
+                        except XPathContext.XPathException as err:
+                            val.modelXbrl.error(err.code,
+                                _("Variable set \n%(variableSet)s \nException: \n%(error)s"), 
+                                modelObject=modelVariableSet, variableSet=str(modelVariableSet), error=err.message)
+        if maxFormulaRunTimeTimer:
+            maxFormulaRunTimeTimer.cancel()
+    except XPathContext.RunTimeExceededException:
+        val.modelXbrl.info("formula:maxRunTime",
+            _("Formula execution ended after %(mins)s minutes"), 
+            modelObject=val.modelXbrl, mins=val.maxFormulaRunTime)
+        
     # log assertion result counts
     asserTests = {}
     for exisValAsser in val.modelXbrl.modelVariableSets:

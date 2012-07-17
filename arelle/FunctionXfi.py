@@ -254,7 +254,7 @@ def decimals(xc, p, args):
 
 def infer_precision_decimals(xc, p, args, attrName):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:item")
+    if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xbrl:item",args[0])
     modelItem = xc.modelItem(args[0][0])
     if modelItem is None: 
         raise XPathContext.FunctionArgType(1,"xbrl:item")

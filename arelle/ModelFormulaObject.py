@@ -2132,12 +2132,11 @@ class ModelTypedDimension(ModelTestFilter):
         outFacts = set()
         for fact in facts:
             dimQname = self.evalDimQname(xpCtx, fact)
-            dim = fact.context.qnameDims.get(dimQname)
-            if cmplmt ^ (fact.isItem and(
-                         dim is not None and
+            dim = fact.context.qnameDims.get(dimQname) if fact.isItem else None
+            if cmplmt ^ (dim is not None and
                          (not self.test or
                           # typed dimension test item is the <typedMember> element, not its contents, e.g. dim
-                          self.evalTest(xpCtx, dim)))):
+                          self.evalTest(xpCtx, dim))):
                 outFacts.add(fact)
         return outFacts 
     
@@ -2170,10 +2169,11 @@ class ModelRelativeFilter(ModelFilter):
         return set(fact for fact in facts 
                    if cmplmt ^ (hasOtherFactVar and
                                 aspectsMatch(xpCtx, otherFact, fact, aspectsUncovered) and
-                                all(aspectMatches(xpCtx, otherFact, fact, dimAspect)
-                                    for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects)
-                                    if (not varBinding.hasAspectValueCovered(dimAspect) and
-                                        not otherVarBinding.hasAspectValueCovered(dimAspect)))
+                                (fact.isTuple or
+                                 all(aspectMatches(xpCtx, otherFact, fact, dimAspect)
+                                     for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects)
+                                     if (not varBinding.hasAspectValueCovered(dimAspect) and
+                                         not otherVarBinding.hasAspectValueCovered(dimAspect))))
                             ))
         
     @property
