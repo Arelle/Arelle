@@ -5,7 +5,7 @@ import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class LoadValidate {
+public class LoadValidateWebService {
 	public static void main(String[] args) throws IOException {
 		String restAPIstr =
 			"http://localhost:8080/rest/xbrl/" + 
