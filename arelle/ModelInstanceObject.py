@@ -77,18 +77,19 @@ class NewFactItemOptions():
             self.__dict__.update(savedOptions)
         elif xbrlInstance is not None:
             for fact in xbrlInstance.facts:
-                if fact.isItem:
-                    cntx = fact.context
+                cntx = fact.context
+                unit = fact.unit
+                if fact.isItem and cntx is not None:
                     if not self.entityIdentScheme:
                         self.entityIdentScheme, self.entityIdentValue = cntx.entityIdentifier
                     if not self.startDate and cntx.isStartEndPeriod:
                         self.startDate = XmlUtil.dateunionValue(cntx.startDatetime)
                     if not self.startDate and (cntx.isStartEndPeriod or cntx.isInstantPeriod):
                         self.endDate = XmlUtil.dateunionValue(cntx.endDatetime, subtractOneDay=True)
-                    if fact.isNumeric:
+                    if fact.isNumeric and unit is not None:
                         if fact.concept.isMonetary:
-                            if not self.monetaryUnit and fact.unit.measures[0] and fact.unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
-                                self.monetaryUnit = fact.unit.measures[0][0].localName
+                            if not self.monetaryUnit and unit.measures[0] and unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
+                                self.monetaryUnit = unit.measures[0][0].localName
                             if not self.monetaryDecimals:
                                 self.monetaryDecimals = fact.decimals
                         elif not self.nonMonetaryDecimals:

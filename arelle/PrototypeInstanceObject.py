@@ -13,8 +13,8 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
             qname = aspectValues[Aspect.CONCEPT]
             self.qname = qname
             self.concept = v.modelXbrl.qnameConcepts.get(qname)
-            self.isItem = self.concept.isItem
-            self.isTuple = self.concept.isTuple
+            self.isItem = self.concept is not None and self.concept.isItem
+            self.isTuple = self.concept is not None and self.concept.isTuple
         self.context = ContextPrototype(v, aspectValues)
         self.factObjectId = None
 

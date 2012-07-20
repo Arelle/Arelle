@@ -419,6 +419,8 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
         # rest of comparisons are for context
         c1 = fact1.context
         c2 = fact2.context
+        if c1 is None or c2 is None:
+            return False # something wrong, must be a context
         if c1 is c2:
             return True # same context
         if aspect == 4: # Aspect.PERIOD:
