@@ -698,7 +698,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
                         try:
                             varSetId = (modelVariableSet.id or modelVariableSet.xlinkLabel)
                             val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=10.0)
-                            val.modelXbrl.modelManager.showStatus(_("evaluating {0}".format(varSetId)))
+                            val.modelXbrl.modelManager.showStatus(_("evaluating {0}").format(varSetId))
                             val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=1.0)
                             evaluate(xpathContext, modelVariableSet)
                             val.modelXbrl.profileStat(modelVariableSet.localName + "_" + varSetId)
