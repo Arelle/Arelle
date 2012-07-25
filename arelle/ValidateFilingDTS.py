@@ -400,7 +400,9 @@ def checkDTS(val, modelDocument, visited):
         
         standardUsedOns = {XbrlConst.qnLinkLabel, XbrlConst.qnLinkReference, XbrlConst.qnLinkFootnote,
                            XbrlConst.qnLinkDefinitionArc, XbrlConst.qnLinkCalculationArc, XbrlConst.qnLinkPresentationArc, 
-                           XbrlConst.qnLinkLabelArc, XbrlConst.qnLinkReferenceArc, XbrlConst.qnLinkFootnoteArc}
+                           XbrlConst.qnLinkLabelArc, XbrlConst.qnLinkReferenceArc 
+                           # XbrlConst.qnLinkFootnoteArc note: not in EFM table for 6.8.3 and causes tests 6.5.30 to fail
+                           }
 
         # 6.7.9 role types authority
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}roleType"):
@@ -442,7 +444,7 @@ def checkDTS(val, modelDocument, visited):
 
                     if usedOns & standardUsedOns: # semantics check
                         val.modelXbrl.error(("EFM.6.08.03", "GFM.2.03.03"),
-                            _("RoleType %(roleuri)s is defined using role types already defined by standard %(roletype)ss in: %(qnames)s"),
+                            _("RoleType %(roleuri)s is defined using role types already defined by standard roles for: %(qnames)s"),
                             modelObject=e, roleuri=roleURI, qnames=', '.join(str(qn) for qn in usedOns & standardUsedOns))
 
                     if val.validateSBRNL:
@@ -494,7 +496,7 @@ def checkDTS(val, modelDocument, visited):
                 usedOns = modelRoleTypes[0].usedOns
                 if usedOns & standardUsedOns: # semantics check
                     val.modelXbrl.error(("EFM.6.08.03", "GFM.2.03.03"),
-                        _("ArcroleType %(arcroleuri)s is defined using role types already defined by standard %(roletype)ss in: %(qnames)s"),
+                        _("ArcroleType %(arcroleuri)s is defined using role types already defined by standard arcroles for: %(qnames)s"),
                         modelObject=e, arcroleuri=arcroleURI, qnames=', '.join(str(qn) for qn in usedOns & standardUsedOns))
 
                 if val.validateSBRNL:
