@@ -149,7 +149,12 @@ class ValidateUtr:
                                             break # for                             
                                     break # while
                                 #print(_("type={0}\ntype.qnameDerivedFrom={1}".format(type,type.qnameDerivedFrom)))
-                                type = modelXbrl.qnameTypes.get(type.qnameDerivedFrom)
+                                qnameDerivedFrom = type.qnameDerivedFrom
+                                if isinstance(qnameDerivedFrom,list): # union type
+                                    typeQn = qnameDerivedFrom[0] # for now take first of union's types
+                                else:
+                                    typeQn = qnameDerivedFrom
+                                type = modelXbrl.qnameTypes.get(typeQn)
                                 #print(_("type={0}").format(type))
                             # end while
                         # end if

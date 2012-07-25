@@ -983,7 +983,8 @@ class ModelType(ModelNamableTerm):
         if self.name == "escapedItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
             return True
         qnameDerivedFrom = self.qnameDerivedFrom
-        if qnameDerivedFrom is None or (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli)):
+        if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # textblock not a union type
+            (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isTextBlock if typeDerivedFrom is not None else False
@@ -996,7 +997,8 @@ class ModelType(ModelNamableTerm):
             self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith)):
             return True
         qnameDerivedFrom = self.qnameDerivedFrom
-        if qnameDerivedFrom is None or (qnameDerivedFrom.namespaceURI in (XbrlConst.xsd,XbrlConst.xbrli)):
+        if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # domainItemType not a union type
+            (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False

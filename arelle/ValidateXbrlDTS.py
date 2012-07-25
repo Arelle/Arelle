@@ -453,8 +453,13 @@ def checkElements(val, modelDocument, parent):
 		                                _('Schema %(element)s must have %(attrName)s = "1"'),
 		                                modelObject=elt, element=elt.elementQname, attrName=attrName)
                         elif localName in {"complexType","simpleType"}:
-                            if elt.qnameDerivedFrom is not None:
-                                val.referencedNamespaces.add(elt.qnameDerivedFrom.namespaceURI)
+                            qnameDerivedFrom = elt.qnameDerivedFrom
+                            if qnameDerivedFrom is not None:
+                                if isinstance(qnameDerivedFrom, list): # union
+                                    for qn in qnameDerivedFrom:
+                                        val.referencedNamespaces.add(qn.namespaceURI)
+                                else: # not union type
+                                    val.referencedNamespaces.add(qnameDerivedFrom.namespaceURI)
                             
                     if localName == "redefine":
                         val.modelXbrl.error("xbrl.5.6.1:Redefine",
