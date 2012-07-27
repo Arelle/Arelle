@@ -84,6 +84,12 @@ def pyTypeName(object):
         else:
             if classModule == '__builtin__':
                 return className
-        return classModule + '.' + className
+        fullname = classModule + '.' + className
+        if fullname == 'arelle.ModelValue.DateTime':
+            if object.dateOnly:
+                fullname += '-dateOnly'
+            else:
+                fullname += '-dateTime'
+        return fullname
     except:
         return str(type(object))
