@@ -8,6 +8,7 @@ import xml.dom, datetime
 from arelle import (ModelValue, XmlUtil)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XPathContext import (XPathException, FunctionArgType)
+from arelle.PythonUtil import pyTypeName
 
 def anytypeArg(xc, args, i, type, missingArgFallback=None):
     if len(args) > i:
@@ -73,4 +74,5 @@ def testTypeCompatiblity(xc, p, op, a1, a2):
     else:
         if (isinstance(a1,datetime.date) and isinstance(a2,datetime.date)):
             return
-    raise XPathException(p, 'err:XPTY0004', _('Value operation {0} incompatible arguments {1} and {2}').format(op,a1,a2))
+    raise XPathException(p, 'err:XPTY0004', _('Value operation {0} incompatible arguments {1} ({2}) and {3} ({4})')
+                                            .format(op, a1, pyTypeName(a1), a2, pyTypeName(a2)))
