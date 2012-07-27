@@ -630,7 +630,12 @@ class XPathContext:
                 x = float(v)
             except ValueError:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to a {1} does not have a proper value').format(x,baseXsdType))
-        elif baseXsdType in ("integer",):
+        elif baseXsdType in ("integer",
+                             "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
+                             "long","unsignedLong",
+                             "int","unsignedInt",
+                             "short","unsignedShort",
+                             "byte","unsignedByte"):
             try:
                 x = _INT(v)
             except ValueError:
