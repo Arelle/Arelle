@@ -649,7 +649,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 modelXbrl.error("EFM.6.05.26",
                                     _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but only one per stock class %(stockClass)s"),
                                     modelObject=documentTypeFact, documentType=documentType, stockClasse=mem)
-                            ''' removed per ARELLE-124
+                            ''' removed per ARELLE-124 (should check measurement date vs report date)
                             elif facts[0].context.instantDatetime != commonStockMeasurementDatetime:
                                 modelXbrl.error("EFM.6.05.26",
                                     _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in stock class %(stockClass)s with measurement date %(date)s"),
