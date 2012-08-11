@@ -154,7 +154,7 @@ if sys.platform == 'darwin':
                           [dir + "/" + f for f in files]))
     cx_FreezeExecutables = []
 
-elif sys.platform == 'linux2': # works on ubuntu with hand-built cx_Freeze
+elif sys.platform in ('linux2', 'sunos5'): # works on ubuntu with hand-built cx_Freeze
     from setuptools import find_packages 
     try:
         from cx_Freeze import setup, Executable  
