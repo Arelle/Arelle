@@ -90,7 +90,7 @@ def server(_cntlr, soapFile, requestUrlParts):
             print ("request {0}".format(requestName))
             response = None
             if request.tag == "{http://developer.intuit.com/}serverVersion":
-                response = "1.0"
+                response = "Arelle 1.0"
             elif request.tag == "{http://developer.intuit.com/}clientVersion":
                 global clientVersion
                 clientVersion = request.find("{http://developer.intuit.com/}strVersion").text
@@ -139,6 +139,18 @@ def server(_cntlr, soapFile, requestUrlParts):
                     includeQbColumns[action],
                     ).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
                     
+            elif request.tag == "{http://developer.intuit.com/}connectionError":
+                ticket = request.find("{http://developer.intuit.com/}ticket").text
+                hresult = request.find("{http://developer.intuit.com/}hresult").text
+                if hresult and hresult.startswith("0x"):
+                    hresult = hresult[2:] # remove 0x if present
+                message = request.find("{http://developer.intuit.com/}message").text
+                print ("connection error message: [{0}] {1}".format(hresult, message))
+                _qbRequests = sessions.get(ticket)
+                if _qbRequests:
+                    qbRequestTicket = _qbRequests[0]["ticket"]
+                    qbRequestStatus[qbRequestTicket] = "ConnectionErrorMessage: [{0}] {1}".format(hresult, message)
+                response = "done"
             elif request.tag == "{http://developer.intuit.com/}receiveResponseXML":
                 ticket = request.find("{http://developer.intuit.com/}ticket").text
                 responseXml = (request.find("{http://developer.intuit.com/}response").text or "").replace("&lt;","<").replace("&gt;",">")
