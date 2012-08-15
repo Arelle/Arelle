@@ -165,7 +165,7 @@ def factCheck(val, fact):
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                             value=fact.effectiveValue, elrTypes=schedules(val,concept))
                 else: # no member
-                    val.modelXbrl.error("secStaffObservation.nonNegativeFact.error.C",
+                    val.modelXbrl.inconsistency("secStaffObservation.nonNegativeFact.inconsistency.C",
                         _("Negative fact of an explicit non-negative concept: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s %(elrTypes)s"),
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, elrTypes=schedules(val,concept))
@@ -191,7 +191,7 @@ def factCheck(val, fact):
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                             value=fact.effectiveValue, elrTypes=schedules(val,concept))
                 else: # no member
-                    val.modelXbrl.error("secStaffObservation.nonNegativeFact.error.G",
+                    val.modelXbrl.inconsistency("secStaffObservation.nonNegativeFact.inconsistency.G",
                         _("Negative fact of a \"presumed by default\" non-negative concept: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, elrTypes=schedules(val,concept))

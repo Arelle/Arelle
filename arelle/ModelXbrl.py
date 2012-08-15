@@ -225,6 +225,7 @@ class ModelXbrl:
         self.urlDocs = {}
         self.errors = []
         self.logCountErr = 0
+        self.logCountInconsistency = 0
         self.logCountWrn = 0
         self.logCountInfo = 0
         self.arcroleTypes = defaultdict(list)
@@ -845,12 +846,22 @@ class ModelXbrl:
             self.log.info(*logArgs, exc_info=args.get("exc_info"), extra=extras)
                     
     def warning(self, codes, msg, **args):
-        """Same as error(), but as warning
+        """Same as error(), but as warning, and no error code saved for Validate
         """
         messageCode, logArgs, extras = self.logArguments(codes, msg, args)
         if messageCode:
             self.logCountWrn += 1
             self.log.warning(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+                    
+    def inconsistency(self, codes, msg, **args):
+        """Same as error(), but as inconsistency
+        """
+        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        if messageCode:
+            self.logCountInconsistency += 1
+            self.errors.append(messageCode)
+            self.log.log(logging.getLevelName("INCONSISTENCY"), 
+                         *logArgs, exc_info=args.get("exc_info"), extra=extras)
                     
     def error(self, codes, msg, **args):
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments 

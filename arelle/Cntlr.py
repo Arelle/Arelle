@@ -216,6 +216,8 @@ class Cntlr:
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger = None
+            
+        logging.addLevelName(logging.WARNING + 1, "INCONSISTENCY")
                         
     def addToLog(self, message, messageCode="", file=""):
         """Add a simple info message to the default logger
