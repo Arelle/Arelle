@@ -99,7 +99,7 @@ class WebCache:
         if self.cachedUrlCheckTimesModified:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
                 jsonStr = _STR_UNICODE(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-                f.write(jsonStr)  # 2.7 getss unicode this way
+                f.write(jsonStr)  # 2.7 gets unicode this way
         self.cachedUrlCheckTimesModified = False
         
     def resetProxies(self, httpProxyTuple):

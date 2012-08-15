@@ -4,6 +4,7 @@ Created on Mar 7, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+import inspect
 from arelle import XmlUtil, XbrlConst, XPathParser, Locale, XPathContext
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelValue import qname, QName
@@ -342,6 +343,9 @@ class ModelOpenAxis(ModelFormulaResource):
         if aspect == Aspect.DIMENSIONS:
             return []
         return None
+    
+    def aspectsCovered(self):
+        return set()
 
     '''
     @property   
@@ -413,6 +417,18 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def aspectValue(self, aspect, inherit=None):
         return self.evaluateRule(self.modelXbrl.rendrCntx, aspect)
     
+    def aspectsCovered(self):
+        return _DICT_SET(tblAxis.aspectValues.keys()) | _DICT_SET(tblAxis.aspectProgs.keys())
+    
+    # provide model table's aspect model to compile() method of ModelFormulaRules
+    @property
+    def aspectModel(self):
+        for frameRecord in inspect.stack():
+            obj = frameRecord[0].f_locals['self']
+            if isinstance(obj,ModelTable):
+                return obj.aspectModel
+        return None
+    
     '''
     @property   
     def primaryItemQname(self):
@@ -465,6 +481,9 @@ class ModelCompositionAxis(ModelPredefinedAxis):
 class ModelRelationshipAxis(ModelPredefinedAxis):
     def init(self, modelDocument):
         super(ModelRelationshipAxis, self).init(modelDocument)
+        
+    def aspectsCovered(self):
+        return {Aspect.CONCEPT}
 
     @property
     def conceptQname(self):
@@ -712,6 +731,9 @@ class ModelDimensionRelationshipAxis(ModelRelationshipAxis):
         if aspect == Aspect.DIMENSIONS:
             return (self.coveredAspect(), )
         return None
+    
+    def aspectsCovered(self):
+        return {self.dimensionQname}
 
     @property
     def dimensionQname(self):
@@ -820,6 +842,9 @@ class ModelSelectionAxis(ModelOpenAxis):
             else:  # must be a qname
                 self._coveredAspect = qname(self, coveredAspect)
             return self._coveredAspect
+        
+    def aspectsCovered(self):
+        return {self.coveredAspect}
 
     def hasAspect(self, aspect):
         return aspect == self.coveredAspect() or (isinstance(self._coveredAspect,QName) and aspect == Aspect.DIMENSIONS)

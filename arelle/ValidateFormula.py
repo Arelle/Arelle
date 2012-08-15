@@ -977,7 +977,7 @@ def checkAxisRules(val, table, parent, arcrole, xpathContext):
                     if table.aspectModel == "non-dimensional":
                         unexpectedElts = XmlUtil.descendants(axis, XbrlConst.formula, ("explicitDimension", "typedDimension"))
                         if unexpectedElts:
-                            val.modelXbrl.error("xbrlfe:unrecognisedAspectRule",
+                            val.modelXbrl.error("xbrlte:axisAspectModelMismatch",
                                 _("RuleAxis %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s"),
                                 modelObject=axis, xlinkLabel=axis.xlinkLabel, aspectModel=table.aspectModel, undefinedAspects=", ".join([elt.localName for elt in unexpectedElts]))
             

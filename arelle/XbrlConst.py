@@ -297,6 +297,7 @@ errMsgPrefixNS = {
     "xbrlcfie": "http://xbrl.org/2010/custom-function/error",
     "xbrlmfe": "http://xbrl.org/2008/filter/match/error",
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
+    "xbrlte": "http://xbrl.org/2011/table/error",
     }
 
 arcroleGroupDetect = "*detect*"
