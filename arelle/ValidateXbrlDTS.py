@@ -739,7 +739,7 @@ def checkElements(val, modelDocument, parent):
                     val.modelXbrl.error("xbrl.3.5.3.3:emptyStdExtLinkRole",
                         _("Standard extended link role %(xlinkRole)s is empty"),
                         modelObject=elt, xlinkRole=xlinkRole)
-                elif not xlinkRole.startswith("http://"):
+                elif not UrlUtil.isAbsolute(xlinkRole):
                     if XbrlConst.isStandardResourceOrExtLinkElement(elt):
                         val.modelXbrl.error("xbrl.3.5.2.4:roleNotAbsolute",
                             _("Role %(xlinkRole)s is not absolute"),
@@ -791,7 +791,7 @@ def checkElements(val, modelDocument, parent):
                     val.modelXbrl.error("xbrl.3.5.1.4:emptyXlinkArcrole",
                         _("Arcrole on %(element)s is empty"),
                         modelObject=elt, element=elt.qname)
-                elif not arcrole.startswith("http://"):
+                elif not UrlUtil.isAbsolute(arcrole):
                     if XbrlConst.isStandardArcInExtLinkElement(elt):
                         val.modelXbrl.error("xbrl.3.5.2.5:arcroleNotAbsolute",
                             _("Arcrole %(arcrole)s is not absolute"),

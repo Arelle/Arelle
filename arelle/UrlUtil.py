@@ -150,6 +150,15 @@ def isValidAbsolute(url):
 def isValid(url):
     return relativeUrlPattern.match(url) is not None
 
+def isAbsolute(url):
+    if url:
+        scheme, sep, path = url.partition(":")
+        if scheme in ("http", "https", "ftp"):
+            return path.startswith("//")
+        if scheme == "urn":
+            return True
+    return False
+
 def parseRfcDatetime(rfc2822date):
     from email.utils import parsedate
     from datetime import datetime

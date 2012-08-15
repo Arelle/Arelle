@@ -263,7 +263,7 @@ class Validate:
         return not any(not isinstance(actual,dict) for actual in modelTestcaseVariation)
                 
     def determineTestStatus(self, modelTestcaseVariation, modelUnderTest):
-        numErrors = len(modelUnderTest.errors)
+        numErrors = modelUnderTest.logCountErr + modelUnderTest.logCountInconsistency
         expected = modelTestcaseVariation.expected
         if expected == "valid":
             if numErrors == 0:
