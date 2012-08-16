@@ -100,6 +100,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             if modelDocument is not None:
                 return modelDocument
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
+        for error in _parser.error_log:
+            modelXbrl.error("xmlSchema:syntax",
+                    _("%(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element"),
+                    modelObject=referringElement, fileName=os.path.basename(uri), 
+                    error=error.message, line=error.line, column=error.column, sourceAction=("including" if isIncluded else "importing"))
         file.close()
     except (EnvironmentError, KeyError) as err:  # missing zip file raises KeyError
         if file:
@@ -126,7 +131,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             return ModelDocument(modelXbrl, Type.UnknownNonXML, mappedUri, filepath, None)
         else:
             modelXbrl.error("xmlSchema:syntax",
-                    _("%(error)s, %(fileName)s, %(sourceAction)s source element"),
+                    _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                     modelObject=referringElement, fileName=os.path.basename(uri), 
                     error=str(err), sourceAction=("including" if isIncluded else "importing"))
             return None
