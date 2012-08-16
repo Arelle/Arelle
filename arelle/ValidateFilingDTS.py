@@ -270,7 +270,7 @@ def checkDTS(val, modelDocument, visited):
                         label = modelConcept.label(lang="en-US", fallbackToQname=False)
                         if label:
                             lc3name = ''.join(w.title()
-                                              for w in re.findall(r"\w+", label)
+                                              for w in re.findall(r"[\w\-\.]+", label)
                                               if w.lower() not in ("the", "a", "an"))
                             if name != lc3name:
                                 val.modelXbrl.info("EFM.6.08.05.LC3",
