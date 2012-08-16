@@ -1425,6 +1425,22 @@ class ModelRelationship(ModelObject):
         return self.arcElement.get("{http://www.w3.org/1999/xlink}to")
         
     @property
+    def fromLocator(self):
+        """(ModelLocator) -- Value of locator surrogate of relationship source, if any"""
+        for fromResource in self.arcElement.getparent().labeledResources[self.fromLabel]:
+            if isinstance(fromResource, ModelLocator) and self.fromModelObject is fromResource.dereference():
+                return fromResource
+        return None
+        
+    @property
+    def toLocator(self):
+        """(ModelLocator) -- Value of locator surrogate of relationship target, if any"""
+        for toResource in self.arcElement.getparent().labeledResources[self.toLabel]:
+            if isinstance(toResource, ModelLocator) and self.toModelObject is toResource.dereference():
+                return toResource
+        return None
+        
+    @property
     def arcrole(self):
         """(str) -- Value of xlink:arcrole attribute"""
         return self.arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
