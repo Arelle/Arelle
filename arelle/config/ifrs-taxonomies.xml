@@ -172,4 +172,14 @@
 <Namespace>http://xbrl.ifrs.org/taxonomy/2011-03-25/ifrs</Namespace>
 <Prefix>ifrs</Prefix>
 </Loc>
+<Loc>
+<Family>IFRS</Family>
+<Version>2012</Version>
+<Href>http://xbrl.iasb.org/taxonomy/2012-03-25/ifrs-cor_2012-03-25.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.ifrs.org/taxonomy/2012-03-25/ifrs</Namespace>
+<Prefix>ifrs</Prefix>
+</Loc>
 </Erxl>
