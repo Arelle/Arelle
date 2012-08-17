@@ -254,15 +254,15 @@ def checkDTS(val, modelDocument, visited):
                         
                     # 6.8.5 semantic check, check LC3 name
                     if not name[0].isupper():
-                        val.modelXbrl.error(("EFM.6.08.05.firstLetter", "GFM.2.03.05.firstLetter"),
+                        val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.firstLetter", "GFM.2.03.05.firstLetter"),
                             _("Concept %(concept)s name must start with a capital letter"),
                             modelObject=modelConcept, concept=modelConcept.qname)
                     if namePattern.search(name):
-                        val.modelXbrl.error(("EFM.6.08.05.disallowedCharacter", "GFM.2.03.05.disallowedCharacter"),
+                        val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.disallowedCharacter", "GFM.2.03.05.disallowedCharacter"),
                             _("Concept %(concept)s has disallowed name character"),
                             modelObject=modelConcept, concept=modelConcept.qname)
                     if len(name) > 200:
-                        val.modelXbrl.error("EFM.6.08.05.nameLength",
+                        val.modelXbrl.log("ERROR-SEMANTIC", "EFM.6.08.05.nameLength",
                             _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
                             modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
                         
@@ -273,7 +273,7 @@ def checkDTS(val, modelDocument, visited):
                                               for w in re.findall(r"[\w\-\.]+", label)
                                               if w.lower() not in ("the", "a", "an"))
                             if name != lc3name:
-                                val.modelXbrl.info("EFM.6.08.05.LC3",
+                                val.modelXbrl.log("WARNING-SEMANTIC", "EFM.6.08.05.LC3",
                                     _("Concept %(concept)s should match expected LC3 composition %(lc3name)s"),
                                     modelObject=modelConcept, concept=modelConcept.qname, lc3name=lc3name)
                                 
@@ -282,7 +282,7 @@ def checkDTS(val, modelDocument, visited):
                         if not isDomainItemType and conceptType.qname != XbrlConst.qnXbrliDurationItemType:
                             nameProblems = nonDomainItemNameProblemPattern.findall(name)
                             if any(any(t) for t in nameProblems):  # list of tuples with possibly nonempty strings
-                                val.modelXbrl.info(("EFM.6.08.06", "GFM.2.03.06"),
+                                val.modelXbrl.log("WARNING-SEMANTIC", ("EFM.6.08.06", "GFM.2.03.06"),
                                     _("Concept %(concept)s should not contain company or period information, found: %(matches)s"),
                                     modelObject=modelConcept, concept=modelConcept.qname, 
                                     matches=", ".join(''.join(t) for t in nameProblems))
@@ -293,7 +293,7 @@ def checkDTS(val, modelDocument, visited):
                                 if any(linroleDefinitionStatementSheet.match(roleType.definition)
                                        for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(modelConcept)
                                        for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,())):
-                                    val.modelXbrl.error(("EFM.6.08.11", "GFM.2.03.11"),
+                                    val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.11", "GFM.2.03.11"),
                                         _("Concept %(concept)s must have a balance because it appears in a statement of income or balance sheet"),
                                         modelObject=modelConcept, concept=modelConcept.qname)
                                     break
@@ -302,19 +302,19 @@ def checkDTS(val, modelDocument, visited):
                                 defLabel = modelConcept.label(preferredLabel=XbrlConst.documentationLabel, lang="en-US", fallbackToQname=False)
                                 if not defLabel or ( # want different words than std label
                                     stdLabel and re.findall(r"\w+", stdLabel) == re.findall(r"\w+", defLabel)):
-                                    val.modelXbrl.error(("EFM.6.11.05", "GFM.2.04.04"),
+                                    val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.11.05", "GFM.2.04.04"),
                                         _("Concept %(concept)s is monetary without a balance and must have a documentation label that disambiguates its sign"),
                                         modelObject=modelConcept, concept=modelConcept.qname)
                         
                         # 6.8.16 semantic check
                         if conceptType.qname == XbrlConst.qnXbrliDateItemType and modelConcept.periodType != "duration":
-                            val.modelXbrl.error(("EFM.6.08.16", "GFM.2.03.16"),
+                            val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.16", "GFM.2.03.16"),
                                 _("Concept %(concept)s of type xbrli:dateItemType must have periodType duration"),
                                 modelObject=modelConcept, concept=modelConcept.qname)
                         
                         # 6.8.17 semantic check
                         if conceptType.qname == XbrlConst.qnXbrliStringItemType and modelConcept.periodType != "duration":
-                            val.modelXbrl.error(("EFM.6.08.17", "GFM.2.03.17"),
+                            val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.17", "GFM.2.03.17"),
                                 _("Concept %(concept)s of type xbrli:stringItemType must have periodType duration"),
                                 modelObject=modelConcept, concept=modelConcept.qname)
                         
@@ -443,7 +443,7 @@ def checkDTS(val, modelDocument, visited):
                                 modelObject=e, roleType=roleURI, definition=definition)
 
                     if usedOns & standardUsedOns: # semantics check
-                        val.modelXbrl.error(("EFM.6.08.03", "GFM.2.03.03"),
+                        val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.03", "GFM.2.03.03"),
                             _("RoleType %(roleuri)s is defined using role types already defined by standard roles for: %(qnames)s"),
                             modelObject=e, roleuri=roleURI, qnames=', '.join(str(qn) for qn in usedOns & standardUsedOns))
 
@@ -495,7 +495,7 @@ def checkDTS(val, modelDocument, visited):
                 # semantic checks
                 usedOns = modelRoleTypes[0].usedOns
                 if usedOns & standardUsedOns: # semantics check
-                    val.modelXbrl.error(("EFM.6.08.03", "GFM.2.03.03"),
+                    val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.03", "GFM.2.03.03"),
                         _("ArcroleType %(arcroleuri)s is defined using role types already defined by standard arcroles for: %(qnames)s"),
                         modelObject=e, arcroleuri=arcroleURI, qnames=', '.join(str(qn) for qn in usedOns & standardUsedOns))
 

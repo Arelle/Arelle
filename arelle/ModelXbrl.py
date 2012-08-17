@@ -224,10 +224,7 @@ class ModelXbrl:
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
         self.errors = []
-        self.logCountErr = 0
-        self.logCountInconsistency = 0
-        self.logCountWrn = 0
-        self.logCountInfo = 0
+        self.logCount = {}
         self.arcroleTypes = defaultdict(list)
         self.roleTypes = defaultdict(list)
         self.qnameConcepts = {} # indexed by qname of element
@@ -258,8 +255,8 @@ class ModelXbrl:
         self.hasTableRendering = False
         self.hasFormulae = False
         self.formulaOutputInstance = None
-        self.log = logging.getLogger("arelle")
-        self.log.setLevel(logging.DEBUG)
+        self.logger = logging.getLogger("arelle")
+        self.logger.setLevel(logging.DEBUG)
         self.profileStats = {}
         self.modelXbrl = self # for consistency in addressing modelXbrl
 
@@ -838,30 +835,25 @@ class ModelXbrl:
     def info(self, codes, msg, **args):
         """Same as error(), but as info
         """
-        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
-        if messageCode == "asrtNoLog":
-            self.errors.append(args["assertionResults"])
-        else:
-            self.logCountInfo += 1
-            self.log.info(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+        self.log('INFO', codes, msg, **args)
                     
     def warning(self, codes, msg, **args):
         """Same as error(), but as warning, and no error code saved for Validate
         """
-        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
-        if messageCode:
-            self.logCountWrn += 1
-            self.log.warning(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+        self.log('WARNING', codes, msg, **args)
                     
-    def inconsistency(self, codes, msg, **args):
-        """Same as error(), but as inconsistency
+    def log(self, level, codes, msg, **args):
+        """Same as error(), but level passed in as argument
         """
         messageCode, logArgs, extras = self.logArguments(codes, msg, args)
-        if messageCode:
-            self.logCountInconsistency += 1
-            self.errors.append(messageCode)
-            self.log.log(logging.getLevelName("INCONSISTENCY"), 
-                         *logArgs, exc_info=args.get("exc_info"), extra=extras)
+        if messageCode == "asrtNoLog":
+            self.errors.append(args["assertionResults"])
+        elif messageCode:
+            numericLevel = logging.getLevelName(level)
+            self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
+            if numericLevel > logging.WARNING:
+                self.errors.append(messageCode)
+            self.logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
                     
     def error(self, codes, msg, **args):
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments 
@@ -882,17 +874,12 @@ class ModelXbrl:
         :param msg: Message text string to be formatted and replaced with named parameters in **args
         :param **args: Named arguments including modelObject, modelXbrl, or modelDocument, named arguments in msg string, and any exec_info argument.
         """
-        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
-        if messageCode:
-            self.errors.append(messageCode)
-            self.logCountErr += 1
-            self.log.error(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+        self.log('ERROR', codes, msg, **args)
 
     def exception(self, codes, msg, **args):
         """Same as error(), but as exception
         """
-        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
-        self.log.exception(*logArgs, exc_info=args.get("exc_info"), extra=extras)
+        self.log('EXCEPTION', codes, msg, **args)
         
     def logProfileStats(self):
         """Logs profile stats that were collected

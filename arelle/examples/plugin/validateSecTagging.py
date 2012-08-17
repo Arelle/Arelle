@@ -155,24 +155,24 @@ def factCheck(val, fact):
                     if any((val.twoWayMemberStdLabelPattern.search(dim.member.label(lang="en-US", fallbackToQname=False))
                             for dim in context.qnameDims.values()
                             if dim.isExplicit)):  # any two way exception member
-                        val.modelXbrl.info("secStaffObservation.nonNegativeFact.info.A",
+                        val.modelXbrl.log('INFO-SEMANTIC', "secStaffObservation.nonNegativeFact.info.A",
                             _("Negative fact of an explicit non-negative concept is tagged with a member expected to allow negative values: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                             value=fact.effectiveValue, elrTypes=schedules(val,concept))
                     else:
-                        val.modelXbrl.warning("secStaffObservation.nonNegativeFact.warning.B",
+                        val.modelXbrl.log('WARNING-SEMANTIC', "secStaffObservation.nonNegativeFact.warning.B",
                             _("Negative fact of an explicit non-negative concept, member may or not justify a negative value: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                             value=fact.effectiveValue, elrTypes=schedules(val,concept))
                 else: # no member
-                    val.modelXbrl.inconsistency("secStaffObservation.nonNegativeFact.inconsistency.C",
+                    val.modelXbrl.log('INCONSISTENCY', "secStaffObservation.nonNegativeFact.inconsistency.C",
                         _("Negative fact of an explicit non-negative concept: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s %(elrTypes)s"),
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, elrTypes=schedules(val,concept))
             # else test if fact meets two way rules
             elif ((defLabel is not None and val.twoWayPriItemDefLabelPattern.search(defLabel)) or
                   (stdLabel is not None and val.twoWayPriItemStdLabelPattern.search(stdLabel))):
-                val.modelXbrl.info("secStaffObservation.nonNegativeFact.info.D",
+                val.modelXbrl.log('INFO-SEMANTIC', "secStaffObservation.nonNegativeFact.info.D",
                     _("Negative fact of concept expected to have positive and negative values: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                     modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                     value=fact.effectiveValue, elrTypes=schedules(val,concept))
@@ -181,22 +181,22 @@ def factCheck(val, fact):
                     if any((val.twoWayMemberStdLabelPattern.search(dim.member.label(lang="en-US", fallbackToQname=False))
                             for dim in context.qnameDims.values()
                             if dim.isExplicit)):  # any two way exception member
-                        val.modelXbrl.info("secStaffObservation.nonNegativeFact.info.E",
+                        val.modelXbrl.log('INFO-SEMANTIC', "secStaffObservation.nonNegativeFact.info.E",
                             _("Negative fact for typically non-negative concept, but tagged with a member expected to allow negative values: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                             value=fact.effectiveValue, elrTypes=schedules(val,concept))
                     else:
-                        val.modelXbrl.warning("secStaffObservation.nonNegativeFact.warning.F",
+                        val.modelXbrl.log('WARNING-SEMANTIC', "secStaffObservation.nonNegativeFact.warning.F",
                             _("Negative fact of a typically non-negative concept, member may or not justify a negative value: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                             value=fact.effectiveValue, elrTypes=schedules(val,concept))
                 else: # no member
-                    val.modelXbrl.inconsistency("secStaffObservation.nonNegativeFact.inconsistency.G",
+                    val.modelXbrl.log('INCONSISTENCY', "secStaffObservation.nonNegativeFact.inconsistency.G",
                         _("Negative fact of a \"presumed by default\" non-negative concept: %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s"),
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, elrTypes=schedules(val,concept))
     except Exception as ex:
-        val.modelXbrl.warning("arelle:nonNegFactTestException",
+        val.modelXbrl.log('WARNING-SEMANTIC', "arelle:nonNegFactTestException",
             _("%(fact)s in context %(contextID)s unit %(unitID)s value %(value)s%(elrTypes)s cannot be tested nonnegative"),
             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
             value=fact.effectiveValue, elrTypes=schedules(val,fact))
@@ -259,7 +259,7 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
     
     csvFile.close()
 
-    dts.info("info:saveSecDtsTagMatches",
+    dts.log('INFO-SEMANTIC', "info:saveSecDtsTagMatches",
              _("SecDtsTagMatches entry %(entryFile)s has %(numberOfTwoWayPriItems)s two way primary items, %(numberOfOneWayPriItems)s one way primary items, %(numberOfTwoWayMembers)s two way members in output file %(secDtsTagMatchesFile)s."),
              modelObject=dts,
              entryFile=dts.uri, 

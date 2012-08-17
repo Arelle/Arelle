@@ -53,7 +53,11 @@ class Validate:
         self.__dict__.clear()   # dereference variables
         
     def validate(self):
-        if self.modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+        if self.modelXbrl.modelDocument is None:
+            self.modelXbrl.info("arelle:notValdated",
+                _("Validation skipped, document not successfully loaded: %(file)s"),
+                modelXbrl=self.modelXbrl, file=self.modelXbrl.modelDocument.basename)
+        elif self.modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
             for doc in sorted(self.modelXbrl.modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
                 self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
         elif self.modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
@@ -263,7 +267,7 @@ class Validate:
         return not any(not isinstance(actual,dict) for actual in modelTestcaseVariation)
                 
     def determineTestStatus(self, modelTestcaseVariation, modelUnderTest):
-        numErrors = modelUnderTest.logCountErr + modelUnderTest.logCountInconsistency
+        numErrors = len(modelUnderTest.errors)
         expected = modelTestcaseVariation.expected
         if expected == "valid":
             if numErrors == 0:
@@ -311,7 +315,7 @@ class Validate:
         else:
             status = "fail"
         modelTestcaseVariation.status = status
-        if numErrors > 0:
+        if numErrors > 0: # either coded errors or assertions (in errors list)
             modelTestcaseVariation.actual = []
             # put error codes first, sorted, then assertion result (dict's)
             for error in modelUnderTest.errors:

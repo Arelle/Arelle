@@ -4,7 +4,7 @@ Created on Dec 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, time
+import os, sys, time, logging
 from collections import defaultdict
 from threading import Timer
 
@@ -150,7 +150,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
         val.modelXbrl.profileStat(_("initializeXPath2Grammar")) # only provide stat when not yet initialized
     val.modelXbrl.modelManager.showStatus(statusMsg)
     val.modelXbrl.profileActivity()
-    initialErrorCount = val.modelXbrl.logCountErr
+    initialErrorCount = val.modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0)
     
     # global parameter names
     parameterQnames = set()
@@ -631,7 +631,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
     val.modelXbrl.profileActivity("... instances scopes and setup", minTimeToShow=1.0)
 
     val.modelXbrl.profileStat(_("formulaValidation"))
-    if initialErrorCount < val.modelXbrl.logCountErr or getattr(val, "validateFormulaCompileOnly", False):
+    if (initialErrorCount < val.modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0) or 
+        getattr(val, "validateFormulaCompileOnly", False)):
         return  # don't try to execute
         
 
@@ -737,7 +738,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
                     satisfiedCount=consisAsser.countSatisfied, notSatisfiedCount=consisAsser.countNotSatisfied)
             
     if asserTests: # pass assertion results to validation if appropriate
-        val.modelXbrl.info("asrtNoLog", None, assertionResults=asserTests);
+        val.modelXbrl.log(None, "asrtNoLog", None, assertionResults=asserTests);
 
     # display output instance
     if outputXbrlInstance:

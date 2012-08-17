@@ -14,7 +14,7 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter)
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ModelValue import (QName)
-import datetime, time
+import datetime, time, logging
 from arelle.Locale import format_string
 from collections import defaultdict
 
@@ -34,7 +34,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
         if xpCtx.formulaOptions.timeVariableSetEvaluation:
             varSet.timeEvaluationStarted = timeEvaluationsStarted = time.time()
         varSet.evaluationNumber = 0
-        initialTraceCount = xpCtx.modelXbrl.logCountInfo
+        initialTraceCount = xpCtx.modelXbrl.logCount.get(logging.getLevelName('INFO'), 0)
         evaluateVar(xpCtx, varSet, 0, {}, uncoveredAspectFacts)
         if isinstance(varSet, ModelExistenceAssertion):
             prog = varSet.testProg
@@ -60,7 +60,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
             msg = varSet.message(result)
             if msg:
                 xpCtx.modelXbrl.error(msg.evaluate(xpCtx), "info", "message:" + varSet.id)
-        if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCountInfo:
+        if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging.getLevelName('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
                  _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
                  modelObject=varSet, xlinkLabel=varSet.xlinkLabel)
