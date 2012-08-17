@@ -217,7 +217,12 @@ class Cntlr:
         else:
             self.logger = None
             
-        logging.addLevelName(logging.WARNING + 1, "INCONSISTENCY")
+        logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
+        logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
+        logging.addLevelName(logging.WARNING + 2, "ASSERTION-SATISFIED")
+        logging.addLevelName(logging.WARNING + 3, "INCONSISTENCY")
+        logging.addLevelName(logging.ERROR - 2, "ERROR-SEMANTIC")
+        logging.addLevelName(logging.ERROR - 1, "ASSERTION-NOT-SATISFIED")
                         
     def addToLog(self, message, messageCode="", file=""):
         """Add a simple info message to the default logger
@@ -447,12 +452,20 @@ class LogToXmlHandler(LogHandlerWithXml):
         self.filename = filename
         self.logRecordBuffer = []
     def flush(self):
-        with open(self.filename, "w", encoding='utf-8') as fh:
-            fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
-            fh.write('<log>\n')
+        print ("filename=" + self.filename)
+        if self.filename == "logToStdOut.xml":
+            print('<?xml version="1.0" encoding="utf-8"?>')
+            print('<log>')
             for logRec in self.logRecordBuffer:
-                fh.write(self.recordToXml(logRec))
-            fh.write('</log>\n')  
+                print(self.recordToXml(logRec))
+            print('</log>')
+        else:
+            with open(self.filename, "w", encoding='utf-8') as fh:
+                fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
+                fh.write('<log>\n')
+                for logRec in self.logRecordBuffer:
+                    fh.write(self.recordToXml(logRec))
+                fh.write('</log>\n')  
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
 
