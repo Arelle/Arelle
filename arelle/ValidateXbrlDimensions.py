@@ -263,7 +263,7 @@ def checkContext(val, cntx):
                     _("Context %(contextID)s %(dimension)s %(value)s is not an appropriate dimension item"),
                     modelObject=modelDimValue, contextID=cntx.id, 
                     dimension=modelDimValue.prefixedName, value=modelDimValue.dimensionQname)
-            elif modelDimValue.isExplicit:
+            if modelDimValue.isExplicit:
                 memberConcept = modelDimValue.member
                 if memberConcept is None or not memberConcept.isGlobalDeclaration:
                     val.modelXbrl.error("xbrldie:ExplicitMemberUndefinedQNameError",
