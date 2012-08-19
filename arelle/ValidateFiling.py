@@ -35,7 +35,6 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
             linkroleDefinitionStatementSheet = re.compile(r"-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
                                                           re.IGNORECASE)
-            self.linkroleDefinitionStatementSheet = linkroleDefinitionStatementSheet
         
     def validate(self, modelXbrl, parameters=None):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -895,7 +894,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             self.modelXbrl.profileActivity("... build name words table", minTimeToShow=1.0)
         '''
         
-        # checks on all documents: instance, schema, instance                                
+        # checks on all documents: instance, schema, instance
+        self.linkroleDefinitionStatementSheet = linkroleDefinitionStatementSheet                                
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
         ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
         if self.validateSBRNL:
