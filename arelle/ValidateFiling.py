@@ -33,7 +33,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             usRolesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-roles/")
             usDeiPattern = re.compile(r"http://(xbrl.us|xbrl.sec.gov)/dei/")
             instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
-            linkroleDefinitionStatementSheet = re.compile(r"-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
+            linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                           re.IGNORECASE)
         
     def validate(self, modelXbrl, parameters=None):
@@ -83,6 +83,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         self.fileNameBasePart = None # prevent testing on fileNameParts if not instance or invalid
         self.fileNameDate = None
         self.entityRegistrantName = None
+        self.requiredContext = None
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             #6.3.3 filename check
@@ -297,6 +298,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             prefix=prefix, value=value)
                             elif factElementName in deiCheckLocalNames:
                                 deiItems[factElementName] = value
+                                if self.requiredContext is None and context.isStartEndPeriod:
+                                    self.requiredContext = context
                     else:
                         # segment present
                         isEntityCommonStockSharesOutstanding = factElementName == "EntityCommonStockSharesOutstanding"
@@ -895,7 +898,6 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         '''
         
         # checks on all documents: instance, schema, instance
-        self.linkroleDefinitionStatementSheet = linkroleDefinitionStatementSheet                                
         ValidateFilingDTS.checkDTS(self, modelXbrl.modelDocument, [])
         ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
         if self.validateSBRNL:
@@ -984,8 +986,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         conceptsPresented.add(relFrom.objectIndex)
                                         conceptsPresented.add(relTo.objectIndex)
                                     # 6.15.02, 6.15.03 semantics checks for totals and calc arcs
-                                    if XbrlConst.isTotalRole(preferredLabel) and relTo.isNumeric:
-                                        self.checkForCalculations(parentChildRels, siblingRels, iSibling, relTo, isStatementSheet, conceptsUsed)
+                                    reasonPresumedTotal = self.presumptionOfTotal(rel, siblingRels, iSibling, isStatementSheet)
+                                    if reasonPresumedTotal:
+                                        self.checkForCalculations(parentChildRels, siblingRels, iSibling, relTo, rel, reasonPresumedTotal, isStatementSheet, conceptsUsed)
                                 order = rel.order
                                 if order in orderRels:
                                     self.modelXbrl.error(("EFM.6.12.02", "GFM.1.06.02", "SBR.NL.2.3.4.05"),
@@ -1327,43 +1330,72 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     hasDefaultLang = True
         except Exception as err:
             pass
+        
+    # check if concept is behaving as a total based on role, deed, or circumstances
+    def presumptionOfTotal(self, rel, siblingRels, iSibling, isStatementSheet):
+        concept = rel.toModelObject
+        if concept.isNumeric:
+            preferredLabel = rel.preferredLabel
+            if XbrlConst.isTotalRole(preferredLabel):
+                return _("preferredLabel {0}").format(os.path.basename(preferredLabel))
+            if concept.isMonetary: 
+                effectiveLabel = concept.label(lang="en-US", fallbackToQname=False)
+                if 'Total' in effectiveLabel: # also check for Net ???
+                    return _("word 'Total' in effective label {0}").format(effectiveLabel)
+                if 'Total' in concept.name: # also check for Net ???
+                    return _("word 'Total' in concept name {0}").format(concept.name)
+                if isStatementSheet:
+                    parent = rel.fromModelObject
+                    if (len(siblingRels) > 1 and
+                        iSibling == len(siblingRels) - 1 and 
+                        parent.isAbstract or not parent.isMonetary and
+                        siblingRels[iSibling - 1].toModelObject.isMonetary):
+                        # last fact, may be total
+                        # check if facts add up??
+                        return _("last monetary item in statement sheet monetary line items parented by nonMonetary concept")
+        return None
 
     # 6.15.02, 6.15.03
-    def checkForCalculations(self, parentChildRels, siblingRels, iSibling, totalConcept, isStatementSheet, conceptsUsed):
+    def checkForCalculations(self, parentChildRels, siblingRels, iSibling, totalConcept, totalRel, reasonPresumedTotal, isStatementSheet, conceptsUsed):
         # compatible preceding sibling facts must have calc relationship to toal
-        for iContributingRel in range(iSibling - 1, -1):
+        for iContributingRel in range(iSibling - 1, -1, -1):
             contributingRel = siblingRels[iContributingRel]
             siblingConcept = contributingRel.toModelObject
             if siblingConcept is totalConcept: # direct cycle loop likely, possibly among children of abstract sibling
                 break
-            preferredLabel = contributingRel.preferredLabel
-            isContributingTotal = XbrlConst.isTotalRole(preferredLabel)
+            isContributingTotal = self.presumptionOfTotal(contributingRel, siblingRels, iSibling, isStatementSheet)
             if siblingConcept.isAbstract:
                 childRels = parentChildRels.fromModelObject(siblingConcept)
-                self.checkForCalculations(parentChildRels, childRels, len(childRels), totalConcept, isStatementSheet, conceptsUsed) 
+                self.checkForCalculations(parentChildRels, childRels, len(childRels), totalConcept, totalRel, reasonPresumedTotal, isStatementSheet, conceptsUsed) 
             elif (siblingConcept in conceptsUsed and
                   siblingConcept.isNumeric and
                   siblingConcept.periodType == totalConcept.periodType):
                 # is there a calc rel from siblingConcept to totalConcept (in any ELR)
                 if not self.modelXbrl.relationshipSet(XbrlConst.summationItem).isRelated(totalConcept, "child", siblingConcept):
                     # find pairs of c-equal facts for this situation
+                    contextIDs = []
                     for totalFact in self.modelXbrl.factsByQname[totalConcept.qname]:
                         for siblingFact in self.modelXbrl.factsByQname[siblingConcept.qname]:
                             if (totalFact.context.isEqualTo(siblingFact.context) and
                                 totalFact.unit.isEqualTo(siblingFact.unit)):
-                                if isStatementSheet:
-                                    if not totalFact.context.hasSegment: # required context
-                                            self.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.16.02", "GFM.2.06.02"),
-                                                _("Financial statement calculation sum missing from total concept %(conceptSum)s to %(conceptItem)s corresponding to presentation in base set role %(linkrole)s for context %(contextID)s"),
-                                                modelObject=(totalConcept, siblingConcept, contributingRel[iSibling], contributingRel, totalFact, siblingFact), 
-                                                conceptSum=totalConcept.qname, conceptItem=siblingConcept.qname, linkrole=contributingRel.linkrole,
-                                                contextID=totalFact.context.id)
-                                else:
-                                    self.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.16.03", "GFM.2.06.03"),
-                                        _("Notes calculation sum missing from total concept %(conceptSum)s to %(conceptItem)s corresponding to presentation in base set role %(linkrole)s for context %(contextID)s"),
-                                        modelObject=(totalConcept, siblingConcept, contributingRel[iSibling], contributingRel, totalFact, siblingFact), 
+                                contextIDs.append(totalFact.context.id)
+                    if contextIDs:
+                        if isStatementSheet:
+                            if (self.requiredContext is None or
+                                self.requiredContext.startDatetime <= totalFact.context.endDatetime <= self.requiredContext.endDatetime): 
+                                    self.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.16.02", "GFM.2.06.02"),
+                                        _("Financial statement calculation relationship missing from total concept %(conceptSum)s to %(conceptItem)s corresponding to presentation in base set role %(linkrole)s. Reason presumed total: %(reasonPresumedTotal)s.  Corresponding facts in contexts: %(contextIDs)s"),
+                                        modelObject=(totalConcept, totalRel, siblingConcept, contributingRel, totalFact, siblingFact), 
                                         conceptSum=totalConcept.qname, conceptItem=siblingConcept.qname, linkrole=contributingRel.linkrole,
-                                        contextID=totalFact.context.id)
+                                        reasonPresumedTotal=reasonPresumedTotal,
+                                        contextIDs=', '.join(contextIDs))
+                        else:
+                            self.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.16.03", "GFM.2.06.03"),
+                                _("Notes calculation relationship missing from total concept %(conceptSum)s to %(conceptItem)s corresponding to presentation in base set role %(linkrole)s. Reason presumed total: %(reasonPresumedTotal)s.  Corresponding facts in contexts: %(contextIDs)s"),
+                                modelObject=(totalConcept, totalRel, siblingConcept, contributingRel, totalFact, siblingFact), 
+                                conceptSum=totalConcept.qname, conceptItem=siblingConcept.qname, linkrole=contributingRel.linkrole,
+                                reasonPresumedTotal=reasonPresumedTotal,
+                                contextIDs=', '.join(contextIDs))
             if isContributingTotal:
                 break
         

@@ -15,6 +15,7 @@ roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
 namePattern = None
+linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
     "calculationLink": "cal",
     "definitionLink": "def",
@@ -24,7 +25,7 @@ extLinkEltFileNameEnding = {
 
 def checkDTS(val, modelDocument, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, \
-            arcroleDefinitionPattern, namePattern
+            arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
@@ -33,6 +34,8 @@ def checkDTS(val, modelDocument, visited):
         arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
         namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
+        linkroleDefinitionBalanceIncomeSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
+                                                          re.IGNORECASE)
     nonDomainItemNameProblemPattern = re.compile(
         r"({0})|(FirstQuarter|SecondQuarter|ThirdQuarter|FourthQuarter|[1-4]Qtr|Qtr[1-4]|ytd|YTD|HalfYear)(?:$|[A-Z\W])"
         .format(re.sub(r"\W", "", (val.entityRegistrantName or "").title())))
@@ -267,7 +270,7 @@ def checkDTS(val, modelDocument, visited):
                         label = modelConcept.label(lang="en-US", fallbackToQname=False)
                         if label:
                             lc3name = ''.join(w.title()
-                                              for w in re.findall(r"[\w\-\.]+", label)
+                                              for w in re.findall(r"[\w]+", label) # EFM implies this should allow - and . re.findall(r"[\w\-\.]+", label)
                                               if w.lower() not in ("the", "a", "an"))
                             if name != lc3name:
                                 val.modelXbrl.log("WARNING-SEMANTIC", "EFM.6.08.05.LC3",
@@ -286,8 +289,8 @@ def checkDTS(val, modelDocument, visited):
                         
                         if conceptType.qname == XbrlConst.qnXbrliMonetaryItemType:
                             if not modelConcept.balance:
-                                # 6.8.11 may not appear on a financial statement
-                                if any(val.linkroleDefinitionStatementSheet.match(roleType.definition)
+                                # 6.8.11 may not appear on a income or balance statement
+                                if any(linkroleDefinitionBalanceIncomeSheet.match(roleType.definition)
                                        for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(modelConcept)
                                        for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,())):
                                     val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.11", "GFM.2.03.11"),
