@@ -16,12 +16,13 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.PluginManager import pluginClassMethods
 
 datePattern = None
+linkroleDefinitionStatementSheet = None
 
 class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super(ValidateFiling, self).__init__(modelXbrl)
         
-        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, usTypesPattern, usRolesPattern, usDeiPattern, instanceFileNamePattern
+        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, usTypesPattern, usRolesPattern, usDeiPattern, instanceFileNamePattern, linkroleDefinitionStatementSheet
         
         if datePattern is None:
             datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
@@ -32,6 +33,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             usRolesPattern = re.compile(r"^http://(xbrl.us|fasb.org)/us-roles/")
             usDeiPattern = re.compile(r"http://(xbrl.us|xbrl.sec.gov)/dei/")
             instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
+            linkroleDefinitionStatementSheet = re.compile(r"-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
+                                                          re.IGNORECASE)
+            self.linkroleDefinitionStatementSheet = linkroleDefinitionStatementSheet
         
     def validate(self, modelXbrl, parameters=None):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -935,14 +939,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
                                     ineffectivity=modelRel.ineffectivity)
                     if arcrole == XbrlConst.parentChild:
+                        isStatementSheet = any(linkroleDefinitionStatementSheet.match(roleType.definition)
+                                               for roleType in self.modelXbrl.roleTypes.get(ELR,()))
                         conceptsPresented = set()
                         # 6.12.2 check for distinct order attributes
-                        for relFrom, rels in modelXbrl.relationshipSet(arcrole, ELR).fromModelObjects().items():
+                        parentChildRels = modelXbrl.relationshipSet(arcrole, ELR)
+                        for relFrom, siblingRels in parentChildRels.fromModelObjects().items():
                             targetConceptPreferredLabels = defaultdict(dict)
                             orderRels = {}
                             firstRel = True
                             relFromUsed = True
-                            for rel in rels:
+                            for iSibling, rel in enumerate(siblingRels):
                                 if firstRel:
                                     firstRel = False
                                     if relFrom in conceptsUsed:
@@ -976,6 +983,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         # 6.14.5
                                         conceptsPresented.add(relFrom.objectIndex)
                                         conceptsPresented.add(relTo.objectIndex)
+                                    # 6.15.02, 6.15.03 semantics checks for totals and calc arcs
+                                    if XbrlConst.isTotalRole(preferredLabel) and relTo.isNumeric:
+                                        self.checkForCalculations(parentChildRels, siblingRels, iSibling, relTo, isStatementSheet, conceptsUsed)
                                 order = rel.order
                                 if order in orderRels:
                                     self.modelXbrl.error(("EFM.6.12.02", "GFM.1.06.02", "SBR.NL.2.3.4.05"),
@@ -1318,6 +1328,45 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         except Exception as err:
             pass
 
+    # 6.15.02, 6.15.03
+    def checkForCalculations(self, parentChildRels, siblingRels, iSibling, totalConcept, isStatementSheet, conceptsUsed):
+        # compatible preceding sibling facts must have calc relationship to toal
+        for iContributingRel in range(iSibling - 1, -1):
+            contributingRel = siblingRels[iContributingRel]
+            siblingConcept = contributingRel.toModelObject
+            if siblingConcept is totalConcept: # direct cycle loop likely, possibly among children of abstract sibling
+                break
+            preferredLabel = contributingRel.preferredLabel
+            isContributingTotal = XbrlConst.isTotalRole(preferredLabel)
+            if siblingConcept.isAbstract:
+                childRels = parentChildRels.fromModelObject(siblingConcept)
+                self.checkForCalculations(parentChildRels, childRels, len(childRels), totalConcept, isStatementSheet, conceptsUsed) 
+            elif (siblingConcept in conceptsUsed and
+                  siblingConcept.isNumeric and
+                  siblingConcept.periodType == totalConcept.periodType):
+                # is there a calc rel from siblingConcept to totalConcept (in any ELR)
+                if not self.modelXbrl.relationshipSet(XbrlConst.summationItem).isRelated(totalConcept, "child", siblingConcept):
+                    # find pairs of c-equal facts for this situation
+                    for totalFact in self.modelXbrl.factsByQname[totalConcept.qname]:
+                        for siblingFact in self.modelXbrl.factsByQname[siblingConcept.qname]:
+                            if (totalFact.context.isEqualTo(siblingFact.context) and
+                                totalFact.unit.isEqualTo(siblingFact.unit)):
+                                if isStatementSheet:
+                                    if not totalFact.context.hasSegment: # required context
+                                            self.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.16.02", "GFM.2.06.02"),
+                                                _("Financial statement calculation sum missing from total concept %(conceptSum)s to %(conceptItem)s corresponding to presentation in base set role %(linkrole)s for context %(contextID)s"),
+                                                modelObject=(totalConcept, siblingConcept, contributingRel[iSibling], contributingRel, totalFact, siblingFact), 
+                                                conceptSum=totalConcept.qname, conceptItem=siblingConcept.qname, linkrole=contributingRel.linkrole,
+                                                contextID=totalFact.context.id)
+                                else:
+                                    self.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.16.03", "GFM.2.06.03"),
+                                        _("Notes calculation sum missing from total concept %(conceptSum)s to %(conceptItem)s corresponding to presentation in base set role %(linkrole)s for context %(contextID)s"),
+                                        modelObject=(totalConcept, siblingConcept, contributingRel[iSibling], contributingRel, totalFact, siblingFact), 
+                                        conceptSum=totalConcept.qname, conceptItem=siblingConcept.qname, linkrole=contributingRel.linkrole,
+                                        contextID=totalFact.context.id)
+            if isContributingTotal:
+                break
+        
 # for SBR 2.3.4.01
 def pLinkedNonAbstractDescendantQnames(modelXbrl, concept, descendants=None):
     if descendants is None: descendants = set()

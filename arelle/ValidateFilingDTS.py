@@ -14,7 +14,6 @@ efmFilenamePattern = None
 roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
-linroleDefinitionStatementSheet = None
 namePattern = None
 extLinkEltFileNameEnding = {
     "calculationLink": "cal",
@@ -25,7 +24,7 @@ extLinkEltFileNameEnding = {
 
 def checkDTS(val, modelDocument, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, \
-            arcroleDefinitionPattern, linroleDefinitionStatementSheet, namePattern
+            arcroleDefinitionPattern, namePattern
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
@@ -33,8 +32,6 @@ def checkDTS(val, modelDocument, visited):
         roleTypePattern = re.compile(r".*/role/[^/]+")
         arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
-        linroleDefinitionStatementSheet = re.compile(r"-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
-                                                     re.IGNORECASE)
         namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
     nonDomainItemNameProblemPattern = re.compile(
         r"({0})|(FirstQuarter|SecondQuarter|ThirdQuarter|FourthQuarter|[1-4]Qtr|Qtr[1-4]|ytd|YTD|HalfYear)(?:$|[A-Z\W])"
@@ -290,7 +287,7 @@ def checkDTS(val, modelDocument, visited):
                         if conceptType.qname == XbrlConst.qnXbrliMonetaryItemType:
                             if not modelConcept.balance:
                                 # 6.8.11 may not appear on a financial statement
-                                if any(linroleDefinitionStatementSheet.match(roleType.definition)
+                                if any(val.linkroleDefinitionStatementSheet.match(roleType.definition)
                                        for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(modelConcept)
                                        for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,())):
                                     val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.11", "GFM.2.03.11"),
