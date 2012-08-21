@@ -376,6 +376,16 @@ def isStandardRole(role):
                     "http://www.xbrl.org/2003/role/referenceLinkbaseRef",
                     "http://www.xbrl.org/2003/role/footnote"}
 
+def isTotalRole(role):
+    return role in {"http://www.xbrl.org/2003/role/totalLabel",
+                    "http://xbrl.us/us-gaap/role/label/negatedTotal",
+                    "http://www.xbrl.org/2009/role/negatedTotalLabel"}
+    
+def isNetRole(role):
+    return role in {"http://www.xbrl.org/2009/role/netLabel",
+                    "http://www.xbrl.org/2009/role/negatedNetLabel"}
+
+    
 def isStandardArcrole(role):
     return role in {"http://www.w3.org/1999/xlink/properties/linkbase",
                     "http://www.xbrl.org/2003/arcrole/concept-label",
