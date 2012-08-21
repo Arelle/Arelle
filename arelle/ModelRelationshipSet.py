@@ -226,11 +226,17 @@ class ModelRelationshipSet:
         if isinstance(modelTo,ModelValue.QName): modelTo = self.modelXbrl.qnameConcepts[modelTo]
         if axis.endswith("self") and (modelTo is None or modelFrom == modelTo):
             return True
+        isDescendantAxis = "descendant" in axis
+        if axis.startswith("sibling"):  # allow sibling-or-self or sibling-or-descendant
+            for modelRel in self.toModelObject(modelFrom):
+                modelFrom = modelRel.fromModelObject # assumes only one parent
+                break
+            axis = axis[7:] # remove sibling, else recursion will loop
         for modelRel in self.fromModelObject(modelFrom):
             toConcept = modelRel.toModelObject
             if modelTo is None or modelTo == toConcept:
                 return True
-            if axis.startswith("descendant"):
+            if isDescendantAxis:
                 if visited is None: visited = set()
                 if toConcept not in visited:
                     visited.add(toConcept)

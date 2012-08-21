@@ -1227,7 +1227,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
 
         if self.validateEFM:
             for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Finally"):
-                pluginXbrlMethod(self)
+                pluginXbrlMethod(self, conceptsUsed)
         self.modelXbrl.profileActivity("... plug in '.Finally' checks", minTimeToShow=1.0)
         self.modelXbrl.profileStat(_("validate") + modelXbrl.modelManager.disclosureSystem.validationType)
         
