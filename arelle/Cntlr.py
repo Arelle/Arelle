@@ -452,7 +452,6 @@ class LogToXmlHandler(LogHandlerWithXml):
         self.filename = filename
         self.logRecordBuffer = []
     def flush(self):
-        print ("filename=" + self.filename)
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
             print('<log>')
@@ -460,6 +459,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                 print(self.recordToXml(logRec))
             print('</log>')
         else:
+            print ("filename=" + self.filename)
             with open(self.filename, "w", encoding='utf-8') as fh:
                 fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
                 fh.write('<log>\n')
