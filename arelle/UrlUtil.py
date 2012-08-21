@@ -13,11 +13,20 @@ else:
     from arelle.PythonUtil import py3unquote as unquote
     isPy3 = False
 
-def authority(url):
-    if url is not None and url.startswith("http://"):
-        pathpart = url.find("/",7)
-        if pathpart > -1:
-            return url[0:pathpart]
+def authority(url, includeScheme=True):
+    if url:
+        authSep = url.find(':') 
+        if authSep > -1:
+            scheme = url[0:authSep]
+            authPart = authSep + (3 if scheme in ("http", "https", "ftp") else 1) # allow urn:
+            pathPart = url.find('/', authPart) 
+            if pathPart > -1:
+                if includeScheme:
+                    return url[0:pathPart]
+                else:
+                    return url[authPart:pathPart]
+            elif not includeScheme:
+                return url[authPart:]
     return url  #no path part of url
 
 absoluteUrlPattern = None
@@ -36,6 +45,7 @@ def splitDecodeFragment(url):
 def isValidAbsolute(url):
     global absoluteUrlPattern
     if absoluteUrlPattern is None:
+        # note this pattern does not process urn: as valid!!!
         # regex to validate a full URL from http://stackoverflow.com/questions/827557/how-do-you-validate-a-url-with-a-regular-expression-in-python/835527#835527
         absoluteUrlPattern = re.compile(
             r"(?:http://(?:(?:(?:(?:(?:[a-zA-Z\d](?:(?:[a-zA-Z\d]|-)*[a-zA-Z\d])?)\."
