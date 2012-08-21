@@ -122,6 +122,11 @@ def checkDTS(val, modelDocument, visited):
 
         if modelDocument.targetNamespace is not None:
             # 6.7.5 check prefix for _
+            authority = UrlUtil.authority(modelDocument.targetNamespace)
+            if not re.match(r"(http://|https://|ftp://|urn:)\w+",authority):
+                val.modelXbrl.error(("EFM.6.07.05", "GFM.1.03.05"),
+                    _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must be a valid URL with a valid authority for the namespace."),
+                    modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
             prefix = XmlUtil.xmlnsprefix(modelDocument.xmlRootElement,modelDocument.targetNamespace)
             if not prefix:
                 val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
