@@ -175,11 +175,97 @@
 <Loc>
 <Family>IFRS</Family>
 <Version>2012</Version>
-<Href>http://xbrl.iasb.org/taxonomy/2012-03-25/ifrs-cor_2012-03-25.xsd</Href>
+<Href>http://xbrl.ifrs.org/taxonomy/2012-03-29/ifrs-cor_2012-03-29.xsd</Href>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
-<Namespace>http://xbrl.ifrs.org/taxonomy/2012-03-25/ifrs</Namespace>
+<Namespace>http://xbrl.ifrs.org/taxonomy/2012-03-29/ifrs</Namespace>
 <Prefix>ifrs</Prefix>
+</Loc>
+
+<!-- added for testing possible SEC filings -->
+<Loc>
+<Family>US GAAP</Family>
+<Version>2012</Version>
+<Href>http://xbrl.fasb.org/us-gaap/2012/elts/us-roles-2012-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Roles/Arcroles</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://fasb.org/us-roles/2012-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011</Version>
+<Href>http://xbrl.fasb.org/us-gaap/2011/elts/us-roles-2011-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Roles/Arcroles</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://fasb.org/us-roles/2011-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-roles-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Roles/Arcroles</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://xbrl.us/us-roles/2009-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/elts/us-types-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://xbrl.us/us-types/2009-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011</Version>
+<Href>http://xbrl.fasb.org/us-gaap/2011/elts/us-types-2011-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://fasb.org/us-types/2011-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2012</Version>
+<Href>http://xbrl.fasb.org/us-gaap/2012/elts/us-types-2012-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://fasb.org/us-types/2012-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2010</Version>
+<Href>http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.us/dei/2009-01-31</Namespace>
+<Prefix>dei</Prefix>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2011 IM</Version>
+<Href>http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.sec.gov/dei/2011-01-31</Namespace>
+<Prefix>dei</Prefix>
+</Loc>
+<Loc>
+<Family>US GAAP</Family>
+<Version>2012 IM</Version>
+<Href>http://xbrl.sec.gov/dei/2012/dei-2012-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.sec.gov/dei/2012-01-31</Namespace>
+<Prefix>dei</Prefix>
 </Loc>
 </Erxl>
