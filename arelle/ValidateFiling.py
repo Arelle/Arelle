@@ -1440,29 +1440,29 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if not foundSummationItemSet:
                     if isStatementSheet:
                         errs = ("EFM.6.15.02,6.13.02,6.13.03", "GFM.2.06.02,2.05.02,2.05.03")
-                        msg = _("Financial statement calculation relationship missing based on line items and their total, based on required presentation from total concept to item concepts.  "
-                                "\n\nPresentation link role: %(linkrole)s. "
-                                "\n\nTotal concept: %(conceptSum)s.  "
-                                "\n\nReason presumed total: %(reasonPresumedTotal)s.  "
-                                "\n\nSummation items missing: %(missingConcepts)s.  "
-                                "\n\nExpected item concepts: %(itemConcepts)s.  "
-                                "\n\nCorresponding facts in contexts: %(contextIDs)s")
+                        msg = _("Financial statement calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.  "
+                                "\n\nPresentation link role: \n%(linkrole)s. "
+                                "\n\nTotal concept: \n%(conceptSum)s.  "
+                                "\n\nReason presumed total: \n%(reasonPresumedTotal)s.  "
+                                "\n\nSummation items missing: \n%(missingConcepts)s.  "
+                                "\n\nExpected item concepts: \n%(itemConcepts)s.  "
+                                "\n\nCorresponding facts in contexts: \n%(contextIDs)s\n")
                     else:
                         errs = ("EFM.6.15.03,6.13.02,6.13.03", "GFM.2.06.03,2.05.02,2.05.03")
-                        msg = _("Notes calculation relationship missing based on line items and their total, based on required presentation from total concept to item concepts. "
-                                "\n\nPresentation link role %(linkrole)s. "
-                                "\n\nTotal concept: %(conceptSum)s.  "
-                                "\n\nReason presumed total: %(reasonPresumedTotal)s.  "
-                                "\n\nSummation items missing %(missingConcepts)s.  "
-                                "\n\nExpected item concepts %(itemConcepts)s.  "
-                                "\n\nCorresponding facts in contexts: %(contextIDs)s")
+                        msg = _("Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals. "
+                                "\n\nPresentation link role: \n%(linkrole)s. "
+                                "\n\nTotal concept: \n%(conceptSum)s.  "
+                                "\n\nReason presumed total: \n%(reasonPresumedTotal)s.  "
+                                "\n\nSummation items missing \n%(missingConcepts)s.  "
+                                "\n\nExpected item concepts \n%(itemConcepts)s.  "
+                                "\n\nCorresponding facts in contexts: \n%(contextIDs)s\n")
                     self.modelXbrl.log("ERROR-SEMANTIC", errs, msg,
                         modelObject=[totalConcept, totalRel, siblingConcept, contributingRel] + [f for f in compatibleFacts], 
                         conceptSum=totalConcept.qname, linkrole=contributingRel.linkrole,
                         reasonPresumedTotal=reasonPresumedTotal,
                         itemConcepts=', \n'.join(sorted(set(str(c.qname) for c in compatibleItemConcepts))),
                         missingConcepts = ', \n'.join(sorted(set(str(c.qname) for c in leastMissingItemsSet))),
-                        contextIDs=', '.join(set(f.contextID for f in compatibleFacts)))
+                        contextIDs=', '.join(sorted(set(f.contextID for f in compatibleFacts))))
                 del foundSummationItemSet 
                 del leastMissingItemsSet
             del compatibleItemsFacts # dereference object references
