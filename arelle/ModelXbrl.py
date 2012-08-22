@@ -256,7 +256,6 @@ class ModelXbrl:
         self.hasFormulae = False
         self.formulaOutputInstance = None
         self.logger = logging.getLogger("arelle")
-        self.logger.setLevel(logging.DEBUG)
         self.profileStats = {}
         self.modelXbrl = self # for consistency in addressing modelXbrl
 

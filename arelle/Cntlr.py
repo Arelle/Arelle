@@ -195,9 +195,19 @@ class Cntlr:
                 gettext.install("arelle", 
                                 self.localeDir)
         
-    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, logger=None):
-        if logger is not None:
-            self.logger = logger # custom logger
+    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, logLevel=None, logHandler=None):
+        # add additional logging levels    
+        logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
+        logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
+        logging.addLevelName(logging.WARNING + 2, "ASSERTION-SATISFIED")
+        logging.addLevelName(logging.WARNING + 3, "INCONSISTENCY")
+        logging.addLevelName(logging.ERROR - 2, "ERROR-SEMANTIC")
+        logging.addLevelName(logging.ERROR - 1, "ASSERTION-NOT-SATISFIED")
+
+        if logHandler is not None:
+            self.logger = logging.getLogger("arelle")
+            self.logHandler = logHandler
+            self.logger.addHandler(logHandler)
         elif logFileName: # use default logging
             self.logger = logging.getLogger("arelle")
             if logFileName in ("logToPrint", "logToStdErr"):
@@ -211,20 +221,21 @@ class Cntlr:
                 self.logHandler = logging.FileHandler(filename=logFileName, 
                                                       mode=logFileMode if logFileMode else "w", 
                                                       encoding=logFileEncoding if logFileEncoding else "utf-8")
-            self.logHandler.setFormatter(LogFormatter(logFormat if logFormat else "%(asctime)s [%(messageCode)s] %(message)s - %(file)s\n"))
+            self.logHandler.setFormatter(LogFormatter(logFormat or "%(asctime)s [%(messageCode)s] %(message)s - %(file)s\n"))
             self.logger.addHandler(self.logHandler)
-            self.logger.setLevel(logging.DEBUG)
         else:
             self.logger = None
-            
-        logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
-        logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
-        logging.addLevelName(logging.WARNING + 2, "ASSERTION-SATISFIED")
-        logging.addLevelName(logging.WARNING + 3, "INCONSISTENCY")
-        logging.addLevelName(logging.ERROR - 2, "ERROR-SEMANTIC")
-        logging.addLevelName(logging.ERROR - 1, "ASSERTION-NOT-SATISFIED")
+        if self.logger:
+            if logLevel and logLevel.upper() not in logging._levelNames.keys():
+                self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
+                    logLevel, ', '.join(logging.getLevelName(l).lower()
+                                        for l in sorted([i for i in logging._levelNames.keys()
+                                                         if isinstance(i,int) and i > 0]))),
+                              level=logging.ERROR, messageCode="arelle:logLevel")
+            else:
+                self.logger.setLevel(logging.getLevelName((logLevel or "debug").upper()))
                         
-    def addToLog(self, message, messageCode="", file=""):
+    def addToLog(self, message, messageCode="", file="", level=logging.INFO):
         """Add a simple info message to the default logger
            
         :param message: Text of message to add to log.
@@ -235,7 +246,7 @@ class Cntlr:
         :type file: str
         """
         if self.logger is not None:
-            self.logger.info(message, extra={"messageCode":messageCode,"refs":[{"href": file}]})
+            self.logger.log(level, message, extra={"messageCode":messageCode,"refs":[{"href": file}]})
         else:
             print(message) # allows printing on standard out
             

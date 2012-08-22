@@ -137,7 +137,7 @@ def executeCallTest(val, name, callTuple, testTuple):
 
         val.modelXbrl.modelManager.showStatus(_("ready"), 2000)
                 
-def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
+def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compileOnly=False):
     for e in ("xbrl.5.1.4.3:cycles", "xbrlgene:violatedCyclesConstraint"):
         if e in val.modelXbrl.errors:
             val.modelXbrl.info("info", _("Formula validation skipped due to %(error)s error"),
@@ -301,7 +301,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
                 instanceQnames.add(instanceQname)
                 modelVariableSet.fromInstanceQnames = None # required if referred to by variables scope chaining
             modelVariableSet.outputInstanceQname = instanceQname
-            if val.validateSBRNL:
+            if getattr(val, "validateSBRNL", False): # may not exist on some val objects
                 val.modelXbrl.error("SBR.NL.2.3.9.03",
                     _("Formula:formula %(xlinkLabel)s is not allowed"),
                     modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel)
@@ -631,7 +631,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg=''):
     val.modelXbrl.profileActivity("... instances scopes and setup", minTimeToShow=1.0)
 
     val.modelXbrl.profileStat(_("formulaValidation"))
-    if (initialErrorCount < val.modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0) or 
+    if (initialErrorCount < val.modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0) or
+        compileOnly or 
         getattr(val, "validateFormulaCompileOnly", False)):
         return  # don't try to execute
         

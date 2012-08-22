@@ -250,7 +250,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
-        WinMainLogHandler(self) # start logger
+        self.startLogging(logHandler=WinMainLogHandler(self)) # start logger
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
         logViewMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logViewMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
@@ -1149,11 +1149,9 @@ class WinMainLogHandler(logging.Handler):
     def __init__(self, cntlr):
         super(WinMainLogHandler, self).__init__()
         self.cntlr = cntlr
-        self.level = logging.DEBUG
         #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
         formatter = Cntlr.LogFormatter("[%(messageCode)s] %(message)s - %(file)s")
         self.setFormatter(formatter)
-        logging.getLogger("arelle").addHandler(self)
     def flush(self):
         ''' Nothing to flush '''
     def emit(self, logRecord):
