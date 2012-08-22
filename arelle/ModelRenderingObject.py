@@ -418,7 +418,7 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
         return self.evaluateRule(self.modelXbrl.rendrCntx, aspect)
     
     def aspectsCovered(self):
-        return _DICT_SET(tblAxis.aspectValues.keys()) | _DICT_SET(tblAxis.aspectProgs.keys())
+        return _DICT_SET(self.aspectValues.keys()) | _DICT_SET(self.aspectProgs.keys())
     
     # provide model table's aspect model to compile() method of ModelFormulaRules
     @property

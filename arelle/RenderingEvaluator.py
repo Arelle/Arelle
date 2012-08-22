@@ -105,5 +105,5 @@ def checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects):
     if not axisOrdinateHasChild and not hasCoveredAspect:
         modelXbrl.error("xbrlte:aspectValueNotDefinedByOrdinate",
             _("%(axis)s ordinate %(xlinkLabel)s does not define an aspect"),
-            modelObject=(modelTable,tblAxis), xlinkLabel=tblAxis.xlinkLabel)
+            modelObject=(modelTable,tblAxis), xlinkLabel=tblAxis.xlinkLabel, axis=tblAxis.localName)
         
