@@ -8,6 +8,8 @@ public class LoadValidateCmdLine {
 	public static void main(String[] args) throws IOException {
 		Runtime r = Runtime.getRuntime();
 		String arelleExe = "\"C:\\Program Files\\Arelle\\arelleCmdLine.exe\"";
+		// XDG_CONFIG_HOME is optional, when omitted it defaults to "~/.config"
+		String arelleXdgConfigHome = "C:\\Users\\hermfi~1\\appdir\\local";
 		String fileBase = "C:\\Users\\John Doe\\samples\\";
 		String [] fileNames = {
 				"instance0000010.xml",
@@ -29,7 +31,10 @@ public class LoadValidateCmdLine {
 					"\"" + fileBase + fileName + "\"" +
 					" -v";
 				System.out.println("CmdLine: " + cmdLine);
-				Process p = r.exec(cmdLine);
+				String envp = new String[1];
+				// XDG_CONFIG_HOME is optional, defaults to "~/.config"
+				envp[0] = "XDG_CONFIG_HOME=" + arelleXdgConfigHome;
+				Process p = r.exec(cmdLine, envp);
 				InputStream in = p.getInputStream();
 				BufferedInputStream buf = new BufferedInputStream(in);
 				InputStreamReader inread = new InputStreamReader(buf);

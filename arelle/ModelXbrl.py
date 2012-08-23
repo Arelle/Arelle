@@ -268,12 +268,13 @@ class ModelXbrl:
                 self.formulaOutputInstance.close()
             if hasattr(self,"fileSource") and self.closeFileSource:
                 self.fileSource.close()
-            modelDocument = self.modelDocument if hasattr(self,"modelDocument") else None
+            modelDocument = getattr(self,"modelDocument",None)
+            urlDocs = getattr(self,"urlDocs",None)
             for relSet in self.relationshipSets.values():
                 relSet.clear()
             self.__dict__.clear() # dereference everything before closing document
             if modelDocument:
-                modelDocument.close()
+                modelDocument.close(urlDocs=urlDocs)
             
     @property
     def isClosed(self):

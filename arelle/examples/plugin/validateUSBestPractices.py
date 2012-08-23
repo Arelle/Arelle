@@ -231,7 +231,7 @@ def final(val, conceptsUsed):
                             args[argName] = ugtELR
                     msg.append(_("\n\nCorresponding facts in contexts: \n%(contextIDs)s\n"))
                     args["contextIDs"] = ", ".join(sorted(contextIDs))
-                val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.tbd:missingCalculation",
+                val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG:missingCalculation",
                     ''.join(msg),
                     **args)
                 issues = []

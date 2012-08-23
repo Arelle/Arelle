@@ -533,7 +533,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 
         if filename:
             if importToDTS:
-                self.config["importOpenDir"] = os.path.dirname(filename)
+                if not filename.startswith("http://"):
+                    self.config["importOpenDir"] = os.path.dirname(filename)
             else:
                 if not filename.startswith("http://"):
                     self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)

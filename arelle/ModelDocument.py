@@ -253,7 +253,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
         doc.inDTS = False
     return doc
             
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None):
     """Returns a new modelDocument, created from scratch, with any necessary header elements 
     
     (such as the schema, instance, or RSS feed top level elements)
@@ -263,6 +263,8 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
     :type schemaRefs: [str]
     :param isEntry is True when creating an entry (e.g., instance)
     :type isEntry: bool
+    :param initialXml is initial xml content for xml documents
+    :type isEntry: str
     """
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, None)
     if isEntry:
@@ -291,7 +293,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False):
         Xml = None
     else:
         type = Type.UnknownXML
-        Xml = '<nsmap/>'
+        Xml = '<nsmap>{0}</nsmap>'.format(initialXml or '')
     if Xml:
         import io
         file = io.StringIO(Xml)
@@ -514,18 +516,19 @@ class ModelDocument:
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
-    def close(self, visited=None):
+    def close(self, visited=None, urlDocs=None):
         if visited is None: visited = []
         visited.append(self)
         try:
             for referencedDocument in self.referencesDocument.keys():
                 if referencedDocument not in visited:
-                    referencedDocument.close(visited)
+                    referencedDocument.close(visited=visited,urlDocs=urlDocs)
             if self.type == Type.VERSIONINGREPORT:
                 if self.fromDTS:
                     self.fromDTS.close()
                 if self.toDTS:
                     self.toDTS.close()
+            urlDocs.pop(self.uri,None)
             xmlDocument = self.xmlDocument
             parser = self.parser
             for modelObject in self.modelObjects:
@@ -536,6 +539,9 @@ class ModelDocument:
             xmlDocument._setroot(parser.makeelement("{http://dummy}dummy"))
         except AttributeError:
             pass    # maybe already cloased
+        if len(visited) == 1:  # outer call
+            while urlDocs:
+                urlDocs.popitem()[1].close(visited=visited,urlDocs=urlDocs)
         visited.remove(self)
         
     def gettype(self):
