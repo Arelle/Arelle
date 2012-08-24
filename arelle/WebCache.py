@@ -62,11 +62,13 @@ def lastModifiedTime(headers):
 
 class WebCache:
     
+    default_timeout = None
+    
     def __init__(self, cntlr, httpProxyTuple):
         self.cntlr = cntlr
         #self.proxies = request.getproxies()
         #self.proxies = {'ftp': 'ftp://63.192.17.1:3128', 'http': 'http://63.192.17.1:3128', 'https': 'https://63.192.17.1:3128'}
-        
+        self._timeout = None        
         
         self.resetProxies(httpProxyTuple)
         
@@ -95,6 +97,15 @@ class WebCache:
             self.cachedUrlCheckTimes = {}
         self.cachedUrlCheckTimesModified = False
             
+
+    @property
+    def timeout(self):
+        return self._timeout or WebCache.default_timeout
+
+    @timeout.setter
+    def timeout(self, seconds):
+        self._timeout = seconds
+
     def saveUrlCheckTimes(self):
         if self.cachedUrlCheckTimesModified:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
@@ -323,7 +334,7 @@ class WebCache:
     def getheaders(self, url):
         if url and url.startswith('http://'):
             try:
-                fp = self.opener.open(url)
+                fp = self.opener.open(url, timeout=self.timeout)
                 headers = fp.info()
                 fp.close()
                 return headers
@@ -334,7 +345,7 @@ class WebCache:
     def geturl(self, url):  # get the url that the argument url redirects or resolves to
         if url and url.startswith('http://'):
             try:
-                fp = self.opener.open(url)
+                fp = self.opener.open(url, timeout=self.timeout)
                 actualurl = fp.geturl()
                 fp.close()
                 return actualurl
@@ -343,7 +354,7 @@ class WebCache:
         return None
         
     def retrieve(self, url, filename, reporthook=None, data=None):
-        fp = self.opener.open(url, data)
+        fp = self.opener.open(url, data, timeout=self.timeout)
         try:
             headers = fp.info()
             tfp = open(filename, 'wb')

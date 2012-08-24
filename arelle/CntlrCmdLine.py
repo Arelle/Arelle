@@ -174,6 +174,10 @@ def parseAndRun(args):
                              "'http://[user[:password]@]host[:port]' "
                              " (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080), "
                              " or 'show' to show current setting, ." ))
+    parser.add_option("--internetConnectivity", choices=("online", "offline"), dest="internetConnectivity", 
+                      help=_("Specify internet connectivity: online or offline"))
+    parser.add_option("--internetTimeout", type="int", dest="internetTimeout", 
+                      help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
     parser.add_option("--plugins", action="store", dest="plugins",
                       help=_("Modify and re-save plug-in configuration.  " 
                              "Enter 'show' to show current plug-in configuration, or '|' separated modules: "
@@ -233,7 +237,7 @@ def parseAndRun(args):
                 options.proxy, options.plugins)):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.pyw --help"))
         else:
-            cntlr.startLogging(logger=logger, logFileName='logToBuffer')
+            cntlr.startLogging(logFileName='logToBuffer')
             from arelle import CntlrWebMain
             CntlrWebMain.startWebserver(cntlr, options)
     else:
@@ -364,6 +368,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.abortOnMajorError = True
         if options.collectProfileStats:
             self.modelManager.collectProfileStats = True
+        if options.internetConnectivity == "offline":
+            self.webCache.workOffline = True
+        elif options.internetConnectivity == "online":
+            self.webCache.workOffline = False
+        if options.internetTimeout is not None:
+            self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
         fo = FormulaOptions()
         if options.parameters:
             parameterSeparator = (options.parameterSeparator or ',')
@@ -441,7 +451,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     loadTime = time.time() - startedAt
                     self.addToLog(format_string(self.modelManager.locale, 
                                                 _("import in %.2f secs at %s"), 
-                                                (loadingTime, timeNow)), 
+                                                (loadTime, timeNow)), 
                                                 messageCode="info", file=importFile)
                     modelXbrl.profileStat(_("import"), loadTime)
                 if modelXbrl.errors:
