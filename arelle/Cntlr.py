@@ -435,12 +435,15 @@ class LogHandlerWithXml(logging.Handler):
         super(LogHandlerWithXml, self).__init__()
         
     def recordToXml(self, logRec):
-        def propElts(properties):
-            return "\n  ".join("<property name='{0}' value='{1}'{2}>".format(
-                                p[0],
-                                p[1],
-                                '/' if len(p) == 2 else '>\n  ' + propElts(p[2]) + '</property')
-                               for p in properties if 2 <= len(p) <= 3)
+        def propElts(properties, indent):
+            nestedIndent = indent + ' '
+            return indent.join('<property name="{0}" value="{1}"{2}>'.format(
+                                    p[0].replace("&","&amp;").replace("<","&lt;").replace('"','&quot;'),
+                                    p[1].replace("&","&amp;").replace("<","&lt;").replace('"','&quot;'),
+                                    '/' if len(p) == 2 
+                                    else '>' + nestedIndent + propElts(p[2],nestedIndent) + indent + '</property')
+                                for p in properties 
+                                if 2 <= len(p) <= 3)
         
         msg = self.format(logRec)
         if logRec.args:
@@ -449,13 +452,13 @@ class LogHandlerWithXml(logging.Handler):
                             for n, v in logRec.args.items()])
         else:
             args = ""
-        refs = "\n".join('<ref href="{0}"{1}{2}>'.format(
+        refs = "\n ".join('\n <ref href="{0}"{1}{2}>'.format(
                         ref["href"], 
                         ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '',
-                        (">\n  " + propElts(ref["properties"]) + "\n</ref" ) if "properties" in ref else '/')
+                        (">\n  " + propElts(ref["properties"],"\n  ") + "\n </ref" ) if "properties" in ref else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'
-                '<message{2}>{3}</message>{4}'
+                '\n <message{2}>{3}</message>{4}'
                 '</entry>\n'.format(logRec.messageCode, 
                                     logRec.levelname.lower(), 
                                     args, 
