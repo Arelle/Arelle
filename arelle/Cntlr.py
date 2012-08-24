@@ -214,8 +214,10 @@ class Cntlr:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
+                self.logger.logHrefObjectProperties = True
             elif logFileName.endswith(".xml"):
                 self.logHandler = LogToXmlHandler(filename=logFileName)
+                self.logger.logHrefObjectProperties = True
                 logFormat = "%(message)s"
             else:
                 self.logHandler = logging.FileHandler(filename=logFileName, 
@@ -433,6 +435,13 @@ class LogHandlerWithXml(logging.Handler):
         super(LogHandlerWithXml, self).__init__()
         
     def recordToXml(self, logRec):
+        def propElts(properties):
+            return "\n  ".join("<property name='{0}' value='{1}'{2}>".format(
+                                p[0],
+                                p[1],
+                                '/' if len(p) == 2 else '>\n  ' + propElts(p[2]) + '</property')
+                               for p in properties if 2 <= len(p) <= 3)
+        
         msg = self.format(logRec)
         if logRec.args:
             args = "".join([' {0}="{1}"'.format(n, 
@@ -440,9 +449,10 @@ class LogHandlerWithXml(logging.Handler):
                             for n, v in logRec.args.items()])
         else:
             args = ""
-        refs = "\n".join('<ref href="{0}"{1}/>'.format(
+        refs = "\n".join('<ref href="{0}"{1}{2}>'.format(
                         ref["href"], 
-                        ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '')
+                        ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '',
+                        (">\n  " + propElts(ref["properties"]) + "\n</ref" ) if "properties" in ref else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'
                 '<message{2}>{3}</message>{4}'
@@ -451,7 +461,7 @@ class LogHandlerWithXml(logging.Handler):
                                     args, 
                                     msg.replace("&","&amp;").replace("<","&lt;"), 
                                     refs))
-
+    
 class LogToXmlHandler(LogHandlerWithXml):
     """
     .. class:: LogToXmlHandler(filename)

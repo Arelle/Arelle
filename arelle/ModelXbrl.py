@@ -761,6 +761,10 @@ class ModelXbrl:
         If codes includes EFM, GFM, HMRC, or SBR-coded error then the code chosen (if a sequence)
         corresponds to whether EFM, GFM, HMRC, or SBR validation is in effect.
         """
+        def propValues(properties):
+            # deref objects in properties
+            return [(p[0],str(p[1])) if len(p) == 2 else (p[0],str(p[1]),propValues(p[2]))
+                    for p in properties if 2 <= len(p) <= 3]
         # determine logCode
         messageCode = None
         for argCode in codes if isinstance(codes,tuple) else (codes,):
@@ -776,6 +780,7 @@ class ModelXbrl:
         # determine message and extra arguments
         fmtArgs = {}
         extras = {"messageCode":messageCode}
+        logHrefObjectProperties = getattr(self.logger, "logHrefObjectProperties", False)
         for argName, argValue in codedArgs.items():
             if argName in ("modelObject", "modelXbrl", "modelDocument"):
                 try:
@@ -801,6 +806,10 @@ class ModelXbrl:
                             ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(arg)
                             ref["sourceLine"] = arg.sourceline
                             ref["objectId"] = arg.objectId()
+                            try:
+                                ref["properties"] = propValues(arg.propertyView)
+                            except AttributeError:
+                                pass # is a default properties entry appropriate or needed?
                         else:
                             ref["href"] = file
                         refs.append(ref)
@@ -831,7 +840,7 @@ class ModelXbrl:
         return (messageCode, 
                 (msg, fmtArgs) if fmtArgs else (msg,), 
                 extras)
-
+        
     def info(self, codes, msg, **args):
         """Same as error(), but as info
         """

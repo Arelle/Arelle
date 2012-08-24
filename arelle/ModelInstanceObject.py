@@ -931,14 +931,14 @@ class ModelContext(ModelObject):
     @property
     def propertyView(self):
         scheme, entityId = self.entityIdentifier
-        return (("entity", entityId, entityId, (("scheme", scheme),)),
-                (("forever", "") if self.isForeverPeriod else
-                  (("instant", str(self.instantDatetime)) if self.isInstantPeriod else
-                   (("startDate", str(self.startDatetime)),("endDate",str(self.endDatetime))))),
-                ("dimensions", "({0})".format(len(self.qnameDims)),
+        return ((("entity", entityId, (("scheme", scheme),)),) +
+                ((("forever", ""),) if self.isForeverPeriod else
+                (("instant", str(self.instantDatetime)),) if self.isInstantPeriod else
+                (("startDate", str(self.startDatetime)),("endDate",str(self.endDatetime)))) +
+                (("dimensions", "({0})".format(len(self.qnameDims)),
                   tuple(mem.propertyView for dim,mem in sorted(self.qnameDims.items())))
                   if self.qnameDims else (),
-                )
+                ))
 
 
 class ModelDimensionValue(ModelObject):
@@ -1113,7 +1113,7 @@ class ModelUnit(ModelObject):
             return tuple(('mul',m) for m in measures[0]) + \
                    tuple(('div',d) for d in measures[1]) 
         else:
-            return tuple(('',m) for m in measures[0])
+            return tuple(('measure',m) for m in measures[0])
 
 from arelle.ModelFormulaObject import Aspect
 from arelle import FunctionIxt
