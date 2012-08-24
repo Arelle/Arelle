@@ -16,7 +16,7 @@ dimension and OCC constructs.
 
 The element may be created with attributes and descendant elements, as needed.
 
-xfc:element(
+xfxc:element(
     qname,  // qname of element
     (name-value pairs for creating attributes if any),
     value, if any, otherwise () or ''

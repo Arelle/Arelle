@@ -806,10 +806,11 @@ class ModelXbrl:
                             ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(arg)
                             ref["sourceLine"] = arg.sourceline
                             ref["objectId"] = arg.objectId()
-                            try:
-                                ref["properties"] = propValues(arg.propertyView)
-                            except AttributeError:
-                                pass # is a default properties entry appropriate or needed?
+                            if logHrefObjectProperties:
+                                try:
+                                    ref["properties"] = propValues(arg.propertyView)
+                                except AttributeError:
+                                    pass # is a default properties entry appropriate or needed?
                         else:
                             ref["href"] = file
                         refs.append(ref)

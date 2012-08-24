@@ -45,7 +45,7 @@ class ViewProperties(ViewWinTree.ViewTree):
     def showProperties(self, properties, parentNode, id):
         for tuple in properties:
             lenTuple = len(tuple)
-            if lenTuple >= 2 and lenTuple <= 3:
+            if 2 <= lenTuple <= 3:
                 strId = str(id)
                 node = self.treeView.insert(parentNode, "end", strId, text=tuple[0], tags=("odd" if id & 1 else "even",))
                 self.treeView.set(strId, "value", tuple[1])

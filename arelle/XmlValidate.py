@@ -63,7 +63,7 @@ def xhtmlValidate(modelXbrl, elt):
         dtd = DTD(fh)
     try:
         if not dtd.validate( XmlUtil.ixToXhtml(elt) ):
-            modelXbrl.error("xmlDTD:error",
+            modelXbrl.error("xhmlDTD:elementUnexpected",
                 _("%(element)s error %(error)s"),
                 modelObject=elt, element=elt.localName.title(),
                 error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
@@ -80,9 +80,22 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
 
     # attrQname can be provided for attributes that are global and LAX
     if (not hasattr(elt,"xValid") or elt.xValid == UNVALIDATED) and (not isIxFact or ixFacts):
-        text = elt.elementText
         qnElt = elt.qname if ixFacts and isIxFact else elt.elementQname
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
+        try:
+            text = elt.elementText
+        except Exception as err:
+            if isIxFact and err.__class__.__name__ == "FunctionArgType":
+                modelXbrl.error("ixTransform:valueError",
+                    _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s"),
+                    modelObject=elt, element=elt.elementQname, fact=elt.qname, transform=elt.format,
+                    typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
+                    value=XmlUtil.innerText(elt, ixExclude=True))
+            else:
+                modelXbrl.error("xmlValidation:valueError",
+                    _("Element %(element)s error %(error)s value: %(value)s"),
+                    modelObject=elt, element=elt.elementQname, error=str(err), value=elt.text)
+            text = ''
         facets = None
         if modelConcept is not None:
             isNillable = modelConcept.isNillable
