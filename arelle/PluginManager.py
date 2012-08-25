@@ -8,9 +8,12 @@ based on pull request 4
 
 '''
 import os, sys, types, time, ast, imp, io, json, gettext
-from collections import OrderedDict
 from arelle.Locale import getLanguageCodes
-
+try:
+    from collections import OrderedDict
+except ImportError:
+    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order 
+    
 # plugin control is static to correspond to statically loaded modules
 pluginJsonFile = None
 pluginConfig = None
