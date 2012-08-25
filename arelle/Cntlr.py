@@ -435,11 +435,14 @@ class LogHandlerWithXml(logging.Handler):
         super(LogHandlerWithXml, self).__init__()
         
     def recordToXml(self, logRec):
+        def entityEncode(arg):  # be sure it's a string, vs int, etc, and encode &, <, ".
+            return str(arg).replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
+        
         def propElts(properties, indent):
             nestedIndent = indent + ' '
             return indent.join('<property name="{0}" value="{1}"{2}>'.format(
-                                    p[0].replace("&","&amp;").replace("<","&lt;").replace('"','&quot;'),
-                                    p[1].replace("&","&amp;").replace("<","&lt;").replace('"','&quot;'),
+                                    entityEncode(p[0]),
+                                    entityEncode(p[1]),
                                     '/' if len(p) == 2 
                                     else '>' + nestedIndent + propElts(p[2],nestedIndent) + indent + '</property')
                                 for p in properties 
@@ -447,13 +450,12 @@ class LogHandlerWithXml(logging.Handler):
         
         msg = self.format(logRec)
         if logRec.args:
-            args = "".join([' {0}="{1}"'.format(n, 
-                                                str(v).replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')) 
+            args = "".join([' {0}="{1}"'.format(n, entityEncode(v)) 
                             for n, v in logRec.args.items()])
         else:
             args = ""
         refs = "\n ".join('\n <ref href="{0}"{1}{2}>'.format(
-                        ref["href"], 
+                        entityEncode(ref["href"]), 
                         ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '',
                         (">\n  " + propElts(ref["properties"],"\n  ") + "\n </ref" ) if "properties" in ref else '/')
                        for ref in logRec.refs)
@@ -462,7 +464,7 @@ class LogHandlerWithXml(logging.Handler):
                 '</entry>\n'.format(logRec.messageCode, 
                                     logRec.levelname.lower(), 
                                     args, 
-                                    msg.replace("&","&amp;").replace("<","&lt;"), 
+                                    entityEncode(msg), 
                                     refs))
     
 class LogToXmlHandler(LogHandlerWithXml):
