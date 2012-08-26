@@ -558,9 +558,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             modelXbrl.logProfileStats()
         if not options.keepOpen:
             if modelDiffReport:
-                modelDiffReport.close()
+                self.modelManager.close(modelDiffReport)
             elif modelXbrl:
-                modelXbrl.close()
+                self.modelManager.close(modelXbrl)
         self.username = self.password = None #dereference password
         return success
 
