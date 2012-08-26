@@ -396,11 +396,11 @@ def checkfile(modelXbrl, filepath):
                 text = match.group()
                 if text.startswith("&"):
                     if not text in xhtmlEntities:
-                        modelXbrl.error(("EFM.5.2.2.6", "GFM.1.01.02"),
+                        modelXbrl.error(("EFM.5.02.02.06", "GFM.1.01.02"),
                             _("Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s"),
                             modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
                 elif modelXbrl.modelManager.disclosureSystem.EFM:
-                    modelXbrl.error("EFM.5.2.1.1",
+                    modelXbrl.error("EFM.5.02.01.01",
                         _("Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s"),
                         modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
             if lineNum == 1:

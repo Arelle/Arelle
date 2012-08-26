@@ -14,6 +14,9 @@ rem Rebuild messages.pot internationalization file
 "%PYTHON64DIR%\python" pygettext.py -v -o arelle\locale\messages.pot arelle\*.pyw arelle\*.py
 pause "Please check the python gettext string conversions"
 
+rem Regenerate messages catalog (doc/messagesCatalog.xml)
+"%PYTHON64DIR%\python" generateMessagesCatalog.py
+
 rmdir build /s/q
 rmdir dist /s/q
 mkdir build

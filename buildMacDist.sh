@@ -7,6 +7,9 @@
 # set the build date in version.py
 python3.2 buildVersion.py
 
+# Regenerate messages catalog (doc/messagesCatalog.xml)
+python3.2 generateMessagesCatalog.py
+
 # create new app
 python3.2 setup.py py2app
 

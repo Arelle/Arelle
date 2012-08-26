@@ -141,9 +141,10 @@ if sys.platform == 'darwin':
     dataFiles = [
     #XXX: this breaks build on Lion/Py3.2  --mike 
     #'--iconfile', 
-	('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
     ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
+    ('doc',['arelle/doc/' + f for f in os.listdir('arelle/doc')]),
     ('examples',['arelle/examples/' + f for f in os.listdir('arelle/examples')]),
+    ('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
     ('examples/plugin',['arelle/examples/plugin/' + f for f in os.listdir('arelle/examples/plugin')]),
     ('examples/plugin/locale/fr/LC_MESSAGES',['arelle/examples/plugin/locale/fr/LC_MESSAGES/' + f for f in os.listdir('arelle/examples/plugin/locale/fr/LC_MESSAGES')]),
     ('scripts',['arelle/scripts/' + f for f in os.listdir('arelle/scripts-macOS')]),
@@ -174,6 +175,7 @@ elif sys.platform in ('linux2', 'sunos5'): # works on ubuntu with hand-built cx_
     dataFiles = None 
     options = dict( build_exe =  { 
         "include_files": [('arelle/config','config'), 
+                          ('arelle/images','doc'), 
                           ('arelle/images','images'), 
                           ('arelle/locale','locale'), 
                           ('arelle/examples','examples'), 
@@ -195,6 +197,7 @@ elif sys.platform == 'win32':
     packages = find_packages('.')
     dataFiles = None
     win32includeFiles = [('arelle\\config','config'),
+                         ('arelle\\images','doc'),
                          ('arelle\\images','images'),
                          ('arelle\\locale','locale'),
                          ('arelle\\examples','examples'),
