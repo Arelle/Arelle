@@ -5,7 +5,10 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except ImportError:
+    from ttk import *
 import os
 from arelle import ViewWinTree
 

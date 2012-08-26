@@ -5,7 +5,10 @@ Created on Oct 9, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except ImportError:
+    from ttk import *
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import (scrolledHeaderedFrame, scrolledFrame)
 

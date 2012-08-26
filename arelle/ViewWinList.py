@@ -6,7 +6,10 @@ Created on Feb 6, 2011
 '''
 import io
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except ImportError:
+    from ttk import *
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XmlUtil
 

@@ -5,7 +5,10 @@ Created on Jun 15, 2012
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import Toplevel, N, S, E, W, PhotoImage
-from tkinter.ttk import Frame, Button
+try:
+    from tkinter.ttk import Frame, Button
+except ImportError:
+    from ttk import Frame, Button
 import os, re
 from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip

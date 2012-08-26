@@ -5,7 +5,10 @@ Created on Jan 25, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import Toplevel, PhotoImage, messagebox, N, S, E, W
-from tkinter.ttk import Frame, Button
+try:
+    from tkinter.ttk import Frame, Button
+except ImportError:
+    from ttk import Frame, Button
 import tkinter.filedialog
 import re, os
 from arelle.ModelValue import dateTime

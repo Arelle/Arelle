@@ -5,7 +5,10 @@ Created on Oct 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import Toplevel, StringVar, VERTICAL, HORIZONTAL, N, S, E, W, messagebox
-from tkinter.ttk import Frame, Button, Treeview, Scrollbar
+try:
+    from tkinter.ttk import Frame, Button, Treeview, Scrollbar
+except ImportError:
+    from ttk import Frame, Button, Treeview, Scrollbar
 import re, os, sys
 from arelle.CntlrWinTooltip import ToolTip
 

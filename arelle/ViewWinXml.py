@@ -5,7 +5,10 @@ Created on Feb 6, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except ImportError:
+    from ttk import *
 from arelle.CntlrWinTooltip import ToolTip
 import io
 from arelle import (XmlUtil, ViewWinList)

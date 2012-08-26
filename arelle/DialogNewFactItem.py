@@ -5,7 +5,10 @@ Created on Nov 28, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import Toplevel, N, S, E, W, messagebox
-from tkinter.ttk import Frame, Button
+try:
+    from tkinter.ttk import Frame, Button
+except ImportError:
+    from ttk import Frame, Button
 import re
 from arelle.ModelInstanceObject import NewFactItemOptions
 from arelle.ModelValue import dateTime

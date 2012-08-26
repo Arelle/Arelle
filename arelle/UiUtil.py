@@ -5,7 +5,12 @@ Created on Jan 25, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+    _Combobox = ttk.Combobox
+except ImportError:
+    from ttk import *
+    _Combobox = Combobox
 
 TOPBORDER = 1
 LEFTBORDER = 2
@@ -201,9 +206,9 @@ class gridCell(Entry):
     def valueChanged(self, *args):
         self.isChanged = True
     
-class gridCombobox(ttk.Combobox): 
+class gridCombobox(_Combobox): 
     def __init__(self, master, x, y, value="", values=(), columnspan=None, selectindex=None, comboboxselected=None): 
-        ttk.Combobox.__init__(self, master=master) 
+        _Combobox.__init__(self, master=master) 
         self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
         self.config(textvariable=self.valueVar,

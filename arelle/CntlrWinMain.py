@@ -10,7 +10,10 @@ from arelle import PythonUtil # define 2.x or 3.x string types
 import os, sys, subprocess, pickle, time, locale, re
 from tkinter import (Tk, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
                      HORIZONTAL, VERTICAL, END)
-from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
+try:
+    from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
+except ImportError:  # 3.0 versions of tkinter
+    from ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
 import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback

@@ -9,7 +9,10 @@ based on pull request 4
 '''
 from tkinter import Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
 from tkinter.constants import DISABLED, ACTIVE
-from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
+try:
+    from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
+except ImportError:
+    from ttk import Treeview, Scrollbar, Frame, Label, Button
 from arelle import PluginManager, DialogURL
 from arelle.CntlrWinTooltip import ToolTip
 import re, os, time

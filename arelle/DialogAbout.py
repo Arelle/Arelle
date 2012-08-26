@@ -5,7 +5,10 @@ Created on Oct 10, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import Toplevel, PhotoImage, N, S, E, W, EW, NW
-from tkinter.ttk import Label, Button, Frame
+try:
+    from tkinter.ttk import Label, Button, Frame
+except ImportError:
+    from ttk import Label, Button, Frame
 import re
 
 '''

@@ -5,7 +5,10 @@ Created on Oct 10, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import Toplevel, StringVar, N, S, E, W, EW, DISABLED, NORMAL
-from tkinter.ttk import Frame, Button, Label, Entry
+try:
+    from tkinter.ttk import Frame, Button, Label, Entry
+except ImportError:
+    from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import (checkbox)
 import re, sys

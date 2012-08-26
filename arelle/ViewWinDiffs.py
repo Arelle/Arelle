@@ -7,7 +7,10 @@ Created on Mar 21, 2011
 from collections import defaultdict
 import os
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except ImportError:
+    from ttk import *
 from arelle.ViewWinRelationshipSet import viewRelationshipSet
 from arelle.ViewWinConcepts import viewConcepts
 from arelle import ModelVersObject, XbrlConst

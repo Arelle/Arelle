@@ -5,7 +5,10 @@ Created on Apr 7, 2012
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import Toplevel, StringVar, N, S, E, W, EW, messagebox
-from tkinter.ttk import Frame, Button, Label, Entry
+try:
+    from tkinter.ttk import Frame, Button, Label, Entry
+except ImportError:
+    from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label
 import re, gettext
