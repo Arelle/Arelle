@@ -1426,8 +1426,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     compatibleFacts = {totalFact}
                     for itemConcept in contributingItems:
                         for itemFact in self.modelXbrl.factsByQname[itemConcept.qname]:
-                            if (totalFact.context.isEqualTo(itemFact.context) and
-                                totalFact.unit.isEqualTo(itemFact.unit)):
+                            if (totalFact.context is not None and totalFact.context.isEqualTo(itemFact.context) and
+                                totalFact.unit is not None and totalFact.unit.isEqualTo(itemFact.unit)):
                                 compatibleItemConcepts.add(itemConcept)
                                 compatibleFacts.add(itemFact)
                     if compatibleItemConcepts:

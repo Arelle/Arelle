@@ -175,8 +175,8 @@ def final(val, conceptsUsed):
                                     # are there any compatible facts for this sum?
                                     for totalFact in val.modelXbrl.factsByQname[totalConcept.qname]:
                                         for itemFact in val.modelXbrl.factsByQname[itemQname]:
-                                            if (totalFact.context.isEqualTo(itemFact.context) and
-                                                totalFact.unit.isEqualTo(itemFact.unit)):
+                                            if (totalFact.context is not None and totalFact.context.isEqualTo(itemFact.context) and
+                                                totalFact.unit is not None and totalFact.unit.isEqualTo(itemFact.unit)):
                                                 foundFiledItemCalc = False
                                                 # is there a summation in the filing
                                                 for rel in val.modelXbrl.relationshipSet(XbrlConst.summationItem).fromModelObject(totalConcept):
