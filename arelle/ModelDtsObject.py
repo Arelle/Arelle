@@ -430,7 +430,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def isTextBlock(self):
         """(bool) -- Element's type.isTextBlock."""
-        return self.type.isTextBlock
+        return self.type is not None and self.type.isTextBlock
     
     @property
     def type(self):
