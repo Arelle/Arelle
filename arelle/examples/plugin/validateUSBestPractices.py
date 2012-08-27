@@ -139,103 +139,104 @@ def factCheck(val, fact):
             value=fact.effectiveValue, err=err)
 
 def final(val, conceptsUsed):
-    # check for usgaap calculations missing from extension
-    ugtTotalConceptNames = set(totalConceptName 
-                               for ugtRels in val.usgaapCalculations.values()
-                               for totalConceptName in ugtRels.keys())
-    issues = []
-    for totalConcept in conceptsUsed:
-        # is it ugt concept on a filing face sheet statement
-        if (totalConcept.qname.namespaceURI == ugtNamespace and
-            totalConcept.qname.localName in ugtTotalConceptNames and
-            any(val.linkroleDefinitionStatementSheet.match(roleType.definition)
-               for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(totalConcept)
-               for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()))):
-            # is it a total in usgaap-calculations on a statement
-            for ugtELR, ugtRels in val.usgaapCalculations.items():
-                if ugtRels["#isStatementSheet"] and totalConcept.name in ugtRels:
-                    # find compatible filed concepts on ugt summation items
-                    for itemName in ugtRels[totalConcept.name]:
-                        itemQname = qname(ugtNamespace,itemName)
-                        itemConcept = val.modelXbrl.qnameConcepts.get(itemQname)
-                        if itemConcept is not None and itemConcept in conceptsUsed:
-                            # and item concept appears on a same face statement with total concept
-                            filingELR = None
-                            for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(itemConcept):
-                                for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()):
-                                    if (val.linkroleDefinitionStatementSheet.match(roleType.definition) and
-                                        val.modelXbrl.relationshipSet(XbrlConst.parentChild,rel.linkrole)
-                                        .isRelated(totalConcept,'sibling-or-descendant',itemConcept)):
-                                        filingELR = rel.linkrole
+    if hasattr(val, 'usaapCalculations'):
+        # check for usgaap calculations missing from extension
+        ugtTotalConceptNames = set(totalConceptName 
+                                   for ugtRels in val.usgaapCalculations.values()
+                                   for totalConceptName in ugtRels.keys())
+        issues = []
+        for totalConcept in conceptsUsed:
+            # is it ugt concept on a filing face sheet statement
+            if (totalConcept.qname.namespaceURI == ugtNamespace and
+                totalConcept.qname.localName in ugtTotalConceptNames and
+                any(val.linkroleDefinitionStatementSheet.match(roleType.definition)
+                   for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(totalConcept)
+                   for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()))):
+                # is it a total in usgaap-calculations on a statement
+                for ugtELR, ugtRels in val.usgaapCalculations.items():
+                    if ugtRels["#isStatementSheet"] and totalConcept.name in ugtRels:
+                        # find compatible filed concepts on ugt summation items
+                        for itemName in ugtRels[totalConcept.name]:
+                            itemQname = qname(ugtNamespace,itemName)
+                            itemConcept = val.modelXbrl.qnameConcepts.get(itemQname)
+                            if itemConcept is not None and itemConcept in conceptsUsed:
+                                # and item concept appears on a same face statement with total concept
+                                filingELR = None
+                                for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(itemConcept):
+                                    for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()):
+                                        if (val.linkroleDefinitionStatementSheet.match(roleType.definition) and
+                                            val.modelXbrl.relationshipSet(XbrlConst.parentChild,rel.linkrole)
+                                            .isRelated(totalConcept,'sibling-or-descendant',itemConcept)):
+                                            filingELR = rel.linkrole
+                                            break
+                                    if filingELR:
                                         break
                                 if filingELR:
-                                    break
-                            if filingELR:
-                                # are there any compatible facts for this sum?
-                                for totalFact in val.modelXbrl.factsByQname[totalConcept.qname]:
-                                    for itemFact in val.modelXbrl.factsByQname[itemQname]:
-                                        if (totalFact.context.isEqualTo(itemFact.context) and
-                                            totalFact.unit.isEqualTo(itemFact.unit)):
-                                            foundFiledItemCalc = False
-                                            # is there a summation in the filing
-                                            for rel in val.modelXbrl.relationshipSet(XbrlConst.summationItem).fromModelObject(totalConcept):
-                                                if rel.toModelObject is itemConcept:
-                                                    foundFiledItemCalc = True
-                                            if not foundFiledItemCalc:
-                                                issues.append((filingELR,
-                                                               ugtELR,
-                                                               itemName,
-                                                               totalFact,
-                                                               itemFact))
-            if issues:
-                filingELRs = set()
-                ugtELRs = set()
-                itemIssuesELRs = defaultdict(set)
-                contextIDs = set()
-                for issue in issues:
-                    filingELR, ugtELR, itemName, totalFact, itemFact = issue
-                    filingELRs.add(filingELR)
-                    ugtELRs.add(ugtELR)
-                    contextIDs.add(totalFact.contextID)
-                    contextIDs.add(itemFact.contextID)
-                    itemIssuesELRs[itemName].add((filingELR, ugtELR))
-
-                msg = [_("Financial statement calculation missing relationships from total concept to item concepts that are in us-gaap taxonomy.  "),
-                       _("\n\nTotal concept: \n%(conceptSum)s.  ")]                   
-                args = {"conceptSum": totalConcept.qname}
-                if len(filingELRs) == 1:
-                    msg.append(_("\n\nfiling schedule link role: \n%(filingLinkrole)s. "))
-                    args["filingLinkrole"] = filingELR
-                if len(ugtELRs) == 1:
-                    msg.append(_("\n\nus-gaap calc link role: \n%(usgaapLinkrole)s. "))
-                    args["usgaapLinkrole"] = ugtELR
-                if len(filingELRs) == 1 and len(ugtELRs) == 1:
-                    msg.append(_("\n\nSummation items missing: \n"))
-                for i, itemName in enumerate(sorted(itemIssuesELRs.keys())):
-                    for j, itemIssueELRs in enumerate(sorted(itemIssuesELRs[itemName])):
-                        filingELR, ugtELR = itemIssueELRs
-                        if j == 0:
-                            argName = "missingConcept_{0}".format(i)
-                            if len(filingELRs) == 1 and len(ugtELRs) == 1:
-                                msg.append(_("\n%({0})s.  ").format(argName))
-                            else:
-                                msg.append(_("\n\nSummation item: %({0})s.  ").format(argName))
-                            args[argName] = itemFact.qname
-                        if len(filingELRs) > 1:
-                            argName = "filingLinkrole_{0}_{1}".format(i,j)
-                            msg.append(_("\n   filing schedule: %({0})s. ").format(argName))
-                            args[argName] = filingELR
-                        if len(ugtELRs) > 1:
-                            argName = "usgaapLinkrole_{0}_{1}".format(i,j)
-                            msg.append(_("\n   us-gaap linkrole: %({0})s. ").format(argName))
-                            args[argName] = ugtELR
-                    msg.append(_("\n\nCorresponding facts in contexts: \n%(contextIDs)s\n"))
-                    args["contextIDs"] = ", ".join(sorted(contextIDs))
-                val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG:missingCalculation",
-                    ''.join(msg),
-                    **args)
-                issues = []
-                   
+                                    # are there any compatible facts for this sum?
+                                    for totalFact in val.modelXbrl.factsByQname[totalConcept.qname]:
+                                        for itemFact in val.modelXbrl.factsByQname[itemQname]:
+                                            if (totalFact.context.isEqualTo(itemFact.context) and
+                                                totalFact.unit.isEqualTo(itemFact.unit)):
+                                                foundFiledItemCalc = False
+                                                # is there a summation in the filing
+                                                for rel in val.modelXbrl.relationshipSet(XbrlConst.summationItem).fromModelObject(totalConcept):
+                                                    if rel.toModelObject is itemConcept:
+                                                        foundFiledItemCalc = True
+                                                if not foundFiledItemCalc:
+                                                    issues.append((filingELR,
+                                                                   ugtELR,
+                                                                   itemName,
+                                                                   totalFact,
+                                                                   itemFact))
+                if issues:
+                    filingELRs = set()
+                    ugtELRs = set()
+                    itemIssuesELRs = defaultdict(set)
+                    contextIDs = set()
+                    for issue in issues:
+                        filingELR, ugtELR, itemName, totalFact, itemFact = issue
+                        filingELRs.add(filingELR)
+                        ugtELRs.add(ugtELR)
+                        contextIDs.add(totalFact.contextID)
+                        contextIDs.add(itemFact.contextID)
+                        itemIssuesELRs[itemName].add((filingELR, ugtELR))
+    
+                    msg = [_("Financial statement calculation missing relationships from total concept to item concepts that are in us-gaap taxonomy.  "),
+                           _("\n\nTotal concept: \n%(conceptSum)s.  ")]                   
+                    args = {"conceptSum": totalConcept.qname}
+                    if len(filingELRs) == 1:
+                        msg.append(_("\n\nfiling schedule link role: \n%(filingLinkrole)s. "))
+                        args["filingLinkrole"] = filingELR
+                    if len(ugtELRs) == 1:
+                        msg.append(_("\n\nus-gaap calc link role: \n%(usgaapLinkrole)s. "))
+                        args["usgaapLinkrole"] = ugtELR
+                    if len(filingELRs) == 1 and len(ugtELRs) == 1:
+                        msg.append(_("\n\nSummation items missing: \n"))
+                    for i, itemName in enumerate(sorted(itemIssuesELRs.keys())):
+                        for j, itemIssueELRs in enumerate(sorted(itemIssuesELRs[itemName])):
+                            filingELR, ugtELR = itemIssueELRs
+                            if j == 0:
+                                argName = "missingConcept_{0}".format(i)
+                                if len(filingELRs) == 1 and len(ugtELRs) == 1:
+                                    msg.append(_("\n%({0})s.  ").format(argName))
+                                else:
+                                    msg.append(_("\n\nSummation item: %({0})s.  ").format(argName))
+                                args[argName] = itemFact.qname
+                            if len(filingELRs) > 1:
+                                argName = "filingLinkrole_{0}_{1}".format(i,j)
+                                msg.append(_("\n   filing schedule: %({0})s. ").format(argName))
+                                args[argName] = filingELR
+                            if len(ugtELRs) > 1:
+                                argName = "usgaapLinkrole_{0}_{1}".format(i,j)
+                                msg.append(_("\n   us-gaap linkrole: %({0})s. ").format(argName))
+                                args[argName] = ugtELR
+                        msg.append(_("\n\nCorresponding facts in contexts: \n%(contextIDs)s\n"))
+                        args["contextIDs"] = ", ".join(sorted(contextIDs))
+                    val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG:missingCalculation",
+                        ''.join(msg),
+                        **args)
+                    issues = []
+                       
 
     del val.linroleDefinitionIsDisclosure
     del val.linkroleDefinitionStatementSheet

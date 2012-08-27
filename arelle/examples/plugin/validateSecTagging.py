@@ -201,7 +201,7 @@ def factCheck(val, fact):
             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
             value=fact.effectiveValue, elrTypes=schedules(val,fact))
 
-def final(val):
+def final(val, conceptsUsed):
     del val.twoWayPriItemDefLabelPattern
     del val.twoWayPriItemStdLabelPattern
     del val.oneWayPriItemStdLabelPattern
