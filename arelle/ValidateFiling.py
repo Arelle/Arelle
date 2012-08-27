@@ -527,7 +527,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 self.modelXbrl.error(("EFM.6.10.01", "GFM.1.05.01"),
                     _("A label linkbase is required but was not found"), 
                     modelXbrl=modelXbrl)
-            else:
+            elif disclosureSystem.defaultXmlLang:  # cannot check if no defaultXmlLang specified
                 for concept in conceptsUsed.keys():
                     self.checkConceptLabels(modelXbrl, labelsRelationshipSet, disclosureSystem, concept)
                         
@@ -789,7 +789,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error(("EFM.6.10.05", "GFM.1.05.05", "SBR.NL.2.1.0.08"),
                             _("Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"),
                             modelObject=modelLabel, concept=concept.qname, text=text)
-                elif text and lang and lang.startswith(disclosureSystem.defaultXmlLang):
+                elif text and lang and disclosureSystem.defaultXmlLang and lang.startswith(disclosureSystem.defaultXmlLang):
                     if role == XbrlConst.standardLabel:
                         if text in defaultLangStandardLabels:
                             concept2, modelLabel2 = defaultLangStandardLabels[text]
@@ -811,9 +811,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error(("EFM.6.10.06", "GFM.1.05.07", "SBR.NL.2.3.8.07"),
                             'Label for concept %(concept)s role %(role)s has disallowed characters: "%(text)s"',
                             modelObject=modelLabel, concept=concept.qname, role=role, text=match.group())
-                if text is not None and len(text) > 0 and \
+                if (text is not None and len(text) > 0 and 
+                    modelXbrl.modelManager.disclosureSystem.labelTrimPattern and
                    (modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[0]) or \
-                    modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1])):
+                    modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1]))):
                     modelXbrl.error(("EFM.6.10.08", "GFM.1.05.08"),
                         _("Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"),
                         modelObject=modelLabel, concept=concept.qname, role=role, lang=lang, text=text)
@@ -1026,7 +1027,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 for rel in rels:
                                     relTo = rel.toModelObject
                                     # 6.14.03 must have matched period types across relationshp
-                                    if relFrom.periodType != relTo.periodType:
+                                    if relTo is not None and relFrom.periodType != relTo.periodType:
                                         self.modelXbrl.error(("EFM.6.14.03", "GFM.1.07.03"),
                                             "Calculation relationship period types mismatched in base set role %(linkrole)s from %(conceptFrom)s to %(conceptTo)s",
                                             modelObject=rel, linkrole=rel.linkrole, conceptFrom=relFrom.qname, conceptTo=relTo.qname)
@@ -1158,20 +1159,21 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                  .fromToModelObjects(fromModelObject, toModelObject),
                     conceptFrom=self.modelXbrl.modelObject(fromIndx).qname, conceptTo=self.modelXbrl.modelObject(toIndx).qname)
                 
-        for concept, preferredLabels in conceptsUsedWithPreferredLabels.items():
-            for preferredLabel in preferredLabels:
-                hasDefaultLangPreferredLabel = False
-                for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
-                    modelLabel = modelLabelRel.toModelObject
-                    if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
-                       modelLabel.role == preferredLabel:
-                        hasDefaultLangPreferredLabel = True
-                        break
-                if not hasDefaultLangPreferredLabel:
-                    self.modelXbrl.error(("EFM.6.12.04", "GFM.1.06.04"),
-                        _("Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s"),
-                        modelObject=concept, concept=concept.qname, 
-                        lang=disclosureSystem.defaultLanguage, preferredLabel=preferredLabel)
+        if disclosureSystem.defaultXmlLang:
+            for concept, preferredLabels in conceptsUsedWithPreferredLabels.items():
+                for preferredLabel in preferredLabels:
+                    hasDefaultLangPreferredLabel = False
+                    for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
+                        modelLabel = modelLabelRel.toModelObject
+                        if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
+                           modelLabel.role == preferredLabel:
+                            hasDefaultLangPreferredLabel = True
+                            break
+                    if not hasDefaultLangPreferredLabel:
+                        self.modelXbrl.error(("EFM.6.12.04", "GFM.1.06.04"),
+                            _("Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s"),
+                            modelObject=concept, concept=concept.qname, 
+                            lang=disclosureSystem.defaultLanguage, preferredLabel=preferredLabel)
                 
         # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
         self.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
@@ -1234,7 +1236,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Finally"):
                 pluginXbrlMethod(self, conceptsUsed)
         self.modelXbrl.profileActivity("... plug in '.Finally' checks", minTimeToShow=1.0)
-        self.modelXbrl.profileStat(_("validate") + modelXbrl.modelManager.disclosureSystem.validationType)
+        self.modelXbrl.profileStat(_("validate {0}").format(modelXbrl.modelManager.disclosureSystem.validationType))
         
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
