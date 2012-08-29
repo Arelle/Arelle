@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <element name="messages">
+    <complexType>
+      <sequence>
+        <element maxOccurs="unbounded" ref="message"/>
+      </sequence>
+    </complexType>
+  </element>
+  <element name="message">
+    <complexType>
+        <complexContent>
+          <restriction base="string">
+              <attribute name="code" use="required" type="normalizedString"/>
+              <attribute name="level" use="required" type="token"/>
+              <attribute name="module" type="normalizedString"/>
+              <attribute name="line" type="integer"/>
+              <attribute name="args" type="NMTOKENS"/>
+          </restriction>
+        </complexContent>
+    </complexType>
+  </element>
+</schema>

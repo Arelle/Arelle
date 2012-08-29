@@ -175,7 +175,7 @@ elif sys.platform in ('linux2', 'sunos5'): # works on ubuntu with hand-built cx_
     dataFiles = None 
     options = dict( build_exe =  { 
         "include_files": [('arelle/config','config'), 
-                          ('arelle/images','doc'), 
+                          ('arelle/doc','doc'), 
                           ('arelle/images','images'), 
                           ('arelle/locale','locale'), 
                           ('arelle/examples','examples'), 
@@ -197,7 +197,7 @@ elif sys.platform == 'win32':
     packages = find_packages('.')
     dataFiles = None
     win32includeFiles = [('arelle\\config','config'),
-                         ('arelle\\images','doc'),
+                         ('arelle\\doc','doc'),
                          ('arelle\\images','images'),
                          ('arelle\\locale','locale'),
                          ('arelle\\examples','examples'),
