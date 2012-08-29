@@ -20,12 +20,15 @@ if __name__ == "__main__":
         for moduleFilename in os.listdir(arelleSrcDir):
             if moduleFilename.endswith(".py"):
                 numArelleSrcFiles += 1
-                with open(arelleSrcDir + os.sep + moduleFilename) as f:
+                fullFilenamePath = arelleSrcDir + os.sep + moduleFilename
+                refFilename = fullFilenamePath[len(arelleSrcPath)+1:].replace("\\","/")
+                with open(fullFilenamePath) as f:
                     tree = ast.parse(f.read(), filename=moduleFilename)
                     for item in ast.walk(tree):
                         try:
                             if (isinstance(item, ast.Call) and
-                                item.func.attr in ("info","warning","log","error","exception")):
+                                (getattr(item.func, "attr", '') or getattr(item.func, "id", '')) # imported function could be by id instead of attr
+                                in ("info","warning","log","error","exception")):
                                     funcName = item.func.attr
                                     iArgOffset = 0
                                     if funcName == "info":
@@ -37,13 +40,23 @@ if __name__ == "__main__":
                                     elif funcName == "exception":
                                         level = "exception"
                                     elif funcName == "log":
-                                        level = item.args[0].s.lower()
+                                        levelArg = item.args[0]
+                                        if isinstance(levelArg,ast.Str):
+                                            level = levelArg.s.lower()
+                                        else:
+                                            if any(isinstance(elt, (ast.Call, ast.Name))
+                                                   for elt in ast.walk(levelArg)):
+                                                level = "(dynamic)"
+                                            else:
+                                                level = ', '.join(elt.s.lower()
+                                                                  for elt in ast.walk(levelArg)
+                                                                  if isinstance(elt, ast.Str))
                                         iArgOffset = 1
                                     errCodeArg = item.args[0 + iArgOffset]  # str or tuple
                                     if isinstance(errCodeArg,ast.Str):
                                         errCodes = (errCodeArg.s,)
                                     else:
-                                        if any(isinstance(elt, ast.Call)
+                                        if any(isinstance(elt, (ast.Call, ast.Name))
                                                for elt in ast.walk(errCodeArg)):
                                             errCodes = ("(dynamic)",)
                                         else:
@@ -53,9 +66,9 @@ if __name__ == "__main__":
                                     msgArg = item.args[1 + iArgOffset]
                                     if isinstance(msgArg, ast.Str):
                                         msg = msgArg.s
-                                    elif isinstance(msgArg, ast.Call) and msgArg.func.id == '_':
+                                    elif isinstance(msgArg, ast.Call) and getattr(msgArg.func, "id", '') == '_':
                                         msg = msgArg.args[0].s
-                                    elif any(isinstance(elt, ast.Call)
+                                    elif any(isinstance(elt, (ast.Call,ast.Name))
                                              for elt in ast.walk(msgArg)):
                                         msg = "(dynamic)"
                                     else:
@@ -64,7 +77,7 @@ if __name__ == "__main__":
                                                 for keyword in item.keywords
                                                 if keyword.arg != 'modelObject']
                                     for errCode in errCodes:
-                                        idMsg.append((errCode, msg, level, keywords, moduleFilename, item.lineno))                                        
+                                        idMsg.append((errCode, msg, level, keywords, refFilename, item.lineno))                                        
                         except (AttributeError, IndexError):
                             pass
                     
@@ -88,7 +101,6 @@ if __name__ == "__main__":
 '''<?xml version="1.0" encoding="utf-8"?>
 <messages xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="messagesCatalog.xsd" >
 <!-- 
-
 This file contains Arelle messages text.   Each message has a code 
 that corresponds to the message code in the log file, level (severity), 
 args (available through log file), and message replacement text.
