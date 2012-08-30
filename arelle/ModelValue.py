@@ -348,4 +348,10 @@ class Time(datetime.time):
         time.hour24 = hour24
         return time
     
-        
+class InvalidValue(str):
+    def __new__(cls, value):
+        return str.__new__(cls, value)
+
+INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
+
+    

@@ -6,7 +6,7 @@ Created on Feb 20, 2011
 '''
 import os, re
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI
+from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI, INVALIDixVALUE
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
@@ -95,7 +95,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 modelXbrl.error("xmlValidation:valueError",
                     _("Element %(element)s error %(error)s value: %(value)s"),
                     modelObject=elt, element=elt.elementQname, error=str(err), value=elt.text)
-            text = ''
+            elt.sValue = elt.xValue = text = INVALIDixVALUE
+            elt.xValid = INVALID
         facets = None
         if modelConcept is not None:
             isNillable = modelConcept.isNillable
@@ -121,7 +122,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
             isNillable = False
         isNil = isNillable and elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
         if attrQname is None:
-            validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, facets)
+            if text is not INVALIDixVALUE:
+                validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, facets)
             if type is not None:
                 definedAttributes = type.attributes
             else:

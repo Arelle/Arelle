@@ -528,7 +528,11 @@ class ModelInlineFact(ModelFact):
             if f is not None:
                 if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
                     f.localName in FunctionIxt.ixtFunctions):
-                    v = FunctionIxt.ixtFunctions[f.localName](v)
+                    try:
+                        v = FunctionIxt.ixtFunctions[f.localName](v)
+                    except Exception as err:
+                        self._ixValue = ModelValue.INVALIDixVALUE
+                        raise err
             if self.localName == "nonNumeric" or self.localName == "tuple":
                 self._ixValue = v
             else:
