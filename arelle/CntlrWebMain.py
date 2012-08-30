@@ -21,8 +21,12 @@ def startWebserver(_cntlr, options):
     cntlr = _cntlr
     imagesDir = cntlr.imagesDir
     optionsNames = [option for option in dir(options) if not option.startswith('_')]
-    host, sep, port = options.webserver.partition(":")
-    run(host=host, port=port)
+    host, sep, portServer = options.webserver.partition(":")
+    port, sep, server = portServer.partition(":")
+    if server:
+        run(host=host, port=port, server=server)
+    else:
+        run(host=host, port=port)
     
 @get('/rest/login')
 def login_form():
@@ -87,13 +91,15 @@ def image(imgFile):
     return static_file(imgFile, root=imagesDir)
 
 validationOptions = {
-    "efm": "validateEFM",
-    "ifrs": "gfmName=ifrs",
-    "hmrc": "gfmName=hmrc",
-    "sbr-nl": "gfmName=sbr-nl",
-    "utr": "utrValidate",
-    "infoset": "infosetValidate",
-    "import": "importFiles"
+    # these options have no value (after + in query)
+    "efm": ("validateEFM", True),
+    "ifrs": ("gfmName", "ifrs"),
+    "hmrc": ("gfmName", "hmrc"),
+    "sbr-nl": ("gfmName", "sbr-nl"),
+    "utr": ("utrValidate", True),
+    "infoset": ("infosetValidate", True),
+    # these parameters pass through the value after + in query
+    "import": ("importFiles", None),
                      }
 
 class Options():
@@ -180,8 +186,8 @@ def validation(file=None):
         elif key in("media", "view"):
             pass
         elif key in validationOptions:
-            optionKey, sep, optionValue = validationOptions[key].partition('=')
-            setattr(options, optionKey, optionValue or True)
+            optionKey, optionValue = validationOptions[key]
+            setattr(options, optionKey, optionValue if optionValue is not None else value)
         elif not value: # convert plain str parameter present to True parameter
             setattr(options, key, True)
         else:

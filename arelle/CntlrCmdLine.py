@@ -188,7 +188,8 @@ def parseAndRun(args):
     parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
     if hasWebServer:
         parser.add_option("--webserver", action="store", dest="webserver",
-                          help=_("start web server on host:port for REST and web access, e.g., --webserver locahost:8080."))
+                          help=_("start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, "
+                                 "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy"))
     for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
     parser.add_option("-a", "--about",
