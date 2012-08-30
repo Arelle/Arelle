@@ -129,7 +129,7 @@ class ValidateXbrl:
                             modelObject=arcElt, linkrole=modelLink.role, xlinkShow=xlinkShow)
             # check from, to of arcs have a resource or loc
             for fromTo, arcElt in fromToArcs.items():
-                fromLabel, toLabel in fromTo
+                fromLabel, toLabel = fromTo
                 for name, value, sect in (("from", fromLabel, "3.5.3.9.2"),("to",toLabel, "3.5.3.9.3")):
                     if value not in locLabels and value not in resourceLabels:
                         modelXbrl.error("xbrl.{0}:arcResource".format(sect),
