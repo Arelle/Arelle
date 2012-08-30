@@ -5,6 +5,9 @@ Created on Dec 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import sys
+
+from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
+
 try: # installed for python 2.7 and clean packages, otherwise use tweaked version
     from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
@@ -888,6 +891,8 @@ def codeModule(code):
         ''.join(code)
 
 def parser_unit_test():
+    #initialize
+    xpathExpr.parseString( "0", parseAll=True )
 
     test1 = "3*7+5"
     test1a = "5+3*7"
@@ -1002,7 +1007,11 @@ def parser_unit_test():
     '''
     #tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
     tests = [test1, test1a, test1b, test2a, test2b, test3, test3a]
+    
+    log = []
     for test in (
+                 "concat('abc','def')",
+                 "a/b",
                  "123",
                  "0.005",
                  ".005",
@@ -1025,10 +1034,10 @@ def parser_unit_test():
             L=['Parse Failure',test,err]
         
         # show result of parsing the input string
-        if debug_flag: print (test, "->", L)
+        if debug_flag: log.append("{0}->{1}".format(test, L))
         if len(L)==0 or L[0] != 'Parse Failure':
             if debug_flag: 
-                print ("exprStack=", exprStack)
+                log.append("exprStack={0}".format(exprStack))
                 '''
                 code = []
                 compile(exprStack, code)
@@ -1047,11 +1056,15 @@ def parser_unit_test():
             if debug_flag: print ("variables=",variables)
             '''
         else:
-            print ('Parse Failure')
-            print (L[2].line)
-            print (" "*(L[2].column-1) + "^")
-            print (L[2])
+            log.append('Parse Failure')
+            log.append(L[2].line)
+            log.append(" "*(L[2].column-1) + "^")
+            log.append(L[2])
 
+    print ("see log in c:\\temp\\testLog.txt")
+    import io
+    with io.open("c:\\temp\\testLog.txt", 'wt', encoding='utf-8') as f:
+        f.write('\n'.join(str(l) for l in log))
 
 if __name__ == "__main__":
     parser_unit_test()

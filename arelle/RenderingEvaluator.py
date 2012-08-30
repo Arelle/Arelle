@@ -46,6 +46,11 @@ def init(modelXbrl):
         # validate parameters and custom function signatures
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
         
+        # check and extract message expressions into compilable programs
+        for msgArcrole in (XbrlConst.tableAxisMessage, XbrlConst.tableAxisSelectionMessage):
+            for msgRel in modelXbrl.relationshipSet(msgArcrole).modelRelationships:
+                ValidateFormula.checkMessageExpressions(modelXbrl, msgRel.toModelObject)
+                
         # compile and validate tables
         for modelTable in modelXbrl.modelRenderingTables:
             modelTable.fromInstanceQnames = None # required if referred to by variables scope chaining
@@ -64,10 +69,6 @@ def init(modelXbrl):
                 for tblAxisRel in modelXbrl.relationshipSet(XbrlConst.tableAxis).fromModelObject(modelTable):
                     checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects)
                 del modelTable.priorAspectAxisDisposition
-        # compile messages
-        for msgArcrole in (XbrlConst.tableAxisMessage, XbrlConst.tableAxisSelectionMessage):
-            for msgRel in modelXbrl.relationshipSet(msgArcrole).modelRelationships:
-                ValidateFormula.compileMessage(modelXbrl, msgRel.toModelObject)
     
         modelXbrl.profileStat(_("compileTables"))
 

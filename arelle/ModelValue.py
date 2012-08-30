@@ -68,7 +68,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         namespaceURI = XmlUtil.xmlns(element, prefix)
     if not namespaceURI:
         if prefix: 
-            if castException: raise castException
+            if prefixException: raise prefixException
             return None  # error, prefix not found
     if not namespaceURI:
         namespaceURI = None # cancel namespace if it is a zero length string

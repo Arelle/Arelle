@@ -1011,9 +1011,9 @@ def checkAxisRules(val, table, parent, arcrole, xpathContext):
 def checkValidationMessages(val, modelVariableSet):
     for msgRelationship in (XbrlConst.assertionSatisfiedMessage, XbrlConst.assertionUnsatisfiedMessage):
         for modelRel in val.modelXbrl.relationshipSet(msgRelationship).fromModelObject(modelVariableSet):
-            compileMessage(val, modelRel.toModelObject)
+            checkMessageExpressions(val, modelRel.toModelObject)
             
-def compileMessage(val, message):
+def checkMessageExpressions(val, message):
     if isinstance(message, ModelMessage) and not hasattr(message,"expressions"):
         formatString = []
         expressions = []

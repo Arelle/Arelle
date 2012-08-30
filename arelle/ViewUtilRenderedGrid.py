@@ -204,7 +204,7 @@ def analyzeCartesianProductHdrs(subOrdCntx, view, depth, axisDisposition, tblAxi
 def addRelationship(relAxisObj, rel, ordCntx, cartesianProductNestedArgs, selfOrdContexts=None):
     variableQname = relAxisObj.variableQname
     conceptQname = relAxisObj.conceptQname
-    coveredAspect = relAxisObj.coveredAspect()
+    coveredAspect = relAxisObj.coveredAspect(ordCntx)
     if not coveredAspect:
         return None
     if selfOrdContexts is not None:

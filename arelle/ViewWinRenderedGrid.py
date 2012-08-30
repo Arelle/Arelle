@@ -398,7 +398,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                     for aspect in matchableAspects) and
                                 all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
                                     for dim in cellDefaultedDims)):
-                                value = fact.effectiveValue
+                                if yOrdCntx.hasValueExpression(xOrdCntx):
+                                    value = yOrdCntx.evalValueExpression(fact, xOrdCntx)
+                                else:
+                                    value = fact.effectiveValue
                                 objectId = fact.objectId()
                                 justify = "right" if fact.isNumeric else "left"
                                 break
