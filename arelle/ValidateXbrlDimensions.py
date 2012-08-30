@@ -292,8 +292,8 @@ def checkContext(val, cntx):
                 if problem:
                     val.modelXbrl.error("xbrldie:IllegalTypedDimensionContentError",
                         _("Context %(contextID)s typed dimension %(dimension)s has %(error)s"),
-                        modelObject=modelDimValue, contextID=cntx.id, 
-                        dimension=modelDimValue.dimensionQname, error=problem)
+                        modelObject=[modelDimValue] + [f for f in val.modelXbrl.facts if f.context == cntx] , 
+                        contextID=cntx.id, dimension=modelDimValue.dimensionQname, error=problem)
 
     for modelDimValue in cntx.errorDimValues:
         dimensionConcept = modelDimValue.dimension
