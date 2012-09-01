@@ -536,7 +536,7 @@ def produceOutputFact(xpCtx, formula, result):
     isTuple = isinstance(formula,ModelTuple)
     
     # assemble context
-    conceptQname = aspectValue(xpCtx, formula, Aspect.CONCEPT, "xbrlfe:missingConceptRule")
+    conceptQname = formulaAspectValue(xpCtx, formula, Aspect.CONCEPT, "xbrlfe:missingConceptRule")
     if isinstance(conceptQname, VariableBindingError):
         xpCtx.modelXbrl.error(conceptQname.err,
            _("Formula %(xlinkLabel)s concept: %(concept)s"), 
@@ -549,25 +549,25 @@ def produceOutputFact(xpCtx, formula, result):
                _("Formula %(xlinkLabel)s concept %(concept)s is not a %(element)s"), 
                modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=conceptQname, element=formula.localName)
     
-    outputLocation = aspectValue(xpCtx, formula, Aspect.LOCATION_RULE, None)
+    outputLocation = formulaAspectValue(xpCtx, formula, Aspect.LOCATION_RULE, None)
 
     if not isTuple: 
         # entity
-        entityIdentScheme = aspectValue(xpCtx, formula, Aspect.SCHEME, "xbrlfe:missingEntityIdentifierRule")
+        entityIdentScheme = formulaAspectValue(xpCtx, formula, Aspect.SCHEME, "xbrlfe:missingEntityIdentifierRule")
         if isinstance(entityIdentScheme, VariableBindingError):
             xpCtx.modelXbrl.error(str(entityIdentScheme),
                   _("Formula %(xlinkLabel)s entity identifier scheme: %(scheme)s"),
                   modelObject=formula, xlinkLabel=formula.xlinkLabel, scheme=entityIdentScheme.msg)
             entityIdentValue = None
         else:
-            entityIdentValue = aspectValue(xpCtx, formula, Aspect.VALUE, "xbrlfe:missingEntityIdentifierRule")
+            entityIdentValue = formulaAspectValue(xpCtx, formula, Aspect.VALUE, "xbrlfe:missingEntityIdentifierRule")
             if isinstance(entityIdentValue, VariableBindingError):
                 xpCtx.modelXbrl.error(str(entityIdentScheme),
                       _("Formula %(xlinkLabel)s entity identifier value: %(entityIdentifier)s"), 
                       modelObject=formula, xlinkLabel=formula.xlinkLabel, entityIdentifier=entityIdentValue.msg)
         
         # period
-        periodType = aspectValue(xpCtx, formula, Aspect.PERIOD_TYPE, "xbrlfe:missingPeriodRule")
+        periodType = formulaAspectValue(xpCtx, formula, Aspect.PERIOD_TYPE, "xbrlfe:missingPeriodRule")
         periodStart = None
         periodEndInstant = None
         if isinstance(periodType, VariableBindingError):
@@ -575,18 +575,18 @@ def produceOutputFact(xpCtx, formula, result):
                    _("Formula %(xlinkLabel)s period type: %(periodType)s"),
                    modelObject=formula, xlinkLabel=formula.xlinkLabel, periodType=periodType.msg)
         elif periodType == "instant":
-            periodEndInstant = aspectValue(xpCtx, formula, Aspect.INSTANT, "xbrlfe:missingPeriodRule")
+            periodEndInstant = formulaAspectValue(xpCtx, formula, Aspect.INSTANT, "xbrlfe:missingPeriodRule")
             if isinstance(periodEndInstant, VariableBindingError):
                 xpCtx.modelXbrl.error(str(periodEndInstant),
                    _("Formula %(xlinkLabel)s period end: %(period)s"), 
                    modelObject=formula, xlinkLabel=formula.xlinkLabel, period=periodEndInstant.msg)
         elif periodType == "duration":
-            periodStart = aspectValue(xpCtx, formula, Aspect.START, "xbrlfe:missingPeriodRule")
+            periodStart = formulaAspectValue(xpCtx, formula, Aspect.START, "xbrlfe:missingPeriodRule")
             if isinstance(periodStart, VariableBindingError):
                 xpCtx.modelXbrl.error(str(periodStart),
                    _("Formula %(xlinkLabel)s period start: %(period)s"), 
                    modelObject=formula, xlinkLabel=formula.xlinkLabel, period=periodStart.msg)
-            periodEndInstant = aspectValue(xpCtx, formula, Aspect.END, "xbrlfe:missingPeriodRule")
+            periodEndInstant = formulaAspectValue(xpCtx, formula, Aspect.END, "xbrlfe:missingPeriodRule")
             if isinstance(periodEndInstant, VariableBindingError):
                 xpCtx.modelXbrl.error(str(periodEndInstant),
                    _("Formula %(xlinkLabel)s period end: %(period)s"),
@@ -594,15 +594,15 @@ def produceOutputFact(xpCtx, formula, result):
             
         # unit
         if modelConcept is not None and modelConcept.isNumeric:
-            unitSource = aspectValue(xpCtx, formula, Aspect.UNIT_MEASURES, None)
-            multDivBy = aspectValue(xpCtx, formula, Aspect.MULTIPLY_BY, "xbrlfe:missingUnitRule")
+            unitSource = formulaAspectValue(xpCtx, formula, Aspect.UNIT_MEASURES, None)
+            multDivBy = formulaAspectValue(xpCtx, formula, Aspect.MULTIPLY_BY, "xbrlfe:missingUnitRule")
             if isinstance(multDivBy, VariableBindingError):
                 xpCtx.modelXbrl.error(str(multDivBy) if isinstance(multDivBy, VariableBindingError) else "xbrlfe:missingUnitRule",
                    _("Formula %(xlinkLabel)s unit: %(unit)s"),
                    modelObject=formula, xlinkLabel=formula.xlinkLabel, unit=multDivBy.msg)
                 multiplyBy = (); divideBy = () # prevent errors later if bad
             else:
-                divMultBy = aspectValue(xpCtx, formula, Aspect.DIVIDE_BY, "xbrlfe:missingUnitRule")
+                divMultBy = formulaAspectValue(xpCtx, formula, Aspect.DIVIDE_BY, "xbrlfe:missingUnitRule")
                 if isinstance(divMultBy, VariableBindingError):
                     xpCtx.modelXbrl.error(str(multDivBy) if isinstance(divMultBy, VariableBindingError) else "xbrlfe:missingUnitRule",
                        _("Formula %(xlinkLabel)s unit: %(unit)s"), 
@@ -630,12 +630,12 @@ def produceOutputFact(xpCtx, formula, result):
         scenOCCs = []
         if formula.aspectModel == "dimensional":
             dimAspects = {}
-            dimQnames = aspectValue(xpCtx, formula, Aspect.DIMENSIONS, None)
+            dimQnames = formulaAspectValue(xpCtx, formula, Aspect.DIMENSIONS, None)
             if dimQnames:
                 for dimQname in dimQnames:
                     dimConcept = xpCtx.modelXbrl.qnameConcepts[dimQname]
                     dimErr = "xbrlfe:missing{0}DimensionRule".format("typed" if dimConcept is not None and dimConcept.isTypedDimension else "explicit")
-                    dimValue = aspectValue(xpCtx, formula, dimQname, dimErr)
+                    dimValue = formulaAspectValue(xpCtx, formula, dimQname, dimErr)
                     if isinstance(dimValue, VariableBindingError):
                         xpCtx.modelXbrl.error(dimErr,
                            _("Formula %(xlinkLabel)s dimension %(dimension)s: %(value)s"),
@@ -653,8 +653,8 @@ def produceOutputFact(xpCtx, formula, result):
                         dimAspects[dimQname] = dimValue
                     elif dimValue is not None and xpCtx.modelXbrl.qnameDimensionDefaults.get(dimQname) != dimValue:
                         dimAspects[dimQname] = dimValue
-            segOCCs = aspectValue(xpCtx, formula, Aspect.NON_XDT_SEGMENT, None)
-            scenOCCs = aspectValue(xpCtx, formula, Aspect.NON_XDT_SCENARIO, None)
+            segOCCs = formulaAspectValue(xpCtx, formula, Aspect.NON_XDT_SEGMENT, None)
+            scenOCCs = formulaAspectValue(xpCtx, formula, Aspect.NON_XDT_SCENARIO, None)
             for occElt in xpCtx.flattenSequence((segOCCs, scenOCCs)):
                 if isinstance(occElt, ModelObject) and occElt.namespaceURI == XbrlConst.xbrldi:
                     xpCtx.modelXbrl.error("xbrlfe:badSubsequentOCCValue",
@@ -663,8 +663,8 @@ def produceOutputFact(xpCtx, formula, result):
                        occ=occElt.elementQname)
         else:
             dimAspects = None   # non-dimensional
-            segOCCs = aspectValue(xpCtx, formula, Aspect.COMPLETE_SEGMENT, None)
-            scenOCCs = aspectValue(xpCtx, formula, Aspect.COMPLETE_SCENARIO, None)
+            segOCCs = formulaAspectValue(xpCtx, formula, Aspect.COMPLETE_SEGMENT, None)
+            scenOCCs = formulaAspectValue(xpCtx, formula, Aspect.COMPLETE_SCENARIO, None)
                     
     if priorErrorCount < len(xpCtx.modelXbrl.errors):
         return None # had errors, don't produce output fact
@@ -768,7 +768,7 @@ def produceOutputFact(xpCtx, formula, result):
             xpCtx.outputFirstFact[outputInstanceQname] = newFact
     return newFact
 
-def aspectValue(xpCtx, formula, aspect, srcMissingErr):
+def formulaAspectValue(xpCtx, formula, aspect, srcMissingErr):
     ruleValue = formula.evaluateRule(xpCtx, aspect)
     
     if ruleValue is not None:
@@ -888,10 +888,13 @@ class VariableBindingError:
 xbrlfe_undefinedSAV = VariableBindingError("xbrlfe:undefinedSAV")
          
 class VariableBinding:
-    def __init__(self, xpCtx, varRel):
+    def __init__(self, xpCtx, varRel=None):
         self.xpCtx = xpCtx
-        self.qname = varRel.variableQname
-        self.var = varRel.toModelObject
+        if varRel is not None:
+            self.qname = varRel.variableQname
+            self.var = varRel.toModelObject
+        else:
+            self.qname = self.var = None
         self.aspectsDefined = set()
         self.aspectsCovered = set()
         self.isFactVar = isinstance(self.var, ModelFactVariable)
@@ -905,7 +908,8 @@ class VariableBinding:
         self.instances = ([inst
                            for qn in self.var.fromInstanceQnames 
                            for inst in xpCtx.flattenSequence(xpCtx.inScopeVars[qn])]
-                          if self.var.fromInstanceQnames else [xpCtx.modelXbrl])
+                          if self.var is not None and self.var.fromInstanceQnames 
+                          else [xpCtx.modelXbrl])
         
     def close(self):
         self.__dict__.clear() # dereference
@@ -1040,43 +1044,6 @@ class VariableBinding:
                 return set()
             else:
                 return None
-        if aspect == Aspect.LOCATION:
-            return self.yieldedFact.getparent()
-        elif aspect == Aspect.LOCATION_RULE:
-            return self.yieldedFact
-        elif aspect == Aspect.CONCEPT:
-            return self.yieldedFact.qname
-        elif self.yieldedFact.isTuple or self.yieldedFactContext is None:
-            return None     #subsequent aspects don't exist for tuples
-        elif aspect == Aspect.PERIOD:
-            return self.yieldedFactContext.period
-        elif aspect == Aspect.PERIOD_TYPE:
-            if self.yieldedFactContext.isInstantPeriod: return "instant"
-            elif self.yieldedFactContext.isStartEndPeriod: return "duration"
-            elif self.yieldedFactContext.isForeverPeriod: return "forever"
-            return None
-        elif aspect == Aspect.INSTANT:
-            return self.yieldedFactContext.instantDatetime
-        elif aspect == Aspect.START:
-            return self.yieldedFactContext.startDatetime
-        elif aspect == Aspect.END:
-            return self.yieldedFactContext.endDatetime
-        elif aspect == Aspect.ENTITY_IDENTIFIER:
-            return self.yieldedFactContext.entityIdentifierElement
-        elif aspect == Aspect.SCHEME:
-            return self.yieldedFactContext.entityIdentifier[0]
-        elif aspect == Aspect.VALUE:
-            return self.yieldedFactContext.entityIdentifier[1]
-        elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO,
-                        Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
-            return self.yieldedFactContext.nonDimValues(aspect)
-        elif aspect == Aspect.UNIT and self.yieldedFact.unit is not None:
-            return self.yieldedFact.unit
-        elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
-            return self.yieldedFact.unit.measures
-        elif aspect == Aspect.DIMENSIONS:
-            return self.yieldedFactContext.dimAspects(self.xpCtx.defaultDimensionAspects)
-        elif isinstance(aspect, QName):
-            return self.yieldedFact.context.dimValue(aspect)
-        return None
+        return self.yieldedFact.aspectValue(aspect) 
+     
     

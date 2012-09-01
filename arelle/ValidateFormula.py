@@ -58,6 +58,9 @@ arcroleChecks = {
     XbrlConst.tableAxisSubtree:     (XbrlConst.qnTablePredefinedAxis, 
                                      XbrlConst.qnTablePredefinedAxis, 
                                      "xbrlte:info"),
+    XbrlConst.tableAxisSubtree2011:     (XbrlConst.qnTablePredefinedAxis, 
+                                     XbrlConst.qnTablePredefinedAxis, 
+                                     "xbrlte:info"),
     XbrlConst.tableAxisFilter:      (XbrlConst.qnTableFilterAxis, 
                                      XbrlConst.qnVariableFilter, 
                                      "xbrlte:info"),
@@ -271,6 +274,22 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     val.modelXbrl.profileActivity("... parameter checks and select evaluation", minTimeToShow=1.0)
     
     val.modelXbrl.profileStat(_("parametersProcessing"))
+
+    # check typed dimension equality test
+    val.modelXbrl.modelFormulaEqualityDefinitions = {}
+    for modelRel in val.modelXbrl.relationshipSet(XbrlConst.equalityDefinition).modelRelationships:
+        typedDomainElt = modelRel.fromModelObject
+        modelEqualityDefinition = modelRel.toModelObject
+        if typedDomainElt in val.modelXbrl.modelFormulaEqualityDefinitions:
+            val.modelXbrl.error("xbrlve:multipleTypedDimensionEqualityDefinitions",
+                _("Multiple typed domain definitions from %(typedDomain)s to %(equalityDefinition1)s and %(equalityDefinition2)s"),
+                 modelObject=modelRel.arcElement, typedDomain=typedDomainElt.qname,
+                 equalityDefinition1=modelEqualityDefinition.xlinkLabel,
+                 equalityDefinition2=val.modelXbrl.modelFormulaEqualityDefinitions[typedDomainElt].xlinkLabel)
+        else:
+            modelEqualityDefinition.compile()
+            val.modelXbrl.modelFormulaEqualityDefinitions[typedDomainElt] = modelEqualityDefinition
+            
     if parametersOnly:
         return
 
@@ -473,21 +492,6 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             precondition = modelRel.toModelObject
             if isinstance(precondition, ModelPrecondition):
                 modelVariableSet.preconditions.append(precondition)
-                
-        # check typed dimension equality test
-        val.modelXbrl.modelFormulaEqualityDefinitions = {}
-        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.equalityDefinition).modelRelationships:
-            typedDomainElt = modelRel.fromModelObject
-            modelEqualityDefinition = modelRel.toModelObject
-            if typedDomainElt in val.modelXbrl.modelFormulaEqualityDefinitions:
-                val.modelXbrl.error("xbrlve:multipleTypedDimensionEqualityDefinitions",
-                    _("Multiple typed domain definitions from %(typedDomain)s to %(equalityDefinition1)s and %(equalityDefinition2)s"),
-                     modelObject=modelRel.arcElement, typedDomain=typedDomainElt.qname,
-                     equalityDefinition1=modelEqualityDefinition.xlinkLabel,
-                     equalityDefinition2=val.modelXbrl.modelFormulaEqualityDefinitions[typedDomainElt].xlinkLabel)
-            else:
-                modelEqualityDefinition.compile()
-                val.modelXbrl.modelFormulaEqualityDefinitions[typedDomainElt] = modelEqualityDefinition
                 
         # check for variable sets referencing fact or general variables
         for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(modelVariableSet):
@@ -1005,8 +1009,7 @@ def checkAxisRules(val, table, parent, arcrole, xpathContext):
                                                _("%(axis)s rule %(xlinkLabel)s contains a %(qnameAttr)s QName %(qname)s which is not in the DTS."),
                                                modelObject=axis, axis=axis.localName.title(), xlinkLabel=axis.xlinkLabel, 
                                                qnameAttr=qnameAttr, qname=eltQname)
-                checkAxisRules(val, table, axis, XbrlConst.tableAxisSubtree, xpathContext)
-                    
+                checkAxisRules(val, table, axis, (XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), xpathContext)                    
 
 def checkValidationMessages(val, modelVariableSet):
     for msgRelationship in (XbrlConst.assertionSatisfiedMessage, XbrlConst.assertionUnsatisfiedMessage):

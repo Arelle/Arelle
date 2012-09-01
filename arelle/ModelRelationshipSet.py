@@ -75,6 +75,8 @@ class ModelRelationshipSet:
     __slots__ = ("isChanged", "modelXbrl", "arcrole", "linkrole", "linkqname", "arcqname",
                  "modelRelationshipsFrom", "modelRelationshipsTo", "modelConceptRoots", "modellinkRoleUris",
                  "modelRelationships", "_testHintedLabelLinkrole")
+    
+    # arcrole can either be a single string or a tuple or frozenset of strings
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         self.isChanged = False
         self.modelXbrl = modelXbrl
@@ -83,21 +85,24 @@ class ModelRelationshipSet:
         self.linkqname = linkqname
         self.arcqname = arcqname
 
-        baseSetKey = (arcrole, linkrole, linkqname, arcqname) 
         relationshipSetKey = (arcrole, linkrole, linkqname, arcqname, includeProhibits) 
             
         # base sets does not care about the #includeProhibits
-        if baseSetKey in self.modelXbrl.baseSets:
-            modelLinks = self.modelXbrl.baseSets[baseSetKey]
-        else:
+        if not isinstance(arcrole,(tuple,frozenset)):
+            modelLinks = self.modelXbrl.baseSets.get((arcrole, linkrole, linkqname, arcqname), [])
+        else: # arcrole is a set of arcroles
             modelLinks = []
-        
+            for ar in arcrole:
+                modelLinks.extend(self.modelXbrl.baseSets.get((ar, linkrole, linkqname, arcqname), []))
+            
         # gather arcs
         relationships = {}
         isDimensionRel =  self.arcrole == "XBRL-dimensions" # all dimensional relationship arcroles
         isFormulaRel =  self.arcrole == "XBRL-formulae" # all formula relationship arcroles
         isTableRenderingRel = self.arcrole == "Table-rendering"
         isFootnoteRel =  self.arcrole == "XBRL-footnotes" # all footnote relationship arcroles
+        if not isinstance(arcrole,(tuple,frozenset)):
+            arcrole = (arcrole,)
         
         for modelLink in modelLinks:
             arcs = []
@@ -117,14 +122,13 @@ class ModelRelationshipSet:
                     elif isTableRenderingRel:
                         if XbrlConst.isTableRenderingArcrole(linkChildArcrole):
                             arcs.append(linkChild)
-                    elif arcrole == linkChildArcrole and \
-                         (arcqname is None or arcqname == linkChildQname) and \
-                         (linkqname is None or linkqname == linkEltQname):
+                    elif (linkChildArcrole in arcrole and 
+                          (arcqname is None or arcqname == linkChildQname) and 
+                          (linkqname is None or linkqname == linkEltQname)):
                         arcs.append(linkChild)
                         
             # build network
             for arcElement in arcs:
-                arcrole = arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
                 fromLabel = arcElement.get("{http://www.w3.org/1999/xlink}from")
                 toLabel = arcElement.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:

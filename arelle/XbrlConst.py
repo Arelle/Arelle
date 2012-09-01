@@ -260,7 +260,9 @@ table = "http://xbrl.org/2011/table"
 tableAxis = "http://xbrl.org/arcrole/2011/table-axis"
 tableFilter = "http://xbrl.org/arcrole/2011/table-filter"
 tableAxisSubtree = "http://xbrl.org/arcrole/2011/axis-subtree"
+tableAxisSubtree2011 = "http://xbrl.org/arcrole/2011/axis/axis-subtree"
 tableAxisFilter = "http://xbrl.org/arcrole/2011/axis-filter"
+tableAxisFilter2011 = "http://xbrl.org/arcrole/2011/axis/axis-filter"
 tableTupleContent = "http://xbrl.org/arcrole/2011/axis/tuple-content"
 tableAxisMessage = "http://xbrl.org/arcrole/2011/axis-message"
 tableAxisSelectionMessage = "http://xbrl.org/arcrole/2011/axis-selection-message"
@@ -472,8 +474,9 @@ def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
 def isTableRenderingArcrole(arcrole):
-    return arcrole in (euTableAxis, euAxisMember, 
-                       tableAxis, tableFilter, tableAxisSubtree, tableAxisFilter, tableTupleContent)
+    return arcrole in {euTableAxis, euAxisMember, 
+                       tableAxis, tableFilter, tableAxisSubtree, tableAxisFilter, tableTupleContent,
+                       tableAxisSubtree2011, tableAxisFilter2011}
    
 def isFormulaArcrole(arcrole):
     return arcrole in {"http://xbrl.org/arcrole/2008/assertion-set",

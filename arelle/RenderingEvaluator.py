@@ -100,7 +100,7 @@ def checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects):
                 _("DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model"),
                 modelObject=(modelTable,tblAxis), xlinkLabel=tblAxis.xlinkLabel)
     axisOrdinateHasChild = False
-    for axisSubtreeRel in modelXbrl.relationshipSet(XbrlConst.tableAxisSubtree).fromModelObject(tblAxis):
+    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree, XbrlConst.tableAxisSubtree2011)).fromModelObject(tblAxis):
         checkAxisAspectModel(modelXbrl, modelTable, axisSubtreeRel, uncoverableAspects)
         axisOrdinateHasChild = True
     if not axisOrdinateHasChild and not hasCoveredAspect:

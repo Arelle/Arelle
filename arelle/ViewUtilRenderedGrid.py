@@ -10,8 +10,9 @@ from tkinter import BooleanVar
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelObject import ModelObject
 from arelle.ModelRenderingObject import (ModelEuAxisCoord, ModelOpenAxis, ModelPredefinedAxis,
-                                         ModelRelationshipAxis, ModelSelectionAxis,
+                                         ModelRelationshipAxis, ModelSelectionAxis, ModelFilterAxis,
                                          OrdinateContext)
+from arelle.ModelValue import QName
 
 def setDefaults(view):
     view.ignoreDimValidity = BooleanVar(value=True)
@@ -24,7 +25,7 @@ def getTblAxes(view, viewTblELR):
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
         tblAxisRelSet = view.modelXbrl.relationshipSet(XbrlConst.tableAxis, viewTblELR)
-        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.tableAxisSubtree, viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(view.arcrole))
         return (None, None, None, None)
@@ -171,6 +172,28 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, i=None, tblAx
                                 analyzeHdrs(view, subOrdCntx, axisObject, depth, axisDisposition) #recurse
                     else:
                         ordCntx.variables[varQn] = selections
+            elif isinstance(axisObject, ModelFilterAxis):
+                hasMessage = ordCntx.header(evaluate=False, returnGenLabel=False)
+                facts = view.modelXbrl.factsInInstance
+                facts = ordCntx.evaluate(axisObject, axisObject.filterFacts, evalArgs=(facts,)) or []
+                aspectValues = set(frozenset((aspect, fact.aspectValue(aspect))
+                                             for aspect in axisObject.aspectsCovered())
+                                   for fact in facts)
+                for aspectValueSet in sorted(aspectValues):
+                    subOrdCntx = OrdinateContext(ordCntx, axisObject)
+                    subOrdCntx.aspects.update(aspectValueSet)
+                    if any(isinstance(aspect,QName) for aspect, value in aspectValueSet):
+                        subOrdCntx.aspects[Aspect.DIMENSIONS] = set(aspect 
+                                                                    for aspect, value in aspectValueSet
+                                                                    if isinstance(aspect,QName))
+                    subOrdCntx.indent = 0
+                    if hasMessage: # need context item for header code
+                        for fact in facts:
+                            if all(fact.aspectValue(aspect) == value for aspect, value in aspectValueSet):
+                                subOrdCntx.variables["."] = fact
+                                break
+                    ordCntx.subOrdinateContexts.append(subOrdCntx)
+                    analyzeHdrs(view, subOrdCntx, axisObject, depth, axisDisposition) #recurse
 
             if axisDisposition == "z":
                 if ordCntx.choiceOrdinateContexts:

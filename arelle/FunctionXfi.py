@@ -41,21 +41,21 @@ def instance(xc, p, args, i=0):
         return xbrliXbrl.modelXbrl
     elif isinstance(xbrliXbrl, ModelXbrl):
         return xbrliXbrl
-    raise XPathContext.FunctionArgType(i+1,"xbrl:xbrl")
+    raise XPathContext.FunctionArgType(i,"xbrl:xbrl")
 
 def item(xc, args, i=0):
     if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:item")
     modelItem = xc.modelItem(args[i][0])
     if modelItem is not None: 
         return modelItem
-    raise XPathContext.FunctionArgType(i+1,"xbrl:item")
+    raise XPathContext.FunctionArgType(i,"xbrl:item")
 
 def tuple(xc, args, i=0):
     if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:tuple")
     modelTuple = args[i][0]
     if isinstance(modelTuple, (ModelFact, ModelInlineFact)) and modelTuple.isTuple:
         return modelTuple
-    raise XPathContext.FunctionArgType(i+1,"xbrl:tuple")
+    raise XPathContext.FunctionArgType(i,"xbrl:tuple")
 
 def item_context(xc, args, i=0):
     return item(xc, args, i).context

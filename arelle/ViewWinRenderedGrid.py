@@ -347,6 +347,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         return (nestedBottomRow, row)
     
     def bodyCells(self, row, yParentOrdCntx, xOrdCntxs, zAspects, yChildrenFirst):
+        rendrCntx = getattr(self.modelXbrl, "rendrCntx", None) # none for EU 2010 tables
         dimDefaults = self.modelXbrl.qnameDimensionDefaults
         for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
             if yChildrenFirst:
@@ -394,7 +395,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     fp = FactPrototype(self, cellAspectValues)
                     if conceptNotAbstract:
                         for fact in self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts:
-                            if (all(aspectMatches(None, fact, fp, aspect) 
+                            if (all(aspectMatches(rendrCntx, fact, fp, aspect) 
                                     for aspect in matchableAspects) and
                                 all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
                                     for dim in cellDefaultedDims)):

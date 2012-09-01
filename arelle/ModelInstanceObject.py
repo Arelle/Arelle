@@ -37,6 +37,7 @@ from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
 from math import isnan
 from arelle.ModelObject import ModelObject
+Aspect = None
 
 class NewFactItemOptions():
     """
@@ -403,6 +404,50 @@ class ModelFact(ModelObject):
         if unmatchedFactsStack is not None: 
             del unmatchedFactsStack[entryDepth:]
         return True
+    
+    def aspectValue(self, aspect):
+        if Aspect is None:
+            global Aspect
+            from arelle.ModelFormulaObject import Aspect
+        if aspect == Aspect.LOCATION:
+            return self.getparent()
+        elif aspect == Aspect.LOCATION_RULE:
+            return self
+        elif aspect == Aspect.CONCEPT:
+            return self.qname
+        elif self.isTuple or self.context is None:
+            return None     #subsequent aspects don't exist for tuples
+        elif aspect == Aspect.PERIOD:
+            return self. ontext.period
+        elif aspect == Aspect.PERIOD_TYPE:
+            if self.context.isInstantPeriod: return "instant"
+            elif self.context.isStartEndPeriod: return "duration"
+            elif self.context.isForeverPeriod: return "forever"
+            return None
+        elif aspect == Aspect.INSTANT:
+            return self.context.instantDatetime
+        elif aspect == Aspect.START:
+            return self.context.startDatetime
+        elif aspect == Aspect.END:
+            return self.context.endDatetime
+        elif aspect == Aspect.ENTITY_IDENTIFIER:
+            return self.context.entityIdentifierElement
+        elif aspect == Aspect.SCHEME:
+            return self.context.entityIdentifier[0]
+        elif aspect == Aspect.VALUE:
+            return self.context.entityIdentifier[1]
+        elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO,
+                        Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
+            return self.context.nonDimValues(aspect)
+        elif aspect == Aspect.UNIT and self.unit is not None:
+            return self.unit
+        elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
+            return self.unit.measures
+        elif aspect == Aspect.DIMENSIONS:
+            return self.context.dimAspects(self.xpCtx.defaultDimensionAspects)
+        elif isinstance(aspect, ModelValue.QName):
+            return self.context.dimValue(aspect)
+        return None
 
     @property
     def propertyView(self):

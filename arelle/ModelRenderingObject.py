@@ -10,6 +10,7 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelValue import qname, QName
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
                                        Aspect)
+from arelle.FormulaEvaluator import filterFacts as formulaEvaluatorFilterFacts, VariableBinding
 
 def ordObjects(ords):
     return [(ord.axisObject if isinstance(ord, OrdinateContext) else ord) for ord in ords]
@@ -88,7 +89,7 @@ class OrdinateContext:
     def objectId(self, refId=""):
         return self._axisObject.objectId(refId)
         
-    def header(self, role=None, lang=None, evaluate=True):
+    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True):
         # if ord is a nested selectionAxis selection, use selection-message or text contents instead of axis headers
         isSelection = isinstance(self._axisObject, ModelSelectionAxis) and hasattr(self, "indent")
         if role is None:
@@ -104,7 +105,9 @@ class OrdinateContext:
                         return XmlUtil.text(msg)
         if isSelection: # no message, return text of selection
             return self.variables.get(self._axisObject.variableQname, "selection")
-        return self._axisObject.genLabel(role=role, lang=lang)
+        if returnGenLabel:
+            return self._axisObject.genLabel(role=role, lang=lang)
+        return None
     
     def evaluate(self, evalObject, evalMethod, xc=None, otherOrdinate=None, evalArgs=()):
         if xc is None: xc = self.axisObject.modelXbrl.rendrCntx
@@ -126,7 +129,12 @@ class OrdinateContext:
             result = self.zInheritance.evaluate(evalObject, evalMethod, xc, None, evalArgs)
         else:
             try:
+                if "." in xc.inScopeVars:  # may need context item such as for filter axis headers
+                    previousContextItem = xc.contextItem
+                    xc.contextItem = xc.inScopeVars["."]
                 result = evalMethod(xc, *evalArgs)
+                if "." in xc.inScopeVars:
+                    xc.contextItem = previousContextItem
             except XPathContext.XPathException as err:
                 xc.modelXbrl.error(err.code,
                          _("%(element)s set %(xlinkLabel)s \nException: %(error)s"), 
@@ -441,7 +449,7 @@ class ModelPredefinedAxis(ModelOpenAxis):
 
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableAxisSubtree, XbrlConst.tableAxisMessage)
+        return (XbrlConst.tableAxisSubtree, XbrlConst.tableAxisSubtree2011, XbrlConst.tableAxisMessage)
     
 class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def init(self, modelDocument):
@@ -916,6 +924,10 @@ class ModelFilterAxis(ModelOpenAxis):
     def aspectValue(self, aspect, inherit=None):
         # does not apply to filter, value can only come from a bound fact
         return None
+    
+    def filterFacts(self, xpCtx, facts):
+        return formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx), 
+                                           facts, self.filterRelationships, None)
 
 class ModelTupleAxis(ModelOpenAxis):
     def init(self, modelDocument):
