@@ -17,6 +17,14 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
             self.isTuple = self.concept is not None and self.concept.isTuple
         else:
             self.isTuple = False # don't block aspectMatches
+        if Aspect.LOCATION in aspectValues:
+            self.parent = aspectValues[Aspect.LOCATION]
+            try:
+                self.isTuple = self.parent.isTuple
+            except AttributeError:
+                self.isTuple = False
+        else:
+            self.parent = v.modelXbrl.modelDocument.xmlRootElement
         self.context = ContextPrototype(v, aspectValues)
         self.factObjectId = None
 
@@ -27,6 +35,9 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         
     def objectId(self):
         return "_factPrototype_" + str(self.qname)
+    
+    def getparent(self):
+        return self.parent
     
     @property
     def propertyView(self):

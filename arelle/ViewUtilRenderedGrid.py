@@ -10,7 +10,7 @@ from tkinter import BooleanVar
 from arelle.ModelObject import ModelObject
 from arelle.ModelRenderingObject import (ModelEuAxisCoord, ModelOpenAxis, ModelPredefinedAxis,
                                          ModelRelationshipAxis, ModelSelectionAxis, ModelFilterAxis,
-                                         ModelCompositionAxis, OrdinateContext)
+                                         ModelCompositionAxis, ModelTupleAxis, OrdinateContext)
 
 def setDefaults(view):
     view.ignoreDimValidity = BooleanVar(value=True)
@@ -82,6 +82,7 @@ def getTblAxes(view, viewTblELR):
         #    view.gridView.rowconfigure(i)
         #for i in range(view.dataFirstCol + view.dataCols):
         #    view.gridView.columnconfigure(i)
+        view.modelTable = table
         
         return (tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx)
     
@@ -191,6 +192,19 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                 ordCntx.subOrdinateContexts.sort(key=lambda subOrdCntx: subOrdCntx.header(lang=view.lang))
                 
                 # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent ordCntx 
+            elif isinstance(axisObject, ModelTupleAxis):
+                ordCntx.abstract = True # spanning ordinate acts as a subtitle
+                matchingTupleFacts = ordCntx.evaluate(axisObject, 
+                                                      axisObject.filteredFacts, 
+                                                      evalArgs=(facts,))
+                for tupleFact in matchingTupleFacts:
+                    subOrdCntx = OrdinateContext(ordCntx, axisObject, contextItemFact=tupleFact)
+                    subOrdCntx.indent = 0
+                    ordCntx.subOrdinateContexts.append(subOrdCntx)
+                    analyzeHdrs(view, subOrdCntx, axisObject, depth, axisDisposition, [tupleFact]) #recurse
+                # sort by header (which is likely to be typed dim value, for example)
+                if any(sOC.header(lang=view.lang) for sOC in ordCntx.subOrdinateContexts):
+                    ordCntx.subOrdinateContexts.sort(key=lambda subOrdCntx: subOrdCntx.header(lang=view.lang))
 
             if axisDisposition == "z":
                 if ordCntx.choiceOrdinateContexts:
@@ -292,9 +306,10 @@ emptySet = set()
 def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects):
     ords = xAspects.get(aspect, emptySet) | yAspects.get(aspect, emptySet) | zAspects.get(aspect, emptySet)
     if len(ords) > 1:
+        from arelle.ModelFormulaObject import aspectStr
         view.modelXbrl.error("xbrlte:axisAspectClash",
             _("Aspect %(aspect)s covered by multiple axes."),
-            modelObject=ordObjects(ords), aspect=aspectStr(aspect))
+            modelObject=view.modelTable, aspect=aspectStr(aspect))
     if ords:
         return ords.pop().aspectValue(aspect)
     return None 

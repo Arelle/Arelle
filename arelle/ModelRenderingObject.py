@@ -82,6 +82,10 @@ class OrdinateContext:
             elif isinstance(self._axisObject, ModelFilterAxis):
                 if self.contextItemBinding:
                     return self.contextItemBinding.aspectValue(aspect)
+            elif isinstance(self._axisObject, ModelTupleAxis):
+                if aspect == Aspect.LOCATION and self.contextItemBinding:
+                    return self.contextItemBinding.yieldedFact
+                # non-location tuple aspects don't leak into cell bindings
             else:
                 return self.axisObject.aspectValue(aspect)
         elif inherit and self.parentOrdinateContext is not None:
@@ -543,6 +547,40 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def __repr__(self):
         return ("explicitAxisMember[{0}]{1})".format(self.objectId(),self.propertyView))
 
+class ModelTupleAxis(ModelRuleAxis):
+    def init(self, modelDocument):
+        super(ModelTupleAxis, self).init(modelDocument)
+        
+    @property
+    def descendantArcroles(self):        
+        return (XbrlConst.tableTupleContent, XbrlConst.tableAxisMessage)
+        
+    @property
+    def contentRelationships(self):
+        return self.modelXbrl.relationshipSet(XbrlConst.tableTupleContent).fromModelObject(self)
+        
+    def hasAspect(self, aspect, inherit=None):
+        return aspect == Aspect.LOCATION # non-location aspects aren't leaked to ordinate for Tuple or self.hasRule(aspect)
+    
+    def aspectValue(self, aspect, inherit=None):
+        return self.evaluateRule(self.modelXbrl.rendrCntx, aspect)
+    
+    def aspectsCovered(self):
+        return {Aspect.LOCATION}  # tuple's aspects don't leak to ordinates
+    
+    def tupleAspectsCovered(self):
+        return _DICT_SET(self.aspectValues.keys()) | _DICT_SET(self.aspectProgs.keys()) | {Aspect.LOCATION}
+    
+    def filteredFacts(self, xpCtx, facts):
+        aspects = self.aspectsCovered()
+        axisAspectValues = dict((aspect, self.tupleAspectsCovered(aspect))
+                                for aspect in aspects
+                                if aspect != Aspect.LOCATION)  # location determined by ordCntx, not axis
+        fp = FactPrototype(self, axisAspectValues)
+        return [fact
+                for fact in facts
+                if fact.isTuple and aspectsMatch(xpCtx, fact, fp, aspects)]
+
 class ModelCompositionAxis(ModelPredefinedAxis):
     def init(self, modelDocument):
         super(ModelCompositionAxis, self).init(modelDocument)
@@ -969,18 +1007,6 @@ class ModelFilterAxis(ModelOpenAxis):
         
         
 
-class ModelTupleAxis(ModelOpenAxis):
-    def init(self, modelDocument):
-        super(ModelTupleAxis, self).init(modelDocument)
-        
-    @property
-    def descendantArcroles(self):        
-        return (XbrlConst.tableTupleContent, XbrlConst.tableAxisMessage)
-        
-    @property
-    def contentRelationships(self):
-        return self.modelXbrl.relationshipSet(XbrlConst.tableTupleContent).fromModelObject(self)
-        
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((
     (XbrlConst.qnEuTable, ModelEuTable),
