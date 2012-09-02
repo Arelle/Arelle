@@ -10,7 +10,7 @@ from tkinter import BooleanVar
 from arelle.ModelObject import ModelObject
 from arelle.ModelRenderingObject import (ModelEuAxisCoord, ModelOpenAxis, ModelPredefinedAxis,
                                          ModelRelationshipAxis, ModelSelectionAxis, ModelFilterAxis,
-                                         OrdinateContext)
+                                         ModelCompositionAxis, OrdinateContext)
 
 def setDefaults(view):
     view.ignoreDimValidity = BooleanVar(value=True)
@@ -133,30 +133,34 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                 if not view.rowHdrCodeCol:
                     if axisObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                         ordCntx.rowHdrCodeCol = True
-        if isinstance(axisObject, ModelRelationshipAxis):
-            selfOrdContexts = {} if axisObject.axis.endswith('-or-self') else None
-            for rel in axisObject.relationships(ordCntx):
-                if not isinstance(rel, list):
-                    relSubOrdCntx = addRelationship(axisObject, rel, ordCntx, cartesianProductNestedArgs, selfOrdContexts)
-                else:
-                    addRelationships(axisObject, rel, relSubOrdCntx, cartesianProductNestedArgs)
-                
         hasSubtreeRels = False
         for axisSubtreeRel in view.axisSubtreeRelSet.fromModelObject(axisObject):
             hasSubtreeRels = True
             subtreeObj = axisSubtreeRel.toModelObject
-            subOrdCntx = OrdinateContext(ordCntx, subtreeObj)
+            if (isinstance(axisObject, ModelCompositionAxis) and
+                isinstance(subtreeObj, ModelRelationshipAxis)): # append list products to composititionAxes subObjCntxs
+                subOrdCntx = ordCntx
+            else:
+                subOrdCntx = OrdinateContext(ordCntx, subtreeObj) # others are nested ordCntx
+                if axisDisposition != "z":
+                    ordCntx.subOrdinateContexts.append(subOrdCntx)
             if axisDisposition != "z":
-                ordCntx.subOrdinateContexts.append(subOrdCntx)
                 analyzeHdrs(view, subOrdCntx, subtreeObj, depth+ordDepth, axisDisposition, facts) #recurse
+                analyzeCartesianProductHdrs(subOrdCntx, *cartesianProductNestedArgs)
             else:
                 subOrdCntx.indent = depth - 1
                 ordCntx.choiceOrdinateContexts.append(subOrdCntx)
                 analyzeHdrs(view, ordCntx, subtreeObj, depth + 1, axisDisposition, facts) #recurse
-            if axisDisposition != "z":
-                analyzeCartesianProductHdrs(subOrdCntx, *cartesianProductNestedArgs)
         if not hasattr(ordCntx, "indent"): # probably also for multiple open axes
-            if isinstance(axisObject, ModelSelectionAxis):
+            if isinstance(axisObject, ModelRelationshipAxis):
+                selfOrdContexts = {} if axisObject.axis.endswith('-or-self') else None
+                for rel in axisObject.relationships(ordCntx):
+                    if not isinstance(rel, list):
+                        relSubOrdCntx = addRelationship(axisObject, rel, ordCntx, cartesianProductNestedArgs, selfOrdContexts)
+                    else:
+                        addRelationships(axisObject, rel, relSubOrdCntx, cartesianProductNestedArgs)
+                    
+            elif isinstance(axisObject, ModelSelectionAxis):
                 varQn = axisObject.variableQname
                 if varQn:
                     selections = sorted(ordCntx.evaluate(axisObject, axisObject.evaluate) or [], 
@@ -197,7 +201,7 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                         ordCntx.choiceOrdinateIndex = 0
                 view.zmostOrdCntx = ordCntx
                     
-            if not hasSubtreeRels:
+            if not hasSubtreeRels or axisDisposition == "z":
                 analyzeCartesianProductHdrs(ordCntx, *cartesianProductNestedArgs)
                     
             if not ordCntx.subOrdinateContexts: # childless root ordinate, make a child to iterate in producing table

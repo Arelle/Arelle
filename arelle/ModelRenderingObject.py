@@ -547,6 +547,10 @@ class ModelCompositionAxis(ModelPredefinedAxis):
     def init(self, modelDocument):
         super(ModelCompositionAxis, self).init(modelDocument)
         
+    @property
+    def abstract(self):  # always abstract, no filters, no data
+        return 'true'
+
 class ModelRelationshipAxis(ModelPredefinedAxis):
     def init(self, modelDocument):
         super(ModelRelationshipAxis, self).init(modelDocument)
