@@ -509,6 +509,19 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                 # else if both are None, matches True for single and multiple instance
     return True
 
+def factsPartitions(xpCtx, facts, aspects):
+    factsPartitions = []
+    for fact in facts:
+        matched = False
+        for partition in factsPartitions:
+            if aspectsMatch(xpCtx, fact, partition[0], aspects):
+                partition.append(fact)
+                matched = True
+                break
+        if not matched:
+            factsPartitions.append([fact,])
+    return factsPartitions
+
 def evaluationIsUnnecessary(thisEval, otherEvalHashDicts, otherEvals):
     if otherEvals:
         if all(e is None for e in thisEval):
@@ -888,7 +901,7 @@ class VariableBindingError:
 xbrlfe_undefinedSAV = VariableBindingError("xbrlfe:undefinedSAV")
          
 class VariableBinding:
-    def __init__(self, xpCtx, varRel=None):
+    def __init__(self, xpCtx, varRel=None, boundFact=None):
         self.xpCtx = xpCtx
         if varRel is not None:
             self.qname = varRel.variableQname
@@ -902,7 +915,7 @@ class VariableBinding:
         self.isParameter = isinstance(self.var, ModelParameter)
         self.isFormulaResult = isinstance(self.var, ModelFormula)
         self.isBindAsSequence = self.var.bindAsSequence == "true" if isinstance(self.var,ModelVariable) else False
-        self.yieldedFact = None
+        self.yieldedFact = boundFact
         self.yieldedFactResult = None
         self.isFallback = False
         self.instances = ([inst
@@ -925,19 +938,6 @@ class VariableBinding:
         elif isinstance(self.var, ModelValueAssertion): return _("ValueAssertion")
         elif isinstance(self.var, ModelExistenceAssertion): return _("ExistenceAssertion")
         
-    def factsPartitions(self, aspects):
-        factsPartitions = []
-        for fact in self.facts:
-            matched = False
-            for partition in factsPartitions:
-                if aspectsMatch(self.xpCtx, fact, partition[0], aspects):
-                    partition.append(fact)
-                    matched = True
-                    break
-            if not matched:
-                factsPartitions.append([fact,])
-        return factsPartitions
- 
     def matchesSubPartitions(self, partition, aspects):
         if self.var.matches == "true":
             return [partition]
@@ -962,7 +962,7 @@ class VariableBinding:
     def evaluationResults(self):
         if self.isFactVar:
             if self.isBindAsSequence and self.facts:
-                for factsPartition in self.factsPartitions(self.aspectsDefined - self.aspectsCovered):
+                for factsPartition in factsPartitions(self.xpCtx, self.facts, self.aspectsDefined - self.aspectsCovered):
                     for matchesSubPartition in self.matchesSubPartitions(factsPartition, self.aspectsDefined):
                         self.yieldedFact = matchesSubPartition[0]
                         self.yieldedFactContext = self.yieldedFact.context
@@ -1039,11 +1039,51 @@ class VariableBinding:
         return aspect in self.aspectsDefined
     
     def aspectValue(self, aspect):
-        if self.yieldedFact is None:
+        fact = self.yieldedFact
+        if fact is None:
             if aspect == Aspect.DIMENSIONS:
                 return set()
             else:
                 return None
-        return self.yieldedFact.aspectValue(aspect) 
+        if aspect == Aspect.LOCATION:
+            return fact.getparent()
+        elif aspect == Aspect.LOCATION_RULE:
+            return fact
+        elif aspect == Aspect.CONCEPT:
+            return fact.qname
+        elif fact.isTuple or fact.context is None:
+            return None     #subsequent aspects don't exist for tuples
+        elif aspect == Aspect.PERIOD:
+            return fact.context.period
+        elif aspect == Aspect.PERIOD_TYPE:
+            if fact.context.isInstantPeriod: return "instant"
+            elif fact.context.isStartEndPeriod: return "duration"
+            elif fact.context.isForeverPeriod: return "forever"
+            return None
+        elif aspect == Aspect.INSTANT:
+            return fact.context.instantDatetime
+        elif aspect == Aspect.START:
+            return fact.context.startDatetime
+        elif aspect == Aspect.END:
+            return fact.context.endDatetime
+        elif aspect == Aspect.ENTITY_IDENTIFIER:
+            return fact.context.entityIdentifierElement
+        elif aspect == Aspect.SCHEME:
+            return fact.context.entityIdentifier[0]
+        elif aspect == Aspect.VALUE:
+            return fact.context.entityIdentifier[1]
+        elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO,
+                        Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
+            return fact.context.nonDimValues(aspect)
+        elif aspect == Aspect.UNIT and fact.unit is not None:
+            return fact.unit
+        elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
+            return fact.unit.measures
+        elif aspect == Aspect.DIMENSIONS:
+            return fact.context.dimAspects(self.xpCtx.defaultDimensionAspects)
+        elif isinstance(aspect, QName):
+            return fact.context.dimValue(aspect)
+        return None
+
      
     

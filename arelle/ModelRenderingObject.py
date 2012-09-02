@@ -10,14 +10,17 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelValue import qname, QName
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
                                        Aspect)
-from arelle.FormulaEvaluator import filterFacts as formulaEvaluatorFilterFacts, VariableBinding
+from arelle.ModelInstanceObject import ModelFact
+from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts, 
+                                     aspectsMatch, factsPartitions, VariableBinding)
+from arelle.PrototypeInstanceObject import FactPrototype
 
 def ordObjects(ords):
     return [(ord.axisObject if isinstance(ord, OrdinateContext) else ord) for ord in ords]
 
 # table linkbase ordinate context for rendering
 class OrdinateContext:
-    def __init__(self, parentOrdinateContext, axisObject, zInheritance=None):
+    def __init__(self, parentOrdinateContext, axisObject, zInheritance=None, contextItemFact=None):
         self.parentOrdinateContext = parentOrdinateContext
         self._axisObject = axisObject
         self.variables = {}
@@ -25,11 +28,19 @@ class OrdinateContext:
         self.subOrdinateContexts = []
         self.choiceOrdinateContexts = []
         self.zInheritance = zInheritance
+        if contextItemFact is not None:
+            self.contextItemBinding = VariableBinding(self.axisObject.modelXbrl.rendrCntx,
+                                                      boundFact=contextItemFact)
+        else:
+            self.contextItemBinding = None
         
     @property
     def isAbstract(self):
         try:
-            return self.axisObject.abstract == "true"
+            try:
+                return self.abstract # ordinate may have an abstract attribute
+            except AttributeError: # if none use axis object
+                return self.axisObject.abstract == "true"
         except AttributeError: # axis may never be abstract
             return False
         
@@ -68,6 +79,9 @@ class OrdinateContext:
             if isinstance(self._axisObject, ModelSelectionAxis):
                 # result is in the indicated variable of ordCntx
                 return self.variables.get(self._axisObject.variableQname)
+            elif isinstance(self._axisObject, ModelFilterAxis):
+                if self.contextItemBinding:
+                    return self.contextItemBinding.aspectValue(aspect)
             else:
                 return self.axisObject.aspectValue(aspect)
         elif inherit and self.parentOrdinateContext is not None:
@@ -111,6 +125,11 @@ class OrdinateContext:
     
     def evaluate(self, evalObject, evalMethod, xc=None, otherOrdinate=None, evalArgs=()):
         if xc is None: xc = self.axisObject.modelXbrl.rendrCntx
+        if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
+            previousContextItem = xc.contextItem # xbrli.xbrl
+            xc.contextItem = self.contextItemBinding.yieldedFact
+        else:
+            previousContextItem = None
         if self.choiceOrdinateContexts and hasattr(self,"choiceOrdinateIndex"):
             variables = self.choiceOrdinateContexts[self.choiceOrdinateIndex].variables
         else:
@@ -129,12 +148,7 @@ class OrdinateContext:
             result = self.zInheritance.evaluate(evalObject, evalMethod, xc, None, evalArgs)
         else:
             try:
-                if "." in xc.inScopeVars:  # may need context item such as for filter axis headers
-                    previousContextItem = xc.contextItem
-                    xc.contextItem = xc.inScopeVars["."]
                 result = evalMethod(xc, *evalArgs)
-                if "." in xc.inScopeVars:
-                    xc.contextItem = previousContextItem
             except XPathContext.XPathException as err:
                 xc.modelXbrl.error(err.code,
                          _("%(element)s set %(xlinkLabel)s \nException: %(error)s"), 
@@ -143,6 +157,8 @@ class OrdinateContext:
                 result = ''
         for qn in removeVarQnames:
             xc.inScopeVars.pop(qn)
+        if previousContextItem is not None:
+            xc.contextItem = previousContextItem # xbrli.xbrl
         return result
     
     def hasValueExpression(self, otherOrdinate=None):
@@ -451,6 +467,15 @@ class ModelPredefinedAxis(ModelOpenAxis):
     def descendantArcroles(self):        
         return (XbrlConst.tableAxisSubtree, XbrlConst.tableAxisSubtree2011, XbrlConst.tableAxisMessage)
     
+    def filteredFacts(self, xpCtx, facts):
+        aspects = self.aspectsCovered()
+        axisAspectValues = dict((aspect, self.aspectValue(aspect))
+                                for aspect in aspects)
+        fp = FactPrototype(self, axisAspectValues)
+        return [fact
+                for fact in facts
+                if aspectsMatch(xpCtx, fact, fp, aspects)]
+
 class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def init(self, modelDocument):
         super(ModelRuleAxis, self).init(modelDocument)
@@ -914,20 +939,31 @@ class ModelFilterAxis(ModelOpenAxis):
         return aspect in self.aspectsCovered()
     
     def aspectsCovered(self, varBinding=None):
-        aspectsCovered = set()
-        for rel in self.filterRelationships:
-            if rel.isCovered:
-                _filter = rel.toModelObject
-                aspectsCovered |= _filter.aspectsCovered(varBinding)
-        return aspectsCovered
+        try:
+            return self._aspectsCovered
+        except AttributeError:
+            self._aspectsCovered = set()
+            for rel in self.filterRelationships:
+                if rel.isCovered:
+                    _filter = rel.toModelObject
+                    self._aspectsCovered |= _filter.aspectsCovered(varBinding)
+            self._dimensionsCovered = set(aspect for aspect in self._aspectsCovered if isinstance(aspect,QName))
+            if self._dimensionsCovered:
+                self._aspectsCovered.add(Aspect.DIMENSIONS)
+            return self._aspectsCovered
 
     def aspectValue(self, aspect, inherit=None):
+        if aspect == Aspect.DIMENSIONS:
+            return self._dimensionsCovered
         # does not apply to filter, value can only come from a bound fact
         return None
     
-    def filterFacts(self, xpCtx, facts):
-        return formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx), 
-                                           facts, self.filterRelationships, None)
+    def filteredFactsPartitions(self, xpCtx, facts):
+        filteredFacts = formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx), 
+                                                    facts, self.filterRelationships, None)
+        return factsPartitions(xpCtx, filteredFacts, self.aspectsCovered())
+        
+        
 
 class ModelTupleAxis(ModelOpenAxis):
     def init(self, modelDocument):
