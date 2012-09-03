@@ -1419,15 +1419,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             # (because different sets of sums/items could, on edge case, be in different ELRs)
             compatibleItemsFacts = defaultdict(set)
             for totalFact in self.modelXbrl.factsByQname[totalConcept.qname]:
-                if (not isStatementSheet or
-                    (self.requiredContext is None or
-                     self.requiredContext.startDatetime <= totalFact.context.endDatetime <= self.requiredContext.endDatetime)): 
+                totalFactContext = totalFact.context
+                totalFactUnit = totalFact.unit
+                if (totalFactContext is not None and totalFactUnit is not None and
+                    (not isStatementSheet or
+                     (self.requiredContext is None or
+                      self.requiredContext.startDatetime <= totalFactContext.endDatetime <= self.requiredContext.endDatetime))): 
                     compatibleItemConcepts = set()
                     compatibleFacts = {totalFact}
                     for itemConcept in contributingItems:
                         for itemFact in self.modelXbrl.factsByQname[itemConcept.qname]:
-                            if (totalFact.context is not None and totalFact.context.isEqualTo(itemFact.context) and
-                                totalFact.unit is not None and totalFact.unit.isEqualTo(itemFact.unit)):
+                            if (totalFactContext.isEqualTo(itemFact.context) and
+                                totalFactUnit.isEqualTo(itemFact.unit)):
                                 compatibleItemConcepts.add(itemConcept)
                                 compatibleFacts.add(itemFact)
                     if compatibleItemConcepts:
