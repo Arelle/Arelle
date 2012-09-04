@@ -8,6 +8,7 @@ import os
 from arelle import XbrlConst
 from tkinter import BooleanVar
 from arelle.ModelObject import ModelObject
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRenderingObject import (ModelEuAxisCoord, ModelOpenAxis, ModelPredefinedAxis,
                                          ModelRelationshipAxis, ModelSelectionAxis, ModelFilterAxis,
                                          ModelCompositionAxis, ModelTupleAxis, OrdinateContext)
@@ -168,11 +169,12 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                                         key=lambda obj:sortkey(obj))
                     if isinstance(selections, (list,set,tuple)) and len(selections) > 1:
                         for selection in selections: # nested choices from selection list
-                            subOrdCntx = OrdinateContext(ordCntx, axisObject)
+                            subOrdCntx = OrdinateContext(ordCntx, axisObject, contextItemFact=selection)
                             subOrdCntx.variables[varQn] = selection
                             subOrdCntx.indent = 0
                             if axisDisposition == "z":
                                 ordCntx.choiceOrdinateContexts.append(subOrdCntx)
+                                subOrdCntx.zSelection = True
                             else:
                                 ordCntx.subOrdinateContexts.append(subOrdCntx)
                                 analyzeHdrs(view, subOrdCntx, axisObject, depth, axisDisposition, facts) #recurse
@@ -303,7 +305,7 @@ def inheritedExplicitDims(view, ordCntx, dims=None, nested=False):
         return {(dim,mem) for dim,mem in dims.items() if mem != 'omit'}
 
 emptySet = set()
-def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects):
+def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects, xOrdCntx, yOrdCntx):
     ords = xAspects.get(aspect, emptySet) | yAspects.get(aspect, emptySet) | zAspects.get(aspect, emptySet)
     if len(ords) > 1:
         from arelle.ModelFormulaObject import aspectStr
@@ -311,7 +313,14 @@ def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects):
             _("Aspect %(aspect)s covered by multiple axes."),
             modelObject=view.modelTable, aspect=aspectStr(aspect))
     if ords:
-        return ords.pop().aspectValue(aspect)
+        ordCntx = ords.pop()
+        axisObject = ordCntx.axisObject
+        if axisObject.aspectValueDependsOnVars(aspect):
+            return xOrdCntx.evaluate(axisObject, 
+                                     axisObject.aspectValue, 
+                                     otherOrdinate=yOrdCntx,
+                                     evalArgs=(aspect,))
+        return ordCntx.aspectValue(aspect)
     return None 
 
 

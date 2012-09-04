@@ -524,8 +524,8 @@ class XPathContext:
                         if isinstance(node,ModelObject):
                             targetNodes = [sibling
                                            for sibling in node.itersiblings(preceding=axis.startswith("preceding"))
-                                           if ((not ns or ns == ancestor.namespaceURI or ns == "*") and
-                                               (localname == ancestor.localName or localname == "*"))]
+                                           if ((not ns or ns == sibling.namespaceURI or ns == "*") and
+                                               (localname == sibling.localName or localname == "*"))]
                     elif axis == "preceding":
                         if isinstance(node,ModelObject):
                             for preceding in node.getroottree().iter():

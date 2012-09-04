@@ -689,6 +689,9 @@ def parse(modelObject, xpathExpression, element, name, traceType):
 
             normalizedExpr = normalizeExpr( xpathExpression )
 
+            # for debugging parser looping or stack recursion, uncomment this:
+            # modelObject.modelXbrl.modelManager.showStatus(_("Parsing file {0} line {1} expr {2}").format(element.modelDocument.basename,element.sourceline,normalizedExpr))
+
             # should be option "compiled code"
             
             if ((formulaOptions.traceVariableSetExpressionSource and traceType == Trace.VARIABLE_SET) or

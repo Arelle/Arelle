@@ -317,7 +317,7 @@ class ViewRenderedGrid(ViewFile.View):
                     cellAspectValues = {}
                     matchableAspects = set()
                     for aspect in _DICT_SET(xAspects.keys()) | _DICT_SET(yAspects.keys()) | _DICT_SET(zAspects.keys()):
-                        aspectValue = inheritedAspectValue(self, aspect, xAspects, yAspects, zAspects)
+                        aspectValue = inheritedAspectValue(self, aspect, xAspects, yAspects, zAspects, xOrdCntx, yOrdCntx)
                         if dimDefaults.get(aspect) != aspectValue: # don't include defaulted dimensions
                             cellAspectValues[aspect] = aspectValue
                         matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect

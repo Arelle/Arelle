@@ -187,9 +187,9 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if isRelation:
                 self.treeView.set(childnode, "axis", modelObject.axisDisposition)
                 if isinstance(concept, (ModelEuAxisCoord,ModelRuleAxis)):
-                    self.treeView.set(childnode, "priItem", concept.aspectValue(Aspect.CONCEPT))
-                    self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(dim)) 
-                                                                   for dim in (concept.aspectValue(Aspect.DIMENSIONS, inherit=False) or []))))
+                    self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
+                    self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
+                                                                   for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
         elif self.isResourceArcrole: # resource columns
             if isRelation:
                 self.treeView.set(childnode, "arcrole", os.path.basename(modelObject.arcrole))
