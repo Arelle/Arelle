@@ -257,7 +257,7 @@ def checkContext(val, cntx):
         for f in val.modelXbrl.facts:
             if f.context == cntx:
                 dimAndFacts.append(f)
-                if len(f) > 10:   # log up to 10 facts using this context
+                if len(dimAndFacts) > 10:   # log up to 10 facts using this context
                     break
         return dimAndFacts
     
