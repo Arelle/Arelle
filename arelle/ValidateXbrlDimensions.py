@@ -252,6 +252,15 @@ def checkConcept(val, concept):
                 modelObject=concept, concept=concept.qname)
 
 def checkContext(val, cntx):
+    def logDimAndFacts(modelDimValue):
+        dimAndFacts = [modelDimValue]
+        for f in val.modelXbrl.facts:
+            if f.context == cntx:
+                dimAndFacts.append(f)
+                if len(f) > 10:   # log up to 10 facts using this context
+                    break
+        return dimAndFacts
+    
     # check errorDimensions of context
     for modelDimValues in (cntx.segDimValues.values(), cntx.scenDimValues.values(), cntx.errorDimValues):
         for modelDimValue in modelDimValues:
@@ -261,19 +270,19 @@ def checkContext(val, cntx):
                 modelDimValue.isTyped != (dimensionConcept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef") is not None):
                 val.modelXbrl.error("xbrldie:TypedMemberNotTypedDimensionError" if modelDimValue.isTyped else "xbrldie:ExplicitMemberNotExplicitDimensionError",
                     _("Context %(contextID)s %(dimension)s %(value)s is not an appropriate dimension item"),
-                    modelObject=modelDimValue, contextID=cntx.id, 
+                    modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
                     dimension=modelDimValue.prefixedName, value=modelDimValue.dimensionQname)
             if modelDimValue.isExplicit:
                 memberConcept = modelDimValue.member
                 if memberConcept is None or not memberConcept.isGlobalDeclaration:
                     val.modelXbrl.error("xbrldie:ExplicitMemberUndefinedQNameError",
                         _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is not a global member item"),
-                        modelObject=modelDimValue, contextID=cntx.id, 
+                        modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
                         dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
                 elif val.modelXbrl.dimensionDefaultConcepts.get(dimensionConcept) == memberConcept:
                     val.modelXbrl.error("xbrldie:DefaultValueUsedInInstanceError",
                         _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is a default member item"),
-                        modelObject=modelDimValue, contextID=cntx.id, 
+                        modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
                         dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
             elif modelDimValue.isTyped:
                 typedDomainConcept = dimensionConcept.typedDomainElement
@@ -292,8 +301,8 @@ def checkContext(val, cntx):
                 if problem:
                     val.modelXbrl.error("xbrldie:IllegalTypedDimensionContentError",
                         _("Context %(contextID)s typed dimension %(dimension)s has %(error)s"),
-                        modelObject=[modelDimValue] + [f for f in val.modelXbrl.facts if f.context == cntx] , 
-                        contextID=cntx.id, dimension=modelDimValue.dimensionQname, error=problem)
+                        modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
+                        dimension=modelDimValue.dimensionQname, error=problem)
 
     for modelDimValue in cntx.errorDimValues:
         dimensionConcept = modelDimValue.dimension
@@ -301,14 +310,14 @@ def checkContext(val, cntx):
            and (dimensionConcept in cntx.segDimValues or dimensionConcept in cntx.scenDimValues):
             val.modelXbrl.error("xbrldie:RepeatedDimensionInInstanceError",
                 _("Context %(contextID)s dimension %(dimension)s is a repeated dimension value"),
-                modelObject=modelDimValue, contextID=cntx.id, dimension=modelDimValue.dimensionQname)
+                modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, dimension=modelDimValue.dimensionQname)
     # decision by WG that dimensions in both seg & scen is also a duplication
     for modelDimValue in cntx.segDimValues.values():
         dimensionConcept = modelDimValue.dimension
         if dimensionConcept is not None and dimensionConcept in cntx.scenDimValues:
             val.modelXbrl.error("xbrldie:RepeatedDimensionInInstanceError",
                 _("Context %(contextID)s dimension %(dimension)s is a repeated dimension value"),
-                modelObject=modelDimValue, contextID=cntx.id, dimension=modelDimValue.dimensionQname)
+                modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, dimension=modelDimValue.dimensionQname)
             
 def checkFact(val, f):
     if not isFactDimensionallyValid(val, f):
