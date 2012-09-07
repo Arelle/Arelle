@@ -14,6 +14,11 @@ if [ -d build/${BUILT64} ]
 fi
 mkdir build/${BUILT64}
 
+if [ ! -d dist ]
+  then
+    mkdir dist
+fi
+
 # run cx_Freeze setup
 python3.2 setup.py build_exe
 cp arelle/scripts-unix/* build/${BUILT64}
