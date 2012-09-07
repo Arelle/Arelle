@@ -84,7 +84,7 @@ def setup(val):
                         elrUgtCalcs[relFrom.name] = [rel.toModelObject.name for rel in rels]
                     val.usgaapCalculations[ELR] = elrUgtCalcs
                 with io.open(ugtCalcsJsonFile, 'wt', encoding='utf-8') as f:
-                    jsonStr = _STR_UNICODE(json.dumps(val.usaapCalculations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+                    jsonStr = _STR_UNICODE(json.dumps(val.usgaapCalculations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
                     f.write(jsonStr)  # 2.7 gets unicode this way
                 calculationsInstance.close()
                 del calculationsInstance # dereference closed modelXbrl
