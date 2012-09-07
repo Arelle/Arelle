@@ -1056,7 +1056,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             # if relFrom used by fact and multiple calc networks from relFrom, test 6.15.04
                             if rels and relFrom in conceptsUsed:
                                 relFromAndTos = (relFrom.objectIndex,) + tuple(sorted((rel.toModelObject.objectIndex 
-                                                                                           for rel in rels)))
+                                                                                       for rel in rels if rel.toModelObject is not None)))
                                 if relFromAndTos in usedCalcFromTosELR:
                                     otherRels = usedCalcFromTosELR[relFromAndTos]
                                     otherELR = otherRels[0].linkrole
