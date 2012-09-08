@@ -55,6 +55,9 @@ class OrdinateContext:
             return self.choiceOrdinateContexts[getattr(self,"choiceOrdinateIndex",0)]._axisObject
         return self._axisObject
     
+    def aspectsCovered(self):
+        return _DICT_SET(self.aspects.keys()) | self.axisObject.aspectsCovered()
+      
     def hasAspect(self, aspect, inherit=True):
         return (aspect in self.aspects or 
                 self.axisObject.hasAspect(aspect) or 
@@ -229,6 +232,15 @@ class ModelEuAxisCoord(ModelResource):
             self._parentOrdinateContext = parentOrdinateContext
             return parentOrdinateContext
 
+    def aspectsCovered(self):
+        aspectsCovered = set()
+        if XmlUtil.hasChild(self, XbrlConst.euRend, "primaryItem"):
+            aspectsCovered.add(Aspect.CONCEPT)
+        if XmlUtil.hasChild(self, XbrlConst.euRend, "timeReference"):
+            aspectsCovered.add(Aspect.INSTANT)
+        for e in XmlUtil.children(self, XbrlConst.euRend, "explicitDimCoord"):
+            aspectsCovered.add(self.prefixedNameQname(e.get("dimension")))
+        return aspectsCovered
     
     def hasAspect(self, aspect):
         if aspect == Aspect.CONCEPT:

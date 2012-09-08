@@ -135,6 +135,22 @@ class ModelTestcaseVariation(ModelObject):
         return None    
     
     @property
+    def resultIsTable(self):
+        result = XmlUtil.descendant(self, None, "result")
+        if result is not None :
+            child = XmlUtil.child(result, None, "table")
+            return child is not None and XmlUtil.text(child).endswith(".xml")
+        return False
+        
+    @property
+    def resultTableUri(self):
+        result = XmlUtil.descendant(self, None, "result")
+        if result is not None:
+            child = XmlUtil.child(result, None, "table")
+            return os.path.join(self.modelDocument.outpath, XmlUtil.text(child if child is not None else result))
+        return None    
+    
+    @property
     def cfcnCall(self):
         # tuple of (expression, element holding the expression)
         try:

@@ -6,7 +6,7 @@ Created on Sep 13, 2011
 '''
 from arelle import ViewFile
 from lxml import etree
-from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedAspectValue)
+from arelle.ViewUtilRenderedGrid import (getTblAxes, inheritedAspectValue)
 from arelle.ViewFile import HTML, XML
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.FormulaEvaluator import aspectMatches
@@ -20,7 +20,6 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang)
     
-    setDefaults(view)
     if sourceView is not None:
         viewTblELR = sourceView.tblELR
         view.ignoreDimValidity.set(sourceView.ignoreDimValidity.get())
@@ -34,6 +33,17 @@ class ViewRenderedGrid(ViewFile.View):
         super(ViewRenderedGrid, self).__init__(modelXbrl, outfile, 
                                                'tableModel xmlns="http://xbrl.org/2012/table/model"', 
                                                lang, style="rendering")
+        class nonTkBooleanVar():
+            def __init__(self, value=True):
+                self.value = value
+            def set(self, value):
+                self.value = value
+            def get(self):
+                return self.value
+        # context menu boolean vars (non-tkinter boolean
+        self.ignoreDimValidity = nonTkBooleanVar(value=True)
+        self.xAxisChildrenFirst = nonTkBooleanVar(value=True)
+        self.yAxisChildrenFirst = nonTkBooleanVar(value=False)
         
     def viewReloadDueToMenuAction(self, *args):
         self.view()
@@ -48,104 +58,101 @@ class ViewRenderedGrid(ViewFile.View):
             self.tblElt.append(etree.Comment("Entry point file: {0}".format(self.modelXbrl.modelDocument.basename)))
         
         for tblELR in tblELRs:
-                self.zOrdinateChoices = {}
+            self.zOrdinateChoices = {}
+            
+            for discriminator in range(1, 65535):
+                tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = getTblAxes(self, tblELR) 
                 
-                for discriminator in range(1, 65535):
-                    tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = getTblAxes(self, viewTblELR) 
-                    
-                    if tblAxisRelSet and self.tblElt is not None:
-                        if self.type == HTML: # table on each Z
-                            # each Z is a separate table in the outer table
-                            zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
-                            zRowCell = etree.SubElement(zTableRow, "{http://www.w3.org/1999/xhtml}td")
-                            zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
-                                                          attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
-                            self.rowElts = [etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
-                                            for r in range(self.dataFirstRow + self.dataRows - 1)]
-                            etree.SubElement(self.rowElts[0], "{http://www.w3.org/1999/xhtml}th",
-                                             attrib={"class":"tableHdr",
-                                                     "style":"max-width:100em;",
-                                                     "colspan": str(self.dataFirstCol - 1),
-                                                     "rowspan": str(self.dataFirstRow - 1)}
-                                             ).text = self.roledefinition
-                        elif self.type == XML:
-                            self.ordCntxElts = []
-                            if discriminator == 1:
-                                tableElt = etree.SubElement(self.tblElt, "{http://xbrl.org/2012/table/model}table",
-                                                            attrib={"label": self.roledefinition})
-                                tableElt.append(etree.Comment("Table linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
-                                tableElt.append(etree.Comment("Table namespace: {0}".format(self.modelTable.namespaceURI)))
-                                tableElt.append(etree.Comment("Table linkrole: {0}".format(tblELR)))
-                                self.zHdrsElt = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
-                                                                 attrib={"disposition": "discriminators"})
-                                zAspects = defaultdict(set)
-                                self.zAxis(1, zOrdCntx, zAspects, True)
-                            hdrsElts = dict((disposition,
-                                             etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
-                                                              attrib={"disposition": disposition,
-                                                                      "discriminator": str(discriminator)}))
-                                            for disposition in ("y", "z", "x"))
-                            # new y,x cells on each Z combination
-                            self.rowHdrElts = [etree.SubElement(hdrsElts["y"], "{http://xbrl.org/2012/table/model}header")
-                                               for i in range(self.rowHdrCols - 1 + self.rowHdrDocCol + self.rowHdrCodeCol)]
-                            self.zHdrsElt = hdrsElts["z"]
-                            self.colHdrElts = [etree.SubElement(hdrsElts["x"], "{http://xbrl.org/2012/table/model}header")
-                                               for i in range(self.colHdrRows - 1 + self.colHdrDocRow + self.colHdrCodeRow)]
-                            self.zCells = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}cells",
-                                                              attrib={"disposition": "z",
-                                                                      "discriminator": str(discriminator)})
-                            self.yCells = etree.SubElement(self.zCells, "{http://xbrl.org/2012/table/model}cells",
-                                                              attrib={"disposition": "y"})
-                            self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
-                                                              attrib={"disposition": "x"})
-                        # rows/cols only on firstTime for infoset XML, but on each time for xhtml
-                        zAspects = defaultdict(set)
-                        self.zOrdsWithChoices = []
-                        self.zAxis(1, zOrdCntx, zAspects, False)
-                        xOrdCntxs = []
-                        self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
-                                   xOrdCntx, xOrdCntxs, self.xAxisChildrenFirst.get(), True, True)
-                        if self.type == HTML: # table/tr goes by row
-                            self.yAxisByRow(1, self.dataFirstRow,
-                                            yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
-                        elif self.type == XML: # infoset goes by col of row header
-                            self.yAxisByCol(1, self.dataFirstRow,
-                                            yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
-                            for ordCntx,elt in self.ordCntxElts: # must do after elements are all arragned
-                                elt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
-                                                              .format(ordCntx._axisObject.localName,
-                                                                      ordCntx._axisObject.xlinkLabel,
-                                                                      ordCntx._axisObject.modelDocument.basename, 
-                                                                      ordCntx._axisObject.sourceline)))
-                                if ordCntx._axisObject.get('value'):
-                                    elt.addprevious(etree.Comment("   @value {0}"
-                                                                  .format(ordCntx._axisObject.get('value'))))
-                                for aspect in sorted(ordCntx.aspectsCovered(), key=lambda a: aspectStr(a)):
-                                    if ordCntx.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
-                                        elt.addprevious(etree.Comment("   aspect {0}: {1}"
-                                                                      .format(aspectStr(aspect),
-                                                                              ordCntx.aspectValue(aspect))))
-                                for varName, varValue in ordCntx.variables.items():
-                                        elt.addprevious(etree.Comment("   variable ${0}: {1}"
-                                                                      .format(varName,
-                                                                              varValue)))
-                                
-                        self.bodyCells(self.dataFirstRow, yOrdCntx, xOrdCntxs, zAspects, self.yAxisChildrenFirst.get())
-                    # find next choice ord
-                    moreDiscriminators = False
-                    for zOrdWithChoice in self.zOrdsWithChoices:
-                        currentIndex = zOrdWithChoice.choiceOrdinateIndex + 1
-                        if currentIndex < len(zOrdWithChoice.choiceOrdinateContexts):
-                            zOrdWithChoice.choiceOrdinateIndex = currentIndex
-                            self.zOrdinateChoices[zOrdWithChoice._axisObject] = currentIndex
-                            moreDiscriminators = True
-                            break
-                        else:
-                            zOrdWithChoice.choiceOrdinateIndex = 0
-                            self.zOrdinateChoices[zOrdWithChoice._axisObject] = 0
-                            # continue incrementing next outermore z choices index
-                    if not moreDiscriminators:
+                if tblAxisRelSet and self.tblElt is not None:
+                    if self.type == HTML: # table on each Z
+                        # each Z is a separate table in the outer table
+                        zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+                        zRowCell = etree.SubElement(zTableRow, "{http://www.w3.org/1999/xhtml}td")
+                        zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
+                                                      attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
+                        self.rowElts = [etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
+                                        for r in range(self.dataFirstRow + self.dataRows - 1)]
+                        etree.SubElement(self.rowElts[0], "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":"tableHdr",
+                                                 "style":"max-width:100em;",
+                                                 "colspan": str(self.dataFirstCol - 1),
+                                                 "rowspan": str(self.dataFirstRow - 1)}
+                                         ).text = self.roledefinition
+                    elif self.type == XML:
+                        self.ordCntxElts = []
+                        if discriminator == 1:
+                            tableElt = etree.SubElement(self.tblElt, "{http://xbrl.org/2012/table/model}table",
+                                                        attrib={"label": self.roledefinition})
+                            tableElt.append(etree.Comment("Table linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
+                            tableElt.append(etree.Comment("Table namespace: {0}".format(self.modelTable.namespaceURI)))
+                            tableElt.append(etree.Comment("Table linkrole: {0}".format(tblELR)))
+                            self.zHdrsElt = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
+                                                             attrib={"disposition": "discriminators"})
+                            zAspects = defaultdict(set)
+                            self.zAxis(1, zOrdCntx, zAspects, True)
+                        hdrsElts = dict((disposition,
+                                         etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
+                                                          attrib={"disposition": disposition,
+                                                                  "discriminator": str(discriminator)}))
+                                        for disposition in ("y", "z", "x"))
+                        # new y,x cells on each Z combination
+                        self.rowHdrElts = [etree.SubElement(hdrsElts["y"], "{http://xbrl.org/2012/table/model}header")
+                                           for i in range(self.rowHdrCols - 1 + self.rowHdrDocCol + self.rowHdrCodeCol)]
+                        self.zHdrsElt = hdrsElts["z"]
+                        self.colHdrElts = [etree.SubElement(hdrsElts["x"], "{http://xbrl.org/2012/table/model}header")
+                                           for i in range(self.colHdrRows - 1 + self.colHdrDocRow + self.colHdrCodeRow)]
+                        self.zCells = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}cells",
+                                                          attrib={"disposition": "z",
+                                                                  "discriminator": str(discriminator)})
+                        self.yCells = etree.SubElement(self.zCells, "{http://xbrl.org/2012/table/model}cells",
+                                                          attrib={"disposition": "y"})
+                        self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
+                                                          attrib={"disposition": "x"})
+                    # rows/cols only on firstTime for infoset XML, but on each time for xhtml
+                    zAspects = defaultdict(set)
+                    self.zOrdsWithChoices = []
+                    self.zAxis(1, zOrdCntx, zAspects, False)
+                    xOrdCntxs = []
+                    self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
+                               xOrdCntx, xOrdCntxs, self.xAxisChildrenFirst.get(), True, True)
+                    if self.type == HTML: # table/tr goes by row
+                        self.yAxisByRow(1, self.dataFirstRow,
+                                        yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
+                    elif self.type == XML: # infoset goes by col of row header
+                        self.yAxisByCol(1, self.dataFirstRow,
+                                        yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
+                        for ordCntx,elt in self.ordCntxElts: # must do after elements are all arragned
+                            elt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
+                                                          .format(ordCntx._axisObject.localName,
+                                                                  ordCntx._axisObject.xlinkLabel,
+                                                                  ordCntx._axisObject.modelDocument.basename, 
+                                                                  ordCntx._axisObject.sourceline)))
+                            if ordCntx._axisObject.get('value'):
+                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._axisObject.get('value'))))
+                            for aspect in sorted(ordCntx.aspectsCovered(), key=lambda a: aspectStr(a)):
+                                if ordCntx.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                                    aspectValue = ordCntx.aspectValue(aspect)
+                                    if aspectValue is None: aspectValue = "(bound dynamically)"
+                                    elt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), aspectValue)))
+                            for varName, varValue in ordCntx.variables.items():
+                                    elt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
+                            
+                    self.bodyCells(self.dataFirstRow, yOrdCntx, xOrdCntxs, zAspects, self.yAxisChildrenFirst.get())
+                # find next choice ord
+                moreDiscriminators = False
+                for zOrdWithChoice in self.zOrdsWithChoices:
+                    currentIndex = zOrdWithChoice.choiceOrdinateIndex + 1
+                    if currentIndex < len(zOrdWithChoice.choiceOrdinateContexts):
+                        zOrdWithChoice.choiceOrdinateIndex = currentIndex
+                        self.zOrdinateChoices[zOrdWithChoice._axisObject] = currentIndex
+                        moreDiscriminators = True
                         break
+                    else:
+                        zOrdWithChoice.choiceOrdinateIndex = 0
+                        self.zOrdinateChoices[zOrdWithChoice._axisObject] = 0
+                        # continue incrementing next outermore z choices index
+                if not moreDiscriminators:
+                    break
 
             
     def zAxis(self, row, zOrdCntx, zAspects, discriminatorsTable):
@@ -560,5 +567,4 @@ class ViewRenderedGrid(ViewFile.View):
             if not yChildrenFirst:
                 row = self.bodyCells(row, yOrdCntx, xOrdCntxs, zAspects, yChildrenFirst)
         return row
-         
             

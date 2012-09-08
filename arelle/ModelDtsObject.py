@@ -58,7 +58,7 @@ Relationship sets can identify ineffective arcroles, which is a requirement for 
 validation.
 """
 from collections import defaultdict
-import sys
+import os, sys
 from lxml import etree
 import decimal
 from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
@@ -136,7 +136,12 @@ class ModelRoleType(ModelObject):
                     ("used on", self.usedOns))
         
     def __repr__(self):
-        return ("{0}[{1}]{2})".format('modelArcroleType' if self.isArcrole else 'modelRoleType', self.objectId(),self.propertyView))
+        return ("{0}[{1}, uri: {2}, definition: {3}, {4} line {5}])"
+                .format('modelArcroleType' if self.isArcrole else 'modelRoleType', 
+                        self.objectIndex, 
+                        self.arcroleURI if self.isArcrole else self.roleURI,
+                        self.definition,
+                        self.modelDocument.basename, self.sourceline))
 
     @property
     def viewConcept(self):  # concept trees view roles as themselves
@@ -687,7 +692,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 ("balance", self.balance) if self.balance else ())
         
     def __repr__(self):
-        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+        return ("modelConcept[{0}, qname: {1}, type: {2}, abstract: {3}, {4}, line {5}]"
+                .format(self.objectIndex, self.qname, self.typeQname, self.abstract,
+                        self.modelDocument.basename, self.sourceline))
 
     @property
     def viewConcept(self):
@@ -1115,7 +1122,9 @@ class ModelType(ModelNamableTerm):
                 ("facits", self.facets))
         
     def __repr__(self):
-        return ("modelType[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("modelType[{0}, qname: {1}, derivedFrom: {2}, {3}, line {4}]"
+                .format(self.objectIndex, self.qname, self.qnameDerivedFrom,
+                        self.modelDocument.basename, self.sourceline))
     
 class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
     """
@@ -1570,7 +1579,7 @@ class ModelRelationship(ModelObject):
     @property
     def consecutiveLinkrole(self):
         """(str) -- Value of xbrldt:targetRole attribute, if provided, else parent linkRole (on applicable XDT arcs)"""
-        return self.targetRole if self.targetRole else self.linkrole
+        return self.targetRole or self.linkrole
     
     @property
     def isUsable(self):
@@ -1692,7 +1701,11 @@ class ModelRelationship(ModelObject):
                 ("priority", self.priority))
         
     def __repr__(self):
-        return ("modelRelationship[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("modelRelationship[{0}, linkrole: {1}, arcrole: {2}, from: {3}, to: {4}, {5}, line {6}]"
+                .format(self.objectIndex, os.path.basename(self.linkrole), os.path.basename(self.arcrole),
+                        self.fromModelObject.qname if self.fromModelObject is not None else "??",
+                        self.toModelObject.qname if self.toModelObject is not None else "??",
+                        self.modelDocument.basename, self.sourceline))
 
     @property
     def viewConcept(self):

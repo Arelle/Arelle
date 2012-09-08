@@ -422,11 +422,10 @@ class ModelFact(ModelObject):
                 if self.isItem else () )
         
     def __repr__(self):
-        return ("fact({0}{1}{2}, '{3}')".format(
-                self.qname, 
-                ', ' + self.contextID if self.get("contextRef") else '', 
-                ', ' + self.unitID if self.get("unitRef") else '', 
-                self.effectiveValue.strip() if self.isItem else '(tuple)'))
+        return ("modelFact[{0}, qname: {1}, contextRef: {2}, unitRef: {3}, value: {4}, {5}, line {6}]"
+                .format(self.objectIndex, self.qname, self.get("contextRef"), self.get("unitRef"),
+                        self.effectiveValue.strip() if self.isItem else '(tuple)',
+                        self.modelDocument.basename, self.sourceline))
     
     @property
     def viewConcept(self):

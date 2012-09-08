@@ -5,13 +5,12 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, threading, time
-from tkinter import Menu
+from tkinter import Menu, BooleanVar
 from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, Locale)
 from arelle.ModelValue import qname
-from arelle.ViewUtilRenderedGrid import (setDefaults, getTblAxes, inheritedAspectValue)
-from arelle.ModelRenderingObject import ordObjects
-from arelle.ModelFormulaObject import Aspect, aspectStr, aspectModels, aspectRuleAspects, aspectModelAspect
+from arelle.ViewUtilRenderedGrid import (getTblAxes, inheritedAspectValue)
+from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.FormulaEvaluator import aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -28,8 +27,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view = ViewRenderedGrid(modelXbrl, tabWin, lang)
         
     view.blockMenuEvents = 1
-    # context menu
-    setDefaults(view)
+
     menu = view.contextMenu()
     optionsMenu = Menu(view.viewFrame, tearoff=0)
     optionsMenu.add_command(label=_("New fact item options"), underline=0, command=lambda: getNewFactItemOptions(modelXbrl.modelManager.cntlr, view.newFactItemOptions))
@@ -62,6 +60,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
         self.factPrototypes = []
         self.zOrdinateChoices = None
+        # context menu Boolean vars
+        self.ignoreDimValidity = BooleanVar(value=True)
+        self.xAxisChildrenFirst = BooleanVar(value=True)
+        self.yAxisChildrenFirst = BooleanVar(value=False)
             
     def close(self):
         super(ViewRenderedGrid, self).close()

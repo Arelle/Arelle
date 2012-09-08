@@ -50,6 +50,9 @@ def validateElementSequence(modelXbrl, compositor, children, iNextChild=0):
                     iPrevChild = iNextChild
                     iNextChild, occured, errDesc, errArgs = validateElementSequence(modelXbrl, particle, children, iNextChild)
                     if occured:
+                        # test if occurence was because of minOccurs zero but no match occured (HF 2012-09-07)
+                        if occured and iNextChild == iPrevChild and particle.minOccurs == 0: # nothing really occured
+                            break
                         occurences += 1
                         if occurences == particle.maxOccurs or iNextChild >= len(children):
                             break

@@ -387,12 +387,19 @@ class CntlrWinMain (Cntlr.Cntlr):
             modelXbrl = view.modelXbrl
             if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
                 initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
-                if fileType == "html":
-                    filename = self.uiFileDialog("save",
-                            title=_("arelle - Save HTML-rendered Table"),
-                            initialdir=initialdir,
-                            filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm")],
-                            defaultextension=".html")
+                if fileType in ("html", "xml"):
+                    if fileType == "html":
+                        filename = self.uiFileDialog("save",
+                                title=_("arelle - Save HTML-rendered Table"),
+                                initialdir=initialdir,
+                                filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm")],
+                                defaultextension=".html")
+                    elif fileType == "xml":
+                        filename = self.uiFileDialog("save",
+                                title=_("arelle - Save rendered table infoset (XML)"),
+                                initialdir=initialdir,
+                                filetypes=[(_("XML file .xml"), "*.xml")],
+                                defaultextension=".xml")
                     if not filename:
                         return False
                     try:

@@ -8,7 +8,7 @@ import os, sys, traceback
 from collections import defaultdict
 from arelle import (ModelXbrl, ModelVersReport, XbrlConst, ModelDocument,
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
-               ValidateInfoset)
+               ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 
@@ -189,6 +189,8 @@ class Validate:
                             parameters[dtsName] = (None, inputDTS) #inputDTS is a list of modelXbrl's (instance DTSes)
                         elif len(inputDTS) > 1: # standard-input-instance with multiple instance documents
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
+                    if modelTestcaseVariation.resultIsTable:
+                        RenderingEvaluator.init(modelXbrl)
                     self.instValidator.validate(modelXbrl, parameters)
                     if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
                         for pluginXbrlMethod in pluginClassMethods("Validate.Infoset"):
@@ -207,6 +209,11 @@ class Validate:
                         else:   # check infoset
                             ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)
                         infoset.close()
+                    if modelTestcaseVariation.resultIsTable: # and self.modelXbrl.modelManager.validateInfoset:
+                        # generate table infoset
+                        #ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, 
+                        #                                      modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement))
+                        pass # TBD: compare infoset generated to expected
                     self.determineTestStatus(modelTestcaseVariation, modelXbrl) # include infoset errors in status
                     self.instValidator.close()
                     if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 

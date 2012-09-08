@@ -316,7 +316,7 @@ class ModelObject(etree.ElementBase):
                 ("id", self.id))
         
     def __repr__(self):
-        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+        return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
 
 from arelle.ModelValue import qname
     

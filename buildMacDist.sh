@@ -17,9 +17,10 @@ python3.2 setup.py py2app
 cp -R arelle/images/arelle.icns dist/Arelle.app/Contents/Resources
 
 # add icon and config files to resources
-cp -R arelle/images dist/Arelle.app/Contents/Resources
 cp -R arelle/config dist/Arelle.app/Contents/Resources
+cp -R arelle/doc dist/Arelle.app/Contents/Resources
 cp -R arelle/examples dist/Arelle.app/Contents/Resources
+cp -R arelle/images dist/Arelle.app/Contents/Resources
 cp -R arelle/locale dist/Arelle.app/Contents/Resources
 
 # add tcl and tk 8.6 versions

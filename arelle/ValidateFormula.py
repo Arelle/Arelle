@@ -974,7 +974,7 @@ def checkAxisRules(val, table, parent, arcrole, xpathContext):
                                     _("RuleAxis %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension."),
                                     modelObject=axis, xlinkLabel=axis.xlinkLabel, dimensionType=dim, dimension=dimQname)
                             memQname = axis.evaluateRule(None, dimQname)
-                            if memQname is not None and memQname not in val.modelXbrl.qnameConcepts:  
+                            if dimConcept.isExplicitDimension and memQname is not None and memQname not in val.modelXbrl.qnameConcepts:  
                                 val.modelXbrl.info("table:info",
                                                    _("RuleAxis rule %(xlinkLabel)s contains a member QName %(memQname)s which is not in the DTS."),
                                                    modelObject=axis, xlinkLabel=axis.xlinkLabel, memQname=memQname)

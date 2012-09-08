@@ -6,6 +6,9 @@
 # create version with date and a shell file to name output with the date
 python3.2 buildVersion.py
 
+# Regenerate messages catalog (doc/messagesCatalog.xml)
+python3.2 generateMessagesCatalog.py
+
 BUILT64=exe.solaris-2.10-sun4v-3.2
 
 if [ -d build/${BUILT64} ]
