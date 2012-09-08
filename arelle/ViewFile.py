@@ -43,7 +43,10 @@ class View:
         else:
             self.type = CSV
         self.outfile = outfile
-        self.rootElementName = rootElementName[0].lower() + nonNameCharPattern.sub("", rootElementName.title())[1:]
+        if style == "rendering": # for rendering, preserve root element name
+            self.rootElementName = rootElementName
+        else: # root element is formed from words in title or description
+            self.rootElementName = rootElementName[0].lower() + nonNameCharPattern.sub("", rootElementName.title())[1:]
         self.numHdrCols = 0
         self.treeCols = 0  # set to number of tree columns for auto-tree-columns
         if modelXbrl:
@@ -76,6 +79,7 @@ class View:
             .yAxisHdrAbstractChildrenFirst{border-top:none;border-right:none;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
             .yAxisHdr{border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
             .cell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
+            .abstractCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#e8e8e8;}
             .blockedCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#eee;}
             .tblCell{border-top:.5pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
         </STYLE>
@@ -120,6 +124,7 @@ class View:
             self.xmlDoc = etree.parse(html)
             html.close()
             self.docEltLevels = [self.xmlDoc.getroot()]
+            self.tblElt = self.docEltLevels[0]
         elif self.type == JSON:
             self.entries = []
             self.entryLevels = [self.entries]

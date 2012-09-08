@@ -48,6 +48,7 @@ def getTblAxes(view, viewTblELR):
         view.zAxisRows = 0
         view.aspectModel = table.aspectModel
         view.zmostOrdCntx = None
+        view.modelTable = table
         
         xOrdCntx = yOrdCntx = zOrdCntx = None
         # must be cartesian product of top level relationships
@@ -134,7 +135,7 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                         view.rowHdrDocCol = True
                 if not view.rowHdrCodeCol:
                     if axisObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
-                        ordCntx.rowHdrCodeCol = True
+                        view.rowHdrCodeCol = True
         hasSubtreeRels = False
         for axisSubtreeRel in view.axisSubtreeRelSet.fromModelObject(axisObject):
             hasSubtreeRels = True

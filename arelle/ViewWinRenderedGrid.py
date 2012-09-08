@@ -46,6 +46,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.menuAddLangs()
     saveMenu = Menu(view.viewFrame, tearoff=0)
     saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
+    saveMenu.add_command(label=_("XML infoset"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     view.view()
