@@ -567,34 +567,36 @@ def format_decimal(conv, value, intPlaces=1, fractPlaces=2, curr='', sep=None, g
     """
     if conv is not None:
         if dp is None:
-            dp = conv['decimal_point']
+            dp = conv['decimal_point'] or '.'
         if sep is None:
-            sep = conv['thousands_sep']
+            sep = conv['thousands_sep'] or ','
         if pos is None and trailpos is None:
             possign = conv['positive_sign']
             pospos = conv['p_sign_posn']
-            if pospos == '0':
+            if pospos in('0', 0):
                 pos = '('; trailpos = ')'
-            elif pospos == '1' or pospos == '3':
+            elif pospos in ('1', 1, '3', 3):
                 pos = possign; trailpos = ''
-            elif pospos == '2' or pospos == '4':
+            elif pospos in ('2', 2, '4', 4):
                 pos = ''; trailpos = possign
             else:
                 pos = ''; trailpos = ''
         if neg is None and trailneg is None:
             negsign = conv['negative_sign']
             negpos = conv['n_sign_posn']
-            if negpos == '0':
+            if negpos in ('0', 0):
                 neg = '('; trailneg = ')'
-            elif negpos == '1' or negpos == '3':
+            elif negpos in ('1', 1, '3', 3):
                 neg = negsign; trailneg = ''
-            elif negpos == '2' or negpos == '4':
+            elif negpos in ('2', 2, '4', 4):
                 neg = ''; trailneg = negsign
+            elif negpos == 127:
+                neg = '-'; trailneg = ''
             else:
                 neg = ''; trailneg = ''
         if grouping is None:
             groups = conv['grouping']
-            grouping = groups[0]
+            grouping = groups[0] if groups else 3
     else:
         if dp is None:
             dp = '.'
