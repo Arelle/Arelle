@@ -679,7 +679,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                     if XbrlConst.arcroleGroupDetect in arcroles:
                         currentAction = name + " view"
                         ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
-                
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"
@@ -1012,7 +1011,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                           os.path.join(self.imagesDir, "arelle32.gif"),
                           _("arelle\u00ae {0} {1}\n"
                               "An open source XBRL platform\n"
-                              "\u00a9 2010-2011 Mark V Systems Limited\n"
+                              "\u00a9 2010-2012 Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                               "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                               "you may not use this file except in compliance with the License.  "
@@ -1024,8 +1023,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "See the License for the specific language governing permissions and "
                               "limitations under the License."
                               "\n\nIncludes:"
-                              "\n   Python\u00ae \u00a9 2001-2010 Python Software Foundation"
-                              "\n   PyParsing \u00a9 2003-2010 Paul T. McGuire"
+                              "\n   Python\u00ae \u00a9 2001-2012 Python Software Foundation"
+                              "\n   PyParsing \u00a9 2003-2012 Paul T. McGuire"
                               "\n   lxml \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
                               "\n   xlrd \u00a9 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2001 D. Giffin, \u00a9 2000 A. Khan"
                               "\n   xlwt \u00a9 2007 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2005 R. V. Kiseliov"                              
