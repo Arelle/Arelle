@@ -278,8 +278,9 @@ def checkDTS(val, modelDocument, visited):
                     if val.validateEFM:
                         label = modelConcept.label(lang="en-US", fallbackToQname=False)
                         if label:
-                            lc3name = ''.join(w.title()
-                                              for w in re.findall(r"[\w]+", label) # EFM implies this should allow - and . re.findall(r"[\w\-\.]+", label)
+                            # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
+                            lc3name = ''.join(re.sub(r"['.]", "", w).title()
+                                              for w in re.findall(r"\w+'\w+|A\.|\w+", label) # EFM implies this should allow - and . re.findall(r"[\w\-\.]+", label)
                                               if w.lower() not in ("the", "a", "an"))
                             if name != lc3name:
                                 val.modelXbrl.log("WARNING-SEMANTIC", "EFM.6.08.05.LC3",
