@@ -788,7 +788,7 @@ class ModelXbrl:
                 except AttributeError:
                     entryUrl = self.entryLoadingUrl
                 refs = []
-                for arg in (argValue if isinstance(argValue, (tuple,list)) else (argValue,)):
+                for arg in (argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)):
                     if arg is not None:
                         if isinstance(arg, _STR_BASE):
                             objectUrl = arg

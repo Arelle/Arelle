@@ -397,29 +397,38 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                              c1.id, c2.id, documentType), 
                                         "err", "EFM.6.05.10")
                 '''
-                durationCntxStartDatetimes = defaultdict(list)
+                durationCntxStartDatetimes = defaultdict(set)
                 for cntx in contexts:
                     if cntx.isStartEndPeriod:
-                        durationCntxStartDatetimes[cntx.startDatetime].append(cntx)
+                        durationCntxStartDatetimes[cntx.startDatetime].add(cntx)
+                probCntxs = set()
                 for cntx in contexts:
                     end = cntx.endDatetime
                     if cntx.isStartEndPeriod:
                         for otherStart, otherCntxs in durationCntxStartDatetimes.items():
                             duration = end - otherStart
                             if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
-                                for otherCntx in otherCntxs:
-                                    if cntx != otherCntx:
-                                        modelXbrl.error(("EFM.6.05.09", "GFM.1.2.9"),
-                                            _("Context %(contextID)s endDate and %(contextID2)s startDate have a duration of one day; that is inconsistent with document type %(documentType)s."),
-                                            modelObject=(cntx, otherCntx), contextID=cntx.id, contextID2=otherCntx.id, documentType=documentType)
+                                probCntxs |= otherCntxs - {cntx}
+                        if probCntxs:
+                            modelXbrl.error(("EFM.6.05.09", "GFM.1.2.9"),
+                                _("Context %(contextID)s endDate, and startDate(s) have a duration of one day, for context(s): and %(otherContexts)s; that is inconsistent with document type %(documentType)s."),
+                                modelObject={cntx} | probCntxs, contextID=cntx.id, 
+                                otherContexts=', '.join(sorted(c.id for c in probCntxs)), 
+                                documentType=documentType)
+                            probCntxs.clear()
                     if self.validateEFM and cntx.isInstantPeriod:
                         for otherStart, otherCntxs in durationCntxStartDatetimes.items():
                             duration = end - otherStart
                             if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
-                                for otherCntx in otherCntxs:
-                                    modelXbrl.error("EFM.6.05.10",
-                                        _("Context %(contextID)s startDate and %(contextID2)s end (instant) have a duration of one day; that is inconsistent with document type %(documentType)s."),
-                                        modelObject=(cntx, otherCntx), contextID=cntx.id, contextID2=otherCntx.id, documentType=documentType)
+                                probCntxs |= otherCntxs
+                        if probCntxs:
+                            modelXbrl.error("EFM.6.05.10",
+                                _("Context %(contextID)s startDate has a duration of one day,with end (instant) of context(s): %(otherContexts)s; that is inconsistent with document type %(documentType)s."),
+                                modelObject={cntx} | otherCntxs, contextID=cntx.id, 
+                                otherContexts=', '.join(sorted(c.id for c in probCntxs)), 
+                                documentType=documentType)
+                            probCntxs.clear()
+                del probCntxs
                 del durationCntxStartDatetimes
                 self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
                 
