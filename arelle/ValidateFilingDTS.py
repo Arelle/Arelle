@@ -279,9 +279,9 @@ def checkDTS(val, modelDocument, visited):
                         label = modelConcept.label(lang="en-US", fallbackToQname=False)
                         if label:
                             # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
-                            lc3name = ''.join(re.sub(r"['.]", "", w).title()
-                                              for w in re.findall(r"\w+'\w+|A\.|\w+", label) # EFM implies this should allow - and . re.findall(r"[\w\-\.]+", label)
-                                              if w.lower() not in ("the", "a", "an"))
+                            lc3name = ''.join(re.sub(r"['.]", "", (w[0] or w[2] or w[3])).title()
+                                              for w in re.findall(r"((\w+')+\w+)|(A\.)|(\w+)", label) # EFM implies this should allow - and . re.findall(r"[\w\-\.]+", label)
+                                              if w[3].lower() not in ("the", "a", "an"))
                             if name != lc3name:
                                 val.modelXbrl.log("WARNING-SEMANTIC", "EFM.6.08.05.LC3",
                                     _("Concept %(concept)s should match expected LC3 composition %(lc3name)s"),
