@@ -413,8 +413,8 @@ class ModelFact(ModelObject):
         except KeyError:
             lbl = (("name", self.qname),)
         return lbl + (
-               (("contextRef", self.contextID, self.context.propertyView),
-                ("unitRef", self.unitID, self.unit.propertyView if self.isNumeric else ()),
+               (("contextRef", self.contextID, self.context.propertyView if self.context is not None else ()),
+                ("unitRef", self.unitID, self.unit.propertyView if self.isNumeric and self.unit is not None else ()),
                 ("decimals", self.decimals),
                 ("precision", self.precision),
                 ("xsi:nil", self.xsiNil),
