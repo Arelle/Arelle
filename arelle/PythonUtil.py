@@ -27,6 +27,15 @@ else:
     __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float)
     __builtins__['_RANGE'] = xrange
     __builtins__['_DICT_SET'] = set
+    
+import math
+if sys.version >= "3.2":
+    __builtins__['_ISFINITE'] = math.isfinite
+else:
+    def simulatedIsFinite(num):
+        return not math.isinf(num) and not math.isnan(num)
+    __builtins__['_ISFINITE'] = simulatedIsFinite
+    
    
 # python 3 unquote, because py2 unquote doesn't do utf-8 correctly   
 def py3unquote(string, encoding='utf-8', errors='replace'):

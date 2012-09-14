@@ -100,15 +100,16 @@ def factCheck(val, fact):
             # 2.4.1 decimal disagreement
             if fact.decimals and fact.decimals != "INF":
                 vf = float(fact.value)
-                dec = _INT(fact.decimals)
-                vround = round(vf, dec)
-                if vf != vround: 
-                    val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.4.1",
-                        _("Decimal disagreement %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has insignificant value %(insignificantValue)s"),
-                        modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
-                        value=fact.effectiveValue, insignificantValue=Locale.format(val.modelXbrl.locale, "%.*f", 
-                                                                                    (dec + 2 if dec > 0 else 0, vf - vround), 
-                                                                                    True))
+                if _ISFINITE(vf):
+                    dec = _INT(fact.decimals)
+                    vround = round(vf, dec)
+                    if vf != vround: 
+                        val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.4.1",
+                            _("Decimal disagreement %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has insignificant value %(insignificantValue)s"),
+                            modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                            value=fact.effectiveValue, insignificantValue=Locale.format(val.modelXbrl.locale, "%.*f", 
+                                                                                        (dec + 2 if dec > 0 else 0, vf - vround), 
+                                                                                        True))
             # 2.5.1 fractions disallowed on a disclosure
             if fact.isFraction:
                 if any(val.linroleDefinitionIsDisclosure.match(roleType.definition)
