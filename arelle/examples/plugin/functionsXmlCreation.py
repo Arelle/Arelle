@@ -7,6 +7,7 @@ from arelle import XPathContext, XbrlUtil
 from arelle.ModelValue import qname
 from arelle.ModelInstanceObject import ModelDimensionValue, XmlUtil
 from arelle.FunctionUtil import qnameArg, nodeArg, atomicArg
+from arelle import XmlValidate
 from lxml import etree
 
 '''
@@ -27,11 +28,11 @@ Attributes may be pairs of string name, value, or pairs of QName, value when att
 name is qualified.
 
 A function definition is required in the formula linkbase:
-<variable:function name="xfxc:element" output="xs:element" xlink:type="resource" xlink:label="cust-fn-xfxc-create">
+<variable:function name="xfxc:element" output="element()" xlink:type="resource" xlink:label="cust-fn-xfxc-create">
   <variable:input type="xs:QName" />  <!-- qname of element to create -->
   <variable:input type="xs:anyAtomicType*" /> <!-- sequence of name, value pairs for creating attributes (name can be string or QName) -->
   <variable:input type="xs:anyAtomicType" /> <!-- optional value, () or '' if none -->
-  <variable:input type="xs:element*" /> <!-- optional sequence of child elements, this parameter can be omitted if no child elements -->
+  <variable:input type="element()*" /> <!-- optional sequence of child elements, this parameter can be omitted if no child elements -->
 </variable:function>
 '''
 def  xfxc_element(xc, p, contextItem, args):
@@ -61,9 +62,9 @@ def  xfxc_element(xc, p, contextItem, args):
     if scratchpadXmlDocUrl in xc.modelXbrl.urlDocs:
         modelDocument = xc.modelXbrl.urlDocs[scratchpadXmlDocUrl]
     else:
-        # create scratchpad instance document
+        # create scratchpad xml document
+        # this will get the fake instance document in the list of modelXbrl docs so that it is garbage collected
         from arelle import ModelDocument
-        # this will get the fake xml document in the list of modelXbrl docs so that it is garbage collected
         modelDocument = ModelDocument.create(xc.modelXbrl, 
                                              ModelDocument.Type.UnknownXML, 
                                              scratchpadXmlDocUrl,
@@ -77,6 +78,9 @@ def  xfxc_element(xc, p, contextItem, args):
         for element in childElements:
             if isinstance(element, etree.ElementBase):
                 newElement.append(element)
+                
+    # node myst be validated for use in instance creation (typed dimension references)
+    XmlValidate.validate(xc.modelXbrl, newElement)
                 
     return newElement
 
