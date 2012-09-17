@@ -1898,6 +1898,7 @@ class MemberModel():
         self.linkrole = linkrole
         self.arcrole = arcrole
         self.axis = axis
+        self.isMemberStatic = qname and not qnameExprProg and not variable and not axis
     
 class ModelExplicitDimension(ModelFilter):
     def init(self, modelDocument):
@@ -1950,6 +1951,15 @@ class ModelExplicitDimension(ModelFilter):
                     XmlUtil.text(axis) if axis is not None else None)
                 self.memberProgs.append(memberModel)
             super(ModelExplicitDimension, self).compile()
+            self.isFilterStatic = (self.dimQname and not self.dimQnameExpressionProg and 
+                                   all(mp.isMemberStatic for mp in self.memberProgs))
+            if self.isFilterStatic:
+                self.staticMemberQnames = set(mp.qname for mp in self.memberProgs)
+                dimConcept = self.modelXbrl.qnameConcepts.get(self.dimQname)
+                if dimConcept is None or not dimConcept.isExplicitDimension:
+                    self.modelXbrl.error("xfie:invalidExplicitDimensionQName",
+                                         _("%(dimension)s is not an explicit dimension concept QName."),
+                                         modelObject=self, dimension=self.dimQname)
         
     def variableRefs(self, progs=[], varRefSet=None):
         if varRefSet is None: varRefSet = set()
@@ -1970,85 +1980,98 @@ class ModelExplicitDimension(ModelFilter):
             return None
     
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        outFacts = set()
-        for fact in facts:
-            factOk = True
-            dimQname = self.evalDimQname(xpCtx, fact)
-            dimConcept = xpCtx.modelXbrl.qnameConcepts.get(dimQname)
-            if dimConcept is None or not dimConcept.isExplicitDimension:
-                self.modelXbrl.error("xfie:invalidExplicitDimensionQName",
-                                     _("%(dimension)s is not an explicit dimension concept QName."),
-                                     modelObject=self, dimension=dimQname)
-                return set()
-            if fact.isItem:
-                memQname = fact.context.dimMemberQname(dimQname)
-                if memQname:
-                    if len(self.memberProgs) > 0:
-                        factOk = False
-                        domainMembersExist = False
-                        for memberModel in self.memberProgs:
-                            matchMemQname = None
-                            if memberModel.qname:
-                                matchMemQname = memberModel.qname
-                            elif memberModel.variable:
-                                otherFact = xpCtx.inScopeVars.get(memberModel.variable)
-                                # BUG: could be bound to a sequence!!!
-                                if otherFact is not None and isinstance(otherFact,ModelFact) and otherFact.isItem:
-                                    matchMemQname = otherFact.context.dimMemberQname(dimQname)
-                            elif memberModel.qnameExprProg:
-                                matchMemQname = xpCtx.evaluateAtomicValue(memberModel.qnameExprProg, 'xs:QName', fact)
-                            memConcept = xpCtx.modelXbrl.qnameConcepts.get(matchMemQname)
-                            if memConcept is None:
-                                #self.modelXbrl.error(_("{0} is not a domain item concept.").format(matchMemQname), 
-                                #                     "err", "xbrldfe:invalidDomainMember")
-                                return set()
-                            if (not memberModel.axis or memberModel.axis.endswith('-self')) and \
-                                matchMemQname == memQname:
-                                    factOk = True
-                                    break
-                            elif memberModel.axis and memberModel.linkrole and memberModel.arcrole:
-                                relSet = fact.modelXbrl.relationshipSet(memberModel.arcrole, memberModel.linkrole)
-                                if relSet:
-                                    ''' removed by Erratum 2011-03-10
-                                    # check for ambiguous filter member network
-                                    linkQnames = set()
-                                    arcQnames = set()
-                                    fromRels = relSet.fromModelObject(memConcept)
-                                    if fromRels:
-                                        from arelle.FunctionXfi import filter_member_network_members
-                                        filter_member_network_members(relSet, fromRels, memberModel.axis.startswith("descendant"), set(), linkQnames, arcQnames)
-                                        if len(linkQnames) > 1 or len(arcQnames) > 1:
-                                            self.modelXbrl.error(_('Network of linkrole {0} and arcrole {1} dimension {2} contains ambiguous links {3} or arcs {4}').format(
-                                                                 memberModel.linkrole, memberModel.arcrole, self.dimQname, linkQnames, arcQnames) ,
-                                                                 "err", "xbrldfe:ambiguousFilterMemberNetwork")
-                                            return []
-                                    '''
-                                    if relSet.isRelated(matchMemQname, memberModel.axis, memQname):
+        if self.isFilterStatic:
+            dimQname = self.dimQname
+            memQnames = self.staticMemberQnames
+            if memQnames:
+                dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname, memQname)
+                                         for inst in varBinding.instances
+                                         for memQname in memQnames])
+            else:
+                dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname)
+                                         for inst in varBinding.instances])
+            return (facts - dimedFacts) if cmplmt else (facts & dimedFacts)            
+
+        else:
+            outFacts = set()
+            for fact in facts:
+                factOk = True
+                dimQname = self.evalDimQname(xpCtx, fact)
+                dimConcept = xpCtx.modelXbrl.qnameConcepts.get(dimQname)
+                if dimConcept is None or not dimConcept.isExplicitDimension:
+                    self.modelXbrl.error("xfie:invalidExplicitDimensionQName",
+                                         _("%(dimension)s is not an explicit dimension concept QName."),
+                                         modelObject=self, dimension=dimQname)
+                    return set()
+                if fact.isItem:
+                    memQname = fact.context.dimMemberQname(dimQname)
+                    if memQname:
+                        if len(self.memberProgs) > 0:
+                            factOk = False
+                            domainMembersExist = False
+                            for memberModel in self.memberProgs:
+                                matchMemQname = None
+                                if memberModel.qname:
+                                    matchMemQname = memberModel.qname
+                                elif memberModel.variable:
+                                    otherFact = xpCtx.inScopeVars.get(memberModel.variable)
+                                    # BUG: could be bound to a sequence!!!
+                                    if otherFact is not None and isinstance(otherFact,ModelFact) and otherFact.isItem:
+                                        matchMemQname = otherFact.context.dimMemberQname(dimQname)
+                                elif memberModel.qnameExprProg:
+                                    matchMemQname = xpCtx.evaluateAtomicValue(memberModel.qnameExprProg, 'xs:QName', fact)
+                                memConcept = xpCtx.modelXbrl.qnameConcepts.get(matchMemQname)
+                                if memConcept is None:
+                                    #self.modelXbrl.error(_("{0} is not a domain item concept.").format(matchMemQname), 
+                                    #                     "err", "xbrldfe:invalidDomainMember")
+                                    return set()
+                                if (not memberModel.axis or memberModel.axis.endswith('-self')) and \
+                                    matchMemQname == memQname:
                                         factOk = True
                                         break
-                                    elif not domainMembersExist and relSet.isRelated(matchMemQname, memberModel.axis):
-                                        domainMembersExist = True # don't need to throw an error
-                            ''' removed by erratum 2011-03-10
-                            else: # check dynamic mem qname for validity
-                                from arelle.ValidateXbrlDimensions import checkPriItemDimValueValidity
-                                if not checkPriItemDimValueValidity(self, fact.concept, dimConcept, memConcept):
-                                    self.modelXbrl.error(_("{0} is not a valid domain member for dimension {1} of primary item {2}.").format(matchMemQname, dimConcept.qname, fact.qname), 
+                                elif memberModel.axis and memberModel.linkrole and memberModel.arcrole:
+                                    relSet = fact.modelXbrl.relationshipSet(memberModel.arcrole, memberModel.linkrole)
+                                    if relSet:
+                                        ''' removed by Erratum 2011-03-10
+                                        # check for ambiguous filter member network
+                                        linkQnames = set()
+                                        arcQnames = set()
+                                        fromRels = relSet.fromModelObject(memConcept)
+                                        if fromRels:
+                                            from arelle.FunctionXfi import filter_member_network_members
+                                            filter_member_network_members(relSet, fromRels, memberModel.axis.startswith("descendant"), set(), linkQnames, arcQnames)
+                                            if len(linkQnames) > 1 or len(arcQnames) > 1:
+                                                self.modelXbrl.error(_('Network of linkrole {0} and arcrole {1} dimension {2} contains ambiguous links {3} or arcs {4}').format(
+                                                                     memberModel.linkrole, memberModel.arcrole, self.dimQname, linkQnames, arcQnames) ,
+                                                                     "err", "xbrldfe:ambiguousFilterMemberNetwork")
+                                                return []
+                                        '''
+                                        if relSet.isRelated(matchMemQname, memberModel.axis, memQname):
+                                            factOk = True
+                                            break
+                                        elif not domainMembersExist and relSet.isRelated(matchMemQname, memberModel.axis):
+                                            domainMembersExist = True # don't need to throw an error
+                                ''' removed by erratum 2011-03-10
+                                else: # check dynamic mem qname for validity
+                                    from arelle.ValidateXbrlDimensions import checkPriItemDimValueValidity
+                                    if not checkPriItemDimValueValidity(self, fact.concept, dimConcept, memConcept):
+                                        self.modelXbrl.error(_("{0} is not a valid domain member for dimension {1} of primary item {2}.").format(matchMemQname, dimConcept.qname, fact.qname), 
+                                                             "err", "xbrldfe:invalidDomainMember")
+                                        return set()
+                                '''
+                            '''
+                            if not factOk:
+                                if not domainMembersExist and memberModel.axis:
+                                    self.modelXbrl.error(_("No member found in the network of explicit dimension concept {0}").format(dimQname), 
                                                          "err", "xbrldfe:invalidDomainMember")
                                     return set()
                             '''
-                        '''
-                        if not factOk:
-                            if not domainMembersExist and memberModel.axis:
-                                self.modelXbrl.error(_("No member found in the network of explicit dimension concept {0}").format(dimQname), 
-                                                     "err", "xbrldfe:invalidDomainMember")
-                                return set()
-                        '''
-                else: # no member for dimension
-                    factOk = False
-            else:
-                factOk = True # don't filter facts which are tuples
-            if cmplmt ^ (factOk):
-                outFacts.add(fact)
+                    else: # no member for dimension
+                        factOk = False
+                else:
+                    factOk = True # don't filter facts which are tuples
+                if cmplmt ^ (factOk):
+                    outFacts.add(fact)
         return outFacts 
 
     @property
