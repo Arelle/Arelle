@@ -12,6 +12,7 @@ from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nod
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
+from arelle.ModelFormulaObject import ModelFormulaResource
 from arelle.XmlValidate import UNKNOWN, VALID, validate
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
@@ -290,6 +291,24 @@ def conceptProperty(xc, p, args, property):
             if property == "fraction": return modelConcept.isFraction
     return False
 
+def checkXffFunctionUse(xc, p, functionName):
+    # check function use after checking argument types
+    if xc.progHeader is not None and xc.progHeader.element is not None:
+        try:
+            modelResourceElt = xc.progHeader.element._modelResourceElt
+        except AttributeError:
+            modelResourceElt = xc.progHeader.element
+            while (modelResourceElt is not None and not isinstance(modelResourceElt, ModelFormulaResource)):
+                modelResourceElt = modelResourceElt.getparent()
+            xc.progHeader.element._modelResourceElt = modelResourceElt
+        
+        if modelResourceElt is not None:
+            if modelResourceElt.localName not in ("formula", "consistencyAssertion", "valueAssertion", "precondition", "message"):
+                raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
+            
+    if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
+        raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
+
 def uncovered_aspect(xc, p, args):
     from arelle.ModelFormulaObject import aspectFromToken, Aspect
     from arelle.FormulaEvaluator import uncoveredAspectValue
@@ -298,12 +317,7 @@ def uncovered_aspect(xc, p, args):
     if aspect == Aspect.DIMENSIONS:
         qn = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
         
-    # check function use after checking argument types
-    if xc.progHeader is not None and xc.progHeader.element is not None:
-        if xc.progHeader.element.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message"):
-            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
-        if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
-            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
+    checkXffFunctionUse(xc, p, "uncovered-aspect")
         
     if aspect == Aspect.DIMENSIONS:
         if qn:
@@ -331,12 +345,7 @@ def has_fallback_value(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     variableQname = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
         
-    # check function use after checking argument types
-    if xc.progHeader is not None and xc.progHeader.element is not None:
-        if xc.progHeader.element.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message"):
-            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
-        if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
-            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
+    checkXffFunctionUse(xc, p, "has-fallback-value")
         
     return variableBindingIsFallback(xc, variableQname)
 
