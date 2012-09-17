@@ -1024,14 +1024,13 @@ class ModelDimensionValue(ModelObject):
         
         :param equalMode: XbrlUtil.S_EQUAL (ordinary S-equality from 2.1 spec), XbrlUtil.S_EQUAL2 (XDT definition of equality, adding QName comparisions), or XbrlUtil.XPATH_EQ (XPath EQ on all types)
         """
-        if isinstance(other, ModelValue.QName):
-            return self.isExplicit and self.memberQname == other
-        elif other is None:
+        if other is None:
             return False
-        elif self.isExplicit:
-            return self.memberQname == other.memberQname
-        else:
-            return XbrlUtil.nodesCorrespond(self.modelXbrl, self.typedMember, other.typedMember, 
+        if self.isExplicit: # other is either ModelDimensionValue or the QName value of explicit dimension
+            return self.memberQname == (other.memberQname if isinstance(other, ModelDimensionValue) else other)
+        else: # typed dimension compared to another ModelDimensionValue or other is the value nodes
+            return XbrlUtil.nodesCorrespond(self.modelXbrl, self.typedMember, 
+                                            other.typedMember if isinstance(other, ModelDimensionValue) else other, 
                                             equalMode=equalMode, excludeIDs=XbrlUtil.NO_IDs_EXCLUDED)
         
     @property
