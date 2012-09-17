@@ -273,7 +273,10 @@ class Cntlr:
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:
-            self.logHandler.close()
+            try:
+                self.logHandler.close()
+            except Exception: # fails on some earlier pythons (3.1)
+                pass
         
     def saveConfig(self):
         """Save user preferences configuration (in json configuration file)."""
