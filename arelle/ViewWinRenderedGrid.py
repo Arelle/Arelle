@@ -8,7 +8,7 @@ import os, threading, time
 from tkinter import Menu, BooleanVar
 from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, Locale)
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, QName
 from arelle.ViewUtilRenderedGrid import (getTblAxes, inheritedAspectValue)
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.FormulaEvaluator import aspectMatches
@@ -397,7 +397,12 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     justify = None
                     fp = FactPrototype(self, cellAspectValues)
                     if conceptNotAbstract:
-                        for fact in self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts:
+                        facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts
+                        for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
+                            if isinstance(aspect, QName):
+                                aspectValue = cellAspectValues.get(aspect, None)
+                                facts = facts & self.modelXbrl.factsByDimMemQname(aspect,getattr(aspectValue, "memberQname", None) or aspectValue)
+                        for fact in facts:
                             if (all(aspectMatches(rendrCntx, fact, fp, aspect) 
                                     for aspect in matchableAspects) and
                                 all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
