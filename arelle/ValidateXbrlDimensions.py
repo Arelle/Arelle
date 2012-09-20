@@ -4,12 +4,14 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, sys
 from collections import defaultdict
 from arelle import (UrlUtil, XbrlConst)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PrototypeInstanceObject import ContextPrototype, DimValuePrototype
+
+NONDEFAULT = sys.intern("non-default")
 
 def loadDimensionDefaults(val):
     # load dimension defaults when required without performing validations
@@ -319,16 +321,28 @@ def checkContext(val, cntx):
                 _("Context %(contextID)s dimension %(dimension)s is a repeated dimension value"),
                 modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, dimension=modelDimValue.dimensionQname)
             
-def checkFact(val, f):
-    if not isFactDimensionallyValid(val, f):
+def checkFact(val, f, otherFacts=None):
+    if not isFactDimensionallyValid(val, f, otherFacts):
         val.modelXbrl.error("xbrldie:PrimaryItemDimensionallyInvalidError",
             _("Fact %(fact)s context %(contextID)s dimensionally not valid"),
             modelObject=f, fact=f.qname, contextID=f.context.id)
 
-def isFactDimensionallyValid(val, f, setPrototypeContextElements=False):
+def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFacts=None):
     hasElrHc = False
     for ELR, hcRels in priItemElrHcRels(val, f.concept).items():
         hasElrHc = True
+        '''
+        if otherFacts: # find relevant facts with compatible primary items and same dims
+            relevantPriItems = set.intersection(*[priItemsOfElrHc(val, rel.fromModelObject, ELR, ELR)
+                                                  for rel in hcRels])
+            relevantFactsByPriItems = set.union(*[val.factsByQname(priItem.qname)
+                                                for priItem in relevantPriItems]) & otherFacts
+            relevantFactsByDims = set.instersection(relevantFactsByPriItems,
+                                                    *[val.factsByDimMemQname(dimQname, NONDEFAULT)
+                                                      for dimQname in f.context.dimAspects(_DICT_SET(val.modelXbrl.qnameDimensionDefaults.keys()))])
+        else:
+            relevantFactsByDims = None
+        '''
         if checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements):
             return True # meets hypercubes in this ELR
         
@@ -351,6 +365,17 @@ def priItemElrHcRels(val, priItem, ELR=None, elrHcRels=None):
         if ELR is None or ELR == toELR:
             priItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels)
     return elrHcRels
+
+def priItemsOfElrHc(val, priItem, hcELR, relELR, priItems=None):
+    if priItems is None: 
+        priItems = set(priItem)
+    for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember, relELR).fromModelObject(priItem):
+        toPriItem = domMbrRel.toModelObject
+        linkrole = domMbrRel.consecutiveLinkrole
+        if linkrole == hcELR:
+            priItems.add(toPriItem)
+        priItemsOfElrHc(val, toPriItem, hcELR, linkrole, priItems)
+    return priItems
 
 NOT_FOUND = 0
 MEMBER_USABLE = 1
@@ -395,8 +420,9 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
                     hcValid = False
                     continue
                 if not dimConcept.isTypedDimension:
-                    if dimensionMemberState(val, dimConcept, memConcept, domELR) != MEMBER_USABLE:
-                        hcValid = False 
+                    # change to cache all member concepts usability per domain: if dimensionMemberState(val, dimConcept, memConcept, domELR) != MEMBER_USABLE:
+                    if not dimensionMemberUsable(val, dimConcept, memConcept, domELR):
+                        hcValid = False
                 if hcValid and setPrototypeContextElements and isinstance(memModelDimension,DimValuePrototype) and not hcNegating:
                     memModelDimension.contextElement = hcContextElement
         if hcIsClosed:
@@ -416,6 +442,40 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
             elrValid = False
     return elrValid
                             
+def dimensionMemberUsable(val, dimConcept, memConcept, domELR):
+    try:
+        dimensionMembersUsable = val.dimensionMembersUsable
+    except AttributeError:
+        dimensionMembersUsable = val.dimensionMembersUsable = {}
+    key = (dimConcept, domELR)
+    try:
+        return memConcept in dimensionMembersUsable[key]
+    except KeyError:
+        usableMembers = set()
+        unusableMembers = set()
+        dimensionMembersUsable[key] = usableMembers
+        # build set of usable members in dimension/domain/ELR
+        findUsableMembersInDomainELR(val, val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, domELR).fromModelObject(dimConcept),
+                                     domELR, usableMembers, unusableMembers, defaultdict(set))
+        usableMembers -= unusableMembers
+        return memConcept in usableMembers
+    
+def findUsableMembersInDomainELR(val, rels, ELR, usableMembers, unusableMembers, toConceptELRs):
+    for rel in rels:
+        toConcept = rel.toModelObject
+        if rel.isUsable:
+            usableMembers.add(toConcept)
+        else:
+            unusableMembers.add(toConcept)
+        toELR = (rel.targetRole or ELR)
+        toELRs = toConceptELRs[toConcept]
+        if toELR not in toELRs:  # looping if it's already there in a visited ELR
+            toELRs.add(toELR)
+            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toConcept)
+            findUsableMembersInDomainELR(val, domMbrRels, toELR, usableMembers, unusableMembers, toConceptELRs)
+            toELRs.discard(toELR)
+
+''' removed to cache all members usability for domain
 def dimensionMemberState(val, dimConcept, memConcept, domELR):
     try:
         dimensionMemberStates = val.dimensionMemberStates
@@ -449,6 +509,7 @@ def memberStateInDomain(val, memConcept, rels, ELR, toConceptELRs=None):
                              memberStateInDomain(val, memConcept, domMbrRels, toELR, toConceptELRs))
             toELRs.discard(toELR)
     return foundState
+'''
 
 ''' removed because no valid way to check one isolated dimension for validity without full set of others
 # check a single dimension value for primary item (not the complete set of dimension values)

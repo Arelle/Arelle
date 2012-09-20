@@ -486,9 +486,13 @@ class ValidateXbrl:
 
             if modelXbrl.hasXDT:            
                 modelXbrl.modelManager.showStatus(_("validating dimensions"))
-                for f in modelXbrl.facts:
-                    if concept.isItem and f.context is not None:
-                        ValidateXbrlDimensions.checkFact(self, f)
+                dimCheckableFacts = set(f 
+                                        for f in modelXbrl.facts 
+                                        if concept.isItem and f.context is not None)
+                while (dimCheckableFacts): # check one and all of its compatible family members
+                    f = dimCheckableFacts.pop()
+                    ValidateXbrlDimensions.checkFact(self, f, dimCheckableFacts)
+                del dimCheckableFacts
                 for cntx in modelXbrl.contexts.values():
                     ValidateXbrlDimensions.checkContext(self,cntx)
                 modelXbrl.profileStat(_("validateDimensions"))
