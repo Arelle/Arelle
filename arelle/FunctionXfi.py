@@ -302,9 +302,9 @@ def checkXffFunctionUse(xc, p, functionName):
                 modelResourceElt = modelResourceElt.getparent()
             xc.progHeader.element._modelResourceElt = modelResourceElt
         
-        if modelResourceElt is not None:
-            if modelResourceElt.localName not in ("formula", "consistencyAssertion", "valueAssertion", "precondition", "message"):
-                raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
+        if (modelResourceElt is None or
+            modelResourceElt.localName not in ("formula", "consistencyAssertion", "valueAssertion", "precondition", "message")):
+            raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used on an XPath expression associated with a {0}').format(xc.progHeader.element.localName))
             
     if xc.variableSet is not None and xc.variableSet.implicitFiltering  == "false":
         raise XPathContext.XPathException(p, 'xffe:invalidFunctionUse', _('Function xff:uncovered-aspect cannot be used with implicitFiltering=false'))
