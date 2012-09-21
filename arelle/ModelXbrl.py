@@ -18,6 +18,8 @@ ModelRelationshipSet = None # dynamic import
 profileStatNumber = 0
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
+NONDEFAULT = sys.intern("non-default")
+    
 
 def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an 
@@ -674,6 +676,35 @@ class ModelXbrl:
             return self.factsByPeriodType(periodType)
         except KeyError:
             return set()  # no facts for this period type
+        
+    def factsByDimMemQname(self, dimQname, memQname=None): # indexed by fact (concept) qname
+        """Facts in the instance indexed by their Dimension  and Member QName, cached
+        
+        :returns: dict -- indexes are (Dimension, Member) and (Dimension) QNames, values are ModelFacts
+        If Member is None, returns facts that have the dimension (explicit or typed)
+        If Member is "non-default", returns facts that have the dimension (explicit non-default or typed)
+        """
+        try:
+            fbdq = self._factsByDimQname[dimQname]
+            return fbdq[memQname]
+        except AttributeError:
+            self._factsByDimQname = {}
+            return self.factsByDimMemQname(dimQname, memQname)
+        except KeyError:
+            self._factsByDimQname[dimQname] = fbdq = defaultdict(set)
+            for fact in self.factsInInstance: 
+                if fact.isItem:
+                    dimValue = fact.context.dimValue(dimQname)
+                    if isinstance(dimValue, ModelValue.QName):  # explicit dimension default value
+                        fbdq[None].add(fact) # set of all facts that have default value for dimension
+                        if dimQname in self.modelXbrl.qnameDimensionDefaults:
+                            fbdq[self.qnameDimensionDefaults[dimQname]].add(fact) # set of facts that have this dim and mem
+                    elif dimValue is not None: # not default
+                        fbdq[None].add(fact) # set of all facts that have default value for dimension
+                        fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
+                        if dimValue.isExplicit:
+                            fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
+            return fbdq[memQname]
         
     def matchFact(self, otherFact, unmatchedFactsStack=None):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
