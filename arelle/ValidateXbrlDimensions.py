@@ -351,7 +351,19 @@ def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFac
         return False
     return True
     
-def priItemElrHcRels(val, priItem, ELR=None, elrHcRels=None):
+def priItemElrHcRels(val, priItem, ELR=None):
+    key = (priItem, ELR)
+    try:
+        priItemElrHcRels = val.priItemElrHcRels
+    except AttributeError:
+        priItemElrHcRels = val.priItemElrHcRels = {}
+    try:
+        return priItemElrHcRels[key]
+    except KeyError:
+        rels = priItemElrHcRels[key] = findPriItemElrHcRels(val, priItem, ELR)
+        return rels
+    
+def findPriItemElrHcRels(val, priItem, ELR=None, elrHcRels=None):
     if elrHcRels is None:
         elrHcRels = defaultdict(list)
     # add has hypercube relationships for ELR
@@ -363,7 +375,7 @@ def priItemElrHcRels(val, priItem, ELR=None, elrHcRels=None):
         relLinkrole = domMbrRel.linkrole
         toELR = (domMbrRel.targetRole or relLinkrole)
         if ELR is None or ELR == toELR:
-            priItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels)
+            findPriItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels)
     return elrHcRels
 
 def priItemsOfElrHc(val, priItem, hcELR, relELR, priItems=None):
