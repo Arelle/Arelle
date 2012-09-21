@@ -42,7 +42,7 @@ class ViewFacts(ViewFile.View):
                                  modelXbrl=self.modelXbrl, col1=col0)
         self.isCol0Label = col0 == "Label"
         self.maxNumDims = 1
-        self.tupleDepth(self.modelXbrl.facts, 1)
+        self.tupleDepth(self.modelXbrl.facts, 0)
         if "Dimensions" == self.cols[-1]:
             lastColSpan = self.maxNumDims
         else:
