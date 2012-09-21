@@ -340,16 +340,19 @@ class XPathContext:
                                         if result and type == DateTime:
                                             result = x.dateOnly == (t.localName == "date")
                             elif isinstance(t, OperationDef):
-                                if t.name == "element" and isinstance(x,ModelObject):
-                                    if len(t.args) >= 1:
-                                        qn = t.args[0]
-                                        if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
-                                            result = True
-                                            if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
-                                                modelXbrl = x.modelDocument.modelXbrl
-                                                modelConcept = modelXbrl.qnameConcepts.get(qname(x))
-                                                if not modelConcept.instanceOfType(t.args[1]):
-                                                    result = False
+                                if t.name == "element":
+                                    if isinstance(x,ModelObject):
+                                        if len(t.args) >= 1:
+                                            qn = t.args[0]
+                                            if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
+                                                result = True
+                                                if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
+                                                    modelXbrl = x.modelDocument.modelXbrl
+                                                    modelConcept = modelXbrl.qnameConcepts.get(qname(x))
+                                                    if not modelConcept.instanceOfType(t.args[1]):
+                                                        result = False
+                                    else:
+                                        result = False
                             if not result: 
                                 break
                 elif op == 'sequence':
