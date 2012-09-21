@@ -39,20 +39,21 @@ def viewFacts(modelXbrl, tabWin, lang=None):
     # intercept menu click before pops up to set the viewable tuple (if tuple clicked)
     view.treeView.bind( view.modelXbrl.modelManager.cntlr.contextMenuClick, view.setViewTupleChildMenuItem, '+' )
     menu = view.contextMenu()
-    view.menu.insert_cascade(0, label=_("View Tuple Children"), underline=0, command=view.viewTuplesGrid)
-    view.menu.entryconfigure(0, state='disabled')
-    view.menuAddExpandCollapse()
-    view.menuAddClipboard()
-    view.menuAddLangs()
-    view.menuAddLabelRoles(includeConceptName=True)
-    view.menuAddUnitDisplay()
+    if menu is not None:
+        view.menu.insert_cascade(0, label=_("View Tuple Children"), underline=0, command=view.viewTuplesGrid)
+        view.menu.entryconfigure(0, state='disabled')
+        view.menuAddExpandCollapse()
+        view.menuAddClipboard()
+        view.menuAddLangs()
+        view.menuAddLabelRoles(includeConceptName=True)
+        view.menuAddUnitDisplay()
     
 class ViewFactList(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, lang):
         super(ViewFactList, self).__init__(modelXbrl, tabWin, "Fact List", True, lang)
         
     def setViewTupleChildMenuItem(self, event=None):
-        if event is not None:
+        if event is not None and self.menu is not None:
             #self.menu.delete(0, 0) # remove old filings
             menuRow = self.treeView.identify_row(event.y) # this is the object ID
             modelFact = self.modelXbrl.modelObject(menuRow)

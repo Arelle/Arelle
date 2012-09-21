@@ -131,9 +131,16 @@ class ViewTree:
         try:
             return self.menu
         except AttributeError:
-            self.menu = Menu( self.viewFrame, tearoff = 0 )
-            self.treeView.bind( self.modelXbrl.modelManager.cntlr.contextMenuClick, self.popUpMenu, '+' )
-            return self.menu
+            try:
+                self.menu = Menu( self.viewFrame, tearoff = 0 )
+                self.treeView.bind( self.modelXbrl.modelManager.cntlr.contextMenuClick, self.popUpMenu, '+' )
+                return self.menu
+            except Exception as ex: # tkinter menu problem maybe
+                self.modelXbrl.info("arelle:internalException",
+                                    _("Exception creating context menu: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, error=str(ex))
+                self.menu = None
+                return None
 
     def popUpMenu(self, event):
         self.menuRow = self.treeView.identify_row(event.y)
