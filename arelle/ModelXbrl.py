@@ -18,7 +18,7 @@ ModelRelationshipSet = None # dynamic import
 profileStatNumber = 0
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
-NONDEFAULT = sys.intern("non-default")
+NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
     
 
 def load(modelManager, url, nextaction=None, base=None, useFileSource=None):

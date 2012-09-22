@@ -11,7 +11,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PrototypeInstanceObject import ContextPrototype, DimValuePrototype
 
-NONDEFAULT = sys.intern("non-default")
+NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
 
 def loadDimensionDefaults(val):
     # load dimension defaults when required without performing validations
