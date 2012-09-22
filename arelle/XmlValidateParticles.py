@@ -144,4 +144,6 @@ def validateUniqueParticleAttribution(modelXbrl, particles, compositor):
                     modelObject=particle, compositor=compositor.localName)
             priorAnyParticles.insert(0, i)
         else:   # recurse
-            validateUniqueParticleAttribution(modelXbrl, particle.dereference().particles, particle)
+            particleDeclaration = particle.dereference()
+            if particleDeclaration is not None:  # none if particle ref is invalid
+                validateUniqueParticleAttribution(modelXbrl, particleDeclaration.particles, particle)
