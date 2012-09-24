@@ -183,7 +183,8 @@
 <!ENTITY % inline.forms "input | select | textarea | label | button">
 
 <!-- these can occur at block or inline level -->
-<!ENTITY % misc.inline "ins | del | script">
+<!-- HF: note that inline schema allows nested content at block level -->
+<!ENTITY % misc.inline "ins | del | script | ixNestedContent">
 
 <!-- these can only occur at block level -->
 <!ENTITY % misc "noscript | %misc.inline;">
