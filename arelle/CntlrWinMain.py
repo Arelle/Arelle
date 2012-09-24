@@ -733,9 +733,15 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def validate(self):
         if self.modelManager.modelXbrl:
-            thread = threading.Thread(target=lambda: self.backgroundValidate())
-            thread.daemon = True
-            thread.start()
+            if (self.modelManager.modelXbrl.modelManager.validateDisclosureSystem and 
+                not self.modelManager.modelXbrl.modelManager.disclosureSystem.selection):
+                tkinter.messagebox.showwarning(_("arelle - Warning"),
+                                _("Validation - disclosure system checks is requested but no disclosure system is selected, please select one by validation - select disclosure system."),
+                                parent=self.parent)
+            else:
+                thread = threading.Thread(target=lambda: self.backgroundValidate())
+                thread.daemon = True
+                thread.start()
             
     def backgroundValidate(self):
         startedAt = time.time()
