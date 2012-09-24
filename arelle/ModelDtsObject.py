@@ -862,8 +862,8 @@ class ModelType(ModelNamableTerm):
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
-        super(ModelType, self).init(modelDocument)     
-        self.modelXbrl.qnameTypes[self.qname] = self
+        super(ModelType, self).init(modelDocument)
+        self.modelXbrl.qnameTypes.setdefault(self.qname, self) # don't redefine types nested in anonymous types
         self.particlesList = ParticlesList()
         
     @property
@@ -941,9 +941,16 @@ class ModelType(ModelNamableTerm):
                 elif isinstance(qnameDerivedFrom,list): # union
                     if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
                         self._baseXsdType = "XBRLI_DATEUNION"
+                    elif len(qnameDerivedFrom) == 1:
+                        qn0 = qnameDerivedFrom[0]
+                        if qn0.namespaceURI == XbrlConst.xsd:
+                            self._baseXsdType = qn0.localName
+                        else:
+                            typeDerivedFrom = self.modelXbrl.qnameTypes.get(qn0)
+                            self._baseXsdType = typeDerivedFrom.baseXsdType if typeDerivedFrom is not None else "anyType"
                     # TBD implement union types
                     else:
-                        self._baseXsdType == "anyType" 
+                        self._baseXsdType = "anyType" 
                 elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:
                     self._baseXsdType = qnameDerivedFrom.localName
                 else:
