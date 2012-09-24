@@ -885,6 +885,7 @@ class ModelDocument:
         for tag in ("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric", "{http://www.xbrl.org/2008/inlineXBRL}nonFraction", "{http://www.xbrl.org/2008/inlineXBRL}fraction"):
             for modelInlineFact in htmlElement.iterdescendants(tag=tag):
                 if isinstance(modelInlineFact,ModelObject):
+                    self.modelXbrl.factsInInstance.add( modelInlineFact )
                     self.inlineXbrlLocateFactInTuple(modelInlineFact, tuplesByTupleID)
         # order tuple facts
         for tupleFact in tupleElements:
