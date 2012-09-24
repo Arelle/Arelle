@@ -617,7 +617,9 @@ def ixToXhtml(fromRoot):
     toRoot = etree.Element(fromRoot.localName)
     copyNonIxChildren(fromRoot, toRoot)
     for attrTag, attrValue in fromRoot.items():
-        toRoot.set(attrTag, attrValue)
+        if attrTag not in ('version', # used in inline test cases but not valid xhtml
+                           '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'):
+            toRoot.set(attrTag, attrValue)
     return toRoot
 
 def copyNonIxChildren(fromElt, toElt):
