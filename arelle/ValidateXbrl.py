@@ -298,151 +298,16 @@ class ValidateXbrl:
         self.footnoteRefs = set()
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
-            factsWithDeprecatedIxNamespace = []
-            for f in modelXbrl.facts:
-                concept = f.concept
-                if concept is not None:
-                    if concept.isNumeric:
-                        unit = f.unit
-                        if f.unitID is None or unit is None:
-                            self.modelXbrl.error("xbrl.4.6.2:numericUnit",
-                                 _("Fact %(fact)s context %(contextID)s is numeric and must have a unit"),
-                                 modelObject=f, fact=f.qname, contextID=f.contextID)
-                        else:
-                            if concept.isMonetary:
-                                measures = unit.measures
-                                if not measures or len(measures[0]) != 1 or len(measures[1]) != 0:
-                                    self.modelXbrl.error("xbrl.4.8.2:monetaryFactUnit-notSingleMeasure",
-                                        _("Fact %(fact)s context %(contextID)s must have a single unit measure which is monetary %(unitID)s"),
-                                         modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
-                                elif (measures[0][0].namespaceURI != XbrlConst.iso4217 or
-                                      not self.isoCurrencyPattern.match(measures[0][0].localName)):
-                                    self.modelXbrl.error("xbrl.4.8.2:monetaryFactUnit-notMonetaryMeasure",
-                                        _("Fact %(fact)s context %(contextID)s must have a monetary unit measure %(unitID)s"),
-                                         modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
-                            elif concept.isShares:
-                                measures = unit.measures
-                                if not measures or len(measures[0]) != 1 or len(measures[1]) != 0:
-                                    self.modelXbrl.error("xbrl.4.8.2:sharesFactUnit-notSingleMeasure",
-                                        _("Fact %(fact)s context %(contextID)s must have a single xbrli:shares unit %(unitID)s"),
-                                        modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
-                                elif measures[0][0] != XbrlConst.qnXbrliShares:
-                                    self.modelXbrl.error("xbrl.4.8.2:sharesFactUnit-notSharesMeasure",
-                                        _("Fact %(fact)s context %(contextID)s must have a xbrli:shares unit %(unitID)s"),
-                                        modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
-                    precision = f.precision
-                    hasPrecision = precision is not None
-                    if hasPrecision and precision != "INF" and not precision.isdigit():
-                        self.modelXbrl.error("xbrl.4.6.4:precision",
-                            _("Fact %(fact)s context %(contextID)s precision %(precision)s is invalid"),
-                            modelObject=f, fact=f.qname, contextID=f.contextID, precision=precision)
-                    decimals = f.decimals
-                    hasDecimals = decimals is not None
-                    if hasPrecision and not self.precisionPattern.match(precision):
-                        self.modelXbrl.error("xbrl.4.6.4:precision",
-                            _("Fact %(fact)s context %(contextID)s precision %(precision)s is invalid"),
-                            modelObject=f, fact=f.qname, contextID=f.contextID, precision=precision)
-                    if hasPrecision and hasDecimals:
-                        self.modelXbrl.error("xbrl.4.6.3:bothPrecisionAndDecimals",
-                            _("Fact %(fact)s context %(contextID)s can not have both precision and decimals"),
-                            modelObject=f, fact=f.qname, contextID=f.contextID)
-                    if hasDecimals and not self.decimalsPattern.match(decimals):
-                        self.modelXbrl.error(_("xbrl.4.6.5:decimals"),
-                            _("Fact %(fact)s context %(contextID)s decimals %(decimals)s is invalid"),
-                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=decimals)
-                    if concept.isItem:
-                        context = f.context
-                        if context is None:
-                            self.modelXbrl.error("xbrl.4.6.1:itemContextRef",
-                                _("Item %(fact)s must have a context"),
-                                modelObject=f, fact=f.qname)
-                        else:
-                            periodType = concept.periodType
-                            if (periodType == "instant" and not context.isInstantPeriod) or \
-                               (periodType == "duration" and not (context.isStartEndPeriod or context.isForeverPeriod)):
-                                self.modelXbrl.error("xbrl.4.7.2:contextPeriodType",
-                                    _("Fact %(fact)s context %(contextID)s has period type %(periodType)s conflict with context"),
-                                    modelObject=f, fact=f.qname, contextID=f.contextID, periodType=periodType)
-                                
-                        # check precision and decimals
-                        if f.xsiNil == "true":
-                            if hasPrecision or hasDecimals:
-                                self.modelXbrl.error("xbrl.4.6.3:nilPrecisionDecimals",
-                                    _("Fact %(fact)s context %(contextID)s can not be nil and have either precision or decimals"),
-                                    modelObject=f, fact=f.qname, contextID=f.contextID)
-                        elif concept.isFraction:
-                            if hasPrecision or hasDecimals:
-                                self.modelXbrl.error("xbrl.4.6.3:fractionPrecisionDecimals",
-                                    _("Fact %(fact)s context %(contextID)s is a fraction concept and cannot have either precision or decimals"),
-                                    modelObject=f, fact=f.qname, contextID=f.contextID)
-                                numerator, denominator = f.fractionValue
-                                if not (numerator == "INF" or numerator.isnumeric()):
-                                    self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
-                                        _("Fact %(fact)s context %(contextID)s is a fraction with invalid numerator %(numerator)s"),
-                                        modelObject=f, fact=f.qname, contextID=f.contextID, numerator=numerator)
-                                if not denominator.isnumeric() or _INT(denominator) == 0:
-                                    self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
-                                        _("Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)")).format(
-                                        modelObject=f, fact=f.qname, contextID=f.contextID, denominator=denominator)
-                        else:
-                            if modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
-                                for child in f.iterchildren():
-                                    if isinstance(child,ModelObject):
-                                        self.modelXbrl.error("xbrl.5.1.1:itemMixedContent",
-                                            _("Fact %(fact)s context %(contextID)s may not have child elements %(childElementName)s"),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, childElementName=child.prefixedName)
-                                        break
-                            if concept.isNumeric and not hasPrecision and not hasDecimals:
-                                self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
-                                    _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
-                                    modelObject=f, fact=f.qname, contextID=f.contextID)
-                    elif concept.isTuple:
-                        if f.contextID:
-                            self.modelXbrl.error("xbrl.4.6.1:tupleContextRef",
-                                _("Tuple %(fact)s must not have a context"),
-                                modelObject=f, fact=f.qname)
-                        if hasPrecision or hasDecimals:
-                            self.modelXbrl.error("xbrl.4.6.3:tuplePrecisionDecimals",
-                                _("Fact %(fact)s is a tuple and cannot have either precision or decimals"),
-                                modelObject=f, fact=f.qname)
-                        # custom attributes may be allowed by anyAttribute but not by 2.1
-                        for attrQname, attrValue in XbrlUtil.attributes(self.modelXbrl, f):
-                            if attrQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
-                                self.modelXbrl.error(_("xbrl.4.9:tupleAttribute"),
-                                    _("Fact %(fact)s is a tuple and must not have attribute in this namespace %(attribute)s"),
-                                    modelObject=f, fact=f.qname, attribute=attrQname), 
-                    else:
-                        self.modelXbrl.error("xbrl.4.6:notItemOrTuple",
-                            _("Fact %(fact)s must be an item or tuple"),
-                            modelObject=f, fact=f.qname)
-                        
-                if isinstance(f, ModelInlineFact):
-                    self.footnoteRefs.update(f.footnoteRefs)
-                    fmt = f.format
-                    if fmt:
-                        if fmt.namespaceURI not in FunctionIxt.ixtNamespaceURIs:
-                            self.modelXbrl.error("ix.14.2:invalidTransformation",
-                                _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
-                                modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
-                        elif fmt.localName not in FunctionIxt.ixtFunctions:
-                            self.modelXbrl.error("ix.14.2:invalidTransformation",
-                                _("Fact %(fact)s has unrecognized transformation name %(name)s"),
-                                modelObject=f, fact=f.qname, name=fmt.localName)
-                        if fmt.namespaceURI == FunctionIxt.deprecatedNamespaceURI:
-                            factsWithDeprecatedIxNamespace.append(f)
-                    if f.order is not None: 
-                        self.modelXbrl.error("ix.13.1.2:tupleOrder",
-                            _("Fact %(fact)s must not have an order (%(order)s) unless in a tuple"),
-                            modelObject=f, fact=f.qname, name=fmt.localName, order=f.order)
-                    if f.isTuple:
-                        self.checkIxTupleContent(f, set())
-                        
-            if factsWithDeprecatedIxNamespace:
+            self.factsWithDeprecatedIxNamespace = []
+            self.checkFacts(modelXbrl.facts)
+            
+            if self.factsWithDeprecatedIxNamespace:
                 self.modelXbrl.info("arelle:info",
                     _("%(count)s facts have deprecated transformation namespace %(namespace)s"),
                         modelObject=factsWithDeprecatedIxNamespace,
                         count=len(factsWithDeprecatedIxNamespace), 
                         namespace=FunctionIxt.deprecatedNamespaceURI)
+            del self.factsWithDeprecatedIxNamespace
 
             
             #instance checks
@@ -486,13 +351,16 @@ class ValidateXbrl:
 
             if modelXbrl.hasXDT:            
                 modelXbrl.modelManager.showStatus(_("validating dimensions"))
+                ''' uncomment if using otherFacts in checkFact
                 dimCheckableFacts = set(f 
-                                        for f in modelXbrl.facts 
-                                        if concept.isItem and f.context is not None)
+                                        for f in modelXbrl.factsInInstance
+                                        if f.concept.isItem and f.context is not None)
                 while (dimCheckableFacts): # check one and all of its compatible family members
                     f = dimCheckableFacts.pop()
                     ValidateXbrlDimensions.checkFact(self, f, dimCheckableFacts)
                 del dimCheckableFacts
+                '''
+                self.checkFactDimensions(modelXbrl.facts) # check fact dimensions in document order
                 for cntx in modelXbrl.contexts.values():
                     ValidateXbrlDimensions.checkContext(self,cntx)
                 modelXbrl.profileStat(_("validateDimensions"))
@@ -614,6 +482,166 @@ class ValidateXbrl:
                                            else _("compiling rendering tables")))
             
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
+        
+    def checkFacts(self, facts, inTuple=False):  # do in document order
+        for f in facts:
+            concept = f.concept
+            if concept is not None:
+                if concept.isNumeric:
+                    unit = f.unit
+                    if f.unitID is None or unit is None:
+                        self.modelXbrl.error("xbrl.4.6.2:numericUnit",
+                             _("Fact %(fact)s context %(contextID)s is numeric and must have a unit"),
+                             modelObject=f, fact=f.qname, contextID=f.contextID)
+                    else:
+                        if concept.isMonetary:
+                            measures = unit.measures
+                            if not measures or len(measures[0]) != 1 or len(measures[1]) != 0:
+                                self.modelXbrl.error("xbrl.4.8.2:monetaryFactUnit-notSingleMeasure",
+                                    _("Fact %(fact)s context %(contextID)s must have a single unit measure which is monetary %(unitID)s"),
+                                     modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                            elif (measures[0][0].namespaceURI != XbrlConst.iso4217 or
+                                  not self.isoCurrencyPattern.match(measures[0][0].localName)):
+                                self.modelXbrl.error("xbrl.4.8.2:monetaryFactUnit-notMonetaryMeasure",
+                                    _("Fact %(fact)s context %(contextID)s must have a monetary unit measure %(unitID)s"),
+                                     modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                        elif concept.isShares:
+                            measures = unit.measures
+                            if not measures or len(measures[0]) != 1 or len(measures[1]) != 0:
+                                self.modelXbrl.error("xbrl.4.8.2:sharesFactUnit-notSingleMeasure",
+                                    _("Fact %(fact)s context %(contextID)s must have a single xbrli:shares unit %(unitID)s"),
+                                    modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                            elif measures[0][0] != XbrlConst.qnXbrliShares:
+                                self.modelXbrl.error("xbrl.4.8.2:sharesFactUnit-notSharesMeasure",
+                                    _("Fact %(fact)s context %(contextID)s must have a xbrli:shares unit %(unitID)s"),
+                                    modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
+                precision = f.precision
+                hasPrecision = precision is not None
+                if hasPrecision and precision != "INF" and not precision.isdigit():
+                    self.modelXbrl.error("xbrl.4.6.4:precision",
+                        _("Fact %(fact)s context %(contextID)s precision %(precision)s is invalid"),
+                        modelObject=f, fact=f.qname, contextID=f.contextID, precision=precision)
+                decimals = f.decimals
+                hasDecimals = decimals is not None
+                if hasPrecision and not self.precisionPattern.match(precision):
+                    self.modelXbrl.error("xbrl.4.6.4:precision",
+                        _("Fact %(fact)s context %(contextID)s precision %(precision)s is invalid"),
+                        modelObject=f, fact=f.qname, contextID=f.contextID, precision=precision)
+                if hasPrecision and hasDecimals:
+                    self.modelXbrl.error("xbrl.4.6.3:bothPrecisionAndDecimals",
+                        _("Fact %(fact)s context %(contextID)s can not have both precision and decimals"),
+                        modelObject=f, fact=f.qname, contextID=f.contextID)
+                if hasDecimals and not self.decimalsPattern.match(decimals):
+                    self.modelXbrl.error(_("xbrl.4.6.5:decimals"),
+                        _("Fact %(fact)s context %(contextID)s decimals %(decimals)s is invalid"),
+                        modelObject=f, fact=f.qname, contextID=f.contextID, decimals=decimals)
+                if concept.isItem:
+                    context = f.context
+                    if context is None:
+                        self.modelXbrl.error("xbrl.4.6.1:itemContextRef",
+                            _("Item %(fact)s must have a context"),
+                            modelObject=f, fact=f.qname)
+                    else:
+                        periodType = concept.periodType
+                        if (periodType == "instant" and not context.isInstantPeriod) or \
+                           (periodType == "duration" and not (context.isStartEndPeriod or context.isForeverPeriod)):
+                            self.modelXbrl.error("xbrl.4.7.2:contextPeriodType",
+                                _("Fact %(fact)s context %(contextID)s has period type %(periodType)s conflict with context"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID, periodType=periodType)
+                            
+                    # check precision and decimals
+                    if f.xsiNil == "true":
+                        if hasPrecision or hasDecimals:
+                            self.modelXbrl.error("xbrl.4.6.3:nilPrecisionDecimals",
+                                _("Fact %(fact)s context %(contextID)s can not be nil and have either precision or decimals"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID)
+                    elif concept.isFraction:
+                        if hasPrecision or hasDecimals:
+                            self.modelXbrl.error("xbrl.4.6.3:fractionPrecisionDecimals",
+                                _("Fact %(fact)s context %(contextID)s is a fraction concept and cannot have either precision or decimals"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID)
+                            numerator, denominator = f.fractionValue
+                            if not (numerator == "INF" or numerator.isnumeric()):
+                                self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
+                                    _("Fact %(fact)s context %(contextID)s is a fraction with invalid numerator %(numerator)s"),
+                                    modelObject=f, fact=f.qname, contextID=f.contextID, numerator=numerator)
+                            if not denominator.isnumeric() or _INT(denominator) == 0:
+                                self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
+                                    _("Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)")).format(
+                                    modelObject=f, fact=f.qname, contextID=f.contextID, denominator=denominator)
+                    else:
+                        if self.modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
+                            for child in f.iterchildren():
+                                if isinstance(child,ModelObject):
+                                    self.modelXbrl.error("xbrl.5.1.1:itemMixedContent",
+                                        _("Fact %(fact)s context %(contextID)s may not have child elements %(childElementName)s"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, childElementName=child.prefixedName)
+                                    break
+                        if concept.isNumeric and not hasPrecision and not hasDecimals:
+                            self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
+                                _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID)
+                elif concept.isTuple:
+                    if f.contextID:
+                        self.modelXbrl.error("xbrl.4.6.1:tupleContextRef",
+                            _("Tuple %(fact)s must not have a context"),
+                            modelObject=f, fact=f.qname)
+                    if hasPrecision or hasDecimals:
+                        self.modelXbrl.error("xbrl.4.6.3:tuplePrecisionDecimals",
+                            _("Fact %(fact)s is a tuple and cannot have either precision or decimals"),
+                            modelObject=f, fact=f.qname)
+                    # custom attributes may be allowed by anyAttribute but not by 2.1
+                    for attrQname, attrValue in XbrlUtil.attributes(self.modelXbrl, f):
+                        if attrQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
+                            self.modelXbrl.error(_("xbrl.4.9:tupleAttribute"),
+                                _("Fact %(fact)s is a tuple and must not have attribute in this namespace %(attribute)s"),
+                                modelObject=f, fact=f.qname, attribute=attrQname), 
+                else:
+                    self.modelXbrl.error("xbrl.4.6:notItemOrTuple",
+                        _("Fact %(fact)s must be an item or tuple"),
+                        modelObject=f, fact=f.qname)
+                    
+            if isinstance(f, ModelInlineFact):
+                if concept is None:
+                    self.modelXbrl.error("xbrl:schemaImportMissing",
+                            _("Fact %(fact)s missing schema definition or missing name attribute"),
+                            modelObject=f, fact=f.qname)
+                if f.localName in {"fraction", "nonFraction", "nonNumeric"} and not f.contextID:
+                    self.modelXbrl.error("ix:missingContextRef",
+                        _("Fact %(fact)s is missing a contextRef"),
+                        modelObject=f, fact=f.qname)
+                if f.localName in {"fraction", "nonFraction"} and not f.unitID:
+                    self.modelXbrl.error("ix:missingUnitRef",
+                        _("Fact %(fact)s is missing a unitRef"),
+                        modelObject=f, fact=f.qname)
+                self.footnoteRefs.update(f.footnoteRefs)
+                fmt = f.format
+                if fmt:
+                    if fmt.namespaceURI not in FunctionIxt.ixtNamespaceURIs:
+                        self.modelXbrl.error("ix.14.2:invalidTransformation",
+                            _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
+                            modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
+                    elif fmt.localName not in FunctionIxt.ixtFunctions:
+                        self.modelXbrl.error("ix.14.2:invalidTransformation",
+                            _("Fact %(fact)s has unrecognized transformation name %(name)s"),
+                            modelObject=f, fact=f.qname, name=fmt.localName)
+                    if fmt.namespaceURI == FunctionIxt.deprecatedNamespaceURI:
+                        self.factsWithDeprecatedIxNamespace.append(f)
+                if f.isTuple or f.tupleID:
+                    self.checkIxTupleContent(f, set())
+                if not inTuple and f.order is not None: 
+                    self.modelXbrl.error("ix.13.1.2:tupleOrder",
+                        _("Fact %(fact)s must not have an order (%(order)s) unless in a tuple"),
+                        modelObject=f, fact=f.qname, order=f.order)
+            if f.modelTupleFacts:
+                self.checkFacts(f.modelTupleFacts, inTuple=True)
+                
+    def checkFactDimensions(self, facts): # check fact dimensions in document order
+        for f in facts:
+            if f.concept.isItem and f.context is not None:
+                ValidateXbrlDimensions.checkFact(self, f)
+            elif f.modelTupleFacts:
+                self.checkFactDimensions(f.modelTupleFacts)
         
     def checkIxTupleContent(self, tf, visited):
         visited.add(tf.qname)
