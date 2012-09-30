@@ -88,6 +88,9 @@ def setup(val):
                     f.write(jsonStr)  # 2.7 gets unicode this way
                 calculationsInstance.close()
                 del calculationsInstance # dereference closed modelXbrl
+    val.deprecatedFactConcepts = defaultdict(list)
+    val.deprecatedDimensions = defaultdict(list)
+    val.deprecatedMembers = defaultdict(list)
 
 def factCheck(val, fact):
     concept = fact.concept
@@ -122,17 +125,24 @@ def factCheck(val, fact):
         # deprecated concept
         if concept.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
             if concept.name in val.usgaapDeprecations:
-                deprecation = val.usgaapDeprecations[concept.name]
-                val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecatedConcept",
-                    _("Concept of fact %(fact)s in context %(contextID)s value %(value)s was deprecated on %(date)s: %(documentation)s"),
-                    modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value, 
-                    date=deprecation[0], documentation=deprecation[1])
+                val.deprecatedFactConcepts[concept].append(fact)
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
-            val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecatedConcept",
-                _("Concept of fact %(fact)s in context %(contextID)s value %(value)s was deprecated on %(date)s"),
-                modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value, 
-                date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
-                    
+            val.deprecatedFactConcepts[concept].append(fact)
+        if fact.isItem and fact.context is not None:
+            for dimConcept, modelDim in fact.context.segDimValues.items():
+                if dimConcept.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
+                    if dimConcept.name in val.usgaapDeprecations:
+                        val.deprecatedDimensions[dimConcept].append(fact)
+                elif dimConcept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
+                    val.deprecatedDimensions[dimConcept].append(fact)
+                if modelDim.isExplicit:
+                    member = modelDim.member
+                    if member is not None:
+                        if member.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
+                            if member.name in val.usgaapDeprecations:
+                                val.deprecatedMembers[member].append(fact)
+                        elif member.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
+                            val.deprecatedMembers[member].append(fact)
     except Exception as err:
         val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.testingException",
             _("%(fact)s in context %(contextID)s unit %(unitID)s value %(value)s cannot be tested due to: %(err)s"),
@@ -140,6 +150,29 @@ def factCheck(val, fact):
             value=fact.effectiveValue, err=err)
 
 def final(val, conceptsUsed):
+    for depType, depItems in (("Concept", val.deprecatedFactConcepts),
+                              ("Dimension", val.deprecatedDimensions),
+                              ("Member", val.deprecatedMembers)):
+        for concept, facts in depItems.items():
+            if concept.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
+                if concept.name in val.usgaapDeprecations:
+                    deprecation = val.usgaapDeprecations[concept.name]
+                    val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecated{0}".format(depType),
+                        _("%(deprecation)s of fact(s) %(fact)s (e.g., in context %(contextID)s value %(value)s) was deprecated on %(date)s: %(documentation)s"),
+                        modelObject=facts, fact=facts[0].qname, contextID=facts[0].contextID, value=facts[0].value,
+                        deprecation=depType, 
+                        date=deprecation[0], documentation=deprecation[1])
+            elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
+                val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecated{0}".format(depType),
+                    _("%(deprecation)s of facts %(fact)s in context %(contextID)s value %(value)s was deprecated on %(date)s"),
+                    modelObject=facts, fact=facts[0].qname, contextID=facts[0].contextID, value=facts[0].value,
+                    deprecation=depType, 
+                    date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
+        
+    del val.deprecatedFactConcepts
+    del val.deprecatedDimensions
+    del val.deprecatedMembers
+
     if hasattr(val, 'usaapCalculations'):
         # check for usgaap calculations missing from extension
         ugtTotalConceptNames = set(totalConceptName 
