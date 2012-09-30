@@ -81,33 +81,33 @@ class ViewRenderedGrid(ViewFile.View):
                     elif self.type == XML:
                         self.ordCntxElts = []
                         if discriminator == 1:
-                            tableElt = etree.SubElement(self.tblElt, "{http://xbrl.org/2012/table/model}table",
-                                                        attrib={"label": self.roledefinition})
-                            tableElt.append(etree.Comment("Table linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
-                            tableElt.append(etree.Comment("Table namespace: {0}".format(self.modelTable.namespaceURI)))
-                            tableElt.append(etree.Comment("Table linkrole: {0}".format(tblELR)))
-                            self.zHdrsElt = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
-                                                             attrib={"disposition": "discriminators"})
+                            tableSetElt = etree.SubElement(self.tblElt, "{http://xbrl.org/2012/table/model}tableSet")
+                            tableSetElt.append(etree.Comment("TableSet linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
+                            tableSetElt.append(etree.Comment("TableSet namespace: {0}".format(self.modelTable.namespaceURI)))
+                            tableSetElt.append(etree.Comment("TableSet linkrole: {0}".format(tblELR)))
+                            self.zHdrsElt = etree.SubElement(tableSetElt, "{http://xbrl.org/2012/table/model}headers")
                             zAspects = defaultdict(set)
                             self.zAxis(1, zOrdCntx, zAspects, True)
+                        tableElt = etree.SubElement(tableSetElt, "{http://xbrl.org/2012/table/model}table",
+                                                    attrib={"label": self.roledefinition})
                         hdrsElts = dict((disposition,
                                          etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
-                                                          attrib={"disposition": disposition,
-                                                                  "discriminator": str(discriminator)}))
-                                        for disposition in ("y", "z", "x"))
+                                                          attrib={"disposition": disposition}))
+                                        for disposition in ("y", "x"))
+                        self.zHdrsElt = hdrsElts["y"]  # z-comments go before y subelement of tableElt
                         # new y,x cells on each Z combination
                         self.rowHdrElts = [etree.SubElement(hdrsElts["y"], "{http://xbrl.org/2012/table/model}header")
                                            for i in range(self.rowHdrCols - 1 + self.rowHdrDocCol + self.rowHdrCodeCol)]
-                        self.zHdrsElt = hdrsElts["z"]
                         self.colHdrElts = [etree.SubElement(hdrsElts["x"], "{http://xbrl.org/2012/table/model}header")
                                            for i in range(self.colHdrRows - 1 + self.colHdrDocRow + self.colHdrCodeRow)]
                         self.zCells = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}cells",
-                                                          attrib={"disposition": "z",
-                                                                  "discriminator": str(discriminator)})
+                                                          attrib={"disposition": "z"})
                         self.yCells = etree.SubElement(self.zCells, "{http://xbrl.org/2012/table/model}cells",
                                                           attrib={"disposition": "y"})
+                        ''' move into body cells, for entry row-by-row
                         self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
                                                           attrib={"disposition": "x"})
+                        '''
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
                     zAspects = defaultdict(set)
                     self.zOrdsWithChoices = []
@@ -191,21 +191,33 @@ class ViewRenderedGrid(ViewFile.View):
                                              "colspan": str(zChoiceLabelSpan)} # "2"}
                                      ).text = choiceLabel
             elif self.type == XML:
-                hdrElt = etree.SubElement(self.zHdrsElt, "{http://xbrl.org/2012/table/model}header")
-                self.ordCntxElts.append((zOrdCntx, hdrElt))
-                if zOrdCntx.choiceOrdinateContexts: # same as combo box selection in GUI mode
-                    hdrElt.set("label", label)
-                    if discriminatorsTable:
-                        for choiceOrdCntx in zOrdCntx.choiceOrdinateContexts:
-                            choiceLabel = choiceOrdCntx.header(lang=self.lang)
-                            etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
-                                             ).text = choiceLabel
-                    else: # choiceLabel from above 
+                # per JS, no header elements inside each table
+                if discriminatorsTable:
+                    hdrElt = etree.SubElement(self.zHdrsElt, "{http://xbrl.org/2012/table/model}header")
+                    self.ordCntxElts.append((zOrdCntx, hdrElt))
+                    if zOrdCntx.choiceOrdinateContexts: # same as combo box selection in GUI mode
+                        # hdrElt.set("label", label)
+                        if discriminatorsTable:
+                            for choiceOrdCntx in zOrdCntx.choiceOrdinateContexts:
+                                choiceLabel = choiceOrdCntx.header(lang=self.lang)
+                                etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
+                                                 ).text = choiceLabel
+                        #else: # choiceLabel from above 
+                        #    etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
+                        #                     ).text = choiceLabel
+                    else: # no combo choices, single label
                         etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
-                                         ).text = choiceLabel
-                else: # no combo choices, single label
-                    etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
-                                     ).text = label
+                                         ).text = label
+                else:
+                    if choiceLabel: # same as combo box selection in GUI mode
+                        comment = etree.Comment("Z axis {0}: {1}".format(label, choiceLabel))
+                    else:
+                        comment = etree.Comment("Z axis: {0}".format(label))
+                    if isinstance(self.zHdrsElt, etree._Comment):
+                        self.zHdrsElt.addnext(comment)
+                    else:
+                        self.zHdrsElt.addprevious(comment)
+                    self.zHdrsElt = comment                    
 
             if zOrdCntx.subOrdinateContexts:
                 for zOrdCntx in zOrdCntx.subOrdinateContexts:
@@ -474,6 +486,9 @@ class ViewRenderedGrid(ViewFile.View):
             if yChildrenFirst:
                 row = self.bodyCells(row, yOrdCntx, xOrdCntxs, zAspects, yChildrenFirst)
             if not yOrdCntx.isAbstract:
+                if self.type == XML:
+                    self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
+                                                   attrib={"disposition": "x"})
                 yAspects = defaultdict(set)
                 for aspect in aspectModels[self.aspectModel]:
                     for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
