@@ -201,7 +201,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                                 modelObject=elt,
                                 element=qnElt)
                     else:
-                        errResult = validateElementSequence(modelXbrl, type, childElts)
+                        errResult = validateElementSequence(modelXbrl, type, childElts, ixFacts)
                         if errResult is not None and errResult[2]:
                             iElt, occured, errDesc, errArgs = errResult
                             errElt = childElts[iElt] if iElt < len(childElts) else elt
@@ -211,7 +211,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                             if "compositor" in errArgs:  # compositor is an object, provide friendly string
                                 errArgs["compositor"] = modelGroupCompositorTitle(errArgs["compositor"])
                             modelXbrl.error(*errDesc,**errArgs)
-                    recurse = False # cancel child element validation below
+                    recurse = False # cancel child element validation below, recursion was within validateElementSequence
                 except AttributeError as ex:
                     pass
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
