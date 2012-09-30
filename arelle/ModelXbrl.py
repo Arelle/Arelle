@@ -920,7 +920,7 @@ class ModelXbrl:
     def exception(self, codes, msg, **args):
         """Same as error(), but as exception
         """
-        self.log('EXCEPTION', codes, msg, **args)
+        self.log('CRITICAL', codes, msg, **args)
         
     def logProfileStats(self):
         """Logs profile stats that were collected
