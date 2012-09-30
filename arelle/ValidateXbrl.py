@@ -304,8 +304,8 @@ class ValidateXbrl:
             if self.factsWithDeprecatedIxNamespace:
                 self.modelXbrl.info("arelle:info",
                     _("%(count)s facts have deprecated transformation namespace %(namespace)s"),
-                        modelObject=factsWithDeprecatedIxNamespace,
-                        count=len(factsWithDeprecatedIxNamespace), 
+                        modelObject=self.factsWithDeprecatedIxNamespace,
+                        count=len(self.factsWithDeprecatedIxNamespace), 
                         namespace=FunctionIxt.deprecatedNamespaceURI)
             del self.factsWithDeprecatedIxNamespace
 
