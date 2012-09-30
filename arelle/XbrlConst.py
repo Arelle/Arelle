@@ -476,7 +476,9 @@ def isDimensionArcrole(arcrole):
 
 def isTableRenderingArcrole(arcrole):
     return arcrole in {euTableAxis, euAxisMember, 
-                       tableAxis, tableFilter, tableAxisSubtree, tableAxisFilter, tableTupleContent,
+                       tableAxis, tableFilter, tableAxisSubtree, 
+                       tableAxisFilter, tableAxisFilter2011, 
+                       tableTupleContent, tableTupleContent2011,
                        tableAxisSubtree2011, tableAxisFilter2011}
    
 def isFormulaArcrole(arcrole):
