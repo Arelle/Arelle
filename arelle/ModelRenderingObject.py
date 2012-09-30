@@ -583,11 +583,11 @@ class ModelTupleAxis(ModelRuleAxis):
         
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableTupleContent, XbrlConst.tableAxisMessage)
+        return (XbrlConst.tableTupleContent, XbrlConst.tableTupleContent2011, XbrlConst.tableAxisMessage)
         
     @property
     def contentRelationships(self):
-        return self.modelXbrl.relationshipSet(XbrlConst.tableTupleContent).fromModelObject(self)
+        return self.modelXbrl.relationshipSet((XbrlConst.tableTupleContent,XbrlConst.tableTupleContent2011)).fromModelObject(self)
         
     def hasAspect(self, aspect, inherit=None):
         return aspect == Aspect.LOCATION # non-location aspects aren't leaked to ordinate for Tuple or self.hasRule(aspect)
@@ -999,7 +999,7 @@ class ModelFilterAxis(ModelOpenAxis):
             return self._filterRelationships
         except AttributeError:
             rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
-            for rel in self.modelXbrl.relationshipSet(XbrlConst.tableAxisFilter).fromModelObject(self):
+            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableAxisFilter,XbrlConst.tableAxisFilter2011)).fromModelObject(self):
                 if isinstance(rel.toModelObject, ModelConceptName):
                     rels.insert(0, rel)  # put conceptName filters first
                 else:
