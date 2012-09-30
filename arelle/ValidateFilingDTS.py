@@ -306,7 +306,6 @@ def checkDTS(val, modelDocument, visited):
                                     val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.11", "GFM.2.03.11"),
                                         _("Concept %(concept)s must have a balance because it appears in a statement of income or balance sheet"),
                                         modelObject=modelConcept, concept=modelConcept.qname)
-                                    break
                                 # 6.11.5 semantic check, must have a documentation label
                                 stdLabel = modelConcept.label(lang="en-US", fallbackToQname=False)
                                 defLabel = modelConcept.label(preferredLabel=XbrlConst.documentationLabel, lang="en-US", fallbackToQname=False)
