@@ -7,6 +7,7 @@ Created on Sep 13, 2011
 import os
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
+from arelle.ModelFormulaObject import Aspect
 from arelle.ModelRenderingObject import (ModelEuAxisCoord, ModelOpenAxis, ModelPredefinedAxis,
                                          ModelRelationshipAxis, ModelSelectionAxis, ModelFilterAxis,
                                          ModelCompositionAxis, ModelTupleAxis, OrdinateContext)
@@ -301,13 +302,27 @@ def inheritedExplicitDims(view, ordCntx, dims=None, nested=False):
 emptySet = set()
 def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects, xOrdCntx, yOrdCntx):
     ords = xAspects.get(aspect, emptySet) | yAspects.get(aspect, emptySet) | zAspects.get(aspect, emptySet)
-    if len(ords) > 1:
-        from arelle.ModelFormulaObject import aspectStr
-        view.modelXbrl.error("xbrlte:axisAspectClash",
-            _("Aspect %(aspect)s covered by multiple axes."),
-            modelObject=view.modelTable, aspect=aspectStr(aspect))
-    if ords:
+    ordCntx = None
+    if len(ords) == 1:
         ordCntx = ords.pop()
+    elif len(ords) > 1:
+        if aspect == Aspect.LOCATION:
+            hasClash = False
+            for _ordCntx in ords:
+                if not _ordCntx.axisObject.aspectValueDependsOnVars(aspect):
+                    if ordCntx:
+                        hasClash = True
+                    else:
+                        ordCntx = _ordCntx 
+        else:
+            hasClash = True
+            
+        if hasClash:
+            from arelle.ModelFormulaObject import aspectStr
+            view.modelXbrl.error("xbrlte:axisAspectClash",
+                _("Aspect %(aspect)s covered by multiple axes."),
+                modelObject=view.modelTable, aspect=aspectStr(aspect))
+    if ordCntx:
         axisObject = ordCntx.axisObject
         if axisObject.aspectValueDependsOnVars(aspect):
             return xOrdCntx.evaluate(axisObject, 

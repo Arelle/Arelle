@@ -96,10 +96,16 @@ class ViewRenderedGrid(ViewFile.View):
                                         for disposition in ("y", "x"))
                         self.zHdrsElt = hdrsElts["y"]  # z-comments go before y subelement of tableElt
                         # new y,x cells on each Z combination
-                        self.rowHdrElts = [etree.SubElement(hdrsElts["y"], "{http://xbrl.org/2012/table/model}header")
-                                           for i in range(self.rowHdrCols - 1 + self.rowHdrDocCol + self.rowHdrCodeCol)]
-                        self.colHdrElts = [etree.SubElement(hdrsElts["x"], "{http://xbrl.org/2012/table/model}header")
-                                           for i in range(self.colHdrRows - 1 + self.colHdrDocRow + self.colHdrCodeRow)]
+                        if yOrdCntx.subOrdinateContexts: # no row header element if no rows
+                            self.rowHdrElts = [etree.SubElement(hdrsElts["y"], "{http://xbrl.org/2012/table/model}header")
+                                               for i in range(self.rowHdrCols - 1 + self.rowHdrDocCol + self.rowHdrCodeCol)]
+                        else:
+                            hdrsElts["y"].append(etree.Comment("no rows in this table"))
+                        if xOrdCntx.subOrdinateContexts: # no col header element if no cols
+                            self.colHdrElts = [etree.SubElement(hdrsElts["x"], "{http://xbrl.org/2012/table/model}header")
+                                               for i in range(self.colHdrRows - 1 + self.colHdrDocRow + self.colHdrCodeRow)]
+                        else:
+                            hdrsElts["x"].append(etree.Comment("no columns in this table"))
                         self.zCells = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}cells",
                                                           attrib={"disposition": "z"})
                         self.yCells = etree.SubElement(self.zCells, "{http://xbrl.org/2012/table/model}cells",
@@ -113,14 +119,16 @@ class ViewRenderedGrid(ViewFile.View):
                     self.zOrdsWithChoices = []
                     self.zAxis(1, zOrdCntx, zAspects, False)
                     xOrdCntxs = []
-                    self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
-                               xOrdCntx, xOrdCntxs, self.xAxisChildrenFirst.get(), True, True)
+                    if self.type == HTML or (xOrdCntx.subOrdinateContexts):
+                        self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
+                                   xOrdCntx, xOrdCntxs, self.xAxisChildrenFirst.get(), True, True)
                     if self.type == HTML: # table/tr goes by row
                         self.yAxisByRow(1, self.dataFirstRow,
                                         yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
                     elif self.type == XML: # infoset goes by col of row header
-                        self.yAxisByCol(1, self.dataFirstRow,
-                                        yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
+                        if yOrdCntx.subOrdinateContexts: # no row header element if no rows
+                            self.yAxisByCol(1, self.dataFirstRow,
+                                            yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
                         for ordCntx,elt in self.ordCntxElts: # must do after elements are all arragned
                             elt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
                                                           .format(ordCntx._axisObject.localName,
