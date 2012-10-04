@@ -495,9 +495,9 @@ class ModelPredefinedAxis(ModelOpenAxis):
         axisAspectValues = dict((aspect, self.aspectValue(xpCtx, aspect))
                                 for aspect in aspects)
         fp = FactPrototype(self, axisAspectValues)
-        return [fact
-                for fact in facts
-                if aspectsMatch(xpCtx, fact, fp, aspects)]
+        return set(fact
+                   for fact in facts
+                   if aspectsMatch(xpCtx, fact, fp, aspects))
 
 class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def init(self, modelDocument):
@@ -607,9 +607,9 @@ class ModelTupleAxis(ModelRuleAxis):
                                 for aspect in aspects
                                 if aspect != Aspect.LOCATION)  # location determined by ordCntx, not axis
         fp = FactPrototype(self, axisAspectValues)
-        return [fact
-                for fact in facts
-                if fact.isTuple and aspectsMatch(xpCtx, fact, fp, aspects)]
+        return set(fact
+                   for fact in facts
+                   if fact.isTuple and aspectsMatch(xpCtx, fact, fp, aspects))
 
 class ModelCompositionAxis(ModelPredefinedAxis):
     def init(self, modelDocument):
