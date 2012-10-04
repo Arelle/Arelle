@@ -1312,7 +1312,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if dupDetectKey in dupLabels:
                     modelXbrl.error(("EFM.6.10.02", "GFM.1.5.2", "SBR.NL.2.2.1.05"),
                         _("Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."),
-                        modelObject=(concept, modelLabel, dupLabels[dupDetectKey]), 
+                        modelObject=(modelLabel, dupLabels[dupDetectKey]), # removed concept from modelObjects
                         concept=concept.qname, role=dupDetectKey[0], lang=dupDetectKey[1])
                 else:
                     dupLabels[dupDetectKey] = modelLabel
