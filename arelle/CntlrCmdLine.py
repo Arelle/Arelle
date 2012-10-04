@@ -176,8 +176,10 @@ def parseAndRun(args):
                              " or 'show' to show current setting, ." ))
     parser.add_option("--internetConnectivity", choices=("online", "offline"), dest="internetConnectivity", 
                       help=_("Specify internet connectivity: online or offline"))
+    parser.add_option("--internetconnectivity", action="store", dest="internetConnectivity", help=SUPPRESS_HELP)
     parser.add_option("--internetTimeout", type="int", dest="internetTimeout", 
                       help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
+    parser.add_option("--internettimeout", type="int", action="store", dest="internetTimeout", help=SUPPRESS_HELP)
     parser.add_option("--plugins", action="store", dest="plugins",
                       help=_("Modify and re-save plug-in configuration.  " 
                              "Enter 'show' to show current plug-in configuration, or '|' separated modules: "
