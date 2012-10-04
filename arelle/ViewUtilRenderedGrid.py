@@ -91,9 +91,11 @@ def sortkey(obj):
                   
 def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None, tblAxisRels=None):
     if ordCntx and isinstance(axisObject, (ModelEuAxisCoord, ModelOpenAxis)):
-        cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
+        #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
         ordCardinality, ordDepth = axisObject.cardinalityAndDepth(ordCntx)
         nestedDepth = depth + ordDepth
+        # HF test
+        cartesianProductNestedArgs = (view, nestedDepth, axisDisposition, facts, tblAxisRels, i)
         if axisDisposition == "z":
             if depth == 1: # choices (combo boxes) don't add to z row count
                 view.zAxisRows += 1 
