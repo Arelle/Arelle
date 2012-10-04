@@ -10,7 +10,6 @@ from collections import defaultdict
 def viewConcepts(modelXbrl, outFile, labelrole=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing concepts"))
     view = ViewConcepts(modelXbrl, outFile, labelrole, lang)
-    view.addRow(["Label","Name","ID","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Facets","Doc\u00ADu\u00ADmen\u00ADta\u00ADtion"], asHeader=True)
     view.view(modelXbrl.modelDocument)
     view.close()
     
@@ -20,6 +19,8 @@ class ViewConcepts(ViewFile.View):
         self.labelrole = labelrole
         
     def view(self, modelDocument):
+        # header
+        self.addRow(["Label","Name","ID","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Facets","Doc\u00ADu\u00ADmen\u00ADta\u00ADtion"], asHeader=True)
         # sort by labels
         lbls = defaultdict(list)
         for concept in self.modelXbrl.qnameConcepts.values():
