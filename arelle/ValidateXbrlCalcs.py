@@ -39,9 +39,9 @@ class ValidateXbrlCalcs:
         if not self.modelXbrl.contexts and not self.modelXbrl.facts:
             return # skip if no contexts or facts
         
-        self.modelXbrl.info("info","Validating calculations inferring %(inferMode)s",
-                            inferMode=_("decimals") if self.inferDecimals else _("precision"))
-
+        if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
+            self.modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
+            
         # identify equal contexts
         self.modelXbrl.profileActivity()
         uniqueContextHashes = {}
