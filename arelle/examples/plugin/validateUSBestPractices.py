@@ -123,14 +123,14 @@ def factCheck(val, fact):
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value)
                     
         # deprecated concept
-        if concept.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
+        if concept.qname.namespaceURI == ugtNamespace:
             if concept.name in val.usgaapDeprecations:
                 val.deprecatedFactConcepts[concept].append(fact)
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.deprecatedFactConcepts[concept].append(fact)
         if fact.isItem and fact.context is not None:
             for dimConcept, modelDim in fact.context.segDimValues.items():
-                if dimConcept.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
+                if dimConcept.qname.namespaceURI == ugtNamespace:
                     if dimConcept.name in val.usgaapDeprecations:
                         val.deprecatedDimensions[dimConcept].append(fact)
                 elif dimConcept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
@@ -138,7 +138,7 @@ def factCheck(val, fact):
                 if modelDim.isExplicit:
                     member = modelDim.member
                     if member is not None:
-                        if member.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
+                        if member.qname.namespaceURI == ugtNamespace:
                             if member.name in val.usgaapDeprecations:
                                 val.deprecatedMembers[member].append(fact)
                         elif member.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
@@ -154,7 +154,7 @@ def final(val, conceptsUsed):
                               ("Dimension", val.deprecatedDimensions),
                               ("Member", val.deprecatedMembers)):
         for concept, facts in depItems.items():
-            if concept.qname.namespaceURI == "http://fasb.org/us-gaap/2012-01-31":
+            if concept.qname.namespaceURI == ugtNamespace:
                 if concept.name in val.usgaapDeprecations:
                     deprecation = val.usgaapDeprecations[concept.name]
                     val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecated{0}".format(depType),
@@ -193,11 +193,12 @@ def final(val, conceptsUsed):
                 concept not in conceptsUsed):
                 standardConceptsUnused[concept].add(rel)
     for concept, rels in standardConceptsUnused.items():
-        if concept.name in val.usgaapDeprecations:
-            val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
-                _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
-                modelObject=rels, concept=concept.qname,
-                date=deprecation[0], documentation=deprecation[1])
+        if concept.qname.namespaceURI == ugtNamespace:
+            if concept.name in val.usgaapDeprecations:
+                val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
+                    _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
+                    modelObject=rels, concept=concept.qname,
+                    date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),

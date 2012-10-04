@@ -401,6 +401,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 for cntx in contexts:
                     if cntx.isStartEndPeriod:
                         durationCntxStartDatetimes[cntx.startDatetime].add(cntx)
+                probStartEndCntxsByEnd = defaultdict(set)
+                probInstantCntxsByEnd = defaultdict(set)
                 probCntxs = set()
                 for cntx in contexts:
                     end = cntx.endDatetime
@@ -410,11 +412,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
                                 probCntxs |= otherCntxs - {cntx}
                         if probCntxs:
-                            modelXbrl.error(("EFM.6.05.09", "GFM.1.2.9"),
-                                _("Context %(contextID)s endDate, and startDate(s) have a duration of one day, for context(s): and %(otherContexts)s; that is inconsistent with document type %(documentType)s."),
-                                modelObject={cntx} | probCntxs, contextID=cntx.id, 
-                                otherContexts=', '.join(sorted(c.id for c in probCntxs)), 
-                                documentType=documentType)
+                            probStartEndCntxsByEnd[end] |= ( probCntxs | {cntx} )
                             probCntxs.clear()
                     if self.validateEFM and cntx.isInstantPeriod:
                         for otherStart, otherCntxs in durationCntxStartDatetimes.items():
@@ -422,13 +420,22 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
                                 probCntxs |= otherCntxs
                         if probCntxs:
-                            modelXbrl.error("EFM.6.05.10",
-                                _("Context %(contextID)s startDate has a duration of one day,with end (instant) of context(s): %(otherContexts)s; that is inconsistent with document type %(documentType)s."),
-                                modelObject={cntx} | otherCntxs, contextID=cntx.id, 
-                                otherContexts=', '.join(sorted(c.id for c in probCntxs)), 
-                                documentType=documentType)
+                            probInstantCntxsByEnd[end] |= ( otherCntxs | {cntx} )
                             probCntxs.clear()
                 del probCntxs
+                for end, probCntxs in probStartEndCntxsByEnd.items():
+                    modelXbrl.error(("EFM.6.05.09", "GFM.1.2.9"),
+                        _("Context endDate %(endDate)s, and startDate(s) have a duration of one day, for context(s): and %(contexts)s; that is inconsistent with document type %(documentType)s."),
+                        modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
+                        contexts=', '.join(sorted(c.id for c in probCntxs)), 
+                        documentType=documentType)
+                for end, probCntxs in probInstantCntxsByEnd.items():
+                    modelXbrl.error("EFM.6.05.10",
+                        _("Context instant date %(endDate)s startDate has a duration of one day,with end (instant) of context(s): %(otherContexts)s; that is inconsistent with document type %(documentType)s."),
+                        modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
+                        otherContexts=', '.join(sorted(c.id for c in probCntxs)), 
+                        documentType=documentType)
+                del probStartEndCntxsByEnd, probInstantCntxsByEnd
                 del durationCntxStartDatetimes
                 self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
                 
