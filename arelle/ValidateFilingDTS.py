@@ -97,7 +97,7 @@ def checkDTS(val, modelDocument, visited):
                 modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
             
         # 6.7.4 check namespace format
-        if modelDocument.targetNamespace is None:
+        if modelDocument.targetNamespace is None or not modelDocument.targetNamespace.startswith("http://"):
             match = None
         elif val.validateEFMorGFM:
             targetNamespaceDate = modelDocument.targetNamespace[len(targetNamespaceAuthority):]
