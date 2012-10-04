@@ -886,15 +886,18 @@ class ModelXbrl:
     def log(self, level, codes, msg, **args):
         """Same as error(), but level passed in as argument
         """
+        logger = self.logger
         messageCode, logArgs, extras = self.logArguments(codes, msg, args)
         if messageCode == "asrtNoLog":
             self.errors.append(args["assertionResults"])
-        elif messageCode:
+        elif (messageCode and
+              (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
+              (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):
             numericLevel = logging.getLevelName(level)
             self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
             if numericLevel > logging.WARNING:
                 self.errors.append(messageCode)
-            self.logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
+            logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
                     
     def error(self, codes, msg, **args):
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments 

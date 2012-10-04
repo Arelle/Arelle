@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from arelle import PythonUtil # define 2.x or 3.x string types
-import tempfile, os, io, sys, logging, gettext, json
+import tempfile, os, io, sys, logging, gettext, json, re
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 from arelle import PluginManager
@@ -195,7 +195,8 @@ class Cntlr:
                 gettext.install("arelle", 
                                 self.localeDir)
         
-    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, logLevel=None, logHandler=None):
+    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
+                     logLevel=None, logLevelFilter=None, logCodeFilter=None, logHandler=None):
         # add additional logging levels    
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
@@ -236,6 +237,8 @@ class Cntlr:
                               level=logging.ERROR, messageCode="arelle:logLevel")
             else:
                 self.logger.setLevel(logging.getLevelName((logLevel or "debug").upper()))
+            self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
+            self.logger.messageLevelFilter = re.compile(logLevelFilter) if logLevelFilter else None
                         
     def addToLog(self, message, messageCode="", file="", level=logging.INFO):
         """Add a simple info message to the default logger

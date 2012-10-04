@@ -138,6 +138,13 @@ def parseAndRun(args):
                       help=_("Minimum level for messages capture, otherwise the message is ignored.  " 
                              "Current order of levels are debug, info, info-semantic, warning, warning-semantic, warning, assertion-satisfied, inconsistency, error-semantic, assertion-not-satisfied, and error. "))
     parser.add_option("--loglevel", action="store", dest="logLevel", help=SUPPRESS_HELP)
+    parser.add_option("--logLevelFilter", action="store", dest="logLevelFilter",
+                      help=_("Regular expression filter for logLevel.  " 
+                             "(E.g., to not match *-semantic levels, logLevelFilter=(?!^.*-semantic$)(.+). "))
+    parser.add_option("--loglevelfilter", action="store", dest="logLevelFilter", help=SUPPRESS_HELP)
+    parser.add_option("--logCodeFilter", action="store", dest="logCodeFilter",
+                      help=_("Regular expression filter for log message code."))
+    parser.add_option("--logcodefilter", action="store", dest="logCodeFilter", help=SUPPRESS_HELP)
     parser.add_option("--parameters", action="store", dest="parameters", help=_("Specify parameters for formula and validation (name=value[,name=value])."))
     parser.add_option("--parameterSeparator", action="store", dest="parameterSeparator", help=_("Specify parameters separator string (if other than comma)."))
     parser.add_option("--parameterseparator", action="store", dest="parameterSeparator", help=SUPPRESS_HELP)
@@ -231,7 +238,7 @@ def parseAndRun(args):
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.gfmName,
                 options.utrValidate, options.infosetValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
                 options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
-                options.logFile, options.logFormat, options.logLevel, options.formulaParamExprResult, options.formulaParamInputValue,
+                options.logFile, options.logFormat, options.logLevel, options.logLevelFilter, options.logCodeFilter, options.formulaParamExprResult, options.formulaParamInputValue,
                 options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
                 options.formulaCallExprResult, options.formulaVarSetExprEval, options.formulaVarSetExprResult,
                 options.formulaAsserResultCounts, options.formulaFormulaRules, options.formulaVarsOrder,
@@ -247,7 +254,9 @@ def parseAndRun(args):
         # parse and run the FILENAME
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
-                           logLevel=(options.logLevel or "DEBUG"))
+                           logLevel=(options.logLevel or "DEBUG"),
+                           logLevelFilter=options.logLevelFilter,
+                           logCodeFilter=options.logCodeFilter)
         cntlr.run(options)
         
         return cntlr
