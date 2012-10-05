@@ -240,6 +240,7 @@ class ModelXbrl:
         self.qnameDimensionDefaults = {} # contains qname of dimension (index) and default member(value)
         self.facts = []
         self.factsInInstance = set()
+        self.undefinedFacts = [] # elements presumed to be facts but not defined
         self.contexts = {}
         self.units = {}
         self.modelObjects = []
