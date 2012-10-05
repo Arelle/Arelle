@@ -247,12 +247,11 @@ class View:
         if asHeader and lastColSpan: 
             self.numHdrCols += lastColSpan - 1
                                 
-    def close(self):
+    def close(self, noWrite=False):
         if self.type == CSV:
             if not isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile.close()
-            self.modelXbrl = None
-        else:
+        elif not noWrite:
             fileType = TYPENAMES[self.type]
             try:
                 from arelle import XmlUtil
@@ -269,10 +268,10 @@ class View:
                 self.modelXbrl.info("info", _("Saved output %(type)s to %(file)s"), file=self.outfile, type=fileType)
             except (IOError, EnvironmentError) as err:
                 self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: \s%(error)s"), file=self.outfile, type=fileType, error=err)
-            self.modelXbrl = None
-            if self.type == HTML:
-                self.tblElt = None
-            elif self.type == XML:
-                self.docEltLevels = None
+        self.modelXbrl = None
+        if self.type == HTML:
+            self.tblElt = None
+        elif self.type == XML:
+            self.docEltLevels = None
         self.__dict__.clear() # dereference everything after closing document
 

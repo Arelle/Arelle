@@ -16,7 +16,7 @@ from collections import defaultdict
 emptySet = set()
 emptyList = []
 
-def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None):
+def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False):
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang)
     
@@ -25,8 +25,13 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
         view.ignoreDimValidity.set(sourceView.ignoreDimValidity.get())
         view.xAxisChildrenFirst.set(sourceView.xAxisChildrenFirst.get())
         view.yAxisChildrenFirst.set(sourceView.yAxisChildrenFirst.get())
-    view.view(viewTblELR)    
-    view.close()
+    view.view(viewTblELR)
+    if diffToFile:
+        from arelle.ValidateInfoset import validateRenderingInfoset
+        validateRenderingInfoset(modelXbrl, outfile, view.xmlDoc)
+        view.close(noWrite=True)
+    else:   
+        view.close()
     
 class ViewRenderedGrid(ViewFile.View):
     def __init__(self, modelXbrl, outfile, lang):

@@ -210,10 +210,10 @@ class Validate:
                             ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)
                         infoset.close()
                     if modelTestcaseVariation.resultIsTable: # and self.modelXbrl.modelManager.validateInfoset:
-                        # generate table infoset
-                        #ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, 
-                        #                                      modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement))
-                        pass # TBD: compare infoset generated to expected
+                        # diff (or generate) table infoset
+                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, 
+                                                              modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement),
+                                                              diffToFile=True)  # false to save infoset files
                     self.determineTestStatus(modelTestcaseVariation, modelXbrl) # include infoset errors in status
                     self.instValidator.close()
                     if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 
@@ -303,7 +303,7 @@ class Validate:
                     if (testErr == expected or
                         (isinstance(expected, _STR_BASE) and (
                          (expected == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
-                         (expected == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.2.1.1")) or
+                         (expected == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
                          (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
                          (expected == "EFM.6.05.35" and testErr.startswith("utr:")) or
                          (expected.startswith("EFM.") and testErr.startswith(expected))))):

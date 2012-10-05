@@ -194,6 +194,48 @@ def resolvePath(modelXbrl, namespaceId):
             return doc.idObjects[id]
     return None
 
-
+def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
+    from lxml import etree
+    try:
+        comparisonDoc = etree.parse(comparisonFile)
+        sourceIter = sourceDoc.iter()
+        comparisonIter = comparisonDoc.iter()
+        sourceElt = next(sourceIter, None)
+        comparisonElt = next(comparisonIter, None)
+        while (sourceElt is not None and comparisonElt is not None):
+            while (isinstance(sourceElt, etree._Comment)):
+                sourceElt = next(sourceIter, None)
+            while (isinstance(comparisonElt, etree._Comment)):
+                comparisonElt = next(comparisonIter, None)
+            sourceEltTag = sourceElt.tag if sourceElt is not None else '(no more elements)'
+            comparisonEltTag = comparisonElt.tag if comparisonElt is not None else '(no more elements)'
+            if sourceEltTag != comparisonEltTag:
+                modelXbrl.error("arelle:infosetElementMismatch",
+                    _("Infoset expecting %(elt1)s found %(elt2)s source line %(elt1line)s comparison line %(elt2line)s"),
+                    modelObject=modelXbrl, elt1=sourceEltTag, elt2=comparisonEltTag,
+                    elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+            else:
+                text1 = (sourceElt.text or '').strip() or '(none)'
+                text2 = (comparisonElt.text or '').strip() or '(none)'
+                if text1 != text2:
+                    modelXbrl.error("arelle:infosetTextMismatch",
+                        _("Infoset comparison element %(elt)s expecting text %(text1)s found %(text2)s source line %(elt1line)s comparison line %(elt2line)s"),
+                        modelObject=modelXbrl, elt=sourceElt.tag, text1=text1, text2=text2,
+                        elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+                attrs1 = dict(sourceElt.items())
+                attrs2 = dict(comparisonElt.items())
+                if attrs1 != attrs2:
+                    modelXbrl.error("arelle:infosetAttributesMismatch",
+                        _("Infoset comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s"),
+                        modelObject=modelXbrl, elt=sourceElt.tag, 
+                        attrs1=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs1.items())), 
+                        attrs2=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs2.items())),
+                        elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+            sourceElt = next(sourceIter, None)
+            comparisonElt = next(comparisonIter, None)
+    except (IOError, etree.LxmlError) as err:
+        modelXbrl.error("arelle:infosetFileError",
+            _("Infoset comparison file %(xmlfile)s error %(error)s"),
+            modelObject=modelXbrl, xmlfile=comparisonFile, error=str(err))
 
 
