@@ -9,6 +9,7 @@ from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, X
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from lxml import etree
+from arelle.PluginManager import pluginClassMethods
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 schemaTop = {"import", "include", "redefine"}
@@ -216,60 +217,8 @@ def checkDTS(val, modelDocument, visited):
                     modelXbrl=modelDocument, encoding=val.documentTypeEncoding, 
                     metaContentTypeEncoding=val.metaContentTypeEncoding)
         if val.validateSBRNL:
-            if modelDocument.type in (ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE):
-                isSchema = modelDocument.type == ModelDocument.Type.SCHEMA
-                docinfo = modelDocument.xmlDocument.docinfo
-                if docinfo and docinfo.xml_version != "1.0":
-                    val.modelXbrl.error("SBR.NL.2.2.0.02" if isSchema else "SBR.NL.2.3.0.02",
-                            _('%(docType)s xml version must be "1.0" but is "%(xmlVersion)s"'),
-                            modelObject=modelDocument, docType=modelDocument.gettype().title(), 
-                            xmlVersion=docinfo.xml_version)
-                if modelDocument.documentEncoding.lower() != "utf-8":
-                    val.modelXbrl.error("SBR.NL.2.2.0.03" if isSchema else "SBR.NL.2.3.0.03",
-                            _('%(docType)s encoding must be "utf-8" but is "%(xmlEncoding)s"'),
-                            modelObject=modelDocument, docType=modelDocument.gettype().title(), 
-                            xmlEncoding=modelDocument.documentEncoding)
-                lookingForPrecedingComment = True
-                for commentNode in modelDocument.xmlRootElement.itersiblings(preceding=True):
-                    if isinstance(commentNode,etree._Comment):
-                        if lookingForPrecedingComment:
-                            lookingForPrecedingComment = False
-                        else:
-                            val.modelXbrl.error("SBR.NL.2.2.0.05" if isSchema else "SBR.NL.2.3.0.05",
-                                    _('%(docType)s must have only one comment node before schema element'),
-                                    modelObject=modelDocument, docType=modelDocument.gettype().title())
-                if lookingForPrecedingComment:
-                    val.modelXbrl.error("SBR.NL.2.2.0.04" if isSchema else "SBR.NL.2.3.0.04",
-                        _('%(docType)s must have comment node only on line 2'),
-                        modelObject=modelDocument, docType=modelDocument.gettype().title())
-                
-                # check namespaces are used
-                for prefix, ns in modelDocument.xmlRootElement.nsmap.items():
-                    if ((prefix not in val.valUsedPrefixes) and
-                        (modelDocument.type != ModelDocument.Type.SCHEMA or ns != modelDocument.targetNamespace)):
-                        val.modelXbrl.error("SBR.NL.2.2.0.11" if modelDocument.type == ModelDocument.Type.SCHEMA else "SBR.NL.2.3.0.08",
-                            _('%(docType)s namespace declaration "%(declaration)s" is not used'),
-                            modelObject=modelDocument, docType=modelDocument.gettype().title(), 
-                            declaration=("xmlns" + (":" + prefix if prefix else "") + "=" + ns))
-                        
-                if isSchema and val.annotationsCount > 1:
-                    val.modelXbrl.error("SBR.NL.2.2.0.22",
-                        _('Schema has %(annotationsCount)s xs:annotation elements, only 1 allowed'),
-                        modelObject=modelDocument, annotationsCount=val.annotationsCount)
-            if modelDocument.type ==  ModelDocument.Type.LINKBASE:
-                if not val.containsRelationship:
-                    val.modelXbrl.error("SBR.NL.2.3.0.12",
-                        "Linkbase has no relationships",
-                        modelObject=modelDocument)
-            else: # SCHEMA
-                # check for unused imports
-                for referencedDocument in modelDocument.referencesDocument.keys():
-                    if (referencedDocument.type == ModelDocument.Type.SCHEMA and
-                        referencedDocument.targetNamespace not in {XbrlConst.xbrli, XbrlConst.link} and
-                        referencedDocument.targetNamespace not in val.referencedNamespaces):
-                        val.modelXbrl.error("SBR.NL.2.2.0.15",
-                            _("A schema import schemas of which no content is being addressed: %(importedFile)s"),
-                            modelObject=modelDocument, importedFile=referencedDocument.basename)
+            for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
+                pluginXbrlMethod(val, modelDocument)
         del val.valUsedPrefixes
         del val.schemaRoleTypes
         del val.schemaArcroleTypes
