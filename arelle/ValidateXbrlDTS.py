@@ -370,7 +370,7 @@ def checkElements(val, modelDocument, parent):
                                     val.referencedNamespaces.add(elt.typeQname.namespaceURI)
                                 if elt.substitutionGroupQname is not None:
                                     val.referencedNamespaces.add(elt.substitutionGroupQname.namespaceURI)
-                                if elt.isTypedDimension:
+                                if elt.isTypedDimension and elt.typedDomainElement is not None:
                                     val.referencedNamespaces.add(elt.typedDomainElement.namespaceURI)
                             else:
                                 referencedElt = elt.dereference()
