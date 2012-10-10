@@ -177,11 +177,10 @@ def final(val, conceptsUsed):
                                if concept not in conceptsUsed and
                                (not concept.isAbstract or concept.isDimensionItem)]
     if extensionConceptsUnused:
-        val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1",
-            _("Company extension concepts are unused: %(concepts)s"),
-            modelObject=extensionConceptsUnused, 
-            concepts=", ".join(str(c.qname) 
-                               for c in sorted(extensionConceptsUnused, key=lambda c: str(c.qname))))
+        for concept in sorted(extensionConceptsUnused, key=lambda c: str(c.qname)):
+            val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1",
+                _("Company extension concept is unused: %(concept)s"),
+                modelObject=concept, concept=concept.qname)
         
     # check for unused concept relationships of standard taxonomy elements
     standardRelationships = val.modelXbrl.relationshipSet((XbrlConst.parentChild, XbrlConst.summationItem, XbrlConst.dimensionDomain, XbrlConst.domainMember, XbrlConst.dimensionDefault))
