@@ -596,14 +596,20 @@ def checkDTS(val, modelDocument, visited):
         if modelDocument.filepath.startswith(val.modelXbrl.modelDocument.filepathdir):
             #6.3.3 filename check
             extLinkElt = XmlUtil.descendant(modelDocument.xmlRootElement, XbrlConst.link, "*", "{http://www.w3.org/1999/xlink}type", "extended")
-            if val.fileNameBasePart and extLinkElt is not None and extLinkElt.localName in extLinkEltFileNameEnding: 
-                expectedFilename = "{0}-{1}_{2}.xml".format(val.fileNameBasePart, val.fileNameDatePart, 
-                                                            extLinkEltFileNameEnding[extLinkElt.localName])
-                if modelDocument.basename != expectedFilename and not ( # skip if an edgar testcase
-                    re.match("e[0-9]{8}(gd|ng)", val.fileNameBasePart) and re.match("e.*-[0-9]{8}.*", modelDocument.basename)):
-                    val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
-                        _('Invalid linkbase file name: %(filename)s, expected %(expectedFilename)s'),
-                        modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
+            if val.fileNameBasePart:
+                if extLinkElt is not None:
+                    if extLinkElt.localName in extLinkEltFileNameEnding: 
+                        expectedFilename = "{0}-{1}_{2}.xml".format(val.fileNameBasePart, val.fileNameDatePart, 
+                                                                    extLinkEltFileNameEnding[extLinkElt.localName])
+                        if modelDocument.basename != expectedFilename and not ( # skip if an edgar testcase
+                            re.match("e[0-9]{8}(gd|ng)", val.fileNameBasePart) and re.match("e.*-[0-9]{8}.*", modelDocument.basename)):
+                            val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                                _('Invalid linkbase file name: %(filename)s, expected %(expectedFilename)s'),
+                                modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
+                else: # no ext link element
+                    val.modelXbrl.error(("EFM.6.03.03.noLinkElement", "GFM.1.01.01.noLinkElement"),
+                        _('Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.'),
+                        modelObject=modelDocument, filename=modelDocument.basename)
             
     visited.remove(modelDocument)
     
