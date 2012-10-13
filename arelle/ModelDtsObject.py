@@ -333,10 +333,11 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         """
         if self.isHypercubeItem: return "Table"
         if self.isDimensionItem: return "Axis"
-        if self.typeQname.localName.endswith("ItemType"):
-            return self.typeQname.localName[0].upper() + self.typeQname.localName[1:-8]
-        niceName = self.typeQname.localName
-        return niceName
+        if self.typeQname:
+            if self.typeQname.localName.endswith("ItemType"):
+                return self.typeQname.localName[0].upper() + self.typeQname.localName[1:-8]
+            return self.typeQname.localName
+        return None
         
     @property
     def baseXsdType(self):
