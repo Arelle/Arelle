@@ -424,7 +424,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
                                 probCntxs |= otherCntxs
                         if probCntxs:
-                            probInstantCntxsByEnd[end] |= ( otherCntxs | {cntx} )
+                            probInstantCntxsByEnd[end] |= ( probCntxs | {cntx} )
                             probCntxs.clear()
                 del probCntxs
                 for end, probCntxs in probStartEndCntxsByEnd.items():
