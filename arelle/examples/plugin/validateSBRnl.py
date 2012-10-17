@@ -15,11 +15,6 @@ import re
 from lxml import etree
 from collections import defaultdict
 
-qnSbrDomainMemberItem = qname("{http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension}sbr:domainMemberItem")
-qnSbrDomainItem = qname("{http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension}sbr:domainItem")
-qnSbrDimensionItem = qname("{http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension}sbr:dimensionItem")
-qnSbrPresentationItem = qname("{http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension}sbr:presentationItem")
-
 def setup(val, modelXbrl):
     cntlr = modelXbrl.modelManager.cntlr
     val.prefixNamespace = {}
@@ -49,8 +44,10 @@ def final(val, conceptsUsed):
 
     # check non-concept elements that can appear in elements for labels (concepts checked by 
     labelsRelationshipSet = val.modelXbrl.relationshipSet((XbrlConst.conceptLabel,XbrlConst.elementLabel))
+    standardXbrlSchmas = _DICT_SET(XbrlConst.standardNamespaceSchemaLocations.values())
     for eltDef in val.modelXbrl.qnameConcepts.values():
-        if not (eltDef.isItem or eltDef.isTuple or eltDef.isLinkPart):
+        if (not (eltDef.isItem or eltDef.isTuple or eltDef.isLinkPart) and
+            eltDef.modelDocument.uri not in standardXbrlSchmas):
             eltDefHasDefaultLangStandardLabel = False
             for modelLabelRel in labelsRelationshipSet.fromModelObject(eltDef):
                 modelLabel = modelLabelRel.toModelObject
@@ -146,7 +143,7 @@ def checkDTSdocument(val, modelDocument):
         for qnLabel in (XbrlConst.qnLinkLabel, XbrlConst.qnGenLabel):
             for modelLabel in modelDocument.xmlRootElement.iterdescendants(tag=qnLabel.clarkNotation):
                 if isinstance(modelLabel,ModelResource):
-                    if not modelLabel.text[:1].isupper():
+                    if not modelLabel.text or not modelLabel.text[:1].isupper():
                         val.modelXbrl.error("SBR.NL.3.2.7.05",
                             _("Labels MUST have a capital first letter, label %(label)s: %(text)s"),
                             modelObject=modelLabel, label=modelLabel.xlinkLabel, text=modelLabel.text[:64])
@@ -266,44 +263,45 @@ def checkDTSdocument(val, modelDocument):
                 if isinstance(modelConcept,ModelConcept):
                     # 6.7.16 name not duplicated in standard taxonomies
                     name = modelConcept.get("name")
-                    if name is None: 
-                        name = ""
-                        if modelConcept.get("ref") is not None:
-                            continue    # don't validate ref's here
-                    substititutionGroupQname = modelConcept.substitutionGroupQname
-                    if name.endswith("Member") ^ (substititutionGroupQname == qnSbrDomainMemberItem):
-                        val.modelXbrl.error("SBR.NL.3.2.5.11",
-                            _("Concept %(concept)s must end in Member to be in sbr:domainMemberItem substitution group"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if name.endswith("Domain") ^ (substititutionGroupQname == qnSbrDomainItem):
-                        val.modelXbrl.error("SBR.NL.3.2.5.12",
-                            _("Concept %(concept)s must end in Domain to be in sbr:domainItem substitution group"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if name.endswith("TypedAxis") ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem and
-                                                     modelConcept.isTypedDimension):
-                        val.modelXbrl.error("SBR.NL.3.2.5.14",
-                            _("Concept %(concept)s must end in TypedAxis to be in xbrldt:dimensionItem substitution group if they represent a typed dimension"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if (name.endswith("Axis") and 
-                        not name.endswith("TypedAxis")) ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem and
-                                                           modelConcept.isExplicitDimension):
-                        val.modelXbrl.error("SBR.NL.3.2.5.13",
-                            _("Concept %(concept)s must end in Axis to be in xbrldt:dimensionItem substitution group if they represent an explicit dimension"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if name.endswith("Table") ^ (substititutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
-                        val.modelXbrl.error("SBR.NL.3.2.5.15",
-                            _("Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if name.endswith("Title") ^ (substititutionGroupQname == qnSbrPresentationItem):
-                        val.modelXbrl.error("SBR.NL.3.2.5.16",
-                            _("Concept %(concept)s must end in Title to be in sbr:presentationItem substitution group"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if len(name) > 200:
-                        val.modelXbrl.error("SBR.NL.3.2.12.02" if modelConcept.isLinkPart 
-                                            else "SBR.NL.3.2.5.21" if (modelConcept.isItem or modelConcept.isTuple)
-                                            else "SBR.NL.3.2.14.01",
-                            _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
-                            modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
+                    if name: 
+                        substititutionGroupQname = modelConcept.substitutionGroupQname
+                        if substititutionGroupQname:
+                            if name.endswith("Member") ^ (substititutionGroupQname.localName == "domainMemberItem" and
+                                                          substititutionGroupQname.namespaceURI.endswith("/xbrl/xbrl-syntax-extension")):
+                                val.modelXbrl.error("SBR.NL.3.2.5.11",
+                                    _("Concept %(concept)s must end in Member to be in sbr:domainMemberItem substitution group"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if name.endswith("Domain") ^ (substititutionGroupQname.localName == "domainItem" and
+                                                          substititutionGroupQname.namespaceURI.endswith("/xbrl/xbrl-syntax-extension")):
+                                val.modelXbrl.error("SBR.NL.3.2.5.12",
+                                    _("Concept %(concept)s must end in Domain to be in sbr:domainItem substitution group"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if name.endswith("TypedAxis") ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem and
+                                                             modelConcept.isTypedDimension):
+                                val.modelXbrl.error("SBR.NL.3.2.5.14",
+                                    _("Concept %(concept)s must end in TypedAxis to be in xbrldt:dimensionItem substitution group if they represent a typed dimension"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if (name.endswith("Axis") and 
+                                not name.endswith("TypedAxis")) ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem and
+                                                                   modelConcept.isExplicitDimension):
+                                val.modelXbrl.error("SBR.NL.3.2.5.13",
+                                    _("Concept %(concept)s must end in Axis to be in xbrldt:dimensionItem substitution group if they represent an explicit dimension"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if name.endswith("Table") ^ (substititutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
+                                val.modelXbrl.error("SBR.NL.3.2.5.15",
+                                    _("Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                            if name.endswith("Title") ^ (substititutionGroupQname.localName == "presentationItem" and
+                                                         substititutionGroupQname.namespaceURI.endswith("/xbrl/xbrl-syntax-extension")):
+                                val.modelXbrl.error("SBR.NL.3.2.5.16",
+                                    _("Concept %(concept)s must end in Title to be in sbr:presentationItem substitution group"),
+                                    modelObject=modelConcept, concept=modelConcept.qname)
+                        if len(name) > 200:
+                            val.modelXbrl.error("SBR.NL.3.2.12.02" if modelConcept.isLinkPart 
+                                                else "SBR.NL.3.2.5.21" if (modelConcept.isItem or modelConcept.isTuple)
+                                                else "SBR.NL.3.2.14.01",
+                                _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
+                                modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
             # type checks
             for typeType in ("simpleType", "complexType"):
                 for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}" + typeType):
@@ -341,41 +339,42 @@ def checkDTSdocument(val, modelDocument):
 
             
     for roleURI, modelRoleTypes in val.modelXbrl.roleTypes.items():
-        usedOns = set.union(*[modelRoleType.usedOns for modelRoleType in modelRoleTypes])
-        # check roletypes for linkroles (only)
-        if usedOns & {XbrlConst.qnLinkPresentationLink, XbrlConst.qnLinkCalculationLink, XbrlConst.qnLinkDefinitionLink,
-                      XbrlConst.qnLinkLabel, XbrlConst.qnLinkReference, XbrlConst.qnLinkFootnote}:
-            if len(modelRoleTypes) > 1:
-                val.modelXbrl.error("SBR.NL.3.2.9.01",
-                    _("Linkrole URI's MUST be unique in the NT: %(linkrole)s"),
-                    modelObject=modelRoleTypes, linkrole=roleURI)
-            if roleURI.lower() != roleURI:
-                val.modelXbrl.error("SBR.NL.3.2.9.02",
-                    _("Linkrole URI's MUST be in lowercase: %(linkrole)s"),
-                    modelObject=modelRoleTypes, linkrole=roleURI)
-            if re.match(r"[^a-z0-9_/-]", roleURI):
-                val.modelXbrl.error("SBR.NL.3.2.9.03",
-                    _("Linkrole URI's MUST use characters a-z0-9_-/ only: %(linkrole)s"),
-                    modelObject=modelRoleTypes, linkrole=roleURI)
-            if len(roleURI) > 255:
-                val.modelXbrl.error("SBR.NL.3.2.9.04",
-                    _("Linkrole URI's MUST NOT be longer than 255 characters, length is %(len)s: %(linkrole)s"),
-                    modelObject=modelRoleTypes, len=len(roleURI), linkrole=roleURI)
-            if not roleURI.startswith('http://www.nltaxonomie.nl'):
-                val.modelXbrl.error("SBR.NL.3.2.9.05",
-                    _("Linkrole URI's MUST start with 'http://www.nltaxonomie.nl': %(linkrole)s"),
-                    modelObject=modelRoleTypes, linkrole=roleURI)
-            if (requiredLinkrole and 
-                not roleURI.startswith(requiredLinkrole) and 
-                re.match(r".*(domain$|axis$|table$|lineitem$)", roleURI)):
-                    val.modelXbrl.error("SBR.NL.3.2.9.06",
-                        _("Linkrole URI's MUST have the following construct: http://www.nltaxonomie.nl / {folder path} / {functional name} - {domain or axis or table or lineitem}: %(linkrole)s"),
+        if not roleURI.startswith("http://www.xbrl.org"):
+            usedOns = set.union(*[modelRoleType.usedOns for modelRoleType in modelRoleTypes])
+            # check roletypes for linkroles (only)
+            if usedOns & {XbrlConst.qnLinkPresentationLink, XbrlConst.qnLinkCalculationLink, XbrlConst.qnLinkDefinitionLink,
+                          XbrlConst.qnLinkLabel, XbrlConst.qnLinkReference, XbrlConst.qnLinkFootnote}:
+                if len(modelRoleTypes) > 1:
+                    val.modelXbrl.error("SBR.NL.3.2.9.01",
+                        _("Linkrole URI's MUST be unique in the NT: %(linkrole)s"),
                         modelObject=modelRoleTypes, linkrole=roleURI)
-            for modelRoleType in modelRoleTypes:
-                if len(modelRoleType.id) > 255:
-                    val.modelXbrl.error("SBR.NL.3.2.10.02",
-                        _("Linkrole @id MUST NOT exceed 255 characters, length is %(length)s: %(linkroleID)s"),
-                        modelObject=modelRoleType, length=len(modelRoleType.id), linkroleID=modelRoleType.id)
+                if roleURI.lower() != roleURI:
+                    val.modelXbrl.error("SBR.NL.3.2.9.02",
+                        _("Linkrole URI's MUST be in lowercase: %(linkrole)s"),
+                        modelObject=modelRoleTypes, linkrole=roleURI)
+                if re.match(r"[^a-z0-9_/-]", roleURI):
+                    val.modelXbrl.error("SBR.NL.3.2.9.03",
+                        _("Linkrole URI's MUST use characters a-z0-9_-/ only: %(linkrole)s"),
+                        modelObject=modelRoleTypes, linkrole=roleURI)
+                if len(roleURI) > 255:
+                    val.modelXbrl.error("SBR.NL.3.2.9.04",
+                        _("Linkrole URI's MUST NOT be longer than 255 characters, length is %(len)s: %(linkrole)s"),
+                        modelObject=modelRoleTypes, len=len(roleURI), linkrole=roleURI)
+                if not roleURI.startswith('http://www.nltaxonomie.nl'):
+                    val.modelXbrl.error("SBR.NL.3.2.9.05",
+                        _("Linkrole URI's MUST start with 'http://www.nltaxonomie.nl': %(linkrole)s"),
+                        modelObject=modelRoleTypes, linkrole=roleURI)
+                if (requiredLinkrole and 
+                    not roleURI.startswith(requiredLinkrole) and 
+                    re.match(r".*(domain$|axis$|table$|lineitem$)", roleURI)):
+                        val.modelXbrl.error("SBR.NL.3.2.9.06",
+                            _("Linkrole URI's MUST have the following construct: http://www.nltaxonomie.nl / {folder path} / {functional name} - {domain or axis or table or lineitem}: %(linkrole)s"),
+                            modelObject=modelRoleTypes, linkrole=roleURI)
+                for modelRoleType in modelRoleTypes:
+                    if len(modelRoleType.id) > 255:
+                        val.modelXbrl.error("SBR.NL.3.2.10.02",
+                            _("Linkrole @id MUST NOT exceed 255 characters, length is %(length)s: %(linkroleID)s"),
+                            modelObject=modelRoleType, length=len(modelRoleType.id), linkroleID=modelRoleType.id)
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
