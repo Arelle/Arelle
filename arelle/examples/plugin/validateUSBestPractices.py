@@ -213,7 +213,7 @@ def final(val, conceptsUsed):
     del val.deprecatedDimensions
     del val.deprecatedMembers
 
-    if hasattr(val, 'usaapCalculations'):
+    if hasattr(val, 'usgaapCalculations'):
         # check for usgaap calculations missing from extension
         ugtTotalConceptNames = set(totalConceptName 
                                    for ugtRels in val.usgaapCalculations.values()
