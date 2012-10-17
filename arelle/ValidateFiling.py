@@ -1073,18 +1073,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"),
                                         modelObject=[relFrom] + rels, linkrole=ELR, concept=relFrom.qname)
                                 orderRels.clear()
-                            # if relFrom used by fact and multiple calc networks from relFrom, test 6.15.04
-                            if rels and relFrom in conceptsUsed:
-                                relFromAndTos = (relFrom.objectIndex,) + tuple(sorted((rel.toModelObject.objectIndex 
-                                                                                       for rel in rels if rel.toModelObject is not None)))
-                                if relFromAndTos in usedCalcFromTosELR:
-                                    otherRels = usedCalcFromTosELR[relFromAndTos]
-                                    otherELR = otherRels[0].linkrole
-                                    self.modelXbrl.error(("EFM.6.15.04", "GFM.2.06.04"),
-                                        _("Calculation relationships have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s"),
-                                        modelObject=[relFrom] + rels + otherRels, linkrole=ELR, linkrole2=otherELR, concept=relFrom.qname)
-                                else:
-                                    usedCalcFromTosELR[relFromAndTos] = rels
+                                # if relFrom used by fact and multiple calc networks from relFrom, test 6.15.04
+                                if rels and relFrom in conceptsUsed:
+                                    relFromAndTos = (relFrom.objectIndex,) + tuple(sorted((rel.toModelObject.objectIndex 
+                                                                                           for rel in rels if rel.toModelObject is not None)))
+                                    if relFromAndTos in usedCalcFromTosELR:
+                                        otherRels = usedCalcFromTosELR[relFromAndTos]
+                                        otherELR = otherRels[0].linkrole
+                                        self.modelXbrl.error(("EFM.6.15.04", "GFM.2.06.04"),
+                                            _("Calculation relationships have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s"),
+                                            modelObject=[relFrom] + rels + otherRels, linkrole=ELR, linkrole2=otherELR, concept=relFrom.qname)
+                                    else:
+                                        usedCalcFromTosELR[relFromAndTos] = rels
                                     
                         elif self.validateSBRNL:
                             # find a calc relationship to get the containing document name
