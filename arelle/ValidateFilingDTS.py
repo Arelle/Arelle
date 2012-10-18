@@ -15,6 +15,7 @@ roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
 namePattern = None
+namespacesConflictPattern = None
 linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
     "calculationLink": "cal",
@@ -25,7 +26,8 @@ extLinkEltFileNameEnding = {
 
 def checkDTS(val, modelDocument, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, \
-            arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet
+            arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet, \
+            namespacesConflictPattern
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
@@ -36,6 +38,7 @@ def checkDTS(val, modelDocument, visited):
         namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
         linkroleDefinitionBalanceIncomeSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
                                                           re.IGNORECASE)
+        namespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
     nonDomainItemNameProblemPattern = re.compile(
         r"({0})|(FirstQuarter|SecondQuarter|ThirdQuarter|FourthQuarter|[1-4]Qtr|Qtr[1-4]|ytd|YTD|HalfYear)(?:$|[A-Z\W])"
         .format(re.sub(r"\W", "", (val.entityRegistrantName or "").title())))
@@ -57,16 +60,21 @@ def checkDTS(val, modelDocument, visited):
     if val.disclosureSystem.standardTaxonomiesDict is None:
         pass
 
-    if (val.validateEFM and 
-        modelDocument.uri not in val.disclosureSystem.standardTaxonomiesDict):
-        if len(modelDocument.basename) > 32:
-            val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
-                _("Document file name %(filename)s must not exceed 32 characters."),
-                modelObject=modelDocument, filename=modelDocument.basename)
-        if not efmFilenamePattern.match(modelDocument.basename):
-            val.modelXbrl.error("EFM.5.01.01",
-                _("Document file name %(filename)s must start with a-z or 0-9, contain lower case letters, ., -, _, and end with .xsd or .xml."),
-                modelObject=modelDocument, filename=modelDocument.basename)
+    if val.validateEFM: 
+        if modelDocument.uri in val.disclosureSystem.standardTaxonomiesDict:
+            # check for duplicates of us-types, dei, and rr taxonomies
+            match = namespacesConflictPattern.match(modelDocument.targetNamespace)
+            if match is not None:
+                val.standardNamespaceConflicts[match.group(2)].add(modelDocument)
+        else:
+            if len(modelDocument.basename) > 32:
+                val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
+                    _("Document file name %(filename)s must not exceed 32 characters."),
+                    modelObject=modelDocument, filename=modelDocument.basename)
+            if not efmFilenamePattern.match(modelDocument.basename):
+                val.modelXbrl.error("EFM.5.01.01",
+                    _("Document file name %(filename)s must start with a-z or 0-9, contain lower case letters, ., -, _, and end with .xsd or .xml."),
+                    modelObject=modelDocument, filename=modelDocument.basename)
     
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
