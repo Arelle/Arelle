@@ -194,6 +194,7 @@ def final(val, conceptsUsed):
     for concept, rels in standardConceptsUnused.items():
         if concept.qname.namespaceURI == ugtNamespace:
             if concept.name in val.usgaapDeprecations:
+                deprecation = val.usgaapDeprecations[concept.name]
                 val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                     _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
                     modelObject=rels, concept=concept.qname,
