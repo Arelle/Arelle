@@ -1389,7 +1389,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         # check if facts add up??
                         if (parent.isAbstract or not parent.isMonetary) and not nestedInTotal:
                             return _("last monetary item in statement sheet monetary line items parented by nonMonetary concept")
-                        elif 'Total' in effectiveLabel: 
+                        elif effectiveLabel and 'Total' in effectiveLabel: 
                             return _("last monetary item in statement sheet monetary line items with word 'Total' in effective label {0}").format(effectiveLabel)
                         elif 'Total' in concept.name:
                             return _("last monetary item in statement sheet monetary line items with word 'Total' in concept name {0}").format(concept.name)
