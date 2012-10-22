@@ -22,7 +22,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super(ValidateFiling, self).__init__(modelXbrl)
         
-        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, instanceFileNamePattern, linkroleDefinitionStatementSheet
+        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, instanceFileNamePattern, linkroleDefinitionStatementSheet, efmCIKpattern
         
         if datePattern is None:
             datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
@@ -32,6 +32,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
             linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                           re.IGNORECASE)
+            efmCIKpattern = re.compile(r"^[0-9]{10}$")
         
     def validate(self, modelXbrl, parameters=None):
         if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -132,7 +133,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 entityIdentifer=entityIdentifier)
                         if not entityIdentifierValue:
                             entityIdentifierValue = entityIdentifier
-                            entityIdentifierValueElt = entityIdentifier
+                            entityIdentifierValueElt = entityIdentifierElt
+                            if self.validateEFM and not efmCIKpattern.match(entityIdentifierValue):
+                                self.modelXbrl.error("EFM.6.05.23.cikValue",
+                                    _("EntityIdentifier %(entityIdentifer)s must be 10 digits."),
+                                    modelObject=entityIdentifierElt, entityIdentifer=entityIdentifierValue)
                         elif entityIdentifier != entityIdentifierValue:
                             modelXbrl.error(("EFM.6.05.03", "GFM.1.02.03"),
                                 _("Multiple %(entityIdentifierName)ss: %(entityIdentifer)s, %(entityIdentifer2)s"),
@@ -231,7 +236,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if p and len(p) == 2:
                     paramFilerNames = p[1].split("|Edgar|")
                     if paramFilerIdentifiers and len(paramFilerIdentifiers) != len(paramFilerNames):
-                        self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
+                        self.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
                             _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
                             modelXbrl=modelXbrl, cikList=paramFilerIdentifiers, cikNameList=paramFilerNames)
                 p = self.parameters.get(ModelValue.qname("submissionType",noPrefixIsNoNamespace=True))
@@ -287,7 +292,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
                                         value=value, entityIdentifer=entityIdentifierValue)
                                 if paramFilerIdentifier and value != paramFilerIdentifier:
-                                    self.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
+                                    self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
                                         _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifer)s"),
                                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
                                         value=value, filerIdentifer=paramFilerIdentifier)
@@ -404,6 +409,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if cntx.isStartEndPeriod:
                         durationCntxStartDatetimes[cntx.startDatetime].add(cntx)
                 probStartEndCntxsByEnd = defaultdict(set)
+                startEndCntxsByEnd = defaultdict(set)
                 probInstantCntxsByEnd = defaultdict(set)
                 probCntxs = set()
                 for cntx in contexts:
@@ -414,7 +420,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
                                 probCntxs |= otherCntxs - {cntx}
                         if probCntxs:
-                            probStartEndCntxsByEnd[end] |= ( probCntxs | {cntx} )
+                            probStartEndCntxsByEnd[end] |= probCntxs
+                            startEndCntxsByEnd[end] |= {cntx}
                             probCntxs.clear()
                     if self.validateEFM and cntx.isInstantPeriod:
                         for otherStart, otherCntxs in durationCntxStartDatetimes.items():
@@ -426,18 +433,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             probCntxs.clear()
                 del probCntxs
                 for end, probCntxs in probStartEndCntxsByEnd.items():
+                    endCntxs = startEndCntxsByEnd[end]
                     modelXbrl.error(("EFM.6.05.09", "GFM.1.2.9"),
-                        _("Context endDate %(endDate)s, and startDate(s) have a duration of one day, for context(s): and %(contexts)s; that is inconsistent with document type %(documentType)s."),
+                        _("Context endDate %(endDate)s, and startDate(s) have a duration of one day, for end context(s): %(endContexts)s and start context(s): %(startContexts)s; that is inconsistent with document type %(documentType)s."),
                         modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
-                        contexts=', '.join(sorted(c.id for c in probCntxs)), 
+                        endContexts=', '.join(sorted(c.id for c in endCntxs)),
+                        startContexts=', '.join(sorted(c.id for c in probCntxs)), 
                         documentType=documentType)
                 for end, probCntxs in probInstantCntxsByEnd.items():
                     modelXbrl.error("EFM.6.05.10",
-                        _("Context instant date %(endDate)s startDate has a duration of one day,with end (instant) of context(s): %(otherContexts)s; that is inconsistent with document type %(documentType)s."),
+                        _("Context instant date %(endDate)s startDate has a duration of one day,with end (instant) of context(s): %(contexts)s; that is inconsistent with document type %(documentType)s."),
                         modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
-                        otherContexts=', '.join(sorted(c.id for c in probCntxs)), 
+                        contexts=', '.join(sorted(c.id for c in probCntxs)), 
                         documentType=documentType)
-                del probStartEndCntxsByEnd, probInstantCntxsByEnd
+                del probStartEndCntxsByEnd, startEndCntxsByEnd, probInstantCntxsByEnd
                 del durationCntxStartDatetimes
                 self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
                 
@@ -471,7 +480,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if l > 200:
                                 modelXbrl.error("EFM.6.05.36",
                                     _("Unit has a measure  with localName length (%(length)s) over 200 bytes long in utf-8, %(measure)s."),
-                                    modelObject=measureElt, measure=measureElt.xValue.localName, length=l)
+                                    modelObject=measureElt, unitID=unit.id, measure=measureElt.xValue.localName, length=l)
             del uniqueUnitHashes
             self.modelXbrl.profileActivity("... filer unit checks", minTimeToShow=1.0)
    
@@ -542,7 +551,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     
             #label validations
             if not labelsRelationshipSet:
-                self.modelXbrl.error(("EFM.6.10.01", "GFM.1.05.01"),
+                self.modelXbrl.error(("EFM.6.10.01.missingLabelLinkbase", "GFM.1.05.01"),
                     _("A label linkbase is required but was not found"), 
                     modelXbrl=modelXbrl)
             elif disclosureSystem.defaultXmlLang:  # cannot check if no defaultXmlLang specified
@@ -555,12 +564,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 ValidateFilingText.validateTextBlockFacts(modelXbrl)
             
                 if amendmentFlag is None:
-                    modelXbrl.error(("EFM.6.05.20", "GFM.3.02.01"),
+                    modelXbrl.error(("EFM.6.05.20.missingAmendmentFlag", "GFM.3.02.01"),
                         _("%(elementName)s is not found in the default context"),
                         modelXbrl=modelXbrl, elementName=disclosureSystem.deiAmendmentFlagElement)
         
                 if not documentPeriodEndDate:
-                    modelXbrl.error(("EFM.6.05.20", "GFM.3.02.01"),
+                    modelXbrl.error(("EFM.6.05.20.missingDocumentPeriodEndDate", "GFM.3.02.01"),
                         _("%(elementName)s is required and was not found in the default context"),
                         modelXbrl=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement)
                 else:
@@ -574,7 +583,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
             if self.validateEFM:
                 if amendmentFlag == "true" and not amendmentDescription:
-                    modelXbrl.error("EFM.6.05.20",
+                    modelXbrl.error("EFM.6.05.20.missingAmendmentDescription",
                         _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
                         modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact else "unknown")
         
@@ -584,7 +593,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
                     
                 if not documentType:
-                    modelXbrl.error("EFM.6.05.20",
+                    modelXbrl.error("EFM.6.05.20.missingDocumentType",
                         _("DocumentType is required and was not found in the default context"), 
                         modelXbrl=modelXbrl)
                 elif documentType not in {"10", "10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F", "6-K", "8-K", 
@@ -596,7 +605,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                           "485BPOS", "497 ", "NCSR", "N-CSR", "N-Q", 
                                           "N-Q/A",
                                           "Other"}:
-                    modelXbrl.error("EFM.6.05.20",
+                    modelXbrl.error("EFM.6.05.20.documentTypeValue",
                         _("DocumentType '%(documentType)s' of context %(contextID)s was not recognized"),
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
                 elif submissionType:
@@ -613,7 +622,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             "497": "Other", 
                             }.get(submissionType)
                     if expectedDocumentType and expectedDocumentType != documentType:
-                        modelXbrl.error("EFM.6.05.20",
+                        modelXbrl.error("EFM.6.05.20.submissionDocumentType",
                             _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
                             modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=submissionType)
                     
@@ -712,7 +721,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     
                     linkrole = footnoteLinkElt.get("{http://www.w3.org/1999/xlink}role")
                     if linkrole != XbrlConst.defaultLinkRole:
-                        modelXbrl.error(("EFM.6.05.28", "GFM.1.02.20"),
+                        modelXbrl.error(("EFM.6.05.28.linkrole", "GFM.1.02.20"),
                             _("FootnoteLink %(footnoteLinkNumber)s has disallowed role %(linkrole)s"),
                             modelObject=footnoteLinkElt, footnoteLinkNumber=footnoteLinkNbr, linkrole=linkrole)
         
@@ -740,12 +749,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     modelXbrl.error(("EFM.6.05.29", "GFM.1.02.21"),
                                         _("FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed role %(role)s"),
                                         modelObject=child, footnoteLinkNumber=footnoteLinkNbr, 
+                                        xlinkLabel=child.xlinkLabel,
                                         locNumber=locNbr, role=locrole)
                                 href = child.get("{http://www.w3.org/1999/xlink}href")
                                 if not href.startswith("#"): 
                                     modelXbrl.error(("EFM.6.05.32", "GFM.1.02.23"),
                                         _("FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed href %(locHref)s"),
-                                        modelObject=child, footnoteLinkNumber=footnoteLinkNbr, locNumber=locNbr, locHref=href)
+                                        modelObject=child, footnoteLinkNumber=footnoteLinkNbr, locNumber=locNbr, locHref=href,
+                                        locLabel=child.get("{http://www.w3.org/1999/xlink}label"))
                                 else:
                                     label = child.get("{http://www.w3.org/1999/xlink}label")
                             elif xlinkType == "arc":
@@ -755,11 +766,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                    (disclosureSystem.GFM  and arcrole != XbrlConst.factFootnote and arcrole != XbrlConst.factExplanatoryFact): 
                                     modelXbrl.error(("EFM.6.05.30", "GFM.1.02.22"),
                                         _("FootnoteLink %(footnoteLinkNumber)s arc %(arcNumber)s has disallowed arcrole %(arcrole)s"),
-                                        modelObject=child, footnoteLinkNumber=footnoteLinkNbr, arcNumber=arcNbr, arcrole=arcrole)
+                                        modelObject=child, footnoteLinkNumber=footnoteLinkNbr, arcNumber=arcNbr, 
+                                        arcToLabel=child.get("{http://www.w3.org/1999/xlink}to"),
+                                        arcrole=arcrole)
                             elif xlinkType == "resource": # footnote
                                 footnoterole = child.get("{http://www.w3.org/1999/xlink}role")
                                 if footnoterole == "":
-                                    modelXbrl.error(("EFM.6.05.28", "GFM.1.2.20"),
+                                    modelXbrl.error(("EFM.6.05.28.missingRole", "GFM.1.2.20"),
                                         _("Footnote %(xlinkLabel)s is missing a role"),
                                         modelObject=child, xlinkLabel=child.get("{http://www.w3.org/1999/xlink}label"))
                                 elif (self.validateEFM and not disclosureSystem.uriAuthorityValid(footnoterole)) or \
@@ -782,7 +795,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         modelXbrl.error(("EFM.6.05.33", "GFM.1.02.24"),
                                             _("FootnoteLink %(footnoteLinkNumber)s footnote %(xlinkLabel)s has no linked fact"),
                                             modelObject=child, footnoteLinkNumber=footnoteLinkNbr, 
-                                            xlinkLabel=child.get("{http://www.w3.org/1999/xlink}label"))
+                                            footnoteLabel=child.get("{http://www.w3.org/1999/xlink}label"),
+                                            text=XmlUtil.text(child)[:100])
             self.modelXbrl.profileActivity("... filer rfootnotes checks", minTimeToShow=1.0)
 
         # entry point schema checks
@@ -940,7 +954,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
                                                   key=lambda ns: ns.rpartition('/')[2]))
             
-        conceptsUsedWithPreferredLabels = defaultdict(list)
+        conceptRelsUsedWithPreferredLabels = defaultdict(list)
         usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
         usedCalcFromTosELR = {}
         localPreferredLabels = defaultdict(set)
@@ -987,7 +1001,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if relTo in conceptsUsed:
                                     conceptsUsed[relTo] = True # 6.12.3, has a pres relationship
                                     if preferredLabel and preferredLabel != "":
-                                        conceptsUsedWithPreferredLabels[relTo].append(preferredLabel)
+                                        conceptRelsUsedWithPreferredLabels[relTo].append(rel)
                                         if self.validateSBRNL and preferredLabel in ("periodStart","periodEnd"):
                                             self.modelXbrl.error("SBR.NL.2.3.4.03",
                                                 _("Preferred label on presentation relationships not allowed"), modelObject=modelRel)
@@ -1003,7 +1017,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         self.modelXbrl.error(("EFM.6.12.05", "GFM.1.06.05", "SBR.NL.2.3.4.06"),
                                             _("Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"),
                                             modelObject=(rel, relTo, rel2, relTo2), 
-                                            concept=relTo.qname, preferredLabel=preferredLabel, linkrole=rel.linkrole)
+                                            concept=relTo.qname, fromConcept=rel.fromModelObject.qname,
+                                            preferredLabel=preferredLabel, linkrole=rel.linkrole)
                                     else:
                                         preferredLabels[preferredLabel] = (rel, relTo)
                                     if relFromUsed:
@@ -1171,16 +1186,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for toIndx in toIndxs:
                 fromModelObject = self.modelXbrl.modelObject(fromIndx)
                 toModelObject = self.modelXbrl.modelObject(toIndx)
+                calcRels = modelXbrl.relationshipSet(XbrlConst.summationItem) \
+                                    .fromToModelObjects(fromModelObject, toModelObject)
                 self.modelXbrl.error(("EFM.6.14.05", "GFM.1.7.5"),
                     _("Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship"),
-                    modelObject=[fromModelObject, toModelObject] +
-                                 modelXbrl.relationshipSet(XbrlConst.summationItem)
-                                 .fromToModelObjects(fromModelObject, toModelObject),
+                    modelObject=calcRels + [fromModelObject, toModelObject],
+                    linkrole=calcRels[0].linkrole if calcRels else None,
                     conceptFrom=self.modelXbrl.modelObject(fromIndx).qname, conceptTo=self.modelXbrl.modelObject(toIndx).qname)
                 
         if disclosureSystem.defaultXmlLang:
-            for concept, preferredLabels in conceptsUsedWithPreferredLabels.items():
-                for preferredLabel in preferredLabels:
+            for concept, preferredLabelRels in conceptRelsUsedWithPreferredLabels.items():
+                for preferredLabelRel in preferredLabelRels:
+                    preferredLabel = preferredLabelRel.preferredLabel
                     hasDefaultLangPreferredLabel = False
                     for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
                         modelLabel = modelLabelRel.toModelObject
@@ -1191,9 +1208,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if not hasDefaultLangPreferredLabel:
                         self.modelXbrl.error(("EFM.6.12.04", "GFM.1.06.04"),
                             _("Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s"),
-                            modelObject=concept, concept=concept.qname, 
+                            modelObject=(preferredLabelRel, concept), concept=concept.qname, fromConcept=preferredLabelRel.fromModelObject.qname,
                             lang=disclosureSystem.defaultLanguage, preferredLabel=preferredLabel)
-                
+        del conceptRelsUsedWithPreferredLabels
+        
         # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
         self.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
         
@@ -1350,7 +1368,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if not hasDefaultLang:
                         modelXbrl.error(("EFM.6.10.03", "GFM.1.5.3"),
                             _("Concept %(concept)s is missing an %(lang)s label for role %(role)s."),
-                            modelObject=concept, concept=concept.qname, 
+                            modelObject=modelXbrl.factsByQname[concept.qname], concept=concept.qname, 
                             lang=disclosureSystem.defaultLanguage, role=priorRole)
                     hasDefaultLang = False
                     priorRole = role

@@ -62,10 +62,11 @@ def checkDTS(val, modelDocument, visited):
 
     if val.validateEFM: 
         if modelDocument.uri in val.disclosureSystem.standardTaxonomiesDict:
-            # check for duplicates of us-types, dei, and rr taxonomies
-            match = namespacesConflictPattern.match(modelDocument.targetNamespace)
-            if match is not None:
-                val.standardNamespaceConflicts[match.group(2)].add(modelDocument)
+            if modelDocument.targetNamespace:
+                # check for duplicates of us-types, dei, and rr taxonomies
+                match = namespacesConflictPattern.match(modelDocument.targetNamespace)
+                if match is not None:
+                    val.standardNamespaceConflicts[match.group(2)].add(modelDocument)
         else:
             if len(modelDocument.basename) > 32:
                 val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
@@ -102,7 +103,7 @@ def checkDTS(val, modelDocument, visited):
         if targetNamespaceAuthority in val.disclosureSystem.standardAuthorities:
             val.modelXbrl.error(("EFM.6.07.03", "GFM.1.03.03"),
                 _("Taxonomy schema %(schema)s namespace %(targetNamespace)s is a disallowed authority"),
-                modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
+                modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, targetNamespaceAuthority=targetNamespaceAuthority)
             
         # 6.7.4 check namespace format
         if modelDocument.targetNamespace is None or not modelDocument.targetNamespace.startswith("http://"):
@@ -432,7 +433,7 @@ def checkDTS(val, modelDocument, visited):
                         modelObject=e, roleType=roleURI, targetNamespaceAuthority=targetNamespaceAuthority)
                 # 6.7.9 end with .../role/lc3 name
                 if not roleTypePattern.match(roleURI):
-                    val.modelXbrl.warning(("EFM.6.07.09", "GFM.1.03.09"),
+                    val.modelXbrl.warning(("EFM.6.07.09.roleEnding", "GFM.1.03.09"),
                         "RoleType %(roleType)s should end with /role/{LC3name}",
                         modelObject=e, roleType=roleURI)
                     
@@ -445,7 +446,7 @@ def checkDTS(val, modelDocument, visited):
                     if len(modelRoleTypes) > 1:
                         val.modelXbrl.error(("EFM.6.07.10", "GFM.1.03.10"),
                             _("RoleType %(roleType)s is defined in multiple taxonomies"),
-                            modelObject=e, roleType=roleURI)
+                            modelObject=modelRoleTypes, roleType=roleURI, numberOfDeclarations=len(modelRoleTypes))
                     elif len(modelRoleTypes) == 1:
                         # 6.7.11 used on's for pre, cal, def if any has a used on
                         if not usedOns.isdisjoint(requiredUsedOns) and len(requiredUsedOns - usedOns) > 0:
@@ -492,7 +493,7 @@ def checkDTS(val, modelDocument, visited):
                         modelObject=e, arcroleType=arcroleURI, targetNamespaceAuthority=targetNamespaceAuthority)
                 # 6.7.13 end with .../arcrole/lc3 name
                 if not arcroleTypePattern.match(arcroleURI):
-                    val.modelXbrl.warning(("EFM.6.07.13", "GFM.1.03.15"),
+                    val.modelXbrl.warning(("EFM.6.07.13.arcroleEnding", "GFM.1.03.15"),
                         _("ArcroleType %(arcroleType)s should end with /arcrole/{LC3name}"),
                         modelObject=e, arcroleType=arcroleURI)
                     
@@ -501,7 +502,7 @@ def checkDTS(val, modelDocument, visited):
                 if len(modelRoleTypes) > 1:
                     val.modelXbrl.error(("EFM.6.07.14", "GFM.1.03.16"),
                         _("ArcroleType %(arcroleType)s is defined in multiple taxonomies"),
-                        modelObject=e, arcroleType=arcroleURI)
+                        modelObject=e, arcroleType=arcroleURI, numberOfDeclarations=len(modelRoleTypes) )
                     
                 # 6.7.15 definition match pattern
                 definition = modelRoleTypes[0].definition

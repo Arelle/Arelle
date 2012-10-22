@@ -49,7 +49,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         blocked = modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences
         modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                 _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
-                modelObject=referringElement, url=normalizedUri, blockedIndicator=_(" blocked") if blocked else "")
+                modelObject=referringElement, url=normalizedUri,
+                blockedIndicator=_(" blocked") if blocked else "")
         if blocked:
             return None
     if normalizedUri in modelXbrl.modelManager.disclosureSystem.mappedFiles:
@@ -616,7 +617,7 @@ class ModelDocument:
                 if self.modelXbrl.modelManager.validateDisclosureSystem:
                     self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7"),
                         _("Prohibited base attribute: %(attribute)s"),
-                        modelObejct=element, attribute=baseAttr)
+                        modelObejct=element, attribute=baseAttr, element=element.qname)
                 else:
                     if baseAttr.startswith("/"):
                         base = baseAttr

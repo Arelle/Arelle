@@ -99,7 +99,12 @@ if __name__ == "__main__":
     with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xml", 'wt', encoding='utf-8') as f:
         f.write(
 '''<?xml version="1.0" encoding="utf-8"?>
-<messages xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="messagesCatalog.xsd" >
+<messages
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="messagesCatalog.xsd"
+    variablePrefix="%("
+    variableSuffix=")s"
+    variablePrefixEscape="" >
 <!-- 
 This file contains Arelle messages text.   Each message has a code 
 that corresponds to the message code in the log file, level (severity), 
@@ -118,29 +123,31 @@ are reported as "(dynamic)".)
     with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xsd", 'wt', encoding='utf-8') as f:
         f.write(
 '''<?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified"
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <element name="messages">
-    <complexType>
-      <sequence>
-        <element maxOccurs="unbounded" ref="message"/>
-      </sequence>
-    </complexType>
-  </element>
-  <element name="message">
-    <complexType>
-        <complexContent>
-          <restriction base="string">
-              <attribute name="code" use="required" type="normalizedString"/>
-              <attribute name="level" use="required" type="token"/>
-              <attribute name="module" type="normalizedString"/>
-              <attribute name="line" type="integer"/>
-              <attribute name="args" type="NMTOKENS"/>
-          </restriction>
-        </complexContent>
-    </complexType>
-  </element>
-</schema>
+  <xs:element name="messages">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" name="message">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute name="code" use="required" type="xs:normalizedString"/>
+                <xs:attribute name="level" use="required" type="xs:token"/>
+                <xs:attribute name="module" type="xs:normalizedString"/>
+                <xs:attribute name="line" type="xs:integer"/>
+                <xs:attribute name="args" type="xs:NMTOKENS"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="variablePrefix" type="xs:string"/>
+      <xs:attribute name="variableSuffix" type="xs:string"/>
+      <xs:attribute name="variablePrefixEscape" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
 ''')
     
     print("Arelle messages catalog {0:.2f} secs, {1} formula files, {2} messages".format( time.time() - startedAt, numArelleSrcFiles, len(idMsg) ))

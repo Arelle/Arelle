@@ -460,7 +460,7 @@ def validateTextBlockFacts(modelXbrl):
                 if not entity in xhtmlEntities:
                     modelXbrl.error(("EFM.6.05.16", "GFM.1.2.15"),
                         _("Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s"),
-                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, entity=entity)
+                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, entity=entity, error=entity)
             # test html
             for xmltext in [f1.value] + CDATApattern.findall(f1.value):
                 '''
@@ -534,7 +534,7 @@ def validateTextBlockFacts(modelXbrl):
                         modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
                     
             #handler.fact = None
-    #handler.modelXbrl = None
+                #handler.modelXbrl = None
     
 def copyHtml(sourceXml, targetHtml):
     for sourceChild in sourceXml.iterchildren():

@@ -4,7 +4,7 @@ Created on Jan 30, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import sys, os
+import sys, os, datetime
 
 setup_requires = ['lxml']
 # install_requires specifies a list of package dependencies that are 
@@ -232,8 +232,10 @@ else:
         ]
     cx_FreezeExecutables = []
 
+timestamp = datetime.datetime.utcnow()
 setup(name='Arelle',
-      version='0.9.0',
+      # for version use year.month.day.hour (in UTC timezone) - must be 4 integers for building
+      version=timestamp.strftime("%Y.%m.%d.%H"),
       description='An open source XBRL platform',
       long_description=open('README.md').read(),
       author='arelle.org',
