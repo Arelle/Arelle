@@ -91,6 +91,9 @@ def parseAndRun(args):
     parser.add_option("--gfm", action="store", dest="gfmName",
                       help=_("Specify a Global Filer Manual disclosure system name and"
                              " select disclosure system validation."))
+    parser.add_option("--disclosureSystem", action="store", dest="gfmName",
+                      help=_("Specify a disclosure system name and"
+                             " select disclosure system validation."))
     parser.add_option("--hmrc", action="store_true", dest="validateHMRC",
                       help=_("Select U.K. HMRC disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
