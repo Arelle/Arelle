@@ -89,9 +89,12 @@ class Cntlr:
             self.isMSW = True
             tempDir = tempfile.gettempdir()
             if tempDir.endswith('local\\temp'):
-                self.userAppDir = tempDir[:-10] + 'local\\Arelle'
+                impliedAppDir = tempDir[:-10] + 'local'
             else:
-                self.userAppDir = tempDir + os.sep + 'arelle'
+                impliedAppDir = tempDir
+            self.userAppDir = os.path.join(
+                   os.getenv('XDG_CONFIG_HOME', impliedAppDir),
+                   "Arelle")
             try:
                 import win32clipboard
                 self.hasClipboard = True
