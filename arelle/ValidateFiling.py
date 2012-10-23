@@ -29,7 +29,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
             # note \u20zc = euro, \u00a3 = pound, \u00a5 = yen
             signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac\u00a3\00a5])")
-            instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
+            instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9])(ng.*|gd.*|).xml$")
             linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                           re.IGNORECASE)
             efmCIKpattern = re.compile(r"^[0-9]{10}$")
@@ -89,7 +89,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             #6.3.3 filename check
             m = instanceFileNamePattern.match(modelXbrl.modelDocument.basename)
-            if m:  # has acceptable pattern
+            if (m and  # has acceptable pattern
+                # SEC test cases under "TestCase" have ng or gd after file name and efm-blocking selected
+                (not m.group(3) or (disclosureSystem.blockDisallowedReferences and "TestCase" in modelXbrl.modelDocument.uri))):
                 self.fileNameBasePart = m.group(1)
                 self.fileNameDatePart = m.group(2)
                 if not self.fileNameBasePart:
@@ -227,7 +229,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             submissionType = None
             if self.validateEFM and self.parameters:
                 p = self.parameters.get(ModelValue.qname("CIK",noPrefixIsNoNamespace=True))
-                if p and len(p) == 2:
+                if p and len(p) == 2 and p[1] not in ("null", "None"):
                     paramFilerIdentifier = p[1]
                 p = self.parameters.get(ModelValue.qname("cikList",noPrefixIsNoNamespace=True))
                 if p and len(p) == 2:
@@ -291,7 +293,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifer)s"),
                                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
                                         value=value, entityIdentifer=entityIdentifierValue)
-                                if paramFilerIdentifier and value != paramFilerIdentifier:
+                                if paramFilerIdentifiers and value not in paramFilerIdentifiers:
+                                    self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
+                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifer)s"),
+                                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                                        value=value, filerIdentifer=",".join(paramFilerIdentifiers))
+                                elif paramFilerIdentifier and value != paramFilerIdentifier:
                                     self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
                                         _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifer)s"),
                                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
@@ -303,7 +310,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     if not value.lower().startswith(prefix.lower()):
                                         self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
                                             _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
-                                            modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                                            modelObject=f, elementName=disclosureSystem.deiFilerNameElement,
                                             prefix=prefix, value=value)
                             elif factElementName in deiCheckLocalNames:
                                 deiItems[factElementName] = value
@@ -587,7 +594,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
                         modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact else "unknown")
         
-                if amendmentDescription and ((not amendmentFlag) or amendmentFlag == "false"):
+                if amendmentDescription and amendmentFlag != "true":
                     modelXbrl.error("EFM.6.05.20.extraneous",
                         _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
                         modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
@@ -793,7 +800,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                 break
                                     if not foundFact:
                                         modelXbrl.error(("EFM.6.05.33", "GFM.1.02.24"),
-                                            _("FootnoteLink %(footnoteLinkNumber)s footnote %(xlinkLabel)s has no linked fact"),
+                                            _("FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fact"),
                                             modelObject=child, footnoteLinkNumber=footnoteLinkNbr, 
                                             footnoteLabel=child.get("{http://www.w3.org/1999/xlink}label"),
                                             text=XmlUtil.text(child)[:100])
