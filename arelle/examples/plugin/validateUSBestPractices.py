@@ -318,7 +318,7 @@ def final(val, conceptsUsed):
     del val.linkroleDefinitionStatementSheet
     if hasattr(val, 'usgaapDeprecations'):
         del val.usgaapDeprecations
-    if hasattr(val, 'usaapCalculations'):
+    if hasattr(val, 'usgaapCalculations'):
         del val.usgaapCalculations
     
 __pluginInfo__ = {
