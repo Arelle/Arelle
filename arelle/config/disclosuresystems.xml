@@ -145,7 +145,7 @@
      deiFilerNameElement="EntityRegistrantName"
      />
   <DisclosureSystem 
-     names="US SEC (Block disallowed references)"
+     names="US SEC (Block disallowed references)|efm-blocking"
      description="US SEC Edgar Filing Manual (block disallowed references)\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
