@@ -189,7 +189,8 @@ def final(val, conceptsUsed):
         for concept in (rel.fromModelObject, rel.toModelObject):
             if (concept is not None and
                 concept.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and
-                concept not in conceptsUsed):
+                concept not in conceptsUsed and
+                (not concept.isAbstract or concept.isDimensionItem)):
                 standardConceptsUnused[concept].add(rel)
     for concept, rels in standardConceptsUnused.items():
         if concept.qname.namespaceURI == ugtNamespace:
