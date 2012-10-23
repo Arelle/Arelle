@@ -32,8 +32,8 @@ def checkDTS(val, modelDocument, visited):
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
         efmFilenamePattern = re.compile(r"^[a-z0-9][a-z0-9_\.\-]*(\.xsd|\.xml)$")
-        roleTypePattern = re.compile(r".*/role/[^/]+")
-        arcroleTypePattern = re.compile(r".*/arcrole/[^/]+")
+        roleTypePattern = re.compile(r"^.*/role/[^/\s]+$")
+        arcroleTypePattern = re.compile(r"^.*/arcrole/[^/\s]+$")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
         namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
         linkroleDefinitionBalanceIncomeSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
