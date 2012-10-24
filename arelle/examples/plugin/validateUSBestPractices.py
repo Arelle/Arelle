@@ -2,7 +2,7 @@ from arelle import PluginManager
 from arelle.ModelValue import qname
 from arelle import Locale, ModelXbrl, XbrlConst
 from arelle.FileSource import openFileSource
-import os, io, re, json
+import os, io, re, json, time
 from collections import defaultdict
 
 ugtNamespace = "http://fasb.org/us-gaap/2012-01-31"
@@ -22,6 +22,7 @@ def setup(val):
                 val.usgaapDeprecations = json.load(f)
         except Exception:
             val.modelXbrl.modelManager.addToLog(_("loading us-gaap deprecated concepts in cache"))
+            startedAt = time.time()
             val.usgaapDeprecations = {}
             # load without SEC/EFM validation (doc file would not be acceptable)
             priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
@@ -49,12 +50,14 @@ def setup(val):
                     f.write(jsonStr)  # 2.7 gets unicode this way
                 deprecationsInstance.close()
                 del deprecationsInstance # dereference closed modelXbrl
+            val.modelXbrl.profileStat(_("build us-gaap deprecated concepts cache"), time.time() - startedAt)
         ugtCalcsJsonFile = usgaapDoc.filepathdir + os.sep + "ugt-calculations.json"
         try:
             with io.open(ugtCalcsJsonFile, 'rt', encoding='utf-8') as f:
                 val.usgaapCalculations = json.load(f)
         except Exception:
             val.modelXbrl.modelManager.addToLog(_("loading us-gaap calculations in cache"))
+            startedAt = time.time()
             val.usgaapCalculations = {}
             # load without SEC/EFM validation (doc file would not be acceptable)
             priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
@@ -88,6 +91,7 @@ def setup(val):
                     f.write(jsonStr)  # 2.7 gets unicode this way
                 calculationsInstance.close()
                 del calculationsInstance # dereference closed modelXbrl
+            val.modelXbrl.profileStat(_("build us-gaap calculations cache"), time.time() - startedAt)
     val.deprecatedFactConcepts = defaultdict(list)
     val.deprecatedDimensions = defaultdict(list)
     val.deprecatedMembers = defaultdict(list)
@@ -150,6 +154,7 @@ def factCheck(val, fact):
             value=fact.effectiveValue, err=err)
 
 def final(val, conceptsUsed):
+    startedAt = time.time()
     for depType, depItems in (("Concept", val.deprecatedFactConcepts),
                               ("Dimension", val.deprecatedDimensions),
                               ("Member", val.deprecatedMembers)):
@@ -209,6 +214,7 @@ def final(val, conceptsUsed):
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1",
                 _("Company extension relationships of unused standard concept: %(concept)s"),
                 modelObject=rels, concept=concept.qname) 
+    val.modelXbrl.profileStat(_("validate US-BGP unused concepts"), time.time() - startedAt)
         
     del standardRelationships, extensionConceptsUnused, standardConceptsUnused
     del val.deprecatedFactConcepts
@@ -216,6 +222,7 @@ def final(val, conceptsUsed):
     del val.deprecatedMembers
 
     if hasattr(val, 'usgaapCalculations'):
+        startedAt = time.time()
         # check for usgaap calculations missing from extension
         ugtTotalConceptNames = set(totalConceptName 
                                    for ugtRels in val.usgaapCalculations.values()
@@ -312,6 +319,7 @@ def final(val, conceptsUsed):
                         ''.join(msg),
                         **args)
                     issues = []
+        val.modelXbrl.profileStat(_("validate US-BGP missing calcs"), time.time() - startedAt)
                        
 
     del val.linroleDefinitionIsDisclosure
