@@ -477,8 +477,9 @@ def validateTextBlockFacts(modelXbrl):
                             _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
                             modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
                 '''
+                xmlBodyWithoutEntities = "<body>\n{0}\n</body>\n".format(removeEntities(xmltext))
                 try:
-                    textblockXml = XML("<body>\n{0}\n</body>\n".format(removeEntities(xmltext)))
+                    textblockXml = XML(xmlBodyWithoutEntities)
                     if not edbodyDTD.validate( textblockXml ):
                         errors = edbodyDTD.error_log.filter_from_errors()
                         htmlError = any(e.type_name in ("DTD_INVALID_CHILD", "DTD_UNKNOWN_ATTRIBUTE") 
