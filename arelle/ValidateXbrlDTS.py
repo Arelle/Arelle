@@ -803,6 +803,7 @@ def checkElements(val, modelDocument, parent):
                 if val.modelXbrl.hasXDT and elt.get("{http://xbrl.org/2005/xbrldt}targetRole") is not None:
                     targetRole = elt.get("{http://xbrl.org/2005/xbrldt}targetRole")
                     if not XbrlConst.isStandardRole(targetRole) and \
+                       elt.qname == XbrlConst.qnLinkDefinitionArc and \
                        targetRole not in val.roleRefURIs:
                         val.modelXbrl.error("xbrldte:TargetRoleNotResolvedError",
                             _("TargetRole %(targetRole)s is missing a roleRef"),
