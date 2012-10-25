@@ -1320,12 +1320,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             hasDefinedRelationship = True
             relTo = rel.toModelObject
             if rel.isUsable and relTo != default:
+                # HF: bug, if not usable, then not usable in any other place in network, fix
                 members.add(relTo.qname)
-            toELR = rel.targetRole
-            if not toELR: toELR = rel.linkrole
             if relTo not in visited:
                 visited.add(relTo)
-                domMbrRels = self.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(relTo)
+                domMbrRels = self.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(relTo)
                 self.getDimMembers(dim, default, domMbrRels, members, visited)
                 visited.discard(relTo)
         return (members,hasDefinedRelationship)   
