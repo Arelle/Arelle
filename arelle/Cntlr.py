@@ -194,7 +194,7 @@ class Cntlr:
                                 self.localeDir, 
                                 getLanguageCodes(lang)).install()
         except Exception:
-            if fallbackToDefault:
+            if fallbackToDefault or (lang and lang.lower().startswith("en")):
                 gettext.install("arelle", 
                                 self.localeDir)
         
