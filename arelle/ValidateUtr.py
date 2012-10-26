@@ -6,10 +6,11 @@ Created on Dec 30, 2010
 '''
 import os
 from lxml import etree
-from arelle import (ModelDocument, ModelValue, XbrlConst, XmlUtil)
+from arelle import ModelDocument, ModelValue, XbrlConst, XmlUtil
+from collections import defaultdict
 
 def loadUtr(modelManager): # Build a dictionary of item types that are constrained by the UTR.
-    modelManager.utrDict = {} # This attribute is unbound on modelManager until this function is called.
+    modelManager.utrDict = defaultdict(dict) # This attribute is unbound on modelManager until this function is called.
     utrUrl = "http://www.xbrl.org/utr/utr.xml"
     #utrUrl = os.path.join(modelManager.cntlr.configDir, "utr.xml")
     modelManager.cntlr.showStatus(_("Loading Unit Type Registry"))
@@ -26,14 +27,12 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
             denominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}denominatorItemType")
             nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
             # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
-            if modelManager.utrDict.get(itemType) == None:
-                modelManager.utrDict[itemType] = {}
             # a RegEntry is just an array.
-            (modelManager.utrDict[itemType])[id] = [unitId, nsUnit # 0,1
+            (modelManager.utrDict[itemType])[id] = (unitId, nsUnit # 0,1
                               , nsNumeratorItemType, numeratorItemType # 2,3
                               , nsDenominatorItemType, denominatorItemType # 4,5
                               , nsItemType # 6 often None
-                              ]
+                              )
     except (EnvironmentError,
             etree.LxmlError) as err:
         modelManager.cntlr.addToLog("Unit Type Registry Import error: {0}".format(err))
@@ -50,7 +49,7 @@ def MeasureQName(node): # Return the qame of the content of the measure element
 def UnitSatisfies(aRegEntry, unit, modelXbrl): # Return true if entry is satisfied by unit
     # aRegEntry is [unitId, nsUnit, nsNumeratorItemType, numeratorItemType, nsDenominatorItemType, denominatorItemType]
     if aRegEntry[1]: # Entry requires a measure
-        if unit.measures[1] != [] or len(unit.measures[0])>1:
+        if len(unit.measures[1]) > 0 or len(unit.measures[0]) > 1:
             return False # and only one measure
         else:
             qnameMeasure = unit.measures[0][0]
@@ -78,15 +77,14 @@ def MeasureSatisfies(measures,nsItemType,itemType,modelXbrl):
     bSatisfied = False   # A unit is satisfied there is one entry that matches the unit
     if len(measures) != 1: # We assume all unit registry entries have only one measure, or one measure in num or denom.
         return False
-    if utrDict.get(itemType) == None:
+    if itemType not in utrDict:
         return True # unconstrained - this can happen when this function is called from within a Divide.
     aRegEntries = utrDict[itemType]
 # TO DO: Improve matching to take account of itemType namespace
 #    nsRequired = aRegEntry[6]
 #    if (namespace != None) and (nsRequired != None) and (namespace != nsRequired): return False
 #   Check whether this measure (a QName) is valid for itemType (possibly qualified by namespace)
-    nEntries = len(aRegEntries)
-    if (nEntries > 0):
+    if aRegEntries:
         bConstrained = True
 #        print(_("itemType={0} nsMeasure={2} lnMeasure={3} aRegEntries= {1}").format(itemType,aRegEntries,nsMeasure,lnMeasure))
         for a in aRegEntries:
@@ -124,30 +122,25 @@ class ValidateUtr:
         modelXbrl.modelManager.cntlr.showStatus(_("Validating for Unit Type Registry").format())     
         if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             aInvalidUnits = []
+            utrDict = modelXbrl.modelManager.utrDict
             for f in modelXbrl.facts:
                 concept = f.concept
                 if concept is not None:
                     if concept.isNumeric:
                         unit = f.unit
                         bConstrained = False
-                        if f.unitID != None and unit != None:  # Would have failed XBRL validation otherwise
+                        if f.unitID is not None and unit is not None:  # Would have failed XBRL validation otherwise
                             bSatisfied = True
                             type = concept.type
-                            while type != None:
-                                aRegEntries = []
-                                if modelXbrl.modelManager.utrDict.get(type.name) != None:
-                                    aRegEntries = modelXbrl.modelManager.utrDict[type.name]
-                                nEntries = len(aRegEntries)
-                                if nEntries > 0:
-                                    bConstrained = True
-                                    type = None # No more looking for registry entries
-                                    bSatisfied = False
-                                    for a in aRegEntries:
-                                        #modelXbrl.error(_("Checking {0} against {1} on {2}").format(f.unitID, aRegEntries[a],f.concept.name))
-                                        if UnitSatisfies(aRegEntries[a], unit, modelXbrl):
-                                            bSatisfied = True
-                                            break # for                             
-                                    break # while
+                            while type is not None:
+                                if type.name in utrDict:
+                                    aRegEntries = utrDict[type.name]
+                                    if aRegEntries:
+                                        bConstrained = True
+                                        type = None # No more looking for registry entries
+                                        bSatisfied = any(UnitSatisfies(aRegEntries[a], unit, modelXbrl)
+                                                         for a in aRegEntries)
+                                        break # while
                                 #print(_("type={0}\ntype.qnameDerivedFrom={1}".format(type,type.qnameDerivedFrom)))
                                 qnameDerivedFrom = type.qnameDerivedFrom
                                 if isinstance(qnameDerivedFrom,list): # union type
@@ -162,6 +155,6 @@ class ValidateUtr:
                             aInvalidUnits.append(f)
             # end for
             for fact in aInvalidUnits:
-                modelXbrl.error("utr:invalid",
+                modelXbrl.error("utre:error-NumericFactUtrInvalid",
                                 _("Unit %(unitID)s disallowed on fact %(element)s of type %(typeName)s"),
                                 modelObject=fact, unitID=fact.unitID, element=fact.qname, typeName=fact.concept.type.name)
