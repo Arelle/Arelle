@@ -305,7 +305,7 @@ class Validate:
                          (expected == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
                          (expected == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
                          (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
-                         (expected == "EFM.6.05.35" and testErr.startswith("utr:")) or
+                         (expected == "EFM.6.05.35" and testErr.startswith("utre:")) or
                          (expected.startswith("EFM.") and testErr.startswith(expected))))):
                         status = "pass"
                         break
