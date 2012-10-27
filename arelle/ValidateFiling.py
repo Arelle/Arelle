@@ -218,7 +218,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             commonSharesItemsByStockClass = defaultdict(list)
             commonSharesClassMembers = None
             hasDefinedStockAxis = False
-            hasUndefinedDefaultStockMember = False
+            hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = False
             commonSharesClassUndefinedMembers = None
             commonStockMeasurementDatetime = None
     
@@ -332,14 +332,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if (isEntityCommonStockSharesOutstanding and
                                     dimConcept.name == "StatementClassOfStockAxis"):
                                     commonSharesItemsByStockClass[memConcept.qname].append(f)
+                                    ''' per discussion with Dean R, remove use of LB defined members from this test
                                     if commonSharesClassMembers is None:
                                         commonSharesClassMembers, hasDefinedStockAxis = self.getDimMembers(dimConcept)
                                     if not hasDefinedStockAxis: # no def LB for stock axis, note observed members
                                         commonSharesClassMembers.add(memConcept.qname) 
+                                    #following is replacement:'''
+                                    if commonSharesClassMembers is None:
+                                        commonSharesClassMembers = set()
+                                    commonSharesClassMembers.add(memConcept.qname) # only note the actually used members, not any defined members
+                                    #end of replacement 
                                     hasClassOfStockMember = True
                                     
                         if isEntityCommonStockSharesOutstanding and not hasClassOfStockMember:
-                            hasUndefinedDefaultStockMember = True   # absent dimension, may be no def LB
+                            hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
                     if self.validateEFM:
                         for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Fact"):
                             pluginXbrlMethod(self, f)
@@ -674,21 +680,23 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         elementName=deiItem)
                                 
                 if documentType in ("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F"):
-                    defaultSharesOutstanding = deiItems.get("EntityCommonStockSharesOutstanding")
+                    defaultContextSharesOutstandingFact = deiItems.get("EntityCommonStockSharesOutstanding")
                     if commonSharesClassMembers:
-                        if defaultSharesOutstanding:
+                        if defaultContextSharesOutstandingFact:
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but not in the default context because there are multiple classes of common shares"),
                                 modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
-                        elif len(commonSharesClassMembers) == 1 and not hasDefinedStockAxis:
+                        elif len(commonSharesClassMembers) == 1: # and not hasDefinedStockAxis:
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a default-context because only one class of stock"),
                                 modelObject=documentTypeFact, documentType=documentType)
+                        ''' per Dean R, this test no longer makes sense because we don't check against def LB defined members
                         missingClasses = commonSharesClassMembers - _DICT_SET(commonSharesItemsByStockClass.keys())
                         if missingClasses:
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing in these stock classes: %(stockClasses)s"),
                                 modelObject=documentTypeFact, documentType=documentType, stockClasses=", ".join([str(c) for c in missingClasses]))
+                        '''
                         for mem, facts in commonSharesItemsByStockClass.items():
                             if len(facts) != 1:
                                 modelXbrl.error("EFM.6.05.26",
@@ -700,11 +708,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in stock class %(stockClass)s with measurement date %(date)s"),
                                     modelObject=documentTypeFact, documentType=documentType, stockClass=mem, date=commonStockMeasurementDatetime)
                             '''
-                    elif hasUndefinedDefaultStockMember and not defaultSharesOutstanding:
+                    elif hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass and not defaultContextSharesOutstandingFact:
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-default-context fact"),
                                 modelObject=documentTypeFact, documentType=documentType)
-                    elif not defaultSharesOutstanding:
+                    elif not defaultContextSharesOutstandingFact:
                         modelXbrl.error("EFM.6.05.26",
                             _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the default context because there are not multiple classes of common shares"),
                             modelObject=documentTypeFact, documentType=documentType)
@@ -1308,6 +1316,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     return True
         return False
     
+    ''' this may be unused now, if common stock class members are only taken from observed facts, not defined members, per Dean R
     def getDimMembers(self, dim, default=None, rels=None, members=None, visited=None):
         hasDefinedRelationship = False
         if rels is None: 
@@ -1327,7 +1336,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 domMbrRels = self.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(relTo)
                 self.getDimMembers(dim, default, domMbrRels, members, visited)
                 visited.discard(relTo)
-        return (members,hasDefinedRelationship)   
+        return (members,hasDefinedRelationship)
+    ''' 
 
     def checkConceptLabels(self, modelXbrl, labelsRelationshipSet, disclosureSystem, concept):
         hasDefaultLangStandardLabel = False
