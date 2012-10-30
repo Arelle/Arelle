@@ -306,7 +306,8 @@ class Validate:
                          (expected == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
                          (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
                          (expected == "EFM.6.05.35" and testErr.startswith("utre:")) or
-                         (expected.startswith("EFM.") and testErr.startswith(expected))))):
+                         (expected.startswith("EFM.") and testErr.startswith(expected)) or
+                         (expected == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))))):
                         status = "pass"
                         break
             if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable

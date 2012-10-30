@@ -19,8 +19,8 @@ from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeG
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
 from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespaceRename,
-                                    ModelRoleChange, ModelVersObject, ModelConceptBasicChange,
-                                    ModelConceptExtendedChange, ModelRelationshipSetChange,
+                                    ModelRoleChange, ModelVersObject, ModelConceptUseChange,
+                                    ModelConceptDetailsChange, ModelRelationshipSetChange,
                                     ModelRelationshipSet, ModelRelationships)
 
 def parser(modelXbrl, baseUrl):

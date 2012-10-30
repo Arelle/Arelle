@@ -114,8 +114,16 @@ class ModelConceptChange(ModelVersObject):
         return XmlUtil.parentId(self, XbrlConst.ver, "action")
     
     @property
+    def physical(self):
+        return self.get("physical") or "true" # default="true"
+    
+    @property
+    def isPhysical(self):
+        return self.physical == "true"
+    
+    @property
     def fromConceptQname(self):
-        fromConcept = XmlUtil.child(self, XbrlConst.vercb, "fromConcept")
+        fromConcept = XmlUtil.child(self, None, "fromConcept") # can be vercu or vercb, schema validation will assure right elements
         if fromConcept is not None and fromConcept.get("name"):
             return qname(fromConcept, fromConcept.get("name"))
         else:
@@ -123,7 +131,7 @@ class ModelConceptChange(ModelVersObject):
         
     @property
     def toConceptQname(self):
-        toConcept = XmlUtil.child(self, XbrlConst.vercb, "toConcept")
+        toConcept = XmlUtil.child(self, None, "toConcept")
         if toConcept is not None and toConcept.get("name"):
             return qname(toConcept, toConcept.get("name"))
         else:
@@ -184,19 +192,19 @@ class ModelConceptChange(ModelVersObject):
                 return "(invalidConceptReference)"
             
 
-class ModelConceptBasicChange(ModelConceptChange):
+class ModelConceptUseChange(ModelConceptChange):
     def init(self, modelDocument):
-        super(ModelConceptBasicChange, self).init(modelDocument)
-        self.modelDocument.conceptBasicChanges.append(self)
+        super(ModelConceptUseChange, self).init(modelDocument)
+        self.modelDocument.conceptUseChanges.append(self)
             
         
-class ModelConceptExtendedChange(ModelConceptChange):
+class ModelConceptDetailsChange(ModelConceptChange):
     def init(self, modelDocument):
-        super(ModelConceptExtendedChange, self).init(modelDocument)
-        self.modelDocument.conceptExtendedChanges.append(self)
+        super(ModelConceptDetailsChange, self).init(modelDocument)
+        self.modelDocument.conceptDetailsChanges.append(self)
         
     def customAttributeQname(self, eventName):
-        custAttrElt = XmlUtil.child(self, XbrlConst.verce, eventName)
+        custAttrElt = XmlUtil.child(self, None, eventName) # will be vercd or verce
         if custAttrElt is not None and custAttrElt.get("name"):
             return qname(custAttrElt, custAttrElt.get("name"))
         return None
@@ -211,11 +219,11 @@ class ModelConceptExtendedChange(ModelConceptChange):
         
     @property
     def fromResourceValue(self):
-        return XmlUtil.childAttr(self, XbrlConst.verce, "fromResource", "value")
+        return XmlUtil.childAttr(self, None, "fromResource", "value")
         
     @property
     def toResourceValue(self):
-        return XmlUtil.childAttr(self, XbrlConst.verce, "toResource", "value")
+        return XmlUtil.childAttr(self, None, "toResource", "value")
         
     @property
     def fromResource(self):
@@ -411,7 +419,22 @@ class ModelInstanceAspects(ModelVersObject):
 class ModelInstanceAspect(ModelVersObject):
     def init(self, modelDocument):
         super(ModelInstanceAspect, self).init(modelDocument)
-        self.members = []
+        self.aspectProperties = []
+
+    @property
+    def isFromDTS(self):
+        return self.modelAspects.isFromDTS
+    
+    @property
+    def propertyView(self):
+        return self.modelAspects.propertyView + \
+               (("aspect", self.localName),
+                ) + self.elementAttributesTuple
+                
+class ModelConceptsDimsAspect(ModelInstanceAspect):
+    def init(self, modelDocument):
+        super(ModelConceptsDimsAspect, self).init(modelDocument)
+        self.relatedConcepts = []
 
     @property
     def conceptName(self):
@@ -424,25 +447,26 @@ class ModelInstanceAspect(ModelVersObject):
     
     @property
     def sourceDtsObject(self):
-        if self.localName == "concept":
-            return self.concept
-        elif self.localName == "explicitDimension":
+        if self.localName == "explicitDimension":
             return self.concept
         return None
 
-    @property
-    def isFromDTS(self):
-        return self.modelAspects.isFromDTS
-    
-    @property
-    def propertyView(self):
-        return self.modelAspects.propertyView + \
-               (("aspect", self.localName),
-                ) + self.elementAttributesTuple
-
-class ModelInstanceMemberAspect(ModelVersObject):
+class ModelPeriodAspect(ModelInstanceAspect):
     def init(self, modelDocument):
-        super(ModelInstanceMemberAspect, self).init(modelDocument)
+        super(ModelPeriodAspect, self).init(modelDocument)
+        self.relatedPeriods = []
+
+class ModelMeasureAspect(ModelInstanceAspect):
+    def init(self, modelDocument):
+        super(ModelMeasureAspect, self).init(modelDocument)
+        self.relatedMeasures = []
+
+
+
+# this class is both for explicitDimension member and concepts concept elements
+class ModelRelatedConcept(ModelVersObject):
+    def init(self, modelDocument):
+        super(ModelRelatedConcept, self).init(modelDocument)
         
     @property
     def conceptName(self):
@@ -455,14 +479,49 @@ class ModelInstanceMemberAspect(ModelVersObject):
     
     @property
     def sourceDtsObject(self):
-        if self.localName == "member":
-            return self.concept
-        return None
+        return self.concept
 
     @property
     def isFromDTS(self):
         return self.modelAspect.modelAspects.isFromDTS
     
+    @property
+    def hasNetwork(self):
+        return XmlUtil.hasChild(self, XbrlConst.verdim, "network")
+    
+    @property
+    def hasDrsNetwork(self):
+        return XmlUtil.hasChild(self, XbrlConst.verdim, "drsNetwork")
+    
+    @property
+    def arcrole(self):
+        return XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "arcrole")
+    
+    @property
+    def linkrole(self):
+        return XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "linkrole")
+    
+    @property
+    def arc(self):
+        arc = XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "arc")
+        return self.prefixedNameQname(arc) if arc else None
+    
+    @property
+    def link(self):
+        link = XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "link")
+        return self.prefixedNameQname(link) if link else None
+    
+    @property
+    def propertyView(self):
+        return self.modelAspect.propertyView + \
+               ((self.localName, ''),
+                ) + self.elementAttributesTuple
+
+# this class is both for properties of aspects period and measure
+class ModelAspectProperty(ModelVersObject):
+    def init(self, modelDocument):
+        super(ModelRelatedConcept, self).init(modelDocument)
+        
     @property
     def propertyView(self):
         return self.modelAspect.propertyView + \
@@ -475,30 +534,31 @@ elementSubstitutionModelClass.update((
     (qname(XbrlConst.ver, "action"), ModelAction),
     (qname(XbrlConst.ver, "namespaceRename"), ModelNamespaceRename),
     (qname(XbrlConst.ver, "roleChange"), ModelRoleChange),
-    (qname(XbrlConst.vercb, "conceptAdd"), ModelConceptBasicChange),
-    (qname(XbrlConst.vercb, "conceptDelete"), ModelConceptBasicChange),
-    (qname(XbrlConst.vercb, "conceptRename"), ModelConceptBasicChange),
-    (qname(XbrlConst.verce, "conceptIDChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptTypeChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptSubstitutionGroupChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptDefaultChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptNillableChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptAbstractChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptBlockChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptFixedChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptFinalChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptPeriodTypeChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptBalanceChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptAttributeAdd"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptAttributeDelete"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptAttributeChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "tupleContentModelChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptLabelAdd"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptLabelDelete"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptLabelChange"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptReferenceAdd"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptReferenceDelete"), ModelConceptExtendedChange),
-    (qname(XbrlConst.verce, "conceptReferenceChange"), ModelConceptExtendedChange),
+    # 2010 names
+    (qname(XbrlConst.vercb, "conceptAdd"), ModelConceptUseChange),
+    (qname(XbrlConst.vercb, "conceptDelete"), ModelConceptUseChange),
+    (qname(XbrlConst.vercb, "conceptRename"), ModelConceptUseChange),
+    (qname(XbrlConst.verce, "conceptIDChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptTypeChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptSubstitutionGroupChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptDefaultChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptNillableChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptAbstractChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptBlockChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptFixedChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptFinalChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptPeriodTypeChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptBalanceChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptAttributeAdd"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptAttributeDelete"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptAttributeChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "tupleContentModelChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptLabelAdd"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptLabelDelete"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptLabelChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptReferenceAdd"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptReferenceDelete"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verce, "conceptReferenceChange"), ModelConceptDetailsChange),
     (qname(XbrlConst.verrels, "relationshipSetModelChange"), ModelRelationshipSetChange),
     (qname(XbrlConst.verrels, "relationshipSetModelAdd"), ModelRelationshipSetChange),
     (qname(XbrlConst.verrels, "relationshipSetModelDelete"), ModelRelationshipSetChange),
@@ -511,20 +571,56 @@ elementSubstitutionModelClass.update((
     (qname(XbrlConst.veria, "fromAspects"), ModelInstanceAspects),
     (qname(XbrlConst.veria, "toAspects"), ModelInstanceAspects),
     (qname(XbrlConst.veria, "concept"), ModelInstanceAspect),
-    (qname(XbrlConst.veria, "explicitDimension"), ModelInstanceAspect),
-    (qname(XbrlConst.veria, "typedDimension"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "explicitDimension"), ModelConceptsDimsAspect),
+    (qname(XbrlConst.veria, "typedDimension"), ModelConceptsDimsAspect),
     (qname(XbrlConst.veria, "segment"), ModelInstanceAspect),
     (qname(XbrlConst.veria, "scenario"), ModelInstanceAspect),
     (qname(XbrlConst.veria, "entityIdentifier"), ModelInstanceAspect),
-    (qname(XbrlConst.veria, "period"), ModelInstanceAspect),
+    (qname(XbrlConst.veria, "period"), ModelPeriodAspect),
     (qname(XbrlConst.veria, "location"), ModelInstanceAspect),
     (qname(XbrlConst.veria, "unit"), ModelInstanceAspect),
-    (qname(XbrlConst.veria, "member"), ModelInstanceMemberAspect),
-    (qname(XbrlConst.veria, "startDate"), ModelInstanceMemberAspect),
-    (qname(XbrlConst.veria, "endDate"), ModelInstanceMemberAspect),
-    (qname(XbrlConst.veria, "instant"), ModelInstanceMemberAspect),
-    (qname(XbrlConst.veria, "forever"), ModelInstanceMemberAspect),
-    (qname(XbrlConst.veria, "multiplyBy"), ModelInstanceMemberAspect),
-    (qname(XbrlConst.veria, "divideBy"), ModelInstanceMemberAspect),
-    (qname(XbrlConst.veria, "measure"), ModelInstanceMemberAspect),
+    (qname(XbrlConst.veria, "member"), ModelRelatedConcept),
+    (qname(XbrlConst.veria, "startDate"), ModelRelatedConcept),
+    (qname(XbrlConst.veria, "endDate"), ModelAspectProperty),
+    (qname(XbrlConst.veria, "instant"), ModelAspectProperty),
+    (qname(XbrlConst.veria, "forever"), ModelAspectProperty),
+    (qname(XbrlConst.veria, "multiplyBy"), ModelMeasureAspect),
+    (qname(XbrlConst.veria, "divideBy"), ModelMeasureAspect),
+    (qname(XbrlConst.veria, "measure"), ModelAspectProperty),
+    # 2012 names
+    (qname(XbrlConst.vercu, "conceptAdd"), ModelConceptUseChange),
+    (qname(XbrlConst.vercu, "conceptDelete"), ModelConceptUseChange),
+    (qname(XbrlConst.vercu, "conceptRename"), ModelConceptUseChange),
+    (qname(XbrlConst.vercd, "conceptIDChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptTypeChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptSubstitutionGroupChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptDefaultChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptNillableChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptAbstractChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptBlockChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptFixedChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptFinalChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptPeriodTypeChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptBalanceChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptAttributeAdd"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptAttributeDelete"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptAttributeChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "attributeDefinitionChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "tupleContentModelChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptLabelAdd"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptLabelDelete"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptLabelChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptReferenceAdd"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptReferenceDelete"), ModelConceptDetailsChange),
+    (qname(XbrlConst.vercd, "conceptReferenceChange"), ModelConceptDetailsChange),
+    (qname(XbrlConst.verdim, "aspectModelChange"), ModelInstanceAspectsChange),
+    (qname(XbrlConst.verdim, "aspectModelAdd"), ModelInstanceAspectsChange),
+    (qname(XbrlConst.verdim, "aspectModelDelete"), ModelInstanceAspectsChange),
+    (qname(XbrlConst.verdim, "fromAspects"), ModelInstanceAspects),
+    (qname(XbrlConst.verdim, "toAspects"), ModelInstanceAspects),
+    (qname(XbrlConst.verdim, "concepts"), ModelConceptsDimsAspect),
+    (qname(XbrlConst.verdim, "explicitDimension"), ModelConceptsDimsAspect),
+    (qname(XbrlConst.verdim, "typedDimension"), ModelConceptsDimsAspect),
+    (qname(XbrlConst.verdim, "concept"), ModelRelatedConcept),
+    (qname(XbrlConst.verdim, "member"), ModelRelatedConcept),
      ))
