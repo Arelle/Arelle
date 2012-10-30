@@ -595,17 +595,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             self.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
     
             if self.validateEFM:
-                if amendmentFlag == "true" and not amendmentDescription:
+                if amendmentFlag == "true" and amendmentDescription is None:
                     modelXbrl.error("EFM.6.05.20.missingAmendmentDescription",
                         _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
                         modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact else "unknown")
         
-                if amendmentDescription and amendmentFlag != "true":
+                if amendmentDescription is not None and amendmentFlag != "true":
                     modelXbrl.error("EFM.6.05.20.extraneous",
                         _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
                         modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
                     
-                if not documentType:
+                if documentType is None:
                     modelXbrl.error("EFM.6.05.20.missingDocumentType",
                         _("DocumentType is required and was not found in the default context"), 
                         modelXbrl=modelXbrl)
