@@ -77,7 +77,7 @@ def MeasureSatisfies(measures,nsItemType,itemType,modelXbrl):
     bSatisfied = False   # A unit is satisfied there is one entry that matches the unit
     if len(measures) != 1: # We assume all unit registry entries have only one measure, or one measure in num or denom.
         return False
-    if itemType not in utrDict:
+    if not itemType or itemType not in utrDict:
         return True # unconstrained - this can happen when this function is called from within a Divide.
     aRegEntries = utrDict[itemType]
 # TO DO: Improve matching to take account of itemType namespace
