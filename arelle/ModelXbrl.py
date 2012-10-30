@@ -845,6 +845,10 @@ class ModelXbrl:
                                     pass # is a default properties entry appropriate or needed?
                         else:
                             ref["href"] = file
+                            try:
+                                ref["sourceLine"] = arg.sourceline
+                            except AttributeError:
+                                pass # arg may not have sourceline, ignore if so
                         refs.append(ref)
                 extras["refs"] = refs
             elif argName == "sourceLine":
