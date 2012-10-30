@@ -67,6 +67,7 @@ qnXlResource = qname("{http://www.xbrl.org/2003/XLink}xl:resource")
 qnXlExtendedType = qname("{http://www.xbrl.org/2003/XLink}xl:extendedType")
 qnXlLocatorType = qname("{http://www.xbrl.org/2003/XLink}xl:locatorType")
 qnXlResourceType = qname("{http://www.xbrl.org/2003/XLink}xl:resourceType")
+qnXlArcType = qname("{http://www.xbrl.org/2003/XLink}xl:arcType")
 xhtml = "http://www.w3.org/1999/xhtml"
 ixbrl = "http://www.xbrl.org/2008/inlineXBRL"
 qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
@@ -109,15 +110,21 @@ xlinkLinkbase = "http://www.w3.org/1999/xlink/properties/linkbase"
 utr = "http://www.xbrl.org/2009/utr"
 
 ver = "http://xbrl.org/2010/versioning-base"
+# 2010 names
 vercb = "http://xbrl.org/2010/versioning-concept-basic"
 verce = "http://xbrl.org/2010/versioning-concept-extended"
 verrels = "http://xbrl.org/2010/versioning-relationship-sets"
 veria = "http://xbrl.org/2010/versioning-instance-aspects"
+# 2012 names
+vercu = "http://xbrl.org/2010/versioning-concept-use"
+vercd = "http://xbrl.org/2010/versioning-concept-details"
+verdim = "http://xbrl.org/2010/versioning-dimensions"
 verPrefixNS = {"ver":ver,
-               "vercb":vercb,
-               "verce":verce,
+               "vercu":vercu,
+               "vercd":vercd,
                "verrels":verrels,
-               "veria":veria}
+               "verdim":verdim,
+               }
 
 # formula specs
 variable = "http://xbrl.org/2008/variable"
@@ -292,8 +299,9 @@ errMsgPrefixNS = {
     "xffe": "http://www.xbrl.org/2010/function/formula/error",
     "xfie": "http://www.xbrl.org/2008/function/instance/error",
     "vere": "http://xbrl.org/2010/versioning-base/error",
-    "vercbe": "http://xbrl.org/2010/versioning-concept-basic/error",
-    "vercee" :"http://xbrl.org/2010/versioning-concept-extended/error",
+    "vercue": "http://xbrl.org/2010/versioning-concept-use/error",
+    "vercde" :"http://xbrl.org/2010/versioning-concept-details/error",
+    "verdime": "http://xbrl.org/2010/versioning-dimensions/error",
     "verrelse": "http://xbrl.org/2010/versioning-relationship-sets/error",
     "veriae": "http://xbrl.org/2010/versioning-instance-aspects/error",
     "xbrlacfe": "http://xbrl.org/2010/filter/aspect-cover/error",
@@ -301,6 +309,7 @@ errMsgPrefixNS = {
     "xbrlmfe": "http://xbrl.org/2008/filter/match/error",
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
     "xbrlte": "http://xbrl.org/2011/table/error",
+    "utre": "http://www.xbrl.org/2009/utr/errors",
     }
 
 arcroleGroupDetect = "*detect*"
