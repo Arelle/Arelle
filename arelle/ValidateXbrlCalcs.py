@@ -6,18 +6,21 @@ Created on Oct 17, 2010
 '''
 from collections import defaultdict
 from math import (log10, isnan, isinf, fabs, trunc, fmod, floor)
+import decimal
 import re
-from arelle import (XbrlConst, XbrlUtil)
+from arelle import Locale, XbrlConst, XbrlUtil
 
-numberPattern = re.compile("[-]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-]?[0-9]*)?")
+numberPattern = re.compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
+ZERO = decimal.Decimal(0)
+ONE = decimal.Decimal(1)
 
-def validate(modelXbrl, inferPrecision=True):
-    ValidateXbrlCalcs(modelXbrl, inferPrecision).validate()
+def validate(modelXbrl, inferDecimals=False):
+    ValidateXbrlCalcs(modelXbrl, inferDecimals).validate()
     
 class ValidateXbrlCalcs:
-    def __init__(self, modelXbrl, inferPrecision=True):
+    def __init__(self, modelXbrl, inferDecimals=False):
         self.modelXbrl = modelXbrl
-        self.inferPrecision = inferPrecision
+        self.inferDecimals = inferDecimals
         self.mapContext = {}
         self.mapUnit = {}
         self.sumFacts = defaultdict(list)
@@ -33,27 +36,35 @@ class ValidateXbrlCalcs:
         self.conceptsInRequiresElement = set()
         
     def validate(self):
-        self.modelXbrl.error(_("Validating calculations inferring {0}")
-                             .format(_("precision") if self.inferPrecision else _("decimals")))
-
+        if not self.modelXbrl.contexts and not self.modelXbrl.facts:
+            return # skip if no contexts or facts
+        
+        if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
+            self.modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
+            
+        # identify equal contexts
+        self.modelXbrl.profileActivity()
+        uniqueContextHashes = {}
+        for context in self.modelXbrl.contexts.values():
+            h = context.contextDimAwareHash
+            if h in uniqueContextHashes:
+                if context.isEqualTo(uniqueContextHashes[h]):
+                    self.mapContext[context] = uniqueContextHashes[h]
+            else:
+                uniqueContextHashes[h] = context
+        del uniqueContextHashes
+        self.modelXbrl.profileActivity("... identify equal contexts", minTimeToShow=1.0)
 
         # identify equal contexts
-        contexts = tuple(self.modelXbrl.contexts.values())
-        for i in range(len(contexts)):
-            cntx1 = contexts[i]
-            for j in range(i+1, len(contexts)):
-                cntx2 = contexts[j]
-                if cntx1.isEqualTo(cntx2) and not cntx2 in self.mapContext:
-                    self.mapContext[cntx2] = cntx1
-
-        # identify equal contexts
-        units = tuple(self.modelXbrl.units.values())
-        for i in range(len(units)):
-            unit1 = units[i]
-            for j in range(i+1, len(units)):
-                unit2 = units[j]
-                if unit1.isEqualTo(unit2) and not unit2 in self.mapUnit:
-                    self.mapUnit[unit2] = unit1
+        uniqueUnitHashes = {}
+        for unit in self.modelXbrl.units.values():
+            h = unit.hash
+            if h in uniqueUnitHashes:
+                if unit.isEqualTo(uniqueUnitHashes[h]):
+                    self.mapUnit[unit] = uniqueUnitHashes[h]
+            else:
+                uniqueUnitHashes[h] = unit
+        self.modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
                     
         # identify concepts participating in essence-alias relationships
         # identify calcluation & essence-alias base sets (by key)
@@ -66,8 +77,10 @@ class ValidateXbrlCalcs:
                     for modelRel in self.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname).modelRelationships:
                         for concept in (modelRel.fromModelObject, modelRel.toModelObject):
                             conceptsSet.add(concept)
+        self.modelXbrl.profileActivity("... identify requires-element and esseance-aliased concepts", minTimeToShow=1.0)
 
         self.bindFacts(self.modelXbrl.facts,[self.modelXbrl.modelDocument.xmlRootElement])
+        self.modelXbrl.profileActivity("... bind facts", minTimeToShow=1.0)
         
         # identify calcluation & essence-alias base sets (by key)
         for baseSetKey in self.modelXbrl.baseSets.keys():
@@ -86,34 +99,43 @@ class ValidateXbrlCalcs:
                                 itemBindingKeys = self.itemConceptBindKeys[modelRel.toModelObject]
                                 boundSumKeys |= sumBindingKeys & itemBindingKeys
                             # add up rounded items
-                            boundSums = defaultdict(float)
+                            boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
+                            boundSummationItems = defaultdict(list) # corresponding fact refs for messages
                             for modelRel in modelRels:
-                                weight = modelRel.weight
+                                weight = modelRel.weightDecimal
                                 itemConcept = modelRel.toModelObject
                                 for itemBindKey in boundSumKeys:
-                                    ancestor, context, unit = itemBindKey
-                                    factKey = (itemConcept, ancestor, context, unit)
+                                    ancestor, contextHash, unit = itemBindKey
+                                    factKey = (itemConcept, ancestor, contextHash, unit)
                                     if factKey in self.itemFacts:
                                         for fact in self.itemFacts[factKey]:
                                             if fact in self.duplicatedFacts:
                                                 dupBindingKeys.add(itemBindKey)
                                             else:
-                                                boundSums[itemBindKey] += self.roundFact(fact) * weight
+                                                boundSums[itemBindKey] += roundFact(fact, self.inferDecimals) * weight
+                                                boundSummationItems[itemBindKey].append(fact)
                             for sumBindKey in boundSumKeys:
-                                ancestor, context, unit = sumBindKey
-                                factKey = (sumConcept, ancestor, context, unit)
+                                ancestor, contextHash, unit = sumBindKey
+                                factKey = (sumConcept, ancestor, contextHash, unit)
                                 if factKey in self.sumFacts:
-                                    for fact in self.sumFacts[factKey]:
+                                    sumFacts = self.sumFacts[factKey]
+                                    for fact in sumFacts:
                                         if fact in self.duplicatedFacts:
                                             dupBindingKeys.add(sumBindKey)
                                         elif sumBindKey not in dupBindingKeys:
-                                            roundedSum = self.roundFact(fact)
-                                            roundedItemsSum = self.roundFact(fact, vFloat=boundSums[sumBindKey])
-                                            if roundedItemsSum  != self.roundFact(fact):
-                                                self.modelXbrl.error(
-                                                    _("Calculation inconsistent from {0} in link role {1} reported sum {2} computed sum {3} context {4} unit {5}").format(
-                                                          sumConcept.qname, ELR, roundedSum, roundedItemsSum, context.id, unit.id), 
-                                                    "err", "xbrl.5.2.5.2:calcInconsistency")
+                                            roundedSum = roundFact(fact, self.inferDecimals)
+                                            roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
+                                            if roundedItemsSum  != roundFact(fact, self.inferDecimals):
+                                                d = inferredDecimals(fact)
+                                                if isnan(d) or isinf(d): d = 4
+                                                self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
+                                                    _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
+                                                    modelObject=[fact] + boundSummationItems[sumBindKey], 
+                                                    concept=sumConcept.qname, linkrole=ELR, 
+                                                    reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
+                                                    computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
+                                                    contextID=context.id, unitID=unit.id)
+                            boundSummationItems.clear() # dereference facts in list
                     elif arcrole == XbrlConst.essenceAlias:
                         for modelRel in relsSet.modelRelationships:
                             essenceConcept = modelRel.fromModelObject
@@ -121,49 +143,55 @@ class ValidateXbrlCalcs:
                             essenceBindingKeys = self.esAlConceptBindKeys[essenceConcept]
                             aliasBindingKeys = self.esAlConceptBindKeys[aliasConcept]
                             for esAlBindKey in essenceBindingKeys & aliasBindingKeys:
-                                ancestor, context = esAlBindKey
-                                essenceFactsKey = (essenceConcept, ancestor, context)
-                                aliasFactsKey = (aliasConcept, ancestor, context)
+                                ancestor, contextHash = esAlBindKey
+                                essenceFactsKey = (essenceConcept, ancestor, contextHash)
+                                aliasFactsKey = (aliasConcept, ancestor, contextHash)
                                 if essenceFactsKey in self.esAlFacts and aliasFactsKey in self.esAlFacts:
                                     for eF in self.esAlFacts[essenceFactsKey]:
                                         for aF in self.esAlFacts[aliasFactsKey]:
                                             essenceUnit = self.mapUnit.get(eF.unit,eF.unit)
                                             aliasUnit = self.mapUnit.get(aF.unit,aF.unit)
                                             if essenceUnit != aliasUnit:
-                                                self.modelXbrl.error(
-                                                    _("Essence-Alias inconsistent units from {0} to {1} in link role {2} context {3}").format(
-                                                          essenceConcept.qname, aliasConcept.qname, ELR, context.id), 
-                                                    "err", "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency")
-                                            if not XbrlUtil.vEqual(essenceConcept, eF.element, aliasConcept, aF.element):
-                                                self.modelXbrl.error(
-                                                    _("Essence-Alias inconsistent value from {0} to {1} in link role {2} context {3}").format(
-                                                          essenceConcept.qname, aliasConcept.qname, ELR, context.id), 
-                                                    "err", "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency")
+                                                self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
+                                                    _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
+                                                    modelObject=(modelRel, eF, aF), 
+                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
+                                                    linkrole=ELR, contextID=context.id)
+                                            if not XbrlUtil.vEqual(eF, aF):
+                                                self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
+                                                    _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
+                                                    modelObject=(modelRel, eF, aF), 
+                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
+                                                    linkrole=ELR, contextID=context.id)
                     elif arcrole == XbrlConst.requiresElement:
                         for modelRel in relsSet.modelRelationships:
                             sourceConcept = modelRel.fromModelObject
                             requiredConcept = modelRel.toModelObject
                             if sourceConcept in self.requiresElementFacts and \
                                not requiredConcept in self.requiresElementFacts:
-                                    self.modelXbrl.error(
-                                        _("Requies-Element {0} missing required fact for {1} in link role {2}").format(
-                                              sourceConcept.qname, requiredConcept.qname, ELR), 
-                                        "err", "xbrl.5.2.6.2.4:requiresElementInconsistency")
+                                    self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.4:requiresElementInconsistency",
+                                        _("Requires-Element %(requiringConcept)s missing required fact for %(requiredConcept)s in link role %(linkrole)s"),
+                                        modelObject=sourceConcept, 
+                                        requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname, 
+                                        linkrole=ELR)
+        self.modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
+        self.modelXbrl.profileActivity() # reset
     
     def bindFacts(self, facts, ancestors):
         for f in facts:
             concept = f.concept
-            if concept:
+            if concept is not None:
                 # index facts by their calc relationship set
                 if concept.isNumeric:
                     for ancestor in ancestors:
                         # tbd: uniqify context and unit
                         context = self.mapContext.get(f.context,f.context)
+                        contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
                         unit = self.mapUnit.get(f.unit,f.unit)
-                        calcKey = (concept, ancestor, context, unit)
+                        calcKey = (concept, ancestor, contextHash, unit)
                         if not f.isNil:
                             self.itemFacts[calcKey].append(f)
-                            bindKey = (ancestor, context, unit)
+                            bindKey = (ancestor, contextHash, unit)
                             self.itemConceptBindKeys[concept].add(bindKey)
                     if not f.isNil:
                         self.sumFacts[calcKey].append(f) # sum only for immediate parent
@@ -175,78 +203,92 @@ class ValidateXbrlCalcs:
                     else:
                         self.duplicateKeyFacts[calcKey] = f
                 elif concept.isTuple:
-                    self.bindFacts(f.modelTupleFacts, ancestors + [f.element])
+                    self.bindFacts(f.modelTupleFacts, ancestors + [f])
 
                 # index facts by their essence alias relationship set
                 if concept in self.conceptsInEssencesAlias and not f.isNil:
                     ancestor = ancestors[-1]    # only care about direct parent
                     context = self.mapContext.get(f.context,f.context)
-                    esAlKey = (concept, ancestor, context)
+                    contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
+                    esAlKey = (concept, ancestor, contextHash)
                     self.esAlFacts[esAlKey].append(f)
-                    bindKey = (ancestor, context)
+                    bindKey = (ancestor, contextHash)
                     self.esAlConceptBindKeys[concept].add(bindKey)
                 # index facts by their requires element usage
                 if concept in self.conceptsInRequiresElement:
                     self.requiresElementFacts[concept].append(f)
 
-    def roundFact(self, fact, vFloat=None):
-        if vFloat is None:
-            vStr = fact.value
-            vFloat = float(vStr)
-            vFloatFact = vFloat
-        else: #only vFloat is defined, may not need vStr unless inferring precision from decimals
-            if isnan(vFloat):
-                return vFloat
-            vStr = None
-            vFloatFact = float(fact.value)
-        dStr = fact.decimals
-        pStr = fact.precision
-        if dStr == "INF" or pStr == "INF":
-            vRounded = vFloat
-        elif self.inferPrecision:
-            if dStr:
-                match = numberPattern.match(vStr if vStr else str(vFloat))
-                if match:
-                    nonZeroInt, period, zeroDec, nonZeroDec, e, exp = match.groups()
-                    p = (len(nonZeroInt) if nonZeroInt and (len(nonZeroInt)) > 0 else -len(zeroDec)) + \
-                        (int(exp) if exp and (len(exp) > 0) else 0) + \
-                        (int(dStr))
-                else:
-                    p = 0
-            else:
-                p = int(pStr)
+def roundFact(fact, inferDecimals=False, vDecimal=None):
+    if vDecimal is None:
+        vStr = fact.value
+        vDecimal = decimal.Decimal(vStr)
+        vFloatFact = float(vStr)
+    else: #only vFloat is defined, may not need vStr unless inferring precision from decimals
+        if vDecimal.is_nan():
+            return vDecimal
+        vStr = None
+        vFloatFact = float(fact.value)
+    dStr = fact.decimals
+    pStr = fact.precision
+    if dStr == "INF" or pStr == "INF":
+        vRounded = vDecimal
+    elif inferDecimals: #infer decimals, round per 4.6.7.2, e.g., half-down
+        if pStr:
+            p = int(pStr)
             if p == 0:
-                vRounded = float("NaN")
-            elif vFloat == 0:
-                vRounded = 0
+                vRounded = decimal.Decimal("NaN")
+            elif vDecimal == 0:
+                vRounded = ZERO
             else:
-                vAbs = fabs(vFloat)
-                log = log10(vAbs)
-                # defeat rounding to nearest even
-                if trunc(fmod(vFloat,2)) == 0:
-                    vFloat += 10 ** (log - p - 1) * (1.0 if vFloat > 0 else -1.0)
-                vRounded = round(vFloat, p - int(log) - (1 if vAbs >= 1 else 0))
-        else: #infer decimals
-            if pStr:
-                p = int(pStr)
-                if p == 0:
-                    vRounded = float("NaN")
-                elif vFloat == 0:
-                    vRounded = 0
-                else:
-                    vAbs = fabs(vFloatFact)
-                    d = p - int(floor(log10(vAbs))) - 1
-                    # defeat rounding to nearest even
-                    if trunc(fmod(vFloat,2)) == 0:
-                        vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
-                    vRounded = round(vFloat, d)
+                vAbs = fabs(vFloatFact)
+                d = p - int(floor(log10(vAbs))) - 1
+                # defeat binary rounding to nearest even
+                #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
+                #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
+                #vRounded = round(vFloat, d)
+                vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
+        else:
+            d = int(dStr)
+            # defeat binary rounding to nearest even
+            #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
+            #    vFloat += 10 ** (-d - 1) * (-1.0 if vFloat > 0 else 1.0)
+            #vRounded = round(vFloat, d)
+            #vRounded = round(vFloat,d)
+            vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
+    else: # infer precision
+        if dStr:
+            match = numberPattern.match(vStr if vStr else str(vDecimal))
+            if match:
+                nonZeroInt, period, zeroDec, nonZeroDec, e, exp = match.groups()
+                p = (len(nonZeroInt) if nonZeroInt and (len(nonZeroInt)) > 0 else -len(zeroDec)) + \
+                    (int(exp) if exp and (len(exp) > 0) else 0) + \
+                    (int(dStr))
             else:
-                d = int(dStr)
-                # defeat rounding to nearest even
-                if trunc(fmod(vFloat,2)) == 0:
-                    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
-                vRounded = round(vFloat, d)
-        return vRounded
+                p = 0
+        else:
+            p = int(pStr)
+        if p == 0:
+            vRounded = decimal.Decimal("NaN")
+        elif vDecimal == 0:
+            vRounded = vDecimal
+        else:  # round per 4.6.7.1, half-up
+            vAbs = vDecimal.copy_abs()
+            log = vAbs.log10()
+            # defeat rounding to nearest even
+            d = p - int(log) - (1 if vAbs >= 1 else 0)
+            #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
+            #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
+            #vRounded = round(vFloat, d)
+            vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
+    return vRounded
+    
+def decimalRound(x, d, rounding):
+    if x.is_normal():
+        if d >= 0:
+            return x.quantize(ONE.scaleb(-d),rounding)
+        else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point    
+            return x.scaleb(d).quantize(ONE,rounding).scaleb(-d)
+    return x # infinite, NaN, or zero
 
 def inferredPrecision(fact):
     vStr = fact.value
@@ -260,9 +302,11 @@ def inferredPrecision(fact):
             match = numberPattern.match(vStr if vStr else str(vFloat))
             if match:
                 nonZeroInt, period, zeroDec, nonZeroDec, e, exp = match.groups()
-                p = (len(nonZeroInt) if nonZeroInt and (len(nonZeroInt)) > 0 else -len(zeroDec)) + \
-                    (int(exp) if exp and (len(exp) > 0) else 0) + \
+                p = (len(nonZeroInt) if nonZeroInt else (-len(zeroDec) if nonZeroDec else 0)) + \
+                    (int(exp) if exp else 0) + \
                     (int(dStr))
+                if p < 0:
+                    p = 0 # "pathological case" 2.1 spec example 13 line 7
             else:
                 p = 0
         else:
@@ -299,24 +343,29 @@ def inferredDecimals(fact):
         pass
     return float("NaN")
     
-def roundValue(vFloat, precision=None, decimals=None):
+def roundValue(value, precision=None, decimals=None):
+    vDecimal = decimal.Decimal(value)
     if precision:
+        vFloat = float(value)
         if isinf(precision):
-            vRounded = vFloat
-        elif precision == 0:
-            vRounded = float("NaN")
+            vRounded = vDecimal
+        elif precision == 0 or isnan(precision):
+            vRounded = decimal.Decimal("NaN")
         elif vFloat == 0:
-            vRounded = 0
+            vRounded = ZERO
         else:
             vAbs = fabs(vFloat)
             log = log10(vAbs)
-            # defeat rounding to nearest even
-            if trunc(fmod(vFloat,2)) == 0:
-                vFloat += 10 ** (log - precision - 1) * (1.0 if vFloat > 0 else -1.0)
-            vRounded = round(vFloat, precision - int(log) - (1 if vAbs >= 1 else 0))
+            d = precision - int(log) - (1 if vAbs >= 1 else 0)
+            vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
     elif decimals:
-        vRounded = round(vFloat, decimals)
+        if isinf(decimals):
+            vRounded = vDecimal
+        elif isnan(decimals):
+            vRounded = decimal.Decimal("NaN")
+        else:
+            vRounded = decimalRound(vDecimal,decimals,decimal.ROUND_HALF_EVEN)
     else:
-        vRounded = vFloat
+        vRounded = vDecimal
     return vRounded
 

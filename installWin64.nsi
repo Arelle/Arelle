@@ -13,6 +13,10 @@
 
   ;Name and file
   Name "Arelle"
+
+  ; required in order to automatically remove short cuts
+  RequestExecutionLevel user
+
   Icon arelle\images\arelle.ico
   UninstallIcon arelle\images\arelle.ico
   OutFile "dist\arelle-win-x64.exe"
@@ -89,7 +93,12 @@ Section "Arelle" SecArelle
     
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Arelle.lnk" "$INSTDIR\runGUI.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Arelle.lnk" "$INSTDIR\arelleGUI.exe"
+
+    ; check if webserver installed (known to be there if QuickBooks.qwc is in the build)
+    IfFileExists "$INSTDIR\QuickBooks.qwc" 0 +2
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Start Web Server.lnk" "$INSTDIR\arelleCmdLine.exe" "--webserver localhost:8080"
+
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   
   !insertmacro MUI_STARTMENU_WRITE_END
@@ -119,6 +128,9 @@ Section "Uninstall"
 
   RMDir /r "$INSTDIR\config"
   RMDir /r "$INSTDIR\images"
+  RMDir /r "$INSTDIR\examples"
+  RMDir /r "$INSTDIR\locale"
+  RMDir /r "$INSTDIR\scripts"
   RMDir /r "$INSTDIR\tcl"
   RMDir /r "$INSTDIR\tk"
   RMDir "$INSTDIR"
@@ -126,6 +138,7 @@ Section "Uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
     
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\*.*"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle"

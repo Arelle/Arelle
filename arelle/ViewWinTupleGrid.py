@@ -10,16 +10,14 @@ from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell,
                      TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
 
 def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
-    modelXbrl.modelManager.showStatus(_("viewing tuples"))
     modelTuple = modelXbrl.modelObject(tupleObjectId)
-    if modelTuple:
+    if modelTuple is not None:
+        modelXbrl.modelManager.showStatus(_("viewing tuples {0}").format(modelTuple.localName))
         parentFacts = modelXbrl.facts
-        # try to get parent Items from the parent fact if any
-        parentElement = modelTuple.element.parentNode
-        for docModelObject in modelXbrl.modelDocument.modelObjects:
-            if docModelObject.element == parentElement:
-                parentFacts = docModelObject.modelTupleFacts
-                break
+        try: # check if possible to get parent tuple facts
+            parentFacts = modelTuple.getparent().modelTupleFacts
+        except:
+            pass
         view = ViewTuplesGrid(modelXbrl, tabWin, modelTuple, parentFacts, lang)
     
         # context menu
@@ -31,10 +29,13 @@ def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
         view.blockViewModelObject = 0
         view.viewFrame.bind("<Enter>", view.cellEnter, '+')
         view.viewFrame.bind("<Leave>", view.cellLeave, '+')
+        return view
+    else:
+        modelXbrl.modelManager.showStatus(_("viewing tuples requires selecting the tuple to report"), clearAfter=2000)
             
 class ViewTuplesGrid(ViewWinGrid.ViewGrid):
     def __init__(self, modelXbrl, tabWin, tupleFact, parentFacts, lang):
-        super().__init__(modelXbrl, tabWin, "Tuples", True, lang)
+        super(ViewTuplesGrid, self).__init__(modelXbrl, tabWin, "Tuples", True, lang)
         self.tupleFact = tupleFact
         self.tupleConcept = tupleFact.concept
         self.parentFacts = parentFacts
@@ -136,7 +137,7 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
             if tupleChild.concept == descendantConcept:
                 return tupleChild
             tupleDescendant = self.tupleDescendant(tupleChild, descendantConcept)
-            if tupleDescendant:
+            if tupleDescendant is not None:
                 return tupleDescendant
         return None
                 
@@ -145,7 +146,7 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
             if modelTupleFact.concept == self.tupleConcept:
                 for i, xColConcept in enumerate(xFilters):
                     fact = self.tupleDescendant(modelTupleFact, xColConcept)
-                    if fact:
+                    if fact is not None:
                         value = fact.effectiveValue
                         objectId = fact.objectId()
                         justify = "right" if fact.isNumeric else "left"

@@ -1,11 +1,12 @@
 # Module for parsing/evaluating Microsoft Excel formulas.
 #
-# Copyright © 2005-2009 Stephen John Machin, Lingfo Pty Ltd
+# Copyright (c) 2005-2009 Stephen John Machin, Lingfo Pty Ltd
 # This module is part of the xlrd3 package, which is released under
 # a BSD-style licence.
 
 # No part of the content of this file was derived from the works of David Giffin.
 
+from __future__ import print_function
 import copy
 from struct import unpack
 

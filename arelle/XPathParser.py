@@ -4,7 +4,17 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+import sys
+
+from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
+
+try: # installed for python 2.7 and clean packages, otherwise use tweaked version
+    from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+                 Literal, CaselessLiteral,
+                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
+                 ParserElement, quotedString, delimitedList, Suppress, Regex)
+except ImportError:
+    from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
@@ -40,7 +50,7 @@ def pushFloat( sourceStr, loc, toks ):
     return num
 
 def pushInt( sourceStr, loc, toks ):
-    num = int(toks[0])
+    num = _INT(toks[0])
     exprStack.append( num )
     return num
 
@@ -52,40 +62,69 @@ def pushQuotedString( sourceStr, loc, toks ):
     return dequotedStr
 
 class QNameDef(ModelValue.QName):
-    def __init__(self, loc, prefix, namespaceURI, localName, isAttribute=False):
-        super().__init__(prefix, namespaceURI, localName)
+    def __init__(self, loc, prefix, namespaceURI, localName, isAttribute=False, axis=None):
+        super(QNameDef, self).__init__(prefix, namespaceURI, localName)
         self.unprefixed = prefix is None
-        self.isAttribute = isAttribute
+        self.isAttribute = isAttribute or axis == "attribute"
         self.loc = loc
+        self.axis = (axis or None) # store "" from rpartition of step as None
     def __hash__(self):
-        return self.hash
+        return self.qnameValueHash
     def __repr__(self):
         return ("{0}QName({1})".format('@' if self.isAttribute else '',str(self)))
     def __eq__(self,other):
         if isinstance(other,QNameDef):
-            return other.loc == self.loc and super().__eq__(other) 
+            return other.loc == self.loc and super(QNameDef, self).__eq__(other) and other.axis == self.axis 
         else:
-            return super().__eq__(other)
+            return super(QNameDef, self).__eq__(other)
     def __ne__(self,other):
-    	return not self.__eq__(other)
+        return not self.__eq__(other)
+
+defaultNsmap = {
+    "fn":"http://www.w3.org/2005/xpath-functions",
+    "xml":"http://www.w3.org/XML/1998/namespace",
+    }
+
+axesSupported = {"", "child", "descendant", "attribute", "self", "descendant-or-self",
+                 "following-sibling", "following", "namespace", "parent", "ancestor",
+                 "preceding-sibling", "preceding", "ancestor-or-self"}
 
 def pushQName( sourceStr, loc, toks ):
-    qname = toks[0]
-    if xmlElement:
-        nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname)
-        if nsLocalname is None:
-            modelXbrl.error(
-                _("QName prefix not defined for {0}").format(qname),
-                  "err","err:XPST0081")
-            return
-        if (nsLocalname == (XbrlConst.xff,"uncovered-aspect") and
-            xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion")):
-                modelXbrl.error(
-                    _("Function {0} cannot be used on an XPath expression associated with a {1}").format(qname, xmlElement.localName),
-                      "err","xffe:invalidFunctionUse")
+    step = toks[0]
+    axis, sep, qname = step.rpartition("::") # axes are not splitting correctly
+    if axis not in axesSupported:
+        modelXbrl.error("err:XPST0010",
+            _("Axis %(axis)s is not supported in %(step)s"),
+            modelObject=xmlElement,
+            axis=axis, step=step)
+        return
+    if xmlElement is not None:
+        if qname == '*': # prevent simple wildcard from taking the default namespace
+            nsLocalname = (None, '*', None)
+        else:
+            nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
+            if nsLocalname is None:
+                if qname.startswith("*:"): # wildcad QName special case
+                    prefix,sep,localName = qname.partition(":")
+                    q = QNameDef(loc, prefix, prefix, localName, axis=axis)
+                    if len(exprStack) == 0 or exprStack[-1] != q:
+                        exprStack.append( q )
+                    return q
+                modelXbrl.error("err:XPST0081",
+                    _("QName prefix not defined for %(name)s"),
+                    modelObject=xmlElement,
+                    name=qname)
+                return
+            
+        if (nsLocalname == (XbrlConst.xff,"uncovered-aspect","xff") and
+            xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message")):
+                modelXbrl.error("xffe:invalidFunctionUse",
+                    _("Function %(name)s cannot be used on an XPath expression associated with a %(name2)s"),
+                    modelObject=xmlElement,
+                    name=qname, name2=xmlElement.localName)
     else:
         nsLocalname = (None,qname)
-    q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1])
+    q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1], axis=axis)
     if qname not in ("INF", "NaN", "for", "some", "every", "return") and \
         len(exprStack) == 0 or exprStack[-1] != q:
         exprStack.append( q )
@@ -113,7 +152,7 @@ class OpDef:
     def __eq__(self,other):
         return isinstance(other,OpDef) and other.name == self.name and other.loc == self.loc
     def __ne__(self,other):
-    	return not self.__eq__(other)
+        return not self.__eq__(other)
 
 def pushOp( sourceStr, loc, toks ):
     op = OpDef(loc, toks)
@@ -129,7 +168,7 @@ class OperationDef:
         self.name = name
         if skipFirstTok:
             toks1 = toks[1] if len(toks) > 1 else None
-            if (isinstance(toks1,str) and isinstance(name,str) and
+            if (isinstance(toks1,_STR_BASE) and isinstance(name,_STR_BASE) and
                 name in ('/', '//', 'rootChild', 'rootDescendant')):
                 if toks1 == '*': 
                     toks1 = QNameDef(loc,None,'*','*')
@@ -139,9 +178,10 @@ class OperationDef:
                     prefix = toks1[:-2]
                     ns = XmlUtil.xmlns(xmlElement, prefix)
                     if ns is None:
-                        modelXbrl.error(
-                            _("wildcard prefix not defined for {0}").format(toks1),
-                              "err","err:XPST0081")
+                        modelXbrl.error("err:XPST0081",
+                            _("wildcard prefix not defined for %(token)s"),
+                            modelObject=xmlElement,
+                            token=toks1)
                     toks1 = QNameDef(loc,prefix,ns,'*')
                 self.args = [toks1] + toks[2:] # special case for wildcard path segment
             else:
@@ -158,11 +198,11 @@ class OperationDef:
             return ("{1} {0}".format(self.name, self.args))
 
 def pushOperation( sourceStr, loc, toks ):
-    if isinstance(toks[0], str):
+    if isinstance(toks[0], _STR_BASE):
         name = toks[0]
         removeOp = False
         for tok in toks[1:]:
-            if not isinstance(tok,str) and tok in exprStack:
+            if not isinstance(tok,_STR_BASE) and tok in exprStack:
                 removeOp = True
                 removeFrom = tok
                 break
@@ -179,7 +219,7 @@ def pushOperation( sourceStr, loc, toks ):
     return operation
 
 def pushUnaryOperation( sourceStr, loc, toks ):
-    if isinstance(toks[0], str):
+    if isinstance(toks[0], _STR_BASE):
         operation = OperationDef(sourceStr, loc, 'u' + toks[0], toks, True)
         exprStack.append(operation)
     else:
@@ -191,6 +231,17 @@ def pushFunction( sourceStr, loc, toks ):
     name = toks[0]
     operation = OperationDef(sourceStr, loc, name, toks, True)
     exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
+    if isinstance(name, QNameDef): # function call
+        ns = name.namespaceURI
+        if (not name.unprefixed and 
+            ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
+            not ns.startswith("http://www.xbrl.org/inlineXBRL/transformation")):
+            if name not in modelXbrl.modelCustomFunctionSignatures:
+                modelXbrl.error("xbrlve:noCustomFunctionSignature",
+                    _("No custom function signature for %(custFunction)s in %(resource)s"),
+                    modelObject=xmlElement,
+                    resource=xmlElement.localName,
+                    custFunction=name)
     return operation
 
 def pushSequence( sourceStr, loc, toks ):
@@ -237,9 +288,10 @@ class VariableRef:
 def pushVarRef( sourceStr, loc, toks ):
     qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)
     if qname is None:
-        modelXbrl.error(
-            _("QName prefix not defined for variable reference ${0}").format(toks[0][1:]),
-              "err","err:XPST0081")
+        modelXbrl.error("err:XPST0081",
+            _("QName prefix not defined for variable reference $%(variable)s"),
+            modelObject=xmlElement,
+            variable=toks[0][1:])
         qname = ModelValue.qname(XbrlConst.xpath2err,"XPST0081") # use as qname to allow parsing to complete
     varRef = VariableRef(loc, qname)
     exprStack.append( varRef )
@@ -273,24 +325,55 @@ def pushExpr( sourceStr, loc, toks ):
 
 ParserElement.enablePackrat()
 # define grammar
+variableRef = Regex("[$]"  # variable prefix
+                    # optional prefix part
+                    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+                    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:)?"
+                    # localname part
+                    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+                    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*)"
+                    )
+# for now :: axis step is expected in QName production (processed in parser's QName structure)
+#qName = Word(alphas + '_',alphanums + ':_-.*') # note: this will pick up forward and reverse axes and handle by pushQName
+
+# try to match axis step, prefix, and localname, allowin wildcard prefix or localname
+# don't grab occurence indicator if on qname, e.g., not * of xs:string*
+qName = Regex("([A-Za-z-]+::)?"  # axis step part (just ansi characters)
+              # prefix or wildcard-prefix part
+              "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+              "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:|[*]:)?"
+              # localname or wildcard-localname part  
+              "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+              "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*|[*])"
+              )
+''' above qName definition allows double :: and excludes non-ascii letters
+qName = Regex("[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
+              r"[_\-\." 
+              "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*"
+              "[:]?"
+              r"[_\-\." 
+              "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
+'''    
+ncName = Word(alphas + '_',alphanums + '_-.')
+prefixOp = Literal(":")
+
 decimalPoint = Literal('.')
 exponentLiteral = CaselessLiteral('e')
 plusorminusLiteral = Literal('+') | Literal('-')
 digits = Word(nums) 
 integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
+decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
 infLiteral = Combine( Optional(plusorminusLiteral) + Literal("INF") )
 nanLiteral = Literal("NaN")
 floatLiteral = ( Combine( integerLiteral +
                      ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
                        ( exponentLiteral + integerLiteral ) |
                        ( decimalPoint + Optional(digits) ) )
-                     ) | infLiteral | nanLiteral ) 
+                     ) | 
+                 Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
+                 decimalFractionLiteral |
+                 infLiteral | nanLiteral ) 
 
-
-variableRef = Word( '$', alphanums + ':_-')
-qName = Word(alphas + '_',alphanums + ':_-')
-ncName = Word(alphas + '_',alphanums + '_-')
-prefixOp = Literal(":")
 
 #emptySequence = Literal( "(" ) + Literal( ")" )
 lParen  = Literal( "(" )
@@ -329,7 +412,7 @@ ltGeneralOp = Literal("<")
 geGeneralOp = Literal(">=")
 gtGeneralOp = Literal(">")
 eqGeneralOp = Literal("=")
-generalCompOp = neGeneralOp | ltGeneralOp | leGeneralOp | gtGeneralOp | geGeneralOp | eqGeneralOp
+generalCompOp = neGeneralOp | leGeneralOp | ltGeneralOp | geGeneralOp | gtGeneralOp | eqGeneralOp
 comparisonOp = ( nodeCompOp | valueCompOp | generalCompOp ).setParseAction(pushOp)
 toOp = Keyword("to").setParseAction(pushOp)
 plusOp  = Literal("+")
@@ -409,6 +492,7 @@ reverseAxis = ((Keyword("parent") + axisOp) |
                (Keyword("ancestor-or-self") + axisOp))
 abbrevReverseStep = Literal("..")
 reverseStep = ( ( reverseAxis + nodeTest ) | abbrevReverseStep )
+step = ( forwardStep | reverseStep )
 
 expr = Forward()
 atom = ( 
@@ -431,8 +515,10 @@ atom = (
          ( qName ).setParseAction(pushQName) |
          ( Suppress(lParen) - Optional(expr) - ZeroOrMore( commaOp.setParseAction(pushOp) - expr ) - Suppress(rParen) ).setParseAction(pushSequence)
        )
+#stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) | 
+#             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
 stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) | 
-             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
+             ( step + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
 relativePathExpr = stepExpr + ZeroOrMore( ( ( pathDescOp | pathStepOp ) + stepExpr ).setParseAction( pushOperation ) )
 pathExpr = ( ( pathDescOp + relativePathExpr ).setParseAction( pushRootStep ) |
              ( pathStepOp + relativePathExpr ).setParseAction( pushRootStep ) |
@@ -475,7 +561,7 @@ opn = { "+" : ( lambda a,b: a + b ),
         "-" : ( lambda a,b: a - b ),
         "*" : ( lambda a,b: a * b ),
         "div" : ( lambda a,b: float(a) / float(b) ),
-        "idiv" : ( lambda a,b: int(a) / int(b) ),
+        "idiv" : ( lambda a,b: _INT(a) / _INT(b) ),
         "^" : ( lambda a,b: a ** b ) }
 
 # Recursive function that evaluates the stack
@@ -541,11 +627,10 @@ def normalizeExpr(expr):
 
 isInitialized = False
 
-def initializeParser(modelObject):
+def initializeParser(modelManager):
     global isInitialized
     if not isInitialized:
-        modelManager = modelObject.modelXbrl.modelManager
-        modelManager.showStatus(_("Initializing formula xpath2 grammar"))
+        modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
         xpathExpr.parseString( "0", parseAll=True )
         modelManager.addToLog(format_string(modelManager.locale, 
@@ -553,6 +638,8 @@ def initializeParser(modelObject):
                                     time.time() - startedAt))
         modelManager.showStatus(None)
         isInitialized = True
+        return True # was initialized on this call
+    return False # had already been initialized
 
 def exceptionErrorIndication(exception):
     errorAt = exception.column
@@ -561,7 +648,7 @@ def exceptionErrorIndication(exception):
         if len(source) > 0: source += '\n'
         if errorAt >= 0 and errorAt <= len(line):
             source += line[:errorAt] + '\u274b' + line[errorAt:]
-            source += '\n' + ' '*(errorAt-1) + '^'
+            source += '\n' + ' '*(errorAt-1) + '^ \n'
         else:
             source += line
         errorAt -= len(line) + 1
@@ -592,6 +679,7 @@ def parse(modelObject, xpathExpression, element, name, traceType):
     exprStack = []
     global xmlElement
     xmlElement = element
+    returnProg = None
 
     # throws ParseException
     if xpathExpression and len(xpathExpression) > 0:
@@ -601,13 +689,18 @@ def parse(modelObject, xpathExpression, element, name, traceType):
 
             normalizedExpr = normalizeExpr( xpathExpression )
 
+            # for debugging parser looping or stack recursion, uncomment this:
+            # modelObject.modelXbrl.modelManager.showStatus(_("Parsing file {0} line {1} expr {2}").format(element.modelDocument.basename,element.sourceline,normalizedExpr))
+
             # should be option "compiled code"
             
             if ((formulaOptions.traceVariableSetExpressionSource and traceType == Trace.VARIABLE_SET) or
                 (formulaOptions.traceVariableExpressionSource and traceType == Trace.VARIABLE) or
                 (formulaOptions.traceCallExpressionSource and traceType == Trace.CALL)):
-                modelXbrl.error( _("Source {0} {1}").format(name, normalizedExpr),
-                    "info", "formula:trace")
+                modelXbrl.info("formula:trace", "Source %(name)s %(source)s",
+                modelObject=element,
+                name=name,
+                source=normalizedExpr)
             exprStack.append( ProgHeader(modelObject,name,element,normalizedExpr,traceType) )
 
             L = xpathExpr.parseString( normalizedExpr, parseAll=True )
@@ -619,19 +712,25 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             if ((formulaOptions.traceVariableSetExpressionCode and traceType == Trace.VARIABLE_SET) or
                 (formulaOptions.traceVariableExpressionCode and traceType == Trace.VARIABLE) or
                 (formulaOptions.traceCallExpressionCode and traceType == Trace.CALL)):
-                modelXbrl.error( _("Code {0} {1}").format(name, exprStack),
-                    "info", "formula:trace")
-
+                modelXbrl.info("formula:trace", _("Code %(name)s %(source)s"),
+                modelObject=element,
+                name=name,
+                source=exprStack)
+                
         except (ParseException, ParseSyntaxException) as err:
-            modelXbrl.error(
-                _("Parse error in {0} error: {1} \n{2}").format(name,
-                     err, exceptionErrorIndication(err)), 
-                "err", "err:XPST0003")
+            modelXbrl.error("err:XPST0003",
+                _("Parse error in %(name)s error: %(error)s \n%(source)s"),
+                modelObject=element,
+                name=name,
+                error=err, 
+                source=exceptionErrorIndication(err))
         except (ValueError) as err:
-            modelXbrl.error(
-                _("Parsing terminated in {0} due to error: {1} \n{2}").format(name,
-                     err, normalizedExpr), 
-                "err", "parser:unableToParse")
+            modelXbrl.error("parser:unableToParse",
+                _("Parsing terminated in %(name)s due to error: %(error)s \n%(source)s"),
+                modelObject=element,
+                name=name,
+                error=err, 
+                source=normalizedExpr)
         
         '''
         code = []
@@ -644,8 +743,11 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             "info", "formula:trace")
         return pyCode
         '''
-        return exprStack
-    return None
+        returnProg = exprStack
+    exprStack = [] # dereference
+    xmlElement = None
+    modelXbrl = None
+    return returnProg
 
 def variableReferencesSet(exprStack, element):
     varRefSet = set()
@@ -673,11 +775,26 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
             rangeVars.append(var)
             localRangeVars.append(var)
             variableReferences(p.bindingSeq, varRefSet, element, rangeVars)
-        elif hasattr(p, '__iter__') and not isinstance(p, str):
+        elif hasattr(p, '__iter__') and not isinstance(p, _STR_BASE):
             variableReferences(p, varRefSet, element, rangeVars)
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)
+
+def clearProg(exprStack):
+    if exprStack:
+        for p in exprStack:
+            if isinstance(p, ProgHeader):
+                p.element = None
+                break
+        del exprStack[:]
+    
+def clearNamedProg(ownerObject, progName):
+    clearProg(ownerObject.getattr(progName, []))
+
+def clearNamedProgs(ownerObject, progsListName):
+    for prog in ownerObject.getattr(progsListName, []):
+        clearProg(prog)
 
 '''
 pyOpForXPathOp = {
@@ -693,9 +810,9 @@ def compile(exprStack, code, inScopeVars=None):
     if inScopeVars is None: inScopeVars = []
     codeStartIndex = len(code)
     for p in exprStack:
-        if isinstance(p,str):
+        if isinstance(p,_STR_BASE):
             code.append(p.__repr__())
-        elif isinstance(p,int) or isinstance(p,float):
+        elif isinstance(p,_NUM_TYPES):
             code.append(str(p))
         elif isinstance(p,VariableRef):
             code.append((" {0} ","variables.get({0})")[p.name in inScopeVars].format(p.name))
@@ -777,6 +894,8 @@ def codeModule(code):
         ''.join(code)
 
 def parser_unit_test():
+    #initialize
+    xpathExpr.parseString( "0", parseAll=True )
 
     test1 = "3*7+5"
     test1a = "5+3*7"
@@ -891,7 +1010,14 @@ def parser_unit_test():
     '''
     #tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
     tests = [test1, test1a, test1b, test2a, test2b, test3, test3a]
+    
+    log = []
     for test in (
+                 "concat('abc','def')",
+                 "a/b",
+                 "123",
+                 "0.005",
+                 ".005",
                  "./*[local-name() eq 'a']",
                  ".",
                  "..",
@@ -911,10 +1037,10 @@ def parser_unit_test():
             L=['Parse Failure',test,err]
         
         # show result of parsing the input string
-        if debug_flag: print (test, "->", L)
+        if debug_flag: log.append("{0}->{1}".format(test, L))
         if len(L)==0 or L[0] != 'Parse Failure':
             if debug_flag: 
-                print ("exprStack=", exprStack)
+                log.append("exprStack={0}".format(exprStack))
                 '''
                 code = []
                 compile(exprStack, code)
@@ -933,11 +1059,15 @@ def parser_unit_test():
             if debug_flag: print ("variables=",variables)
             '''
         else:
-            print ('Parse Failure')
-            print (L[2].line)
-            print (" "*(L[2].column-1) + "^")
-            print (L[2])
+            log.append('Parse Failure')
+            log.append(L[2].line)
+            log.append(" "*(L[2].column-1) + "^")
+            log.append(L[2])
 
+    print ("see log in c:\\temp\\testLog.txt")
+    import io
+    with io.open("c:\\temp\\testLog.txt", 'wt', encoding='utf-8') as f:
+        f.write('\n'.join(str(l) for l in log))
 
 if __name__ == "__main__":
     parser_unit_test()

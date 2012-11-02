@@ -25,4 +25,23 @@
     <mapFile 
         from="http://www.hmrc.gov.uk/schemas/ct/comp/taxonomies/2010-06-15/ct-2010-06-15.xsd" 
         to="http://www.hmrc.gov.uk/ebu/ct_techpack/ct-comp-10-06-15.zip/ct-2010-06-15.xsd" />
+        
+    <!-- XBRL Table linkbase PWD files, in SVN but not yet on the website, remove after published 
+         note that you will need a user ID and password for XII SVN access!! 
+    <mapFile
+        from="http://www.xbrl.org/2011/table.xsd"
+        to="http://svn.xbrl.org/svn/conformance-rendering/trunk/renderingLinkbase/schema/table.xsd" />
+    <mapFile
+        from="http://www.xbrl.org/2011/rule-axis.xsd"
+        to="http://svn.xbrl.org/svn/conformance-rendering/trunk/renderingLinkbase/schema/rule-axis.xsd" />
+    <mapFile
+        from="http://www.xbrl.org/2011/relationship-axis.xsd"
+        to="http://svn.xbrl.org/svn/conformance-rendering/trunk/renderingLinkbase/schema/relationship-axis.xsd" />
+    <mapFile
+        from="http://www.xbrl.org/2011/filter-axis.xsd"
+        to="http://svn.xbrl.org/svn/conformance-rendering/trunk/renderingLinkbase/schema/filter-axis.xsd" />
+    <mapFile
+        from="http://www.xbrl.org/2011/selection-axis.xsd"
+        to="http://svn.xbrl.org/svn/conformance-rendering/trunk/renderingLinkbase/schema/selection-axis.xsd" />
+    -->
 </mappings>

@@ -4,82 +4,93 @@ Created on Jan 4, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, re, copy, datetime
+import re, copy, datetime
 
 def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, prefixException=None):
-    # either value can be an xml.dom Node: if no name then qname is element tag quanem
+    # either value can be an etree ModelObject element: if no name then qname is element tag quanem
     #     if name provided qname uses element as xmlns reference and name as prefixed name
     # value can be namespaceURI and name is localname or prefix:localname
     # value can be prefix:localname (and localname omitted)
     # for xpath qnames which do not take default namespace if no prefix, specify noPrefixIsNoNamespace
-    if isinstance(value, xml.dom.Node):
+    if isinstance(value, ModelObject):
         if name:
             element = value  # may be an attribute
             value = name
             name = None
         else:
             return QName(value.prefix, value.namespaceURI, value.localName)
-    elif isinstance(name, xml.dom.Node):
+    elif isinstance(name, ModelObject):
         element = name
         name = None
-    elif value is None:
         element = None
         value = name
     else:
         element = None
     if isinstance(value,QName):
         return value
-    elif not isinstance(value,str):
+    elif not isinstance(value,_STR_BASE):
         if castException: raise castException
         return None
-    if value.startswith('{'):
-        namespaceURI,sep,localName = value[1:].partition('}')
-        prefix = None
+    if value.startswith('{'): # clark notation (with optional prefix)
+        namespaceURI,sep,prefixedLocalName = value[1:].partition('}')
+        prefix,sep,localName = prefixedLocalName.partition(':')
+        if len(localName) == 0:
+            localName = prefix
+            prefix = None
+        namespaceDict = None
     else:
-        if name is not None:
+        if isinstance(name, dict):
+            namespaceURI = None
+            namespaceDict = name
+        elif name is not None:
             if name:  # len > 0
                 namespaceURI = value
             else:
                 namespaceURI = None
+            namespaceDict = None
             value = name
         else:
             namespaceURI = None
-        names = value.partition(":")
-        if names[2] == "":
+            namespaceDict = None
+        prefix,sep,localName = value.partition(":")
+        if len(localName) == 0:
             #default namespace
+            localName = prefix
             prefix = None
-            localName = names[0]
             if noPrefixIsNoNamespace:
                 return QName(None, None, localName)
-        else:
-            prefix = names[0]
-            localName = names[2]
     if namespaceURI:
         return QName(prefix, namespaceURI, localName)
-    elif element:
+    elif namespaceDict and prefix in namespaceDict:
+        return QName(prefix, namespaceDict[prefix], localName)
+    elif element is not None:
         from arelle import (XmlUtil)
         namespaceURI = XmlUtil.xmlns(element, prefix)
     if not namespaceURI:
         if prefix: 
-            if castException: raise castException
+            if prefixException: raise prefixException
             return None  # error, prefix not found
+    if not namespaceURI:
+        namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
 
 class QName:
+    __slots__ = ("prefix", "namespaceURI", "localName", "qnameValueHash")
     def __init__(self,prefix,namespaceURI,localName):
         self.prefix = prefix
         self.namespaceURI = namespaceURI
         self.localName = localName
-        self.hash = ((hash(namespaceURI) * 1000003) & 0xffffffff) ^ hash(localName)
+        self.qnameValueHash = ((hash(namespaceURI) * 1000003) & 0xffffffff) ^ hash(localName)
     def __hash__(self):
-        return self.hash
-    def nsname(self):
+        return self.qnameValueHash
+    @property
+    def clarkNotation(self):
         if self.namespaceURI:
             return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
         else:
             return self.localName
     def __repr__(self):
-        return self.__str__() # self.nsname()
+        return self.__str__() 
     def __str__(self):
         if self.prefix and self.prefix != '':
             return self.prefix + ':' + self.localName
@@ -87,17 +98,25 @@ class QName:
             return self.localName
     def __eq__(self,other):
         ''' don't think this is used any longer
-        if isinstance(other,str):
+        if isinstance(other,_STR_BASE):
             # only compare nsnames {namespace}localname format, if other has same hash
-            return self.__hash__() == other.__hash__() and self.nsname() == other
-        el
-        '''
-        if isinstance(other,QName):
-            return self.hash == other.hash and \
+            return self.__hash__() == other.__hash__() and self.clarkNotation == other
+        elif isinstance(other,QName):
+            return self.qnameValueHash == other.qnameValueHash and \
                     self.namespaceURI == other.namespaceURI and self.localName == other.localName
-        elif isinstance(other,xml.dom.Node) and other.nodeType == 1:
+        elif isinstance(other,ModelObject):
             return self.namespaceURI == other.namespaceURI and self.localName == other.localName
+        '''
+        try:
+            return (self.qnameValueHash == other.qnameValueHash and 
+                    self.namespaceURI == other.namespaceURI and self.localName == other.localName)
+        except AttributeError:  # other may be a model object and not a QName
+            try:
+                return self.namespaceURI == other.namespaceURI and self.localName == other.localName
+            except AttributeError:
+                return False
         return False
+    
     def __ne__(self,other):
         return not self.__eq__(other)
     def __lt__(self,other):
@@ -116,13 +135,15 @@ class QName:
         return (self.namespaceURI and other.namespaceURI is None) or \
                 (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
                 (self.namespaceURI == other.namespaceURI and self.localName >= other.localName)
+
+from arelle.ModelObject import ModelObject
     
 def anyURI(value):
-	return AnyURI(value)
-	
+    return AnyURI(value)
+
 class AnyURI(str):
     def __new__(cls, value):
-        return super().__new__(cls, value)
+        return str.__new__(cls, value)
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
@@ -137,14 +158,8 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         return DateTime(datetime.MINYEAR,1,1)
     elif value == "maxyear":
         return DateTime(datetime.MAXYEAR,12,31)
-    elif isinstance(value, xml.dom.Node):
-        if value.nodeType == xml.dom.Node.ELEMENT_NODE:
-            from arelle import (XmlUtil)
-            value = XmlUtil.text(value)
-        elif value.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-            value = value.value
-        else:
-            value = None
+    elif isinstance(value, ModelObject):
+        value = value.text
     elif isinstance(value, DateTime) and not addOneDay and (value.dateOnly == (type == DATE)):
         return value    # no change needed for cast or conversion
     elif isinstance(value, datetime.datetime):
@@ -159,7 +174,7 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         return DateTime(value.year, value.month, value.day, value.hour, value.minute, value.second, value.microsecond, tzinfo=value.tzinfo, dateOnly=dateOnly, addOneDay=addOneDay)
     elif isinstance(value, datetime.date):
         return DateTime(value.year, value.month, value.day,dateOnly=True,addOneDay=addOneDay)
-    elif castException and not isinstance(value, str):
+    elif castException and not isinstance(value, _STR_BASE):
         raise castException
     if value is None:
         return None
@@ -201,11 +216,16 @@ class DateTime(datetime.datetime):
         lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d -= lastDay; m += 1
         if m > 12: m = 1; y += 1
-        dateTime = super().__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
+        dateTime = datetime.datetime.__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
         dateTime.dateOnly = dateOnly
         return dateTime
     def __copy__(self):
         return DateTime(self.year, self.month, self.day, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
+    def __str__(self):
+        if self.dateOnly:
+            return "{0.year:04}-{0.month:02}-{0.day:02}".format(self)
+        else:
+            return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(self)
     def addYearMonthDuration(self, other, sign):
         m = self.month + sign * other.months
         y = self.year + sign * other.years + m // 12
@@ -219,14 +239,14 @@ class DateTime(datetime.datetime):
             return self.addYearMonthDuration(other, 1)
         else:
             if isinstance(other, Time): other = dayTimeDuration(other)
-            dt = super().__add__(other)
+            dt = super(DateTime, self).__add__(other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
     def __sub__(self, other):
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
         else:
-            dt = super().__sub__(other)
+            dt = super(DateTime, self).__sub__(other)
             if isinstance(dt,datetime.timedelta):
                 return DayTimeDuration(dt.days, 0, 0, dt.seconds)
             else:
@@ -253,11 +273,10 @@ def yearMonthDuration(value):
     return YearMonthDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
     
 class YearMonthDuration():
-    def __new__(cls, years, months):
-        yrMo = super().__new__(cls)
-        yrMo.years = years
-        yrMo.months = months
-        return yrMo
+    def __init__(self, years, months):
+        self.years = years
+        self.months = months
+
     def __repr__(self):
         return "P{0}Y{1}M".format(self.years, self.months)
     
@@ -271,7 +290,7 @@ def dayTimeDuration(value):
     
 class DayTimeDuration(datetime.timedelta):
     def __new__(cls, days, hours, minutes, seconds):
-        dyTm = super().__new__(cls,days,hours,minutes,seconds)
+        dyTm = datetime.timedelta.__new__(cls,days,hours,minutes,seconds)
         return dyTm
     def dayHrsMinsSecs(self):
         days = int(self.days)
@@ -306,19 +325,13 @@ def time(value, castException=None):
         return Time(time.min)
     elif value == "MaxTime":
         return Time(time.max)
-    elif isinstance(value, xml.dom.Node):
-        if value.nodeType == xml.dom.Node.ELEMENT_NODE:
-            from arelle import (XmlUtil)
-            value = XmlUtil.text(value)
-        elif value.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-            value = value.value
-        else:
-            value = None
+    elif isinstance(value, ModelObject):
+        value = value.text
     elif isinstance(value, datetime.time):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
     elif isinstance(value, datetime.datetime):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
-    elif castException and not isinstance(value, str):
+    elif castException and not isinstance(value, _STR_BASE):
         raise castException
     if value is None:
         return None
@@ -331,8 +344,14 @@ class Time(datetime.time):
     def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None):
         hour24 = (hour == 24 and minute == 0 and second == 0 and microsecond == 0)
         if hour24: hour = 0
-        time = super().__new__(cls, hour, minute, second, microsecond, tzinfo)
+        time = datetime.time.__new__(cls, hour, minute, second, microsecond, tzinfo)
         time.hour24 = hour24
         return time
     
-        
+class InvalidValue(str):
+    def __new__(cls, value):
+        return str.__new__(cls, value)
+
+INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
+
+    

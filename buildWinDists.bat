@@ -10,6 +10,13 @@ rem both win 32 (x86) and win 64 (x64)
 
 "%PYTHON64DIR%\python" buildVersion.py
 
+rem Rebuild messages.pot internationalization file
+"%PYTHON64DIR%\python" pygettext.py -v -o arelle\locale\messages.pot arelle\*.pyw arelle\*.py
+pause "Please check the python gettext string conversions"
+
+rem Regenerate messages catalog (doc/messagesCatalog.xml)
+"%PYTHON64DIR%\python" generateMessagesCatalog.py
+
 rmdir build /s/q
 rmdir dist /s/q
 mkdir build
@@ -37,6 +44,4 @@ rmdir lxml/s/q
 rem rename for build date
 call buildRenameX64.bat
 
-rem compact /c /f dist\exe.win32-3.2.exe
-
-rem rmdir build /s/q
+rmdir build /s/q

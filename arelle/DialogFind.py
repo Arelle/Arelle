@@ -4,13 +4,18 @@ Created on May 1, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
-import tkinter.messagebox, traceback
+from tkinter import Toplevel, N, S, E, W, messagebox
+try:
+    from tkinter.ttk import Frame, Button
+except ImportError:
+    from ttk import Frame, Button
 import re
-from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton)
+from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton
 from arelle.CntlrWinTooltip import ToolTip
-from arelle import (ModelDocument, ModelObject, ModelRssObject, XPathContext, XPathParser, XmlUtil)
+from arelle import ModelDocument, XPathContext, XPathParser, XmlUtil
+from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelFormulaObject import Trace
 
 '''
@@ -18,19 +23,38 @@ caller checks accepted, if True, caller retrieves url
 '''
 
 reMetaChars = '[]\\^$.|?*+(){}'
+        
+newFindOptions = {
+    "direction": "down",
+    "exprType": "text",
+    "all": False,
+    "conceptLabel": False,
+    "conceptName": False,
+    "conceptSubs": False,
+    "conceptPer": False,
+    "conceptBal": False,
+    "factLabel": False,
+    "factName": False,
+    "factValue": False,
+    "factCntx": False,
+    "factUnit": False,
+    "messagesLog": False,
+    "priorExpressions": [],
+    "geometry": None
+}
 
 def find(mainWin):
-    dialog = DialogFind(mainWin, mainWin.config.setdefault("findOptions",FindOptions()))
+    dialog = DialogFind(mainWin, mainWin.config.setdefault("findOptions", newFindOptions))
 
   
 class DialogFind(Toplevel):
     def __init__(self, mainWin, options):
         parent = mainWin.parent
-        super().__init__(parent)
+        super(DialogFind, self).__init__(parent)
         self.parent = parent
         self.modelManager = mainWin.modelManager
         self.modelXbrl = None   # set when Find pressed, this blocks next prematurely
-        if options is None: options = FindOptions()
+        if options is None: options = newFindOptions
         self.options = options
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogW = int(parentGeometry.group(1))
@@ -42,12 +66,14 @@ class DialogFind(Toplevel):
         self.transient(self.parent)
         self.title(_("Find"))
         
+        self.objsList = [] # next may be tried before anything is found
+        
         frame = Frame(self)
 
         # load grid
         findLabel = gridHdr(frame, 1, 0, "Find:", anchor="w")
         findLabel.grid(padx=8)
-        self.cbExpr = gridCombobox(frame, 1, 1, values=options.priorExpressions)
+        self.cbExpr = gridCombobox(frame, 1, 1, values=options["priorExpressions"])
         self.cbExpr.grid(columnspan=3, padx=8)
         ToolTip(self.cbExpr, text=_("Enter expression to find, or select from combo box drop down history list."), wraplength=240)
 
@@ -95,6 +121,7 @@ class DialogFind(Toplevel):
            checkbox(frame, 3, y + 3, "   value", "factValue"),
            checkbox(frame, 3, y + 4, "   context", "factCntx"),
            checkbox(frame, 3, y + 5, "   unit", "factUnit"),
+           checkbox(frame, 3, y + 6, "Messages", "messagesLog"),
         
            # Note: if adding to this list keep Finder.FindOptions in sync
         
@@ -127,8 +154,8 @@ class DialogFind(Toplevel):
         frame.columnconfigure(3, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        if hasattr(self.options,'geometry') and self.options.geometry:
-            self.geometry(self.options.geometry)
+        if self.options["geometry"]:
+            self.geometry(self.options["geometry"])
         else:
             self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
         
@@ -145,77 +172,87 @@ class DialogFind(Toplevel):
     def setOptions(self):
         # set formula options
         for optionControl in self.optionControls:
-            setattr(self.options, optionControl.attr, optionControl.value)
+            self.options[optionControl.attr] = optionControl.value
         
     def find(self, event=None):
         self.setOptions()
         self.accepted = True
         # self.close()
         
-        docType = self.modelManager.modelXbrl.modelDocument.type
-        if not self.modelManager.modelXbrl or not docType in (
-             ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL,
-             ModelDocument.Type.RSSFEED):
-            tkinter.messagebox.showerror(_("Find cannot be completed"),
-                     _("Find requires an opened DTS or RSS Feed"), parent=self.parent)
-            return
-        
-        if docType == ModelDocument.Type.RSSFEED and self.options.exprType == "xpath":
-            tkinter.messagebox.showerror(_("Find cannot be completed"),
-                     _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self.parent)
-            return
-            
+        docType = self.modelManager.modelXbrl.modelDocument.type if self.modelManager.modelXbrl else None
+        if self.options["messagesLog"]:
+            if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
+                messagebox.showerror(_("Find cannot be completed"),
+                         _("XPath matching is not available for searching messages, please choose text or regular expression.  "), parent=self)
+                return
+        else:
+            if not self.modelManager.modelXbrl or not docType in (
+                 ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL,
+                 ModelDocument.Type.RSSFEED):
+                messagebox.showerror(_("Find cannot be completed"),
+                         _("Find requires an opened DTS or RSS Feed"), parent=self.parent)
+                return
+                
+            if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
+                messagebox.showerror(_("Find cannot be completed"),
+                         _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self)
+                return
+                
         self.modelXbrl = self.modelManager.modelXbrl
         expr = self.cbExpr.value
         # update find expressions history
-        if expr in self.options.priorExpressions:
-            self.options.priorExpressions.remove(expr)
-        elif len(self.options.priorExpressions) > 10:
-            self.options.priorExpressions = self.options.priorExpressions[0:10]
-        self.options.priorExpressions.insert(0, expr)
-        self.cbExpr.config(values=self.options.priorExpressions)
+        if expr in self.options["priorExpressions"]:
+            self.options["priorExpressions"].remove(expr)
+        elif len(self.options["priorExpressions"]) > 10:
+            self.options["priorExpressions"] = self.options["priorExpressions"][0:10]
+        self.options["priorExpressions"].insert(0, expr)
+        self.cbExpr.config(values=self.options["priorExpressions"])
         self.saveConfig()
         
         import threading
-        thread = threading.Thread(target=lambda: self.backgroundFind())
+        thread = threading.Thread(target=lambda
+                                  expr=self.cbExpr.value,
+                                  logViewLines=self.modelManager.cntlr.logView.lines() if self.options["messagesLog"] else None
+                                  : self.backgroundFind(expr, logViewLines))
         thread.daemon = True
         thread.start()
 
 
-    def backgroundFind(self):
-        expr = self.cbExpr.value
-        inConceptLabel = self.options.conceptLabel
-        inConceptName = self.options.conceptName
-        inConceptType = self.options.conceptType
-        inConceptSubs = self.options.conceptSubs
-        inConceptPer = self.options.conceptPer
-        inConceptBal = self.options.conceptBal
-        inFactLabel = self.options.factLabel
-        inFactName = self.options.factName
-        inFactValue = self.options.factValue
-        inFactCntx = self.options.factCntx
-        inFactUnit = self.options.factUnit
-        self.nextIsDown = self.options.direction == "down"
+    def backgroundFind(self, expr, logViewLines):
+        exprType = self.options["exprType"]
+        inConceptLabel = self.options["conceptLabel"]
+        inConceptName = self.options["conceptName"]
+        inConceptType = self.options["conceptType"]
+        inConceptSubs = self.options["conceptSubs"]
+        inConceptPer = self.options["conceptPer"]
+        inConceptBal = self.options["conceptBal"]
+        inFactLabel = self.options["factLabel"]
+        inFactName = self.options["factName"]
+        inFactValue = self.options["factValue"]
+        inFactCntx = self.options["factCntx"]
+        inFactUnit = self.options["factUnit"]
+        inMessagesLog = self.options["messagesLog"]
+        nextIsDown = self.options["direction"] == "down"
         
         objsFound = set()
         
         try:
-            if self.options.exprType == "text":
+            if exprType == "text":
                 # escape regex metacharacters
                 pattern = re.compile(''.join(
                          [(('\\' + c) if c in reMetaChars else c) for c in expr]), 
                          re.IGNORECASE)
                 isRE = True
                 isXP = False
-            elif self.options.exprType == "regex":
+            elif exprType == "regex":
                 pattern = re.compile(expr, re.IGNORECASE)
                 isRE = True
                 isXP = False
-            elif self.options.exprType == "xpath":
+            elif exprType == "xpath":
                 isRE = False
                 isXP = True
                 self.resultText.setValue(_("Compiling xpath expression..."))
-                XPathParser.initializeParser(self)
+                XPathParser.initializeParser(self.modelManager)
                 self.modelManager.showStatus(_("Compiling xpath expression..."))
                 xpProg= XPathParser.parse(self, 
                                           expr, 
@@ -227,13 +264,17 @@ class DialogFind(Toplevel):
             else:
                 return  # nothing to do
             
-            if self.modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
+            if inMessagesLog:
+                for lineNumber, line in enumerate(logViewLines):
+                    if pattern.search(line):
+                        objsFound.add(lineNumber)
+            elif self.modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
                 for rssItem in self.modelXbrl.modelDocument.items:
                     if any(pattern.search(str(value)) for name, value in rssItem.propertyView):
                         objsFound.add(rssItem)  
             else: # DTS search
                 if inConceptLabel or inConceptName or inConceptType or inConceptSubs or inConceptPer or inConceptBal:
-                    self.resultText.setValue(_("Matching concepts..."))
+                    self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [_("Matching concepts...")]))
                     self.modelManager.showStatus(_("Matching concepts..."))
                     for conceptName, concepts in self.modelXbrl.nameConcepts.items():
                         for concept in concepts:
@@ -249,7 +290,7 @@ class DialogFind(Toplevel):
                                 ):
                                 objsFound.add(concept)  
                 if inFactLabel or inFactName or inFactValue or inFactCntx or inFactUnit:
-                    self.resultText.setValue(_("Matching facts..."))
+                    self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [_("Matching facts...")]))
                     self.modelManager.showStatus(_("Matching facts..."))
                     for fact in self.modelXbrl.facts:
                         if ((isXP and xpCtx.evaluateBooleanValue(xpProg, contextItem=fact)) or
@@ -265,21 +306,25 @@ class DialogFind(Toplevel):
         except XPathContext.XPathException as err:
             err = _("Find expression error: {0} \n{1}").format(err.message, err.sourceErrorIndication)
             self.modelManager.addToLog(err)
-            self.resultText.setValue(err)
+            self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [err]))
             self.modelManager.showStatus(_("Completed with errors"), 5000)
                             
         numConcepts = 0
         numFacts = 0
         numRssItems = 0
+        numMessages = 0
         self.objsList = []
         for obj in objsFound:
-            if isinstance(obj,ModelObject.ModelConcept):
+            if inMessagesLog:
+                numMessages += 1
+                self.objsList.append( ('m', "{0:06}".format(obj), obj) )
+            elif isinstance(obj,ModelConcept):
                 numConcepts += 1
                 self.objsList.append( ('c', obj.localName, obj.objectId()) )
-            elif isinstance(obj,ModelObject.ModelFact):
+            elif isinstance(obj,ModelFact):
                 numFacts += 1
                 self.objsList.append( ('f', obj.__hash__(), obj.objectId()) )
-            elif isinstance(obj,ModelRssObject.ModelRssItem):
+            elif isinstance(obj,ModelRssItem):
                 numRssItems += 1
                 self.objsList.append( ('r', obj.__hash__(), obj.objectId()) )
         self.objsList.sort()
@@ -291,42 +336,54 @@ class DialogFind(Toplevel):
             self.result += "{0} facts".format(numFacts)
         if numRssItems:
             self.result += "{0} RSS items".format(numRssItems)
-        if numConcepts + numFacts + numRssItems == 0:
+        if numMessages:
+            self.result += "{0} Messages".format(numMessages)
+        if numConcepts + numFacts + numRssItems + numMessages == 0:
             self.result += "no matches"
             self.foundIndex = -1
-            self.resultText.setValue(self.result)
+            self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [self.result]))
         else:
-            self.foundIndex = 0 if self.nextIsDown else (len(self.objsList) - 1)
+            self.foundIndex = 0 if nextIsDown else (len(self.objsList) - 1)
             self.modelManager.cntlr.uiThreadQueue.put((self.next, []))
         self.modelManager.showStatus(_("Ready..."), 2000)
                                     
     def next(self):
+        self.setOptions() # refresh options
+        nextIsDown = self.options["direction"] == "down"
         # check that asme instance applies
-        if self.modelXbrl is None:
-            return
-        if self.modelManager.modelXbrl != self.modelXbrl:
-            tkinter.messagebox.showerror(_("Next cannot be completed"),
-                            _("A different DTS is active, than find was initiated with.  Please press 'find' to re-search with the current DTS"), parent=self.parent)
-            return
+        if not self.options["messagesLog"]:
+            if self.modelXbrl is None:
+                return
+            if self.modelManager.modelXbrl != self.modelXbrl:
+                messagebox.showerror(_("Next cannot be completed"),
+                                _("A different DTS is active, than find was initiated with.  Please press 'find' to re-search with the current DTS"), parent=self)
+                return
         lenObjsList = len(self.objsList)
         if lenObjsList == 0:
-            tkinter.messagebox.showwarning(_("Next cannot be completed"),
-                            _("No matches were found.  Please try a different search."), parent=self.parent)
+            messagebox.showwarning(_("Next cannot be completed"),
+                            _("No matches were found.  Please try a different search."), parent=self)
             return
             
-        self.result = self.result.partition("Selection")[0]
+        if self.foundIndex < 0 and nextIsDown:
+            self.foundIndex += 1
+        elif self.foundIndex >= lenObjsList and not nextIsDown:
+            self.foundIndex -= 1
         if 0 <= self.foundIndex < lenObjsList:
-            self.modelManager.modelXbrl.viewModelObject(self.objsList[self.foundIndex][2])
+            objectFound = self.objsList[self.foundIndex][2]
+            if self.options["messagesLog"]:
+                self.modelManager.cntlr.logView.selectLine(objectFound)
+            else:
+                self.modelManager.modelXbrl.viewModelObject(objectFound)
             self.resultText.setValue("{0}, selection {1} of {2}".format(self.result, self.foundIndex + 1, len(self.objsList) ) )
-            self.foundIndex += 1 if self.nextIsDown else -1
-        elif self.nextIsDown:
+            self.foundIndex += 1 if nextIsDown else -1
+        elif nextIsDown:
             self.resultText.setValue("{0}, selection at end".format(self.result) )
         else:
             self.resultText.setValue("{0}, selection at start".format(self.result) )
-        
+
 
     def close(self, event=None):
-        self.options.geometry = self.geometry()
+        self.options["geometry"] = self.geometry()
         self.saveConfig()
         self.parent.focus_set()
         self.destroy()
@@ -334,21 +391,3 @@ class DialogFind(Toplevel):
     def saveConfig(self):
         self.modelManager.cntlr.config["findOptions"] = self.options
         self.modelManager.cntlr.saveConfig()
-        
-class FindOptions():
-    def __init__(self):
-        self.direction = "down"
-        self.exprType = "text"
-        self.all = False
-        self.conceptLabel = False
-        self.conceptName = False
-        self.conceptSubs = False
-        self.conceptPer = False
-        self.conceptBal = False
-        self.factLabel = False
-        self.factName = False
-        self.factValue = False
-        self.factCntx = False
-        self.factUnit = False
-        self.priorExpressions = []
-        self.geometry = None

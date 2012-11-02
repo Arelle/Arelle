@@ -5,20 +5,25 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except ImportError:
+    from ttk import *
 import os
 from arelle import (ViewWinTree, ModelDocument)
 
 def viewTests(modelXbrl, tabWin):
     view = ViewTests(modelXbrl, tabWin)
     modelXbrl.modelManager.showStatus(_("viewing Tests"))
-    view.treeView["columns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
+    view.treeView["columns"] = ("name", "readMeFirst", "infoset", "status", "call", "test", "expected", "actual")
     view.treeView.column("#0", width=150, anchor="w")
     view.treeView.heading("#0", text="ID")
     view.treeView.column("name", width=150, anchor="w")
     view.treeView.heading("name", text="Name")
     view.treeView.column("readMeFirst", width=75, anchor="w")
     view.treeView.heading("readMeFirst", text="ReadMeFirst")
+    view.treeView.column("infoset", width=75, anchor="w")
+    view.treeView.heading("infoset", text="Infoset File")
     view.treeView.column("status", width=80, anchor="w")
     view.treeView.heading("status", text="Status")
     view.treeView.column("call", width=150, anchor="w")
@@ -29,11 +34,29 @@ def viewTests(modelXbrl, tabWin):
     view.treeView.heading("expected", text="Expected")
     view.treeView.column("actual", width=100, anchor="w")
     view.treeView.heading("actual",  text="Actual")
+    view.isTransformRegistry = False
+    modelDocument = modelXbrl.modelDocument
     if modelXbrl.modelDocument.type in (ModelDocument.Type.REGISTRY, ModelDocument.Type.REGISTRYTESTCASE):
-        view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
+        if modelXbrl.modelDocument.xmlRootElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
+            view.treeView["displaycolumns"] = ("status", "call", "test", "expected", "actual")
+            view.isTransformRegistry = True
+        else:
+            view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
     else:
-        view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "expected", "actual")
-    view.viewTestcaseIndexElement(modelXbrl.modelDocument, "")
+        # check if infoset needed
+        if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+            hasInfoset = any(getattr(refDoc, "outpath", None)  for refDoc in modelDocument.referencesDocument)
+        else:
+            hasInfoset = bool(getattr(modelDocument, "outpath", None))
+        view.treeView["displaycolumns"] = (("name", "readMeFirst") +
+                                           ( ("infoset",) if hasInfoset else () ) +
+                                           ( "status", "expected", "actual"))
+        
+    menu = view.contextMenu()
+    view.menuAddExpandCollapse()
+    view.menuAddClipboard()
+
+    view.viewTestcaseIndexElement(modelDocument, "")
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
@@ -42,7 +65,7 @@ def viewTests(modelXbrl, tabWin):
     
 class ViewTests(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
-        super().__init__(modelXbrl, tabWin, "Tests", True)
+        super(ViewTests, self).__init__(modelXbrl, tabWin, "Tests", True)
         
     def viewTestcaseIndexElement(self, modelDocument, parentNode):
         self.id = 1
@@ -72,19 +95,25 @@ class ViewTests(ViewWinTree.ViewTree):
                 self.viewTestcaseVariation(modelTestcaseVariation, node, n + i + 1)
                 
     def viewTestcaseVariation(self, modelTestcaseVariation, parentNode, n):
-        id = modelTestcaseVariation.id
-        if id is None:
-            id = ""
+        if self.isTransformRegistry:
+            id = modelTestcaseVariation.name
+        else:
+            id = modelTestcaseVariation.id
+            if id is None:
+                id = ""
         node = self.treeView.insert(parentNode, "end", modelTestcaseVariation.objectId(), 
                                     text=id, 
                                     tags=("odd" if n & 1 else "even",))
-        self.treeView.set(node, "name", modelTestcaseVariation.name)
+        self.treeView.set(node, "name", (modelTestcaseVariation.name or modelTestcaseVariation.description))
         self.treeView.set(node, "readMeFirst", ",".join(str(uri) for uri in modelTestcaseVariation.readMeFirstUris))
         self.treeView.set(node, "status", modelTestcaseVariation.status)
         call = modelTestcaseVariation.cfcnCall
         if call: self.treeView.set(node, "call", call[0])
         test = modelTestcaseVariation.cfcnTest
-        if test: self.treeView.set(node, "test", test[0])
+        if test: 
+            self.treeView.set(node, "test", test[0])
+        if getattr(self.modelXbrl.modelDocument, "outpath", None) and modelTestcaseVariation.resultIsInfoset:
+            self.treeView.set(node, "infoset", modelTestcaseVariation.resultInfosetUri)
         self.treeView.set(node, "expected", modelTestcaseVariation.expected)
         self.treeView.set(node, "actual", " ".join(modelTestcaseVariation.actual))
         self.id += 1;

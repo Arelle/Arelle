@@ -2,7 +2,7 @@
 # to extract a "Workbook" or "Book" stream (as one big string)
 # from an OLE2 Compound Document file.
 #
-# Copyright © 2005-2008 Stephen John Machin, Lingfo Pty Ltd
+# Copyright (c) 2005-2008 Stephen John Machin, Lingfo Pty Ltd
 # This module is part of the xlrd3 package, which is released under a BSD-style licence.
 
 # No part of the content of this file was derived from the works of David Giffin.
@@ -13,6 +13,7 @@
 # 2007-04-22 SJM Missing "<" in a struct.unpack call => can't open files on bigendian platforms.
 
 
+from __future__ import print_function
 import sys
 from struct import unpack
 

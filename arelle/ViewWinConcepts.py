@@ -4,10 +4,12 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ViewWinTree, ModelObject, XbrlConst)
+from arelle import ViewWinTree, XbrlConst
+from arelle.ModelDtsObject import ModelRelationship
+from arelle.ModelInstanceObject import ModelFact
 from collections import defaultdict
 
-def viewConcepts(modelXbrl, tabWin, header, lang=None):
+def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
     modelXbrl.modelManager.showStatus(_("viewing concepts"))
     view = ViewConcepts(modelXbrl, tabWin, header, lang)
     view.treeView["columns"] = ("conceptname", "id", "abstr", "subsGrp", "type", "periodType", "balance", "facets")
@@ -42,10 +44,12 @@ def viewConcepts(modelXbrl, tabWin, header, lang=None):
     view.menuAddClipboard()
     view.menuAddLangs()
     view.menuAddLabelRoles()
+    view.menuAddNameStyle()
+    view.menuAddViews(addClose=False, tabWin=altTabWin)
     
 class ViewConcepts(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, lang):
-        super().__init__(modelXbrl, tabWin, header, True, lang)
+        super(ViewConcepts, self).__init__(modelXbrl, tabWin, header, True, lang)
         
     def view(self):
         # sort by labels
@@ -53,6 +57,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
         lbls = defaultdict(list)
         role = self.labelrole
         lang = self.lang
+        nameIsPrefixed = self.nameIsPrefixed
         for concept in self.modelXbrl.qnameConcepts.values():
             lbls[concept.label(role,lang=lang)].append(concept.objectId())
         srtLbls = sorted(lbls.keys())
@@ -82,10 +87,10 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     '''
                     node = self.treeView.insert("", "end", 
                                                 concept.objectId(), 
-                                                text=concept.label(self.labelrole,lang=self.lang),
+                                                text=concept.label(role,lang=lang,linkroleHint=XbrlConst.defaultLinkRole),
                                                 tags=("odd" if nodeNum & 1 else "even",))
                     nodeNum += 1
-                    self.treeView.set(node, "conceptname", concept.name)
+                    self.treeView.set(node, "conceptname", concept.qname if nameIsPrefixed else concept.name)
                     self.treeView.set(node, "id", concept.id)
                     self.treeView.set(node, "abstr", concept.abstract)
                     self.treeView.set(node, "subsGrp", concept.substitutionGroupQname)
@@ -95,9 +100,9 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     if concept.balance:
                         self.treeView.set(node, "balance", concept.balance)
                     conceptType = concept.type
-                    if conceptType:
+                    if conceptType is not None:
                         facets = conceptType.facets
-                        if len(facets) > 0:
+                        if facets:
                             self.treeView.set(node, "facets",
                                 "\n".join("{0}={1}".format(
                                        name,
@@ -122,9 +127,9 @@ class ViewConcepts(ViewWinTree.ViewTree):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                if isinstance(modelObject, ModelObject.ModelRelationship):
+                if isinstance(modelObject, ModelRelationship):
                     conceptId = modelObject.toModelObject.objectId()
-                elif isinstance(modelObject, ModelObject.ModelFact):
+                elif isinstance(modelObject, ModelFact):
                     conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()
                 else:
                     conceptId = modelObject.objectId()
@@ -133,6 +138,6 @@ class ViewConcepts(ViewWinTree.ViewTree):
                 if self.treeView.exists(node):
                     self.treeView.see(node)
                     self.treeView.selection_set(node)
-            except KeyError:
+            except (AttributeError, KeyError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1

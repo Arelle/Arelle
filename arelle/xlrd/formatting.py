@@ -1,7 +1,7 @@
 # Module for formatting information.
 #
-# Copyright © 2005-2008 Stephen John Machin, Lingfo Pty Ltd
-# Copyright © 2005-2009 Stephen John Machin, Lingfo Pty Ltd
+# Copyright (c) 2005-2008 Stephen John Machin, Lingfo Pty Ltd
+# Copyright (c) 2005-2009 Stephen John Machin, Lingfo Pty Ltd
 # This module is part of the xlrd3 package, which is released under
 # a BSD-style licence.
 
@@ -18,6 +18,7 @@
 # 2007-09-08 SJM Work around corrupt STYLE record
 # 2007-07-11 SJM Allow for BIFF2/3-style FORMAT record in BIFF4/8 file
 
+from __future__ import print_function
 DEBUG = False
 import copy
 import re

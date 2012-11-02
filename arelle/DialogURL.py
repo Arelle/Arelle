@@ -4,24 +4,27 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Toplevel, StringVar, N, S, E, W, EW
+try:
+    from tkinter.ttk import Frame, Button, Label, Entry
+except ImportError:
+    from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 import re
 
 '''
 caller checks accepted, if True, caller retrieves url
 '''
-def askURL(parent, url=None):
-    dialog = DialogURL(parent, url)
+def askURL(parent, url=None, buttonSEC=False, buttonRSS=False):
+    dialog = DialogURL(parent, url, buttonSEC, buttonRSS)
     if dialog.accepted:
         return dialog.url
     return None
 
 
 class DialogURL(Toplevel):
-    def __init__(self, parent, url=None):
-        super().__init__(parent)
+    def __init__(self, parent, url=None, buttonSEC=False, buttonRSS=False):
+        super(DialogURL, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
@@ -39,28 +42,30 @@ class DialogURL(Toplevel):
         urlEntry.focus_set()
         okButton = Button(frame, text=_("OK"), command=self.ok)
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
-        usSecButton = Button(frame, text=_("SEC search"), command=self.usSec)
-        rssButton = Button(frame, text=_("SEC RSS"), command=self.rssFeed)
+        if buttonSEC:
+            usSecButton = Button(frame, text=_("SEC search"), command=self.usSec)
+            usSecButton.grid(row=1, column=1, sticky=W, pady=3)
+            ToolTip(usSecButton, text=_("Opens US SEC Edgar Company Search (in web browser)\n\n"
+                                     "(1) Find the company in web browser,\n"
+                                     "(2) Click 'documents' button for desired filing,\n"
+                                     "(3) Find 'data files' panel, instance document row, 'document' column,\n"
+                                     "(4) On instance document file name, right-click browser menu: 'copy shortcut',\n"
+                                     "(5) Come back to this dialog window,\n"
+                                     "(6) Ctrl-v (paste) shortcut into above URL text box,\n"
+                                     "(7) Click ok button to load instance document"),
+                                     wraplength=480)
+        if buttonRSS:
+            rssButton = Button(frame, text=_("SEC RSS"), command=self.rssFeed)
+            rssButton.grid(row=1, column=1, pady=3)
+            ToolTip(rssButton, text=_("Opens current US SEC Edgar RSS feed"),
+                                     wraplength=480)
         urlLabel.grid(row=0, column=0, sticky=W, pady=3, padx=3)
         urlEntry.grid(row=0, column=1, columnspan=3, sticky=EW, pady=3, padx=3)
         okButton.grid(row=1, column=2, sticky=E, pady=3)
         ToolTip(okButton, text=_("Opens above URL from web cache, downloading to cache if necessary"), wraplength=240)
         cancelButton.grid(row=1, column=3, sticky=EW, pady=3, padx=3)
         ToolTip(cancelButton, text=_("Cancel operation"))
-        usSecButton.grid(row=1, column=1, sticky=W, pady=3)
-        rssButton.grid(row=1, column=1, pady=3)
-        ToolTip(usSecButton, text=_("Opens US SEC Edgar Company Search (in web browser)\n\n"
-                                 "(1) Find the company in web browser,\n"
-                                 "(2) Click 'documents' button for desired filing,\n"
-                                 "(3) Find 'data files' panel, instance document row, 'document' column,\n"
-                                 "(4) On instance document file name, right-click browser menu: 'copy shortcut',\n"
-                                 "(5) Come back to this dialog window,\n"
-                                 "(6) Ctrl-v (paste) shortcut into above URL text box,\n"
-                                 "(7) Click ok button to load instance document"),
-                                 wraplength=480)
-        ToolTip(rssButton, text=_("Opens current US SEC Edgar RSS feed"),
-                                 wraplength=480)
-                
+                    
         frame.grid(row=0, column=0, sticky=(N,S,E,W))
         frame.columnconfigure(1, weight=1)
         window = self.winfo_toplevel()

@@ -1,4 +1,4 @@
-# Copyright © 2005-2009 Stephen John Machin, Lingfo Pty Ltd
+# Copyright (c) 2005-2009 Stephen John Machin, Lingfo Pty Ltd
 # This module is part of the xlrd3 package, which is released under a
 # BSD-style licence.
 #
@@ -279,6 +279,7 @@
 # 2007-05-21 SJM If no CODEPAGE record in pre-8.0 file, assume ascii and keep going.
 # 2007-04-22 SJM Removed antique undocumented Book.get_name_dict method.
 
+from __future__ import print_function
 import sys
 import time
 from struct import unpack

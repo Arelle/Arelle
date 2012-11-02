@@ -4,27 +4,48 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re
-from urllib.parse import urldefrag
-from urllib.parse import unquote
+import re, os, sys
+if sys.version[0] >= '3':
+    from urllib.parse import urldefrag, unquote
+    isPy3 = True
+else:
+    from urlparse import urldefrag
+    from arelle.PythonUtil import py3unquote as unquote
+    isPy3 = False
 
-def authority(url):
-    if url is not None and url.startswith("http://"):
-        pathpart = url.find("/",7)
-        if pathpart > -1:
-            return url[0:pathpart]
+def authority(url, includeScheme=True):
+    if url:
+        authSep = url.find(':') 
+        if authSep > -1:
+            scheme = url[0:authSep]
+            authPart = authSep + (3 if scheme in ("http", "https", "ftp") else 1) # allow urn:
+            pathPart = url.find('/', authPart) 
+            if pathPart > -1:
+                if includeScheme:
+                    return url[0:pathPart]
+                else:
+                    return url[authPart:pathPart]
+            elif not includeScheme:
+                return url[authPart:]
     return url  #no path part of url
 
 absoluteUrlPattern = None
-relativeUrlPattern = re.compile(r"^[/:\.+-_@?&=!~\*'\(\)\w]+(#\w+)?$")
+# this pattern doesn't allow some valid unicode characters
+#relativeUrlPattern = re.compile(r"(^[/:\.+-_@%;?&=!~\*'\(\)\w ]+(#[\w_%\-\.\(/\)]+)?$)|(^#[\w_%\-\.\(/\)]+$)")
+# try this instead from http://www.ietf.org/rfc/rfc2396.txt (B)
+relativeUrlPattern = re.compile(r"^(([^:/\?#]+):)?(//([^/\?#]*))?([^\?#]*)(\?([^#]*))?(#([^#]*))?$")
 
 def splitDecodeFragment(url):
     urlPart, fragPart = urldefrag(url)
-    return (urlPart, unquote(fragPart, "utf-8", errors=None))
+    if isPy3:
+        return (urlPart, unquote(fragPart, "utf-8", errors=None))
+    else:
+        return _STR_UNICODE(urlPart), unquote(_STR_UNICODE(fragPart), "utf-8", errors=None)
 
 def isValidAbsolute(url):
     global absoluteUrlPattern
     if absoluteUrlPattern is None:
+        # note this pattern does not process urn: as valid!!!
         # regex to validate a full URL from http://stackoverflow.com/questions/827557/how-do-you-validate-a-url-with-a-regular-expression-in-python/835527#835527
         absoluteUrlPattern = re.compile(
             r"(?:http://(?:(?:(?:(?:(?:[a-zA-Z\d](?:(?:[a-zA-Z\d]|-)*[a-zA-Z\d])?)\."
@@ -139,6 +160,15 @@ def isValidAbsolute(url):
 def isValid(url):
     return relativeUrlPattern.match(url) is not None
 
+def isAbsolute(url):
+    if url:
+        scheme, sep, path = url.partition(":")
+        if scheme in ("http", "https", "ftp"):
+            return path.startswith("//")
+        if scheme == "urn":
+            return True
+    return False
+
 def parseRfcDatetime(rfc2822date):
     from email.utils import parsedate
     from datetime import datetime
@@ -148,4 +178,9 @@ def parseRfcDatetime(rfc2822date):
             return datetime(d[0],d[1],d[2],d[3],d[4],d[5])
     return None
        
-        
+def relativeUri(baseUri, relativeUri): # return uri relative to this modelDocument uri
+    if relativeUri.startswith('http://'):
+        return relativeUri
+    else:
+        return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')
+

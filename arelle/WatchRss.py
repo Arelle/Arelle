@@ -5,7 +5,7 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, sys, traceback, re
-from arelle import (ModelXbrl, ModelVersReport, XbrlConst, ModelDocument, 
+from arelle import (ModelXbrl, XmlUtil, ModelVersReport, XbrlConst, ModelDocument, 
                ValidateXbrl, ValidateFiling, ValidateVersReport, ValidateFormula)
 from arelle.FileSource import openFileSource
 from arelle.ModelValue import (qname, QName)
@@ -53,7 +53,7 @@ class WatchRss:
             rssWatchOptions = self.rssModelXbrl.modelManager.rssWatchOptions
             
             # check rss expiration
-            rssHeaders = self.cntlr.webCache.getheaders(self.rssModelXbrl.modelManager.rssWatchOptions.feedSourceUri)
+            rssHeaders = self.cntlr.webCache.getheaders(self.rssModelXbrl.modelManager.rssWatchOptions.get("feedSourceUri"))
             expires = parseRfcDatetime(rssHeaders.get("expires"))
             reloadNow = True # texpires and expires > datetime.datetime.now()
             
@@ -62,33 +62,34 @@ class WatchRss:
             if self.stopRequested: break
             # setup validator
             postLoadActions = []
-            if rssWatchOptions.validateDisclosureSystemRules:
+            if rssWatchOptions.get("validateDisclosureSystemRules"):
                 self.instValidator = ValidateFiling.ValidateFiling(self.rssModelXbrl)
                 postLoadActions.append(_("validating"))
-            elif rssWatchOptions.validateXbrlRules or rssWatchOptions.validateFormulaAssertions:
+            elif rssWatchOptions.get("validateXbrlRules") or rssWatchOptions.get("validateFormulaAssertions"):
                 self.instValidator = ValidateXbrl.ValidateXbrl(self.rssModelXbrl)
                 postLoadActions.append(_("validating"))
-                if (rssWatchOptions.validateFormulaAssertions):
+                if (rssWatchOptions.get("validateFormulaAssertions")):
                     postLoadActions.append(_("running formulas"))
             else:
                 self.instValidator = None
-                
-            if rssWatchOptions.matchTextExpr:
-                matchPattern = re.compile(rssWatchOptions.matchTextExpr)
+               
+            matchTextExpr = rssWatchOptions.get("matchTextExpr") 
+            if matchTextExpr:
+                matchPattern = re.compile(matchTextExpr)
                 postLoadActions.append(_("matching text"))
             else:
                 matchPattern= None
             postLoadAction = ', '.join(postLoadActions)
             
             # anything to check new filings for
-            if (rssWatchOptions.validateDisclosureSystemRules or
-                rssWatchOptions.validateXbrlRules or
-                rssWatchOptions.validateCalcLinkbase or
-                rssWatchOptions.validateFormulaAssertions or
-                rssWatchOptions.alertMatchedFactText):
+            if (rssWatchOptions.get("validateDisclosureSystemRules") or
+                rssWatchOptions.get("validateXbrlRules") or
+                rssWatchOptions.get("validateCalcLinkbase") or
+                rssWatchOptions.get("validateFormulaAssertions") or
+                rssWatchOptions.get("alertMatchedFactText")):
                 # form keys in ascending order of pubdate
                 pubDateRssItems = []
-                for rssItem in self.rssModelXbrl.modelDocument.items:
+                for rssItem in self.rssModelXbrl.modelDocument.rssItems:
                     pubDateRssItems.append((rssItem.pubDate,rssItem.objectId()))
                 
                 for pubDate, rssItemObjectId in sorted(pubDateRssItems):
@@ -97,8 +98,9 @@ class WatchRss:
                     self.rssModelXbrl.modelManager.viewModelObject(self.rssModelXbrl, rssItem.objectId())
                     if self.stopRequested:
                         break
-                    if (rssWatchOptions.latestPubDate and 
-                        rssItem.pubDate < rssWatchOptions.latestPubDate):
+                    latestPubDate = XmlUtil.datetimeValue(rssWatchOptions.get("latestPubDate"))
+                    if (latestPubDate and 
+                        rssItem.pubDate < latestPubDate):
                         continue
                     try:
                         # try zipped URL if possible, else expanded instance document
@@ -111,8 +113,10 @@ class WatchRss:
                         
                         emailAlert = False
                         if modelXbrl.modelDocument is None:
-                            modelXbrl.error(_("RSS item {0} {1} document not loaded: {2}").format(
-                                rssItem.companyName, rssItem.formType, rssItem.filingDate))
+                            modelXbrl.error("arelle.rssWatch",
+                                            _("RSS item %(company)s %(form)s document not loaded: %(date)s"),
+                                            modelXbrl=modelXbrl, company=rssItem.companyName, 
+                                            form=rssItem.formType, date=rssItem.filingDate)
                             rssItem.status = "not loadable"
                         else:
                             # validate schema, linkbase, or instance
@@ -121,31 +125,36 @@ class WatchRss:
                                 break
                             if self.instValidator:
                                 self.instValidator.validate(modelXbrl)
-                                if modelXbrl.errors and rssWatchOptions.alertValiditionError:
+                                if modelXbrl.errors and rssWatchOptions.get("alertValiditionError"):
                                     emailAlert = True
                                     
                             # check match expression
                             if matchPattern:
                                 for fact in modelXbrl.factsInInstance:
-                                    m = matchPattern.search(fact.value)
-                                    if m:
-                                        fr, to = m.span()
-                                        msg = _("Fact Variable {0}\n context {1}\n matched text: {2}").format( 
-                                                fact.qname, fact.contextID, fact.value[max(0,fr-20):to+20])
-                                        modelXbrl.error(msg, 'asrt', msg) # msg as code passes it through to the status
-                                        if rssWatchOptions.alertMatchedFactText:
-                                            emailAlert = True
+                                    v = fact.value
+                                    if v is not None:
+                                        m = matchPattern.search(v)
+                                        if m:
+                                            fr, to = m.span()
+                                            msg = _("Fact Variable {0}\n context {1}\n matched text: {2}").format( 
+                                                    fact.qname, fact.contextID, v[max(0,fr-20):to+20])
+                                            modelXbrl.info("arelle.rssInfo",
+                                                           msg,
+                                                           modelXbrl=modelXbrl) # msg as code passes it through to the status
+                                            if rssWatchOptions.get("alertMatchedFactText"):
+                                                emailAlert = True
                                         
-                            if (rssWatchOptions.formulaFileUri and rssWatchOptions.validateFormulaAssertions and
+                            if (rssWatchOptions.get("formulaFileUri") and rssWatchOptions.get("validateFormulaAssertions") and
                                 self.instValidator): 
                                 # attach formulas
-                                ModelDocument.load(modelXbrl, rssWatchOptions.formulaFileUri)
+                                ModelDocument.load(modelXbrl, rssWatchOptions["formulaFileUri"])
                                 ValidateFormula.validate(self.instValidator)
                                 
                         rssItem.setResults(modelXbrl)
                         modelXbrl.close()
+                        del modelXbrl  # completely dereference
                         self.rssModelXbrl.modelManager.viewModelObject(self.rssModelXbrl, rssItem.objectId())
-                        if rssItem.assertionUnsuccessful and rssWatchOptions.alertAssertionUnsuccessful:
+                        if rssItem.assertionUnsuccessful and rssWatchOptions.get("alertAssertionUnsuccessful"):
                             emailAlert = True
                         
                         msg = _("Filing CIK {0}\n "
@@ -164,28 +173,30 @@ class WatchRss:
                                  rssItem.period,
                                  rssItem.fiscalYearEnd,
                                  rssItem.status)
-                        self.rssModelXbrl.error(msg, "info", "arelle:rssWatch")
-                        if emailAlert and rssWatchOptions.emailAddress:
+                        self.rssModelXbrl.info("arelle:rssWatch", msg, modelXbrl=self.rssModelXbrl)
+                        emailAddress = rssWatchOptions.get("emailAddress")
+                        if emailAlert and emailAddress:
                             self.rssModelXbrl.modelManager.showStatus(_("sending e-mail alert"))
                             import smtplib
                             from email.mime.text import MIMEText
                             emailMsg = MIMEText(msg)
                             emailMsg["Subject"] = _("Arelle RSS Watch alert on {0}").format(rssItem.companyName)
-                            emailMsg["From"] = rssWatchOptions.emailAddress
-                            emailMsg["To"] = rssWatchOptions.emailAddress
+                            emailMsg["From"] = emailAddress
+                            emailMsg["To"] = emailAddress
                             smtp = smtplib.SMTP()
-                            smtp.sendmail(rssWatchOptions.emailAddress, [rssWatchOptions.emailAddress], emailMsg.as_string())
+                            smtp.sendmail(emailAddress, [emailAddress], emailMsg.as_string())
                             smtp.quit()
                         self.rssModelXbrl.modelManager.showStatus(_("RSS item {0}, {1} completed, status {2}").format(rssItem.companyName, rssItem.formType, rssItem.status), 3500)
-                        self.rssModelXbrl.modelManager.cntlr.rssWatchUpdateOption(rssItem.pubDate)
+                        self.rssModelXbrl.modelManager.cntlr.rssWatchUpdateOption(rssItem.pubDate.strftime('%Y-%m-%dT%H:%M:%S'))
                     except Exception as err:
-                        self.rssModelXbrl.error(_("RSS item {0}, {1}, {2}, exception: {3} at {4}").format(
-                            rssItem.companyName, rssItem.formType, rssItem.filingDate, err,
-                            traceback.format_tb(sys.exc_info()[2])), 
-                            "err", "exception")
+                        self.rssModelXbrl.error("arelle.rssError",
+                                                _("RSS item %(company)s, %(form)s, %(date)s, exception: %(error)s"),
+                                                modelXbrl=self.rssModelXbrl, company=rssItem.companyName, 
+                                                form=rssItem.formType, date=rssItem.filingDate, error=err,
+                                                exc_info=True)
                     if self.stopRequested: break
             if self.stopRequested: 
-                self.rssModelXbrl.modelManager.showStatus(_("RSS watch, stop requested"), 10000)
+                self.cntlr.showStatus(_("RSS watch, stop requested"), 10000)
             else:
                 import time
                 time.sleep(600)

@@ -4,11 +4,14 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Toplevel, StringVar, N, S, E, W, EW, DISABLED, NORMAL
+try:
+    from tkinter.ttk import Frame, Button, Label, Entry
+except ImportError:
+    from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import (checkbox)
-import re
+import re, sys
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -35,7 +38,7 @@ def askProxy(parent, priorProxySettings):
 
 class DialogUserPassword(Toplevel):
     def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, showUrl=False, showUser=False, showHost=True, showRealm=True):
-        super().__init__(parent)
+        super(DialogUserPassword, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
@@ -86,7 +89,7 @@ class DialogUserPassword(Toplevel):
                                          "   No proxy if URL address is left blank, \n"
                                          "   Proxy via URL address if it is not blank, \n"
                                          "       with user and password (if provided)"
-                                         .format(hostProxy)), wraplength=360)
+                                         ).format(hostProxy), wraplength=360)
             self.useOsProxyCb = useOsProxyCb
             useOsProxyCb.valueVar.trace("w", self.setEnabledState)
 

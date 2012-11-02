@@ -6,7 +6,10 @@ Created on Feb 6, 2011
 '''
 import io
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except ImportError:
+    from ttk import *
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XmlUtil
 
@@ -50,6 +53,16 @@ class ViewList():
         
     def listBoxLeave(self, *args):
         self.listBoxRow = -9999999
+        
+    def lines(self):
+        return self.listBox.get(0,END)
+
+    def lineText(self, lineNumber):
+        return self.listBox.get(lineNumber)
+    
+    def selectLine(self, lineNumber):
+        self.listBox.selection_clear(0,END)
+        self.listBox.selection_set(lineNumber)
 
     def saveToFile(self, filename):
         with open(filename, "w") as fh:

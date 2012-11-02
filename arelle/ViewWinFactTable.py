@@ -6,13 +6,15 @@ Created on Nov 15, 2010
 '''
 from collections import defaultdict
 import os, datetime
-from arelle import (ViewWinTree, ModelObject, XbrlConst)
+from tkinter import Menu, constants, BooleanVar
+from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil
 
 def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentChild, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
     view = ViewFactTable(modelXbrl, tabWin, header, arcrole, linkrole, linkqname, arcqname, lang)
-    if view.tableSetup():
-        view.view()
+    view.ignoreDims = BooleanVar(value=False)
+    view.showDimDefaults = BooleanVar(value=False)
+    if view.view():
         view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
         view.treeView.bind("<ButtonRelease-1>", view.treeviewClick, '+')
         view.treeView.bind("<Enter>", view.treeviewEnter, '+')
@@ -20,20 +22,30 @@ def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentCh
 
         # languages menu
         menu = view.contextMenu()
+        optionsMenu = Menu(view.viewFrame, tearoff=0)
+        view.ignoreDims.trace("w", view.viewReloadDueToMenuAction)
+        optionsMenu.add_checkbutton(label=_("Ignore Dimensions"), underline=0, variable=view.ignoreDims, onvalue=True, offvalue=False)
+        menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
         view.menuAddExpandCollapse()
         view.menuAddClipboard()
         view.menuAddLangs()
         view.menuAddLabelRoles(includeConceptName=True)
+        #saveMenu = Menu(view.viewFrame, tearoff=0)
+        #saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
+        #menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     
 class ViewFactTable(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
-        super().__init__(modelXbrl, tabWin, header, True, lang)
+        super(ViewFactTable, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname
         self.arcqname = arcqname
         
-    def tableSetup(self):
+    def viewReloadDueToMenuAction(self, *args):
+        self.view()
+        
+    def view(self):
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
         self.tag_has = defaultdict(list) # temporary until Tk 8.6
@@ -49,11 +61,41 @@ class ViewFactTable(ViewWinTree.ViewTree):
         # sort contexts by period
         self.periodContexts = defaultdict(set)
         contextStartDatetimes = {}
+        ignoreDims = self.ignoreDims.get()
+        showDimDefaults = self.showDimDefaults.get()
         for context in self.modelXbrl.contexts.values():
-            if context.isForeverPeriod:
-                contextkey = datetime.datetime(datetime.MINYEAR,1,1)
+            if ignoreDims:
+                if context.isForeverPeriod:
+                    contextkey = datetime.datetime(datetime.MINYEAR,1,1)
+                else:
+                    contextkey = context.endDatetime
             else:
-                contextkey = context.endDatetime
+                if context.isForeverPeriod:
+                    contextkey = "forever"
+                else:
+                    contextkey = (context.endDatetime - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+                
+                values = []
+                dims = context.qnameDims
+                if len(dims) > 0:
+                    for dimQname in sorted(dims.keys(), key=lambda d: str(d)):
+                        dimvalue = dims[dimQname]
+                        if dimvalue.isExplicit:
+                            values.append(dimvalue.member.label(self.labelrole,lang=self.lang)
+                                          if dimvalue.member is not None 
+                                          else str(dimvalue.memberQname))
+                        else:
+                            values.append(XmlUtil.innerText(dimvalue.typedMember))
+                            
+                nonDimensions = context.nonDimValues("segment") + context.nonDimValues("scenario")
+                if len(nonDimensions) > 0:
+                    for element in sorted(nonDimensions, key=lambda e: e.localName):
+                        values.append(XmlUtil.innerText(element))
+
+                if len(values) > 0:
+    
+                    contextkey += " - " + ', '.join(values)
+
             objectId = context.objectId()
             self.periodContexts[contextkey].add(objectId)
             if context.isStartEndPeriod:
@@ -80,14 +122,16 @@ class ViewFactTable(ViewWinTree.ViewTree):
         self.treeView["columns"] = columnIds
         for colId, colHeading in columnIdHeadings:
             self.treeView.column(colId, width=60, anchor="w")
-            if colHeading.year == datetime.MINYEAR:
-                date = "forever"
+            if ignoreDims:
+                if colHeading.year == datetime.MINYEAR:
+                    date = "forever"
+                else:
+                    date = (colHeading - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+                self.treeView.heading(colId, text=date)
             else:
-                date = (colHeading - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-            self.treeView.heading(colId, text=date)
-        return True
-        
-    def view(self):
+                self.treeView.heading(colId, text=colHeading)
+
+        # fact rendering
         for previousNode in self.treeView.get_children(""): 
             self.treeView.delete(previousNode)
         self.rowColFactId = {}
@@ -120,17 +164,19 @@ class ViewFactTable(ViewWinTree.ViewTree):
             linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUriTuple[1], self.linkqname, self.arcqname)
             for rootConcept in linkRelationshipSet.rootConcepts:
                 node = self.viewConcept(rootConcept, rootConcept, "", self.labelrole, linknode, 1, linkRelationshipSet, set())
+    
+        return True
 
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, parentnode, n, relationshipSet, visited):
         if concept is None or concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem:
             return
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id),
-                    text=labelPrefix + concept.label(preferredLabel,lang=self.lang), 
+                    text=labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole), 
                     tags=("odd" if n & 1 else "even",))
         self.setRowFacts(childnode,concept,preferredLabel)
         self.id += 1
         self.tag_has[modelObject.objectId()].append(childnode)
-        if isinstance(modelObject, ModelObject.ModelRelationship):
+        if isinstance(modelObject, ModelDtsObject.ModelRelationship):
             self.tag_has[modelObject.toModelObject.objectId()].append(childnode)
         if concept not in visited:
             visited.add(concept)
@@ -155,20 +201,24 @@ class ViewFactTable(ViewWinTree.ViewTree):
             
     def setRowFacts(self, node, concept, preferredLabel):
         for fact in self.conceptFacts[concept.qname]:
-            if fact.context:
+            try:
                 colId = self.contextColId[fact.context.objectId()]
                 # special case of start date, pick column corresponding
                 if preferredLabel == XbrlConst.periodStartLabel:
                     date = fact.context.instantDatetime
-                    if date and date in self.startdatetimeColId:
-                        colId = self.startdatetimeColId[date]
+                    if date:
+                        if date in self.startdatetimeColId:
+                            colId = self.startdatetimeColId[date]
+                        else:
+                            continue # not shown on this row (belongs on end period label row
                 self.treeView.set(node, 
                                   colId, 
                                   fact.effectiveValue)
                 factObjectId = fact.objectId()
                 self.tag_has[factObjectId].append(node)
                 self.rowColFactId[node + colId] = factObjectId
-
+            except AttributeError:  # not a fact or no concept
+                pass
             
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
@@ -200,9 +250,9 @@ class ViewFactTable(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             try:
                 # get concept of fact or toConcept of relationship, role obj if roleType
-                if not isinstance(modelObject, ModelObject.ModelFact):
+                if not isinstance(modelObject, ModelInstanceObject.ModelFact):
                     modelObject = modelObject.viewConcept
-                if modelObject:
+                if modelObject is not None:
                     items = self.tag_has.get(modelObject.objectId())
                     if items is not None and self.treeView.exists(items[0]):
                         self.treeView.see(items[0])

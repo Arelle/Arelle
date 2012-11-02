@@ -4,8 +4,11 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Toplevel, PhotoImage, N, S, E, W, EW, NW
+try:
+    from tkinter.ttk import Label, Button, Frame
+except ImportError:
+    from ttk import Label, Button, Frame
 import re
 
 '''
@@ -18,7 +21,7 @@ def about(parent, title, imageFile, body):
 
 class DialogAbout(Toplevel):
     def __init__(self, parent, title, imageFile, body):
-        super().__init__(parent)
+        super(DialogAbout, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))

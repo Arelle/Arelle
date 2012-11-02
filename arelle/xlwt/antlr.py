@@ -41,6 +41,7 @@
 ## End of contents of the ANTLR 2.7.7 LICENSE.txt ########################
 
 ## get sys module
+from __future__ import print_function
 import sys
 
 ###xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx###

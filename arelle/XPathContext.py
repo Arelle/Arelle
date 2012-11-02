@@ -4,11 +4,16 @@ Created on Dec 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom
+from __future__ import division  # expect 3.2 integer division even in 2.7
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                           exceptionErrorIndication)
-from arelle import (ModelObject, ModelXbrl, XbrlConst, XmlUtil)
+from arelle import (ModelXbrl, XbrlConst, XmlUtil)
+from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
+from arelle.XmlValidate import UNKNOWN, VALID, validate
+from arelle.PluginManager import pluginClassMethods
+from lxml import etree
 
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
@@ -18,6 +23,10 @@ class XPathException(Exception):
             self.column = progStep.loc
         elif isinstance(progStep, ProgHeader):
             self.line = progStep.sourceStr
+        elif isinstance(progStep, XPathContext) and progStep.progHeader:
+            self.line = progStep.sourceStr
+        else:
+            self.line = "(not available)"
         self.code = code
         self.message = message
         self.args = ( self.__repr__(), )
@@ -38,9 +47,11 @@ class FunctionNumArgs(Exception):
         return _("Exception: Number of arguments mismatch")
     
 class FunctionArgType(Exception):
-    def __init__(self, argIndex, expectedType):
+    def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004'):
+        self.errCode = errCode
         self.argNum = argIndex + 1
         self.expectedType = expectedType
+        self.foundObject = foundObject
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _("Exception: Arg {0} expected type {1}").format(self.argNum, self.expectedType)
@@ -52,27 +63,63 @@ class FunctionNotAvailable(Exception):
     def __repr__(self):
         return _("Exception, function not available: {0}").format(self.name)
     
+class RunTimeExceededException(Exception):
+    def __init__(self):
+        self.args = ( self.__repr__(), )
+    def __repr__(self):
+        return _("Formula run time exceeded")
+
    
 def create(modelXbrl, inputXbrlInstance=None, sourceElement=None):
     return XPathContext(modelXbrl, 
                         inputXbrlInstance if inputXbrlInstance else modelXbrl.modelDocument,
                         sourceElement)
 
+# note: 2.2% execution time savings by having these sets/lists as constant instead of in expression where used
+VALUE_OPS = {'+', '-', '*', 'div', 'idiv', 'mod', 'to', 'gt', 'ge', 'eq', 'ne', 'lt', 'le'}
+GENERALCOMPARISON_OPS = {'>', '>=', '=', '!=', '<', '<='}
+NODECOMPARISON_OPS = {'is', '>>', '<<'}
+COMBINING_OPS = {'intersect','except','union','|'}
+LOGICAL_OPS = {'and', 'or'}
+UNARY_OPS = {'u+', 'u-'}
+FORSOMEEVERY_OPS = {'for','some','every'}
+PATH_OPS = {'/', '//', 'rootChild', 'rootDescendant'}
+SEQUENCE_TYPES = (tuple,list,set)
+
 class XPathContext:
     def __init__(self, modelXbrl, inputXbrlInstance, sourceElement, inScopeVars=None):
         self.modelXbrl = modelXbrl
+        self.isRunTimeExceeded = False
         self.inputXbrlInstance = inputXbrlInstance
         self.outputLastContext = {}   # last context element output per output instance
         self.outputLastUnit = {}
         self.outputLastFact = {}
+        self.outputFirstFact = {}
         self.sourceElement = sourceElement
         self.contextItem = self.inputXbrlInstance.xmlRootElement
         self.progHeader = None
         self.traceType = None
         self.variableSet = None
         self.inScopeVars = {} if inScopeVars is None else inScopeVars
+        self.cachedFilterResults = {}
         if inputXbrlInstance: 
             self.inScopeVars[XbrlConst.qnStandardInputInstance] = inputXbrlInstance.modelXbrl
+        self.customFunctions = {}
+        for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
+            self.customFunctions.update(pluginXbrlMethod())
+        
+            
+    def close(self):
+        self.outputLastContext.clear() # dereference
+        self.outputLastUnit.clear()
+        self.outputLastFact.clear()
+        self.outputFirstFact.clear()
+        self.inScopeVars.clear()
+        self.cachedFilterResults.clear()
+        self.__dict__.clear() # dereference everything
+        
+    def runTimeExceededCallback(self):
+        self.isRunTimeExceeded = True
         
     @property
     def formulaOptions(self):
@@ -84,23 +131,23 @@ class XPathContext:
         setProgHeader = False
         for p in exprStack:
             result = None
-            if isinstance(p,(str,int,float)):
-                result = p
-            elif isinstance(p,VariableRef):
-                if p.name in self.inScopeVars:
-                    result = self.inScopeVars[p.name]
-            elif isinstance(p,QNameDef):
+            if isinstance(p,QNameDef) or (p == '*' and parentOp in ('/', '//')): # path step QName or wildcard
                 # step axis operation
                 if len(resultStack) == 0 or not self.isNodeSequence(resultStack[-1]):
                     resultStack.append( [ contextItem, ] )
                 result = self.stepAxis(parentOp, p, resultStack.pop() )
+            elif isinstance(p,_STR_NUM_TYPES):
+                result = p
+            elif isinstance(p,VariableRef):
+                if p.name in self.inScopeVars:
+                    result = self.inScopeVars[p.name]
             elif isinstance(p,OperationDef):
                 op = p.name
                 if isinstance(op, QNameDef): # function call
                     args = self.evaluate(p.args, contextItem=contextItem)
                     ns = op.namespaceURI; localname = op.localName
                     try:
-                        from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionCustom)
+                        from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionIxt, FunctionCustom)
                         if op in self.modelXbrl.modelCustomFunctionSignatures:
                             result = FunctionCustom.call(self, p, op, contextItem, args)
                         elif op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element', 
@@ -118,17 +165,18 @@ class XPathContext:
                             result = FunctionXfi.call(self, p, localname, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
+                        elif ns in FunctionIxt.ixtNamespaceURIs:
+                            result = FunctionIxt.call(self, p, localname, args)
                         else:
-                            raise XPathException(p, 'err:XPST0017', _('Function call not identified.'))
+                            raise XPathException(p, 'err:XPST0017', _('Function call not identified: {0}.').format(op))
                     except FunctionNumArgs:
-                        raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity.'))
+                        raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity: {0}').format(op))
                     except FunctionArgType as err:
-                        raise XPathException(p, 'err:XPTY0004', _('Argument {0} does not match expected type {1}.')
-                                             .format(err.argNum, err.expectedType))
+                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1} for {2} {3}.')
+                                             .format(err.argNum, err.expectedType, op, err.foundObject))
                     except FunctionNotAvailable:
-                        raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.')
-                                             .format(str(op)))
-                elif op in {'+', '-', '*', 'div', 'idiv', 'mod', 'to', 'gt', 'ge', 'eq', 'ne', 'lt', 'le'}:
+                        raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.').format(op))
+                elif op in VALUE_OPS:
                     # binary arithmetic operations and value comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
                     s2 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
@@ -172,8 +220,8 @@ class XPathContext:
                         elif op == 'ne':
                             result = op1 != op2
                         elif op == 'to':
-                            result = range( int(op1), int(op2) + 1 )
-                elif op in {'>', '>=', '=', '!=', '<', '<='}:
+                            result = _RANGE( _INT(op1), _INT(op2) + 1 )
+                elif op in GENERALCOMPARISON_OPS:
                     # general comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
                     s2 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
@@ -196,7 +244,7 @@ class XPathContext:
                                 break
                         if result:
                             break
-                elif op in {'is', '>>', '<<'}:
+                elif op in NODECOMPARISON_OPS:
                     # node comparisons
                     s1 = resultStack.pop() if len(resultStack) > 0 else []
                     s2 = self.evaluate(p.args, contextItem=contextItem)
@@ -206,9 +254,7 @@ class XPathContext:
                         result = []
                     else:
                         n1 = s1[0]
-                        if isinstance(n1,ModelObject.ModelObject): n1 = n1.element
                         n2 = s2[0][0]
-                        if isinstance(n2,ModelObject.ModelObject): n2 = n2.element
                         result = False;
                         for op1 in s1:
                             for op2 in s2:
@@ -220,7 +266,7 @@ class XPathContext:
                                     result = op1 <= op2
                             if result:
                                 break
-                elif op in {'intersect','except','union','|'}:
+                elif op in COMBINING_OPS:
                     # node comparisons
                     s1 = resultStack.pop() if len(resultStack) > 0 else []
                     s2 = self.flattenSequence(self.evaluate(p.args, contextItem=contextItem))
@@ -236,7 +282,7 @@ class XPathContext:
                         resultset = set1 | set2
                     # convert to a list in document order
                     result = self.documentOrderedNodes(resultset)
-                elif op in {'and', 'or'}:
+                elif op in LOGICAL_OPS:
                     # general comparisons
                     if len(resultStack) == 0:
                         result = []
@@ -248,7 +294,7 @@ class XPathContext:
                             result = op1 and op2
                         elif op == 'or':
                             result = op1 or op2
-                elif op in {'u+', 'u-'}:
+                elif op in UNARY_OPS:
                     s1 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
                     if len(s1) > 1:
                         raise XPathException(p, 'err:XPTY0004', _('Unary expression sequence length error'))
@@ -264,8 +310,6 @@ class XPathContext:
                     result = False
                     s1 = self.flattenSequence( resultStack.pop() ) if len(resultStack) > 0 else []
                     arity = len(s1)
-                    if isinstance(s1,ModelObject.ModelObject):
-                        s1 = s1.element
                     if len(p.args) > 1:
                         occurenceIndicator = p.args[1]
                         if (occurenceIndicator == '?' and arity in (0,1) ) or \
@@ -280,7 +324,7 @@ class XPathContext:
                             if isinstance(t, QNameDef):
                                 if t.namespaceURI == XbrlConst.xsd:
                                     type = {
-                                           "integer": int,
+                                           "integer": _INT_TYPES,
                                            "string": str,
                                            "decimal": float,
                                            "double": float,
@@ -296,23 +340,26 @@ class XPathContext:
                                         if result and type == DateTime:
                                             result = x.dateOnly == (t.localName == "date")
                             elif isinstance(t, OperationDef):
-                                if t.name == "element" and isinstance(x,xml.dom.Node):
-                                    if len(t.args) >= 1:
-                                        qn = t.args[0]
-                                        if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
-                                            result = True
-                                            if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
-                                                modelXbrl = x.ownerDocument.modelDocument.modelXbrl
-                                                modelConcept = modelXbrl.qnameConcepts.get(qname(x))
-                                                if not modelConcept.instanceOfType(t.args[1]):
-                                                    result = False
+                                if t.name == "element":
+                                    if isinstance(x,ModelObject):
+                                        if len(t.args) >= 1:
+                                            qn = t.args[0]
+                                            if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
+                                                result = True
+                                                if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
+                                                    modelXbrl = x.modelDocument.modelXbrl
+                                                    modelConcept = modelXbrl.qnameConcepts.get(qname(x))
+                                                    if not modelConcept.instanceOfType(t.args[1]):
+                                                        result = False
+                                    else:
+                                        result = False
                             if not result: 
                                 break
                 elif op == 'sequence':
                     result = self.evaluate(p.args, contextItem=contextItem)
                 elif op == 'predicate':
                     result = self.predicate(p, resultStack.pop())
-                elif op in {'for','some','every'}: # for, some, every
+                elif op in FORSOMEEVERY_OPS: # for, some, every
                     result = []
                     self.evaluateRangeVars(op, p.args[0], p.args[1:], contextItem, result)
                 elif op == 'if':
@@ -321,10 +368,8 @@ class XPathContext:
                 elif op == '.':
                     result = contextItem
                 elif op == '..':
-                    result = XmlUtil.parent(contextItem.element 
-                                            if isinstance(contextItem, ModelObject.ModelObject)
-                                            else contextItem)
-                elif op in ('/', '//', 'rootChild', 'rootDescendant'):
+                    result = XmlUtil.parent(contextItem)
+                elif op in PATH_OPS:
                     if op in ('rootChild', 'rootDescendant'):
                         # fix up for multi-instance
                         resultStack.append( [self.inputXbrlInstance.xmlDocument,] )
@@ -336,7 +381,7 @@ class XPathContext:
                         innerFocusNodes = contextItem
                     navSequence = []
                     for innerFocusNode in self.flattenSequence(innerFocusNodes):
-                        self.evaluate(p.args, contextItem=innerFocusNode, resultStack=navSequence, parentOp=op)
+                        navSequence += self.evaluate(p.args, contextItem=innerFocusNode, parentOp=op)
                     result = self.documentOrderedNodes(self.flattenSequence(navSequence))
             elif isinstance(p,ProgHeader):
                 self.progHeader = p
@@ -366,7 +411,7 @@ class XPathContext:
                 prefix,sep,localName = type.partition(':')
                 if prefix == 'xs':
                     if localName.endswith('*'): localName = localName[:-1]
-                    if hasattr(result, "__iter__") and not isinstance(result, str):
+                    if isinstance(result, (tuple,list,set)):
                         from arelle import (FunctionXs)
                         if type.endswith('*'):
                             return[FunctionXs.call(self,progHeader,localName,(r,)) for r in result]
@@ -383,8 +428,8 @@ class XPathContext:
             r = self.evaluate(p.bindingSeq, contextItem=contextItem)
             if len(r) == 1: # should be an expr single
                 r = r[0]
-                if hasattr(r, '__iter__') and not isinstance(r, str):
-                    if len(r) == 1 and isinstance(r[0],range):
+                if isinstance(r, (tuple,list,set)):
+                    if len(r) == 1 and isinstance(r[0],_RANGE):
                         r = r[0]
                     rvQname = p.rangeVar.name
                     hasPrevValue = rvQname in self.inScopeVars
@@ -410,36 +455,118 @@ class XPathContext:
             
     def isNodeSequence(self, x):
         for el in x:
-            if not isinstance(el,(xml.dom.Node, ModelObject.ModelObject) ):
+            if not isinstance(el,ModelObject):
                 return False
         return True
 
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,(ModelObject.ModelObject, xml.dom.Node)):
-                raise XPathException(p, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
+            if not isinstance(node,(ModelObject, etree._ElementTree, ModelAttribute)):
+                raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
-            if isinstance(node, ModelObject.ModelObject): node = node.element
             if isinstance(p,QNameDef):
-                ns = p.namespaceURI; localname = p.localName
+                ns = p.namespaceURI; localname = p.localName; axis = p.axis
                 if p.isAttribute:
-                    if p.unprefixed:
-                        if node.hasAttribute(localname):
-                            targetNodes.append(node.getAttribute(localname))
-                    else:
-                        if node.hasAttributeNS(ns,localname):
-                            targetNodes.append(node.getAttributeNS(ns,localname))
+                    if isinstance(node,ModelObject):
+                        attrTag = p.localName if p.unprefixed else p.clarkNotation
+                        modelAttribute = None
+                        try:
+                            modelAttribute = node.xAttributes[attrTag]
+                        except (AttributeError, TypeError, IndexError, KeyError):
+                            # may be lax or deferred validated
+                            try:
+                                validate(node.modelXbrl, node, p)
+                                modelAttribute = node.xAttributes[attrTag]
+                            except (AttributeError, TypeError, IndexError, KeyError):
+                                pass
+                        if modelAttribute is None:
+                            value = node.get(attrTag)
+                            if value is not None:
+                                targetNodes.append(ModelAttribute(node,p.clarkNotation,UNKNOWN,value,value,value))
+                        elif modelAttribute.xValid >= VALID:
+                                targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
-                    targetNodes = XmlUtil.children(node, ns, localname)
+                    if axis is None or axis == "child":
+                        if isinstance(node,(ModelObject, etree._ElementTree)):
+                            targetNodes = XmlUtil.children(node, ns, localname)
+                    elif axis == "parent":
+                        if isinstance(node,ModelAttribute):
+                            paretNode = [ node.modelElement ]
+                        else:
+                            parentNode = [ XmlUtil.parent(node) ]
+                        if (isinstance(node,ModelObject) and
+                                (not ns or ns == parentNode.namespaceURI or ns == "*") and
+                            (localname == parentNode.localName or localname == "*")):
+                            targetNodes = [ parentNode ]
+                    elif axis == "self":
+                        if (isinstance(node,ModelObject) and
+                                (not ns or ns == node.namespaceURI or ns == "*") and
+                            (localname == node.localName or localname == "*")):
+                            targetNodes = [ node ]
+                    elif axis.startswith("descendant"):
+                        if isinstance(node,(ModelObject, etree._ElementTree)):
+                            targetNodes = XmlUtil.descendants(node, ns, localname)
+                            if (axis.endswith("-or-self") and
+                                isinstance(node,ModelObject) and
+                                (not ns or ns == node.namespaceURI or ns == "*") and
+                                (localname == node.localName or localname == "*")):
+                                targetNodes.append(node) 
+                    elif axis.startswith("ancestor"):
+                        if isinstance(node,ModelObject):
+                            targetNodes = [ancestor
+                                           for ancestor in XmlUtil.ancestors(node)
+                                           if ((not ns or ns == ancestor.namespaceURI or ns == "*") and
+                                               (localname == ancestor.localName or localname == "*"))]
+                            if (axis.endswith("-or-self") and
+                                isinstance(node,ModelObject) and
+                                (not ns or ns == node.namespaceURI or ns == "*") and
+                                (localname == node.localName or localname == "*")):
+                                targetNodes.insert(0, node) 
+                    elif axis.endswith("-sibling"):
+                        if isinstance(node,ModelObject):
+                            targetNodes = [sibling
+                                           for sibling in node.itersiblings(preceding=axis.startswith("preceding"))
+                                           if ((not ns or ns == sibling.namespaceURI or ns == "*") and
+                                               (localname == sibling.localName or localname == "*"))]
+                    elif axis == "preceding":
+                        if isinstance(node,ModelObject):
+                            for preceding in node.getroottree().iter():
+                                if preceding == node:
+                                    break
+                                elif ((not ns or ns == preceding.namespaceURI or ns == "*") and
+                                      (localname == preceding.localName or localname == "*")):
+                                    targetNodes.append(preceding)
+                    elif axis == "following":
+                        if isinstance(node,ModelObject):
+                            foundNode = False
+                            for following in node.getroottree().iter():
+                                if following == node:
+                                    foundNode = True
+                                elif (foundNode and
+                                      (not ns or ns == following.namespaceURI or ns == "*") and
+                                      (localname == following.localName or localname == "*")):
+                                    targetNodes.append(following)
                 elif op == '//':
-                    targetNodes = XmlUtil.descendants(node, ns, localname)
+                    if isinstance(node,(ModelObject, etree. _ElementTree)):
+                        targetNodes = XmlUtil.descendants(node, ns, localname)
                 elif op == '..':
-                    targetNodes = [ XmlUtil.parent(node) ]
+                    if isinstance(node,ModelAttribute):
+                        targetNodes = [ node.modelElement ]
+                    else:
+                        targetNodes = [ XmlUtil.parent(node) ]
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
-                if p.name.localName == "text":
-                    targetNodes = [XmlUtil.text(node)]
-                # todo: add element, attribute, node, etc...
+                if isinstance(node,ModelObject):
+                    if p.name.localName == "text":
+                        targetNodes = [XmlUtil.text(node)]
+                    # todo: add element, attribute, node, etc...
+            elif p == '*':  # wildcard
+                if op == '/' or op is None:
+                    if isinstance(node,(ModelObject, etree._ElementTree)):
+                        targetNodes = XmlUtil.children(node, '*', '*')
+                elif op == '//':
+                    if isinstance(node,(ModelObject, etree._ElementTree)):
+                        targetNodes = XmlUtil.descendants(node, '*', '*')
             targetSequence.extend(targetNodes)
         return targetSequence
         
@@ -450,7 +577,7 @@ class XPathContext:
             sourcePosition += 1
             predicateResult = self.evaluate(p.args, contextItem=item)
             if len(predicateResult) == 1: predicateResult = predicateResult[0] # first result
-            if len(predicateResult) == 1 and isinstance(predicateResult[0],(int,float)):
+            if len(predicateResult) == 1 and isinstance(predicateResult[0],_NUM_TYPES):
                 result = predicateResult[0]
                 if isinstance(result, bool):  # note that bool is subclass of int
                     if result:
@@ -463,7 +590,7 @@ class XPathContext:
             
     def atomize(self, p, x):
         # sequence
-        if hasattr(x, '__iter__') and not isinstance(x, str):
+        if isinstance(x, SEQUENCE_TYPES):
             sequence = []
             for item in self.flattenSequence(x):
                 atomizedItem = self.atomize(p, item)
@@ -471,60 +598,54 @@ class XPathContext:
                     sequence.append(atomizedItem)
             return sequence
         # individual items
-        if isinstance(x, range): 
+        if isinstance(x, _RANGE): 
             return x
         baseXsdType = None
         e = None
-        if isinstance(x, ModelObject.ModelFact):
+        if isinstance(x, ModelFact):
             if x.isTuple:
                 raise XPathException(p, 'err:FOTY0012', _('Atomizing tuple {0} that does not have a typed value').format(x))
             if x.isNil:
                 return []
             baseXsdType = x.concept.baseXsdType
             v = x.value # resolves default value
-            e = x.element
+            e = x
+        elif isinstance(x, ModelAttribute): # ModelAttribute is a tuple (below), check this first!
+            return x.xValue
         else:
-            if isinstance(x, ModelObject.ModelObject):
-                e = x.element
-            elif isinstance(x, xml.dom.Node):
+            if isinstance(x, ModelObject):
                 e = x
-            if e:
-                if x.nodeType == xml.dom.Node.ELEMENT_NODE:
-                    if e.getAttributeNS(XbrlConst.xsi,"nil") == "true":
-                        return []
-                    modelXbrl = x.ownerDocument.modelDocument.modelXbrl
-                    modelConcept = modelXbrl.qnameConcepts.get(qname(x))
-                    if modelConcept:
-                        baseXsdType = modelConcept.baseXsdType
-                    v = XmlUtil.text(x)
-                elif x.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
-                    e = x.ownerElement
-                    modelXbrl = e.ownerDocument.modelDocument.modelXbrl
-                    if x.namespaceURI:
-                        attrQname = qname(x.namespaceURI, x.localName)
-                    else:
-                        attrQname = qname(x.localName)
-                    modelConcept = modelXbrl.qnameConcepts.get(qname(e))
-                    if modelConcept:
-                        baseXsdType = modelConcept.baseXsdAttrType(attrQname) if modelConcept else None
-                    if baseXsdType is None:
-                        attrObject = modelXbrl.qnameAttributes.get(attrQname)
-                        if attrObject:
-                            baseXsdType = attrObject.baseXsdType
-                    v = x.value
+            if e is not None:
+                if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
+                    return []
+                try:
+                    if e.xValid >= VALID:
+                        return e.xValue
+                except AttributeError:
+                    pass
+                modelXbrl = x.modelXbrl
+                modelConcept = modelXbrl.qnameConcepts.get(qname(x))
+                if modelConcept is not None:
+                    baseXsdType = modelConcept.baseXsdType
+                v = XmlUtil.text(x)
         if baseXsdType in ("decimal", "float", "double"):
             try:
                 x = float(v)
             except ValueError:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to a {1} does not have a proper value').format(x,baseXsdType))
-        elif baseXsdType in ("integer",):
+        elif baseXsdType in ("integer",
+                             "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
+                             "long","unsignedLong",
+                             "int","unsignedInt",
+                             "short","unsignedShort",
+                             "byte","unsignedByte"):
             try:
-                x = int(v)
+                x = _INT(v)
             except ValueError:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to an integer does not have a proper value').format(x))
         elif baseXsdType == "boolean":
             x = (v == "true" or v == "1")
-        elif baseXsdType == "QName" and e:
+        elif baseXsdType == "QName" and e is not None:
             x = qname(e, v)
         elif baseXsdType == "anyURI":
             x = anyURI(v.strip())
@@ -542,53 +663,63 @@ class XPathContext:
     
     def effectiveBooleanValue(self, p, x):
         from arelle.FunctionFn import boolean
-        return boolean( self, p, None, (self.atomize( p, x ),) )
+        return boolean( self, p, None, (self.flattenSequence(x),) )
 
     # flatten into a sequence
     def flattenSequence(self, x, sequence=None):
         if sequence is None: 
-            if isinstance(x, str) or isinstance(x,range) or not hasattr(x, '__iter__'):
+            if not isinstance(x, SEQUENCE_TYPES):
                 return [x]
             sequence = []
         for el in x:
-            if hasattr(el, '__iter__') and not isinstance(el, str):
-                self.flattenSequence(el, sequence=sequence)
+            if isinstance(el, SEQUENCE_TYPES):
+                self.flattenSequence(el, sequence)
             else:
                 sequence.append(el)
         return sequence
+    '''  (note: slice operation makes the below slower than the above by about 15%)
+    def flattenSequence(self, x):
+        sequenceTypes=SEQUENCE_TYPES
+        if not isinstance(x, sequenceTypes):
+            return [x]
+        needsFlattening = False  # no need to do anything
+        for i, e in enumerate(x):
+            if isinstance(e, sequenceTypes):
+                needsFlattening = True # needs action at i
+                break            
+        if needsFlattening:
+            x = list(x) # start with fresh copy of list
+            while i < len(x):
+                if isinstance(x[i], sequenceTypes):
+                    x[i:i+1] = list(x[i])
+                else:
+                    i += 1
+        return x            
+    '''
     
     # order nodes
     def documentOrderedNodes(self, x):
         l = set()  # must have unique nodes only
         for e in x:
-            if isinstance(e,ModelObject.ModelObject):
-                h = e.objectIndex
-            elif isinstance(e,xml.dom.Node):
-                h = e.__hash__()
+            if isinstance(e,ModelObject):
+                h = e.sourceline
+            elif isinstance(e,ModelAttribute):
+                h = e.modelElement.sourceline
             else:
                 h = 0
             l.add((h,e))
-        return [e for h,e in sorted(l)]
+        return [e for h,e in sorted(l, key=lambda h: h[0])]
     
     def modelItem(self, x):
-        modelItem = None
-        if isinstance(x, xml.dom.Node) and x.nodeType == 1:
-            elt = x
-            x = None
-            for docModelObject in elt.ownerDocument.modelDocument.modelObjects:
-                if docModelObject.element == elt:
-                    x = docModelObject
-                    break
-        if isinstance(x, (ModelObject.ModelFact, ModelObject.ModelInlineFact)) and x.isItem:
+        if isinstance(x, (ModelFact, ModelInlineFact)) and x.isItem:
             return x
         return None
 
     def modelInstance(self, x):
         if isinstance(x, ModelXbrl.ModelXbrl):
             return x
-        if isinstance(x, xml.dom.Node) and x.nodeType == 1:
-            return x.ownerDocument.modelDocument.modelXbrl
-        if isinstance(x, ModelObject.ModelObject):
+        if isinstance(x, ModelObject):
             return x.modelXbrl
         return None
-              
+        
+        

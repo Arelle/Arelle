@@ -7,6 +7,7 @@ Created on Dec 20, 2010
 import datetime, re
 from arelle import (XPathContext, ModelValue)
 from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
+from arelle.XPathParser import ProgHeader
     
 class FORG0001(Exception):
     def __init__(self):
@@ -31,7 +32,7 @@ def call(xc, p, localname, args):
     if source == (): return source
     try:
         if localname not in xsFunctions: raise xsFunctionNotAvailable
-        return xsFunctions[localname](xc, source)
+        return xsFunctions[localname](xc, p, source)
     except (FORG0001, ValueError, TypeError):
         raise XPathContext.XPathException(p, 'err:FORG0001', 
                                           _('invalid cast from {0} to xs:{1}').format(
@@ -51,19 +52,19 @@ objtype = {
         'float': float,
         'double': float,
         'decimal': float,
-        'integer': int,
-        'nonPositiveInteger': int,
-        'negativeInteger': int,
-        'long': int,
-        'int': int,
-        'short': int,
-        'byte': int,
-        'nonNegativeInteger': int,
-        'unsignedLong': int,
-        'unsignedInt': int,
-        'unsignedShort': int,
-        'unsignedByte': int,
-        'positiveInteger': int,
+        'integer': _INT,
+        'nonPositiveInteger': _INT,
+        'negativeInteger': _INT,
+        'long': _INT,
+        'int': _INT,
+        'short': _INT,
+        'byte': _INT,
+        'nonNegativeInteger': _INT,
+        'unsignedLong': _INT,
+        'unsignedInt': _INT,
+        'unsignedShort': _INT,
+        'unsignedByte': _INT,
+        'positiveInteger': _INT,
         #'gYearMonth': gYearMonth,
         #'gYear': gYear,
         #'gMonthDay': gMonthDay,
@@ -87,166 +88,170 @@ objtype = {
         'NOTATION': str,
       }
         
-def untypedAtomic(xc, source):
+def untypedAtomic(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def dateTime(xc, source):
+def dateTime(xc, p, source):
     if isinstance(source,datetime.datetime): return source
     return ModelValue.dateTime(source, type=ModelValue.DATETIME, castException=FORG0001)
-
-def xbrliDateUnion(xc, source):
-    if isinstance(source,datetime.date): return source  # true for either datetime.date or datetime.datetime
-    raise FORG0001
   
-def date(xc, source):
+def dateTimeInstantEnd(xc, p, source):
+    if isinstance(source,datetime.datetime): return source  # true for either datetime.date or datetime.datetime
+    return ModelValue.dateTime(source, addOneDay=True, type=ModelValue.DATETIME, castException=FORG0001)
+
+def xbrliDateUnion(xc, p, source):
+    if isinstance(source,datetime.date): return source  # true for either datetime.date or datetime.datetime
+    return ModelValue.dateTime(source, type=ModelValue.DATEUNION, castException=FORG0001)
+  
+def date(xc, p, source):
     return ModelValue.dateTime(source, type=ModelValue.DATE, castException=FORG0001)
   
-def time(xc, source):
+def time(xc, p, source):
     return ModelValue.time(source, castException=FORG0001)
   
-def duration(xc, source):
+def duration(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def yearMonthDuration(xc, source):
+def yearMonthDuration(xc, p, source):
     return ModelValue.yearMonthDuration(source)
   
-def dayTimeDuration(xc, source):
+def dayTimeDuration(xc, p, source):
     return ModelValue.dayTimeDuration(source)
   
-def xs_float(xc, source):
+def xs_float(xc, p, source):
     try:
         return float(source)
     except ValueError:
         raise FORG0001
   
-def double(xc, source):
+def double(xc, p, source):
     try:
         return float(source)
     except ValueError:
         raise FORG0001
   
-def decimal(xc, source):
+def decimal(xc, p, source):
     try:
         return float(source)
     except ValueError:
         raise FORG0001
   
-def integer(xc, source):
+def integer(xc, p, source):
     try:
-        return int(source)
+        return _INT(source)
     except ValueError:
         raise FORG0001
   
-def nonPositiveInteger(xc, source):
+def nonPositiveInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 0: return i
     except ValueError:
         pass
     raise FORG0001
   
-def negativeInteger(xc, source):
+def negativeInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i < 0: return i
     except ValueError:
         pass
     raise FORG0001
   
-def long(xc, source):
+def long(xc, p, source):
     try:
-        return int(source)
+        return _INT(source)
     except ValueError:
         raise FORG0001
   
-def xs_int(xc, source):
+def xs_int(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 2147483647 and i >= -2147483648: return i
     except ValueError:
         pass
     raise FORG0001
   
-def short(xc, source):
+def short(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 32767 and i >= -32767: return i
     except ValueError:
         pass
     raise FORG0001
   
-def byte(xc, source):
+def byte(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 127 and i >= -128: return i
     except ValueError:
         pass
     raise FORG0001
   
-def nonNegativeInteger(xc, source):
+def nonNegativeInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i >= 0: return i
     except ValueError:
         pass
     raise FORG0001
   
-def unsignedLong(xc, source):
+def unsignedLong(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i >= 0: return i
     except ValueError:
         pass
     raise FORG0001
   
-def unsignedInt(xc, source):
+def unsignedInt(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 4294967295 and i >= 0: return i
     except ValueError:
         pass
     raise FORG0001
     
-def unsignedShort(xc, source):
+def unsignedShort(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 65535 and i >= 0: return i
     except ValueError:
         pass
     raise FORG0001
   
-def unsignedByte(xc, source):
+def unsignedByte(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i <= 255 and i >= 0: return i
     except ValueError:
         pass
     raise FORG0001
   
-def positiveInteger(xc, source):
+def positiveInteger(xc, p, source):
     try:
-        i = int(source)
+        i = _INT(source)
         if i > 0: return i
     except ValueError:
         pass
     raise FORG0001
   
-def gYearMonth(xc, source):
+def gYearMonth(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def gYear(xc, source):
+def gYear(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def gMonthDay(xc, source):
+def gMonthDay(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def gDay(xc, source):
+def gDay(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def gMonth(xc, source):
+def gMonth(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def string(xc, source):
+def xsString(xc, p, source):
     if isinstance(source,bool):
         return 'true' if source else 'false'
     elif isinstance(source,float):
@@ -269,64 +274,81 @@ def string(xc, source):
         return ('{0:%Y-%m-%d}' if source.dateOnly else '{0:%Y-%m-%dT%H:%M:%S}').format(source)
     return str(source)
   
-def normalizedString(xc, source):
+def normalizedString(xc, p, source):
     return str(source)
   
-tokenPattern = re.compile("(^\s([.]*[\s])*)$")
-def token(xc, source):
+tokenPattern = re.compile(r"^\s*([-\.:\w]+)\s*$")
+def token(xc, p, source):
     s = str(source)
     if tokenPattern.match(s): return s
     raise FORG0001
   
 languagePattern = re.compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*")
-def language(xc, source):
+def language(xc, p, source):
     s = str(source)
     if languagePattern.match(s): return s
     raise FORG0001
   
-def NMTOKEN(xc, source):
+def NMTOKEN(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def Name(xc, source):
+def Name(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def NCName(xc, source):
+def NCName(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def ID(xc, source):
+def ID(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def IDREF(xc, source):
+def IDREF(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def ENTITY(xc, source):
+def ENTITY(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def boolean(xc, source):
+def boolean(xc, p, source):
+    if isinstance(source,bool):
+        return source
+    elif isinstance(source, _NUM_TYPES):
+        if source == 1:
+            return True
+        elif source == 0:
+            return False
+    elif isinstance(source,str):
+        b = source.lower()
+        if b in ('true','yes'):
+            return True
+        elif b in ('false','no'):
+            return False
+    raise FORG0001
+  
+def base64Binary(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def base64Binary(xc, source):
+def hexBinary(xc, p, source):
     raise xsFunctionNotAvailable()
   
-def hexBinary(xc, source):
-    raise xsFunctionNotAvailable()
-  
-def anyURI(xc, source):
+def anyURI(xc, p, source):
     return ModelValue.anyURI(source)
   
-def QName(xc, source):
-    if xc.progHeader:
+def QName(xc, p, source):
+    if isinstance(p, ProgHeader):
+        element = p.element
+    elif xc.progHeader:
         element = xc.progHeader.element
     else:
         element = xc.sourceElement
     return ModelValue.qname(element, source, castException=FORG0001, prefixException=FONS0004)
   
-def NOTATION(xc, source):
+def NOTATION(xc, p, source):
     raise xsFunctionNotAvailable()
 
 xsFunctions = {
     'untypedAtomic': untypedAtomic,
     'dateTime': dateTime,
+    'DATETIME_START': dateTime,
+    'DATETIME_INSTANT_END': dateTimeInstantEnd,
     'XBRLI_DATEUNION': xbrliDateUnion,
     'date': date,
     'time': time,
@@ -354,7 +376,7 @@ xsFunctions = {
     'gMonthDay': gMonthDay,
     'gDay': gDay,
     'gMonth': gMonth,
-    'string': string,
+    'string': xsString,
     'normalizedString': normalizedString,
     'token': token,
     'language': language,
@@ -371,4 +393,3 @@ xsFunctions = {
     'QName': QName,
     'NOTATION': NOTATION,
     }
-  

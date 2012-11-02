@@ -4,7 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ViewWinTree, ModelObject)
+from arelle import ViewWinTree, ModelDtsObject, XbrlConst
 
 def viewFacts(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))
@@ -39,24 +39,25 @@ def viewFacts(modelXbrl, tabWin, lang=None):
     # intercept menu click before pops up to set the viewable tuple (if tuple clicked)
     view.treeView.bind( view.modelXbrl.modelManager.cntlr.contextMenuClick, view.setViewTupleChildMenuItem, '+' )
     menu = view.contextMenu()
-    view.menu.insert_cascade(0, label=_("View Tuple Children"), underline=0, command=view.viewTuplesGrid)
-    view.menu.entryconfigure(0, state='disabled')
-    view.menuAddExpandCollapse()
-    view.menuAddClipboard()
-    view.menuAddLangs()
-    view.menuAddLabelRoles(includeConceptName=True)
-    view.menuAddUnitDisplay()
+    if menu is not None:
+        view.menu.insert_cascade(0, label=_("View Tuple Children"), underline=0, command=view.viewTuplesGrid)
+        view.menu.entryconfigure(0, state='disabled')
+        view.menuAddExpandCollapse()
+        view.menuAddClipboard()
+        view.menuAddLangs()
+        view.menuAddLabelRoles(includeConceptName=True)
+        view.menuAddUnitDisplay()
     
 class ViewFactList(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, lang):
-        super().__init__(modelXbrl, tabWin, "Fact List", True, lang)
+        super(ViewFactList, self).__init__(modelXbrl, tabWin, "Fact List", True, lang)
         
     def setViewTupleChildMenuItem(self, event=None):
-        if event is not None:
+        if event is not None and self.menu is not None:
             #self.menu.delete(0, 0) # remove old filings
             menuRow = self.treeView.identify_row(event.y) # this is the object ID
             modelFact = self.modelXbrl.modelObject(menuRow)
-            if modelFact.isTuple:
+            if modelFact is not None and modelFact.isTuple:
                 self.menu.entryconfigure(0, state='normal')
                 self.viewedTupleId = menuRow
             else:
@@ -65,8 +66,9 @@ class ViewFactList(ViewWinTree.ViewTree):
                 
     def viewTuplesGrid(self):
         from arelle.ViewWinTupleGrid import viewTuplesGrid
-        viewTuplesGrid(self.modelXbrl, self.tabWin, self.viewedTupleId, self.lang)
-                                
+        viewTuples = viewTuplesGrid(self.modelXbrl, self.tabWin, self.viewedTupleId, self.lang)
+        self.modelXbrl.modelManager.showStatus(_("Ready..."), clearAfter=2000)
+        viewTuples.select()  # bring new grid to foreground
                 
     def view(self):
         self.id = 1
@@ -78,31 +80,34 @@ class ViewFactList(ViewWinTree.ViewTree):
         
     def viewFacts(self, modelFacts, parentNode, n):
         for modelFact in modelFacts:
-            concept = modelFact.concept
-            if concept:
-                lbl = concept.label(self.labelrole, lang=self.lang)
-                objectIds = (modelFact.objectId(),concept.objectId())
-            else:
-                lbl = modelFact.qname
-                objectIds = (modelFact.objectId())
-            node = self.treeView.insert(parentNode, "end", modelFact.objectId(self.id), 
-                                        text=lbl,
-                                        tags=("odd" if n & 1 else "even",))
-            for tag in objectIds:
-                self.tag_has.setdefault(tag,[]).append(node)
-            self.treeView.set(node, "sequence", str(self.id))
-            if concept and not modelFact.concept.isTuple:
-                self.treeView.set(node, "contextID", modelFact.contextID)
-                if modelFact.unitID:
-                    self.treeView.set(node, "unitID", modelFact.unitID if self.unitDisplayID else modelFact.unit.value)
-                self.treeView.set(node, "decimals", modelFact.decimals)
-                self.treeView.set(node, "precision", modelFact.precision)
-                self.treeView.set(node, "language", modelFact.xmlLang)
-                self.treeView.set(node, "value", 
-                          "(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue.strip())
-            self.id += 1;
-            n += 1
-            self.viewFacts(modelFact.modelTupleFacts, node, n)
+            try:
+                concept = modelFact.concept
+                if concept is not None:
+                    lbl = concept.label(self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
+                    objectIds = (modelFact.objectId(),concept.objectId())
+                else:
+                    lbl = modelFact.qname
+                    objectIds = (modelFact.objectId())
+                node = self.treeView.insert(parentNode, "end", modelFact.objectId(self.id), 
+                                            text=lbl,
+                                            tags=("odd" if n & 1 else "even",))
+                for tag in objectIds:
+                    self.tag_has.setdefault(tag,[]).append(node)
+                self.treeView.set(node, "sequence", str(self.id))
+                if concept is not None and not modelFact.concept.isTuple:
+                    self.treeView.set(node, "contextID", modelFact.contextID)
+                    if modelFact.unitID:
+                        self.treeView.set(node, "unitID", modelFact.unitID if self.unitDisplayID else modelFact.unit.value)
+                    self.treeView.set(node, "decimals", modelFact.decimals)
+                    self.treeView.set(node, "precision", modelFact.precision)
+                    self.treeView.set(node, "language", modelFact.xmlLang)
+                    self.treeView.set(node, "value", 
+                              "(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue.strip())
+                self.id += 1;
+                n += 1
+                self.viewFacts(modelFact.modelTupleFacts, node, n)
+            except AttributeError:  # not a fact or no concept
+                pass
 
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
@@ -119,14 +124,17 @@ class ViewFactList(ViewWinTree.ViewTree):
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            if isinstance(modelObject, ModelObject.ModelRelationship):
-                conceptId = modelObject.toModelObject.objectId()
-            else:
-                conceptId = modelObject.objectId()
-            #items = self.treeView.tag_has(conceptId)
-            items = self.tag_has.get(conceptId,[])
-            if len(items) > 0 and self.treeView.exists(items[0]):
-                self.treeView.see(items[0])
-                self.treeView.selection_set(items[0])
+            try:
+                if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                    conceptId = modelObject.toModelObject.objectId()
+                else:
+                    conceptId = modelObject.objectId()
+                #items = self.treeView.tag_has(conceptId)
+                items = self.tag_has.get(conceptId,[])
+                if len(items) > 0 and self.treeView.exists(items[0]):
+                    self.treeView.see(items[0])
+                    self.treeView.selection_set(items[0])
+            except (AttributeError, KeyError):
+                    self.treeView.selection_set(())
             self.blockViewModelObject -= 1
        
