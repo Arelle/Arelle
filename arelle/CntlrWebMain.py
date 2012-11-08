@@ -7,9 +7,10 @@ Use this module to start Arelle in web server mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle.webserver.bottle import route, get, post, request, response, run, static_file
-import os, io
+import os, io, sys
 from arelle import Version, XmlUtil
 from arelle.FileSource import FileNamedStringIO
+_os_pid = os.getpid()
 
 def startWebserver(_cntlr, options):
     """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
@@ -274,10 +275,11 @@ def configure():
 def stopWebServer():
     """Stop the web server by *get* requests to */rest/stopWebServer*.
     
-    (This is not working on Windows.)
     """
-    request.app.close()
-    request.app.reset()
+    request.app.reload = False
+    if cntlr.isMSW and sys.version >= '3.2':
+        import signal
+        os.kill(_os_pid, signal.SIGTERM)
     raise KeyboardInterrupt()
     
 @route('/quickbooks/server.asmx', method='POST')
