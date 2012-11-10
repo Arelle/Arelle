@@ -11,6 +11,7 @@ from arelle import FunctionIxt
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
+from arelle.PluginManager import pluginClassMethods
 validateUniqueParticleAttribution = None # dynamic import
 
 arcNamesTo21Resource = {"labelArc","referenceArc"}
@@ -61,6 +62,9 @@ class ValidateXbrl:
         self.validateCalcLB = modelXbrl.modelManager.validateCalcLB
         self.validateInferDecimals = modelXbrl.modelManager.validateInferDecimals
         
+        for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
+            pluginXbrlMethod(self)
+
         # xlink validation
         modelXbrl.profileStat(None)
         modelXbrl.modelManager.showStatus(_("validating links"))
@@ -448,6 +452,11 @@ class ValidateXbrl:
             if modelXbrl.hasXDT:
                 ValidateXbrlDimensions.checkConcept(self, concept)
         modelXbrl.profileStat(_("validateConcepts"))
+        
+        for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Finally"):
+            pluginXbrlMethod(self)
+
+        modelXbrl.profileStat() # reset after plugins
             
         modelXbrl.modelManager.showStatus(_("validating DTS"))
         self.DTSreferenceResourceIDs = {}
@@ -635,6 +644,10 @@ class ValidateXbrl:
                         modelObject=f, fact=f.qname, order=f.order)
             if f.modelTupleFacts:
                 self.checkFacts(f.modelTupleFacts, inTuple=True)
+             
+            # uncomment if anybody uses this   
+            #for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Fact"):
+            #    pluginXbrlMethod(self, f)
                 
     def checkFactDimensions(self, facts): # check fact dimensions in document order
         for f in facts:
