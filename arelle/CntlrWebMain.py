@@ -7,7 +7,7 @@ Use this module to start Arelle in web server mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle.webserver.bottle import route, get, post, request, response, run, static_file
-import os, io, sys
+import os, io, sys, time, threading
 from arelle import Version, XmlUtil
 from arelle.FileSource import FileNamedStringIO
 _os_pid = os.getpid()
@@ -276,11 +276,18 @@ def stopWebServer():
     """Stop the web server by *get* requests to */rest/stopWebServer*.
     
     """
-    request.app.reload = False
-    if cntlr.isMSW and sys.version >= '3.2':
+    def stopSoon(delaySeconds):
+        time.sleep(delaySeconds)
         import signal
         os.kill(_os_pid, signal.SIGTERM)
-    raise KeyboardInterrupt()
+    thread = threading.Thread(target=lambda: stopSoon(2.5))
+    thread.daemon = True
+    thread.start()
+    response.content_type = 'text/html; charset=UTF-8'
+    return htmlBody(tableRows((time.strftime("Received at %Y-%m-%d %H:%M:%S"),
+                               "Good bye...",), 
+                              header=_("Stop Request")))
+    
     
 @route('/quickbooks/server.asmx', method='POST')
 def quickbooksServer():
@@ -557,7 +564,7 @@ as follows:</td></tr>
 <br/><code>text</code>: Plain text results (no markup).</td></tr> 
 <tr><td style="text-indent: 1em;">fromDate, toDate</td><td>From &amp to dates for GL transactions</td></tr>
 
-<tr><th colspan="2">Configure settings</th></tr>
+<tr><th colspan="2">Management</th></tr>
 <tr><td>/rest/configure</td><td>Configure settings:</td></tr>
 <tr><td></td><td>Parameters are required following "?" character, and are separated by "&amp;" characters, 
 as follows:</td></tr>
@@ -570,6 +577,7 @@ Enter 'show' to view plug-ins configuration, , or '|' separated modules:
  (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load,
 ~Hello Dolly to reload, -Hello Dolly to remove)
 </td></tr>
+<tr><td>/rest/stopWebServer</td><td>Shut down (terminate process after 2.5 seconds delay).</td></tr>
 </table>'''))
 
 @route('/about')
