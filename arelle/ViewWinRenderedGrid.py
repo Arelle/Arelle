@@ -199,7 +199,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             
     def onComboBoxSelected(self, *args):
         combobox = args[0].widget
-        self.zOrdinateChoices[combobox.zOrdCntx._axisObject] = \
+        self.zOrdinateChoices[combobox.zOrdCntx._axisNodeObject] = \
             combobox.zOrdCntx.choiceOrdinateIndex = combobox.valueIndex
         self.view() # redraw grid
             

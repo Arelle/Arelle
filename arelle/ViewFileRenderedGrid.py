@@ -136,12 +136,12 @@ class ViewRenderedGrid(ViewFile.View):
                                             yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
                         for ordCntx,elt in self.ordCntxElts: # must do after elements are all arragned
                             elt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
-                                                          .format(ordCntx._axisObject.localName,
-                                                                  ordCntx._axisObject.xlinkLabel,
-                                                                  ordCntx._axisObject.modelDocument.basename, 
-                                                                  ordCntx._axisObject.sourceline)))
-                            if ordCntx._axisObject.get('value'):
-                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._axisObject.get('value'))))
+                                                          .format(ordCntx._axisNodeObject.localName,
+                                                                  ordCntx._axisNodeObject.xlinkLabel,
+                                                                  ordCntx._axisNodeObject.modelDocument.basename, 
+                                                                  ordCntx._axisNodeObject.sourceline)))
+                            if ordCntx._axisNodeObject.get('value'):
+                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._axisNodeObject.get('value'))))
                             for aspect in sorted(ordCntx.aspectsCovered(), key=lambda a: aspectStr(a)):
                                 if ordCntx.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
                                     aspectValue = ordCntx.aspectValue(aspect)
@@ -157,12 +157,12 @@ class ViewRenderedGrid(ViewFile.View):
                     currentIndex = zOrdWithChoice.choiceOrdinateIndex + 1
                     if currentIndex < len(zOrdWithChoice.choiceOrdinateContexts):
                         zOrdWithChoice.choiceOrdinateIndex = currentIndex
-                        self.zOrdinateChoices[zOrdWithChoice._axisObject] = currentIndex
+                        self.zOrdinateChoices[zOrdWithChoice._axisNodeObject] = currentIndex
                         moreDiscriminators = True
                         break
                     else:
                         zOrdWithChoice.choiceOrdinateIndex = 0
-                        self.zOrdinateChoices[zOrdWithChoice._axisObject] = 0
+                        self.zOrdinateChoices[zOrdWithChoice._axisNodeObject] = 0
                         # continue incrementing next outermore z choices index
                 if not moreDiscriminators:
                     break

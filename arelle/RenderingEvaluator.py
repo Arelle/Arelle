@@ -6,7 +6,7 @@ Created on Jun 6, 2012
 '''
 from arelle import (XPathContext, XbrlConst)
 from arelle.ModelFormulaObject import (aspectModels, Aspect)
-from arelle.ModelRenderingObject import (ModelRuleAxis, ModelDimensionRelationshipAxis)
+from arelle.ModelRenderingObject import (ModelRuleAxisNode, ModelDimensionRelationshipAxisNode)
 from arelle.ModelValue import (QName)
 
 def init(modelXbrl):
@@ -93,7 +93,7 @@ def checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects):
                     aspect=str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect])
         else:
             modelTable.priorAspectAxisDisposition[aspect] = tblAxisDisposition
-    if isinstance(tblAxis, ModelDimensionRelationshipAxis):
+    if isinstance(tblAxis, ModelDimensionRelationshipAxisNode):
         hasCoveredAspect = True
         if modelTable.aspectModel == 'non-dimensional':
             modelXbrl.error("xbrlte:axisAspectModelMismatch",
