@@ -347,7 +347,7 @@ class ModelTable(ModelFormulaResource):
 
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableFilter, XbrlConst.tableAxis)
+        return (XbrlConst.tableFilter, XbrlConst.tableBreakdown, XbrlConst.tableAxis2011)
                 
     @property
     def filterRelationships(self):
@@ -512,10 +512,13 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
         return self.hasRule(aspect)
     
     def aspectValue(self, xpCtx, aspect, inherit=None):
-        if xpCtx is None: xpCtx = self.modelXbrl.rendrCntx
-        if aspect == Aspect.LOCATION and self._locationSourceVar in xpCtx.inScopeVars:
-            return xpCtx.inScopeVars[self._locationSourceVar]
-        return self.evaluateRule(xpCtx, aspect)
+        try:
+            if xpCtx is None: xpCtx = self.modelXbrl.rendrCntx
+            if aspect == Aspect.LOCATION and self._locationSourceVar in xpCtx.inScopeVars:
+                return xpCtx.inScopeVars[self._locationSourceVar]
+            return self.evaluateRule(xpCtx, aspect)
+        except AttributeError:
+            return '(unavailable)'  # table defective or not initialized
     
     def aspectValueDependsOnVars(self, aspect):
         return aspect in _DICT_SET(self.aspectProgs.keys()) or aspect in self._locationAspectCovered

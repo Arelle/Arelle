@@ -23,7 +23,7 @@ def init(modelXbrl):
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and XbrlConst.isTableRenderingArcrole(arcrole):
             ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
-            if arcrole == XbrlConst.tableAxis:
+            if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableAxis2011):
                 hasXbrlTables = True
 
     # provide context for view
@@ -66,7 +66,7 @@ def init(modelXbrl):
                 # check ordinate aspects against aspectModel
                 oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
                 uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[modelTable.aspectModel]
-                for tblAxisRel in modelXbrl.relationshipSet(XbrlConst.tableAxis).fromModelObject(modelTable):
+                for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011)).fromModelObject(modelTable):
                     checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects)
                 del modelTable.priorAspectAxisDisposition
     

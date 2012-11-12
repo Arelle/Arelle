@@ -489,9 +489,13 @@ class scrolledHeaderedFrame(Frame):
     def _configure_rowHdrInterior(self,event):
         interiorW = self.rowHdrInterior.winfo_reqwidth()
         interiorH = self.rowHdrInterior.winfo_reqheight()
-        self.rowHdrCanvas.config(scrollregion=(0,0,interiorW,interiorH))
-        if interiorW != self.rowHdrCanvas.winfo_width(): # update the canvas's width to fit the inner frame
-            self.rowHdrCanvas.config(width=interiorW)
+        # width doesn't set wide enough when first expanding, force by setting wider before scroll region
+        widenWidth = interiorW != self.rowHdrCanvas.winfo_width()
+        # tkinter bug?  right side of row headers is clipped without setting it 1 pixel wider below
+        # and then back on next configure event.  Would like to remove first config of width.
+        self.rowHdrCanvas.config(width=interiorW, scrollregion=(0,0,interiorW,interiorH))
+        if widenWidth: # update the canvas's width to fit the inner frame
+            self.rowHdrCanvas.config(width=interiorW + 1) # remove if tkinter issue gets solved
         #if interiorW != self.tblHdrInterior.winfo_width() or \
         #   interiorW != self.tblHdrInterior.tk.call( ('grid', 'columnconfigure', self.tblHdrInterior._w, 1, '-minsize' ) ):
         #    self.tblHdrInterior.tk.call( ('grid', 'columnconfigure', self.tblHdrInterior._w, 1, '-minsize', interiorW ) )

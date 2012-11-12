@@ -46,7 +46,13 @@ arcroleChecks = {
     XbrlConst.functionImplementation: (XbrlConst.qnCustomFunctionSignature,
                                       XbrlConst.qnCustomFunctionImplementation,
                                       "xbrlcfie:info"),
-    XbrlConst.tableAxis:            (XbrlConst.qnTableTable,
+    XbrlConst.tableBreakdown:       (XbrlConst.qnTableTable,
+                                     (XbrlConst.qnTablePredefinedAxis, 
+                                      XbrlConst.qnTableFilterAxis,
+                                      XbrlConst.qnTableSelectionAxis, 
+                                      XbrlConst.qnTableTupleAxis),
+                                     "xbrlte:info"),
+    XbrlConst.tableAxis2011:        (XbrlConst.qnTableTable,
                                      (XbrlConst.qnTablePredefinedAxis, 
                                       XbrlConst.qnTableFilterAxis,
                                       XbrlConst.qnTableSelectionAxis, 
@@ -950,7 +956,7 @@ def checkTableRules(val, xpathContext, table):
     # check for covering aspect not in variable set aspect model
     checkFilterAspectModel(val, table, table.filterRelationships, xpathContext)
 
-    checkAxisRules(val, table, table, XbrlConst.tableAxis, xpathContext)
+    checkAxisRules(val, table, table, (XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), xpathContext)
     
 def checkAxisRules(val, table, parent, arcrole, xpathContext):
     for rel in val.modelXbrl.relationshipSet(arcrole).fromModelObject(parent):

@@ -12,12 +12,12 @@ from arelle.ModelRenderingObject import (ModelEuAxisCoord, ModelOpenAxis, ModelP
                                          ModelRelationshipAxis, ModelSelectionAxis, ModelFilterAxis,
                                          ModelCompositionAxis, ModelTupleAxis, OrdinateContext)
 
-def getTblAxes(view, viewTblELR):
+def resolveAxesStructure(view, viewTblELR):
     tblAxisRelSet = view.modelXbrl.relationshipSet(XbrlConst.euTableAxis, viewTblELR)
     if len(tblAxisRelSet.modelRelationships) > 0:
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
-        tblAxisRelSet = view.modelXbrl.relationshipSet(XbrlConst.tableAxis, viewTblELR)
+        tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), viewTblELR)
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(view.arcrole))
@@ -32,9 +32,11 @@ def getTblAxes(view, viewTblELR):
     for table in tblAxisRelSet.rootConcepts:            
         view.dataCols = 0
         view.dataRows = 0
+        view.colHdrNonStdRoles = []
         view.colHdrDocRow = False
         view.colHdrCodeRow = False
         view.colHdrRows = 0
+        view.rowHdrNonStdRoles = []
         view.rowHdrCols = 0
         view.rowHdrColWidth = [0,]
         view.rowHdrDocCol = False
@@ -64,7 +66,7 @@ def getTblAxes(view, viewTblELR):
                         yOrdCntx = OrdinateContext(None, axisObj, view.zmostOrdCntx)
                         if isinstance(axisObj,ModelPredefinedAxis) and axisObj.parentChildOrder is not None:
                             view.yAxisChildrenFirst.set(axisObj.parentChildOrder == "children-first")
-                        analyzeHdrs(view, yOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
+                        analyzeHdrs(view, yOrdCntx, axisObj, 0, disposition, facts, i, tblAxisRels)
                         break
                     elif disposition == "z" and zOrdCntx is None:
                         zOrdCntx = OrdinateContext(None, axisObj)
@@ -72,8 +74,10 @@ def getTblAxes(view, viewTblELR):
                         break
         view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
         view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols))
-        view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
-        view.dataFirstCol = 1 + view.rowHdrCols + view.rowHdrDocCol + view.rowHdrCodeCol
+        view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
+        view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
+        #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
+        #view.dataFirstCol = 1 + view.rowHdrCols + view.rowHdrDocCol + view.rowHdrCodeCol
         #for i in range(view.dataFirstRow + view.dataRows):
         #    view.gridView.rowconfigure(i)
         #for i in range(view.dataFirstCol + view.dataCols):
@@ -104,6 +108,7 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                 if not axisObject.isAbstract:
                     view.dataCols += ordCardinality
                 if nestedDepth > view.colHdrRows: view.colHdrRows = nestedDepth 
+                '''
                 if not view.colHdrDocRow:
                     if axisObject.header(role="http://www.xbrl.org/2008/role/documentation",
                                                    lang=view.lang): 
@@ -111,6 +116,8 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                 if not view.colHdrCodeRow:
                     if axisObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                         view.colHdrCodeRow = True
+                '''
+                hdrNonStdRoles = view.colHdrNonStdRoles
         elif axisDisposition == "y":
             if ordDepth:
                 if not axisObject.isAbstract:
@@ -124,7 +131,8 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                     if label:
                         widestWordLen = max(len(w) * 7 for w in label.split())
                         if widestWordLen > view.rowHdrColWidth[depth]:
-                            view.rowHdrColWidth[nestedDepth] = widestWordLen 
+                            view.rowHdrColWidth[depth] = widestWordLen
+                ''' 
                 if not view.rowHdrDocCol:
                     if axisObject.header(role="http://www.xbrl.org/2008/role/documentation",
                                          lang=view.lang): 
@@ -132,6 +140,21 @@ def analyzeHdrs(view, ordCntx, axisObject, depth, axisDisposition, facts, i=None
                 if not view.rowHdrCodeCol:
                     if axisObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                         view.rowHdrCodeCol = True
+                '''
+                hdrNonStdRoles = view.rowHdrNonStdRoles
+        if axisDisposition in ("x", "y"):
+            hdrNonStdPosition = -1  # where a match last occured
+            for rel in view.modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(axisObject):
+                if rel.toModelObject is not None and rel.toModelObject.role != XbrlConst.genStandardLabel:
+                    labelLang = rel.toModelObject.xmlLang
+                    labelRole = rel.toModelObject.role
+                    if (labelLang == view.lang or labelLang.startswith(view.lang) or view.lang.startswith(labelLang)
+                        or ("code" in labelRole)):
+                        labelRole = rel.toModelObject.role
+                        if labelRole in hdrNonStdRoles:
+                            hdrNonStdPosition = hdrNonStdRoles.index(labelRole)
+                        else:
+                            hdrNonStdRoles.insert(hdrNonStdPosition + 1, labelRole)
         hasSubtreeRels = False
         for axisSubtreeRel in view.axisSubtreeRelSet.fromModelObject(axisObject):
             hasSubtreeRels = True
