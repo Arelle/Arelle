@@ -61,6 +61,11 @@ class ValidateXbrl:
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
         self.validateCalcLB = modelXbrl.modelManager.validateCalcLB
         self.validateInferDecimals = modelXbrl.modelManager.validateInferDecimals
+        self.validateUTR = (modelXbrl.modelManager.validateUtr or
+                            (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
+                            (self.validateEFM and 
+                             any((concept.namespaceURI in self.disclosureSystem.standardTaxonomiesDict) 
+                                 for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
             pluginXbrlMethod(self)
@@ -475,12 +480,8 @@ class ValidateXbrl:
             ValidateXbrlCalcs.validate(modelXbrl, inferDecimals=self.validateInferDecimals)
             modelXbrl.profileStat(_("validateCalculations"))
             
-        if (modelXbrl.modelManager.validateUtr or
-            (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
-             #(self.validateEFM and 
-             #any((concept.namespaceURI in self.disclosureSystem.standardTaxonomiesDict) 
-             #    for concept in self.modelXbrl.nameConcepts.get("UTR",())))):
-            (self.validateEFM and any(modelDoc.definesUTR for modelDoc in self.modelXbrl.urlDocs.values()))):
+        if self.validateUTR:
+            #(self.validateEFM and any(modelDoc.definesUTR for modelDoc in self.modelXbrl.urlDocs.values()))):
             ValidateUtr.validate(modelXbrl)
             modelXbrl.profileStat(_("validateUTR"))
             
