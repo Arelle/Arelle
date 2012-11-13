@@ -163,9 +163,9 @@ def loadModule(moduleInfo):
     moduleURL = moduleInfo['moduleURL']
     moduleFilename = webCache.getfilename(moduleURL, normalize=True)
     if moduleFilename:
-        try:
-            file, path, description = imp.find_module(os.path.basename(moduleFilename).partition('.')[0], [os.path.dirname(moduleFilename)])
-            if file:
+        file, path, description = imp.find_module(os.path.basename(moduleFilename).partition('.')[0], [os.path.dirname(moduleFilename)])
+        if file:
+            try:
                 module = imp.load_module(name, file, path, description)
                 pluginInfo = module.__pluginInfo__.copy()
                 if name == pluginInfo.get('name'):
@@ -191,14 +191,10 @@ def loadModule(moduleInfo):
                     module._ = _gettext
                     global pluginConfigChanged
                     pluginConfigChanged = True
-        except (ImportError, AttributeError):
-            pass
-        finally:
-            try:
-                if file:
-                    file.close()
-            except NameError:
+            except (ImportError, AttributeError):
                 pass
+            finally:
+                file.close()
 
 def pluginClassMethods(className):
     if pluginConfig:
