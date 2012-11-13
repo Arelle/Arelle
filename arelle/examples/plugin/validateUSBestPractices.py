@@ -104,6 +104,20 @@ def factCheck(val, fact):
     
     try:
         if fact.isNumeric and not fact.isNil and fact.xValue is not None:
+            # 2.3.3 additional unit tests beyond UTR spec
+            unit = fact.unit
+            if unit is not None and concept.type is not None and val.validateUTR:
+                typeName = concept.type.name
+                if typeName == "perUnitItemType" and any(m.namespaceURI == XbrlConst.iso4217 or
+                                                         m in (XbrlConst.qnXbrliPure, XbrlConst.qnXbrliShares)
+                                                         for m in unit.measures[1]):
+                    val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.3.3.perUnitItemType",
+                        _("PureItemType fact %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has disallowed unit denominator %(denominator)s"),
+                        modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                        value=fact.effectiveValue, denominator=", ".join((str(m) for m in unit.measures[1])))
+                        
+                                                            
+
             # 2.4.1 decimal disagreement
             if fact.decimals and fact.decimals != "INF":
                 vf = float(fact.value)

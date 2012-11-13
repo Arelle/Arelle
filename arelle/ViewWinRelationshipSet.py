@@ -186,7 +186,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.set(childnode, "abstract", '\u2713') # checkmark unicode character
             if isRelation:
                 self.treeView.set(childnode, "axis", modelObject.axisDisposition)
-                if isinstance(concept, (ModelEuAxisCoord,ModelRuleAxis)):
+                if isinstance(concept, (ModelEuAxisCoord,ModelRuleAxisNode)):
                     self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
                     self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
                                                                    for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
@@ -287,5 +287,5 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             return self.hasAncestor(self.treeView.parent(node), ancestor)
         return False
     
-from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelRuleAxis
+from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelRuleAxisNode
 from arelle.ModelFormulaObject import Aspect

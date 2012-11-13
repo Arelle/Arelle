@@ -264,7 +264,8 @@ qnEuTable = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
 qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
 # 2011 table linkbase
 table = "http://xbrl.org/2011/table"
-tableAxis = "http://xbrl.org/arcrole/2011/table-axis"
+tableBreakdown = "http://xbrl.org/arcrole/2011/table-breakdown"
+tableAxis2011 = "http://xbrl.org/arcrole/2011/table-axis"
 tableFilter = "http://xbrl.org/arcrole/2011/table-filter"
 tableAxisSubtree = "http://xbrl.org/arcrole/2011/axis-subtree"
 tableAxisSubtree2011 = "http://xbrl.org/arcrole/2011/axis/axis-subtree"
@@ -485,7 +486,7 @@ def isDimensionArcrole(arcrole):
 
 def isTableRenderingArcrole(arcrole):
     return arcrole in {euTableAxis, euAxisMember, 
-                       tableAxis, tableFilter, tableAxisSubtree, 
+                       tableBreakdown, tableAxis2011, tableFilter, tableAxisSubtree, 
                        tableAxisFilter, tableAxisFilter2011, 
                        tableTupleContent, tableTupleContent2011,
                        tableAxisSubtree2011, tableAxisFilter2011}

@@ -578,7 +578,7 @@ class ModelDocument:
             self.modelXbrl.hasXDT = True
         self.isQualifiedElementFormDefault = rootElement.get("elementFormDefault") == "qualified"
         self.isQualifiedAttributeFormDefault = rootElement.get("attributeFormDefault") == "qualified"
-        self.definesUTR = any(ns == XbrlConst.utr for ns in rootElement.nsmap.values())
+        # self.definesUTR = any(ns == XbrlConst.utr for ns in rootElement.nsmap.values())
         try:
             self.schemaDiscoverChildElements(rootElement)
         except (ValueError, LookupError) as err:

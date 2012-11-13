@@ -9,7 +9,7 @@ from tkinter import Menu, BooleanVar
 from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, Locale)
 from arelle.ModelValue import qname, QName
-from arelle.ViewUtilRenderedGrid import (getTblAxes, inheritedAspectValue)
+from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.FormulaEvaluator import aspectMatches
 
@@ -76,7 +76,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         tblMenuEntries = {}             
         tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
         for tblLinkroleUri in tblRelSet.linkRoleUris:
-            for tableAxisArcrole in (XbrlConst.euTableAxis, XbrlConst.tableAxis):
+            for tableAxisArcrole in (XbrlConst.euTableAxis, XbrlConst.tableBreakdown, XbrlConst.tableAxis2011):
                 tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, tblLinkroleUri)
                 if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
                     # table name
@@ -91,11 +91,12 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             break
         self.tablesMenu.delete(0, self.tablesMenuLength)
         self.tablesMenuLength = 0
+        self.tblELR = None
         for tblMenuEntry in sorted(tblMenuEntries.items()):
             tbl,elr = tblMenuEntry
             self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e))
             self.tablesMenuLength += 1
-            if not hasattr(self,"tblELR") or self.tblELR is None: 
+            if self.tblELR is None: 
                 self.tblELR = elr # start viewing first ELR
         
     def viewReloadDueToMenuAction(self, *args):
@@ -115,6 +116,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.loadTablesMenu()  # load menus (and initialize if first time
             viewTblELR = self.tblELR
             clearZchoices = self.zOrdinateChoices is None
+            
+        if not self.tblELR:
+            return  # no table to display
 
         if clearZchoices:
             self.zOrdinateChoices = {}
@@ -122,7 +126,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         # remove old widgets
         self.viewFrame.clearGrid()
 
-        tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = getTblAxes(self, viewTblELR) 
+        tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = resolveAxesStructure(self, viewTblELR) 
         
         if tblAxisRelSet:
             
@@ -167,7 +171,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     
             if zOrdCntx.choiceOrdinateContexts: # combo box
                 valueHeaders = [''.ljust(zChoiceOrdCntx.indent * 4) + # indent if nested choices 
-                                zChoiceOrdCntx.header(lang=self.lang)
+                                (zChoiceOrdCntx.header(lang=self.lang) or '')
                                 for zChoiceOrdCntx in zOrdCntx.choiceOrdinateContexts]
                 combobox = gridCombobox(
                              self.gridColHdr, self.dataFirstCol + 2, row,
@@ -195,7 +199,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             
     def onComboBoxSelected(self, *args):
         combobox = args[0].widget
-        self.zOrdinateChoices[combobox.zOrdCntx._axisObject] = \
+        self.zOrdinateChoices[combobox.zOrdCntx._axisNodeObject] = \
             combobox.zOrdCntx.choiceOrdinateIndex = combobox.valueIndex
         self.view() # redraw grid
             
@@ -241,6 +245,16 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         objectId=xOrdCntx.objectId(),
                         onClick=self.onClick)
                 if nonAbstract:
+                    for i, role in enumerate(self.colHdrNonStdRoles):
+                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, TOPBORDER)
+                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, sideBorder)
+                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, 
+                                xOrdCntx.header(role=role, lang=self.lang), 
+                                anchor="center",
+                                wraplength=100, # screen units
+                                objectId=xOrdCntx.objectId(),
+                                onClick=self.onClick)
+                    ''' was
                     if self.colHdrDocRow:
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, TOPBORDER)
                         gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, sideBorder)
@@ -260,6 +274,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 wraplength=100, # screen units
                                 objectId=xOrdCntx.objectId(),
                                 onClick=self.onClick)
+                    '''
                     gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, BOTTOMBORDER)
                     xOrdCntxs.append(xOrdCntx)
             if nonAbstract:
@@ -274,13 +289,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def yAxis(self, leftCol, row, yParentOrdCntx, childrenFirst, renderNow, atLeft):
         nestedBottomRow = row
         if atLeft:
-            gridBorder(self.gridRowHdr, self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol, 
+            gridBorder(self.gridRowHdr, self.rowHdrCols + len(self.rowHdrNonStdRoles), # was: self.rowHdrDocCol + self.rowHdrCodeCol, 
                        self.dataFirstRow, 
                        RIGHTBORDER, 
                        rowspan=self.dataRows)
             gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
                        BOTTOMBORDER, 
-                       columnspan=(self.rowHdrCols + self.rowHdrDocCol + self.rowHdrCodeCol))
+                       columnspan=(self.rowHdrCols + len(self.rowHdrNonStdRoles))) # was: self.rowHdrDocCol + self.rowHdrCodeCol))
         for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
             nestRow, nextRow = self.yAxis(leftCol + 1, row, yOrdCntx,  # nested items before totals
                                     childrenFirst, childrenFirst, False)
@@ -313,6 +328,18 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         objectId=yOrdCntx.objectId(),
                         onClick=self.onClick)
                 if isNonAbstract:
+                    for i, role in enumerate(self.rowHdrNonStdRoles):
+                        isCode = "code" in role
+                        docCol = self.dataFirstCol - len(self.rowHdrNonStdRoles) + i
+                        gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
+                        gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
+                        gridHdr(self.gridRowHdr, docCol, row, 
+                                yOrdCntx.header(role=role, lang=self.lang), 
+                                anchor="c" if isCode else "w",
+                                wraplength=40 if isCode else 100, # screen units
+                                objectId=yOrdCntx.objectId(),
+                                onClick=self.onClick)
+                    ''' was:
                     if self.rowHdrDocCol:
                         docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
                         gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
@@ -335,6 +362,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 objectId=yOrdCntx.objectId(),
                                 onClick=self.onClick)
                     # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                    '''
             if isNonAbstract:
                 row += 1
             elif childrenFirst:

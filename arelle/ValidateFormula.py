@@ -15,7 +15,7 @@ from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVaria
                                        ModelPrecondition, ModelConceptName, Trace,
                                        Aspect, aspectModels, ModelAspectCover,
                                        ModelMessage)
-from arelle.ModelRenderingObject import (ModelRuleAxis, ModelRelationshipAxis, ModelFilterAxis)
+from arelle.ModelRenderingObject import (ModelRuleAxisNode, ModelRelationshipAxisDefinition, ModelFilterAxisNode)
 from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
 from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs,
@@ -46,7 +46,13 @@ arcroleChecks = {
     XbrlConst.functionImplementation: (XbrlConst.qnCustomFunctionSignature,
                                       XbrlConst.qnCustomFunctionImplementation,
                                       "xbrlcfie:info"),
-    XbrlConst.tableAxis:            (XbrlConst.qnTableTable,
+    XbrlConst.tableBreakdown:       (XbrlConst.qnTableTable,
+                                     (XbrlConst.qnTablePredefinedAxis, 
+                                      XbrlConst.qnTableFilterAxis,
+                                      XbrlConst.qnTableSelectionAxis, 
+                                      XbrlConst.qnTableTupleAxis),
+                                     "xbrlte:info"),
+    XbrlConst.tableAxis2011:        (XbrlConst.qnTableTable,
                                      (XbrlConst.qnTablePredefinedAxis, 
                                       XbrlConst.qnTableFilterAxis,
                                       XbrlConst.qnTableSelectionAxis, 
@@ -950,19 +956,19 @@ def checkTableRules(val, xpathContext, table):
     # check for covering aspect not in variable set aspect model
     checkFilterAspectModel(val, table, table.filterRelationships, xpathContext)
 
-    checkAxisRules(val, table, table, XbrlConst.tableAxis, xpathContext)
+    checkAxisRules(val, table, table, (XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), xpathContext)
     
 def checkAxisRules(val, table, parent, arcrole, xpathContext):
     for rel in val.modelXbrl.relationshipSet(arcrole).fromModelObject(parent):
         axis = rel.toModelObject
         if axis is not None:
-            if isinstance(axis, ModelFilterAxis):
+            if isinstance(axis, ModelFilterAxisNode):
                 if not checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext):
                     val.modelXbrl.error("xbrlte:axisFilterCoversNoAspects",
                         _("FilterAxis %(xlinkLabel)s does not cover any aspects."),
                         modelObject=axis, xlinkLabel=axis.xlinkLabel)
             else:
-                if isinstance(axis, ModelRuleAxis):
+                if isinstance(axis, ModelRuleAxisNode):
                     # check dimension elements
                     for eltName, dim, badUsageErr in (("explicitDimension", "explicit", "xbrlfe:badUsageOfExplicitDimensionRule"),
                                                       ("typedDimension", "typed", "xbrlfe:badUsageOfTypedDimensionRule")):
@@ -1001,7 +1007,7 @@ def checkAxisRules(val, table, parent, arcrole, xpathContext):
                                            _("RuleAxis rule %(xlinkLabel)s contains a concept QName %(conceptQname)s which is not in the DTS."),
                                            modelObject=axis, xlinkLabel=axis.xlinkLabel, conceptQname=conceptQname)
                         
-                elif isinstance(axis, ModelRelationshipAxis):
+                elif isinstance(axis, ModelRelationshipAxisDefinition):
                     for qnameAttr in ("relationshipSourceQname", "arcQname", "linkQname", "dimensionQname"):
                         eltQname = axis.get(qnameAttr)
                         if eltQname and eltQname not in val.modelXbrl.qnameConcepts:  

@@ -196,18 +196,18 @@ class DisclosureSystem:
                 etree.clear_error_log()
 
     def loadMappings(self):
-            basename = os.path.basename(self.mappingsUrl)
-            self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
-            try:
-                xmldoc = etree.parse(self.mappingsUrl)
-                for elt in xmldoc.iter(tag="mapFile"):
-                    self.mappedFiles[elt.get("from")] = elt.get("to")
-                for elt in xmldoc.iter(tag="mapPath"):
-                    self.mappedPaths.append((elt.get("from"), elt.get("to")))
-            except (EnvironmentError,
-                    etree.LxmlError) as err:
-                self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
-                etree.clear_error_log()
+        basename = os.path.basename(self.mappingsUrl)
+        self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
+        try:
+            xmldoc = etree.parse(self.mappingsUrl)
+            for elt in xmldoc.iter(tag="mapFile"):
+                self.mappedFiles[elt.get("from")] = elt.get("to")
+            for elt in xmldoc.iter(tag="mapPath"):
+                self.mappedPaths.append((elt.get("from"), elt.get("to")))
+        except (EnvironmentError,
+                etree.LxmlError) as err:
+            self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
+            etree.clear_error_log()
 
     def uriAuthorityValid(self, uri):
         return UrlUtil.authority(uri) in self.standardAuthorities
