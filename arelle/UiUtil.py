@@ -481,9 +481,12 @@ class scrolledHeaderedFrame(Frame):
         #    self.conformHdrsToBody()
         interiorW = self.colHdrInterior.winfo_reqwidth()
         interiorH = self.colHdrInterior.winfo_reqheight()
-        self.colHdrCanvas.config(scrollregion=(0,0,interiorW,interiorH))
-        if interiorH != self.colHdrCanvas.winfo_height(): # update the canvas's width to fit the inner frame
-            self.colHdrCanvas.config(height=interiorH)
+        raiseHeight = interiorH != self.colHdrCanvas.winfo_height()
+        # tkinter bug, mac won't display col headers without setting height here and below
+        # 1 pixel higher, not needed on PC/linux
+        self.colHdrCanvas.config(height=interiorH, scrollregion=(0,0,interiorW,interiorH))
+        if raiseHeight: # update the canvas's width to fit the inner frame
+            self.colHdrCanvas.config(height=interiorH + 1)
         #if interiorH != self.tblHdrInterior.winfo_height():
         #    self.tblHdrInterior.tk.call( ('grid', 'rowconfigure', self.tblHdrInterior._w, 1, '-minsize', interiorH ) )
     def _configure_rowHdrInterior(self,event):
@@ -493,6 +496,7 @@ class scrolledHeaderedFrame(Frame):
         widenWidth = interiorW != self.rowHdrCanvas.winfo_width()
         # tkinter bug?  right side of row headers is clipped without setting it 1 pixel wider below
         # and then back on next configure event.  Would like to remove first config of width.
+        # also: mac won't display at all without this trick
         self.rowHdrCanvas.config(width=interiorW, scrollregion=(0,0,interiorW,interiorH))
         if widenWidth: # update the canvas's width to fit the inner frame
             self.rowHdrCanvas.config(width=interiorW + 1) # remove if tkinter issue gets solved

@@ -117,7 +117,7 @@ def analyzeHdrs(view, ordCntx, axisNodeObject, depth, axisDisposition, facts, i=
                     if axisNodeObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                         view.colHdrCodeRow = True
                 '''
-                hdrNonStdRoles = view.colHdrNonStdRoles
+            hdrNonStdRoles = view.colHdrNonStdRoles
         elif axisDisposition == "y":
             if ordDepth:
                 if not axisNodeObject.isAbstract:
@@ -141,7 +141,7 @@ def analyzeHdrs(view, ordCntx, axisNodeObject, depth, axisDisposition, facts, i=
                     if axisNodeObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                         view.rowHdrCodeCol = True
                 '''
-                hdrNonStdRoles = view.rowHdrNonStdRoles
+            hdrNonStdRoles = view.rowHdrNonStdRoles
         if axisDisposition in ("x", "y"):
             hdrNonStdPosition = -1  # where a match last occured
             for rel in view.modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(axisNodeObject):
