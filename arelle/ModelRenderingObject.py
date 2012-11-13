@@ -16,14 +16,14 @@ from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
 from arelle.PrototypeInstanceObject import FactPrototype
 
 def ordObjects(ords):
-    return [(ord.axisObject if isinstance(ord, OrdinateContext) else ord) for ord in ords]
+    return [(ord.axisNodeObject if isinstance(ord, StructuralOrdinateContext) else ord) for ord in ords]
 
 # table linkbase ordinate context for rendering
-class OrdinateContext:
-    def __init__(self, parentOrdinateContext, axisObject, zInheritance=None, contextItemFact=None):
+class StructuralOrdinateContext:
+    def __init__(self, parentOrdinateContext, axisNodeObject, zInheritance=None, contextItemFact=None):
         self.parentOrdinateContext = parentOrdinateContext
-        self._axisObject = axisObject
-        self._rendrCntx = getattr(axisObject.modelXbrl, "rendrCntx", None) # None for EU 2010 table linkbases
+        self._axisNodeObject = axisNodeObject
+        self._rendrCntx = getattr(axisNodeObject.modelXbrl, "rendrCntx", None) # None for EU 2010 table linkbases
         self.variables = {}
         self.aspects = {}
         self.subOrdinateContexts = []
@@ -41,26 +41,26 @@ class OrdinateContext:
             try:
                 return self.abstract # ordinate may have an abstract attribute
             except AttributeError: # if none use axis object
-                return self.axisObject.abstract == "true"
+                return self.axisNodeObject.abstract == "true"
         except AttributeError: # axis may never be abstract
             return False
         
     @property
     def cardinalityAndDepth(self):
-        return self.axisObject.cardinalityAndDepth(self)
+        return self.axisNodeObject.cardinalityAndDepth(self)
     
     @property
-    def axisObject(self):
+    def axisNodeObject(self):
         if self.choiceOrdinateContexts:
-            return self.choiceOrdinateContexts[getattr(self,"choiceOrdinateIndex",0)]._axisObject
-        return self._axisObject
+            return self.choiceOrdinateContexts[getattr(self,"choiceOrdinateIndex",0)]._axisNodeObject
+        return self._axisNodeObject
     
     def aspectsCovered(self):
-        return _DICT_SET(self.aspects.keys()) | self.axisObject.aspectsCovered()
+        return _DICT_SET(self.aspects.keys()) | self.axisNodeObject.aspectsCovered()
       
     def hasAspect(self, aspect, inherit=True):
         return (aspect in self.aspects or 
-                self.axisObject.hasAspect(aspect) or 
+                self.axisNodeObject.hasAspect(aspect) or 
                 (inherit and
                  self.parentOrdinateContext is not None and 
                  self.parentOrdinateContext.hasAspect(aspect)))
@@ -72,26 +72,26 @@ class OrdinateContext:
                 dims |= self.parentOrdinateContext.aspectValue(aspect, dims=dims)
             if aspect in self.aspects:
                 dims |= self.aspects[aspect]
-            elif self.axisObject.hasAspect(aspect):
-                dims |= set(self.axisObject.aspectValue(self._rendrCntx, aspect) or {})
-            if self.axisObject.hasAspect(Aspect.OMIT_DIMENSIONS):
-                dims -= set(self.axisObject.aspectValue(self._rendrCntx, Aspect.OMIT_DIMENSIONS))
+            elif self.axisNodeObject.hasAspect(aspect):
+                dims |= set(self.axisNodeObject.aspectValue(self._rendrCntx, aspect) or {})
+            if self.axisNodeObject.hasAspect(Aspect.OMIT_DIMENSIONS):
+                dims -= set(self.axisNodeObject.aspectValue(self._rendrCntx, Aspect.OMIT_DIMENSIONS))
             return dims
         if aspect in self.aspects:
             return self.aspects[aspect]
-        elif self.axisObject.hasAspect(aspect):
-            if isinstance(self._axisObject, ModelSelectionAxis):
+        elif self.axisNodeObject.hasAspect(aspect):
+            if isinstance(self._axisNodeObject, ModelSelectionAxisNode):
                 # result is in the indicated variable of ordCntx
-                return self.variables.get(self._axisObject.variableQname)
-            elif isinstance(self._axisObject, ModelFilterAxis):
+                return self.variables.get(self._axisNodeObject.variableQname)
+            elif isinstance(self._axisNodeObject, ModelFilterAxisNode):
                 if self.contextItemBinding:
                     return self.contextItemBinding.aspectValue(aspect)
-            elif isinstance(self._axisObject, ModelTupleAxis):
+            elif isinstance(self._axisNodeObject, ModelTupleAxisNode):
                 if aspect == Aspect.LOCATION and self.contextItemBinding:
                     return self.contextItemBinding.yieldedFact
                 # non-location tuple aspects don't leak into cell bindings
             else:
-                return self.axisObject.aspectValue(self._rendrCntx, aspect)
+                return self.axisNodeObject.aspectValue(self._rendrCntx, aspect)
         elif inherit and self.parentOrdinateContext is not None:
             return self.parentOrdinateContext.aspectValue(aspect)
         return None
@@ -101,34 +101,34 @@ class OrdinateContext:
     def primaryItemQname(self):  # for compatibility with viewRelationsihps
         if Aspect.CONCEPT in self.aspects:
             return self.aspects[Aspect.CONCEPT]
-        return self.axisObject.primaryItemQname
+        return self.axisNodeObject.primaryItemQname
         
     @property
     def explicitDims(self):
-        return self.axisObject.explicitDims
+        return self.axisNodeObject.explicitDims
     '''
         
     def objectId(self, refId=""):
-        return self._axisObject.objectId(refId)
+        return self._axisNodeObject.objectId(refId)
         
     def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True):
         # if ord is a nested selectionAxis selection, use selection-message or text contents instead of axis headers
-        isZSelection = isinstance(self._axisObject, ModelSelectionAxis) and hasattr(self, "zSelection")
+        isZSelection = isinstance(self._axisNodeObject, ModelSelectionAxisNode) and hasattr(self, "zSelection")
         if role is None:
             # check for message before checking for genLabel
-            msgsRelationshipSet = self._axisObject.modelXbrl.relationshipSet(
+            msgsRelationshipSet = self._axisNodeObject.modelXbrl.relationshipSet(
                     XbrlConst.tableAxisSelectionMessage if isZSelection else XbrlConst.tableAxisMessage)
             if msgsRelationshipSet:
-                msg = msgsRelationshipSet.label(self._axisObject, XbrlConst.standardMessage, lang, returnText=False)
+                msg = msgsRelationshipSet.label(self._axisNodeObject, XbrlConst.standardMessage, lang, returnText=False)
                 if msg is not None:
                     if evaluate:
                         return self.evaluate(msg, msg.evaluate)
                     else:
                         return XmlUtil.text(msg)
         if isZSelection: # no message, return text of selection
-            return self.variables.get(self._axisObject.variableQname, "selection")
+            return self.variables.get(self._axisNodeObject.variableQname, "selection")
         if returnGenLabel:
-            return self._axisObject.genLabel(role=role, lang=lang)
+            return self._axisNodeObject.genLabel(role=role, lang=lang)
         return None
     
     def evaluate(self, evalObject, evalMethod, otherOrdinate=None, evalArgs=()):
@@ -170,17 +170,17 @@ class OrdinateContext:
         return result
     
     def hasValueExpression(self, otherOrdinate=None):
-        return (self.axisObject.hasValueExpression or 
-                (otherOrdinate is not None and otherOrdinate.axisObject.hasValueExpression))
+        return (self.axisNodeObject.hasValueExpression or 
+                (otherOrdinate is not None and otherOrdinate.axisNodeObject.hasValueExpression))
     
     def evalValueExpression(self, fact, otherOrdinate=None):
         for ordinate in (self, otherOrdinate):
-            if ordinate is not None and ordinate.axisObject.hasValueExpression:
-                return self.evaluate(self.axisObject, ordinate.axisObject.evalValueExpression, otherOrdinate=otherOrdinate, evalArgs=(fact,))
+            if ordinate is not None and ordinate.axisNodeObject.hasValueExpression:
+                return self.evaluate(self.axisNodeObject, ordinate.axisNodeObject.evalValueExpression, otherOrdinate=otherOrdinate, evalArgs=(fact,))
         return None
             
     def __repr__(self):
-        return ("ordinateContext[{0}]{1})".format(self.objectId(),self.axisObject))
+        return ("ordinateContext[{0}]{1})".format(self.objectId(),self.axisNodeObject))
         
 # Root class for rendering is formula, to allow linked and nested compiled expressions
 
@@ -347,7 +347,7 @@ class ModelTable(ModelFormulaResource):
 
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableFilter, XbrlConst.tableAxis)
+        return (XbrlConst.tableFilter, XbrlConst.tableBreakdown, XbrlConst.tableAxis2011)
                 
     @property
     def filterRelationships(self):
@@ -374,9 +374,9 @@ class ModelTable(ModelFormulaResource):
     def __repr__(self):
         return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
 
-class ModelOpenAxis(ModelFormulaResource):
+class ModelOpenAxisNodeDefinition(ModelFormulaResource):
     def init(self, modelDocument):
-        super(ModelOpenAxis, self).init(modelDocument)
+        super(ModelOpenAxisNodeDefinition, self).init(modelDocument)
     
     @property
     def parentOrdinateContext(self):
@@ -424,7 +424,7 @@ class ModelOpenAxis(ModelFormulaResource):
             value = self.valueExpression
             self.valueProg = XPathParser.parse(self, value, self, "value", Trace.VARIABLE)
         # duplicates formula resource for RuleAxis but not for other subclasses
-        super(ModelOpenAxis, self).compile()
+        super(ModelOpenAxisNodeDefinition, self).compile()
         
     def evalValueExpression(self, xpCtx, fact):
         # compiled by FormulaResource compile()
@@ -468,9 +468,9 @@ class ModelOpenAxis(ModelFormulaResource):
     def ordinateView(self):        
         return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
     
-class ModelPredefinedAxis(ModelOpenAxis):
+class ModelClosedAxisNodeDefinition(ModelOpenAxisNodeDefinition):
     def init(self, modelDocument):
-        super(ModelPredefinedAxis, self).init(modelDocument)
+        super(ModelClosedAxisNodeDefinition, self).init(modelDocument)
         
     @property
     def abstract(self):
@@ -499,9 +499,9 @@ class ModelPredefinedAxis(ModelOpenAxis):
                    for fact in facts
                    if aspectsMatch(xpCtx, fact, fp, aspects))
 
-class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
+class ModelRuleAxisNode(ModelFormulaRules, ModelClosedAxisNodeDefinition):
     def init(self, modelDocument):
-        super(ModelRuleAxis, self).init(modelDocument)
+        super(ModelRuleAxisNode, self).init(modelDocument)
         self._locationSourceVar = self.source(Aspect.LOCATION_RULE, acceptFormulaSource=False)
         self._locationAspectCovered = set()
         if self._locationSourceVar: self._locationAspectCovered.add(Aspect.LOCATION) # location is parent (tuple), not sibling
@@ -512,10 +512,13 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
         return self.hasRule(aspect)
     
     def aspectValue(self, xpCtx, aspect, inherit=None):
-        if xpCtx is None: xpCtx = self.modelXbrl.rendrCntx
-        if aspect == Aspect.LOCATION and self._locationSourceVar in xpCtx.inScopeVars:
-            return xpCtx.inScopeVars[self._locationSourceVar]
-        return self.evaluateRule(xpCtx, aspect)
+        try:
+            if xpCtx is None: xpCtx = self.modelXbrl.rendrCntx
+            if aspect == Aspect.LOCATION and self._locationSourceVar in xpCtx.inScopeVars:
+                return xpCtx.inScopeVars[self._locationSourceVar]
+            return self.evaluateRule(xpCtx, aspect)
+        except AttributeError:
+            return '(unavailable)'  # table defective or not initialized
     
     def aspectValueDependsOnVars(self, aspect):
         return aspect in _DICT_SET(self.aspectProgs.keys()) or aspect in self._locationAspectCovered
@@ -577,9 +580,9 @@ class ModelRuleAxis(ModelFormulaRules, ModelPredefinedAxis):
     def __repr__(self):
         return ("explicitAxisMember[{0}]{1})".format(self.objectId(),self.propertyView))
 
-class ModelTupleAxis(ModelRuleAxis):
+class ModelTupleAxisNode(ModelRuleAxisNode):
     def init(self, modelDocument):
-        super(ModelTupleAxis, self).init(modelDocument)
+        super(ModelTupleAxisNode, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):        
@@ -611,17 +614,17 @@ class ModelTupleAxis(ModelRuleAxis):
                    for fact in facts
                    if fact.isTuple and aspectsMatch(xpCtx, fact, fp, aspects))
 
-class ModelCompositionAxis(ModelPredefinedAxis):
+class ModelCompositionAxisNode(ModelClosedAxisNodeDefinition):
     def init(self, modelDocument):
-        super(ModelCompositionAxis, self).init(modelDocument)
+        super(ModelCompositionAxisNode, self).init(modelDocument)
         
     @property
     def abstract(self):  # always abstract, no filters, no data
         return 'true'
 
-class ModelRelationshipAxis(ModelPredefinedAxis):
+class ModelRelationshipAxisDefinition(ModelClosedAxisNodeDefinition):
     def init(self, modelDocument):
-        super(ModelRelationshipAxis, self).init(modelDocument)
+        super(ModelRelationshipAxisDefinition, self).init(modelDocument)
         
     def aspectsCovered(self):
         return {Aspect.CONCEPT}
@@ -683,13 +686,13 @@ class ModelRelationshipAxis(ModelPredefinedAxis):
             self.linkroleExpressionProg = XPathParser.parse(self, self.linkroleExpression, self, "linkroleQnameExpressionProg", Trace.VARIABLE)
             self.axisExpressionProg = XPathParser.parse(self, self.axisExpression, self, "axisExpressionProg", Trace.VARIABLE)
             self.generationsExpressionProg = XPathParser.parse(self, self.generationsExpression, self, "generationsExpressionProg", Trace.VARIABLE)
-            super(ModelRelationshipAxis, self).compile()
+            super(ModelRelationshipAxisDefinition, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         if self.relationshipSourceQname and self.relationshipSourceQname != XbrlConst.qnXfiRoot:
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.relationshipSourceQname)
-        return super(ModelRelationshipAxis, self).variableRefs(
+        return super(ModelRelationshipAxisDefinition, self).variableRefs(
                                                 [p for p in (self.relationshipSourceQnameExpressionProg,
                                                              self.linkroleExpressionProg, self.axisExpressionProg,
                                                              self.generationsExpressionProg)
@@ -750,9 +753,9 @@ class ModelRelationshipAxis(ModelPredefinedAxis):
     def __repr__(self):
         return ("explicitAxisMember[{0}]{1})".format(self.objectId(),self.propertyView))
     
-class ModelConceptRelationshipAxis(ModelRelationshipAxis):
+class ModelConceptRelationshipAxisNode(ModelRelationshipAxisDefinition):
     def init(self, modelDocument):
-        super(ModelConceptRelationshipAxis, self).init(modelDocument)
+        super(ModelConceptRelationshipAxisNode, self).init(modelDocument)
     
     def hasAspect(self, aspect):
         return aspect == Aspect.CONCEPT
@@ -781,10 +784,10 @@ class ModelConceptRelationshipAxis(ModelRelationshipAxis):
             self.arcroleExpressionProg = XPathParser.parse(self, self.arcroleExpression, self, "arcroleExpressionProg", Trace.VARIABLE)
             self.linkQnameExpressionProg = XPathParser.parse(self, self.linkQnameExpression, self, "linkQnameExpressionProg", Trace.VARIABLE)
             self.arcQnameExpressionProg = XPathParser.parse(self, self.arcQnameExpression, self, "arcQnameExpressionProg", Trace.VARIABLE)
-            super(ModelConceptRelationshipAxis, self).compile()
+            super(ModelConceptRelationshipAxisNode, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(ModelConceptRelationshipAxis, self).variableRefs(
+        return super(ModelConceptRelationshipAxisNode, self).variableRefs(
                                                 [p for p in (self.arcroleExpressionProg,
                                                              self.linkQnameExpressionProg, self.arcQnameExpressionProg)
                                                  if p], varRefSet)
@@ -840,9 +843,9 @@ class ModelConceptRelationshipAxis(ModelRelationshipAxis):
                                       arcQname),
                                      True) # return nested lists representing concept tree nesting
     
-class ModelDimensionRelationshipAxis(ModelRelationshipAxis):
+class ModelDimensionRelationshipAxisNode(ModelRelationshipAxisDefinition):
     def init(self, modelDocument):
-        super(ModelDimensionRelationshipAxis, self).init(modelDocument)
+        super(ModelDimensionRelationshipAxisNode, self).init(modelDocument)
     
     def hasAspect(self, aspect):
         return aspect == self.coveredAspect() or aspect == Aspect.DIMENSIONS
@@ -869,10 +872,10 @@ class ModelDimensionRelationshipAxis(ModelRelationshipAxis):
     def compile(self):
         if not hasattr(self, "dimensionQnameExpressionProg"):
             self.dimensionQnameExpressionProg = XPathParser.parse(self, self.dimensionQnameExpression, self, "dimensionQnameExpressionProg", Trace.VARIABLE)
-            super(ModelDimensionRelationshipAxis, self).compile()
+            super(ModelDimensionRelationshipAxisNode, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(ModelDimensionRelationshipAxis, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
+        return super(ModelDimensionRelationshipAxisNode, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
 
     def evalDimensionQname(self, xpCtx, fact=None):
         if self.dimensionQname:
@@ -938,9 +941,9 @@ coveredAspectToken = {"concept": Aspect.CONCEPT,
                       "period-instant": Aspect.INSTANT, "period-instant-end": Aspect.INSTANT_END, 
                       "unit": Aspect.UNIT}
 
-class ModelSelectionAxis(ModelOpenAxis):
+class ModelSelectionAxisNode(ModelOpenAxisNodeDefinition):
     def init(self, modelDocument):
-        super(ModelSelectionAxis, self).init(modelDocument)
+        super(ModelSelectionAxisNode, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):        
@@ -948,7 +951,7 @@ class ModelSelectionAxis(ModelOpenAxis):
         
     def clear(self):
         XPathParser.clearNamedProg(self, "selectProg")
-        super(ModelSelectionAxis, self).clear()
+        super(ModelSelectionAxisNode, self).clear()
     
     def coveredAspect(self, ordCntx=None):
         try:
@@ -974,10 +977,10 @@ class ModelSelectionAxis(ModelOpenAxis):
     def compile(self):
         if not hasattr(self, "selectProg"):
             self.selectProg = XPathParser.parse(self, self.select, self, "select", Trace.PARAMETER)
-            super(ModelSelectionAxis, self).compile()
+            super(ModelSelectionAxisNode, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(ModelSelectionAxis, self).variableRefs(self.selectProg, varRefSet)
+        return super(ModelSelectionAxisNode, self).variableRefs(self.selectProg, varRefSet)
         
     def evaluate(self, xpCtx, typeQname=None):
         if typeQname:
@@ -985,9 +988,9 @@ class ModelSelectionAxis(ModelOpenAxis):
         else:
             return xpCtx.flattenSequence(xpCtx.evaluate(self.selectProg, None))
             
-class ModelFilterAxis(ModelOpenAxis):
+class ModelFilterAxisNode(ModelOpenAxisNodeDefinition):
     def init(self, modelDocument):
-        super(ModelFilterAxis, self).init(modelDocument)
+        super(ModelFilterAxisNode, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):        
@@ -1042,13 +1045,13 @@ elementSubstitutionModelClass.update((
     (XbrlConst.qnEuTable, ModelEuTable),
     (XbrlConst.qnEuAxisCoord, ModelEuAxisCoord),
     (XbrlConst.qnTableTable, ModelTable),
-    (XbrlConst.qnTableRuleAxis, ModelRuleAxis),
-    (XbrlConst.qnTableCompositionAxis, ModelCompositionAxis),
-    (XbrlConst.qnTableConceptRelationshipAxis, ModelConceptRelationshipAxis),
-    (XbrlConst.qnTableDimensionRelationshipAxis, ModelDimensionRelationshipAxis),
-    (XbrlConst.qnTableSelectionAxis, ModelSelectionAxis),
-    (XbrlConst.qnTableFilterAxis, ModelFilterAxis),
-    (XbrlConst.qnTableTupleAxis, ModelTupleAxis),
+    (XbrlConst.qnTableRuleAxis, ModelRuleAxisNode),
+    (XbrlConst.qnTableCompositionAxis, ModelCompositionAxisNode),
+    (XbrlConst.qnTableConceptRelationshipAxis, ModelConceptRelationshipAxisNode),
+    (XbrlConst.qnTableDimensionRelationshipAxis, ModelDimensionRelationshipAxisNode),
+    (XbrlConst.qnTableSelectionAxis, ModelSelectionAxisNode),
+    (XbrlConst.qnTableFilterAxis, ModelFilterAxisNode),
+    (XbrlConst.qnTableTupleAxis, ModelTupleAxisNode),
      ))
 
 # import after other modules resolved to prevent circular references

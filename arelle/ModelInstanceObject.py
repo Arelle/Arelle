@@ -947,6 +947,16 @@ class ModelContext(ModelObject):
                   if self.qnameDims else (),
                 ))
 
+    def __repr__(self):
+        return ("modelContext[{0}, period: {1}, {2}{3} line {4}]"
+                .format(self.id,
+                        "forever" if self.isForeverPeriod else
+                        "instant " + str(self.instantDatetime) if self.isInstantPeriod else
+                        "duration " + str(self.startDatetime) + " - " + str(self.endDatetime),
+                        "dimensions: ({0}) {1},".format(len(self.qnameDims),
+                        tuple(mem.propertyView for dim,mem in sorted(self.qnameDims.items())))
+                        if self.qnameDims else "",
+                        self.modelDocument.basename, self.sourceline))
 
 class ModelDimensionValue(ModelObject):
     """

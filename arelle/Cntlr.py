@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from arelle import PythonUtil # define 2.x or 3.x string types
-import tempfile, os, io, sys, logging, gettext, json, re
+import tempfile, os, io, sys, logging, gettext, json, re, subprocess
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 from arelle import PluginManager
@@ -384,7 +384,11 @@ class Cntlr:
                 if osPrcs is None:
                     import win32process as osPrcs
                 return osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize'] / 1024
-            else: # unix
+            elif sys.platform == "sunos5": # ru_maxrss is broken on sparc
+                if osPrcs is None:
+                    import resource as osPrcs
+                return int(subprocess.getoutput("ps -p {0} -o rss".format(os.getpid())).rpartition('\n')[2])
+            else: # unix or linux where ru_maxrss works
                 import resource as osPrcs
                 return osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss # in KB
         except Exception:

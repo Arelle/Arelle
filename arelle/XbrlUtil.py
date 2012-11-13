@@ -115,7 +115,10 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
             try:
                 if excludeIDs and modelAttribute.xValid == XmlValidate.VALID_ID:
                     continue
-                value = modelAttribute.sValue if equalMode <= S_EQUAL2 else modelAttribute.xValue
+                if modelAttribute.xValid != XmlValidate.UNKNOWN:
+                    value = modelAttribute.sValue if equalMode <= S_EQUAL2 else modelAttribute.xValue
+                else: # unable to validate, no schema definition, use string value of attribute
+                    value = modelAttribute.text
                 if distinguishNaNs and isinstance(value,float) and math.isnan(value):
                     value = (value,elt)
                 attrs[qname] = value

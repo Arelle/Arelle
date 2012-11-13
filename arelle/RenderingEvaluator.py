@@ -6,7 +6,7 @@ Created on Jun 6, 2012
 '''
 from arelle import (XPathContext, XbrlConst)
 from arelle.ModelFormulaObject import (aspectModels, Aspect)
-from arelle.ModelRenderingObject import (ModelRuleAxis, ModelDimensionRelationshipAxis)
+from arelle.ModelRenderingObject import (ModelRuleAxisNode, ModelDimensionRelationshipAxisNode)
 from arelle.ModelValue import (QName)
 
 def init(modelXbrl):
@@ -23,7 +23,7 @@ def init(modelXbrl):
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and XbrlConst.isTableRenderingArcrole(arcrole):
             ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
-            if arcrole == XbrlConst.tableAxis:
+            if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableAxis2011):
                 hasXbrlTables = True
 
     # provide context for view
@@ -66,7 +66,7 @@ def init(modelXbrl):
                 # check ordinate aspects against aspectModel
                 oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
                 uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[modelTable.aspectModel]
-                for tblAxisRel in modelXbrl.relationshipSet(XbrlConst.tableAxis).fromModelObject(modelTable):
+                for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011)).fromModelObject(modelTable):
                     checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects)
                 del modelTable.priorAspectAxisDisposition
     
@@ -93,7 +93,7 @@ def checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects):
                     aspect=str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect])
         else:
             modelTable.priorAspectAxisDisposition[aspect] = tblAxisDisposition
-    if isinstance(tblAxis, ModelDimensionRelationshipAxis):
+    if isinstance(tblAxis, ModelDimensionRelationshipAxisNode):
         hasCoveredAspect = True
         if modelTable.aspectModel == 'non-dimensional':
             modelXbrl.error("xbrlte:axisAspectModelMismatch",

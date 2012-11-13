@@ -6,7 +6,7 @@ Created on Sep 13, 2011
 '''
 from arelle import ViewFile
 from lxml import etree
-from arelle.ViewUtilRenderedGrid import (getTblAxes, inheritedAspectValue)
+from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
 from arelle.ViewFile import HTML, XML
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.FormulaEvaluator import aspectMatches
@@ -66,7 +66,7 @@ class ViewRenderedGrid(ViewFile.View):
             self.zOrdinateChoices = {}
             
             for discriminator in range(1, 65535):
-                tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = getTblAxes(self, tblELR) 
+                tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = resolveAxesStructure(self, tblELR) 
                 
                 if tblAxisRelSet and self.tblElt is not None:
                     if self.type == HTML: # table on each Z
@@ -103,12 +103,12 @@ class ViewRenderedGrid(ViewFile.View):
                         # new y,x cells on each Z combination
                         if yOrdCntx.subOrdinateContexts: # no row header element if no rows
                             self.rowHdrElts = [etree.SubElement(hdrsElts["y"], "{http://xbrl.org/2012/table/model}header")
-                                               for i in range(self.rowHdrCols - 1 + self.rowHdrDocCol + self.rowHdrCodeCol)]
+                                               for i in range(self.rowHdrCols - 1 + len(self.rowHdrNonStdRoles))] # self.rowHdrDocCol + self.rowHdrCodeCol)]
                         else:
                             hdrsElts["y"].append(etree.Comment("no rows in this table"))
                         if xOrdCntx.subOrdinateContexts: # no col header element if no cols
                             self.colHdrElts = [etree.SubElement(hdrsElts["x"], "{http://xbrl.org/2012/table/model}header")
-                                               for i in range(self.colHdrRows - 1 + self.colHdrDocRow + self.colHdrCodeRow)]
+                                               for i in range(self.colHdrRows - 1 + len(self.colHdrNonStdRoles))] # self.colHdrDocRow + self.colHdrCodeRow)]
                         else:
                             hdrsElts["x"].append(etree.Comment("no columns in this table"))
                         self.zCells = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}cells",
@@ -136,12 +136,12 @@ class ViewRenderedGrid(ViewFile.View):
                                             yOrdCntx, self.yAxisChildrenFirst.get(), True, True)
                         for ordCntx,elt in self.ordCntxElts: # must do after elements are all arragned
                             elt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
-                                                          .format(ordCntx._axisObject.localName,
-                                                                  ordCntx._axisObject.xlinkLabel,
-                                                                  ordCntx._axisObject.modelDocument.basename, 
-                                                                  ordCntx._axisObject.sourceline)))
-                            if ordCntx._axisObject.get('value'):
-                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._axisObject.get('value'))))
+                                                          .format(ordCntx._axisNodeObject.localName,
+                                                                  ordCntx._axisNodeObject.xlinkLabel,
+                                                                  ordCntx._axisNodeObject.modelDocument.basename, 
+                                                                  ordCntx._axisNodeObject.sourceline)))
+                            if ordCntx._axisNodeObject.get('value'):
+                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._axisNodeObject.get('value'))))
                             for aspect in sorted(ordCntx.aspectsCovered(), key=lambda a: aspectStr(a)):
                                 if ordCntx.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
                                     aspectValue = ordCntx.aspectValue(aspect)
@@ -157,12 +157,12 @@ class ViewRenderedGrid(ViewFile.View):
                     currentIndex = zOrdWithChoice.choiceOrdinateIndex + 1
                     if currentIndex < len(zOrdWithChoice.choiceOrdinateContexts):
                         zOrdWithChoice.choiceOrdinateIndex = currentIndex
-                        self.zOrdinateChoices[zOrdWithChoice._axisObject] = currentIndex
+                        self.zOrdinateChoices[zOrdWithChoice._axisNodeObject] = currentIndex
                         moreDiscriminators = True
                         break
                     else:
                         zOrdWithChoice.choiceOrdinateIndex = 0
-                        self.zOrdinateChoices[zOrdWithChoice._axisObject] = 0
+                        self.zOrdinateChoices[zOrdWithChoice._axisNodeObject] = 0
                         # continue incrementing next outermore z choices index
                 if not moreDiscriminators:
                     break
@@ -213,14 +213,16 @@ class ViewRenderedGrid(ViewFile.View):
                         if discriminatorsTable:
                             for choiceOrdCntx in zOrdCntx.choiceOrdinateContexts:
                                 choiceLabel = choiceOrdCntx.header(lang=self.lang)
-                                etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
-                                                 ).text = choiceLabel
+                                elt = etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label")
+                                if choiceLabel:
+                                    elt.text = choiceLabel
                         #else: # choiceLabel from above 
                         #    etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
                         #                     ).text = choiceLabel
                     else: # no combo choices, single label
-                        etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
-                                         ).text = label
+                        elt = etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label")
+                        if label:
+                            elt.text = label
                 else:
                     if choiceLabel: # same as combo box selection in GUI mode
                         comment = etree.Comment("Z axis {0}: {1}".format(label, choiceLabel))
@@ -313,6 +315,18 @@ class ViewRenderedGrid(ViewFile.View):
                                 self.rowElts[topRow].append(elt)
                             else:
                                 self.rowElts[topRow].insert(leftCol,elt)
+                    for i, role in enumerate(self.colHdrNonStdRoles):
+                        hdr = xOrdCntx.header(role=role, lang=self.lang)
+                        if self.type == HTML:
+                            elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                attrib={"class":"xAxisHdr",
+                                                        "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
+                            self.rowElts[self.dataFirstRow - 1 - len(self.rowHdrNonStdRoles) + i].insert(thisCol,elt)
+                        elif self.type == XML:
+                            elt = etree.Element("{http://xbrl.org/2012/table/model}label")
+                            self.colHdrElts[self.colHdrRows - 1 + i].insert(thisCol,elt)
+                        elt.text = hdr or "\u00A0"
+                    '''
                     if self.colHdrDocRow:
                         doc = xOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
                         if self.type == HTML:
@@ -335,6 +349,7 @@ class ViewRenderedGrid(ViewFile.View):
                             elt = etree.Element("{http://xbrl.org/2012/table/model}label")
                             self.colHdrElts[self.colHdrRows - 1 + self.colHdrDocRow].insert(thisCol,elt)
                         elt.text = code or "\u00A0"
+                    '''
                     xOrdCntxs.append(xOrdCntx)
             if nonAbstract:
                 rightCol += 1
@@ -408,6 +423,14 @@ class ViewRenderedGrid(ViewFile.View):
                                                  "rowspan": str(nestRow - hdrRow)}
                                          ).text = "\u00A0"
                     hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
+                    for i, role in enumerate(self.rowHdrNonStdRoles):
+                        hdr = yOrdCntx.header(role=role, lang=self.lang)
+                        etree.SubElement(self.rowElts[hdrRow - 1], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":hdrClass,
+                                                 "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
+                                         ).text = hdr or "\u00A0"
+                    '''
                     if self.rowHdrDocCol:
                         docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
                         doc = yOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation")
@@ -425,6 +448,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                  "style":"text-align:center;max-width:40pt;{0}".format(edgeBorder)}
                                          ).text = code or "\u00A0"
                     # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                    '''
                 else:
                     self.rowElts[hdrRow-1].insert(leftCol - 1, elt)
             if isNonAbstract:
@@ -465,6 +489,12 @@ class ViewRenderedGrid(ViewFile.View):
                                               attrib={"rollup":"true"})
                     self.rowHdrElts[rollUpCol].append(rollUpElt)
                 if isNonAbstract:
+                    for i, role in enumerate(self.rowHdrNonStdRoles):
+                        elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                            attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                        elt.text = yOrdCntx.header(role=role, lang=self.lang)
+                        self.rowHdrElts[self.rowHdrCols - 1 + i].append(elt)
+                    '''
                     if self.rowHdrDocCol:
                         elt = etree.Element("{http://xbrl.org/2012/table/model}label",
                                             attrib={"span": str(rowspan)} if rowspan > 1 else None)
@@ -477,6 +507,7 @@ class ViewRenderedGrid(ViewFile.View):
                         elt.text = yOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code",
                                                    lang=self.lang)
                         self.rowHdrElts[self.rowHdrCols - 1 + self.rowHdrDocCol].append(elt)
+                    '''
             if isNonAbstract:
                 row += 1
             elif childrenFirst:

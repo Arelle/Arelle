@@ -186,6 +186,7 @@ class ValidateXbrlCalcs:
                     for ancestor in ancestors:
                         # tbd: uniqify context and unit
                         context = self.mapContext.get(f.context,f.context)
+                        # must use nonDimAwareHash to achieve s-equal comparison of contexts
                         contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
                         unit = self.mapUnit.get(f.unit,f.unit)
                         calcKey = (concept, ancestor, contextHash, unit)
