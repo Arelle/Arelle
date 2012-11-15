@@ -439,6 +439,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         modelDiffReport = None
         success = True
         modelXbrl = None
+        for pluginXbrlMethod in pluginClassMethods("ModelManager.load"):
+            pluginXbrlMethod(self)
         try:
             modelXbrl = self.modelManager.load(filesource, _("views loading"))
         except ModelDocument.LoadingException:
@@ -477,6 +479,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try:
                 diffFilesource = FileSource.FileSource(options.diffFile,self)
                 startedAt = time.time()
+                for pluginXbrlMethod in pluginClassMethods("ModelManager.load"):
+                    pluginXbrlMethod(self, self.modelManager)
                 modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))
                 if modelXbrl2.errors:
                     if not options.keepOpen:

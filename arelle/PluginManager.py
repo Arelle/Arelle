@@ -8,6 +8,7 @@ based on pull request 4
 
 '''
 import os, sys, types, time, ast, imp, io, json, gettext
+from arelle.CntlrQuickBooks import cntlr
 from arelle.Locale import getLanguageCodes
 try:
     from collections import OrderedDict
@@ -195,7 +196,8 @@ def loadModule(moduleInfo):
                         module._ = _gettext
                         global pluginConfigChanged
                         pluginConfigChanged = True
-                except (ImportError, AttributeError):
+                except (ImportError, AttributeError) as e:
+                    print("Cannot load plugin {plugin}: {e} ".format(plugin=moduleInfo['name'], e=e))
                     pass
                 finally:
                     file.close()
