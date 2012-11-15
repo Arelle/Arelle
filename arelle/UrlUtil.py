@@ -31,7 +31,7 @@ def authority(url, includeScheme=True):
 
 absoluteUrlPattern = None
 # http://www.ietf.org/rfc/rfc2396.txt section 2.4.3
-excludedUrlCharacterPattern = re.compile('[\x00-\x1f\x20\x7f<>"]|#.*#')
+excludedUrlCharacterPattern = re.compile('[\x00-\x1f\x20\x7f<>"]|#.*#|%$|%.$|%[^0-9a-fA-F]|%.[^0-9a-fA-F]')
 # http://www.ietf.org/rfc/rfc2396.txt section 4.3
 # this pattern doesn't allow some valid unicode characters
 #relativeUrlPattern = re.compile(r"(^[/:\.+-_@%;?&=!~\*'\(\)\w ]+(#[\w_%\-\.\(/\)]+)?$)|(^#[\w_%\-\.\(/\)]+$)")
