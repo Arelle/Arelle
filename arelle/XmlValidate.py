@@ -269,6 +269,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         raise ValueError("IETF RFC 2396 4.3 syntax")
                     if UrlUtil.excludedUrlCharacterPattern.search(xValue) is not None:
                         raise ValueError("IETF RFC 2396 2.4.3 excluded character")
+                    # some interpretations require encoding nonASCII characters into xValue
             elif not value: # rest of types get None if nil/empty value
                 xValue = sValue = None
             elif baseXsdType in ("decimal", "float", "double"):
