@@ -25,9 +25,17 @@ try:
 except ImportError:
     import urllib.request as urllib
 
+# defined __STR_BASE
+from arelle import PythonUtil
 from arelle import ModelManager
 
-__author__ = 'Régis Décamps'
+__author__ = 'R\u00e9gis D\u00e9camps'
+__copyright__ = "Copyright 2012, Autorit\u00e9 de contr\u00f4le prudentiel"
+__credits__ = ["Chris Moyer"]
+__license__ = "Apache-2"
+__version__ = "0.1"
+__email__ = "regis.decamps@banque-france.fr"
+__status__ = "Development"
 
 def google_analytics_plugin(controller):
     """
@@ -50,19 +58,20 @@ def ga_decorated(ga, func):
         This wrapper precedes a function call with a call to Google ga.
         """
         # Call (async?) Google ga before the function is executed
-        ga_function(ga, "{module}.{name}".format(module=func.__module__, name=func.__name__))
+        ga_function(ga, func)
 
         func(*args, **kwargs)
 
     return wrapper
 
 
-def ga_function(ga, function_name):
+def ga_function(ga, function):
     """
     Track the invocation of a function.
     """
     # TODO This returns a GIF image and I have no idea what I should do of it
-    ga.trackEvent('function', function_name)
+    # ga.trackPage(url, ip, title, value)
+    ga.trackPageview(function.__module__, None, function.__name__, "")
 
 # Manigest for this plugin
 __pluginInfo__ = {
@@ -77,7 +86,7 @@ __pluginInfo__ = {
     'ModelManager.load': google_analytics_plugin
 }
 
-# This module comes from https://bitbucket.org/cmoyer/pyga
+# This module comes from https://bitbucket.org/cmoyer/pyga/src/b17332438b6f/ga/tracker.py
 class GATracker(object):
     """Google Analytics Tracker
     Much thanks to http://www.vdgraaf.info/google-ga-without-javascript.html
