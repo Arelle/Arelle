@@ -6,10 +6,10 @@ Created on Nov 9, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import ViewWinTree
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelVersObject import ModelRelationshipSetChange, ModelInstanceAspectsChange
+from arelle.gui import ViewWinTree
 
 def viewVersReport(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing versioning report"))

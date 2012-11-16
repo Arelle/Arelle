@@ -9,8 +9,8 @@ try:
     from tkinter.ttk import Frame, Button, Label, Entry
 except ImportError:
     from ttk import Frame, Button, Label, Entry
-from arelle.CntlrWinTooltip import ToolTip
-from arelle.UiUtil import (checkbox)
+from arelle.gui.CntlrWinTooltip import ToolTip
+from arelle.gui.UiUtil import (checkbox)
 import re, sys
 
 '''

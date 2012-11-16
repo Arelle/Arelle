@@ -5,13 +5,14 @@ Created on Feb 6, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
+from arelle.gui import ViewWinList
+
 try:
     from tkinter.ttk import *
 except ImportError:
     from ttk import *
-from arelle.CntlrWinTooltip import ToolTip
 import io
-from arelle import (XmlUtil, ViewWinList)
+from arelle import (XmlUtil )
 
 def viewXml(modelXbrl, tabWin, tabTitle, xmlDoc):
     modelXbrl.modelManager.showStatus(_("viewing xml"))

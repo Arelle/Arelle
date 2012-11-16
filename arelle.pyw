@@ -11,7 +11,8 @@ If any argument, start in command line mode
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import sys
-from arelle import CntlrWinMain, CntlrCmdLine
+from arelle import  CntlrCmdLine
+from arelle.gui import CntlrWinMain
 
 if len(sys.argv) == 1:  # no command line arguments
     CntlrWinMain.main()

@@ -4,8 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ViewWinTree, ModelObject)
-from tkinter import TRUE
+from arelle.gui import ViewWinTree
 
 def viewProperties(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing properties"))

@@ -4,10 +4,11 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ViewWinTree, XbrlConst
+from arelle import  XbrlConst
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from collections import defaultdict
+from arelle.gui import ViewWinTree
 
 def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
     modelXbrl.modelManager.showStatus(_("viewing concepts"))

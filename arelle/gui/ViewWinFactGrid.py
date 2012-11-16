@@ -5,12 +5,12 @@ Created on May 12, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import datetime
-from tkinter import Menu, constants, BooleanVar
-from arelle import ViewWinGrid, ModelObject, XbrlConst
-from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
-                     label, checkbox, 
-                     TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
+from tkinter import Menu, BooleanVar
+from arelle import   XbrlConst
+from arelle.gui.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox,
+                           TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
 from collections import defaultdict
+from arelle.gui import ViewWinGrid
 
 def viewFactsGrid(modelXbrl, tabWin, header="Fact Grid", arcrole=XbrlConst.parentChild, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))

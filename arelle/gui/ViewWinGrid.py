@@ -9,8 +9,8 @@ try:
     from tkinter.ttk import *
 except ImportError:
     from ttk import *
-from arelle.CntlrWinTooltip import ToolTip
-from arelle.UiUtil import (scrolledHeaderedFrame, scrolledFrame)
+from arelle.gui.CntlrWinTooltip import ToolTip
+from arelle.gui.UiUtil import (scrolledHeaderedFrame )
 
 class ViewGrid:
     def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False, lang=None):

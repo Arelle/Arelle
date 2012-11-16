@@ -12,9 +12,8 @@ except ImportError:
 import re
 from arelle.ModelInstanceObject import NewFactItemOptions
 from arelle.ModelValue import dateTime
-from arelle import XmlUtil
-from arelle.UiUtil import gridCell, gridCombobox, label
-from arelle.CntlrWinTooltip import ToolTip
+from arelle.gui.UiUtil import gridCell, gridCombobox, label
+from arelle.gui.CntlrWinTooltip import ToolTip
 
 '''
 caller checks accepted, if True, caller retrieves url

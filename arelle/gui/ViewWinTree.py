@@ -5,11 +5,13 @@ Created on Oct 9, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
+from arelle.gui import ViewWinRelationshipSet
+
 try:
     from tkinter.ttk import *
 except ImportError:
     from ttk import *
-from arelle.CntlrWinTooltip import ToolTip
+from arelle.gui.CntlrWinTooltip import ToolTip
 import os
 
 class ViewTree:
@@ -197,7 +199,6 @@ class ViewTree:
         if menulabel is None: menulabel = _("Name Style")
         nameStyleMenu = Menu(self.viewFrame, tearoff=0)
         self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
-        from arelle.ModelRelationshipSet import labelroles
         nameStyleMenu.add_command(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
         nameStyleMenu.add_command(label=_("No prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
 
@@ -221,11 +222,10 @@ class ViewTree:
             newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
     
     def newView(self, arcrole, tabWin):
-        from arelle import ViewWinRelationshipSet
         ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)
             
     def newArcroleGroupView(self, tabWin):
-        from arelle.DialogArcroleGroup import getArcroleGroup
+        from arelle.gui.DialogArcroleGroup import getArcroleGroup
         from arelle import ViewWinRelationshipSet
         arcroleGroup = getArcroleGroup(self.modelXbrl.modelManager.cntlr, self.modelXbrl)
         if arcroleGroup: 

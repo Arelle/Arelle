@@ -6,9 +6,10 @@ Use this module to start Arelle in web server mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from arelle.gui import CntlrQuickBooks
 from arelle.webserver.bottle import route, get, post, request, response, run, static_file
-import os, io, sys, time, threading
-from arelle import Version, XmlUtil
+import os, time, threading
+from arelle import Version
 from arelle.FileSource import FileNamedStringIO
 _os_pid = os.getpid()
 
@@ -295,7 +296,6 @@ def quickbooksServer():
     
     (Part of QuickBooks protocol, see module CntlrQuickBooks.)
     """
-    from arelle import CntlrQuickBooks
     response.content_type = 'text/xml; charset=UTF-8'
     return CntlrQuickBooks.server(cntlr, request.body, request.urlparts)
 
@@ -308,7 +308,7 @@ def quickbooksGLrequest(qbReport=None, file=None):
     
     :returns: html, xml, csv, text -- Return per media type argument and request arguments
     """
-    from arelle.CntlrQuickBooks import supportedQbReports, qbRequest 
+    from arelle.gui.CntlrQuickBooks import supportedQbReports, qbRequest
     from arelle.ModelValue import dateTime
     errors = []
     requestPathParts = request.urlparts[2].split('/')

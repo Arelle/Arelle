@@ -4,7 +4,8 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ViewWinTree, ModelDtsObject, XbrlConst
+from arelle import  ModelDtsObject, XbrlConst
+from arelle.gui import ViewWinTree
 
 def viewFacts(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))
@@ -65,7 +66,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                 self.viewedTupleId = None
                 
     def viewTuplesGrid(self):
-        from arelle.ViewWinTupleGrid import viewTuplesGrid
+        from arelle.gui.ViewWinTupleGrid import viewTuplesGrid
         viewTuples = viewTuplesGrid(self.modelXbrl, self.tabWin, self.viewedTupleId, self.lang)
         self.modelXbrl.modelManager.showStatus(_("Ready..."), clearAfter=2000)
         viewTuples.select()  # bring new grid to foreground

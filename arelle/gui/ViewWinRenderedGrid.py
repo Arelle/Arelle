@@ -6,7 +6,7 @@ Created on Oct 5, 2010
 '''
 import os, threading, time
 from tkinter import Menu, BooleanVar
-from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, XbrlConst, 
+from arelle import ( ModelDocument, ModelInstanceObject, XbrlConst,
                     ModelXbrl, XmlValidate, Locale)
 from arelle.ModelValue import qname, QName
 from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
@@ -14,11 +14,11 @@ from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, a
 from arelle.FormulaEvaluator import aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
-from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
-                           label,  
+from arelle.gui.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox,
                            TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
-from arelle.DialogNewFactItem import getNewFactItemOptions
+from arelle.gui.DialogNewFactItem import getNewFactItemOptions
 from collections import defaultdict
+from arelle.gui import ViewWinGrid
 
 emptyList = []
 

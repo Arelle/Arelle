@@ -6,10 +6,11 @@ This module is Arelle's controller in windowing interactive UI mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import PythonUtil # define 2.x or 3.x string types
-import os, sys, subprocess, pickle, time, locale, re
-from tkinter import (Tk, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
+import os, sys, subprocess, pickle, time, re
+from tkinter import (Tk, TclError, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW,
                      HORIZONTAL, VERTICAL, END)
+from arelle.gui import ViewWinConcepts, ViewWinVersReport, ViewWinFormulae, ViewWinRelationshipSet, ViewWinXml, ViewWinDTS, ViewWinFactList, ViewWinList, ViewWinTests, ViewWinRenderedGrid, ViewWinProperties, ViewWinDiffs, ViewWinRssFeed, ViewWinFactTable, DialogPluginManager, DialogAbout, DialogLanguage, DialogRssWatch, DialogFormulaParameters, DialogOpenArchive, DialogURL
+
 try:
     from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
 except ImportError:  # 3.0 versions of tkinter
@@ -18,7 +19,7 @@ import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
 from arelle.Locale import format_string
-from arelle.CntlrWinTooltip import ToolTip
+from arelle.gui.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 from arelle.PluginManager import pluginClassMethods
 import logging
@@ -26,15 +27,8 @@ import logging
 import threading, queue
 
 from arelle import Cntlr
-from arelle import (DialogURL, DialogLanguage,
-                    DialogPluginManager,
-                    ModelDocument,
-                    ModelManager,
+from arelle import ( ModelDocument,
                     RenderingEvaluator,
-                    ViewWinDTS,
-                    ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
-                    ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
-                    ViewWinTests, ViewWinVersReport, ViewWinRssFeed,
                     ViewFileTests,
                     ViewFileRenderedGrid,
                     Updater
@@ -251,7 +245,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.tabWinBtm.grid(row=0, column=0, sticky=(N, S, E, W))
         paneWinTopBtm.add(self.tabWinBtm)
 
-        from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
         self.startLogging(logHandler=WinMainLogHandler(self)) # start logger
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
@@ -538,7 +531,6 @@ class CntlrWinMain (Cntlr.Cntlr):
             # check for archive files
             filesource = openFileSource(filename,self)
             if filesource.isArchive and not filesource.selection: # or filesource.isRss:
-                from arelle import DialogOpenArchive
                 filename = DialogOpenArchive.askArchiveFile(self, filesource)
                 
         if filename:
@@ -640,7 +632,6 @@ class CntlrWinMain (Cntlr.Cntlr):
             elif modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
                 currentAction = "view of versioning report"
                 ViewWinVersReport.viewVersReport(modelXbrl, self.tabWinTopRt)
-                from arelle.ViewWinDiffs import ViewWinDiffs
                 ViewWinDiffs(modelXbrl, self.tabWinBtm, lang=self.labelLang)
             elif modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
                 currentAction = "view of RSS feed"
@@ -865,7 +856,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             pass
         
     def setupProxy(self):
-        from arelle.DialogUserPassword import askProxy
+        from arelle.gui.DialogUserPassword import askProxy
         proxySettings = askProxy(self.parent, self.config.get("proxySettings"))
         if proxySettings:
             self.webCache.resetProxies(proxySettings)
@@ -892,7 +883,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.setValidateTooltipText()
         
     def rssWatchOptionsDialog(self, *args):
-        from arelle import DialogRssWatch
         DialogRssWatch.getOptions(self)
         
     # find or open rssWatch view
@@ -1007,11 +997,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.saveConfig()
         
     def find(self, *args):
-        from arelle.DialogFind import find
+        from arelle.gui.DialogFind import find
         find(self)
             
     def helpAbout(self, event=None):
-        from arelle import DialogAbout, Version
+        from arelle import  Version
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
@@ -1110,7 +1100,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             
     # web authentication password request
     def internet_user_password(self, host, realm):
-        from arelle.DialogUserPassword import askUserPassword
+        from arelle.gui.DialogUserPassword import askUserPassword
         untilDone = threading.Event()
         result = []
         self.uiThreadQueue.put((askUserPassword, [self.parent, host, realm, untilDone, result]))
@@ -1159,7 +1149,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                             defaultextension=defaultextension,
                             parent=self.parent)
 
-from arelle import DialogFormulaParameters
 
 class WinMainLogHandler(logging.Handler):
     def __init__(self, cntlr):

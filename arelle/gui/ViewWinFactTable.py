@@ -6,8 +6,9 @@ Created on Nov 15, 2010
 '''
 from collections import defaultdict
 import os, datetime
-from tkinter import Menu, constants, BooleanVar
-from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil
+from tkinter import Menu, BooleanVar
+from arelle import  ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil
+from arelle.gui import ViewWinTree
 
 def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentChild, linkrole=None, linkqname=None, arcqname=None, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))

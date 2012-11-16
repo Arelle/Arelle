@@ -13,8 +13,8 @@ import tkinter.filedialog
 import re, os
 from arelle.ModelValue import dateTime
 from arelle import XmlUtil
-from arelle.UiUtil import gridCell, gridCombobox, label, checkbox
-from arelle.CntlrWinTooltip import ToolTip
+from arelle.gui.UiUtil import gridCell, gridCombobox, label, checkbox
+from arelle.gui.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isValidAbsolute
 
 '''

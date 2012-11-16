@@ -9,7 +9,7 @@ try:
     from tkinter.ttk import Frame, Button, Label, Entry
 except ImportError:
     from ttk import Frame, Button, Label, Entry
-from arelle.CntlrWinTooltip import ToolTip
+from arelle.gui.CntlrWinTooltip import ToolTip
 import re
 
 '''

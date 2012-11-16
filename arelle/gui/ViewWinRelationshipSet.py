@@ -6,10 +6,9 @@ Created on Oct 6, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil, Locale
-from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelFormulaObject import ModelFilter
+from arelle import  ModelDtsObject, XbrlConst, Locale
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
+from arelle.gui import ViewWinTree
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
     arcroleName = groupRelationshipLabel(arcrole)

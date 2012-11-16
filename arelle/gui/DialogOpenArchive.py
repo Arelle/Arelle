@@ -10,7 +10,7 @@ try:
 except ImportError:
     from ttk import Frame, Button, Treeview, Scrollbar
 import re, os, sys
-from arelle.CntlrWinTooltip import ToolTip
+from arelle.gui.CntlrWinTooltip import ToolTip
 
 '''
 caller checks accepted, if True, caller retrieves url

@@ -10,7 +10,7 @@ try:
 except ImportError:
     from ttk import Frame, Button
 import re
-from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
+from arelle.gui.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
 
 '''
 caller checks accepted, if True, caller retrieves url

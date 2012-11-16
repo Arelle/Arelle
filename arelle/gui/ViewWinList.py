@@ -4,14 +4,12 @@ Created on Feb 6, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import io
 from tkinter import *
 try:
     from tkinter.ttk import *
 except ImportError:
     from ttk import *
-from arelle.CntlrWinTooltip import ToolTip
-from arelle import XmlUtil
+from arelle.gui.CntlrWinTooltip import ToolTip
 
 class ViewList():
     def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False):

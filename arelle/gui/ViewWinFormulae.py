@@ -5,12 +5,12 @@ Created on Dec 6, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import os
-from arelle import ViewWinTree, ModelObject, XbrlConst
-from arelle.ModelFormulaObject import (ModelVariable, ModelVariableSet, ModelVariableSetAssertion, 
+from arelle import   XbrlConst
+from arelle.ModelFormulaObject import (ModelVariable, ModelVariableSetAssertion,
                                        ModelConsistencyAssertion)
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
+from arelle.gui import ViewWinTree
 
 def viewFormulae(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing formulas"))

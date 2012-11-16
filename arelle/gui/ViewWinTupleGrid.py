@@ -4,10 +4,9 @@ Created on May 12, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (ViewWinGrid, )
-from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, 
-                     label, 
-                     TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
+from arelle.gui.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell,
+                           TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
+from arelle.gui import ViewWinGrid
 
 def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
     modelTuple = modelXbrl.modelObject(tupleObjectId)

@@ -4,13 +4,13 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
+from arelle.gui import ViewWinTree
+
 try:
     from tkinter.ttk import *
 except ImportError:
     from ttk import *
 import os
-from arelle import ViewWinTree
 
 def viewDTS(modelXbrl, tabWin, altTabWin=None):
     view = ViewDTS(modelXbrl, tabWin)
