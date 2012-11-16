@@ -13,7 +13,6 @@ from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
-from arelle.gui import ViewWinDTS
 
 ModelRelationshipSet = None # dynamic import
 
@@ -398,6 +397,8 @@ class ModelXbrl:
         self.closeFileSource= True
         del self.entryLoadingUrl
         # reload dts views
+        # FIXME: it is not clean for a model to invoke a GUI module directly
+        from arelle.gui import ViewWinDTS
         for view in self.views:
             if isinstance(view, ViewWinDTS.ViewDTS):
                 self.modelManager.cntlr.uiThreadQueue.put((view.view, []))

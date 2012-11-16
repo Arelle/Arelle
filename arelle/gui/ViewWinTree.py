@@ -5,7 +5,7 @@ Created on Oct 9, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from tkinter import *
-from arelle.gui import ViewWinRelationshipSet
+#from arelle.gui import ViewWinRelationshipSet
 
 try:
     from tkinter.ttk import *
@@ -222,11 +222,14 @@ class ViewTree:
             newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
     
     def newView(self, arcrole, tabWin):
+        # FIXME Why is a class importing one of its subclass?
+        from arelle.gui import ViewWinRelationshipSet
         ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)
             
     def newArcroleGroupView(self, tabWin):
         from arelle.gui.DialogArcroleGroup import getArcroleGroup
-        from arelle import ViewWinRelationshipSet
+        # FIXME Why is a class importing one of its subclass?
+        from arelle.gui import ViewWinRelationshipSet
         arcroleGroup = getArcroleGroup(self.modelXbrl.modelManager.cntlr, self.modelXbrl)
         if arcroleGroup: 
             ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcroleGroup, lang=self.lang)
