@@ -6,10 +6,11 @@ Created on Oct 22, 2010
 '''
 import re, os, sys
 if sys.version[0] >= '3':
-    from urllib.parse import urldefrag, unquote
+    from urllib.parse import urldefrag, unquote, quote
     isPy3 = True
 else:
     from urlparse import urldefrag
+    from urllib import quote
     from arelle.PythonUtil import py3unquote as unquote
     isPy3 = False
 
@@ -30,8 +31,6 @@ def authority(url, includeScheme=True):
     return url  #no path part of url
 
 absoluteUrlPattern = None
-# http://www.ietf.org/rfc/rfc2396.txt section 2.4.3
-excludedUrlCharacterPattern = re.compile('[\x00-\x1f\x20\x7f<>"]|#.*#|%$|%.$|%[^0-9a-fA-F]|%.[^0-9a-fA-F]')
 # http://www.ietf.org/rfc/rfc2396.txt section 4.3
 # this pattern doesn't allow some valid unicode characters
 #relativeUrlPattern = re.compile(r"(^[/:\.+-_@%;?&=!~\*'\(\)\w ]+(#[\w_%\-\.\(/\)]+)?$)|(^#[\w_%\-\.\(/\)]+$)")
@@ -44,6 +43,14 @@ def splitDecodeFragment(url):
         return (urlPart, unquote(fragPart, "utf-8", errors=None))
     else:
         return _STR_UNICODE(urlPart), unquote(_STR_UNICODE(fragPart), "utf-8", errors=None)
+    
+def anyUriQuoteForPSVI(uri):
+    # only quote if quotable character found
+    if any(c in {' ', '<', '>', '"', '{', '}', '|', '\\', '^', '~', '`'} or
+           not '\x1f' < c < '\x7f'
+           for c in uri):
+        return quote(uri, safe="/_.-%#!~*'();?:@&=+$,")
+    return uri
 
 def isValidAbsolute(url):
     global absoluteUrlPattern
@@ -341,8 +348,7 @@ def isValidAbsolute(url):
     return absoluteUrlPattern.match(url) is not None
        
 def isValid(url):
-    return (relativeUrlPattern.match(url) is not None and
-            excludedUrlCharacterPattern.search(url) is None)
+    return relativeUrlPattern.match(url) is not None
     
 def isAbsolute(url):
     if url:
