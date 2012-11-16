@@ -28,12 +28,7 @@ build_py27_unmodified = [
     ]
 # Files that should be excluded from python 2.7 builds
 build_py27_excluded = [
-    'arelle/CntlrQuickBooks.py',
-    'arelle/CntlrWinMain.py',
-    'arelle/CntlrWinTooltip.py',
-    'arelle/Dialog*.py',
-    'arelle/UiUtil.py',
-    'arelle/ViewWin*.py',
+    'arelle/gui/*.py',
     'arelle/WatchRss.py'
     ]
 

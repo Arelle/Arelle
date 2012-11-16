@@ -24,13 +24,7 @@ copy arelle\scripts-unix\*.* %BUILT27DIR%
 
 rem delete GUI modules
 del %BUILT27DIR%\*.pyw /s
-del %BUILT27DIR%\arelle\CntlrQuickBooks.py
-del %BUILT27DIR%\arelle\CntlrWinMain.py
-del %BUILT27DIR%\arelle\CntlrWinTooltip.py
-del %BUILT27DIR%\arelle\Dialog*.py
-del %BUILT27DIR%\arelle\UiUtil.py
-del %BUILT27DIR%\arelle\ViewWin*.py
-del %BUILT27DIR%\arelle\WatchRss.py
+del %BUILT27DIR%\arelle\gui\*.*
 %PYTHON27DIR%\python %PYTHON27DIR%\Scripts\3to2 -w %BUILT27DIR%
 %PYTHON27DIR%\python %PYTHON27DIR%\Scripts\3to2 -w %BUILT27DIR%\webserver
 %PYTHON27DIR%\python %PYTHON27DIR%\Scripts\3to2 -w %BUILT27DIR%\xlrd
