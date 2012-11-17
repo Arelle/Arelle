@@ -76,7 +76,7 @@ class WebCache:
 
         #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
         
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" and "/Application Support/" in cntlr.userAppDir:
             self.cacheDir = cntlr.userAppDir.replace("Application Support","Caches")
             self.encodeFileChars = re.compile(r'[:^]') 
             

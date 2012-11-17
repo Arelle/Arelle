@@ -77,24 +77,35 @@ class Cntlr:
     def __init__(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         self.hasWin32gui = False
         self.hasGui = False
+        configDir = os.getenv('XDG_CONFIG_HOME')
+        if configDir and os.path.exists(configDir):
+            # check if a cache exists in this directory (e.g. from XPE or other tool)
+            impliedAppDir = os.path.join(configDir, "arelle")
+            if os.path.exists(impliedAppDir):
+                self.userAppDir = impliedAppDir
+            elif os.path.exists(os.path.join(configDir, "cache")):
+                self.userAppDir = configDir # use the XDG_CONFIG_HOME because cache is already a subdirectory
+            else:
+                self.userAppDir = impliedAppDir
         if sys.platform == "darwin":
             self.isMac = True
             self.isMSW = False
-            self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
+            if not configDir:
+                self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
+            # note that cache is in /Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = True
             self.updateURL = "http://arelle.org/downloads/8"
         elif sys.platform.startswith("win"):
             self.isMac = False
             self.isMSW = True
-            tempDir = tempfile.gettempdir()
-            if tempDir.endswith('local\\temp'):
-                impliedAppDir = tempDir[:-10] + 'local'
-            else:
-                impliedAppDir = tempDir
-            self.userAppDir = os.path.join(
-                   os.getenv('XDG_CONFIG_HOME', impliedAppDir),
-                   "Arelle")
+            if not configDir:
+                tempDir = tempfile.gettempdir()
+                if tempDir.endswith('local\\temp'):
+                    impliedAppDir = tempDir[:-10] + 'local'
+                else:
+                    impliedAppDir = tempDir
+                self.userAppDir = os.path.join( impliedAppDir, "Arelle")
             try:
                 import win32clipboard
                 self.hasClipboard = True
@@ -113,9 +124,8 @@ class Cntlr:
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False
-            self.userAppDir = os.path.join(
-                   os.getenv('XDG_CONFIG_HOME', os.path.expanduser("~/.config")),
-                   "arelle")
+            if not configDir:
+                self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             try:
                 import gtk
                 self.hasClipboard = True

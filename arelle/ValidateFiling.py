@@ -1511,9 +1511,15 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 foundSummationItemSet = False 
                 leastMissingItemsSet = compatibleItemConcepts
                 for ELR in self.modelXbrl.relationshipSet(XbrlConst.summationItem).linkRoleUris:
+                    relSet = self.modelXbrl.relationshipSet(XbrlConst.summationItem,ELR)
                     missingItems = (compatibleItemConcepts - 
                                     frozenset(r.toModelObject 
-                                              for r in self.modelXbrl.relationshipSet(XbrlConst.summationItem,ELR).fromModelObject(totalConcept)))
+                                              for r in relSet.fromModelObject(totalConcept)))
+                    # may be slow, but must remove sibling or descendants to avoid annoying false positives
+                    # such as in http://www.sec.gov/Archives/edgar/data/1341439/000119312512129918/orcl-20120229.xml
+                    missingItems -= set(concept
+                                        for concept in missingItems
+                                        if relSet.isRelated(totalConcept, "sibling-or-descendant", concept))
                     if missingItems:
                         if len(missingItems) < len(leastMissingItemsSet):
                             leastMissingItemsSet = missingItems
