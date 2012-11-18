@@ -97,7 +97,7 @@ http://xbrl.org/2008/filter/dimension http://www.xbrl.org/2008/dimension-filter.
                                                "{http://www.w3.org/1999/xlink}from",
                                                "{http://www.w3.org/1999/xlink}to",
                                                "order"))
-                    newArcElt.set("{http://www.w3.org/1999/xlink}arcrole", XbrlConst.tableAxis)
+                    newArcElt.set("{http://www.w3.org/1999/xlink}arcrole", XbrlConst.tableBreakdown)
                     newArcElt.set("axisDisposition", rel.axisDisposition)
                     generateAxis(newLinkElt, newAxisElt, srcAxisElt, axisMbrRelSet, visited)
                     visited.discard(srcAxisElt)
