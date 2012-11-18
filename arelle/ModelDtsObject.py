@@ -1456,6 +1456,16 @@ class ModelRelationship(ModelObject):
             if isinstance(toResource, ModelLocator) and self.toModelObject is toResource.dereference():
                 return toResource
         return None
+    
+    def locatorOf(self, dereferencedObject):
+        """(ModelLocator) -- Value of locator surrogate of relationship target, if any"""
+        fromLocator = self.fromLocator
+        if fromLocator is not None and fromLocator.dereference() == dereferencedObject:
+            return fromLocator
+        toLocator = self.toLocator
+        if toLocator is not None and toLocator.dereference() == dereferencedObject:
+            return toLocator
+        return None
         
     @property
     def arcrole(self):

@@ -210,34 +210,36 @@ def final(val, conceptsUsed):
             if (concept is not None and
                 concept.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and
                 concept not in conceptsUsed):
-                if not concept.isAbstract or concept.isDimensionItem:
-                    standardConceptsUnused[concept].add(rel)
+                if (not concept.isAbstract or 
+                    concept.isDimensionItem or 
+                    (concept.type is not None and concept.type.isDomainItemType)):
+                    standardConceptsUnused[concept].add(rel.locatorOf(concept))
                 elif (concept.qname.namespaceURI == ugtNamespace and
                       concept.name in val.usgaapDeprecations):
                     # catches abstract deprecated concepts in linkbases
-                    standardConceptsDeprecated[concept].add(rel)
-    for concept, rels in standardConceptsUnused.items():
+                    standardConceptsDeprecated[concept].add(rel.locatorOf(concept))
+    for concept, locs in standardConceptsUnused.items():
         if concept.qname.namespaceURI == ugtNamespace:
             if concept.name in val.usgaapDeprecations:
                 deprecation = val.usgaapDeprecations[concept.name]
                 val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                     _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
-                    modelObject=rels, concept=concept.qname,
+                    modelObject=locs, concept=concept.qname,
                     date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),
-                modelObject=rels, concept=concept.qname,
+                modelObject=locs, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
         elif not concept.isAbstract or concept.isDimensionItem:
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1",
                 _("Company extension relationships of unused standard concept: %(concept)s"),
-                modelObject=rels, concept=concept.qname) 
-    for concept, rels in standardConceptsDeprecated.items():
+                modelObject=locs, concept=concept.qname) 
+    for concept, locs in standardConceptsDeprecated.items():
         deprecation = val.usgaapDeprecations[concept.name]
         val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
             _("Concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
-            modelObject=rels, concept=concept.qname,
+            modelObject=locs, concept=concept.qname,
             date=deprecation[0], documentation=deprecation[1])
     val.modelXbrl.profileStat(_("validate US-BGP unused concepts"), time.time() - startedAt)
         
