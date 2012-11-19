@@ -314,7 +314,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             prefix=prefix, value=value)
                             elif factElementName in deiCheckLocalNames:
                                 deiItems[factElementName] = value
-                                if self.requiredContext is None and context.isStartEndPeriod:
+                                if (self.requiredContext is None and context.isStartEndPeriod and
+                                    context.startDatetime is not None and context.endDatetime is not None):
                                     self.requiredContext = context
                     else:
                         # segment present
@@ -419,7 +420,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 '''
                 durationCntxStartDatetimes = defaultdict(set)
                 for cntx in contexts:
-                    if cntx.isStartEndPeriod:
+                    if cntx.isStartEndPeriod and cntx.startDatetime is not None:
                         durationCntxStartDatetimes[cntx.startDatetime].add(cntx)
                 probStartEndCntxsByEnd = defaultdict(set)
                 startEndCntxsByEnd = defaultdict(set)
@@ -427,23 +428,24 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 probCntxs = set()
                 for cntx in contexts:
                     end = cntx.endDatetime
-                    if cntx.isStartEndPeriod:
-                        for otherStart, otherCntxs in durationCntxStartDatetimes.items():
-                            duration = end - otherStart
-                            if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
-                                probCntxs |= otherCntxs - {cntx}
-                        if probCntxs:
-                            probStartEndCntxsByEnd[end] |= probCntxs
-                            startEndCntxsByEnd[end] |= {cntx}
-                            probCntxs.clear()
-                    if self.validateEFM and cntx.isInstantPeriod:
-                        for otherStart, otherCntxs in durationCntxStartDatetimes.items():
-                            duration = end - otherStart
-                            if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
-                                probCntxs |= otherCntxs
-                        if probCntxs:
-                            probInstantCntxsByEnd[end] |= ( probCntxs | {cntx} )
-                            probCntxs.clear()
+                    if end is not None:
+                        if cntx.isStartEndPeriod:
+                            for otherStart, otherCntxs in durationCntxStartDatetimes.items():
+                                duration = end - otherStart
+                                if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
+                                    probCntxs |= otherCntxs - {cntx}
+                            if probCntxs:
+                                probStartEndCntxsByEnd[end] |= probCntxs
+                                startEndCntxsByEnd[end] |= {cntx}
+                                probCntxs.clear()
+                        if self.validateEFM and cntx.isInstantPeriod:
+                            for otherStart, otherCntxs in durationCntxStartDatetimes.items():
+                                duration = end - otherStart
+                                if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
+                                    probCntxs |= otherCntxs
+                            if probCntxs:
+                                probInstantCntxsByEnd[end] |= ( probCntxs | {cntx} )
+                                probCntxs.clear()
                 del probCntxs
                 for end, probCntxs in probStartEndCntxsByEnd.items():
                     endCntxs = startEndCntxsByEnd[end]
@@ -1493,7 +1495,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for totalFact in self.modelXbrl.factsByQname[totalConcept.qname]:
                 totalFactContext = totalFact.context
                 totalFactUnit = totalFact.unit
-                if (totalFactContext is not None and totalFactUnit is not None and
+                if (totalFactContext is not None and totalFactUnit is not None and totalFactContext.endDatetime is not None and
                     (not isStatementSheet or
                      (self.requiredContext is None or
                       self.requiredContext.startDatetime <= totalFactContext.endDatetime <= self.requiredContext.endDatetime))): 
