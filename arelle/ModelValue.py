@@ -175,18 +175,18 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
     elif isinstance(value, datetime.date):
         return DateTime(value.year, value.month, value.day,dateOnly=True,addOneDay=addOneDay)
     elif castException and not isinstance(value, _STR_BASE):
-        raise castException
+        raise castException("not a string value")
     if value is None:
         return None
     match = datetimePattern.match(value.strip())
     if match is None:
         if castException:
-            raise castException
+            raise castException("lexical pattern mismatch")
         return None
     if match.lastindex == 6:
         if type == DATE: 
             if castException:
-                raise castException
+                raise castException("date-only object has too many fields or contains time")
             return None
         result = DateTime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)), dateOnly=False)
     else:
