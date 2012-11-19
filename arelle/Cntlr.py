@@ -232,7 +232,8 @@ class Cntlr:
             elif logFileName.endswith(".xml"):
                 self.logHandler = LogToXmlHandler(filename=logFileName)
                 self.logger.logHrefObjectProperties = True
-                logFormat = "%(message)s"
+                if not logFormat:
+                    logFormat = "%(message)s"
             else:
                 self.logHandler = logging.FileHandler(filename=logFileName, 
                                                       mode=logFileMode if logFileMode else "w", 
