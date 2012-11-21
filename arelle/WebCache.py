@@ -148,6 +148,10 @@ class WebCache:
                 normedPath = url
             if normedPath.startswith("file://"): normedPath = normedPath[7:]
             elif normedPath.startswith("file:\\"): normedPath = normedPath[6:]
+            
+            # no base, not normalized, must be relative to current working directory
+            if base is None and not os.path.isabs(url): 
+                normedPath = os.path.abspath(normedPath)
         else:
             normedPath = url
         
