@@ -82,4 +82,4 @@ def install(cntlr,filepath):
             subprocess.Popen([command,filepath])
         except:
             pass
-    exit()
+    sys.exit()
