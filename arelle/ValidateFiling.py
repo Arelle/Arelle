@@ -1309,7 +1309,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.Finally"):
                 pluginXbrlMethod(self, conceptsUsed)
         self.modelXbrl.profileActivity("... plug in '.Finally' checks", minTimeToShow=1.0)
-        self.modelXbrl.profileStat(_("validate {0}").format(modelXbrl.modelManager.disclosureSystem.validationType))
+        self.modelXbrl.profileStat(_("validate{0}").format(modelXbrl.modelManager.disclosureSystem.validationType))
         
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
                     
