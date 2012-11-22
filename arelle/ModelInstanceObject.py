@@ -698,7 +698,10 @@ class ModelContext(ModelObject):
             return self._entityIdentifier
         except AttributeError:
             eiElt = self.entityIdentifierElement
-            self._entityIdentifier = (eiElt.get("scheme"), eiElt.xValue)
+            if eiElt is not None:
+                self._entityIdentifier = (eiElt.get("scheme"), eiElt.xValue)
+            else:
+                self._entityIdentifier = ("(Error)", "(Error)")
             return self._entityIdentifier
 
     @property

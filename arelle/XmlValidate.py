@@ -262,14 +262,12 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 xValue = sValue = value
                 xValid = VALID_ID
             elif baseXsdType == "anyURI":
-                xValue = anyURI(value)
-                sValue = value
-                if xValue:  # allow empty strings to be valid anyURIs
-                    if UrlUtil.relativeUrlPattern.match(xValue) is None:
+                if value:  # allow empty strings to be valid anyURIs
+                    if UrlUtil.relativeUrlPattern.match(value) is None:
                         raise ValueError("IETF RFC 2396 4.3 syntax")
-                    if UrlUtil.excludedUrlCharacterPattern.search(xValue) is not None:
-                        raise ValueError("IETF RFC 2396 2.4.3 excluded character")
-                    # some interpretations require encoding nonASCII characters into xValue
+                # encode PSVI xValue similarly to Xerces and other implementations
+                xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
+                sValue = value
             elif not value: # rest of types get None if nil/empty value
                 xValue = sValue = None
             elif baseXsdType in ("decimal", "float", "double"):

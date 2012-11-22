@@ -142,7 +142,7 @@ def validate(val, modelXbrl, infosetModelXbrl):
                         found = True
                 if not found:
                     modelXbrl.error("arelle:infosetTest",
-                        _("Arc not found: from %(toPath)s, to %(toPath)s, role %(arcRole)s, linkRole $(extRole)s"),
+                        _("Arc not found: from %(fromPath)s, to %(toPath)s, role %(arcRole)s, linkRole $(extRole)s"),
                         modelObject=arcElt, fromPath=arcElt.get("fromPath"), toPath=arcElt.get("toPath"), arcRole=arcRole, linkRole=extRole)
                     continue
         # validate dimensions of each fact
