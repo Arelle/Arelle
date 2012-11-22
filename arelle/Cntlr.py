@@ -209,6 +209,8 @@ class Cntlr:
         PluginManager.init(self)
  
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
+        for pluginMenuExtender in PluginManager.pluginClassMethods("Cntrl.init"):
+            pluginMenuExtender(self)
         
     def setUiLanguage(self, lang, fallbackToDefault=False):
         try:
