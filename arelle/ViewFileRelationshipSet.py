@@ -37,7 +37,7 @@ class ViewRelationshipSet(ViewFile.View):
             for linkroleUri in relationshipSet.linkRoleUris:
                 modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
                 if modelRoleTypes:
-                    roledefinition = (modelRoleTypes[0].definition or linkroleUri)                    
+                    roledefinition = (modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
                 else:
                     roledefinition = linkroleUri
                 linkroleUris.append((roledefinition, linkroleUri))
