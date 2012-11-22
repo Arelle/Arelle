@@ -19,7 +19,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .google_measurement import AppTracker
+from google_measurement import AppTracker
 # defined __STR_BASE
 from arelle import ModelManager
 
