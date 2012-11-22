@@ -126,28 +126,31 @@ def moduleModuleInfo(moduleURL, reload=False):
     #TODO several directories, eg User Application Data
     moduleFilename = webCache.getfilename(moduleURL, reload=reload, normalize=True)
     if moduleFilename:
-        with open(moduleFilename) as f:
-            tree = ast.parse(f.read(), filename=moduleFilename)
-            for item in tree.body:
-                if isinstance(item, ast.Assign):
-                    attr = item.targets[0].id
-                    if attr == "__pluginInfo__":
-                        f.close()
-                        moduleInfo = {}
-                        classMethods = []
-                        for i, key in enumerate(item.value.keys):
-                            _key = key.s
-                            _value = item.value.values[i]
-                            _valueType = _value.__class__.__name__
-                            if _valueType == 'Str':
-                                moduleInfo[_key] = _value.s
-                            elif _valueType == 'Name':
-                                classMethods.append(_key)
-                        moduleInfo['classMethods'] = classMethods
-                        moduleInfo["moduleURL"] = moduleURL
-                        moduleInfo["status"] = 'enabled'
-                        moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
-                        return moduleInfo
+        try:
+            with open(moduleFilename) as f:
+                tree = ast.parse(f.read(), filename=moduleFilename)
+                for item in tree.body:
+                    if isinstance(item, ast.Assign):
+                        attr = item.targets[0].id
+                        if attr == "__pluginInfo__":
+                            f.close()
+                            moduleInfo = {}
+                            classMethods = []
+                            for i, key in enumerate(item.value.keys):
+                                _key = key.s
+                                _value = item.value.values[i]
+                                _valueType = _value.__class__.__name__
+                                if _valueType == 'Str':
+                                    moduleInfo[_key] = _value.s
+                                elif _valueType == 'Name':
+                                    classMethods.append(_key)
+                            moduleInfo['classMethods'] = classMethods
+                            moduleInfo["moduleURL"] = moduleURL
+                            moduleInfo["status"] = 'enabled'
+                            moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
+                            return moduleInfo
+        except EnvironmentError:
+            pass
     return None
 
 def moduleInfo(pluginInfo):
@@ -163,38 +166,41 @@ def loadModule(moduleInfo):
     moduleURL = moduleInfo['moduleURL']
     moduleFilename = webCache.getfilename(moduleURL, normalize=True)
     if moduleFilename:
-        file, path, description = imp.find_module(os.path.basename(moduleFilename).partition('.')[0], [os.path.dirname(moduleFilename)])
-        if file:
-            try:
-                module = imp.load_module(name, file, path, description)
-                pluginInfo = module.__pluginInfo__.copy()
-                if name == pluginInfo.get('name'):
-                    pluginInfo["moduleURL"] = moduleURL
-                    modulePluginInfos[name] = pluginInfo
-                    if 'localeURL' in pluginInfo:
-                        # set L10N internationalization in loaded module
-                        localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
-                        try:
-                            _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
-                        except IOError:
-                            _gettext = lambda x: x # no translation
-                    else:
-                        _gettext = lambda x: x
-                    for key, value in pluginInfo.items():
-                        if key == 'name':
-                            if name:
-                                pluginConfig['modules'][name] = moduleInfo
-                        elif isinstance(value, types.FunctionType):
-                            classModuleNames = pluginConfig['classes'].setdefault(key, [])
-                            if name and name not in classModuleNames:
-                                classModuleNames.append(name)
-                    module._ = _gettext
-                    global pluginConfigChanged
-                    pluginConfigChanged = True
-            except (ImportError, AttributeError):
-                pass
-            finally:
-                file.close()
+        try:
+            file, path, description = imp.find_module(os.path.basename(moduleFilename).partition('.')[0], [os.path.dirname(moduleFilename)])
+            if file:
+                try:
+                    module = imp.load_module(name, file, path, description)
+                    pluginInfo = module.__pluginInfo__.copy()
+                    if name == pluginInfo.get('name'):
+                        pluginInfo["moduleURL"] = moduleURL
+                        modulePluginInfos[name] = pluginInfo
+                        if 'localeURL' in pluginInfo:
+                            # set L10N internationalization in loaded module
+                            localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
+                            try:
+                                _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
+                            except IOError:
+                                _gettext = lambda x: x # no translation
+                        else:
+                            _gettext = lambda x: x
+                        for key, value in pluginInfo.items():
+                            if key == 'name':
+                                if name:
+                                    pluginConfig['modules'][name] = moduleInfo
+                            elif isinstance(value, types.FunctionType):
+                                classModuleNames = pluginConfig['classes'].setdefault(key, [])
+                                if name and name not in classModuleNames:
+                                    classModuleNames.append(name)
+                        module._ = _gettext
+                        global pluginConfigChanged
+                        pluginConfigChanged = True
+                except (ImportError, AttributeError):
+                    pass
+                finally:
+                    file.close()
+        except (EnvironmentError, ImportError, NameError): #find_module failed, no file to close
+            pass
 
 def pluginClassMethods(className):
     if pluginConfig:

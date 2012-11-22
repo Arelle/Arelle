@@ -366,7 +366,12 @@ class DialogPluginManager(Toplevel):
                 if moduleInfo:
                     self.addPluginConfigModuleInfo(moduleInfo)
                     self.loadTreeViews()
-                self.cntlr.showStatus(_("{0} reloaded").format(moduleInfo.get("name")), clearAfter=5000)
+                    self.cntlr.showStatus(_("{0} reloaded").format(moduleInfo.get("name")), clearAfter=5000)
+                else:
+                    messagebox.showwarning(_("Module error"),
+                                           _("File or module cannot be reloaded: \n\n{0}")
+                                           .format(url),
+                                           parent=self)
 
     def moduleRemove(self):
         if self.selectedModule in self.pluginConfig["modules"]:

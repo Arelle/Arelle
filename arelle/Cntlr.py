@@ -77,51 +77,7 @@ class Cntlr:
     def __init__(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         self.hasWin32gui = False
         self.hasGui = False
-        if sys.platform == "darwin":
-            self.isMac = True
-            self.isMSW = False
-            self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
-            self.contextMenuClick = "<Button-2>"
-            self.hasClipboard = True
-            self.updateURL = "http://arelle.org/downloads/8"
-        elif sys.platform.startswith("win"):
-            self.isMac = False
-            self.isMSW = True
-            tempDir = tempfile.gettempdir()
-            if tempDir.endswith('local\\temp'):
-                impliedAppDir = tempDir[:-10] + 'local'
-            else:
-                impliedAppDir = tempDir
-            self.userAppDir = os.path.join(
-                   os.getenv('XDG_CONFIG_HOME', impliedAppDir),
-                   "Arelle")
-            try:
-                import win32clipboard
-                self.hasClipboard = True
-            except ImportError:
-                self.hasClipboard = False
-            try:
-                import win32gui
-                self.hasWin32gui = True # active state for open file dialogs
-            except ImportError:
-                pass
-            self.contextMenuClick = "<Button-3>"
-            if "64 bit" in sys.version:
-                self.updateURL = "http://arelle.org/downloads/9"
-            else: # 32 bit
-                self.updateURL = "http://arelle.org/downloads/10"
-        else: # Unix/Linux
-            self.isMac = False
-            self.isMSW = False
-            self.userAppDir = os.path.join(
-                   os.getenv('XDG_CONFIG_HOME', os.path.expanduser("~/.config")),
-                   "arelle")
-            try:
-                import gtk
-                self.hasClipboard = True
-            except ImportError:
-                self.hasClipboard = False
-            self.contextMenuClick = "<Button-3>"
+
         self.moduleDir = os.path.dirname(__file__)
         # for python 3.2 remove __pycache__
         if self.moduleDir.endswith("__pycache__"):
@@ -153,6 +109,72 @@ class Cntlr:
             self.configDir = os.path.join(self.moduleDir, "config")
             self.imagesDir = os.path.join(self.moduleDir, "images")
             self.localeDir = os.path.join(self.moduleDir, "locale")
+        
+        configHomeDir = os.getenv('XDG_CONFIG_HOME')
+        if not configHomeDir:  # look for path configDir/CONFIG_HOME
+            configHomeDirFile = os.path.join(self.configDir, "XDG_CONFIG_HOME")
+            if os.path.exists(configHomeDirFile):
+                try:
+                    with io.open(configHomeDirFile, 'rt', encoding='utf-8') as f:
+                        configHomeDir = f.read().strip()
+                    if configHomeDir and not os.path.isabs(configHomeDir):
+                        configHomeDir = os.path.abspath(configHomeDir)  # make into a full path if relative
+                except EnvironmentError:
+                    configHomeDir = None
+        if configHomeDir and os.path.exists(configHomeDir):
+            # check if a cache exists in this directory (e.g. from XPE or other tool)
+            impliedAppDir = os.path.join(configHomeDir, "arelle")
+            if os.path.exists(impliedAppDir):
+                self.userAppDir = impliedAppDir
+            elif os.path.exists(os.path.join(configHomeDir, "cache")):
+                self.userAppDir = configHomeDir # use the XDG_CONFIG_HOME because cache is already a subdirectory
+            else:
+                self.userAppDir = impliedAppDir
+        if sys.platform == "darwin":
+            self.isMac = True
+            self.isMSW = False
+            if not configHomeDir:
+                self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
+            # note that cache is in /Library/Caches/Arelle
+            self.contextMenuClick = "<Button-2>"
+            self.hasClipboard = True
+            self.updateURL = "http://arelle.org/downloads/8"
+        elif sys.platform.startswith("win"):
+            self.isMac = False
+            self.isMSW = True
+            if not configHomeDir:
+                tempDir = tempfile.gettempdir()
+                if tempDir.endswith('local\\temp'):
+                    impliedAppDir = tempDir[:-10] + 'local'
+                else:
+                    impliedAppDir = tempDir
+                self.userAppDir = os.path.join( impliedAppDir, "Arelle")
+            try:
+                import win32clipboard
+                self.hasClipboard = True
+            except ImportError:
+                self.hasClipboard = False
+            try:
+                import win32gui
+                self.hasWin32gui = True # active state for open file dialogs
+            except ImportError:
+                pass
+            self.contextMenuClick = "<Button-3>"
+            if "64 bit" in sys.version:
+                self.updateURL = "http://arelle.org/downloads/9"
+            else: # 32 bit
+                self.updateURL = "http://arelle.org/downloads/10"
+        else: # Unix/Linux
+            self.isMac = False
+            self.isMSW = False
+            if not configHomeDir:
+                self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
+            try:
+                import gtk
+                self.hasClipboard = True
+            except ImportError:
+                self.hasClipboard = False
+            self.contextMenuClick = "<Button-3>"
         try:
             from arelle import webserver
             self.hasWebServer = True
@@ -222,7 +244,8 @@ class Cntlr:
             elif logFileName.endswith(".xml"):
                 self.logHandler = LogToXmlHandler(filename=logFileName)
                 self.logger.logHrefObjectProperties = True
-                logFormat = "%(message)s"
+                if not logFormat:
+                    logFormat = "%(message)s"
             else:
                 self.logHandler = logging.FileHandler(filename=logFileName, 
                                                       mode=logFileMode if logFileMode else "w", 

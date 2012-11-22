@@ -435,7 +435,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFiltersResult = True
         self.modelManager.formulaOptions = fo
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
-        startedAt = time.time()
+        firstStartedAt = startedAt = time.time()
         modelDiffReport = None
         success = True
         modelXbrl = None
@@ -569,6 +569,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             err,
                             traceback.format_tb(sys.exc_info()[2])))
                 success = False
+        modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
         if options.collectProfileStats and modelXbrl:
             modelXbrl.logProfileStats()
         if not options.keepOpen:
