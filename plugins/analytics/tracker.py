@@ -52,13 +52,13 @@ def ga_decorated(ga, func):
         This wrapper precedes a function call with a call to Google ga.
         """
         # Call (async?) Google ga before the function is executed
-        ga_function(ga, func)
-        ga.track_event(function.__module__, function.__name__)
+        ga.track_event(func.__module__, func.__name__)
         start_time = time.time()
+        # actually call the function
         func(*args, **kwargs)
-        duration = time.time() - start_time
+        duration = (time.time() - start_time) * 1000 # in ms
         # TODO ga.track_user_timing()
-
+        ga.track_user_timing(func.__module__, func.__name__, int(duration))
     return wrapper
 
 

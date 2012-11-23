@@ -123,6 +123,21 @@ class AppTracker(AbstractTracker):
         params['ea'] = action
         self._track('event', params)
 
+    def track_user_timing(self, category, variable, duration, label=None):
+        """
+        :param category: Specifies the user timing category.
+        :param variable: Specifies the user timing variable.
+        :param duration: Specifies the user timing value.
+        :type duration: `int` value in milliseconds.
+        """
+        params = dict()
+        params['utc'] = category
+        params['utv'] = variable
+        params['utt'] = duration
+        if label is not None:
+            params['utv'] = label
+        self._track('timing', params)
+
 
 def random_uuid():
     """
