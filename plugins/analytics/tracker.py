@@ -2,7 +2,7 @@
 This module offers Google analytics feature
 """
 import time
-from plugins.analytics.google_measurement import AppTracker
+from plugins.analytics.google_measurement import AppTracker, random_uuid
 
 """
 
@@ -32,15 +32,21 @@ __version__ = "0.1"
 __email__ = "regis.decamps@banque-france.fr"
 __status__ = "Development"
 
-def google_analytics_plugin(controler):
+def google_analytics_plugin(controller):
     """
     initialize the Google analytics tracker
     """
-    controler.addToLog("Initialize google analytics")
+    try:
+        uid = controller.config['uuid']
+    except KeyError:
+        uid = random_uuid()
+        controller.config['uuid'] = uid
+    controller.addToLog("Initialize google analytics for anonymous user " + uid)
     ga = AppTracker("Arelle", "UA-36372431-1", None, version=3)
     # Monkey patching of existing methods
     # until introspection is done, the plugin tracks the methods explicitly listed bellow
-    ModelManager.ModelManager.load  = ga_decorated(ga, ModelManager.ModelManager.load)
+    ModelManager.ModelManager.load = ga_decorated(ga, ModelManager.ModelManager.load)
+
 
 def ga_decorated(ga, func):
     """
@@ -59,8 +65,8 @@ def ga_decorated(ga, func):
         duration = (time.time() - start_time) * 1000 # in ms
         # TODO ga.track_user_timing()
         ga.track_user_timing(func.__module__, func.__name__, int(duration))
-    return wrapper
 
+    return wrapper
 
 
 # Manigest for this plugin
