@@ -22,7 +22,7 @@ limitations under the License.
 """
 
 # defined __STR_BASE
-from arelle import ModelManager
+from arelle import ModelManager, CntlrWinMain
 
 __author__ = 'R\u00e9gis D\u00e9camps'
 __copyright__ = "Copyright 2012, Autorit\u00e9 de contr\u00f4le prudentiel"
@@ -45,17 +45,19 @@ def google_analytics_plugin(controller):
     ga = AppTracker("Arelle", "UA-36372431-1", None, version=3)
     # Monkey patching of existing methods
     # until introspection is done, the plugin tracks the methods explicitly listed bellow
-    ModelManager.ModelManager.load = ga_decorated(ga, ModelManager.ModelManager.load)
+    ModelManager.ModelManager.load = ga_function_decorated(ga, ModelManager.ModelManager.load)
+    ModelManager.ModelManager.validate = ga_function_decorated(ga, ModelManager.ModelManager.validate)
 
 
-def ga_decorated(ga, func):
+def ga_function_decorated(ga, func):
     """
-    Decorator for functions that will be tracked with Google ga.
+    Decorator for functions call, that will be tracked with Google ga.
     """
 
     def wrapper(*args, **kwargs):
         """
-        This wrapper precedes a function call with a call to Google ga.
+        This wrapper precedes a function call with a call to Google Analytics events,
+        and succedes with a call to Google Analytics user timing.
         """
         # Call (async?) Google ga before the function is executed
         ga.track_event(func.__module__, func.__name__)

@@ -77,15 +77,15 @@ class AbstractTracker(object):
         params['cid'] = self.client_id
         params['c'] = hit_type
 
-        query = urlencode(params).encode(AbstractTracker.ENCODING)
-        request = urlbib.Request(AbstractTracker.GA_URL)
+        data = urlencode(params).encode(AbstractTracker.ENCODING)
+        request = urlbib.Request(AbstractTracker.GA_URL, data)
         # adding charset parameter to the Content-Type header.
         request.add_header('Content-Type', "application/x-www-form-urlencoded;charset=" + AbstractTracker.ENCODING)
-        print(request)
-        print(query)
-        #response = urlbib.urlopen(request, query)
+        response = urlbib.urlopen(request)
         # TODO handle response?
-
+        with open("ga.gif",'wb') as f:
+            while not response.closed:
+                f.write(response.read())
 
 class AppTracker(AbstractTracker):
     """
