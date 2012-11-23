@@ -1,6 +1,8 @@
 """
 This module offers Google analytics feature
 """
+import time
+from plugins.analytics.google_measurement import AppTracker
 
 """
 
@@ -19,7 +21,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from google_measurement import AppTracker
 # defined __STR_BASE
 from arelle import ModelManager
 
@@ -36,7 +37,7 @@ def google_analytics_plugin(controler):
     initialize the Google analytics tracker
     """
     controler.addToLog("Initialize google analytics")
-    ga = AppTracker("UA-36372431-1", None)
+    ga = AppTracker("Arelle", "UA-36372431-1", None, version=3)
     # Monkey patching of existing methods
     # until introspection is done, the plugin tracks the methods explicitly listed bellow
     ModelManager.ModelManager.load  = ga_decorated(ga, ModelManager.ModelManager.load)
@@ -52,19 +53,15 @@ def ga_decorated(ga, func):
         """
         # Call (async?) Google ga before the function is executed
         ga_function(ga, func)
-
+        ga.track_event(function.__module__, function.__name__)
+        start_time = time.time()
         func(*args, **kwargs)
+        duration = time.time() - start_time
+        # TODO ga.track_user_timing()
 
     return wrapper
 
 
-def ga_function(ga, function):
-    """
-    Track the invocation of a function.
-    """
-    # TODO This returns a GIF image and I have no idea what I should do of it
-    # ga.trackPage(url, ip, title, value)
-    ga.trackPageview(function.__module__, None, function.__name__, "")
 
 # Manigest for this plugin
 __pluginInfo__ = {
