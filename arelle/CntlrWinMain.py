@@ -331,16 +331,23 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.parent.title(_("arelle - Unnamed"))
         
         self.logFile = None
-        
-        self.uiThreadQueue = queue.Queue()     # background processes communicate with ui thread
+
         self.uiThreadChecker(self.statusbar)    # start background queue
 
         if not self.modelManager.disclosureSystem.select(self.config.setdefault("disclosureSystem", None)):
             self.validateDisclosureSystem.set(False)
             self.modelManager.validateDisclosureSystem = False
         self.setValidateTooltipText()
-        
-        
+
+    @property
+    def uiThreadQueue(self):
+        try:
+            return self._uiThreadQueue
+        except AttributeError:
+            # background processes communicate with ui thread
+            self._uiThreadQueue = queue.Queue()
+            return self._uiThreadQueue
+
     def loadFileMenuHistory(self):
         self.fileMenu.delete(self.fileMenuLength, self.fileMenuLength + 1)
         fileHistory = self.config.setdefault("fileHistory", [])
