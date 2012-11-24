@@ -4,12 +4,12 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, os, io, base64, gzip, re
+import zipfile, os, io, base64, gzip, zlib, re
 from lxml import etree
 from arelle import XmlUtil
 
-archivePathSeparators = (".zip" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
-                        ((".zip/", ".xfd/", ".frm/") if os.sep != "/" else ()) #acomodate windows and http styles
+archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
+                        ((".zip/", ".eis/", ".xfd/", ".frm/") if os.sep != "/" else ()) #acomodate windows and http styles
 
 XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
@@ -54,6 +54,7 @@ class FileSource:
         self.cntlr = cntlr
         self.type = self.url.lower()[-4:]
         self.isZip = self.type == ".zip"
+        self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
         self.isRss = (self.type == ".rss" or self.url.endswith(".rss.xml"))
         self.isOpen = False
@@ -64,7 +65,7 @@ class FileSource:
 
     def open(self):
         if not self.isOpen:
-            if (self.isZip or self.isXfd or self.isRss) and self.cntlr:
+            if (self.isZip or self.isEis or self.isXfd or self.isRss) and self.cntlr:
                 self.basefile = self.cntlr.webCache.getfilename(self.url)
             else:
                 self.basefile = self.url
@@ -74,6 +75,40 @@ class FileSource:
             if self.isZip:
                 self.fs = zipfile.ZipFile(self.basefile, mode="r")
                 self.isOpen = True    
+            elif self.isEis:
+                # check first line of file
+                buf = b''
+                try:
+                    file = open(self.basefile, 'rb')
+                    more = True
+                    while more:
+                        l = file.read(8)
+                        if len(l) < 8:
+                            break
+                        compressedLength = (l[0] << 24) + (l[1] << 16) + (l[2] << 8) + (l[3] << 0)
+                        expandedLength = (l[4] << 24) + (l[5] << 16) + (l[6] << 8) + (l[7] << 0)
+                        compressedBytes = file.read(compressedLength)
+                        if len(compressedBytes) <= 0:
+                            break
+                        buf += zlib.decompress(compressedBytes)
+                    file.close()
+                except EnvironmentError as err:
+                    pass
+                #uncomment to save for debugging
+                #with open("c:/temp/test.xml", "wb") as f:
+                #    f.write(buf)
+                
+                if buf.startswith(b"<?xml "):
+                    try:
+                        file = io.StringIO(initial_value=buf.decode("utf-8"))
+                        self.eisDocument = etree.parse(file)
+                        file.close()
+                        self.isOpen = True
+                    except EnvironmentError as err:
+                        return # provide error message later
+                    except etree.LxmlError as err:
+                        return # provide error message later
+                
             elif self.isXfd:
                 # check first line of file
                 file = open(self.basefile, 'rb')
@@ -151,6 +186,10 @@ class FileSource:
             self.fs.close()
             self.isOpen = False
             self.isZip = False
+        if self.isEis and self.isOpen:
+            self.eisDocument.getroot().clear() # unlink nodes
+            self.eisDocument = None
+            self.isEis = False
         if self.isXfd and self.isOpen:
             self.xfdDocument.getroot().clear() # unlink nodes
             self.xfdDocument = None
@@ -163,7 +202,7 @@ class FileSource:
         
     @property
     def isArchive(self):
-        return self.isZip or self.isXfd
+        return self.isZip or self.isEis or self.isXfd
     
     def isInArchive(self,filepath):
         return self.fileSourceContainingFilepath(filepath) is not None
@@ -208,6 +247,30 @@ class FileSource:
                 return (io.TextIOWrapper(
                         io.BytesIO(b), 
                         encoding=encoding), encoding)
+            elif archiveFileSource.isEis:
+                for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
+                    outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
+                    if outfn == archiveFileName:
+                        b64data = docElt.findtext("{http://www.sec.gov/edgar/common}contents")
+                        if b64data:
+                            b = base64.b64decode(b64data.encode("latin-1"))
+                            # remove BOM codes if present
+                            if len(b) > 3 and b[0] == 239 and b[1] == 187 and b[2] == 191:
+                                start = 3;
+                                length = len(b) - 3;
+                                b = b[start:start + length]
+                            else:
+                                start = 0;
+                                length = len(b);
+                            # pass back as ascii
+                            #str = ""
+                            #for bChar in b[start:start + length]:
+                            #    str += chr( bChar )
+                            #return str
+                            return (io.TextIOWrapper(
+                                io.BytesIO(b), 
+                                encoding=XmlUtil.encoding(b)), "latin-1")
+                return (None,None)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
                     outfn = data.findtext("filename")
@@ -269,6 +332,13 @@ class FileSource:
             files = []
             for zipinfo in self.fs.infolist():
                 files.append(zipinfo.filename)
+            self.filesDir = files
+        elif self.isEis:
+            files = []
+            for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
+                outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
+                if outfn:
+                    files.append(outfn);
             self.filesDir = files
         elif self.isXfd:
             files = []

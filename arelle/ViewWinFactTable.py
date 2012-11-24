@@ -147,10 +147,8 @@ class ViewFactTable(ViewWinTree.ViewTree):
         else:
             for linkroleUri in relationshipSet.linkRoleUris:
                 modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
-                if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-                    roledefinition = modelRoleTypes[0].definition
-                    if roledefinition is None or roledefinition == "":
-                        roledefinition = linkroleUri                    
+                if modelRoleTypes:
+                    roledefinition = (modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
                     roleId = modelRoleTypes[0].objectId(self.id)
                 else:
                     roledefinition = linkroleUri

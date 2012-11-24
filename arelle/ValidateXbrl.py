@@ -329,8 +329,9 @@ class ValidateXbrl:
             #instance checks
             for cntx in modelXbrl.contexts.values():
                 if cntx.isStartEndPeriod:
-                    try:
-                        if cntx.endDatetime <= cntx.startDatetime:
+                    try: # if no datetime value would have been a schema error at loading time
+                        if (cntx.endDatetime is not None and cntx.startDatetime is not None and
+                            cntx.endDatetime <= cntx.startDatetime):
                             self.modelXbrl.error("xbrl.4.7.2:periodStartBeforeEnd",
                                 _("Context %(contextID)s must have startDate less than endDate"),
                                 modelObject=cntx, contextID=cntx.id)

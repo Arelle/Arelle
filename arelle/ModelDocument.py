@@ -750,12 +750,12 @@ class ModelDocument:
                                     if href is None:
                                         if isStandardExtLink:
                                             self.modelXbrl.error("xmlSchema:requiredAttribute",
-                                                    _("Locator href attribute missing or malformed in standard extended link"),
-                                                    modelObejct=linkElement)
+                                                    _('Locator href attribute "%(href)s" missing or malformed in standard extended link'),
+                                                    modelObject=linkElement, href=linkElement.get("{http://www.w3.org/1999/xlink}href"))
                                         else:
                                             self.modelXbrl.warning("arelle:hrefWarning",
-                                                    _("Locator href attribute missing or malformed in non-standard extended link"),
-                                                    modelObejct=linkElement)
+                                                    _('Locator href attribute "%(href)s" missing or malformed in non-standard extended link'),
+                                                    modelObject=linkElement, href=linkElement.get("{http://www.w3.org/1999/xlink}href"))
                                     else:
                                         linkElement.modelHref = href
                                         modelResource = linkElement

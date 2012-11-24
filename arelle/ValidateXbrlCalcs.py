@@ -13,6 +13,9 @@ from arelle import Locale, XbrlConst, XbrlUtil
 numberPattern = re.compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
+NaN = decimal.Decimal("NaN")
+floatNaN = float("NaN")
+floatINF = float("INF")
 
 def validate(modelXbrl, inferDecimals=False):
     ValidateXbrlCalcs(modelXbrl, inferDecimals).validate()
@@ -222,13 +225,20 @@ class ValidateXbrlCalcs:
 def roundFact(fact, inferDecimals=False, vDecimal=None):
     if vDecimal is None:
         vStr = fact.value
-        vDecimal = decimal.Decimal(vStr)
-        vFloatFact = float(vStr)
+        try:
+            vDecimal = decimal.Decimal(vStr)
+            vFloatFact = float(vStr)
+        except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+            vDecimal = NaN
+            vFloatFact = floatNaN
     else: #only vFloat is defined, may not need vStr unless inferring precision from decimals
         if vDecimal.is_nan():
             return vDecimal
         vStr = None
-        vFloatFact = float(fact.value)
+        try:
+            vFloatFact = float(fact.value)
+        except ValueError:
+            vFloatFact = floatNaN
     dStr = fact.decimals
     pStr = fact.precision
     if dStr == "INF" or pStr == "INF":
@@ -237,7 +247,7 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
         if pStr:
             p = int(pStr)
             if p == 0:
-                vRounded = decimal.Decimal("NaN")
+                vRounded = NaN
             elif vDecimal == 0:
                 vRounded = ZERO
             else:
@@ -269,7 +279,7 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
         else:
             p = int(pStr)
         if p == 0:
-            vRounded = decimal.Decimal("NaN")
+            vRounded = NaN
         elif vDecimal == 0:
             vRounded = vDecimal
         else:  # round per 4.6.7.1, half-up
@@ -293,12 +303,12 @@ def decimalRound(x, d, rounding):
 
 def inferredPrecision(fact):
     vStr = fact.value
-    vFloat = float(vStr)
     dStr = fact.decimals
     pStr = fact.precision
     if dStr == "INF" or pStr == "INF":
-        return float("INF")
+        return floatINF
     try:
+        vFloat = float(vStr)
         if dStr:
             match = numberPattern.match(vStr if vStr else str(vFloat))
             if match:
@@ -313,7 +323,7 @@ def inferredPrecision(fact):
         else:
             return int(pStr)
     except ValueError:
-        return float("NaN")
+        return floatNaN
     if p == 0:
         return 0
     elif vFloat == 0:
@@ -323,18 +333,18 @@ def inferredPrecision(fact):
     
 def inferredDecimals(fact):
     vStr = fact.value
-    vFloat = float(vStr)
     dStr = fact.decimals
     pStr = fact.precision
     if dStr == "INF" or pStr == "INF":
-        return float("INF")
+        return floatINF
     try:
         if pStr:
             p = int(pStr)
             if p == 0:
-                return float("NaN") # =0 cannot be determined
+                return floatNaN # =0 cannot be determined
+            vFloat = float(vStr)
             if vFloat == 0:
-                return float("INF") # =0 cannot be determined
+                return floatINF # =0 cannot be determined
             else:
                 vAbs = fabs(vFloat)
                 return p - int(floor(log10(vAbs))) - 1
@@ -342,16 +352,20 @@ def inferredDecimals(fact):
             return int(dStr)
     except ValueError:
         pass
-    return float("NaN")
+    return floatNaN
     
 def roundValue(value, precision=None, decimals=None):
-    vDecimal = decimal.Decimal(value)
+    try:
+        vDecimal = decimal.Decimal(value)
+        if precision:
+            vFloat = float(value)
+    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        return NaN
     if precision:
-        vFloat = float(value)
         if isinf(precision):
             vRounded = vDecimal
         elif precision == 0 or isnan(precision):
-            vRounded = decimal.Decimal("NaN")
+            vRounded = NaN
         elif vFloat == 0:
             vRounded = ZERO
         else:
@@ -363,7 +377,7 @@ def roundValue(value, precision=None, decimals=None):
         if isinf(decimals):
             vRounded = vDecimal
         elif isnan(decimals):
-            vRounded = decimal.Decimal("NaN")
+            vRounded = NaN
         else:
             vRounded = decimalRound(vDecimal,decimals,decimal.ROUND_HALF_EVEN)
     else:
