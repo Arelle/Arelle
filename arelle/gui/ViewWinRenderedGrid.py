@@ -129,9 +129,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = resolveAxesStructure(self, viewTblELR) 
         
         if tblAxisRelSet:
-            
             gridHdr(self.gridTblHdr, 0, 0, 
-                    self.roledefinition, 
+                    (self.modelTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
+                     self.roledefinition),
                     anchor="nw",
                     #columnspan=(self.dataFirstCol - 1),
                     #rowspan=(self.dataFirstRow),

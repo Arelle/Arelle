@@ -935,12 +935,15 @@ class ModelXbrl:
     def logProfileStats(self):
         """Logs profile stats that were collected
         """
+        timeTotal = format_string(self.modelManager.locale, _("%.3f secs"), self.profileStats.get("total", (0,0,0))[1])
+        timeEFM = format_string(self.modelManager.locale, _("%.3f secs"), self.profileStats.get("validateEFM", (0,0,0))[1])
         self.info("info:profileStats",
                 _("Profile statistics \n") +
                 ' \n'.join(format_string(self.modelManager.locale, _("%s %.3f secs, %.0fK"), (statName, statValue[1], statValue[2]), grouping=True)
                            for statName, statValue in sorted(self.profileStats.items(), key=lambda item: item[1])) +
                 " \n", # put instance reference on fresh line in traces
-                modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats)
+                modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats,
+                timeTotal=timeTotal, timeEFM=timeEFM)
     
     def profileStat(self, name=None, stat=None):
         '''

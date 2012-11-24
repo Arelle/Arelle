@@ -269,13 +269,20 @@ class ValidateXbrl:
                 for modelRel in relsSet.modelRelationships:
                     preferredLabel = modelRel.preferredLabel
                     toConcept = modelRel.toModelObject
-                    if preferredLabel is not None and toConcept is not None and \
-                       toConcept.label(preferredLabel=preferredLabel,fallbackToQname=False) is None:
-                        modelXbrl.error("xbrl.5.2.4.2.1:preferredLabelMissing",
-                            _("Presentation relationship from %(source)s to %(target)s in link role %(linkrole)s missing preferredLabel %(preferredLabel)s"),
-                            modelObject=modelRel,
-                            source=modelRel.fromModelObject.qname, target=toConcept.qname, linkrole=ELR, 
-                            preferredLabel=preferredLabel)
+                    if preferredLabel is not None and toConcept is not None:
+                        label = toConcept.label(preferredLabel=preferredLabel,fallbackToQname=False,strip=True)
+                        if label is None:
+                            modelXbrl.error("xbrl.5.2.4.2.1:preferredLabelMissing",
+                                _("Presentation relationship from %(source)s to %(target)s in link role %(linkrole)s missing preferredLabel %(preferredLabel)s"),
+                                modelObject=modelRel,
+                                source=modelRel.fromModelObject.qname, target=toConcept.qname, linkrole=ELR, 
+                                preferredLabel=preferredLabel)
+                        elif not label: # empty string
+                            modelXbrl.info("arelle:info.preferredLabelEmpty",
+                                _("(Info xbrl.5.2.4.2.1) Presentation relationship from %(source)s to %(target)s in link role %(linkrole)s has empty preferredLabel %(preferredLabel)s"),
+                                modelObject=modelRel,
+                                source=modelRel.fromModelObject.qname, target=toConcept.qname, linkrole=ELR, 
+                                preferredLabel=preferredLabel)
             # check essence-alias relationships
             elif arcrole == XbrlConst.essenceAlias:
                 for modelRel in relsSet.modelRelationships:
@@ -322,8 +329,9 @@ class ValidateXbrl:
             #instance checks
             for cntx in modelXbrl.contexts.values():
                 if cntx.isStartEndPeriod:
-                    try:
-                        if cntx.endDatetime <= cntx.startDatetime:
+                    try: # if no datetime value would have been a schema error at loading time
+                        if (cntx.endDatetime is not None and cntx.startDatetime is not None and
+                            cntx.endDatetime <= cntx.startDatetime):
                             self.modelXbrl.error("xbrl.4.7.2:periodStartBeforeEnd",
                                 _("Context %(contextID)s must have startDate less than endDate"),
                                 modelObject=cntx, contextID=cntx.id)

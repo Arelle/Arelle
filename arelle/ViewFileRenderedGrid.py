@@ -69,6 +69,8 @@ class ViewRenderedGrid(ViewFile.View):
                 tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = resolveAxesStructure(self, tblELR) 
                 
                 if tblAxisRelSet and self.tblElt is not None:
+                    tableLabel = (self.modelTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
+                                  self.roledefinition)
                     if self.type == HTML: # table on each Z
                         # each Z is a separate table in the outer table
                         zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
@@ -82,7 +84,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                  "style":"max-width:100em;",
                                                  "colspan": str(self.dataFirstCol - 1),
                                                  "rowspan": str(self.dataFirstRow - 1)}
-                                         ).text = self.roledefinition
+                                         ).text = tableLabel
                     elif self.type == XML:
                         self.ordCntxElts = []
                         if discriminator == 1:
@@ -94,7 +96,7 @@ class ViewRenderedGrid(ViewFile.View):
                             zAspects = defaultdict(set)
                             self.zAxis(1, zOrdCntx, zAspects, True)
                         tableElt = etree.SubElement(tableSetElt, "{http://xbrl.org/2012/table/model}table",
-                                                    attrib={"label": self.roledefinition})
+                                                    attrib={"label": tableLabel})
                         hdrsElts = dict((disposition,
                                          etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
                                                           attrib={"disposition": disposition}))
