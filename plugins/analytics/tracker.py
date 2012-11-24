@@ -100,11 +100,11 @@ def ga_function_decorated(ga, func):
         ga.track_event(func.__module__, func.__name__)
         start_time = time.time()
         # actually call the function
-        func(*args, **kwargs)
+        retval = func(*args, **kwargs)
         duration = (time.time() - start_time) * 1000 # in ms
         # TODO ga.track_user_timing()
         ga.track_user_timing(func.__module__, func.__name__, int(duration))
-
+        return retval
     return wrapper
 
 
