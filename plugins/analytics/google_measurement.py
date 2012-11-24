@@ -5,13 +5,18 @@ This module is a library to build anonymous usage statistics, with Google analyt
 using the Google measurement protocol.
 """
 # this should work both on Python 2 and Python 3
+import threading
+
 try:
-    # exists only in Python 2
-    import urllib2 as urlbib
-    from urllib import urlencode
-except ImportError:
+    # exists only in Python 3
     import urllib.request as urlbib
     from urllib.parse import urlencode
+    import queue
+except ImportError:
+    # Python 2
+    import urllib2 as urlbib
+    from urllib import urlencode
+    import Queue as queue
 
 __author__ = "Régis Décamps"
 __license__ = """Copyright 2012 Régis Décamps
@@ -63,6 +68,9 @@ class AbstractTracker(object):
         if client_id is None:
             client_id = random_uuid()
         self.client_id = client_id
+        self.post_queue = queue.Queue()
+        # spawn a new thread for HTTP requests
+        threading.Thread(target=self._http_post_worker).start()
 
     def _track(self, hit_type, params=None):
         """
@@ -75,13 +83,18 @@ class AbstractTracker(object):
         params['cid'] = self.client_id
         params['t'] = hit_type
 
-        data = urlencode(params).encode(AbstractTracker.ENCODING)
-        request = urlbib.Request(AbstractTracker.GA_URL, data)
-        # adding charset parameter to the Content-Type header.
-        request.add_header('Content-Type', "application/x-www-form-urlencoded;charset=" + AbstractTracker.ENCODING)
-        print(params)
-        response = urlbib.urlopen(request)
-        # TODO handle response?
+        self.post_queue.put(params)
+
+    def _http_post_worker(self):
+        while True:
+            params = self.post_queue.get(block=True)
+            print(params)
+            data = urlencode(params).encode(AbstractTracker.ENCODING)
+            request = urlbib.Request(AbstractTracker.GA_URL, data)
+            # adding charset parameter to the Content-Type header.
+            request.add_header('Content-Type', "application/x-www-form-urlencoded;charset=" + AbstractTracker.ENCODING)
+            response = urlbib.urlopen(request)
+            # TODO handle response?
 
 
 class AppTracker(AbstractTracker):
