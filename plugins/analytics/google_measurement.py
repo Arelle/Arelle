@@ -34,6 +34,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# List of complementary arguments that can be used in keyword arguments.
+FIELDNAME_TO_PARAM = {
+    # User language
+    "language": 'ul',
+    # When present, the IP address of the sender will be anonymized. For example, the IP will be anonymized if any of the following parameters are present in the payload: &aip=, &aip=0, or &aip=1
+    "anonymizeIp": 'aip',
+    # The character set used to encode the page / document.
+    "encoding": 'de'
+}
 
 # TODO make this abstract
 class AbstractTracker(object):
@@ -64,26 +73,35 @@ class AbstractTracker(object):
 
 
         """
-        self.tracking_id = tracking_id
+        self.params = dict()
+        self.params['tid'] = tracking_id
         if client_id is None:
             client_id = random_uuid()
-        self.client_id = client_id
+        self.params['cid'] = client_id
+        self.params['v'] = AbstractTracker.GA_VERSION
+
+        for k in kwargs:
+            if k in FIELDNAME_TO_PARAM:
+                self.params[FIELDNAME_TO_PARAM[k]] = kwargs[k]
+
         self.post_queue = queue.Queue()
         # spawn a new thread for HTTP requests
         threading.Thread(target=self._http_post_worker).start()
+
 
     def _track(self, hit_type, params=None):
         """
         Tracking method, called by subclasses.
         :param hit_type: hit type, should be provided by a subclass method.
-        :param params: the query parameters, should be provided by the subclass method.
+        :param prams: A dict of other query parameters, should be provided by the subclass method.
         """
-        params['v'] = AbstractTracker.GA_VERSION
-        params['tid'] = self.tracking_id
-        params['cid'] = self.client_id
-        params['t'] = hit_type
+        http_params = dict()
+        http_params.update(self.params)
+        http_params['t'] = hit_type
+        if params is not None:
+            http_params.update(params)
 
-        self.post_queue.put(params)
+        self.post_queue.put(http_params)
 
     def _http_post_worker(self):
         while True:
@@ -112,15 +130,8 @@ class AppTracker(AbstractTracker):
         * `version`: version of the application. Default value: 1.
         """
         super(AppTracker, self).__init__(tracking_id, client_id, **kwargs)
-        self.app_name = app_name
-        self.app_version = kwargs.get('version', 1)
-
-    def _track(self, hit_type, params=None):
-        if params is None:
-            params = dict()
-        params['an'] = self.app_name
-        params['av'] = self.app_version
-        super(AppTracker, self)._track(hit_type, params)
+        self.params['an'] = app_name
+        self.params['av'] = kwargs.get('version', 1)
 
 
     def track_screen(self, screen_name):
