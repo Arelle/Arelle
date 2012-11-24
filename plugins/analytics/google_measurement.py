@@ -124,7 +124,7 @@ class AppTracker(AbstractTracker):
         :param category:  a category is a name that you supply as a way to group objects that you want to track. The term Category appears in the reporting interface as Top Categories in the Events Overview page.
         :param action: Typically, you will use the action parameter to name the type of event or interaction you want to track for a particular web object. For example, with a single "Videos" category, you can track a number of specific events with this parameter, such as play, stop, pause. You can supply any string for the action parameter. In some situations, the actual event or action name is not as meaningful, so you might use the action parameter to track other elements. For example, if you want to track page downloads, you could provide the document file type as the action parameter for the download event.
         :param label: With labels, you can provide additional information for events that you want to track, such as the movie title in the video example
-        :param value: The report displays the total and average value for events.
+        :param value: The report displays the total and average value for events. You can use this to track time, but there is also track_user_timing() for tat purpose.
         :type value: `int`
         """
         params = dict()
@@ -139,9 +139,10 @@ class AppTracker(AbstractTracker):
     def track_user_timing(self, category, variable, duration, label=None):
         """
         :param category: Specifies the user timing category.
-        :param variable: Specifies the user timing variable.
-        :param duration: Specifies the user timing value.
-        :type duration: `int` value in milliseconds.
+        :param variable: Specifies the user timing variable, the name of the action of the resource being tracked.
+        :param duration: Specifies the user timing value. the number of milliseconds in elapsed time.
+        :type duration: `int` value in milliseconds
+        :param label: add flexibility in visualizing user timings in the reports. Labels can also be used to focus on different sub experiments for the same category and variable combination.
         """
         params = dict()
         params['utc'] = category
