@@ -14,7 +14,7 @@ except ImportError:
     from urllib.parse import urlencode
 
 __author__ = "Régis Décamps"
-__license__="""Copyright 2012 Régis Décamps
+__license__ = """Copyright 2012 Régis Décamps
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ class AbstractTracker(object):
         response = urlbib.urlopen(request)
         # TODO handle response?
 
+
 class AppTracker(AbstractTracker):
     """
     A Google analytics tracker for mobile or desktop applications.
@@ -106,10 +107,10 @@ class AppTracker(AbstractTracker):
             params = dict()
         params['an'] = self.app_name
         params['av'] = self.app_version
-        super(AppTracker,self)._track(hit_type, params)
+        super(AppTracker, self)._track(hit_type, params)
 
 
-    def track_screen(self,screen_name):
+    def track_screen(self, screen_name):
         """
         Track a screen view.
         """
@@ -117,13 +118,22 @@ class AppTracker(AbstractTracker):
         params['cd'] = screen_name
         self._track('appview', params)
 
-    def track_event(self, category, action):
+    def track_event(self, category, action, label=None, value=-1):
         """
         Track an event within the application.
+        :param category:  a category is a name that you supply as a way to group objects that you want to track. The term Category appears in the reporting interface as Top Categories in the Events Overview page.
+        :param action: Typically, you will use the action parameter to name the type of event or interaction you want to track for a particular web object. For example, with a single "Videos" category, you can track a number of specific events with this parameter, such as play, stop, pause. You can supply any string for the action parameter. In some situations, the actual event or action name is not as meaningful, so you might use the action parameter to track other elements. For example, if you want to track page downloads, you could provide the document file type as the action parameter for the download event.
+        :param label: With labels, you can provide additional information for events that you want to track, such as the movie title in the video example
+        :param value: The report displays the total and average value for events.
+        :type value: `int`
         """
         params = dict()
         params['ec'] = category
         params['ea'] = action
+        if label is not None:
+            params['el'] = label
+        if value > -1:
+            params['ev'] = value
         self._track('event', params)
 
     def track_user_timing(self, category, variable, duration, label=None):
@@ -138,7 +148,7 @@ class AppTracker(AbstractTracker):
         params['utv'] = variable
         params['utt'] = duration
         if label is None:
-            label = category + '.'+variable
+            label = category + '.' + variable
         params['utl'] = label
         self._track('timing', params)
 
