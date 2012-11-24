@@ -9,6 +9,9 @@ import sys
 from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
 
 try: # installed for python 2.7 and clean packages, otherwise use tweaked version
+    # For a reason I don't understand Pycharm fails SyntaxError in Pycharm.app/helpers/pyparsing.py
+    if sys.version > '3':
+        raise ImportError()
     from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
