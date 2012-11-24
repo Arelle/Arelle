@@ -79,7 +79,7 @@ class AbstractTracker(object):
         request = urlbib.Request(AbstractTracker.GA_URL, data)
         # adding charset parameter to the Content-Type header.
         request.add_header('Content-Type', "application/x-www-form-urlencoded;charset=" + AbstractTracker.ENCODING)
-        #print(params)
+        print(params)
         response = urlbib.urlopen(request)
         # TODO handle response?
 
@@ -137,8 +137,9 @@ class AppTracker(AbstractTracker):
         params['utc'] = category
         params['utv'] = variable
         params['utt'] = duration
-        if label is not None:
-            params['utv'] = label
+        if label is None:
+            label = category + '.'+variable
+        params['utl'] = label
         self._track('timing', params)
 
 

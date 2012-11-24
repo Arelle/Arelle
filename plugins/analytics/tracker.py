@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 """
 This module offers Google analytics feature
 """
@@ -6,7 +8,7 @@ from plugins.analytics.google_measurement import AppTracker, random_uuid
 
 """
 
-Copyright 2012 Régis Décamps
+Copyright 2012 Regis Decamps
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,7 +24,7 @@ limitations under the License.
 """
 
 # defined __STR_BASE
-from arelle import ModelManager, CntlrWinMain
+from arelle import ModelManager, CntlrWinMain, DialogAbout, DialogArcroleGroup, DialogLanguage, DialogFind, DialogOpenArchive, DialogOpenTaxonomyPackage, DialogPluginManager, DialogFormulaParameters, DialogNewFactItem, DialogRssWatch, DialogURL, DialogUserPassword
 
 __author__ = 'R\u00e9gis D\u00e9camps'
 __copyright__ = "Copyright 2012, Autorit\u00e9 de contr\u00f4le prudentiel"
@@ -42,11 +44,46 @@ def google_analytics_plugin(controller):
         uid = random_uuid()
         controller.config['uuid'] = uid
     controller.addToLog("Initialize google analytics for anonymous user " + uid)
+    # TODO How can I know the version of Arelle?
     ga = AppTracker("Arelle", "UA-36372431-1", None, version=3)
     # Monkey patching of existing methods
+
+    # until introspection is done, the plugin tracks the windows listed below
+    #DialogAbout.DialogAbout.__init__ = ga_screen_decorated(ga, DialogAbout.DialogAbout, DialogAbout.DialogAbout.__init__)
+    ga_decorate_screen(ga, DialogAbout.DialogAbout)
+    ga_decorate_screen(ga, DialogArcroleGroup.DialogArcroleGroup)
+    ga_decorate_screen(ga, DialogFind.DialogFind)
+    ga_decorate_screen(ga, DialogFormulaParameters.DialogFormulaParameters)
+    ga_decorate_screen(ga, DialogLanguage.DialogLanguage)
+    ga_decorate_screen(ga, DialogNewFactItem.DialogNewFactItemOptions)
+    ga_decorate_screen(ga, DialogOpenArchive.DialogOpenArchive)
+    ga_decorate_screen(ga, DialogPluginManager.DialogPluginManager)
+    ga_decorate_screen(ga, DialogRssWatch.DialogRssWatch)
+    ga_decorate_screen(ga, DialogURL.DialogURL)
+    ga_decorate_screen(ga, DialogUserPassword.DialogUserPassword)
+
     # until introspection is done, the plugin tracks the methods explicitly listed bellow
     ModelManager.ModelManager.load = ga_function_decorated(ga, ModelManager.ModelManager.load)
     ModelManager.ModelManager.validate = ga_function_decorated(ga, ModelManager.ModelManager.validate)
+
+    #And of course, I need to track the screen of the main controler itself
+    ga.track_screen(controller.__class__.__name__)
+
+
+def ga_decorate_screen(ga, clazz):
+    clazz.__init__ = ga_screen_decorated(ga, clazz.__name__, clazz.__init__)
+
+
+def ga_screen_decorated(ga, screen_class_name, screen_class_init):
+    """
+    Decorator for classes that represent a window
+    """
+
+    def wrapper(*args, **kwargs):
+        ga.track_screen(screen_class_name)
+        screen_class_init(*args, **kwargs)
+
+    return wrapper
 
 
 def ga_function_decorated(ga, func):
@@ -75,11 +112,12 @@ def ga_function_decorated(ga, func):
 __pluginInfo__ = {
     'name': 'ga',
     'version': '0.1',
-    'description': '''Google analytics collects anonymous usage statistics, so that Arelle can be improved on features that are most frequently used''',
+    'description': '''Google analytics collects anonymous usage statistics, so that Arelle can be improved on features that are most frequently used'''
+    ,
     'localeURL': "locale",
     'localeDomain': 'ga_i18n',
     'license': 'Apache-2',
     'author': 'R\u00e9gis D\u00e9camps',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': 'Copyright 2012 Autorit\u00e9 de contr\u00f4le prudentiel',
     'Cntrl.init': google_analytics_plugin
 }
