@@ -21,7 +21,8 @@ def propertyView(self):
     """
 
     if self.isExplicit:
-        return qname_label(self.dimension, self.modelXbrl.modelManager.defaultLang), str(self.memberQname)
+        lang = self.modelXbrl.modelManager.defaultLang
+        return qname_label(self.dimension, lang), qname_label(self.member, lang)
     else:
         return str(self.dimensionQname), XmlUtil.xmlstring(XmlUtil.child(self), stripXmlns=True, prettyPrint=True)
 
