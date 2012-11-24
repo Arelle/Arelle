@@ -135,7 +135,7 @@ class Cntlr:
             self.isMSW = False
             if not configHomeDir:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
-            # note that cache is in /Library/Caches/Arelle
+            # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = True
             self.updateURL = "http://arelle.org/downloads/8"
@@ -183,6 +183,7 @@ class Cntlr:
         # assert that app dir must exist
         if not os.path.exists(self.userAppDir):
             os.makedirs(self.userAppDir)
+        print("Configuration loaded from "+self.userAppDir)
         # load config if it exists
         self.configJsonFile = self.userAppDir + os.sep + "config.json"
         self.config = None
@@ -204,11 +205,12 @@ class Cntlr:
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         self.modelManager = ModelManager.initialize(self)
-        
-        # start plug in server (requres web cache initialized
-        PluginManager.init(self)
- 
+
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
+
+        # start plug in server, requires web cache initialized.
+        # plugins may require logger initialized.
+        PluginManager.init(self)
         for pluginMenuExtender in PluginManager.pluginClassMethods("Cntrl.init"):
             pluginMenuExtender(self)
         
