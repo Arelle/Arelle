@@ -4,10 +4,17 @@
 This module is a library to build anonymous usage statistics, with Google analytics,
 using the Google measurement protocol.
 """
-__author__ = "Régis Décamps"
-"""
+# this should work both on Python 2 and Python 3
+try:
+    # exists only in Python 2
+    import urllib2 as urlbib
+    from urllib import urlencode
+except ImportError:
+    import urllib.request as urlbib
+    from urllib.parse import urlencode
 
-Copyright 2012 Régis Décamps
+__author__ = "Régis Décamps"
+__license__="""Copyright 2012 Régis Décamps
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,15 +28,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-# this should work both on Python 2 and Python 3
-try:
-    # exists only in Python 2
-    import urllib2 as urlbib
-    from urllib import urlencode
-except ImportError:
-    import urllib.request as urlbib
-    from urllib.parse import urlencode
 
 
 # TODO make this abstract
@@ -105,13 +103,20 @@ class AppTracker(AbstractTracker):
         self.app_name = app_name
         self.app_version = kwargs.get('version', 1)
 
-    def track_screen(self):
+    def _track(self, hit_type, params=None):
+        if params is None:
+            params = dict()
+        params['an'] = self.app_name
+        params['av'] = self.app_version
+        super(AppTracker,self)._track(hit_type, params)
+
+
+    def track_screen(self,screen_name):
         """
         Track a screen view.
         """
         params = dict()
-        params['an'] = self.app_name
-        params['av'] = self.app_version
+        params['cd'] = screen_name
         self._track('appview', params)
 
     def track_event(self, category, action):
