@@ -134,15 +134,16 @@ class AppTracker(AbstractTracker):
         self.params['av'] = kwargs.get('version', 1)
 
 
-    def track_screen(self, screen_name):
+    def track_screen(self, screen_name, params=None):
         """
         Track a screen view.
         """
-        params = dict()
+        if params is None:
+            params = dict()
         params['cd'] = screen_name
         self._track('appview', params)
 
-    def track_event(self, category, action, label=None, value=-1):
+    def track_event(self, category, action, label=None, value=-1, params=None):
         """
         Track an event within the application.
         :param category:  a category is a name that you supply as a way to group objects that you want to track. The term Category appears in the reporting interface as Top Categories in the Events Overview page.
@@ -151,7 +152,8 @@ class AppTracker(AbstractTracker):
         :param value: The report displays the total and average value for events. You can use this to track time, but there is also track_user_timing() for tat purpose.
         :type value: `int`
         """
-        params = dict()
+        if params is None:
+            params = dict()
         params['ec'] = category
         params['ea'] = action
         if label is not None:
@@ -160,7 +162,7 @@ class AppTracker(AbstractTracker):
             params['ev'] = value
         self._track('event', params)
 
-    def track_user_timing(self, category, variable, duration, label=None):
+    def track_user_timing(self, category, variable, duration, label=None, params=None):
         """
         :param category: Specifies the user timing category.
         :param variable: Specifies the user timing variable, the name of the action of the resource being tracked.
@@ -168,7 +170,8 @@ class AppTracker(AbstractTracker):
         :type duration: `int` value in milliseconds
         :param label: add flexibility in visualizing user timings in the reports. Labels can also be used to focus on different sub experiments for the same category and variable combination.
         """
-        params = dict()
+        if params is None:
+            params = dict()
         params['utc'] = category
         params['utv'] = variable
         params['utt'] = duration
