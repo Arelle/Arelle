@@ -66,8 +66,8 @@ def google_analytics_plugin(controller):
     ModelManager.ModelManager.load = ga_function_decorated(ga, ModelManager.ModelManager.load)
     ModelManager.ModelManager.validate = ga_function_decorated(ga, ModelManager.ModelManager.validate)
 
-    #And of course, I need to track the screen of the main controler itself
-    ga.track_screen(controller.__class__.__name__)
+    # Start a new tracking session with the controller window itself
+    ga.track_screen(controller.__class__.__name__,  {'sc':'start'})
 
 
 def ga_decorate_screen(ga, clazz):
