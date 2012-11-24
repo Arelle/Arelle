@@ -24,7 +24,7 @@ limitations under the License.
 """
 
 # defined __STR_BASE
-from arelle import ModelManager, CntlrWinMain, DialogAbout, DialogArcroleGroup, DialogLanguage, DialogFind, DialogOpenArchive, DialogOpenTaxonomyPackage, DialogPluginManager, DialogFormulaParameters, DialogNewFactItem, DialogRssWatch, DialogURL, DialogUserPassword
+from arelle import ModelManager, CntlrWinMain, DialogAbout, DialogArcroleGroup, DialogLanguage, DialogFind, DialogOpenArchive, DialogOpenTaxonomyPackage, DialogPluginManager, DialogFormulaParameters, DialogNewFactItem, DialogRssWatch, DialogURL, DialogUserPassword, ValidateFormula
 
 __author__ = 'R\u00e9gis D\u00e9camps'
 __copyright__ = "Copyright 2012, Autorit\u00e9 de contr\u00f4le prudentiel"
@@ -65,6 +65,9 @@ def google_analytics_plugin(controller):
     # until introspection is done, the plugin tracks the methods explicitly listed bellow
     ModelManager.ModelManager.load = ga_function_decorated(ga, ModelManager.ModelManager.load)
     ModelManager.ModelManager.validate = ga_function_decorated(ga, ModelManager.ModelManager.validate)
+    ValidateFormula.validate = ga_function_decorated(ga, ValidateFormula.validate)
+
+    # Another option is to reuse ModileManager.pro
 
     # Start a new tracking session with the controller window itself
     ga.track_screen(controller.__class__.__name__,  {'sc':'start'})
