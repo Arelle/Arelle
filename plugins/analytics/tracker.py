@@ -39,10 +39,10 @@ def google_analytics_plugin(controller):
     initialize the Google analytics tracker
     """
     try:
-        uid = controller.config['uuid']
+        uid = controller.config['analytics_client_id']
     except KeyError:
         uid = random_uuid()
-        controller.config['uuid'] = uid
+        controller.config['analytics_client_id'] = uid
     controller.addToLog("Initialize google analytics for anonymous user " + uid)
     # TODO How can I know the version of Arelle?
     ga = AppTracker("Arelle", "UA-36372431-1", None, version=3)
