@@ -258,9 +258,9 @@ class View:
                 if isinstance(self.outfile, FileNamedStringIO):
                     fh = self.outfile
                 else:
-                    fh = open(self.outfile, "w")
+                    fh = open(self.outfile, "w", encoding="utf-8")
                 if self.type == JSON:
-                    fh.write(json.dumps(self.jsonObject))
+                    fh.write(json.dumps(self.jsonObject, ensure_ascii=False))
                 else:
                     XmlUtil.writexml(fh, self.xmlDoc, encoding="utf-8")
                 if not isinstance(self.outfile, FileNamedStringIO):

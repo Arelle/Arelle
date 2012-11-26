@@ -8,11 +8,26 @@ import os
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect
-from arelle.ModelRenderingObject import (ModelEuAxisCoord, ModelOpenAxisNodeDefinition, ModelClosedAxisNodeDefinition,
+from arelle.ModelRenderingObject import (ModelEuTable, ModelTable,
+                                         ModelEuAxisCoord, ModelOpenAxisNodeDefinition, ModelClosedAxisNodeDefinition,
                                          ModelRelationshipAxisDefinition, ModelSelectionAxisNode, ModelFilterAxisNode,
                                          ModelCompositionAxisNode, ModelTupleAxisNode, StructuralOrdinateContext)
 
 def resolveAxesStructure(view, viewTblELR):
+    if isinstance(viewTblELR, (ModelEuTable, ModelTable)):
+        # called with a modelTable instead of an ELR
+        
+        # find an ELR for this table object
+        table = viewTblELR
+        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011)).fromModelObject(table):
+            # find relationships in table's linkrole
+            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), rel.linkrole)
+            return resolveTableAxesStructure(view, table,
+                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), rel.linkrole))
+        # no relationships from table found
+        return (None, None, None, None)
+    
+    # called with an ELR or list of ELRs
     tblAxisRelSet = view.modelXbrl.relationshipSet(XbrlConst.euTableAxis, viewTblELR)
     if len(tblAxisRelSet.modelRelationships) > 0:
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
@@ -20,7 +35,7 @@ def resolveAxesStructure(view, viewTblELR):
         tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), viewTblELR)
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
-        view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(view.arcrole))
+        view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
         return (None, None, None, None)
     
     # table name
@@ -29,64 +44,84 @@ def resolveAxesStructure(view, viewTblELR):
         view.roledefinition = modelRoleTypes[0].definition
         if view.roledefinition is None or view.roledefinition == "":
             view.roledefinition = os.path.basename(viewTblELR)       
-    for table in tblAxisRelSet.rootConcepts:            
-        view.dataCols = 0
-        view.dataRows = 0
-        view.colHdrNonStdRoles = []
-        view.colHdrDocRow = False
-        view.colHdrCodeRow = False
-        view.colHdrRows = 0
-        view.rowHdrNonStdRoles = []
-        view.rowHdrCols = 0
-        view.rowHdrColWidth = [0,]
-        view.rowHdrDocCol = False
-        view.rowHdrCodeCol = False
-        view.zAxisRows = 0
-        view.aspectModel = table.aspectModel
-        view.zmostOrdCntx = None
-        view.modelTable = table
-        
-        xStrOrdCntx = yStrOrdCntx = zStrOrdCntx = None
-        # must be cartesian product of top level relationships
-        tblAxisRels = tblAxisRelSet.fromModelObject(table)
-        facts = view.modelXbrl.factsInInstance
-        # do z's first to set variables needed by x and y axes expressions
-        for disposition in ("z", "x", "y"):
-            for i, tblAxisRel in enumerate(tblAxisRels):
-                axisObj = tblAxisRel.toModelObject
-                if (tblAxisRel.axisDisposition == disposition and 
-                    isinstance(axisObj, (ModelEuAxisCoord, ModelOpenAxisNodeDefinition))):
-                    if disposition == "x" and xStrOrdCntx is None:
-                        xStrOrdCntx = StructuralOrdinateContext(None, axisObj, view.zmostOrdCntx)
-                        if isinstance(axisObj,ModelClosedAxisNodeDefinition) and axisObj.parentChildOrder is not None:
-                            view.xAxisChildrenFirst.set(axisObj.parentChildOrder == "children-first")
-                        analyzeHdrs(view, xStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
-                        break
-                    elif disposition == "y" and yStrOrdCntx is None:
-                        yStrOrdCntx = StructuralOrdinateContext(None, axisObj, view.zmostOrdCntx)
-                        if isinstance(axisObj,ModelClosedAxisNodeDefinition) and axisObj.parentChildOrder is not None:
-                            view.yAxisChildrenFirst.set(axisObj.parentChildOrder == "children-first")
-                        analyzeHdrs(view, yStrOrdCntx, axisObj, 0, disposition, facts, i, tblAxisRels)
-                        break
-                    elif disposition == "z" and zStrOrdCntx is None:
-                        zStrOrdCntx = StructuralOrdinateContext(None, axisObj)
-                        analyzeHdrs(view, zStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
-                        break
-        view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
-        view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols))
-        view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
-        view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
-        #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
-        #view.dataFirstCol = 1 + view.rowHdrCols + view.rowHdrDocCol + view.rowHdrCodeCol
-        #for i in range(view.dataFirstRow + view.dataRows):
-        #    view.gridView.rowconfigure(i)
-        #for i in range(view.dataFirstCol + view.dataCols):
-        #    view.gridView.columnconfigure(i)
-        view.modelTable = table
-        
-        return (tblAxisRelSet, xStrOrdCntx, yStrOrdCntx, zStrOrdCntx)
+    for table in tblAxisRelSet.rootConcepts:
+        return resolveTableAxesStructure(view, table, tblAxisRelSet)
     
     return (None, None, None, None)
+
+def resolveTableAxesStructure(view, table, tblAxisRelSet):
+    view.dataCols = 0
+    view.dataRows = 0
+    view.colHdrNonStdRoles = []
+    view.colHdrDocRow = False
+    view.colHdrCodeRow = False
+    view.colHdrRows = 0
+    view.rowHdrNonStdRoles = []
+    view.rowHdrCols = 0
+    view.rowHdrColWidth = [0,]
+    view.rowNonAbstractHdrSpanMin = [0,]
+    view.rowHdrDocCol = False
+    view.rowHdrCodeCol = False
+    view.zAxisRows = 0
+    view.aspectModel = table.aspectModel
+    view.zmostOrdCntx = None
+    view.modelTable = table
+    
+    xStrOrdCntx = yStrOrdCntx = zStrOrdCntx = None
+    # must be cartesian product of top level relationships
+    tblAxisRels = tblAxisRelSet.fromModelObject(table)
+    facts = view.modelXbrl.factsInInstance
+    # do z's first to set variables needed by x and y axes expressions
+    for disposition in ("z", "x", "y"):
+        for i, tblAxisRel in enumerate(tblAxisRels):
+            axisObj = tblAxisRel.toModelObject
+            if (tblAxisRel.axisDisposition == disposition and 
+                isinstance(axisObj, (ModelEuAxisCoord, ModelOpenAxisNodeDefinition))):
+                if disposition == "x" and xStrOrdCntx is None:
+                    xStrOrdCntx = StructuralOrdinateContext(None, axisObj, view.zmostOrdCntx)
+                    if isinstance(axisObj,ModelClosedAxisNodeDefinition) and axisObj.parentChildOrder is not None:
+                        view.xAxisChildrenFirst.set(axisObj.parentChildOrder == "children-first")
+                    analyzeHdrs(view, xStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
+                    break
+                elif disposition == "y" and yStrOrdCntx is None:
+                    yStrOrdCntx = StructuralOrdinateContext(None, axisObj, view.zmostOrdCntx)
+                    if isinstance(axisObj,ModelClosedAxisNodeDefinition) and axisObj.parentChildOrder is not None:
+                        view.yAxisChildrenFirst.set(axisObj.parentChildOrder == "children-first")
+                    analyzeHdrs(view, yStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
+                    break
+                elif disposition == "z" and zStrOrdCntx is None:
+                    zStrOrdCntx = StructuralOrdinateContext(None, axisObj)
+                    analyzeHdrs(view, zStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
+                    break
+    view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
+    for i in range(view.rowHdrCols):
+        if view.rowNonAbstractHdrSpanMin[i]:
+            lastRowMinWidth = view.rowNonAbstractHdrSpanMin[i] - sum(view.rowHdrColWidth[i] for j in range(i, view.rowHdrCols - 1))
+            if lastRowMinWidth > view.rowHdrColWidth[view.rowHdrCols - 1]:
+                view.rowHdrColWidth[view.rowHdrCols - 1] = lastRowMinWidth 
+    view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols))
+    view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
+    view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
+    #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
+    #view.dataFirstCol = 1 + view.rowHdrCols + view.rowHdrDocCol + view.rowHdrCodeCol
+    #for i in range(view.dataFirstRow + view.dataRows):
+    #    view.gridView.rowconfigure(i)
+    #for i in range(view.dataFirstCol + view.dataCols):
+    #    view.gridView.columnconfigure(i)
+    view.modelTable = table
+    
+    # organize hdrNonStdRoles so code (if any) is after documentation (if any)
+    for hdrNonStdRoles in (view.colHdrNonStdRoles, view.rowHdrNonStdRoles):
+        iCodeRole = -1
+        for i, hdrNonStdRole in enumerate(hdrNonStdRoles):
+            if 'code' in os.path.basename(hdrNonStdRole).lower():
+                iCodeRole = i
+                break
+        if iCodeRole >= 0 and len(hdrNonStdRoles) > 1 and iCodeRole < len(hdrNonStdRoles) - 1:
+            del hdrNonStdRoles[iCodeRole]
+            hdrNonStdRoles.append(hdrNonStdRole)
+    
+    return (tblAxisRelSet, xStrOrdCntx, yStrOrdCntx, zStrOrdCntx)
 
 def sortkey(obj):
     if isinstance(obj, ModelObject):
@@ -126,12 +161,17 @@ def analyzeHdrs(view, ordCntx, axisNodeObject, depth, axisDisposition, facts, i=
                     view.rowHdrCols = nestedDepth
                     for j in range(1 + ordDepth):
                         view.rowHdrColWidth.append(16)  # min width for 'tail' of nonAbstract coordinate
-                if axisNodeObject.isAbstract:
-                    label = ordCntx.header(lang=view.lang)
-                    if label:
-                        widestWordLen = max(len(w) * 7 for w in label.split())
+                        view.rowNonAbstractHdrSpanMin.append(0)
+                label = ordCntx.header(lang=view.lang)
+                if label:
+                    # need to et more exact word length in screen units
+                    widestWordLen = max(len(w) * 16 for w in label.split())
+                    if axisNodeObject.isAbstract:                    
                         if widestWordLen > view.rowHdrColWidth[depth]:
                             view.rowHdrColWidth[depth] = widestWordLen
+                    else:
+                        if widestWordLen > view.rowNonAbstractHdrSpanMin[depth]:
+                            view.rowNonAbstractHdrSpanMin[depth] = widestWordLen
                 ''' 
                 if not view.rowHdrDocCol:
                     if axisNodeObject.header(role="http://www.xbrl.org/2008/role/documentation",

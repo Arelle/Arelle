@@ -113,7 +113,7 @@ class gridSpacer(Frame):
   
 class gridHdr(Label): 
     def __init__(self, master, x, y, text, columnspan=None, rowspan=None, anchor='center', padding=None, 
-                 wraplength=None, width=None, minwidth=None,
+                 wraplength=None, width=None, minwidth=None, stretchCols=True, stretchRows=True,
                  objectId=None, onClick=None): 
         Label.__init__(self, master=master) 
         if isinstance(master.master.master, scrolledHeaderedFrame):
@@ -151,6 +151,15 @@ class gridHdr(Label):
         
         if minwidth:
             master.columnconfigure(x, minsize=minwidth)
+            
+        if stretchCols:
+            master.columnconfigure(x, weight=1)
+        else:
+            master.columnconfigure(x, weight=0, uniform='noStretch')
+        if stretchRows:
+            master.rowconfigure(y, weight=1)
+        else:
+            master.rowconfigure(y, weight=0, uniform='noStretch')
         # copy bindings
         try:
             contextMenuBinding = master.bind(master.contextMenuClick)

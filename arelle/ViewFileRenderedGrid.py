@@ -66,7 +66,7 @@ class ViewRenderedGrid(ViewFile.View):
             self.zOrdinateChoices = {}
             
             for discriminator in range(1, 65535):
-                tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = resolveAxesStructure(self, tblELR) 
+                tblAxisRelSet, xOrdCntx, yOrdCntx, zOrdCntx = resolveAxesStructure(self, tblELR)
                 
                 if tblAxisRelSet and self.tblElt is not None:
                     tableLabel = (self.modelTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
@@ -250,279 +250,282 @@ class ViewRenderedGrid(ViewFile.View):
                                 zAspects[ruleAspect].add(zOrdCntx)
     
     def xAxis(self, leftCol, topRow, rowBelow, xParentOrdCntx, xOrdCntxs, childrenFirst, renderNow, atTop):
-        parentRow = rowBelow
-        noDescendants = True
-        rightCol = leftCol
-        widthToSpanParent = 0
-        sideBorder = not xOrdCntxs
-        for xOrdCntx in xParentOrdCntx.subOrdinateContexts:
-            noDescendants = False
-            rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, # nested items before totals
-                                                        childrenFirst, childrenFirst, False)
-            if row - 1 < parentRow:
-                parentRow = row - 1
-            #if not leafNode: 
-            #    rightCol -= 1
-            nonAbstract = not xOrdCntx.isAbstract
-            if nonAbstract:
-                width += 100 # width for this label
-            widthToSpanParent += width
-            label = xOrdCntx.header(lang=self.lang)
-            if childrenFirst:
-                thisCol = rightCol
-            else:
-                thisCol = leftCol
-            #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
-            if renderNow:
-                columnspan = rightCol - leftCol + (1 if nonAbstract else 0)
-                if self.type == HTML:
-                    if rightCol == self.dataFirstCol + self.dataCols - 1:
-                        edgeBorder = "border-right:.5pt solid windowtext;"
-                    else:
-                        edgeBorder = ""
-                    attrib = {"class":"xAxisHdr",
-                              "style":"text-align:center;max-width:{0}pt;{1}".format(width,edgeBorder)}
-                    if columnspan > 1:
-                        attrib["colspan"] = str(columnspan)
-                    if leafNode and row > topRow:
-                        attrib["rowspan"] = str(row - topRow + 1)
-                    elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                        attrib=attrib)
-                    self.rowElts[topRow-1].insert(leftCol,elt)
-                elif self.type == XML:
-                    elt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                        attrib={"span": str(columnspan)} if columnspan > 1 else None)
-                    self.colHdrElts[topRow - self.colHdrTopRow].insert(leftCol,elt)
-                    self.ordCntxElts.append((xOrdCntx, elt))
-                    if nonAbstract or (leafNode and row > topRow):
-                        for rollUpCol in range(topRow - self.colHdrTopRow + 1, self.colHdrRows - 1):
-                            rollUpElt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                                      attrib={"rollup":"true"})
-                            if childrenFirst:
-                                self.colHdrElts[rollUpCol].append(rollUpElt)
-                            else:
-                                self.colHdrElts[rollUpCol].insert(leftCol,rollUpElt)
-                elt.text = label or "\u00A0" #produces &nbsp;
+        if xParentOrdCntx is not None:
+            parentRow = rowBelow
+            noDescendants = True
+            rightCol = leftCol
+            widthToSpanParent = 0
+            sideBorder = not xOrdCntxs
+            for xOrdCntx in xParentOrdCntx.subOrdinateContexts:
+                noDescendants = False
+                rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, # nested items before totals
+                                                            childrenFirst, childrenFirst, False)
+                if row - 1 < parentRow:
+                    parentRow = row - 1
+                #if not leafNode: 
+                #    rightCol -= 1
+                nonAbstract = not xOrdCntx.isAbstract
                 if nonAbstract:
-                    if columnspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
-                        if self.type == HTML:
-                            attrib= {"class":"xAxisSpanLeg",
-                                     "rowspan": str(rowBelow - row)}
-                            if edgeBorder:
-                                attrib["style"] = edgeBorder
-                            elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                attrib=attrib)
-                            elt.text = "\u00A0"
-                            if childrenFirst:
-                                self.rowElts[topRow].append(elt)
-                            else:
-                                self.rowElts[topRow].insert(leftCol,elt)
-                    for i, role in enumerate(self.colHdrNonStdRoles):
-                        hdr = xOrdCntx.header(role=role, lang=self.lang)
-                        if self.type == HTML:
-                            elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                attrib={"class":"xAxisHdr",
-                                                        "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                            self.rowElts[self.dataFirstRow - 1 - len(self.rowHdrNonStdRoles) + i].insert(thisCol,elt)
-                        elif self.type == XML:
-                            elt = etree.Element("{http://xbrl.org/2012/table/model}label")
-                            self.colHdrElts[self.colHdrRows - 1 + i].insert(thisCol,elt)
-                        elt.text = hdr or "\u00A0"
-                    '''
-                    if self.colHdrDocRow:
-                        doc = xOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
-                        if self.type == HTML:
-                            elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                attrib={"class":"xAxisHdr",
-                                                        "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                            self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
-                        elif self.type == XML:
-                            elt = etree.Element("{http://xbrl.org/2012/table/model}label")
-                            self.colHdrElts[self.colHdrRows - 1].insert(thisCol,elt)
-                        elt.text = doc or "\u00A0"
-                    if self.colHdrCodeRow:
-                        code = xOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
-                        if self.type == HTML:
-                            elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                attrib={"class":"xAxisHdr",
-                                                        "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                            self.rowElts[self.dataFirstRow - 2].insert(thisCol,elt)
-                        elif self.type == XML:
-                            elt = etree.Element("{http://xbrl.org/2012/table/model}label")
-                            self.colHdrElts[self.colHdrRows - 1 + self.colHdrDocRow].insert(thisCol,elt)
-                        elt.text = code or "\u00A0"
-                    '''
-                    xOrdCntxs.append(xOrdCntx)
-            if nonAbstract:
-                rightCol += 1
-            if renderNow and not childrenFirst:
-                self.xAxis(leftCol + (1 if nonAbstract else 0), topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, childrenFirst, True, False) # render on this pass
-            leftCol = rightCol
-        return (rightCol, parentRow, widthToSpanParent, noDescendants)
+                    width += 100 # width for this label
+                widthToSpanParent += width
+                label = xOrdCntx.header(lang=self.lang)
+                if childrenFirst:
+                    thisCol = rightCol
+                else:
+                    thisCol = leftCol
+                #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
+                if renderNow:
+                    columnspan = rightCol - leftCol + (1 if nonAbstract else 0)
+                    if self.type == HTML:
+                        if rightCol == self.dataFirstCol + self.dataCols - 1:
+                            edgeBorder = "border-right:.5pt solid windowtext;"
+                        else:
+                            edgeBorder = ""
+                        attrib = {"class":"xAxisHdr",
+                                  "style":"text-align:center;max-width:{0}pt;{1}".format(width,edgeBorder)}
+                        if columnspan > 1:
+                            attrib["colspan"] = str(columnspan)
+                        if leafNode and row > topRow:
+                            attrib["rowspan"] = str(row - topRow + 1)
+                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                            attrib=attrib)
+                        self.rowElts[topRow-1].insert(leftCol,elt)
+                    elif self.type == XML:
+                        elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                            attrib={"span": str(columnspan)} if columnspan > 1 else None)
+                        self.colHdrElts[topRow - self.colHdrTopRow].insert(leftCol,elt)
+                        self.ordCntxElts.append((xOrdCntx, elt))
+                        if nonAbstract or (leafNode and row > topRow):
+                            for rollUpCol in range(topRow - self.colHdrTopRow + 1, self.colHdrRows - 1):
+                                rollUpElt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                                          attrib={"rollup":"true"})
+                                if childrenFirst:
+                                    self.colHdrElts[rollUpCol].append(rollUpElt)
+                                else:
+                                    self.colHdrElts[rollUpCol].insert(leftCol,rollUpElt)
+                    elt.text = label or "\u00A0" #produces &nbsp;
+                    if nonAbstract:
+                        if columnspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
+                            if self.type == HTML:
+                                attrib= {"class":"xAxisSpanLeg",
+                                         "rowspan": str(rowBelow - row)}
+                                if edgeBorder:
+                                    attrib["style"] = edgeBorder
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib=attrib)
+                                elt.text = "\u00A0"
+                                if childrenFirst:
+                                    self.rowElts[topRow].append(elt)
+                                else:
+                                    self.rowElts[topRow].insert(leftCol,elt)
+                        for i, role in enumerate(self.colHdrNonStdRoles):
+                            hdr = xOrdCntx.header(role=role, lang=self.lang)
+                            if self.type == HTML:
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib={"class":"xAxisHdr",
+                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
+                                self.rowElts[self.dataFirstRow - 1 - len(self.colHdrNonStdRoles) + i].insert(thisCol,elt)
+                            elif self.type == XML:
+                                elt = etree.Element("{http://xbrl.org/2012/table/model}label")
+                                self.colHdrElts[self.colHdrRows - 1 + i].insert(thisCol,elt)
+                            elt.text = hdr or "\u00A0"
+                        '''
+                        if self.colHdrDocRow:
+                            doc = xOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
+                            if self.type == HTML:
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib={"class":"xAxisHdr",
+                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
+                                self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
+                            elif self.type == XML:
+                                elt = etree.Element("{http://xbrl.org/2012/table/model}label")
+                                self.colHdrElts[self.colHdrRows - 1].insert(thisCol,elt)
+                            elt.text = doc or "\u00A0"
+                        if self.colHdrCodeRow:
+                            code = xOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                            if self.type == HTML:
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib={"class":"xAxisHdr",
+                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
+                                self.rowElts[self.dataFirstRow - 2].insert(thisCol,elt)
+                            elif self.type == XML:
+                                elt = etree.Element("{http://xbrl.org/2012/table/model}label")
+                                self.colHdrElts[self.colHdrRows - 1 + self.colHdrDocRow].insert(thisCol,elt)
+                            elt.text = code or "\u00A0"
+                        '''
+                        xOrdCntxs.append(xOrdCntx)
+                if nonAbstract:
+                    rightCol += 1
+                if renderNow and not childrenFirst:
+                    self.xAxis(leftCol + (1 if nonAbstract else 0), topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, childrenFirst, True, False) # render on this pass
+                leftCol = rightCol
+            return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
     def yAxisByRow(self, leftCol, row, yParentOrdCntx, childrenFirst, renderNow, atLeft):
-        nestedBottomRow = row
-        for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
-            nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yOrdCntx,  # nested items before totals
-                                    childrenFirst, childrenFirst, False)
-            isAbstract = yOrdCntx.isAbstract
-            isNonAbstract = not isAbstract
-            label = yOrdCntx.header(lang=self.lang)
-            topRow = row
-            #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
-            if renderNow:
-                columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
-                if childrenFirst and isNonAbstract and nextRow > row:
+        if yParentOrdCntx is not None:
+            nestedBottomRow = row
+            for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
+                nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yOrdCntx,  # nested items before totals
+                                        childrenFirst, childrenFirst, False)
+                isAbstract = yOrdCntx.isAbstract
+                isNonAbstract = not isAbstract
+                label = yOrdCntx.header(lang=self.lang)
+                topRow = row
+                #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
+                if renderNow:
+                    columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
+                    if childrenFirst and isNonAbstract and nextRow > row:
+                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                            attrib={"class":"yAxisSpanArm",
+                                                    "style":"text-align:center;min-width:2em;",
+                                                    "rowspan": str(nextRow - topRow)}
+                                            )
+                        insertPosition = self.rowElts[nextRow-1].__len__()
+                        self.rowElts[row - 1].insert(insertPosition, elt)
+                        elt.text = "\u00A0"
+                        hdrRow = nextRow # put nested stuff on bottom row
+                        row = nextRow    # nested header still goes on this row
+                    else:
+                        hdrRow = row
+                    # provide top or bottom borders
+                    edgeBorder = ""
+                    
+                    if childrenFirst:
+                        if hdrRow == self.dataFirstRow:
+                            edgeBorder = "border-top:.5pt solid windowtext;"
+                    else:
+                        if hdrRow == len(self.rowElts):
+                            edgeBorder = "border-bottom:.5pt solid windowtext;"
+                    attrib = {"style":"text-align:{0};max-width:{1}em;{2}".format(
+                                            "left" if isNonAbstract or nestRow == hdrRow else "center",
+                                            # this is a wrap length max sidth in characters
+                                            self.rowHdrColWidth[leftCol] if isAbstract else
+                                            self.rowHdrWrapLength -
+                                            sum(self.rowHdrColWidth[i] for i in range(leftCol)),
+                                            edgeBorder),
+                              "colspan": str(columnspan)}
+                    if isAbstract:
+                        attrib["rowspan"] = str(nestRow - hdrRow)
+                        attrib["class"] = "yAxisHdrAbstractChildrenFirst" if childrenFirst else "yAxisHdrAbstract"
+                    elif nestRow > hdrRow:
+                        attrib["class"] = "yAxisHdrWithLeg"
+                    elif childrenFirst:
+                        attrib["class"] = "yAxisHdrWithChildrenFirst"
+                    else:
+                        attrib["class"] = "yAxisHdr"
                     elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                        attrib={"class":"yAxisSpanArm",
-                                                "style":"text-align:center;min-width:2em;",
-                                                "rowspan": str(nextRow - topRow)}
+                                        attrib=attrib
                                         )
-                    insertPosition = self.rowElts[nextRow-1].__len__()
-                    self.rowElts[row - 1].insert(insertPosition, elt)
-                    elt.text = "\u00A0"
-                    hdrRow = nextRow # put nested stuff on bottom row
-                    row = nextRow    # nested header still goes on this row
-                else:
-                    hdrRow = row
-                # provide top or bottom borders
-                edgeBorder = ""
-                
-                if childrenFirst:
-                    if hdrRow == self.dataFirstRow:
-                        edgeBorder = "border-top:.5pt solid windowtext;"
-                else:
-                    if hdrRow == len(self.rowElts):
-                        edgeBorder = "border-bottom:.5pt solid windowtext;"
-                attrib = {"style":"text-align:{0};max-width:{1}em;{2}".format(
-                                        "left" if isNonAbstract or nestRow == hdrRow else "center",
-                                        # this is a wrap length max sidth in characters
-                                        self.rowHdrColWidth[leftCol] if isAbstract else
-                                        self.rowHdrWrapLength -
-                                        sum(self.rowHdrColWidth[i] for i in range(leftCol)),
-                                        edgeBorder),
-                          "colspan": str(columnspan)}
-                if isAbstract:
-                    attrib["rowspan"] = str(nestRow - hdrRow)
-                    attrib["class"] = "yAxisHdrAbstractChildrenFirst" if childrenFirst else "yAxisHdrAbstract"
-                elif nestRow > hdrRow:
-                    attrib["class"] = "yAxisHdrWithLeg"
-                elif childrenFirst:
-                    attrib["class"] = "yAxisHdrWithChildrenFirst"
-                else:
-                    attrib["class"] = "yAxisHdr"
-                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                    attrib=attrib
-                                    )
-                elt.text = label if label else "\u00A0"
+                    elt.text = label if label else "\u00A0"
+                    if isNonAbstract:
+                        self.rowElts[hdrRow-1].append(elt)
+                        if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
+                            etree.SubElement(self.rowElts[hdrRow], 
+                                             "{http://www.w3.org/1999/xhtml}th",
+                                             attrib={"class":"yAxisSpanLeg",
+                                                     "style":"text-align:center;max-width:16pt;{0}".format(edgeBorder),
+                                                     "rowspan": str(nestRow - hdrRow)}
+                                             ).text = "\u00A0"
+                        hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
+                        for i, role in enumerate(self.rowHdrNonStdRoles):
+                            hdr = yOrdCntx.header(role=role, lang=self.lang)
+                            etree.SubElement(self.rowElts[hdrRow - 1], 
+                                             "{http://www.w3.org/1999/xhtml}th",
+                                             attrib={"class":hdrClass,
+                                                     "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
+                                             ).text = hdr or "\u00A0"
+                        '''
+                        if self.rowHdrDocCol:
+                            docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
+                            doc = yOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation")
+                            etree.SubElement(self.rowElts[hdrRow - 1], 
+                                             "{http://www.w3.org/1999/xhtml}th",
+                                             attrib={"class":hdrClass,
+                                                     "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
+                                             ).text = doc or "\u00A0"
+                        if self.rowHdrCodeCol:
+                            codeCol = self.dataFirstCol - 1
+                            code = yOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                            etree.SubElement(self.rowElts[hdrRow - 1], 
+                                             "{http://www.w3.org/1999/xhtml}th",
+                                             attrib={"class":hdrClass,
+                                                     "style":"text-align:center;max-width:40pt;{0}".format(edgeBorder)}
+                                             ).text = code or "\u00A0"
+                        # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                        '''
+                    else:
+                        self.rowElts[hdrRow-1].insert(leftCol - 1, elt)
                 if isNonAbstract:
-                    self.rowElts[hdrRow-1].append(elt)
-                    if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
-                        etree.SubElement(self.rowElts[hdrRow], 
-                                         "{http://www.w3.org/1999/xhtml}th",
-                                         attrib={"class":"yAxisSpanLeg",
-                                                 "style":"text-align:center;max-width:16pt;{0}".format(edgeBorder),
-                                                 "rowspan": str(nestRow - hdrRow)}
-                                         ).text = "\u00A0"
-                    hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
-                    for i, role in enumerate(self.rowHdrNonStdRoles):
-                        hdr = yOrdCntx.header(role=role, lang=self.lang)
-                        etree.SubElement(self.rowElts[hdrRow - 1], 
-                                         "{http://www.w3.org/1999/xhtml}th",
-                                         attrib={"class":hdrClass,
-                                                 "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
-                                         ).text = hdr or "\u00A0"
-                    '''
-                    if self.rowHdrDocCol:
-                        docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
-                        doc = yOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation")
-                        etree.SubElement(self.rowElts[hdrRow - 1], 
-                                         "{http://www.w3.org/1999/xhtml}th",
-                                         attrib={"class":hdrClass,
-                                                 "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
-                                         ).text = doc or "\u00A0"
-                    if self.rowHdrCodeCol:
-                        codeCol = self.dataFirstCol - 1
-                        code = yOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
-                        etree.SubElement(self.rowElts[hdrRow - 1], 
-                                         "{http://www.w3.org/1999/xhtml}th",
-                                         attrib={"class":hdrClass,
-                                                 "style":"text-align:center;max-width:40pt;{0}".format(edgeBorder)}
-                                         ).text = code or "\u00A0"
-                    # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
-                    '''
-                else:
-                    self.rowElts[hdrRow-1].insert(leftCol - 1, elt)
-            if isNonAbstract:
-                row += 1
-            elif childrenFirst:
-                row = nextRow
-            if nestRow > nestedBottomRow:
-                nestedBottomRow = nestRow + (not childrenFirst)
-            if row > nestedBottomRow:
-                nestedBottomRow = row
-            #if renderNow and not childrenFirst:
-            #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass            
-            if not childrenFirst:
-                dummy, row = self.yAxisByRow(leftCol + 1, row, yOrdCntx, childrenFirst, renderNow, False) # render on this pass
-        return (nestedBottomRow, row)
+                    row += 1
+                elif childrenFirst:
+                    row = nextRow
+                if nestRow > nestedBottomRow:
+                    nestedBottomRow = nestRow + (not childrenFirst)
+                if row > nestedBottomRow:
+                    nestedBottomRow = row
+                #if renderNow and not childrenFirst:
+                #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass            
+                if not childrenFirst:
+                    dummy, row = self.yAxisByRow(leftCol + 1, row, yOrdCntx, childrenFirst, renderNow, False) # render on this pass
+            return (nestedBottomRow, row)
 
     def yAxisByCol(self, leftCol, row, yParentOrdCntx, childrenFirst, renderNow, atTop):
-        nestedBottomRow = row
-        for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
-            nestRow, nextRow = self.yAxisByCol(leftCol + 1, row, yOrdCntx,  # nested items before totals
-                                               childrenFirst, childrenFirst, False)
-            isAbstract = yOrdCntx.isAbstract
-            isNonAbstract = not isAbstract
-            label = yOrdCntx.header(lang=self.lang)
-            topRow = row
-            if childrenFirst and isNonAbstract:
-                row = nextRow
-            #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
-            if renderNow:
-                rowspan= nestRow - row + 1
-                elt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                    attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                elt.text = label
-                self.rowHdrElts[leftCol - 1].append(elt)
-                self.ordCntxElts.append((yOrdCntx, elt))
-                for rollUpCol in range(leftCol, self.rowHdrCols - 1):
-                    rollUpElt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                              attrib={"rollup":"true"})
-                    self.rowHdrElts[rollUpCol].append(rollUpElt)
+        if yParentOrdCntx is not None:
+            nestedBottomRow = row
+            for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
+                nestRow, nextRow = self.yAxisByCol(leftCol + 1, row, yOrdCntx,  # nested items before totals
+                                                   childrenFirst, childrenFirst, False)
+                isAbstract = yOrdCntx.isAbstract
+                isNonAbstract = not isAbstract
+                label = yOrdCntx.header(lang=self.lang)
+                topRow = row
+                if childrenFirst and isNonAbstract:
+                    row = nextRow
+                #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
+                if renderNow:
+                    rowspan= nestRow - row + 1
+                    elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                        attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                    elt.text = label
+                    self.rowHdrElts[leftCol - 1].append(elt)
+                    self.ordCntxElts.append((yOrdCntx, elt))
+                    for rollUpCol in range(leftCol, self.rowHdrCols - 1):
+                        rollUpElt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                                  attrib={"rollup":"true"})
+                        self.rowHdrElts[rollUpCol].append(rollUpElt)
+                    if isNonAbstract:
+                        for i, role in enumerate(self.rowHdrNonStdRoles):
+                            elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                                attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                            elt.text = yOrdCntx.header(role=role, lang=self.lang)
+                            self.rowHdrElts[self.rowHdrCols - 1 + i].append(elt)
+                        '''
+                        if self.rowHdrDocCol:
+                            elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                                attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                            elt.text = yOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation",
+                                                       lang=self.lang)
+                            self.rowHdrElts[self.rowHdrCols - 1].append(elt)
+                        if self.rowHdrCodeCol:
+                            elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                                attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                            elt.text = yOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code",
+                                                       lang=self.lang)
+                            self.rowHdrElts[self.rowHdrCols - 1 + self.rowHdrDocCol].append(elt)
+                        '''
                 if isNonAbstract:
-                    for i, role in enumerate(self.rowHdrNonStdRoles):
-                        elt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                            attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                        elt.text = yOrdCntx.header(role=role, lang=self.lang)
-                        self.rowHdrElts[self.rowHdrCols - 1 + i].append(elt)
-                    '''
-                    if self.rowHdrDocCol:
-                        elt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                            attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                        elt.text = yOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation",
-                                                   lang=self.lang)
-                        self.rowHdrElts[self.rowHdrCols - 1].append(elt)
-                    if self.rowHdrCodeCol:
-                        elt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                            attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                        elt.text = yOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code",
-                                                   lang=self.lang)
-                        self.rowHdrElts[self.rowHdrCols - 1 + self.rowHdrDocCol].append(elt)
-                    '''
-            if isNonAbstract:
-                row += 1
-            elif childrenFirst:
-                row = nextRow
-            if nestRow > nestedBottomRow:
-                nestedBottomRow = nestRow + (not childrenFirst)
-            if row > nestedBottomRow:
-                nestedBottomRow = row
-            #if renderNow and not childrenFirst:
-            #    dummy, row = self.yAxis(leftCol + 1, row, yOrdCntx, childrenFirst, True, False) # render on this pass
-            if not childrenFirst:
-                dummy, row = self.yAxisByCol(leftCol + 1, row, yOrdCntx, childrenFirst, renderNow, False) # render on this pass
-        return (nestedBottomRow, row)
+                    row += 1
+                elif childrenFirst:
+                    row = nextRow
+                if nestRow > nestedBottomRow:
+                    nestedBottomRow = nestRow + (not childrenFirst)
+                if row > nestedBottomRow:
+                    nestedBottomRow = row
+                #if renderNow and not childrenFirst:
+                #    dummy, row = self.yAxis(leftCol + 1, row, yOrdCntx, childrenFirst, True, False) # render on this pass
+                if not childrenFirst:
+                    dummy, row = self.yAxisByCol(leftCol + 1, row, yOrdCntx, childrenFirst, renderNow, False) # render on this pass
+            return (nestedBottomRow, row)
             
     
     def bodyCells(self, row, yParentOrdCntx, xOrdCntxs, zAspects, yChildrenFirst):

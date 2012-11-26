@@ -204,178 +204,181 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.view() # redraw grid
             
     def xAxis(self, leftCol, topRow, rowBelow, xParentOrdCntx, xOrdCntxs, childrenFirst, renderNow, atTop):
-        parentRow = rowBelow
-        noDescendants = True
-        rightCol = leftCol
-        widthToSpanParent = 0
-        sideBorder = not xOrdCntxs
-        if atTop and sideBorder and childrenFirst:
-            gridBorder(self.gridColHdr, self.dataFirstCol, 1, LEFTBORDER, rowspan=self.dataFirstRow)
-        for xOrdCntx in xParentOrdCntx.subOrdinateContexts:
-            noDescendants = False
-            rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, # nested items before totals
-                                                        childrenFirst, childrenFirst, False)
-            if row - 1 < parentRow:
-                parentRow = row - 1
-            #if not leafNode: 
-            #    rightCol -= 1
-            nonAbstract = not xOrdCntx.isAbstract
-            if nonAbstract:
-                width += 100 # width for this label, in screen units
-            widthToSpanParent += width
-            label = xOrdCntx.header(lang=self.lang)
-            if childrenFirst:
-                thisCol = rightCol
-                sideBorder = RIGHTBORDER
-            else:
-                thisCol = leftCol
-                sideBorder = LEFTBORDER
-            if renderNow:
-                columnspan = (rightCol - leftCol + (1 if nonAbstract else 0))
-                gridBorder(self.gridColHdr, leftCol, topRow, TOPBORDER, columnspan=columnspan)
-                gridBorder(self.gridColHdr, leftCol, topRow, 
-                           sideBorder, columnspan=columnspan,
-                           rowspan=(rowBelow - topRow + 1) )
-                gridHdr(self.gridColHdr, leftCol, topRow, 
-                        label if label else "         ", 
-                        anchor="center",
-                        columnspan=(rightCol - leftCol + (1 if nonAbstract else 0)),
-                        rowspan=(row - topRow + 1) if leafNode else 1,
-                        wraplength=width, # screen units
-                        objectId=xOrdCntx.objectId(),
-                        onClick=self.onClick)
+        if xParentOrdCntx is not None:
+            parentRow = rowBelow
+            noDescendants = True
+            rightCol = leftCol
+            widthToSpanParent = 0
+            sideBorder = not xOrdCntxs
+            if atTop and sideBorder and childrenFirst:
+                gridBorder(self.gridColHdr, self.dataFirstCol, 1, LEFTBORDER, rowspan=self.dataFirstRow)
+            for xOrdCntx in xParentOrdCntx.subOrdinateContexts:
+                noDescendants = False
+                rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, # nested items before totals
+                                                            childrenFirst, childrenFirst, False)
+                if row - 1 < parentRow:
+                    parentRow = row - 1
+                #if not leafNode: 
+                #    rightCol -= 1
+                nonAbstract = not xOrdCntx.isAbstract
                 if nonAbstract:
-                    for i, role in enumerate(self.colHdrNonStdRoles):
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, TOPBORDER)
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, sideBorder)
-                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, 
-                                xOrdCntx.header(role=role, lang=self.lang), 
-                                anchor="center",
-                                wraplength=100, # screen units
-                                objectId=xOrdCntx.objectId(),
-                                onClick=self.onClick)
-                    ''' was
-                    if self.colHdrDocRow:
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, TOPBORDER)
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, sideBorder)
-                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, 
-                                xOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation",
-                                                       lang=self.lang), 
-                                anchor="center",
-                                wraplength=100, # screen units
-                                objectId=xOrdCntx.objectId(),
-                                onClick=self.onClick)
-                    if self.colHdrCodeRow:
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, TOPBORDER)
-                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, sideBorder)
-                        gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1, 
-                                xOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                                anchor="center",
-                                wraplength=100, # screen units
-                                objectId=xOrdCntx.objectId(),
-                                onClick=self.onClick)
-                    '''
-                    gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, BOTTOMBORDER)
-                    xOrdCntxs.append(xOrdCntx)
-            if nonAbstract:
-                rightCol += 1
-            if renderNow and not childrenFirst:
-                self.xAxis(leftCol + (1 if nonAbstract else 0), topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, childrenFirst, True, False) # render on this pass
-            leftCol = rightCol
-        if atTop and sideBorder and not childrenFirst:
-            gridBorder(self.gridColHdr, rightCol - 1, 1, RIGHTBORDER, rowspan=self.dataFirstRow)
-        return (rightCol, parentRow, widthToSpanParent, noDescendants)
+                    width += 100 # width for this label, in screen units
+                widthToSpanParent += width
+                label = xOrdCntx.header(lang=self.lang)
+                if childrenFirst:
+                    thisCol = rightCol
+                    sideBorder = RIGHTBORDER
+                else:
+                    thisCol = leftCol
+                    sideBorder = LEFTBORDER
+                if renderNow:
+                    columnspan = (rightCol - leftCol + (1 if nonAbstract else 0))
+                    gridBorder(self.gridColHdr, leftCol, topRow, TOPBORDER, columnspan=columnspan)
+                    gridBorder(self.gridColHdr, leftCol, topRow, 
+                               sideBorder, columnspan=columnspan,
+                               rowspan=(rowBelow - topRow + 1) )
+                    gridHdr(self.gridColHdr, leftCol, topRow, 
+                            label if label else "         ", 
+                            anchor="center",
+                            columnspan=(rightCol - leftCol + (1 if nonAbstract else 0)),
+                            rowspan=(row - topRow + 1) if leafNode else 1,
+                            wraplength=width, # screen units
+                            objectId=xOrdCntx.objectId(),
+                            onClick=self.onClick)
+                    if nonAbstract:
+                        for i, role in enumerate(self.colHdrNonStdRoles):
+                            gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, TOPBORDER)
+                            gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, sideBorder)
+                            gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, 
+                                    xOrdCntx.header(role=role, lang=self.lang), 
+                                    anchor="center",
+                                    wraplength=100, # screen units
+                                    objectId=xOrdCntx.objectId(),
+                                    onClick=self.onClick)
+                        ''' was
+                        if self.colHdrDocRow:
+                            gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, TOPBORDER)
+                            gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, sideBorder)
+                            gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1 - self.rowHdrCodeCol, 
+                                    xOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation",
+                                                           lang=self.lang), 
+                                    anchor="center",
+                                    wraplength=100, # screen units
+                                    objectId=xOrdCntx.objectId(),
+                                    onClick=self.onClick)
+                        if self.colHdrCodeRow:
+                            gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, TOPBORDER)
+                            gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, sideBorder)
+                            gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1, 
+                                    xOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code"),
+                                    anchor="center",
+                                    wraplength=100, # screen units
+                                    objectId=xOrdCntx.objectId(),
+                                    onClick=self.onClick)
+                        '''
+                        gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                        xOrdCntxs.append(xOrdCntx)
+                if nonAbstract:
+                    rightCol += 1
+                if renderNow and not childrenFirst:
+                    self.xAxis(leftCol + (1 if nonAbstract else 0), topRow + 1, rowBelow, xOrdCntx, xOrdCntxs, childrenFirst, True, False) # render on this pass
+                leftCol = rightCol
+            if atTop and sideBorder and not childrenFirst:
+                gridBorder(self.gridColHdr, rightCol - 1, 1, RIGHTBORDER, rowspan=self.dataFirstRow)
+            return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
     def yAxis(self, leftCol, row, yParentOrdCntx, childrenFirst, renderNow, atLeft):
-        nestedBottomRow = row
-        if atLeft:
-            gridBorder(self.gridRowHdr, self.rowHdrCols + len(self.rowHdrNonStdRoles), # was: self.rowHdrDocCol + self.rowHdrCodeCol, 
-                       self.dataFirstRow, 
-                       RIGHTBORDER, 
-                       rowspan=self.dataRows)
-            gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
-                       BOTTOMBORDER, 
-                       columnspan=(self.rowHdrCols + len(self.rowHdrNonStdRoles))) # was: self.rowHdrDocCol + self.rowHdrCodeCol))
-        for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
-            nestRow, nextRow = self.yAxis(leftCol + 1, row, yOrdCntx,  # nested items before totals
-                                    childrenFirst, childrenFirst, False)
-            
-            isAbstract = yOrdCntx.isAbstract
-            isNonAbstract = not isAbstract
-            label = yOrdCntx.header(lang=self.lang)
-            topRow = row
-            if childrenFirst and isNonAbstract:
-                row = nextRow
-            if renderNow:
-                columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else None
-                gridBorder(self.gridRowHdr, leftCol, topRow, LEFTBORDER, 
-                           rowspan=(nestRow - topRow + 1) )
-                gridBorder(self.gridRowHdr, leftCol, topRow, TOPBORDER, 
-                           columnspan=(1 if childrenFirst and nextRow > row else columnspan))
-                if childrenFirst and row > topRow:
-                    gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
-                               columnspan=(self.rowHdrCols - leftCol))
-                gridHdr(self.gridRowHdr, leftCol, row, 
-                        label if label is not None else "         ", 
-                        anchor=("w" if isNonAbstract or nestRow == row else "center"),
-                        columnspan=columnspan,
-                        rowspan=(nestRow - row if isAbstract else None),
-                        # wraplength is in screen units
-                        wraplength=(self.rowHdrColWidth[leftCol] if isAbstract else
-                                    self.rowHdrWrapLength -
-                                      sum(self.rowHdrColWidth[i] for i in range(leftCol))),
-                        minwidth=(16 if isNonAbstract and nextRow > topRow else None),
-                        objectId=yOrdCntx.objectId(),
-                        onClick=self.onClick)
+        if yParentOrdCntx is not None:
+            nestedBottomRow = row
+            if atLeft:
+                gridBorder(self.gridRowHdr, self.rowHdrCols + len(self.rowHdrNonStdRoles), # was: self.rowHdrDocCol + self.rowHdrCodeCol, 
+                           self.dataFirstRow, 
+                           RIGHTBORDER, 
+                           rowspan=self.dataRows)
+                gridBorder(self.gridRowHdr, 1, self.dataFirstRow + self.dataRows - 1, 
+                           BOTTOMBORDER, 
+                           columnspan=(self.rowHdrCols + len(self.rowHdrNonStdRoles))) # was: self.rowHdrDocCol + self.rowHdrCodeCol))
+            for yOrdCntx in yParentOrdCntx.subOrdinateContexts:
+                nestRow, nextRow = self.yAxis(leftCol + 1, row, yOrdCntx,  # nested items before totals
+                                        childrenFirst, childrenFirst, False)
+                
+                isAbstract = yOrdCntx.isAbstract
+                isNonAbstract = not isAbstract
+                label = yOrdCntx.header(lang=self.lang)
+                topRow = row
+                if childrenFirst and isNonAbstract:
+                    row = nextRow
+                if renderNow:
+                    columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else None
+                    gridBorder(self.gridRowHdr, leftCol, topRow, LEFTBORDER, 
+                               rowspan=(nestRow - topRow + 1) )
+                    gridBorder(self.gridRowHdr, leftCol, topRow, TOPBORDER, 
+                               columnspan=(1 if childrenFirst and nextRow > row else columnspan))
+                    if childrenFirst and row > topRow:
+                        gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
+                                   columnspan=(self.rowHdrCols - leftCol))
+                    gridHdr(self.gridRowHdr, leftCol, row, 
+                            label if label is not None else "         ", 
+                            anchor=("w" if isNonAbstract or nestRow == row else "center"),
+                            columnspan=columnspan,
+                            rowspan=(nestRow - row if isAbstract else None),
+                            # wraplength is in screen units
+                            wraplength=(self.rowHdrColWidth[leftCol] if isAbstract else
+                                        self.rowHdrWrapLength -
+                                          sum(self.rowHdrColWidth[i] for i in range(leftCol))),
+                            #minwidth=self.rowHdrColWidth[leftCol],
+                            minwidth=(16 if isNonAbstract and nextRow > topRow else None),
+                            objectId=yOrdCntx.objectId(),
+                            onClick=self.onClick)
+                    if isNonAbstract:
+                        for i, role in enumerate(self.rowHdrNonStdRoles):
+                            isCode = "code" in role
+                            docCol = self.dataFirstCol - len(self.rowHdrNonStdRoles) + i
+                            gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
+                            gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
+                            gridHdr(self.gridRowHdr, docCol, row, 
+                                    yOrdCntx.header(role=role, lang=self.lang), 
+                                    anchor="c" if isCode else "w",
+                                    wraplength=40 if isCode else 100, # screen units
+                                    objectId=yOrdCntx.objectId(),
+                                    onClick=self.onClick)
+                        ''' was:
+                        if self.rowHdrDocCol:
+                            docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
+                            gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
+                            gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
+                            gridHdr(self.gridRowHdr, docCol, row, 
+                                    yOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation",
+                                                         lang=self.lang), 
+                                    anchor="w",
+                                    wraplength=100, # screen units
+                                    objectId=yOrdCntx.objectId(),
+                                    onClick=self.onClick)
+                        if self.rowHdrCodeCol:
+                            codeCol = self.dataFirstCol - 1
+                            gridBorder(self.gridRowHdr, codeCol, row, TOPBORDER)
+                            gridBorder(self.gridRowHdr, codeCol, row, LEFTBORDER)
+                            gridHdr(self.gridRowHdr, codeCol, row, 
+                                    yOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code"),
+                                    anchor="center",
+                                    wraplength=40, # screen units
+                                    objectId=yOrdCntx.objectId(),
+                                    onClick=self.onClick)
+                        # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                        '''
                 if isNonAbstract:
-                    for i, role in enumerate(self.rowHdrNonStdRoles):
-                        isCode = "code" in role
-                        docCol = self.dataFirstCol - len(self.rowHdrNonStdRoles) + i
-                        gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
-                        gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
-                        gridHdr(self.gridRowHdr, docCol, row, 
-                                yOrdCntx.header(role=role, lang=self.lang), 
-                                anchor="c" if isCode else "w",
-                                wraplength=40 if isCode else 100, # screen units
-                                objectId=yOrdCntx.objectId(),
-                                onClick=self.onClick)
-                    ''' was:
-                    if self.rowHdrDocCol:
-                        docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
-                        gridBorder(self.gridRowHdr, docCol, row, TOPBORDER)
-                        gridBorder(self.gridRowHdr, docCol, row, LEFTBORDER)
-                        gridHdr(self.gridRowHdr, docCol, row, 
-                                yOrdCntx.header(role="http://www.xbrl.org/2008/role/documentation",
-                                                     lang=self.lang), 
-                                anchor="w",
-                                wraplength=100, # screen units
-                                objectId=yOrdCntx.objectId(),
-                                onClick=self.onClick)
-                    if self.rowHdrCodeCol:
-                        codeCol = self.dataFirstCol - 1
-                        gridBorder(self.gridRowHdr, codeCol, row, TOPBORDER)
-                        gridBorder(self.gridRowHdr, codeCol, row, LEFTBORDER)
-                        gridHdr(self.gridRowHdr, codeCol, row, 
-                                yOrdCntx.header(role="http://www.eurofiling.info/role/2010/coordinate-code"),
-                                anchor="center",
-                                wraplength=40, # screen units
-                                objectId=yOrdCntx.objectId(),
-                                onClick=self.onClick)
-                    # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
-                    '''
-            if isNonAbstract:
-                row += 1
-            elif childrenFirst:
-                row = nextRow
-            if nestRow > nestedBottomRow:
-                nestedBottomRow = nestRow + (not childrenFirst)
-            if row > nestedBottomRow:
-                nestedBottomRow = row
-            #if renderNow and not childrenFirst:
-            #    dummy, row = self.yAxis(leftCol + 1, row, yOrdCntx, childrenFirst, True, False) # render on this pass
-            if not childrenFirst:
-                dummy, row = self.yAxis(leftCol + 1, row, yOrdCntx, childrenFirst, renderNow, False) # render on this pass
-        return (nestedBottomRow, row)
+                    row += 1
+                elif childrenFirst:
+                    row = nextRow
+                if nestRow > nestedBottomRow:
+                    nestedBottomRow = nestRow + (not childrenFirst)
+                if row > nestedBottomRow:
+                    nestedBottomRow = row
+                #if renderNow and not childrenFirst:
+                #    dummy, row = self.yAxis(leftCol + 1, row, yOrdCntx, childrenFirst, True, False) # render on this pass
+                if not childrenFirst:
+                    dummy, row = self.yAxis(leftCol + 1, row, yOrdCntx, childrenFirst, renderNow, False) # render on this pass
+            return (nestedBottomRow, row)
     
     def bodyCells(self, row, yParentOrdCntx, xOrdCntxs, zAspects, yChildrenFirst):
         rendrCntx = getattr(self.modelXbrl, "rendrCntx", None) # none for EU 2010 tables

@@ -262,6 +262,7 @@ euTableAxis = "http://www.eurofiling.info/arcrole/2010/table-axis"
 euAxisMember = "http://www.eurofiling.info/arcrole/2010/axis-member"
 qnEuTable = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
 qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
+euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 # 2011 table linkbase
 table = "http://xbrl.org/2011/table"
 tableBreakdown = "http://xbrl.org/arcrole/2011/table-breakdown"
