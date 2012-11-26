@@ -295,14 +295,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         value=value, entityIdentifer=entityIdentifierValue)
                                 if paramFilerIdentifiers and value not in paramFilerIdentifiers:
                                     self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifer)s"),
+                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
                                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, filerIdentifer=",".join(paramFilerIdentifiers))
+                                        value=value, filerIdentifier=",".join(paramFilerIdentifiers))
                                 elif paramFilerIdentifier and value != paramFilerIdentifier:
                                     self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifer)s"),
+                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
                                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, filerIdentifer=paramFilerIdentifier)
+                                        value=value, filerIdentifier=paramFilerIdentifier)
                             elif factElementName == disclosureSystem.deiFilerNameElement:
                                 deiItems[factElementName] = value
                                 if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
