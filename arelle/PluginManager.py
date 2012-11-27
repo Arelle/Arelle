@@ -195,12 +195,14 @@ def loadModule(moduleInfo):
                         module._ = _gettext
                         global pluginConfigChanged
                         pluginConfigChanged = True
-                except (ImportError, AttributeError):
-                    pass
+                except (ImportError, AttributeError) as err:
+                    print(_("Exception loading plug-in {name}: {error}").format(
+                            name=name, error=err), file=sys.stderr)
                 finally:
                     file.close()
         except (EnvironmentError, ImportError, NameError): #find_module failed, no file to close
-            pass
+            print(_("Exception finding plug-in {name}: {error}").format(
+                    name=name, error=err), file=sys.stderr)
 
 def pluginClassMethods(className):
     if pluginConfig:

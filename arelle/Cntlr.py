@@ -135,7 +135,7 @@ class Cntlr:
             self.isMSW = False
             if not configHomeDir:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
-            # note that cache is in /Library/Caches/Arelle
+            # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = True
             self.updateURL = "http://arelle.org/downloads/8"
@@ -205,10 +205,14 @@ class Cntlr:
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         self.modelManager = ModelManager.initialize(self)
         
-        # start plug in server (requres web cache initialized
+        # start plug in server (requres web cache initialized, but not logger)
         PluginManager.init(self)
  
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
+        
+        # Cntlr.Init after logging started
+        for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
+            pluginMethod(self)
         
     def setUiLanguage(self, lang, fallbackToDefault=False):
         try:

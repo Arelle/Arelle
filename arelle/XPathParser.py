@@ -8,13 +8,15 @@ import sys
 
 from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
 
-try: # installed for python 2.7 and clean packages, otherwise use tweaked version
-    from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+if sys.version[0] >= '3':
+    # python 3 requires modified parser to allow release of global objects when closing DTS
+    from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
-except ImportError:
-    from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
+else:
+    # installed for python 2.7 and clean packages, otherwise use tweaked version
+    from pyparsing import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
