@@ -691,16 +691,16 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 ):
                     if documentType in doctypesRequired:
                         for deiItem in deiItemsRequired:
-                            if deiItem not in deiItems or deiItems[deiItem] == "":
+                            if deiItem not in deiItems or not deiItems[deiItem]: #must exist and value must be non-empty (incl not nil)
                                 modelXbrl.error("EFM.6.05.21",
                                     _("dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s"),
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
                         elementName=deiItem)
                                 
                 if documentType in ("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F"):
-                    defaultContextSharesOutstandingFact = deiItems.get("EntityCommonStockSharesOutstanding")
+                    defaultContextSharesOutstandingValue = deiItems.get("EntityCommonStockSharesOutstanding")
                     if commonSharesClassMembers:
-                        if defaultContextSharesOutstandingFact:
+                        if defaultContextSharesOutstandingValue: # checks that it exists and is not empty or nil
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but not in the default context because there are multiple classes of common shares"),
                                 modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
@@ -726,11 +726,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in stock class %(stockClass)s with measurement date %(date)s"),
                                     modelObject=documentTypeFact, documentType=documentType, stockClass=mem, date=commonStockMeasurementDatetime)
                             '''
-                    elif hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass and not defaultContextSharesOutstandingFact:
+                    elif hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass and not defaultContextSharesOutstandingValue:
                             modelXbrl.error("EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-default-context fact"),
                                 modelObject=documentTypeFact, documentType=documentType)
-                    elif not defaultContextSharesOutstandingFact:
+                    elif not defaultContextSharesOutstandingValue: # missing, empty, or nil
                         modelXbrl.error("EFM.6.05.26",
                             _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the default context because there are not multiple classes of common shares"),
                             modelObject=documentTypeFact, documentType=documentType)
