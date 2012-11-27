@@ -6,17 +6,18 @@ that will save the concepts a DTS into an RDF file.
 '''
 
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
-    if dts.fileSource.isArchive:
-        return
-    import os, io
-    from arelle import Version
-    from arelle import XmlUtil, XbrlConst
-    from arelle import XmlUtil, XbrlConst
-    from arelle.ViewFileRenderedGrid import viewRenderedGrid
-    
-    numTableFiles = 0
-    
-    file = io.StringIO('''
+    try:
+        if dts.fileSource.isArchive:
+            return
+        import os, io
+        from arelle import Version
+        from arelle import XmlUtil, XbrlConst
+        from arelle import XmlUtil, XbrlConst
+        from arelle.ViewFileRenderedGrid import viewRenderedGrid
+        
+        numTableFiles = 0
+        
+        file = io.StringIO('''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Left">
   <link type="text/css" rel="stylesheet" href="http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=EBA" /> 
@@ -30,44 +31,60 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 </body>
 </html>
 '''
-     )
-    from arelle.ModelObjectFactory import parser
-    parser, parserLookupName, parserLookupClass = parser(dts,None)
-    from lxml import etree
-    indexDocument = etree.parse(file,parser=parser,base_url=indexFile)
-    file.close()
-    #xmlDocument.getroot().init(self)  ## is this needed ??
-    for listElt in  indexDocument.iter(tag="{http://www.w3.org/1999/xhtml}ul"):
-        break
-
-    indexBase = indexFile.rpartition(".")[0]
-
-    modelTables = []
-    # order number is missing
-    for rel in dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable).modelRelationships:
-        modelTables.append((rel.toModelObject, rel.sourceline))
-    for modelTable, order in sorted(modelTables, key=lambda x: x[1]):
-        # for table file name, use table ELR
-        tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
-        viewRenderedGrid(dts, tblFile, lang=lang, viewTblELR=modelTable)
-        
-        # generaate menu entry
-        elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
-        elt.set("class", "CMSListMenuLI")
-        elt.set("id", modelTable.id)
-        elt = etree.SubElement(elt, "{http://www.w3.org/1999/xhtml}a")
-        elt.text = modelTable.genLabel(lang=lang, strip=True)
-        elt.set("class", "CMSListMenuLink")
-        elt.set("href", "javascript:void(0)")
-        elt.set("onClick", "javascript:parent.body.location.href='{0}';".format(modelTable.id + ".html"))
-        elt.text = modelTable.genLabel(lang=lang, strip=True)
-
+         )
+        from arelle.ModelObjectFactory import parser
+        parser, parserLookupName, parserLookupClass = parser(dts,None)
+        from lxml import etree
+        indexDocument = etree.parse(file,parser=parser,base_url=indexFile)
+        file.close()
+        #xmlDocument.getroot().init(self)  ## is this needed ??
+        for listElt in  indexDocument.iter(tag="{http://www.w3.org/1999/xhtml}ul"):
+            break
     
-    with open(indexBase + "FormsFrame.html", "wt", encoding="utf-8") as fh:
-        XmlUtil.writexml(fh, indexDocument, encoding="utf-8")
+        class nonTkBooleanVar():
+            def __init__(self, value=True):
+                self.value = value
+            def set(self, value):
+                self.value = value
+            def get(self):
+                return self.value
+    
+        class View():
+            def __init__(self, tableOrELR, ignoreDimValidity, xAxisChildrenFirst, yAxisChildrenFirst):
+                self.tblELR = tableOrELR
+                # context menu boolean vars (non-tkinter boolean
+                self.ignoreDimValidity = nonTkBooleanVar(value=ignoreDimValidity)
+                self.xAxisChildrenFirst = nonTkBooleanVar(value=xAxisChildrenFirst)
+                self.yAxisChildrenFirst = nonTkBooleanVar(value=yAxisChildrenFirst)
+    
+        indexBase = indexFile.rpartition(".")[0]
+    
+        modelTables = []
+        # order number is missing
+        for rel in dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable).modelRelationships:
+            modelTables.append((rel.toModelObject, rel.sourceline))
+        for modelTable, order in sorted(modelTables, key=lambda x: x[1]):
+            # for table file name, use table ELR
+            tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
+            viewRenderedGrid(dts, tblFile, lang=lang, sourceView=View(modelTable, False, False, True))
+            
+            # generaate menu entry
+            elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
+            elt.set("class", "CMSListMenuLI")
+            elt.set("id", modelTable.id)
+            elt = etree.SubElement(elt, "{http://www.w3.org/1999/xhtml}a")
+            elt.text = modelTable.genLabel(lang=lang, strip=True)
+            elt.set("class", "CMSListMenuLink")
+            elt.set("href", "javascript:void(0)")
+            elt.set("onClick", "javascript:parent.body.location.href='{0}';".format(modelTable.id + ".html"))
+            elt.text = modelTable.genLabel(lang=lang, strip=True)
+    
         
-    with open(indexFile, "wt", encoding="utf-8") as fh:
-        fh.write(
+        with open(indexBase + "FormsFrame.html", "wt", encoding="utf-8") as fh:
+            XmlUtil.writexml(fh, indexDocument, encoding="utf-8")
+            
+        with open(indexFile, "wt", encoding="utf-8") as fh:
+            fh.write(
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Head1">
@@ -96,8 +113,8 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
            os.path.basename(indexBase) + "CenterLanding.html",
            ))
         
-    with open(indexBase + "TopFrame.html", "wt", encoding="utf-8") as fh:
-        fh.write(
+        with open(indexBase + "TopFrame.html", "wt", encoding="utf-8") as fh:
+            fh.write(
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Top">
@@ -123,8 +140,8 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 </html>
 ''')
         
-    with open(indexBase + "CenterLanding.html", "wt", encoding="utf-8") as fh:
-        fh.write(
+        with open(indexBase + "CenterLanding.html", "wt", encoding="utf-8") as fh:
+            fh.write(
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Center">
@@ -149,14 +166,19 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 </body>
 </html>
 ''')
+        
+        
+        dts.info("info:saveEBAtables",
+                 _("Tables index file of %(entryFile)s has %(numberTableFiles)s table files with index file %(indexFile)s."),
+                 modelObject=dts,
+                 entryFile=dts.uri, numberTableFiles=numTableFiles, indexFile=indexFile)
     
-    
-    dts.info("info:saveEBAtables",
-             _("Tables index file of %(entryFile)s has %(numberTableFiles)s table files with index file %(indexFile)s."),
-             modelObject=dts,
-             entryFile=dts.uri, numberTableFiles=numTableFiles, indexFile=indexFile)
-
-    dts.modelManager.showStatus(_("Saved EBA HTML Table Files"), 5000)
+        dts.modelManager.showStatus(_("Saved EBA HTML Table Files"), 5000)
+    except Exception as ex:
+        dts.error("exception",
+            _("HTML EBA Tableset files generation exception: %(error)s"), error=ex,
+            modelXbrl=dts,
+            exc_info=True)
 
 def saveHtmlEbaTablesMenuEntender(cntlr, menu):
     # Extend menu with an item for the save infoset plugin
@@ -183,14 +205,13 @@ def saveHtmlEbaTablesMenuCommand(cntlr):
     cntlr.config["htmlEbaTablesFileDir"] = os.path.dirname(indexFile)
     cntlr.saveConfig()
 
-    try: 
-        generateHtmlEbaTablesetFiles(cntlr.modelManager.modelXbrl, indexFile)
-    except Exception as ex:
-        dts = cntlr.modelManager.modelXbrl
-        dts.error("exception",
-            _("HTML EBA Tableset files generation exception: %(error)s"), error=ex,
-            modelXbrl=dts,
-            exc_info=True)
+    import threading
+    thread = threading.Thread(target=lambda 
+                                  _dts=cntlr.modelManager.modelXbrl,
+                                  _indexFile=indexFile: 
+                                        generateHtmlEbaTablesetFiles(_dts, _indexFile))
+    thread.daemon = True
+    thread.start()
 
 def saveHtmlEbaTablesCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
