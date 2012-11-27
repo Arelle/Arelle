@@ -1076,6 +1076,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     # worker threads viewModelObject                 
     def viewModelObject(self, modelXbrl, objectId):
+        self.waitForUiThreadQueue() # force status update
         self.uiThreadQueue.put((self.uiViewModelObject, [modelXbrl, objectId]))
         
     # ui thread viewModelObject
