@@ -99,7 +99,8 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
             lastRowMinWidth = view.rowNonAbstractHdrSpanMin[i] - sum(view.rowHdrColWidth[i] for j in range(i, view.rowHdrCols - 1))
             if lastRowMinWidth > view.rowHdrColWidth[view.rowHdrCols - 1]:
                 view.rowHdrColWidth[view.rowHdrCols - 1] = lastRowMinWidth 
-    view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols))
+    # use as wraplength for all row hdr name columns 200 + fixed indent and abstract mins (not incl last name col)
+    view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols - 1))
     view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
     view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
     #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
