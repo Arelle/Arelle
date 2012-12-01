@@ -15,7 +15,7 @@ from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVaria
                                        ModelPrecondition, ModelConceptName, Trace,
                                        Aspect, aspectModels, ModelAspectCover,
                                        ModelMessage)
-from arelle.ModelRenderingObject import (ModelRuleAxisNode, ModelRelationshipAxisDefinition, ModelFilterAxisNode)
+from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelationshipDefinitionNode, ModelFilterDefinitionNode)
 from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
 from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs,
@@ -47,31 +47,36 @@ arcroleChecks = {
                                       XbrlConst.qnCustomFunctionImplementation,
                                       "xbrlcfie:info"),
     XbrlConst.tableBreakdown:       (XbrlConst.qnTableTable,
-                                     (XbrlConst.qnTablePredefinedAxis, 
-                                      XbrlConst.qnTableFilterAxis,
-                                      XbrlConst.qnTableSelectionAxis, 
-                                      XbrlConst.qnTableTupleAxis),
+                                     (XbrlConst.qnTableClosedDefinitionNode, 
+                                      XbrlConst.qnTableFilterNode, 
+                                      XbrlConst.qnTableSelectionNode, 
+                                      XbrlConst.qnTableTupleNode),
                                      "xbrlte:info"),
     XbrlConst.tableAxis2011:        (XbrlConst.qnTableTable,
-                                     (XbrlConst.qnTablePredefinedAxis, 
-                                      XbrlConst.qnTableFilterAxis,
-                                      XbrlConst.qnTableSelectionAxis, 
-                                      XbrlConst.qnTableTupleAxis),
+                                     (XbrlConst.qnTablePredefinedAxis2011, 
+                                      XbrlConst.qnTableFilterAxis2011,
+                                      XbrlConst.qnTableSelectionAxis2011, 
+                                      XbrlConst.qnTableTupleAxis2011),
                                      "xbrlte:info"),
     XbrlConst.tableFilter:          (XbrlConst.qnTableTable, 
                                      XbrlConst.qnVariableFilter, 
                                      "xbrlte:info"),
-    XbrlConst.tableAxisSubtree:     (XbrlConst.qnTablePredefinedAxis, 
-                                     XbrlConst.qnTablePredefinedAxis, 
+    XbrlConst.tableDefinitionNodeSubtree:     (XbrlConst.qnTableClosedDefinitionNode, 
+                                     XbrlConst.qnTableClosedDefinitionNode, 
                                      "xbrlte:info"),
-    XbrlConst.tableAxisSubtree2011:     (XbrlConst.qnTablePredefinedAxis, 
-                                     XbrlConst.qnTablePredefinedAxis, 
+    XbrlConst.tableAxisSubtree2011:     (XbrlConst.qnTablePredefinedAxis2011, 
+                                     XbrlConst.qnTablePredefinedAxis2011, 
                                      "xbrlte:info"),
-    XbrlConst.tableAxisFilter:      (XbrlConst.qnTableFilterAxis, 
+    XbrlConst.tableFilterNodeFilter:(XbrlConst.qnTableFilterNode,
                                      XbrlConst.qnVariableFilter, 
                                      "xbrlte:info"),
-    XbrlConst.tableTupleContent:    (XbrlConst.qnTableTupleAxis, 
-                                     XbrlConst.qnTableRuleAxis, 
+    XbrlConst.tableAxisFilter2011:  (XbrlConst.qnTableFilterAxis2011,
+                                     XbrlConst.qnVariableFilter, 
+                                     "xbrlte:info"),
+    XbrlConst.tableTupleContent:    ((XbrlConst.qnTableTupleNode,
+                                      XbrlConst.qnTableTupleAxis2011), 
+                                     (XbrlConst.qnTableRuleNode,
+                                      XbrlConst.qnTableRuleAxis2011), 
                                      "xbrlte:info"),
     }
 def checkBaseSet(val, arcrole, ELR, relsSet):
@@ -956,19 +961,19 @@ def checkTableRules(val, xpathContext, table):
     # check for covering aspect not in variable set aspect model
     checkFilterAspectModel(val, table, table.filterRelationships, xpathContext)
 
-    checkAxisRules(val, table, table, (XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), xpathContext)
+    checkDefinitionNodeRules(val, table, table, (XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), xpathContext)
     
-def checkAxisRules(val, table, parent, arcrole, xpathContext):
+def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
     for rel in val.modelXbrl.relationshipSet(arcrole).fromModelObject(parent):
         axis = rel.toModelObject
         if axis is not None:
-            if isinstance(axis, ModelFilterAxisNode):
+            if isinstance(axis, ModelFilterDefinitionNode):
                 if not checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext):
                     val.modelXbrl.error("xbrlte:axisFilterCoversNoAspects",
                         _("FilterAxis %(xlinkLabel)s does not cover any aspects."),
                         modelObject=axis, xlinkLabel=axis.xlinkLabel)
             else:
-                if isinstance(axis, ModelRuleAxisNode):
+                if isinstance(axis, ModelRuleDefinitionNode):
                     # check dimension elements
                     for eltName, dim, badUsageErr in (("explicitDimension", "explicit", "xbrlfe:badUsageOfExplicitDimensionRule"),
                                                       ("typedDimension", "typed", "xbrlfe:badUsageOfTypedDimensionRule")):
@@ -1007,7 +1012,7 @@ def checkAxisRules(val, table, parent, arcrole, xpathContext):
                                            _("RuleAxis rule %(xlinkLabel)s contains a concept QName %(conceptQname)s which is not in the DTS."),
                                            modelObject=axis, xlinkLabel=axis.xlinkLabel, conceptQname=conceptQname)
                         
-                elif isinstance(axis, ModelRelationshipAxisDefinition):
+                elif isinstance(axis, ModelRelationshipDefinitionNode):
                     for qnameAttr in ("relationshipSourceQname", "arcQname", "linkQname", "dimensionQname"):
                         eltQname = axis.get(qnameAttr)
                         if eltQname and eltQname not in val.modelXbrl.qnameConcepts:  
@@ -1015,7 +1020,7 @@ def checkAxisRules(val, table, parent, arcrole, xpathContext):
                                                _("%(axis)s rule %(xlinkLabel)s contains a %(qnameAttr)s QName %(qname)s which is not in the DTS."),
                                                modelObject=axis, axis=axis.localName.title(), xlinkLabel=axis.xlinkLabel, 
                                                qnameAttr=qnameAttr, qname=eltQname)
-                checkAxisRules(val, table, axis, (XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), xpathContext)                    
+                checkDefinitionNodeRules(val, table, axis, (XbrlConst.tableDefinitionNodeSubtree,XbrlConst.tableAxisSubtree2011), xpathContext)                    
 
 def checkValidationMessages(val, modelVariableSet):
     for msgRelationship in (XbrlConst.assertionSatisfiedMessage, XbrlConst.assertionUnsatisfiedMessage):

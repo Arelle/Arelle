@@ -6,7 +6,9 @@ Created on Jun 6, 2012
 '''
 from arelle import (XPathContext, XbrlConst)
 from arelle.ModelFormulaObject import (aspectModels, Aspect)
-from arelle.ModelRenderingObject import (ModelRuleAxisNode, ModelDimensionRelationshipAxisNode)
+from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
+                                         ModelClosedDefinitionNode, 
+                                         ModelDimensionRelationshipDefinitionNode)
 from arelle.ModelValue import (QName)
 
 def init(modelXbrl):
@@ -47,7 +49,8 @@ def init(modelXbrl):
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
         
         # check and extract message expressions into compilable programs
-        for msgArcrole in (XbrlConst.tableAxisMessage, XbrlConst.tableAxisSelectionMessage):
+        for msgArcrole in (XbrlConst.tableDefinitionNodeMessage, XbrlConst.tableDefinitionNodeSelectionMessage,
+                           XbrlConst.tableAxisMessage2011, XbrlConst.tableAxisSelectionMessage2011):
             for msgRel in modelXbrl.relationshipSet(msgArcrole).modelRelationships:
                 ValidateFormula.checkMessageExpressions(modelXbrl, msgRel.toModelObject)
                 
@@ -67,44 +70,46 @@ def init(modelXbrl):
                 oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
                 uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[modelTable.aspectModel]
                 for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011)).fromModelObject(modelTable):
-                    checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects)
+                    checkDefinitionNodeAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects)
                 del modelTable.priorAspectAxisDisposition
     
         modelXbrl.profileStat(_("compileTables"))
 
-def checkAxisAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects):
-    tblAxis = tblAxisRel.toModelObject
+def checkDefinitionNodeAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects):
+    definitionNode = tblAxisRel.toModelObject
     tblAxisDisposition = tblAxisRel.axisDisposition
     hasCoveredAspect = False
-    for aspect in tblAxis.aspectsCovered():
+    for aspect in definitionNode.aspectsCovered():
         if (aspect in uncoverableAspects or
             (isinstance(aspect, QName) and modelTable.aspectModel == 'non-dimensional')):
             modelXbrl.error("xbrlte:axisAspectModelMismatch",
                 _("%(axis)s ordinate %(xlinkLabel)s, aspect model %(aspectModel)s, aspect %(aspect)s not allowed"),
-                modelObject=modelTable, axis=tblAxis.localName, xlinkLabel=tblAxis.xlinkLabel, aspectModel=modelTable.aspectModel,
+                modelObject=modelTable, axis=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, aspectModel=modelTable.aspectModel,
                 aspect=str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect])
         hasCoveredAspect = True
         if aspect in modelTable.priorAspectAxisDisposition:
             if tblAxisDisposition != modelTable.priorAspectAxisDisposition[aspect] and aspect != Aspect.DIMENSIONS:
                 modelXbrl.error("xbrlte:axisAspectClash",
                     _("%(axis)s ordinate %(xlinkLabel)s, aspect %(aspect)s defined on axes of disposition %(axisDisposition)s and %(axisDisposition2)s"),
-                    modelObject=modelTable, axis=tblAxis.localName, xlinkLabel=tblAxis.xlinkLabel, 
+                    modelObject=modelTable, axis=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, 
                     axisDisposition=tblAxisDisposition, axisDisposition2=modelTable.priorAspectAxisDisposition[aspect],
                     aspect=str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect])
         else:
             modelTable.priorAspectAxisDisposition[aspect] = tblAxisDisposition
-    if isinstance(tblAxis, ModelDimensionRelationshipAxisNode):
+    if isinstance(definitionNode, ModelDimensionRelationshipDefinitionNode):
         hasCoveredAspect = True
         if modelTable.aspectModel == 'non-dimensional':
             modelXbrl.error("xbrlte:axisAspectModelMismatch",
                 _("DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model"),
-                modelObject=(modelTable,tblAxis), xlinkLabel=tblAxis.xlinkLabel)
-    axisOrdinateHasChild = False
-    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree, XbrlConst.tableAxisSubtree2011)).fromModelObject(tblAxis):
-        checkAxisAspectModel(modelXbrl, modelTable, axisSubtreeRel, uncoverableAspects)
-        axisOrdinateHasChild = True
-    if not axisOrdinateHasChild and not hasCoveredAspect:
+                modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel)
+    definitionNodeHasChild = False
+    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableAxisSubtree2011)).fromModelObject(definitionNode):
+        checkDefinitionNodeAspectModel(modelXbrl, modelTable, axisSubtreeRel, uncoverableAspects)
+        childDefinitionNode = axisSubtreeRel.toModelObject
+        definitionNodeHasChild = True
+            
+    if not definitionNodeHasChild and not hasCoveredAspect:
         modelXbrl.error("xbrlte:aspectValueNotDefinedByOrdinate",
             _("%(axis)s ordinate %(xlinkLabel)s does not define an aspect"),
-            modelObject=(modelTable,tblAxis), xlinkLabel=tblAxis.xlinkLabel, axis=tblAxis.localName)
+            modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode.localName)
         

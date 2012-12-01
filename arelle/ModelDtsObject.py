@@ -1654,8 +1654,9 @@ class ModelRelationship(ModelObject):
         try:
             return self._tableAxis
         except AttributeError:
-            aType = self.get("axisDisposition")  # XII
-            if aType is None: aType = self.get("axisType")  # Eurofiling
+            aType = (self.get("axis") or # XII 2013
+                     self.get("axisDisposition") or # XII 2011
+                     self.get("axisType"))  # Eurofiling
             if aType in ("xAxis","x"): self._axisDisposition = "x"
             elif aType in ("yAxis","y"): self._axisDisposition = "y"
             elif aType in ("zAxis","z"): self._axisDisposition = "z"

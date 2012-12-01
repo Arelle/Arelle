@@ -9,9 +9,10 @@ from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelRenderingObject import (ModelEuTable, ModelTable,
-                                         ModelEuAxisCoord, ModelOpenAxisNodeDefinition, ModelClosedAxisNodeDefinition,
-                                         ModelRelationshipAxisDefinition, ModelSelectionAxisNode, ModelFilterAxisNode,
-                                         ModelCompositionAxisNode, ModelTupleAxisNode, StructuralOrdinateContext)
+                                         ModelEuAxisCoord, ModelDefinitionNode, ModelClosedDefinitionNode,
+                                         ModelRelationshipDefinitionNode, ModelSelectionDefinitionNode, ModelFilterDefinitionNode,
+                                         ModelCompositionDefinitionNode, ModelTupleDefinitionNode, StructuralNode,
+                                         ROLLUP_NOT_ANALYZED, CHILDREN_BUT_NO_ROLLUP, CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST)
 
 def resolveAxesStructure(view, viewTblELR):
     if isinstance(viewTblELR, (ModelEuTable, ModelTable)):
@@ -21,7 +22,7 @@ def resolveAxesStructure(view, viewTblELR):
         table = viewTblELR
         for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011)).fromModelObject(table):
             # find relationships in table's linkrole
-            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), rel.linkrole)
+            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableDefinitionNodeSubtree,XbrlConst.tableAxisSubtree2011), rel.linkrole)
             return resolveTableAxesStructure(view, table,
                                              view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), rel.linkrole))
         # no relationships from table found
@@ -33,7 +34,7 @@ def resolveAxesStructure(view, viewTblELR):
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
         tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), viewTblELR)
-        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableAxisSubtree,XbrlConst.tableAxisSubtree2011), viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableDefinitionNodeSubtree,XbrlConst.tableAxisSubtree2011), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
         return (None, None, None, None)
@@ -66,32 +67,34 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
     view.aspectModel = table.aspectModel
     view.zmostOrdCntx = None
     view.modelTable = table
+    view.topRollup = {"x": ROLLUP_NOT_ANALYZED, "y": ROLLUP_NOT_ANALYZED}
     
-    xStrOrdCntx = yStrOrdCntx = zStrOrdCntx = None
+    xTopStructuralNode = yTopStructuralNode = zTopStructuralNode = None
     # must be cartesian product of top level relationships
     tblAxisRels = tblAxisRelSet.fromModelObject(table)
     facts = view.modelXbrl.factsInInstance
     # do z's first to set variables needed by x and y axes expressions
     for disposition in ("z", "x", "y"):
         for i, tblAxisRel in enumerate(tblAxisRels):
-            axisObj = tblAxisRel.toModelObject
+            definitionNode = tblAxisRel.toModelObject
             if (tblAxisRel.axisDisposition == disposition and 
-                isinstance(axisObj, (ModelEuAxisCoord, ModelOpenAxisNodeDefinition))):
-                if disposition == "x" and xStrOrdCntx is None:
-                    xStrOrdCntx = StructuralOrdinateContext(None, axisObj, view.zmostOrdCntx)
-                    if isinstance(axisObj,ModelClosedAxisNodeDefinition) and axisObj.parentChildOrder is not None:
-                        view.xAxisChildrenFirst.set(axisObj.parentChildOrder == "children-first")
-                    analyzeHdrs(view, xStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
+                isinstance(definitionNode, (ModelEuAxisCoord, ModelDefinitionNode))):
+                if disposition == "x" and xTopStructuralNode is None:
+                    xTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx)
+                    if isinstance(definitionNode,ModelClosedDefinitionNode) and definitionNode.parentChildOrder is not None:
+                        view.xTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
+                    analyzeHdrs(view, xTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
-                elif disposition == "y" and yStrOrdCntx is None:
-                    yStrOrdCntx = StructuralOrdinateContext(None, axisObj, view.zmostOrdCntx)
-                    if isinstance(axisObj,ModelClosedAxisNodeDefinition) and axisObj.parentChildOrder is not None:
-                        view.yAxisChildrenFirst.set(axisObj.parentChildOrder == "children-first")
-                    analyzeHdrs(view, yStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
+                elif disposition == "y" and yTopStructuralNode is None:
+                    yTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx)
+                    if isinstance(definitionNode,ModelClosedDefinitionNode) and definitionNode.parentChildOrder is not None:
+                        view.yAxisChildrenFirst.set(definitionNode.parentChildOrder == "children-first")
+                        view.yTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
+                    analyzeHdrs(view, yTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
-                elif disposition == "z" and zStrOrdCntx is None:
-                    zStrOrdCntx = StructuralOrdinateContext(None, axisObj)
-                    analyzeHdrs(view, zStrOrdCntx, axisObj, 1, disposition, facts, i, tblAxisRels)
+                elif disposition == "z" and zTopStructuralNode is None:
+                    zTopStructuralNode = StructuralNode(None, definitionNode)
+                    analyzeHdrs(view, zTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
     view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):
@@ -121,18 +124,23 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
         if iCodeRole >= 0 and len(hdrNonStdRoles) > 1 and iCodeRole < len(hdrNonStdRoles) - 1:
             del hdrNonStdRoles[iCodeRole]
             hdrNonStdRoles.append(hdrNonStdRole)
+
+    if view.topRollup["x"]:
+        view.xAxisChildrenFirst.set(view.topRollup["x"] == CHILD_ROLLUP_LAST)
+    if view.topRollup["y"]:
+        view.yAxisChildrenFirst.set(view.topRollup["y"] == CHILD_ROLLUP_LAST)
     
-    return (tblAxisRelSet, xStrOrdCntx, yStrOrdCntx, zStrOrdCntx)
+    return (tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode)
 
 def sortkey(obj):
     if isinstance(obj, ModelObject):
         return obj.objectIndex
     return obj
                   
-def analyzeHdrs(view, ordCntx, axisNodeObject, depth, axisDisposition, facts, i=None, tblAxisRels=None):
-    if ordCntx and isinstance(axisNodeObject, (ModelEuAxisCoord, ModelOpenAxisNodeDefinition)):
+def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, facts, i=None, tblAxisRels=None):
+    if structuralNode and isinstance(definitionNode, (ModelEuAxisCoord, ModelDefinitionNode)):
         #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
-        ordCardinality, ordDepth = axisNodeObject.cardinalityAndDepth(ordCntx)
+        ordCardinality, ordDepth = definitionNode.cardinalityAndDepth(structuralNode)
         nestedDepth = depth + ordDepth
         # HF test
         cartesianProductNestedArgs = (view, nestedDepth, axisDisposition, facts, tblAxisRels, i)
@@ -141,33 +149,34 @@ def analyzeHdrs(view, ordCntx, axisNodeObject, depth, axisDisposition, facts, i=
                 view.zAxisRows += 1 
         elif axisDisposition == "x":
             if ordDepth:
-                if not axisNodeObject.isAbstract:
+                if not definitionNode.isAbstract:
                     view.dataCols += ordCardinality
                 if nestedDepth > view.colHdrRows: view.colHdrRows = nestedDepth 
                 '''
                 if not view.colHdrDocRow:
-                    if axisNodeObject.header(role="http://www.xbrl.org/2008/role/documentation",
+                    if definitionNode.header(role="http://www.xbrl.org/2008/role/documentation",
                                                    lang=view.lang): 
                         view.colHdrDocRow = True
                 if not view.colHdrCodeRow:
-                    if axisNodeObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
+                    if definitionNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                         view.colHdrCodeRow = True
                 '''
             hdrNonStdRoles = view.colHdrNonStdRoles
         elif axisDisposition == "y":
             if ordDepth:
-                if not axisNodeObject.isAbstract:
+                if not definitionNode.isAbstract:
                     view.dataRows += ordCardinality
                 if nestedDepth > view.rowHdrCols: 
                     view.rowHdrCols = nestedDepth
                     for j in range(1 + ordDepth):
                         view.rowHdrColWidth.append(16)  # min width for 'tail' of nonAbstract coordinate
                         view.rowNonAbstractHdrSpanMin.append(0)
-                label = ordCntx.header(lang=view.lang)
+                # a fact may be needed for context item if the header comes from a message
+                label = structuralNode.header(lang=view.lang, contextualFacts=facts)
                 if label:
                     # need to et more exact word length in screen units
                     widestWordLen = max(len(w) * 16 for w in label.split())
-                    if axisNodeObject.isAbstract:                    
+                    if definitionNode.isAbstract:                    
                         if widestWordLen > view.rowHdrColWidth[depth]:
                             view.rowHdrColWidth[depth] = widestWordLen
                     else:
@@ -175,17 +184,17 @@ def analyzeHdrs(view, ordCntx, axisNodeObject, depth, axisDisposition, facts, i=
                             view.rowNonAbstractHdrSpanMin[depth] = widestWordLen
                 ''' 
                 if not view.rowHdrDocCol:
-                    if axisNodeObject.header(role="http://www.xbrl.org/2008/role/documentation",
+                    if definitionNode.header(role="http://www.xbrl.org/2008/role/documentation",
                                          lang=view.lang): 
                         view.rowHdrDocCol = True
                 if not view.rowHdrCodeCol:
-                    if axisNodeObject.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
+                    if definitionNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code"): 
                         view.rowHdrCodeCol = True
                 '''
             hdrNonStdRoles = view.rowHdrNonStdRoles
         if axisDisposition in ("x", "y"):
             hdrNonStdPosition = -1  # where a match last occured
-            for rel in view.modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(axisNodeObject):
+            for rel in view.modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(definitionNode):
                 if rel.toModelObject is not None and rel.toModelObject.role != XbrlConst.genStandardLabel:
                     labelLang = rel.toModelObject.xmlLang
                     labelRole = rel.toModelObject.role
@@ -197,108 +206,119 @@ def analyzeHdrs(view, ordCntx, axisNodeObject, depth, axisDisposition, facts, i=
                         else:
                             hdrNonStdRoles.insert(hdrNonStdPosition + 1, labelRole)
         hasSubtreeRels = False
-        for axisSubtreeRel in view.axisSubtreeRelSet.fromModelObject(axisNodeObject):
+        for axisSubtreeRel in view.axisSubtreeRelSet.fromModelObject(definitionNode):
             hasSubtreeRels = True
-            subtreeObj = axisSubtreeRel.toModelObject
-            if (isinstance(axisNodeObject, ModelCompositionAxisNode) and
-                isinstance(subtreeObj, ModelRelationshipAxisDefinition)): # append list products to composititionAxes subObjCntxs
-                subOrdCntx = ordCntx
+            childDefinitionNode = axisSubtreeRel.toModelObject
+            if childDefinitionNode.isRollUp:
+                structuralNode.rollUpStructuralNode = StructuralNode(structuralNode, childDefinitionNode)
+                if not structuralNode.childStructuralNodes: # first sub ordinate is the roll up
+                    structuralNode.subtreeRollUp = CHILD_ROLLUP_FIRST
+                else: 
+                    structuralNode.subtreeRollUp = CHILD_ROLLUP_LAST
+                if not view.topRollup.get(axisDisposition):
+                    view.topRollup[axisDisposition] = structuralNode.subtreeRollUp
             else:
-                subOrdCntx = StructuralOrdinateContext(ordCntx, subtreeObj) # others are nested ordCntx
+                if (isinstance(definitionNode, ModelCompositionDefinitionNode) and
+                    isinstance(childDefinitionNode, ModelRelationshipDefinitionNode)): # append list products to composititionAxes subObjCntxs
+                    childStructuralNode = structuralNode
+                else:
+                    childStructuralNode = StructuralNode(structuralNode, childDefinitionNode) # others are nested structuralNode
+                    if axisDisposition != "z":
+                        structuralNode.childStructuralNodes.append(childStructuralNode)
                 if axisDisposition != "z":
-                    ordCntx.subOrdinateContexts.append(subOrdCntx)
-            if axisDisposition != "z":
-                analyzeHdrs(view, subOrdCntx, subtreeObj, depth+ordDepth, axisDisposition, facts) #recurse
-                analyzeCartesianProductHdrs(subOrdCntx, *cartesianProductNestedArgs)
-            else:
-                subOrdCntx.indent = depth - 1
-                ordCntx.choiceOrdinateContexts.append(subOrdCntx)
-                analyzeHdrs(view, ordCntx, subtreeObj, depth + 1, axisDisposition, facts) #recurse
-        if not hasattr(ordCntx, "indent"): # probably also for multiple open axes
-            if isinstance(axisNodeObject, ModelRelationshipAxisDefinition):
-                selfOrdContexts = {} if axisNodeObject.axis.endswith('-or-self') else None
-                for rel in axisNodeObject.relationships(ordCntx):
+                    analyzeHdrs(view, childStructuralNode, childDefinitionNode, depth+ordDepth, axisDisposition, facts) #recurse
+                    analyzeCartesianProductHdrs(childStructuralNode, *cartesianProductNestedArgs)
+                else:
+                    childStructuralNode.indent = depth - 1
+                    structuralNode.choiceStructuralNodes.append(childStructuralNode)
+                    analyzeHdrs(view, structuralNode, childDefinitionNode, depth + 1, axisDisposition, facts) #recurse
+            if not structuralNode.subtreeRollUp and structuralNode.childStructuralNodes and definitionNode.tag.endswith("Node"):
+                structuralNode.subtreeRollUp = CHILDREN_BUT_NO_ROLLUP
+        if not hasattr(structuralNode, "indent"): # probably also for multiple open axes
+            if isinstance(definitionNode, ModelRelationshipDefinitionNode):
+                selfStructuralNodes = {} if definitionNode.axis.endswith('-or-self') else None
+                for rel in definitionNode.relationships(structuralNode):
                     if not isinstance(rel, list):
-                        relSubOrdCntx = addRelationship(axisNodeObject, rel, ordCntx, cartesianProductNestedArgs, selfOrdContexts)
+                        relChildStructuralNode = addRelationship(definitionNode, rel, structuralNode, cartesianProductNestedArgs, selfStructuralNodes)
                     else:
-                        addRelationships(axisNodeObject, rel, relSubOrdCntx, cartesianProductNestedArgs)
+                        addRelationships(definitionNode, rel, relChildStructuralNode, cartesianProductNestedArgs)
                     
-            elif isinstance(axisNodeObject, ModelSelectionAxisNode):
-                varQn = axisNodeObject.variableQname
+            elif isinstance(definitionNode, ModelSelectionDefinitionNode):
+                varQn = definitionNode.variableQname
                 if varQn:
-                    selections = sorted(ordCntx.evaluate(axisNodeObject, axisNodeObject.evaluate) or [], 
+                    selections = sorted(structuralNode.evaluate(definitionNode, definitionNode.evaluate) or [], 
                                         key=lambda obj:sortkey(obj))
                     if isinstance(selections, (list,set,tuple)) and len(selections) > 1:
                         for selection in selections: # nested choices from selection list
-                            subOrdCntx = StructuralOrdinateContext(ordCntx, axisNodeObject, contextItemFact=selection)
-                            subOrdCntx.variables[varQn] = selection
-                            subOrdCntx.indent = 0
+                            childStructuralNode = StructuralNode(structuralNode, definitionNode, contextItemFact=selection)
+                            childStructuralNode.variables[varQn] = selection
+                            childStructuralNode.indent = 0
                             if axisDisposition == "z":
-                                ordCntx.choiceOrdinateContexts.append(subOrdCntx)
-                                subOrdCntx.zSelection = True
+                                structuralNode.choiceStructuralNodes.append(childStructuralNode)
+                                childStructuralNode.zSelection = True
                             else:
-                                ordCntx.subOrdinateContexts.append(subOrdCntx)
-                                analyzeHdrs(view, subOrdCntx, axisNodeObject, depth, axisDisposition, facts) #recurse
+                                structuralNode.childStructuralNodes.append(childStructuralNode)
+                                analyzeHdrs(view, childStructuralNode, definitionNode, depth, axisDisposition, facts) #recurse
                     else:
-                        ordCntx.variables[varQn] = selections
-            elif isinstance(axisNodeObject, ModelFilterAxisNode):
-                ordCntx.abstract = True # spanning ordinate acts as a subtitle
-                filteredFactsPartitions = ordCntx.evaluate(axisNodeObject, 
-                                                           axisNodeObject.filteredFactsPartitions, 
-                                                           evalArgs=(facts,))
+                        structuralNode.variables[varQn] = selections
+            elif isinstance(definitionNode, ModelFilterDefinitionNode):
+                structuralNode.abstract = True # spanning ordinate acts as a subtitle
+                filteredFactsPartitions = structuralNode.evaluate(definitionNode, 
+                                                                  definitionNode.filteredFactsPartitions, 
+                                                                  evalArgs=(facts,))
                 for factsPartition in filteredFactsPartitions:
-                    subOrdCntx = StructuralOrdinateContext(ordCntx, axisNodeObject, contextItemFact=factsPartition[0])
-                    subOrdCntx.indent = 0
-                    ordCntx.subOrdinateContexts.append(subOrdCntx)
-                    analyzeHdrs(view, subOrdCntx, axisNodeObject, depth, axisDisposition, factsPartition) #recurse
+                    childStructuralNode = StructuralNode(structuralNode, definitionNode, contextItemFact=factsPartition[0])
+                    childStructuralNode.indent = 0
+                    structuralNode.childStructuralNodes.append(childStructuralNode)
+                    analyzeHdrs(view, childStructuralNode, definitionNode, depth, axisDisposition, factsPartition) #recurse
                 # sort by header (which is likely to be typed dim value, for example)
-                ordCntx.subOrdinateContexts.sort(key=lambda subOrdCntx: subOrdCntx.header(lang=view.lang))
+                structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: childStructuralNode.header(lang=view.lang))
                 
-                # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent ordCntx 
-            elif isinstance(axisNodeObject, ModelTupleAxisNode):
-                ordCntx.abstract = True # spanning ordinate acts as a subtitle
-                matchingTupleFacts = ordCntx.evaluate(axisNodeObject, 
-                                                      axisNodeObject.filteredFacts, 
-                                                      evalArgs=(facts,))
+                # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent structuralNode 
+            elif isinstance(definitionNode, ModelTupleDefinitionNode):
+                structuralNode.abstract = True # spanning ordinate acts as a subtitle
+                matchingTupleFacts = structuralNode.evaluate(definitionNode, 
+                                                             definitionNode.filteredFacts, 
+                                                             evalArgs=(facts,))
                 for tupleFact in matchingTupleFacts:
-                    subOrdCntx = StructuralOrdinateContext(ordCntx, axisNodeObject, contextItemFact=tupleFact)
-                    subOrdCntx.indent = 0
-                    ordCntx.subOrdinateContexts.append(subOrdCntx)
-                    analyzeHdrs(view, subOrdCntx, axisNodeObject, depth, axisDisposition, [tupleFact]) #recurse
+                    childStructuralNode = StructuralNode(structuralNode, definitionNode, contextItemFact=tupleFact)
+                    childStructuralNode.indent = 0
+                    structuralNode.childStructuralNodes.append(childStructuralNode)
+                    analyzeHdrs(view, childStructuralNode, definitionNode, depth, axisDisposition, [tupleFact]) #recurse
                 # sort by header (which is likely to be typed dim value, for example)
-                if any(sOC.header(lang=view.lang) for sOC in ordCntx.subOrdinateContexts):
-                    ordCntx.subOrdinateContexts.sort(key=lambda subOrdCntx: subOrdCntx.header(lang=view.lang))
+                if any(sOC.header(lang=view.lang) for sOC in structuralNode.childStructuralNodes):
+                    structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: childStructuralNode.header(lang=view.lang))
 
             if axisDisposition == "z":
-                if ordCntx.choiceOrdinateContexts:
-                    choiceOrdinateIndex = view.zOrdinateChoices.get(axisNodeObject, 0)
-                    if choiceOrdinateIndex < len(ordCntx.choiceOrdinateContexts):
-                        ordCntx.choiceOrdinateIndex = choiceOrdinateIndex
+                if structuralNode.choiceStructuralNodes:
+                    choiceNodeIndex = view.zOrdinateChoices.get(definitionNode, 0)
+                    if choiceNodeIndex < len(structuralNode.choiceStructuralNodes):
+                        structuralNode.choiceNodeIndex = choiceNodeIndex
                     else:
-                        ordCntx.choiceOrdinateIndex = 0
-                view.zmostOrdCntx = ordCntx
+                        structuralNode.choiceNodeIndex = 0
+                view.zmostOrdCntx = structuralNode
                     
             if not hasSubtreeRels or axisDisposition == "z":
-                analyzeCartesianProductHdrs(ordCntx, *cartesianProductNestedArgs)
+                analyzeCartesianProductHdrs(structuralNode, *cartesianProductNestedArgs)
                     
-            if not ordCntx.subOrdinateContexts: # childless root ordinate, make a child to iterate in producing table
-                subOrdContext = StructuralOrdinateContext(ordCntx, axisNodeObject)
+            if not structuralNode.childStructuralNodes: # childless root ordinate, make a child to iterate in producing table
+                subOrdContext = StructuralNode(structuralNode, definitionNode)
 
-def analyzeCartesianProductHdrs(subOrdCntx, view, depth, axisDisposition, facts, tblAxisRels, i):
+def analyzeCartesianProductHdrs(childStructuralNode, view, depth, axisDisposition, facts, tblAxisRels, i):
     if i is not None: # recurse table relationships for cartesian product
         for j, tblRel in enumerate(tblAxisRels[i+1:]):
             tblObj = tblRel.toModelObject
-            if isinstance(tblObj, (ModelEuAxisCoord, ModelOpenAxisNodeDefinition)) and axisDisposition == tblRel.axisDisposition:
-                #if tblObj.cardinalityAndDepth(subOrdCntx)[1] or axisDisposition == "z":
+            if isinstance(tblObj, (ModelEuAxisCoord, ModelDefinitionNode)) and axisDisposition == tblRel.axisDisposition:
+                #if tblObj.cardinalityAndDepth(childStructuralNode)[1] or axisDisposition == "z":
                 if axisDisposition == "z":
-                    subOrdTblCntx = StructuralOrdinateContext(subOrdCntx, tblObj)
-                    subOrdCntx.subOrdinateContexts.append(subOrdTblCntx)
+                    subOrdTblCntx = StructuralNode(childStructuralNode, tblObj)
+                    childStructuralNode.childStructuralNodes.append(subOrdTblCntx)
                 else: # non-ordinate composition
-                    subOrdTblCntx = subOrdCntx
+                    subOrdTblCntx = childStructuralNode
                 # predefined axes need facts sub-filtered
-                if isinstance(subOrdCntx.axisNodeObject, ModelClosedAxisNodeDefinition):
-                    matchingFacts = subOrdCntx.evaluate(subOrdCntx.axisNodeObject, 
-                                                        subOrdCntx.axisNodeObject.filteredFacts, 
+                if isinstance(childStructuralNode.definitionNode, ModelClosedDefinitionNode):
+                    matchingFacts = childStructuralNode.evaluate(childStructuralNode.definitionNode, 
+                                                        childStructuralNode.definitionNode.filteredFacts, 
                                                         evalArgs=(facts,))
                 else:
                     matchingFacts = facts
@@ -308,63 +328,63 @@ def analyzeCartesianProductHdrs(subOrdCntx, view, depth, axisDisposition, facts,
                             axisDisposition, matchingFacts, j + i + 1, tblAxisRels) #cartesian product
                 break
                 
-def addRelationship(relAxisObj, rel, ordCntx, cartesianProductNestedArgs, selfOrdContexts=None):
+def addRelationship(relAxisObj, rel, structuralNode, cartesianProductNestedArgs, selfStructuralNodes=None):
     variableQname = relAxisObj.variableQname
     conceptQname = relAxisObj.conceptQname
-    coveredAspect = relAxisObj.coveredAspect(ordCntx)
+    coveredAspect = relAxisObj.coveredAspect(structuralNode)
     if not coveredAspect:
         return None
-    if selfOrdContexts is not None:
+    if selfStructuralNodes is not None:
         fromConceptQname = rel.fromModelObject.qname
         # is there an ordinate for this root object?
-        if fromConceptQname in selfOrdContexts:
-            subOrdCntx = selfOrdContexts[fromConceptQname]
+        if fromConceptQname in selfStructuralNodes:
+            childStructuralNode = selfStructuralNodes[fromConceptQname]
         else:
-            subOrdCntx = StructuralOrdinateContext(ordCntx, relAxisObj)
-            ordCntx.subOrdinateContexts.append(subOrdCntx)
-            selfOrdContexts[fromConceptQname] = subOrdCntx
+            childStructuralNode = StructuralNode(structuralNode, relAxisObj)
+            structuralNode.childStructuralNodes.append(childStructuralNode)
+            selfStructuralNodes[fromConceptQname] = childStructuralNode
             if variableQname:
-                subOrdCntx.variables[variableQname] = []
+                childStructuralNode.variables[variableQname] = []
             if conceptQname:
-                subOrdCntx.variables[conceptQname] = fromConceptQname
-            subOrdCntx.aspects[coveredAspect] = fromConceptQname
-        relSubOrdCntx = StructuralOrdinateContext(subOrdCntx, relAxisObj)
-        subOrdCntx.subOrdinateContexts.append(relSubOrdCntx)
+                childStructuralNode.variables[conceptQname] = fromConceptQname
+            childStructuralNode.aspects[coveredAspect] = fromConceptQname
+        relChildStructuralNode = StructuralNode(childStructuralNode, relAxisObj)
+        childStructuralNode.childStructuralNodes.append(relChildStructuralNode)
     else:
-        relSubOrdCntx = StructuralOrdinateContext(ordCntx, relAxisObj)
-        ordCntx.subOrdinateContexts.append(relSubOrdCntx)
+        relChildStructuralNode = StructuralNode(structuralNode, relAxisObj)
+        structuralNode.childStructuralNodes.append(relChildStructuralNode)
     if variableQname:
-        relSubOrdCntx.variables[variableQname] = rel
+        relChildStructuralNode.variables[variableQname] = rel
     toConceptQname = rel.toModelObject.qname
     if conceptQname:
-        relSubOrdCntx.variables[conceptQname] = toConceptQname
-    relSubOrdCntx.aspects[coveredAspect] = toConceptQname
-    analyzeCartesianProductHdrs(relSubOrdCntx, *cartesianProductNestedArgs)
-    return relSubOrdCntx
+        relChildStructuralNode.variables[conceptQname] = toConceptQname
+    relChildStructuralNode.aspects[coveredAspect] = toConceptQname
+    analyzeCartesianProductHdrs(relChildStructuralNode, *cartesianProductNestedArgs)
+    return relChildStructuralNode
 
-def addRelationships(relAxisObj, rels, ordCntx, cartesianProductNestedArgs):
-    subOrdCntx = None # holder for nested relationships
+def addRelationships(relAxisObj, rels, structuralNode, cartesianProductNestedArgs):
+    childStructuralNode = None # holder for nested relationships
     for rel in rels:
         if not isinstance(rel, list):
             # first entry can be parent of nested list relationships
-            subOrdCntx = addRelationship(relAxisObj, rel, ordCntx, cartesianProductNestedArgs)
-        elif subOrdCntx is None:
-            subOrdCntx = StructuralOrdinateContext(ordCntx, relAxisObj)
-            ordCntx.subOrdinateContexts.append(subOrdCntx)
-            addRelationships(relAxisObj, rel, subOrdCntx, cartesianProductNestedArgs)
+            childStructuralNode = addRelationship(relAxisObj, rel, structuralNode, cartesianProductNestedArgs)
+        elif childStructuralNode is None:
+            childStructuralNode = StructuralNode(structuralNode, relAxisObj)
+            structuralNode.childStructuralNodes.append(childStructuralNode)
+            addRelationships(relAxisObj, rel, childStructuralNode, cartesianProductNestedArgs)
         else:
-            addRelationships(relAxisObj, rel, subOrdCntx, cartesianProductNestedArgs)
+            addRelationships(relAxisObj, rel, childStructuralNode, cartesianProductNestedArgs)
     
-def inheritedPrimaryItemQname(view, ordCntx):
-    if ordCntx is None:
+def inheritedPrimaryItemQname(view, structuralNode):
+    if structuralNode is None:
         return None
-    return (ordCntx.primaryItemQname or inheritedPrimaryItemQname(view, ordCntx.parentOrdinateContext))
+    return (structuralNode.primaryItemQname or inheritedPrimaryItemQname(view, structuralNode.parentOrdinateContext))
         
-def inheritedExplicitDims(view, ordCntx, dims=None, nested=False):
+def inheritedExplicitDims(view, structuralNode, dims=None, nested=False):
     if dims is None: dims = {}
-    if ordCntx.parentOrdinateContext:
-        inheritedExplicitDims(view, ordCntx.parentOrdinateContext, dims, True)
-    for dim, mem in ordCntx.explicitDims:
+    if structuralNode.parentOrdinateContext:
+        inheritedExplicitDims(view, structuralNode.parentOrdinateContext, dims, True)
+    for dim, mem in structuralNode.explicitDims:
         dims[dim] = mem
     if not nested:
         return {(dim,mem) for dim,mem in dims.items() if mem != 'omit'}
@@ -372,18 +392,18 @@ def inheritedExplicitDims(view, ordCntx, dims=None, nested=False):
 emptySet = set()
 def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects, xOrdCntx, yOrdCntx):
     ords = xAspects.get(aspect, emptySet) | yAspects.get(aspect, emptySet) | zAspects.get(aspect, emptySet)
-    ordCntx = None
+    structuralNode = None
     if len(ords) == 1:
-        ordCntx = ords.pop()
+        structuralNode = ords.pop()
     elif len(ords) > 1:
         if aspect == Aspect.LOCATION:
             hasClash = False
             for _ordCntx in ords:
-                if not _ordCntx.axisNodeObject.aspectValueDependsOnVars(aspect):
-                    if ordCntx:
+                if not _ordCntx.definitionNode.aspectValueDependsOnVars(aspect):
+                    if structuralNode:
                         hasClash = True
                     else:
-                        ordCntx = _ordCntx 
+                        structuralNode = _ordCntx 
         else:
             hasClash = True
             
@@ -392,14 +412,14 @@ def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects, xOrdCntx, y
             view.modelXbrl.error("xbrlte:axisAspectClash",
                 _("Aspect %(aspect)s covered by multiple axes."),
                 modelObject=view.modelTable, aspect=aspectStr(aspect))
-    if ordCntx:
-        axisNodeObject = ordCntx.axisNodeObject
-        if axisNodeObject.aspectValueDependsOnVars(aspect):
-            return xOrdCntx.evaluate(axisNodeObject, 
-                                     axisNodeObject.aspectValue, 
+    if structuralNode:
+        definitionNode = structuralNode.definitionNode
+        if definitionNode.aspectValueDependsOnVars(aspect):
+            return xOrdCntx.evaluate(definitionNode, 
+                                     definitionNode.aspectValue, 
                                      otherOrdinate=yOrdCntx,
                                      evalArgs=(aspect,))
-        return ordCntx.aspectValue(aspect)
+        return structuralNode.aspectValue(aspect)
     return None 
 
 

@@ -268,23 +268,33 @@ table = "http://xbrl.org/2011/table"
 tableBreakdown = "http://xbrl.org/arcrole/2011/table-breakdown"
 tableAxis2011 = "http://xbrl.org/arcrole/2011/table-axis"
 tableFilter = "http://xbrl.org/arcrole/2011/table-filter"
-tableAxisSubtree = "http://xbrl.org/arcrole/2011/axis-subtree"
+tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/2011/definition-node-subtree"
 tableAxisSubtree2011 = "http://xbrl.org/arcrole/2011/axis/axis-subtree"
-tableAxisFilter = "http://xbrl.org/arcrole/2011/axis-filter"
+tableFilterNodeFilter = "http://xbrl.org/arcrole/2011/filter-node-filter"
 tableAxisFilter2011 = "http://xbrl.org/arcrole/2011/axis/axis-filter"
 tableTupleContent = "http://xbrl.org/arcrole/2011/tuple-content"
 tableTupleContent2011 = "http://xbrl.org/arcrole/2011/axis/tuple-content"
-tableAxisMessage = "http://xbrl.org/arcrole/2011/axis-message"
-tableAxisSelectionMessage = "http://xbrl.org/arcrole/2011/axis-selection-message"
+tableDefinitionNodeMessage = "http://xbrl.org/arcrole/2011/definition-node-message"
+tableDefinitionNodeSelectionMessage = "http://xbrl.org/arcrole/2011/definition-node-selection-message"
+tableAxisMessage2011 = "http://xbrl.org/arcrole/2011/axis-message"
+tableAxisSelectionMessage2011 = "http://xbrl.org/arcrole/2011/axis-selection-message"
 qnTableTable = qname("{http://xbrl.org/2011/table}table:table")
-qnTableCompositionAxis = qname("{http://xbrl.org/2011/table}table:compositionAxis")
-qnTableFilterAxis = qname("{http://xbrl.org/2011/table}table:filterAxis")
-qnTableConceptRelationshipAxis = qname("{http://xbrl.org/2011/table}table:conceptRelationshipAxis")
-qnTableDimensionRelationshipAxis = qname("{http://xbrl.org/2011/table}table:dimensionRelationshipAxis")
-qnTableRuleAxis = qname("{http://xbrl.org/2011/table}table:ruleAxis")
-qnTablePredefinedAxis = qname("{http://xbrl.org/2011/table}table:predefinedAxis")
-qnTableSelectionAxis = qname("{http://xbrl.org/2011/table}table:selectionAxis")
-qnTableTupleAxis = qname("{http://xbrl.org/2011/table}table:tupleAxis")
+qnTableCompositionNode = qname("{http://xbrl.org/2011/table}table:compositionAxis")
+qnTableCompositionAxis2011 = qname("{http://xbrl.org/2011/table}table:compositionAxis")
+qnTableFilterNode = qname("{http://xbrl.org/2011/table}table:filterNode")
+qnTableFilterAxis2011 = qname("{http://xbrl.org/2011/table}table:filterAxis")
+qnTableConceptRelationshipNode = qname("{http://xbrl.org/2011/table}table:conceptRelationshipNode")
+qnTableConceptRelationshipAxis2011 = qname("{http://xbrl.org/2011/table}table:conceptRelationshipAxis")
+qnTableDimensionRelationshipNode = qname("{http://xbrl.org/2011/table}table:dimensionRelationshipNode")
+qnTableDimensionRelationshipAxis2011 = qname("{http://xbrl.org/2011/table}table:dimensionRelationshipAxis")
+qnTableRuleNode = qname("{http://xbrl.org/2011/table}table:ruleNode")
+qnTableRuleAxis2011 = qname("{http://xbrl.org/2011/table}table:ruleAxis")
+qnTableClosedDefinitionNode = qname("{http://xbrl.org/2011/table}table:closedDefinitionNode")
+qnTablePredefinedAxis2011 = qname("{http://xbrl.org/2011/table}table:predefinedAxis")
+qnTableSelectionNode = qname("{http://xbrl.org/2011/table}table:selectionNode")
+qnTableSelectionAxis2011 = qname("{http://xbrl.org/2011/table}table:selectionAxis")
+qnTableTupleNode = qname("{http://xbrl.org/2011/table}table:tupleNode")
+qnTableTupleAxis2011 = qname("{http://xbrl.org/2011/table}table:tupleAxis")
 
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
 errMsgPrefixNS = {
@@ -487,8 +497,9 @@ def isDimensionArcrole(arcrole):
 
 def isTableRenderingArcrole(arcrole):
     return arcrole in {euTableAxis, euAxisMember, 
-                       tableBreakdown, tableAxis2011, tableFilter, tableAxisSubtree, 
-                       tableAxisFilter, tableAxisFilter2011, 
+                       tableBreakdown, tableAxis2011, tableFilter, 
+                       tableDefinitionNodeSubtree, tableAxisSubtree2011, 
+                       tableFilterNodeFilter, tableAxisFilter2011, 
                        tableTupleContent, tableTupleContent2011,
                        tableAxisSubtree2011, tableAxisFilter2011}
    
