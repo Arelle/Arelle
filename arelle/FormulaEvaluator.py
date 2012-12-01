@@ -17,6 +17,7 @@ from arelle.ModelValue import (QName)
 import datetime, time, logging
 from arelle.Locale import format_string
 from collections import defaultdict
+ModelDimensionValue = None
 
 def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
     # for each dependent variable, find bindings
@@ -457,7 +458,9 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                         break
             '''
         elif isinstance(aspect, QName):
-            from arelle.ModelInstanceObject import ModelDimensionValue
+            global ModelDimensionValue
+            if ModelDimensionValue is None:
+                from arelle.ModelInstanceObject import ModelDimensionValue
             dimValue1 = c1.dimValue(aspect)
             dimValue2 = c2.dimValue(aspect)
             if isinstance(dimValue1, ModelDimensionValue):
