@@ -124,7 +124,7 @@ class StructuralNode:
     def objectId(self, refId=""):
         return self._definitionNode.objectId(refId)
         
-    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, contextualFacts=None):
+    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False):
         # if ord is a nested selectionAxis selection, use selection-message or text contents instead of axis headers
         isZSelection = isinstance(self._definitionNode, ModelSelectionDefinitionNode) and hasattr(self, "zSelection")
         if role is None:
@@ -137,12 +137,8 @@ class StructuralNode:
                 msg = msgsRelationshipSet.label(self._definitionNode, XbrlConst.standardMessage, lang, returnText=False)
                 if msg is not None:
                     if evaluate:
-                        if self.contextItemBinding is None and contextualFacts:
-                            for fact in contextualFacts: # this is likely to be a set
-                                self.contextItemBinding = VariableBinding(self._rendrCntx, boundFact=fact)
-                                label = self.evaluate(msg, msg.evaluate)
-                                self.contextItemBinding = None
-                                return label
+                        if returnMsgFormatString:
+                            return msg.formatString # not possible to evaluate (during resolution)
                         else:
                             return self.evaluate(msg, msg.evaluate)
                     else:
@@ -155,10 +151,10 @@ class StructuralNode:
                 return label
         # if there's a child roll up, check for it
         if self.rollUpStructuralNode is not None:  # check the rolling-up child too
-            return self.rollUpStructuralNode.header(role, lang, evaluate, returnGenLabel, contextualFacts)
+            return self.rollUpStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString)
         # if there is a role, check if it's available on a parent node
         if role and self.parentStructuralNode is not None:
-            return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, contextualFacts)
+            return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString)
         return None
     
     def evaluate(self, evalObject, evalMethod, otherOrdinate=None, evalArgs=()):

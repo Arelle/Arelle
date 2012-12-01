@@ -11,7 +11,7 @@ from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, XbrlConst,
 from arelle.ModelValue import qname, QName
 from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
-from arelle.ModelRenderingObject import CHILD_ROLLUP_LAST
+from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.FormulaEvaluator import aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -432,11 +432,21 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         justify = None
                         fp = FactPrototype(self, cellAspectValues)
                         if conceptNotAbstract:
+                            # reduce set of matchable facts to those with pri item qname and have dimension aspects
                             facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts
                             for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
                                 if isinstance(aspect, QName):
                                     aspectValue = cellAspectValues.get(aspect, None)
-                                    facts = facts & self.modelXbrl.factsByDimMemQname(aspect,getattr(aspectValue, "memberQname", None) or aspectValue)
+                                    if isinstance(aspectValue, ModelDimensionValue):
+                                        if aspectValue.isExplicit:
+                                            dimMemQname = aspectValue.memberQname # match facts with this explicit value
+                                        else:
+                                            dimMemQname = None  # match facts that report this dimension
+                                    elif isinstance(aspectValue, QName): 
+                                        dimMemQname = aspectValue  # match facts that have this explicit value
+                                    else:
+                                        dimMemQname = None # match facts that report this dimension
+                                    facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
                             for fact in facts:
                                 if (all(aspectMatches(rendrCntx, fact, fp, aspect) 
                                         for aspect in matchableAspects) and

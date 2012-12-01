@@ -171,8 +171,8 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                     for j in range(1 + ordDepth):
                         view.rowHdrColWidth.append(16)  # min width for 'tail' of nonAbstract coordinate
                         view.rowNonAbstractHdrSpanMin.append(0)
-                # a fact may be needed for context item if the header comes from a message
-                label = structuralNode.header(lang=view.lang, contextualFacts=facts)
+                # messages can't be evaluated, just use the text portion of format string
+                label = structuralNode.header(lang=view.lang, returnMsgFormatString=True)
                 if label:
                     # need to et more exact word length in screen units
                     widestWordLen = max(len(w) * 16 for w in label.split())

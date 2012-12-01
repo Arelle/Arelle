@@ -10,6 +10,8 @@ from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectVa
 from arelle.ViewFile import HTML, XML
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.FormulaEvaluator import aspectMatches
+from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.ModelValue import QName
 from arelle.PrototypeInstanceObject import FactPrototype
 from collections import defaultdict
 
@@ -17,7 +19,7 @@ emptySet = set()
 emptyList = []
 
 def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False):
-    modelXbrl.modelManager.showStatus(_("viewing rendering"))
+    modelXbrl.modelManager.showStatus(_("saving rendering"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang)
     
     if sourceView is not None:
@@ -32,6 +34,7 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
         view.close(noWrite=True)
     else:   
         view.close()
+    modelXbrl.modelManager.showStatus(_("rendering saved to {0}").format(outfile), clearAfter=5000)
     
 class ViewRenderedGrid(ViewFile.View):
     def __init__(self, modelXbrl, outfile, lang):
@@ -138,12 +141,12 @@ class ViewRenderedGrid(ViewFile.View):
                                             yTopStructuralNode, self.yAxisChildrenFirst.get(), True, True)
                         for ordCntx,elt in self.ordCntxElts: # must do after elements are all arragned
                             elt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
-                                                          .format(ordCntx._axisNodeObject.localName,
-                                                                  ordCntx._axisNodeObject.xlinkLabel,
-                                                                  ordCntx._axisNodeObject.modelDocument.basename, 
-                                                                  ordCntx._axisNodeObject.sourceline)))
-                            if ordCntx._axisNodeObject.get('value'):
-                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._axisNodeObject.get('value'))))
+                                                          .format(ordCntx._definitionNode.localName,
+                                                                  ordCntx._definitionNode.xlinkLabel,
+                                                                  ordCntx._definitionNode.modelDocument.basename, 
+                                                                  ordCntx._definitionNode.sourceline)))
+                            if ordCntx._definitionNode.get('value'):
+                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._definitionNode.get('value'))))
                             for aspect in sorted(ordCntx.aspectsCovered(), key=lambda a: aspectStr(a)):
                                 if ordCntx.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
                                     aspectValue = ordCntx.aspectValue(aspect)
@@ -577,7 +580,21 @@ class ViewRenderedGrid(ViewFile.View):
                     justify = None
                     fp = FactPrototype(self, cellAspectValues)
                     if conceptNotAbstract:
-                        for fact in self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts:
+                        facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts
+                        for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
+                            if isinstance(aspect, QName):
+                                aspectValue = cellAspectValues.get(aspect, None)
+                                if isinstance(aspectValue, ModelDimensionValue):
+                                    if aspectValue.isExplicit:
+                                        dimMemQname = aspectValue.memberQname # match facts with this explicit value
+                                    else:
+                                        dimMemQname = None  # match facts that report this dimension
+                                elif isinstance(aspectValue, QName): 
+                                    dimMemQname = aspectValue  # match facts that have this explicit value
+                                else:
+                                    dimMemQname = None # match facts that report this dimension
+                                facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
+                        for fact in facts:
                             if (all(aspectMatches(rendrCntx, fact, fp, aspect) 
                                     for aspect in matchableAspects) and
                                 all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
