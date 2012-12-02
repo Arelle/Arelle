@@ -73,26 +73,27 @@ class StructuralNode:
       
     def hasAspect(self, aspect, inherit=True):
         return (aspect in self.aspects or 
-                self.definitionNode.hasAspect(aspect) or 
+                self.definitionNode.hasAspect(self, aspect) or 
                 (inherit and
                  self.parentStructuralNode is not None and 
-                 self.parentStructuralNode.hasAspect(aspect)))
+                 self.parentStructuralNode.hasAspect(self, aspect)))
     
     def aspectValue(self, aspect, inherit=True, dims=None):
+        xc = self._rendrCntx
         if aspect == Aspect.DIMENSIONS:
             if dims is None: dims = set()
             if inherit and self.parentStructuralNode is not None:
                 dims |= self.parentStructuralNode.aspectValue(aspect, dims=dims)
             if aspect in self.aspects:
                 dims |= self.aspects[aspect]
-            elif self.definitionNode.hasAspect(aspect):
-                dims |= set(self.definitionNode.aspectValue(self._rendrCntx, aspect) or {})
-            if self.definitionNode.hasAspect(Aspect.OMIT_DIMENSIONS):
-                dims -= set(self.definitionNode.aspectValue(self._rendrCntx, Aspect.OMIT_DIMENSIONS))
+            elif self.definitionNode.hasAspect(self, aspect):
+                dims |= set(self.definitionNode.aspectValue(xc, aspect) or {})
+            if self.definitionNode.hasAspect(self, Aspect.OMIT_DIMENSIONS):
+                dims -= set(self.definitionNode.aspectValue(xc, Aspect.OMIT_DIMENSIONS))
             return dims
         if aspect in self.aspects:
             return self.aspects[aspect]
-        elif self.definitionNode.hasAspect(aspect):
+        elif self.definitionNode.hasAspect(self, aspect):
             if isinstance(self._definitionNode, ModelSelectionDefinitionNode):
                 # result is in the indicated variable of ordCntx
                 return self.variables.get(self._definitionNode.variableQname)
@@ -104,7 +105,7 @@ class StructuralNode:
                     return self.contextItemBinding.yieldedFact
                 # non-location tuple aspects don't leak into cell bindings
             else:
-                return self.definitionNode.aspectValue(self._rendrCntx, aspect)
+                return self.definitionNode.aspectValue(xc, aspect)
         elif inherit and self.parentStructuralNode is not None:
             return self.parentStructuralNode.aspectValue(aspect)
         return None
@@ -272,7 +273,7 @@ class ModelEuAxisCoord(ModelResource):
             aspectsCovered.add(self.prefixedNameQname(e.get("dimension")))
         return aspectsCovered
     
-    def hasAspect(self, aspect):
+    def hasAspect(self, structuralNode, aspect):
         if aspect == Aspect.CONCEPT:
             return XmlUtil.hasChild(self, XbrlConst.euRend, "primaryItem")
         elif aspect == Aspect.DIMENSIONS:
@@ -295,7 +296,7 @@ class ModelEuAxisCoord(ModelResource):
             if inherit and self.parentDefinitionNode is not None:
                 dims |= self.parentDefinitionNode.aspectValue(None, aspect, inherit)
             return dims
-        if inherit and not self.hasAspect(aspect):
+        if inherit and not self.hasAspect(None, aspect):
             if self.parentDefinitionNode is not None:
                 return self.parentDefinitionNode.aspectValue(None, aspect, inherit)
             return None
@@ -336,7 +337,7 @@ class ModelEuAxisCoord(ModelResource):
                                      addOneDay=True)
     '''
 
-    def cardinalityAndDepth(self, ordCntx):
+    def cardinalityAndDepth(self, structuralNode):
         return (1, 1)
         
     def header(self, role=None, lang=None, strip=False, evaluate=True):
@@ -416,7 +417,7 @@ class ModelDefinitionNode(ModelFormulaResource):
     def descendantArcroles(self):        
         return (XbrlConst.tableDefinitionNodeMessage, XbrlConst.tableAxisMessage2011)
         
-    def hasAspect(self, aspect):
+    def hasAspect(self, structuralNode, aspect):
         return False
 
     def aspectValueDependsOnVars(self, aspect):
@@ -478,9 +479,9 @@ class ModelDefinitionNode(ModelFormulaResource):
     def isRollUp(self):
         return self.get("rollUp") == 'true'
     
-    def cardinalityAndDepth(self, ordCntx):
+    def cardinalityAndDepth(self, structuralNode):
         return (1, 
-                1 if (ordCntx.header(evaluate=False) is not None) else 0)
+                1 if (structuralNode.header(evaluate=False) is not None) else 0)
         
     def header(self, role=None, lang=None, strip=False, evaluate=True):
         if role is None:
@@ -538,7 +539,7 @@ class ModelRuleDefinitionNode(ModelFormulaRules, ModelClosedDefinitionNode):
         self._locationAspectCovered = set()
         if self._locationSourceVar: self._locationAspectCovered.add(Aspect.LOCATION) # location is parent (tuple), not sibling
         
-    def hasAspect(self, aspect, inherit=None):
+    def hasAspect(self, structuralNode, aspect, inherit=None):
         if aspect == Aspect.LOCATION and self._locationSourceVar:
             return True
         return self.hasRule(aspect)
@@ -593,8 +594,8 @@ class ModelRuleDefinitionNode(ModelFormulaRules, ModelClosedDefinitionNode):
                                   "duration": Aspect.END}[periodType])
     '''
     
-    def cardinalityAndDepth(self, ordCntx):
-        if self.aspectValues or self.aspectProgs or self.header(evaluate=False) is not None:
+    def cardinalityAndDepth(self, structuralNode):
+        if self.aspectValues or self.aspectProgs or structuralNode.header(evaluate=False) is not None:
             return (1, 1)
         else:
             return (0, 0)
@@ -624,7 +625,7 @@ class ModelTupleDefinitionNode(ModelRuleDefinitionNode):
     def contentRelationships(self):
         return self.modelXbrl.relationshipSet((XbrlConst.tableTupleContent,XbrlConst.tableTupleContent2011)).fromModelObject(self)
         
-    def hasAspect(self, aspect, inherit=None):
+    def hasAspect(self, structuralNode, aspect, inherit=None):
         return aspect == Aspect.LOCATION # non-location aspects aren't leaked to ordinate for Tuple or self.hasRule(aspect)
     
     def aspectValue(self, xpCtx, aspect, inherit=None):
@@ -750,8 +751,8 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
             return self.generations
         return xpCtx.evaluateAtomicValue(self.generationsExpressionProg, 'xs:integer', fact)
 
-    def cardinalityAndDepth(self, ordCntx):
-        return self.lenDepth(self.relationships(ordCntx), 
+    def cardinalityAndDepth(self, structuralNode):
+        return self.lenDepth(self.relationships(structuralNode), 
                              self.axis.endswith('-or-self'))
     
     def lenDepth(self, nestedRelationships, includeSelf):
@@ -789,7 +790,7 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def init(self, modelDocument):
         super(ModelConceptRelationshipDefinitionNode, self).init(modelDocument)
     
-    def hasAspect(self, aspect):
+    def hasAspect(self, structuralNode, aspect):
         return aspect == Aspect.CONCEPT
 
     @property
@@ -854,16 +855,16 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def coveredAspect(self, ordCntx=None):
         return Aspect.CONCEPT
 
-    def relationships(self, ordCntx):
-        sourceQname = (ordCntx.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot)
-        linkrole = ordCntx.evaluate(self, self.evalLinkrole)
+    def relationships(self, structuralNode):
+        sourceQname = (structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot)
+        linkrole = structuralNode.evaluate(self, self.evalLinkrole)
         if not linkrole:
             linkrole = "XBRL-all-linkroles"
-        linkQname = (ordCntx.evaluate(self, self.evalLinkQname) or () )
-        arcrole = (ordCntx.evaluate(self, self.evalArcrole) or () )
-        arcQname = (ordCntx.evaluate(self, self.evalArcQname) or () )
+        linkQname = (structuralNode.evaluate(self, self.evalLinkQname) or () )
+        arcrole = (structuralNode.evaluate(self, self.evalArcrole) or () )
+        arcQname = (structuralNode.evaluate(self, self.evalArcQname) or () )
         axis = self.axis
-        generations = (ordCntx.evaluate(self, self.evalGenerations) or () )
+        generations = (structuralNode.evaluate(self, self.evalGenerations) or () )
         return concept_relationships(self.modelXbrl.rendrCntx, 
                                      None, 
                                      (sourceQname,
@@ -879,12 +880,12 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def init(self, modelDocument):
         super(ModelDimensionRelationshipDefinitionNode, self).init(modelDocument)
     
-    def hasAspect(self, aspect):
-        return aspect == self.coveredAspect() or aspect == Aspect.DIMENSIONS
+    def hasAspect(self, structuralNode, aspect):
+        return aspect == self.coveredAspect(structuralNode) or aspect == Aspect.DIMENSIONS
     
     def aspectValue(self, xpCtx, aspect, inherit=None):
         if aspect == Aspect.DIMENSIONS:
-            return (self.coveredAspect(), )
+            return (self.coveredAspect(xpCtx), )
         return None
     
     def aspectsCovered(self):
@@ -914,26 +915,26 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
             return self.dimensionQname
         return xpCtx.evaluateAtomicValue(self.dimensionQnameExpressionProg, 'xs:QName', fact)
     
-    def coveredAspect(self, ordCntx=None):
+    def coveredAspect(self, structuralNode=None):
         try:
             return self._coveredAspect
         except AttributeError:
-            self._coveredAspect = self.dimRelationships(ordCntx, getDimQname=True)
+            self._coveredAspect = self.dimRelationships(structuralNode, getDimQname=True)
             return self._coveredAspect
         
-    def relationships(self, ordCntx):
-        return self.dimRelationships(ordCntx, getMembers=True)
+    def relationships(self, structuralNode):
+        return self.dimRelationships(structuralNode, getMembers=True)
     
-    def dimRelationships(self, ordCntx, getMembers=False, getDimQname=False):
-        dimensionQname = ordCntx.evaluate(self, self.evalDimensionQname)
-        sourceQname = ordCntx.evaluate(self, self.evalRrelationshipSourceQname)
-        linkrole = ordCntx.evaluate(self, self.evalLinkrole)
+    def dimRelationships(self, structuralNode, getMembers=False, getDimQname=False):
+        dimensionQname = structuralNode.evaluate(self, self.evalDimensionQname)
+        sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname)
+        linkrole = structuralNode.evaluate(self, self.evalLinkrole)
         if not linkrole and getMembers:
             linkrole = "XBRL-all-linkroles"
         dimConcept = self.modelXbrl.qnameConcepts.get(dimensionQname)
         sourceConcept = self.modelXbrl.qnameConcepts.get(sourceQname)
         axis = self.axis
-        generations = (ordCntx.evaluate(self, self.evalGenerations) or () )
+        generations = (structuralNode.evaluate(self, self.evalGenerations) or () )
         if ((dimensionQname and (dimConcept is None or not dimConcept.isDimensionItem)) or
             (sourceQname and (sourceConcept is None or not sourceConcept.isItem))):
             return ()
@@ -942,6 +943,7 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
                 return dimensionQname
             if sourceConcept is None:
                 sourceConcept = dimConcept
+                sourceQname = sourceConcept.qname
         if getMembers:
             return concept_relationships(self.modelXbrl.rendrCntx, 
                                          None, 
@@ -989,7 +991,7 @@ class ModelSelectionDefinitionNode(ModelOpenDefinitionNode):
         XPathParser.clearNamedProg(self, "selectProg")
         super(ModelSelectionDefinitionNode, self).clear()
     
-    def coveredAspect(self, ordCntx=None):
+    def coveredAspect(self, structuralNode=None):
         try:
             return self._coveredAspect
         except AttributeError:
@@ -1003,7 +1005,7 @@ class ModelSelectionDefinitionNode(ModelOpenDefinitionNode):
     def aspectsCovered(self):
         return {self.coveredAspect}
 
-    def hasAspect(self, aspect):
+    def hasAspect(self, structuralNode, aspect):
         return aspect == self.coveredAspect() or (isinstance(self._coveredAspect,QName) and aspect == Aspect.DIMENSIONS)
     
     @property
@@ -1046,7 +1048,7 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
             self._filterRelationships = rels
             return rels
     
-    def hasAspect(self, aspect):
+    def hasAspect(self, structuralNode, aspect):
         return aspect in self.aspectsCovered()
     
     def aspectsCovered(self, varBinding=None):

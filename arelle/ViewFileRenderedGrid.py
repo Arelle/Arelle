@@ -580,7 +580,7 @@ class ViewRenderedGrid(ViewFile.View):
                     justify = None
                     fp = FactPrototype(self, cellAspectValues)
                     if conceptNotAbstract:
-                        facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts
+                        facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
                         for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
                             if isinstance(aspect, QName):
                                 aspectValue = cellAspectValues.get(aspect, None)

@@ -54,7 +54,7 @@ class FunctionArgType(Exception):
         self.foundObject = foundObject
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _("Exception: Arg {0} expected type {1}").format(self.argNum, self.expectedType)
+        return _("[{0}]: Arg {1} expected type {2}").format(self.errCode, self.argNum, self.expectedType)
     
 class FunctionNotAvailable(Exception):
     def __init__(self, name=None):

@@ -62,9 +62,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.factPrototypes = []
         self.zOrdinateChoices = None
         # context menu Boolean vars
-        self.ignoreDimValidity = BooleanVar(value=True)
-        self.xAxisChildrenFirst = BooleanVar(value=True)
-        self.yAxisChildrenFirst = BooleanVar(value=False)
+        self.options = self.modelXbrl.modelManager.cntlr.config.setdefault("viewRenderedGridOptions", {})
+        self.ignoreDimValidity = BooleanVar(value=self.options.setdefault("ignoreDimValidity",True))
+        self.xAxisChildrenFirst = BooleanVar(value=self.options.setdefault("xAxisChildrenFirst",True))
+        self.yAxisChildrenFirst = BooleanVar(value=self.options.setdefault("yAxisChildrenFirst",False))
             
     def close(self):
         super(ViewRenderedGrid, self).close()
@@ -102,6 +103,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         
     def viewReloadDueToMenuAction(self, *args):
         if not self.blockMenuEvents:
+            # update config (config saved when exiting)
+            self.options["ignoreDimValidity"] = self.ignoreDimValidity.get()
+            self.options["xAxisChildrenFirst"] = self.xAxisChildrenFirst.get()
+            self.options["yAxisChildrenFirst"] = self.yAxisChildrenFirst.get()
             self.view()
         
     def view(self, viewTblELR=None, newInstance=None):
@@ -425,7 +430,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
                             
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)
-                        conceptNotAbstract = concept is not None and not concept.isAbstract
+                        conceptNotAbstract = concept is None or not concept.isAbstract
                         from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
                         value = None
                         objectId = None
@@ -433,7 +438,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         fp = FactPrototype(self, cellAspectValues)
                         if conceptNotAbstract:
                             # reduce set of matchable facts to those with pri item qname and have dimension aspects
-                            facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.facts
+                            facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
                             for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
                                 if isinstance(aspect, QName):
                                     aspectValue = cellAspectValues.get(aspect, None)
