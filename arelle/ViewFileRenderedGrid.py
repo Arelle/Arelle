@@ -71,6 +71,7 @@ class ViewRenderedGrid(ViewFile.View):
             for discriminator in range(1, 65535):
                 tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, tblELR)
                 
+                self.zStrNodesWithChoices = []
                 if tblAxisRelSet and self.tblElt is not None:
                     tableLabel = (self.modelTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
                                   self.roledefinition)
@@ -126,7 +127,6 @@ class ViewRenderedGrid(ViewFile.View):
                         '''
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
                     zAspects = defaultdict(set)
-                    self.zStrNodesWithChoices = []
                     self.zAxis(1, zTopStructuralNode, zAspects, False)
                     xStructuralNodes = []
                     if self.type == HTML or (xTopStructuralNode.childStructuralNodes):
@@ -532,120 +532,122 @@ class ViewRenderedGrid(ViewFile.View):
             
     
     def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspects, yChildrenFirst):
-        rendrCntx = getattr(self.modelXbrl, "rendrCntx", None) # none for EU 2010 tables
-        dimDefaults = self.modelXbrl.qnameDimensionDefaults
-        for yStructuralNode in yParentStructuralNode.childStructuralNodes:
-            if yChildrenFirst:
-                row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
-            if not yStructuralNode.isAbstract:
-                if self.type == XML:
-                    self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
-                                                   attrib={"disposition": "x"})
-                yAspects = defaultdict(set)
-                for aspect in aspectModels[self.aspectModel]:
-                    for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                        if yStructuralNode.hasAspect(ruleAspect):
-                            if ruleAspect == Aspect.DIMENSIONS:
-                                for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                    yAspects[dim].add(yStructuralNode)
-                            else:
-                                yAspects[ruleAspect].add(yStructuralNode)
-                # data for columns of rows
-                ignoreDimValidity = self.ignoreDimValidity.get()
-                for i, xStructuralNode in enumerate(xStructuralNodes):
-                    xAspects = defaultdict(set)
+        if yParentStructuralNode is not None:
+            rendrCntx = getattr(self.modelXbrl, "rendrCntx", None) # none for EU 2010 tables
+            dimDefaults = self.modelXbrl.qnameDimensionDefaults
+            for yStructuralNode in yParentStructuralNode.childStructuralNodes:
+                if yChildrenFirst:
+                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
+                if not yStructuralNode.isAbstract:
+                    if self.type == XML:
+                        self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
+                                                       attrib={"disposition": "x"})
+                    yAspects = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
                         for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                            if xStructuralNode.hasAspect(ruleAspect):
+                            if yStructuralNode.hasAspect(ruleAspect):
                                 if ruleAspect == Aspect.DIMENSIONS:
-                                    for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                        xAspects[dim].add(xStructuralNode)
+                                    for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                        yAspects[dim].add(yStructuralNode)
                                 else:
-                                    xAspects[ruleAspect].add(xStructuralNode)
-                    cellAspectValues = {}
-                    matchableAspects = set()
-                    for aspect in _DICT_SET(xAspects.keys()) | _DICT_SET(yAspects.keys()) | _DICT_SET(zAspects.keys()):
-                        aspectValue = inheritedAspectValue(self, aspect, xAspects, yAspects, zAspects, xStructuralNode, yStructuralNode)
-                        if dimDefaults.get(aspect) != aspectValue: # don't include defaulted dimensions
-                            cellAspectValues[aspect] = aspectValue
-                        matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
-                    cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
-                    priItemQname = cellAspectValues.get(Aspect.CONCEPT)
-                        
-                    concept = self.modelXbrl.qnameConcepts.get(priItemQname)
-                    conceptNotAbstract = concept is not None and not concept.isAbstract
-                    from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
-                    value = None
-                    objectId = None
-                    justify = None
-                    fp = FactPrototype(self, cellAspectValues)
-                    if conceptNotAbstract:
-                        facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
-                        for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
-                            if isinstance(aspect, QName):
-                                aspectValue = cellAspectValues.get(aspect, None)
-                                if isinstance(aspectValue, ModelDimensionValue):
-                                    if aspectValue.isExplicit:
-                                        dimMemQname = aspectValue.memberQname # match facts with this explicit value
+                                    yAspects[ruleAspect].add(yStructuralNode)
+                    # data for columns of rows
+                    ignoreDimValidity = self.ignoreDimValidity.get()
+                    for i, xStructuralNode in enumerate(xStructuralNodes):
+                        xAspects = defaultdict(set)
+                        for aspect in aspectModels[self.aspectModel]:
+                            for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
+                                if xStructuralNode.hasAspect(ruleAspect):
+                                    if ruleAspect == Aspect.DIMENSIONS:
+                                        for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                            xAspects[dim].add(xStructuralNode)
                                     else:
-                                        dimMemQname = None  # match facts that report this dimension
-                                elif isinstance(aspectValue, QName): 
-                                    dimMemQname = aspectValue  # match facts that have this explicit value
-                                else:
-                                    dimMemQname = None # match facts that report this dimension
-                                facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
-                        for fact in facts:
-                            if (all(aspectMatches(rendrCntx, fact, fp, aspect) 
-                                    for aspect in matchableAspects) and
-                                all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
-                                    for dim in cellDefaultedDims)):
-                                if yStructuralNode.hasValueExpression(xStructuralNode):
-                                    value = yStructuralNode.evalValueExpression(fact, xStructuralNode)
-                                else:
-                                    value = fact.effectiveValue
-                                justify = "right" if fact.isNumeric else "left"
-                                break
-                    if conceptNotAbstract:
-                        if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp):
+                                        xAspects[ruleAspect].add(xStructuralNode)
+                        cellAspectValues = {}
+                        matchableAspects = set()
+                        for aspect in _DICT_SET(xAspects.keys()) | _DICT_SET(yAspects.keys()) | _DICT_SET(zAspects.keys()):
+                            aspectValue = inheritedAspectValue(self, aspect, xAspects, yAspects, zAspects, xStructuralNode, yStructuralNode)
+                            if dimDefaults.get(aspect) != aspectValue: # don't include defaulted dimensions
+                                cellAspectValues[aspect] = aspectValue
+                            matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
+                        cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
+                        priItemQname = cellAspectValues.get(Aspect.CONCEPT)
+                            
+                        concept = self.modelXbrl.qnameConcepts.get(priItemQname)
+                        conceptNotAbstract = concept is None or not concept.isAbstract
+                        from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
+                        value = None
+                        objectId = None
+                        justify = None
+                        fp = FactPrototype(self, cellAspectValues)
+                        if conceptNotAbstract:
+                            # reduce set of matchable facts to those with pri item qname and have dimension aspects
+                            facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
+                            for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
+                                if isinstance(aspect, QName):
+                                    aspectValue = cellAspectValues.get(aspect, None)
+                                    if isinstance(aspectValue, ModelDimensionValue):
+                                        if aspectValue.isExplicit:
+                                            dimMemQname = aspectValue.memberQname # match facts with this explicit value
+                                        else:
+                                            dimMemQname = None  # match facts that report this dimension
+                                    elif isinstance(aspectValue, QName): 
+                                        dimMemQname = aspectValue  # match facts that have this explicit value
+                                    else:
+                                        dimMemQname = None # match facts that report this dimension
+                                    facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
+                            for fact in facts:
+                                if (all(aspectMatches(rendrCntx, fact, fp, aspect) 
+                                        for aspect in matchableAspects) and
+                                    all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
+                                        for dim in cellDefaultedDims)):
+                                    if yStructuralNode.hasValueExpression(xStructuralNode):
+                                        value = yStructuralNode.evalValueExpression(fact, xStructuralNode)
+                                    else:
+                                        value = fact.effectiveValue
+                                    justify = "right" if fact.isNumeric else "left"
+                                    break
+                        if conceptNotAbstract:
+                            if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp):
+                                if self.type == HTML:
+                                    etree.SubElement(self.rowElts[row - 1], 
+                                                     "{http://www.w3.org/1999/xhtml}td",
+                                                     attrib={"class":"cell",
+                                                             "style":"text-align:{0};width:8em".format(justify)}
+                                                     ).text = value or "\u00A0"
+                                elif self.type == XML:
+                                    if value is not None and fact is not None:
+                                        self.xCells.append(etree.Comment("{0}: context {1}, file {2}, line {3}"
+                                                                         .format(fact.qname,
+                                                                                 fact.contextID,
+                                                                                 fact.modelDocument.basename, 
+                                                                                 fact.sourceline)))
+    
+                                    etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell"
+                                                     ).text = value
+                            else:
+                                if self.type == HTML:
+                                    etree.SubElement(self.rowElts[row - 1], 
+                                                     "{http://www.w3.org/1999/xhtml}td",
+                                                     attrib={"class":"blockedCell",
+                                                             "style":"text-align:{0};width:8em".format(justify)}
+                                                     ).text = "\u00A0\u00A0"
+                                elif self.type == XML:
+                                    etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell",
+                                                     attrib={"blocked":"true"})
+                        else: # concept is abstract
                             if self.type == HTML:
                                 etree.SubElement(self.rowElts[row - 1], 
                                                  "{http://www.w3.org/1999/xhtml}td",
-                                                 attrib={"class":"cell",
-                                                         "style":"text-align:{0};width:8em".format(justify)}
-                                                 ).text = value or "\u00A0"
-                            elif self.type == XML:
-                                if value is not None and fact is not None:
-                                    self.xCells.append(etree.Comment("{0}: context {1}, file {2}, line {3}"
-                                                                     .format(fact.qname,
-                                                                             fact.contextID,
-                                                                             fact.modelDocument.basename, 
-                                                                             fact.sourceline)))
-
-                                etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell"
-                                                 ).text = value
-                        else:
-                            if self.type == HTML:
-                                etree.SubElement(self.rowElts[row - 1], 
-                                                 "{http://www.w3.org/1999/xhtml}td",
-                                                 attrib={"class":"blockedCell",
+                                                 attrib={"class":"abstractCell",
                                                          "style":"text-align:{0};width:8em".format(justify)}
                                                  ).text = "\u00A0\u00A0"
                             elif self.type == XML:
                                 etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell",
-                                                 attrib={"blocked":"true"})
-                    else: # concept is abstract
-                        if self.type == HTML:
-                            etree.SubElement(self.rowElts[row - 1], 
-                                             "{http://www.w3.org/1999/xhtml}td",
-                                             attrib={"class":"abstractCell",
-                                                     "style":"text-align:{0};width:8em".format(justify)}
-                                             ).text = "\u00A0\u00A0"
-                        elif self.type == XML:
-                            etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell",
-                                             attrib={"abstract":"true"})
-                    fp.clear()  # dereference
-                row += 1
-            if not yChildrenFirst:
-                row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
+                                                 attrib={"abstract":"true"})
+                        fp.clear()  # dereference
+                    row += 1
+                if not yChildrenFirst:
+                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
         return row
             

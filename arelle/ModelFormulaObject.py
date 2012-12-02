@@ -192,7 +192,7 @@ class ModelFormulaResource(ModelResource):
                 toModelObject = modelRel.toModelObject
                 if isinstance(toModelObject,ModelFormulaResource):
                     toModelObject.compile()
-                else:
+                elif toModelObject is not None: # missing to object should be detected as link error
                     self.modelXbrl.error("formula:internalError",
                          _("Invalid formula object %(element)s"),
                          modelObject=self,
@@ -1014,7 +1014,8 @@ class ModelBooleanFilter(ModelFilter):
         for rel in self.filterRelationships:
             if rel.isCovered:
                 _filter = rel.toModelObject
-                aspectsCovered |= _filter.aspectsCovered(varBinding)
+                if isinstance(_filter, ModelFilter):
+                    aspectsCovered |= _filter.aspectsCovered(varBinding)
         return aspectsCovered
         
 class ModelAndFilter(ModelBooleanFilter):
@@ -1494,8 +1495,8 @@ class ModelConceptRelation(ModelFilter):
             factOk = False
             factQname = fact.qname
             for modelRel in relationships:
-                if (((isFromAxis and factQname == modelRel.fromModelObject.qname) or
-                     (not isFromAxis and factQname == modelRel.toModelObject.qname)) and
+                if (((isFromAxis and modelRel.fromModelObject is not None and factQname == modelRel.fromModelObject.qname) or
+                     (not isFromAxis and modelRel.toModelObject is not None and factQname == modelRel.toModelObject.qname)) and
                      (hasNoTest or self.evalTest(xpCtx, modelRel))):
                     factOk = True
                     break

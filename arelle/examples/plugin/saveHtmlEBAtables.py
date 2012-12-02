@@ -14,6 +14,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         from arelle import XmlUtil, XbrlConst
         from arelle import XmlUtil, XbrlConst
         from arelle.ViewFileRenderedGrid import viewRenderedGrid
+        from arelle.ModelRenderingObject import ModelEuTable, ModelTable
         
         numTableFiles = 0
         
@@ -58,27 +59,47 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
                 self.yAxisChildrenFirst = nonTkBooleanVar(value=yAxisChildrenFirst)
     
         indexBase = indexFile.rpartition(".")[0]
-    
+        groupTableRels = dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable)
         modelTables = []
         # order number is missing
-        for rel in dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable).modelRelationships:
-            modelTables.append((rel.toModelObject, rel.sourceline))
-        for modelTable, order in sorted(modelTables, key=lambda x: x[1]):
-            # for table file name, use table ELR
-            tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
-            viewRenderedGrid(dts, tblFile, lang=lang, sourceView=View(modelTable, False, False, True))
-            
-            # generaate menu entry
-            elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
-            elt.set("class", "CMSListMenuLI")
-            elt.set("id", modelTable.id)
-            elt = etree.SubElement(elt, "{http://www.w3.org/1999/xhtml}a")
-            elt.text = modelTable.genLabel(lang=lang, strip=True)
-            elt.set("class", "CMSListMenuLink")
-            elt.set("href", "javascript:void(0)")
-            elt.set("onClick", "javascript:parent.body.location.href='{0}';".format(modelTable.id + ".html"))
-            elt.text = modelTable.genLabel(lang=lang, strip=True)
+        def viewTable(modelTable):
+            if isinstance(modelTable, (ModelEuTable, ModelTable)):
+                # for table file name, use table ELR
+                tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
+                viewRenderedGrid(dts, tblFile, lang=lang, sourceView=View(modelTable, False, False, True))
+                
+                # generaate menu entry
+                elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
+                elt.set("class", "CMSListMenuLI")
+                elt.set("id", modelTable.id)
+                elt = etree.SubElement(elt, "{http://www.w3.org/1999/xhtml}a")
+                elt.text = modelTable.genLabel(lang=lang, strip=True)
+                elt.set("class", "CMSListMenuLink")
+                elt.set("href", "javascript:void(0)")
+                elt.set("onClick", "javascript:parent.body.location.href='{0}';".format(modelTable.id + ".html"))
+                elt.text = modelTable.genLabel(lang=lang, strip=True)
+                
+            else:  # just a header
+
+                # generaate menu entry
+                elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
+                elt.set("class", "CMSListMenuLink")
+                elt.set("id", modelTable.id)
+                elt.text = modelTable.label(lang=lang, strip=True)
+
+            for rel in groupTableRels.fromModelObject(modelTable):
+                viewTable(rel.toModelObject)
+
     
+        for rootConcept in groupTableRels.rootConcepts:
+            sourceline = 0
+            for rel in dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable).fromModelObject(rootConcept):
+                sourceline = rel.sourceline
+                break
+            modelTables.append((rootConcept, sourceline))
+        for modelTable, order in sorted(modelTables, key=lambda x: x[1]):
+            viewTable(modelTable)
+            
         
         with open(indexBase + "FormsFrame.html", "wt", encoding="utf-8") as fh:
             XmlUtil.writexml(fh, indexDocument, encoding="utf-8")

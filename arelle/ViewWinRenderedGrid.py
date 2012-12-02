@@ -207,7 +207,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         combobox = args[0].widget
         self.zOrdinateChoices[combobox.zStructuralNode._definitionNode] = \
             combobox.zStructuralNode.choiceNodeIndex = combobox.valueIndex
-        self.view() # redraw grid
+        self.view(self.tblELR) # redraw grid
             
     def xAxis(self, leftCol, topRow, rowBelow, xParentStructuralNode, xStructuralNodes, childrenFirst, renderNow, atTop):
         if xParentStructuralNode is not None:

@@ -76,7 +76,7 @@ class StructuralNode:
                 self.definitionNode.hasAspect(self, aspect) or 
                 (inherit and
                  self.parentStructuralNode is not None and 
-                 self.parentStructuralNode.hasAspect(self, aspect)))
+                 self.parentStructuralNode.hasAspect(aspect, inherit)))
     
     def aspectValue(self, aspect, inherit=True, dims=None):
         xc = self._rendrCntx
