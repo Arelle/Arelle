@@ -43,6 +43,10 @@ class StructuralNode:
         self.subtreeRollUp = ROLLUP_NOT_ANALYZED
         
     @property
+    def modelXbrl(self):
+        return self._definitionNode.modelXbrl
+        
+    @property
     def isAbstract(self):
         if self.subtreeRollUp:
             return self.subtreeRollUp == CHILDREN_BUT_NO_ROLLUP
@@ -80,19 +84,23 @@ class StructuralNode:
     
     def aspectValue(self, aspect, inherit=True, dims=None):
         xc = self._rendrCntx
+        if self.choiceStructuralNodes:  # use aspects from choice structural node
+            aspects = self.choiceStructuralNodes[self.choiceNodeIndex].aspects
+        else:
+            aspects = self.aspects
         if aspect == Aspect.DIMENSIONS:
             if dims is None: dims = set()
             if inherit and self.parentStructuralNode is not None:
                 dims |= self.parentStructuralNode.aspectValue(aspect, dims=dims)
-            if aspect in self.aspects:
-                dims |= self.aspects[aspect]
+            if aspect in aspects:
+                dims |= aspects[aspect]
             elif self.definitionNode.hasAspect(self, aspect):
                 dims |= set(self.definitionNode.aspectValue(xc, aspect) or {})
             if self.definitionNode.hasAspect(self, Aspect.OMIT_DIMENSIONS):
                 dims -= set(self.definitionNode.aspectValue(xc, Aspect.OMIT_DIMENSIONS))
             return dims
-        if aspect in self.aspects:
-            return self.aspects[aspect]
+        if aspect in aspects:
+            return aspects[aspect]
         elif self.definitionNode.hasAspect(self, aspect):
             if isinstance(self._definitionNode, ModelSelectionDefinitionNode):
                 # result is in the indicated variable of ordCntx
@@ -156,6 +164,18 @@ class StructuralNode:
         # if there is a role, check if it's available on a parent node
         if role and self.parentStructuralNode is not None:
             return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString)
+        # if aspect is a concept of dimension, return its standard label
+        concept = None
+        for aspect in self.aspectsCovered():
+            if isinstance(aspect, QName) or aspect == Aspect.CONCEPT: # dimension or concept
+                conceptQname = self.aspectValue(aspect)
+                if conceptQname:
+                    concept = self.modelXbrl.qnameConcepts[conceptQname]
+                    break
+        if concept is not None:
+            label = concept.label(lang=lang)
+            if label:
+                return label
         return None
     
     def evaluate(self, evalObject, evalMethod, otherOrdinate=None, evalArgs=()):
@@ -207,7 +227,7 @@ class StructuralNode:
         return None
             
     def __repr__(self):
-        return ("ordinateContext[{0}]{1})".format(self.objectId(),self.definitionNode))
+        return ("structuralNode[{0}]{1})".format(self.objectId(),self.definitionNode))
         
 # Root class for rendering is formula, to allow linked and nested compiled expressions
 
@@ -681,7 +701,7 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
     @property
     def axis(self):
         a = XmlUtil.childText(self, XbrlConst.table, ("axis", "formulaAxis"))
-        if not a: a = 'child'  # would be an XML error
+        if not a: a = 'descendant'  # would be an XML error
         return a
     
     @property
@@ -856,7 +876,7 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
         return Aspect.CONCEPT
 
     def relationships(self, structuralNode):
-        sourceQname = (structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot)
+        sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot
         linkrole = structuralNode.evaluate(self, self.evalLinkrole)
         if not linkrole:
             linkrole = "XBRL-all-linkroles"
@@ -927,7 +947,7 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     
     def dimRelationships(self, structuralNode, getMembers=False, getDimQname=False):
         dimensionQname = structuralNode.evaluate(self, self.evalDimensionQname)
-        sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname)
+        sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot
         linkrole = structuralNode.evaluate(self, self.evalLinkrole)
         if not linkrole and getMembers:
             linkrole = "XBRL-all-linkroles"
@@ -936,14 +956,14 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
         axis = self.axis
         generations = (structuralNode.evaluate(self, self.evalGenerations) or () )
         if ((dimensionQname and (dimConcept is None or not dimConcept.isDimensionItem)) or
-            (sourceQname and (sourceConcept is None or not sourceConcept.isItem))):
+            (sourceQname and sourceQname != XbrlConst.qnXfiRoot and (
+                    sourceConcept is None or not sourceConcept.isItem))):
             return ()
         if dimConcept is not None:
             if getDimQname:
                 return dimensionQname
             if sourceConcept is None:
                 sourceConcept = dimConcept
-                sourceQname = sourceConcept.qname
         if getMembers:
             return concept_relationships(self.modelXbrl.rendrCntx, 
                                          None, 

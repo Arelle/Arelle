@@ -119,9 +119,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.tblELR = viewTblELR
             clearZchoices = True
         else:   # first or subsequenct reloading (language, dimensions, other change)
-            self.loadTablesMenu()  # load menus (and initialize if first time
-            viewTblELR = self.tblELR
             clearZchoices = self.zOrdinateChoices is None
+            if clearZchoices: # also need first time initialization
+                self.loadTablesMenu()  # load menus (and initialize if first time
+            viewTblELR = self.tblELR
             
         if not self.tblELR:
             return  # no table to display
@@ -207,7 +208,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         combobox = args[0].widget
         self.zOrdinateChoices[combobox.zStructuralNode._definitionNode] = \
             combobox.zStructuralNode.choiceNodeIndex = combobox.valueIndex
-        self.view(self.tblELR) # redraw grid
+        self.view() # redraw grid
             
     def xAxis(self, leftCol, topRow, rowBelow, xParentStructuralNode, xStructuralNodes, childrenFirst, renderNow, atTop):
         if xParentStructuralNode is not None:

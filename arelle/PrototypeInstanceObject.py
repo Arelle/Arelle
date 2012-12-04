@@ -45,7 +45,8 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         dims = self.context.qnameDims
         return (("concept", str(self.qname) if self.concept is not None else "not specified"),
                 ("dimensions", "({0})".format(len(dims)),
-                  tuple(dimVal.propertyView for dim,dimVal in sorted(dims.items())))
+                  tuple(dimVal.propertyView if dimVal is not None else (str(dim.qname),"None")
+                        for dim,dimVal in sorted(dims.items(), key=lambda i:i[0])))
                   if dims else (),
                 )
 
@@ -154,4 +155,6 @@ class DimValuePrototype():
         if self.isExplicit:
             return (str(self.dimensionQname),str(self.memberQname))
         else:
-            return (str(self.dimensionQname), XmlUtil.xmlstring( self.typedMember, stripXmlns=True, prettyPrint=True ) )
+            return (str(self.dimensionQname), 
+                    XmlUtil.xmlstring( self.typedMember, stripXmlns=True, prettyPrint=True )
+                    if self.typedMember is not None else "None" )

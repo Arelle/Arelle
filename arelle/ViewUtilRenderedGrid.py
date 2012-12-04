@@ -255,7 +255,19 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                             relChildStructuralNode = addRelationship(definitionNode, rel, structuralNode, cartesianProductNestedArgs, selfStructuralNodes)
                         else:
                             addRelationships(definitionNode, rel, relChildStructuralNode, cartesianProductNestedArgs)
-                        
+                    if axisDisposition == "z":
+                        # if definitionNode is first structural node child remove it
+                        if structuralNode.choiceStructuralNodes and structuralNode.choiceStructuralNodes[0].definitionNode == definitionNode:
+                            del structuralNode.choiceStructuralNodes[0]
+                        # flatten hierarchy of nested structural nodes inot choice nodes (for single listbox)
+                        def flattenChildNodesToChoices(childStructuralNodes, indent):
+                            while childStructuralNodes:
+                                choiceStructuralNode = childStructuralNodes.pop(0)
+                                choiceStructuralNode.indent = indent
+                                structuralNode.choiceStructuralNodes.append(choiceStructuralNode)
+                                flattenChildNodesToChoices(choiceStructuralNode.childStructuralNodes, indent + 1)
+                        flattenChildNodesToChoices(structuralNode.childStructuralNodes, 0)
+                    
                 elif isinstance(definitionNode, ModelSelectionDefinitionNode):
                     varQn = definitionNode.variableQname
                     if varQn:

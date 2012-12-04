@@ -1414,7 +1414,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     # check if concept is behaving as a total based on role, deed, or circumstances
     def presumptionOfTotal(self, rel, siblingRels, iSibling, isStatementSheet, nestedInTotal, checkLabelRoleOnly):
         concept = rel.toModelObject
-        if concept.isNumeric:
+        if concept is not None and concept.isNumeric:
             preferredLabel = rel.preferredLabel
             if XbrlConst.isTotalRole(preferredLabel):
                 return _("preferredLabel {0}").format(os.path.basename(preferredLabel))
