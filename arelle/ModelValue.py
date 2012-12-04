@@ -205,6 +205,8 @@ def lastDayOfMonth(year, month):
     if year % 400 == 0 or (year % 100 != 0 and year % 4 == 0): return 29
     return 28
 
+#!!! see note in XmlUtil.py datetimeValue, may need exceptions handled or special treatment for end time of 9999-12-31
+
 class DateTime(datetime.datetime):
     def __new__(cls, y, m, d, hr=0, min=0, sec=0, microsec=0, tzinfo=None, dateOnly=None, addOneDay=None):
         if hr == 24:

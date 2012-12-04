@@ -504,31 +504,37 @@ def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeNam
         list.sort()
     return list
 
+DATETIME_MINYEAR = datetime.datetime(datetime.MINYEAR,1,1)
+DATETIME_MAXYEAR = datetime.datetime(datetime.MAXYEAR,12,31)
 def datetimeValue(element, addOneDay=False, none=None):
     if element is None:
         if none == "minyear":
-            return datetime.datetime(datetime.MINYEAR,1,1)
+            return DATETIME_MINYEAR
         elif none == "maxyear":
-            return datetime.datetime(datetime.MAXYEAR,12,31)
+            return DATETIME_MAXYEAR
         return None
     match = datetimePattern.match(element if isinstance(element,_STR_BASE) else text(element).strip())
     if match is None:
         return None
     hour24 = False
-    if match.lastindex == 6:
-        hour = int(match.group(4))
-        min = int(match.group(5))
-        sec = int(match.group(6))
-        if hour == 24 and min == 0 and sec == 0:
-            hour24 = True
-            hour = 0
-        result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),hour,min,sec)
-    else:
-        result = datetime.datetime(int(match.group(7)),int(match.group(8)),int(match.group(9)))
-    if addOneDay and match.lastindex == 9:
-        result += datetime.timedelta(1) 
-    if hour24:  #add one day
-        result += datetime.timedelta(1) 
+    try:
+        if match.lastindex == 6:
+            hour = int(match.group(4))
+            min = int(match.group(5))
+            sec = int(match.group(6))
+            if hour == 24 and min == 0 and sec == 0:
+                hour24 = True
+                hour = 0
+            result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),hour,min,sec)
+        else:
+            result = datetime.datetime(int(match.group(7)),int(match.group(8)),int(match.group(9)))
+        if addOneDay and match.lastindex == 9:
+            result += datetime.timedelta(1) 
+        if hour24:  #add one day
+            result += datetime.timedelta(1) 
+    except (ValueError, OverflowError, IndexError, AttributeError):
+        if not "result" in locals(): # if not set yet, punt with max datetime
+            result = DATETIME_MAXYEAR
     return result
 
 def dateunionValue(datetimeValue, subtractOneDay=False):
