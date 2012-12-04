@@ -85,6 +85,10 @@ class FileSource:
                         l = file.read(8)
                         if len(l) < 8:
                             break
+                        if len(buf) == 0 and l.startswith(b"<?xml "): # not compressed
+                            buf = l + file.read()
+                            break
+                        # compressed
                         compressedLength = (l[0] << 24) + (l[1] << 16) + (l[2] << 8) + (l[3] << 0)
                         expandedLength = (l[4] << 24) + (l[5] << 16) + (l[6] << 8) + (l[7] << 0)
                         compressedBytes = file.read(compressedLength)
