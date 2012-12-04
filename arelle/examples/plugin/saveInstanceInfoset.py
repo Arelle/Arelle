@@ -1,11 +1,11 @@
 '''
-Save SKOS is an example of a plug-in to both GUI menu and command line/web service
-that will save the concepts a DTS into an RDF file.
+Save Instance Infoset is an example of a plug-in to both GUI menu and command line/web service
+that will save facts decorated with ptv:periodType, ptv:balance, ptv:decimals and ptv:precision (inferred).
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 
-def generateInfoset(dts, infosetFile):
+def generateInstanceInfoset(dts, instanceInfosetFile):
     if dts.fileSource.isArchive:
         return
     import os, io
@@ -31,22 +31,22 @@ def generateInfoset(dts, infosetFile):
                      _("Facts exception %(fact)s %(value)s %(error)s."),
                      modelObject=fact, fact=fact.qname, value=fact.effectiveValue, error = err)
 
-    fh = open(infosetFile, "w", encoding="utf-8")
+    fh = open(instanceInfosetFile, "w", encoding="utf-8")
     XmlUtil.writexml(fh, dts.modelDocument.xmlDocument, encoding="utf-8")
     fh.close()
     
-    dts.info("info:saveInfoset",
-             _("Infoset of %(entryFile)s has %(numberOfFacts)s facts in infoset file %(infosetOutputFile)s."),
+    dts.info("info:saveInstanceInfoset",
+             _("Instance infoset of %(entryFile)s has %(numberOfFacts)s facts in infoset file %(infosetOutputFile)s."),
              modelObject=dts,
-             entryFile=dts.uri, numberOfFacts=numFacts, infosetOutputFile=infosetFile)
+             entryFile=dts.uri, numberOfFacts=numFacts, infosetOutputFile=instanceInfosetFile)
 
-def saveInfosetMenuEntender(cntlr, menu):
+def saveInstanceInfosetMenuEntender(cntlr, menu):
     # Extend menu with an item for the save infoset plugin
     menu.add_command(label="Save infoset", 
                      underline=0, 
-                     command=lambda: saveInfosetMenuCommand(cntlr) )
+                     command=lambda: saveInstanceInfosetMenuCommand(cntlr) )
 
-def saveInfosetMenuCommand(cntlr):
+def saveInstanceInfosetMenuCommand(cntlr):
     # save Infoset menu item has been invoked
     from arelle.ModelDocument import Type
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or cntlr.modelManager.modelXbrl.modelDocument.type != Type.INSTANCE:
@@ -54,66 +54,67 @@ def saveInfosetMenuCommand(cntlr):
         return
 
         # get file name into which to save log file while in foreground thread
-    infosetFile = cntlr.uiFileDialog("save",
-            title=_("arelle - Save infoset file"),
+    instanceInfosetFile = cntlr.uiFileDialog("save",
+            title=_("arelle - Save instance infoset file"),
             initialdir=cntlr.config.setdefault("infosetFileDir","."),
             filetypes=[(_("Infoset file .xml"), "*.xml")],
             defaultextension=".xml")
-    if not infosetFile:
+    if not instanceInfosetFile:
         return False
     import os
-    cntlr.config["infosetFileDir"] = os.path.dirname(infosetFile)
+    cntlr.config["infosetFileDir"] = os.path.dirname(instanceInfosetFile)
     cntlr.saveConfig()
 
     try: 
-        generateInfoset(cntlr.modelManager.modelXbrl, infosetFile)
+        generateInstanceInfoset(cntlr.modelManager.modelXbrl, instanceInfosetFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
         dts.error("exception",
-            _("Infoset generation exception: %(error)s"), error=ex,
+            _("Instance infoset generation exception: %(error)s"), error=ex,
             modelXbrl=dts,
             exc_info=True)
 
-def saveInfosetCommandLineOptionExtender(parser):
+def saveInstanceInfosetCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
-    parser.add_option("--save-infoset", 
+    parser.add_option("--save-instance-infoset", 
                       action="store", 
-                      dest="infosetFile", 
+                      dest="instanceInfosetFile", 
                       help=_("Save instance infoset in specified file, or to send testcase infoset out files to out directory specify 'generateOutFiles'."))
 
-def saveInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl):
+def saveInstanceInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
     from arelle.ModelDocument import Type
-    if options.infosetFile and options.infosetFile == "generateOutFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
+    if options.instanceInfosetFile and options.infosetFile == "generateOutFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateInfosetOutFiles = True
 
-def saveInfosetCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveInstanceInfosetCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.infosetFile and options.infosetFile != "generateOutFiles":
+    if options.instanceInfosetFile and options.instanceInfosetFile != "generateOutFiles":
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        generateInfoset(cntlr.modelManager.modelXbrl, options.infosetfile)
+        generateInstanceInfoset(cntlr.modelManager.modelXbrl, options.instanceInfosetFile)
         
-def validateInfoset(dts, infosetFile):
+def validateInstanceInfoset(dts, instanceInfosetFile):
     if getattr(dts.modelManager, 'generateInfosetOutFiles', False):
-        generateInfoset(dts, 
+        generateInstanceInfoset(dts, 
                         # normalize file to instance
-                        dts.modelManager.cntlr.webCache.normalizeUrl(infosetFile, dts.uri))
+                        dts.modelManager.cntlr.webCache.normalizeUrl(instanceInfosetFile, dts.uri))
 
 
 __pluginInfo__ = {
-    'name': 'Save Infoset (Instance)',
+    'name': 'Save Instance Infoset (PTV)',
     'version': '0.9',
-    'description': "This plug-in adds a feature to output instance infoset.  "
-                    "(Does not offset infoset hrefs and schemaLocations for directory offset from DTS.) ",
+    'description': "This plug-in adds a feature to output an instance \"ptv\" infoset.  "
+                    "(Does not offset infoset hrefs and schemaLocations for directory offset from DTS.) "
+                    "The ptv infoset is the source instance with facts having ptv:periodType, ptv:balance (where applicable), ptv:decimals and ptv:precision (inferred).  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveInfosetMenuEntender,
-    'CntlrCmdLine.Options': saveInfosetCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': saveInfosetCommandLineXbrlLoaded,
-    'CntlrCmdLine.Xbrl.Run': saveInfosetCommandLineXbrlRun,
-    'Validate.Infoset': validateInfoset,
+    'CntlrWinMain.Menu.Tools': saveInstanceInfosetMenuEntender,
+    'CntlrCmdLine.Options': saveInstanceInfosetCommandLineOptionExtender,
+    'CntlrCmdLine.Xbrl.Loaded': saveInstanceInfosetCommandLineXbrlLoaded,
+    'CntlrCmdLine.Xbrl.Run': saveInstanceInfosetCommandLineXbrlRun,
+    'Validate.Infoset': validateInstanceInfoset,
 }

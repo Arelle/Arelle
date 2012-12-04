@@ -211,9 +211,10 @@ class Validate:
                         infoset.close()
                     if modelTestcaseVariation.resultIsTable: # and self.modelXbrl.modelManager.validateInfoset:
                         # diff (or generate) table infoset
-                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, 
-                                                              modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement),
-                                                              diffToFile=True)  # false to save infoset files
+                        resultTableUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement)
+                        if not any(alternativeValidation(modelXbrl, resultTableUri)
+                                   for alternativeValidation in pluginClassMethods("Validate.TableInfoset")):
+                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
                     self.determineTestStatus(modelTestcaseVariation, modelXbrl) # include infoset errors in status
                     self.instValidator.close()
                     if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 
