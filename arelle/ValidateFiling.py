@@ -615,7 +615,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                           "20-F", "20-F/A", "40-F", "40-F/A", "6-K", "6-K/A", "8-K", "8-K/A", 
                                           "F-1", "F-1/A", "F-10", "F-10/A", "F-3", "F-3/A", "F-4", "F-4/A", "F-9", "F-9/A", 
                                           "S-1", "S-1/A", "S-11", "S-11/A", "S-3", "S-3/A", "S-4", "S-4/A", 
-                                          "POS AM",
+                                          "POS AM", "POSAR",
                                           "485BPOS", "497", 
                                           "NCSR", "NCSR/A", "N-CSR", "N-CSR/A", "N-CSRS", "NCSRS/A", "N-CSRS/A", 
                                           "N-Q",  "N-Q/A",
