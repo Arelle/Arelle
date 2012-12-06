@@ -192,7 +192,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelObject=context, elementName=notAllowed, context=contextID)
         
                 #6.5.5 segment only explicit dimensions
-                for contextName in ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"):
+                for contextName in {"segment": ("{http://www.xbrl.org/2003/instance}segment",),
+                                    "scenario": ("{http://www.xbrl.org/2003/instance}scenario",),
+                                    "either": ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"),
+                                    "both": ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"),
+                                    "none": [],
+                                    }[disclosureSystem.contextElement]:
                     for segScenElt in context.iterdescendants(contextName):
                         if isinstance(segScenElt,ModelObject):
                             childTags = ", ".join([child.prefixedName for child in segScenElt.iterchildren()
@@ -200,8 +205,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                    child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember"])
                             if len(childTags) > 0:
                                 modelXbrl.error(("EFM.6.05.05", "GFM.1.02.05"),
-                                                _("Segment of context Id %(context)s has disallowed content: %(content)s"),
-                                                modelObject=context, context=contextID, content=childTags)
+                                                _("%(elementName)s of context Id %(context)s has disallowed content: %(content)s"),
+                                                modelObject=context, context=contextID, content=childTags, 
+                                                elementName=contextName.partition("}")[2].title())
             del uniqueContextHashes
             self.modelXbrl.profileActivity("... filer context checks", minTimeToShow=1.0)
     
