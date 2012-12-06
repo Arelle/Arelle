@@ -276,7 +276,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             value = f.value
                             if factElementName == disclosureSystem.deiAmendmentFlagElement:
                                 amendmentFlag = value
-                                ammedmentFlagFact = f
+                                amendmentFlagFact = f
                             elif factElementName == "AmendmentDescription":
                                 amendmentDescription = value
                                 amendmentDescriptionFact = f
@@ -600,7 +600,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if amendmentFlag == "true" and amendmentDescription is None:
                     modelXbrl.error("EFM.6.05.20.missingAmendmentDescription",
                         _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
-                        modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact else "unknown")
+                        modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact is not None else "unknown")
         
                 if amendmentDescription is not None and amendmentFlag != "true":
                     modelXbrl.error("EFM.6.05.20.extraneous",
