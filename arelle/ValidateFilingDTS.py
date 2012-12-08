@@ -410,17 +410,18 @@ def checkDTS(val, modelDocument, visited):
             if isinstance(e,ModelObject):
                 val.modelXbrl.error(("EFM.6.07.08", "GFM.1.03.08"),
                     _("Taxonomy schema %(schema)s contains an embedded linkbase"),
-                    modelObject=e, schema=os.path.basename(modelDocument.uri))
+                    modelObject=e, schema=modelDocument.basename)
                 break
 
         requiredUsedOns = {XbrlConst.qnLinkPresentationLink,
                            XbrlConst.qnLinkCalculationLink,
                            XbrlConst.qnLinkDefinitionLink}
         
-        standardUsedOns = {XbrlConst.qnLinkLabel, XbrlConst.qnLinkReference, XbrlConst.qnLinkFootnote,
+        standardUsedOns = {XbrlConst.qnLinkLabel, XbrlConst.qnLinkReference, 
                            XbrlConst.qnLinkDefinitionArc, XbrlConst.qnLinkCalculationArc, XbrlConst.qnLinkPresentationArc, 
-                           XbrlConst.qnLinkLabelArc, XbrlConst.qnLinkReferenceArc 
-                           # XbrlConst.qnLinkFootnoteArc note: not in EFM table for 6.8.3 and causes tests 6.5.30 to fail
+                           XbrlConst.qnLinkLabelArc, XbrlConst.qnLinkReferenceArc, 
+                           # per WH, private footnote arc and footnore resource roles are not allowed
+                           XbrlConst.qnLinkFootnoteArc, XbrlConst.qnLinkFootnote,
                            }
 
         # 6.7.9 role types authority
