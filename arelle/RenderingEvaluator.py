@@ -107,9 +107,10 @@ def checkDefinitionNodeAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverabl
         checkDefinitionNodeAspectModel(modelXbrl, modelTable, axisSubtreeRel, uncoverableAspects)
         childDefinitionNode = axisSubtreeRel.toModelObject
         definitionNodeHasChild = True
-            
+    
+    ''' not clear if we should keep this check        
     if not definitionNodeHasChild and not hasCoveredAspect:
         modelXbrl.error("xbrlte:aspectValueNotDefinedByOrdinate",
             _("%(axis)s ordinate %(xlinkLabel)s does not define an aspect"),
             modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode.localName)
-        
+    '''
