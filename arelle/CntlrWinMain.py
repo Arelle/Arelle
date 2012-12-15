@@ -536,7 +536,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         if filename:
             filesource = None
             # check for archive files
-            filesource = openFileSource(filename,self)
+            filesource = openFileSource(filename, self,
+                                        checkIfXmlIsEis=self.modelManager.disclosureSystem and
+                                        self.modelManager.disclosureSystem.EFM)
             if filesource.isArchive and not filesource.selection: # or filesource.isRss:
                 from arelle import DialogOpenArchive
                 filename = DialogOpenArchive.askArchiveFile(self, filesource)

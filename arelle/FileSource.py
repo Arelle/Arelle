@@ -8,35 +8,38 @@ import zipfile, os, io, base64, gzip, zlib, re
 from lxml import etree
 from arelle import XmlUtil
 
-archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
-                        ((".zip/", ".eis/", ".xfd/", ".frm/") if os.sep != "/" else ()) #acomodate windows and http styles
+archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
+                        ((".zip/", ".eis/", ".xml/", ".xfd/", ".frm/") if os.sep != "/" else ()) #acomodate windows and http styles
 
 XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
-def openFileSource(filename, cntlr=None, sourceZipStream=None):
+def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False):
     if sourceZipStream:
         filesource = FileSource("POSTupload.zip", cntlr)
         filesource.openZipStream(sourceZipStream)
         filesource.select(filename)
         return filesource
     else:
-        archivepathSelection = archiveFilenameParts(filename)
+        archivepathSelection = archiveFilenameParts(filename, checkIfXmlIsEis)
         if archivepathSelection is not None:
             archivepath = archivepathSelection[0]
             selection = archivepathSelection[1]
-            filesource = FileSource(archivepath, cntlr)
+            filesource = FileSource(archivepath, cntlr, checkIfXmlIsEis)
             filesource.open()
             filesource.select(selection)
             return filesource
         # not archived content
-        return FileSource(filename, cntlr) 
+        return FileSource(filename, cntlr, checkIfXmlIsEis) 
 
-def archiveFilenameParts(filename):
+def archiveFilenameParts(filename, checkIfXmlIsEis=False):
     # check if path has an archive file plus appended in-archive content reference
     for archiveSep in archivePathSeparators:
-        if archiveSep in filename:
+        if (archiveSep in filename and
+            (not archiveSep.startswith(".xml") or checkIfXmlIsEis)):
             filenameParts = filename.partition(archiveSep)
-            return (filenameParts[0] + archiveSep[:-1], filenameParts[2])
+            fileDir = filenameParts[0] + archiveSep[:-1]
+            if os.path.isfile(fileDir): # be sure it is not a directory name
+                return (fileDir, filenameParts[2])
     return None
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
@@ -48,7 +51,7 @@ class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave 
         return self.fileName
             
 class FileSource:
-    def __init__(self, url, cntlr=None):
+    def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = self.url.startswith("http://")
         self.cntlr = cntlr
@@ -62,6 +65,20 @@ class FileSource:
         self.selection = None
         self.filesDir = None
         self.referencedFileSources = {}  # archive file name, fileSource object
+        
+        # for SEC xml files, check if it's an EIS anyway
+        if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
+            self.type == ".xml" and
+            checkIfXmlIsEis):
+            match = b'<?xml version="1.0" ?><cor:edgarSubmission'
+            try:
+                file = open(self.cntlr.webCache.getfilename(self.url), 'rb')
+                l = file.read(len(match))
+                file.close()
+                if l == match:
+                    self.isEis = True
+            except EnvironmentError as err:
+                pass
 
     def open(self):
         if not self.isOpen:
