@@ -91,7 +91,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             m = instanceFileNamePattern.match(modelXbrl.modelDocument.basename)
             if (m and  # has acceptable pattern
                 # SEC test cases under "TestCase" have ng or gd after file name and efm-blocking selected
-                (not m.group(3) or (disclosureSystem.blockDisallowedReferences and "TestCase" in modelXbrl.modelDocument.uri))):
+                (not m.group(3) or (disclosureSystem.blockDisallowedReferences))):
                 self.fileNameBasePart = m.group(1)
                 self.fileNameDatePart = m.group(2)
                 if not self.fileNameBasePart:
