@@ -7,6 +7,7 @@ Created on Mar 7, 2011
 import inspect
 from arelle import XmlUtil, XbrlConst, XPathParser, Locale, XPathContext
 from arelle.ModelDtsObject import ModelResource
+from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
                                        Aspect)
@@ -161,21 +162,26 @@ class StructuralNode:
         # if there's a child roll up, check for it
         if self.rollUpStructuralNode is not None:  # check the rolling-up child too
             return self.rollUpStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString)
-        # if there is a role, check if it's available on a parent node
-        if role and self.parentStructuralNode is not None:
-            return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString)
         # if aspect is a concept of dimension, return its standard label
         concept = None
         for aspect in self.aspectsCovered():
             if isinstance(aspect, QName) or aspect == Aspect.CONCEPT: # dimension or concept
-                conceptQname = self.aspectValue(aspect)
-                if conceptQname:
-                    concept = self.modelXbrl.qnameConcepts[conceptQname]
+                aspectValue = self.aspectValue(aspect)
+                if isinstance(aspectValue, QName):
+                    concept = self.modelXbrl.qnameConcepts[aspectValue]
                     break
+                elif isinstance(aspectValue, ModelDimensionValue):
+                    if aspectValue.isExplicit:
+                        concept = aspectValue.member
+                    elif aspectValue.isTyped:
+                        return XmlUtil.innerTextList(aspectValue.typedMember)
         if concept is not None:
             label = concept.label(lang=lang)
             if label:
                 return label
+        # if there is a role, check if it's available on a parent node
+        if role and self.parentStructuralNode is not None:
+            return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString)
         return None
     
     def evaluate(self, evalObject, evalMethod, otherOrdinate=None, evalArgs=()):
@@ -1052,7 +1058,7 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
         
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableFilterNodeFilter,XbrlConst.tableAxisFilter2011, XbrlConst.tableDefinitionNodeMessage, XbrlConst.tableAxisMessage2011)
+        return (XbrlConst.tableFilterNodeFilter,XbrlConst.tableAxisFilter2011,XbrlConst.tableAxisFilter201205, XbrlConst.tableDefinitionNodeMessage, XbrlConst.tableAxisMessage2011)
         
     @property
     def filterRelationships(self):
@@ -1060,7 +1066,7 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
             return self._filterRelationships
         except AttributeError:
             rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
-            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableFilterNodeFilter,XbrlConst.tableAxisFilter2011)).fromModelObject(self):
+            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableFilterNodeFilter,XbrlConst.tableAxisFilter2011,XbrlConst.tableAxisFilter201205)).fromModelObject(self):
                 if isinstance(rel.toModelObject, ModelConceptName):
                     rels.insert(0, rel)  # put conceptName filters first
                 else:

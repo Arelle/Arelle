@@ -272,6 +272,7 @@ tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/2011/definition-node-subtr
 tableAxisSubtree2011 = "http://xbrl.org/arcrole/2011/axis/axis-subtree"
 tableFilterNodeFilter = "http://xbrl.org/arcrole/2011/filter-node-filter"
 tableAxisFilter2011 = "http://xbrl.org/arcrole/2011/axis/axis-filter"
+tableAxisFilter201205 = "http://xbrl.org/arcrole/2011/axis-filter"
 tableTupleContent = "http://xbrl.org/arcrole/2011/tuple-content"
 tableTupleContent2011 = "http://xbrl.org/arcrole/2011/axis/tuple-content"
 tableDefinitionNodeMessage = "http://xbrl.org/arcrole/2011/definition-node-message"

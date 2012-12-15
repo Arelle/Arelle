@@ -12,6 +12,7 @@ from arelle.ModelValue import qname, QName
 from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.ModelRenderingObject import ModelClosedDefinitionNode
 from arelle.FormulaEvaluator import aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -151,7 +152,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.yAxis(1, self.dataFirstRow,
                        yTopStructuralNode, self.yAxisChildrenFirst.get(), True, True)
             for fp in self.factPrototypes: # dereference prior facts
-                fp.clear()
+                if fp is not None:
+                    fp.clear()
             self.factPrototypes = []
             self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspects, self.yAxisChildrenFirst.get())
                 
@@ -313,7 +315,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     
                     isAbstract = yStructuralNode.isAbstract
                     isNonAbstract = not isAbstract
-                    label = yStructuralNode.header(lang=self.lang)
+                    label = yStructuralNode.header(lang=self.lang,
+                                                   returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))
                     topRow = row
                     if childrenFirst and isNonAbstract:
                         row = nextRow
@@ -601,6 +604,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             value = Locale.atof(self.modelXbrl.locale, value, str.strip)
                         newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
                         bodyCell.objectId = newFact.objectId()  # switch cell to now use fact ID
+                        if self.factPrototypes[factPrototypeIndex] is not None:
+                            self.factPrototypes[factPrototypeIndex].clear()
                         self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
                     else: # instance fact, not prototype
                         fact = self.modelXbrl.modelObject(objId)
