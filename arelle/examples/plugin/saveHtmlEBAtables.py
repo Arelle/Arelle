@@ -1,6 +1,6 @@
 '''
-Save SKOS is an example of a plug-in to both GUI menu and command line/web service
-that will save the concepts a DTS into an RDF file.
+Save HTML EBA Tables is an example of a plug-in to both GUI menu and command line/web service
+that will save a directory containing HTML Tablesets with an EBA index page.
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
@@ -154,7 +154,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         <li><a href="http://www.eba.europa.eu/topnav/Contacts.aspx">Contacts</a></li>
         <li><a href="http://www.eba.europa.eu/topnav/Links.aspx">Links</a></li>
         <li><a href="http://www.eba.europa.eu/topnav/Sitemap.aspx">Sitemap</a></li>
-        <li><a href="/topnav/Legal-Notice.aspx">Legal Notice</a></li>
+        <li><a href="http://www.eba.europa.eu/topnav/Legal-Notice.aspx">Legal Notice</a></li>
       </ul>
     </div>
   </body>
@@ -188,6 +188,11 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 </html>
 ''')
         
+        # to merge gif's and style sheets, use a zipfile sibling of the python plug-in file.
+        #import zipfile
+        #zf = zipfile.ZipFile(__file__.rpartition('.')[0] + "Files.zip", mode="r")
+        #zf.extractall(path=os.path.dirname(indexBase))
+        #zf.close()
         
         dts.info("info:saveEBAtables",
                  _("Tables index file of %(entryFile)s has %(numberTableFiles)s table files with index file %(indexFile)s."),
