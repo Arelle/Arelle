@@ -5,7 +5,7 @@ that will save the files of a DTS into a zip file.
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 
-def package(dts):
+def package(dts, rootdir=None):
     if dts.fileSource.isArchive:
         return
     import os
@@ -19,24 +19,30 @@ def package(dts):
                  _("Python's zlib module is not available, output is not compressed."),
                  modelObject=dts)
     entryFilename = dts.fileSource.url
+    if rootdir is None:
+        rootdir = os.path.dirname(entryFilename)
     pkgFilename = entryFilename + ".zip"
     with ZipFile(pkgFilename, 'w', compression) as zipFile:
         numFiles = 0
         for fileUri in sorted(dts.urlDocs.keys()):
-            if not (fileUri.startswith("http://") or fileUri.startswith("https://")):
+            if fileUri.startswith(rootdir):
                 numFiles += 1
-                # this has to be a relative path because the hrefs will break
-                zipFile.write(fileUri, os.path.basename(fileUri))
+                f = fileUri[len(rootdir):]
+                zipFile.write(fileUri, f)
+            elif not (fileUri.startswith('http://') or fileUri.startswith('https://')):
+                dts.warning("packageDTS",
+                            _("File `%(file)s` was not included in the ZIP because it is not in root directory `%(dir)s`. Use option --root-dir if needed."),
+                            file=fileUri, dir=rootdir)
     dts.info("info:packageDTS",
-             _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s."),
+             _("DTS of `%(entryFile)s` has %(numberOfFiles)s files packaged into `%(packageOutputFile)s`"),
              modelObject=dts,
-             entryFile=entryFilename, numberOfFiles=numFiles, packageOutputFile=pkgFilename)
+             entryFile=os.path.basename(entryFilename), numberOfFiles=numFiles, packageOutputFile=pkgFilename)
 
 def saveDtsMenuEntender(cntlr, menu):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save DTS in a package", 
-                     underline=0, 
-                     command=lambda: saveDtsMenuCommand(cntlr) )
+    menu.add_command(label="Save DTS in a package",
+                     underline=0,
+                     command=lambda: saveDtsMenuCommand(cntlr))
 
 def saveDtsMenuCommand(cntlr):
     # save DTS menu item has been invoked
@@ -47,10 +53,14 @@ def saveDtsMenuCommand(cntlr):
 
 def saveDtsCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
-    parser.add_option("--package-dts", 
-                      action="store_true", 
-                      dest="packageDTS", 
+    parser.add_option("--package-dts",
+                      action="store_true",
+                      dest="packageDTS",
                       help=_("Package the DTS into a zip file"))
+    parser.add_option("--root-dir",
+                      action="store",
+                      dest="rootDir",
+                      help=_("Root directory of the entry point. This influences the nested directories in the ZIP. By default it is the base directory of the entry point."))
 
 def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
@@ -58,15 +68,15 @@ def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        package(cntlr.modelManager.modelXbrl)
+        package(cntlr.modelManager.modelXbrl, options.rootDir)
 
 
 __pluginInfo__ = {
     'name': 'Save DTS',
-    'version': '0.9',
+    'version': '1.0',
     'description': "This plug-in adds a feature to package the whole DTS into a zip archive. "
                    "Note that remote files are not included in the package. "
-                   "Python's zlib module is used for compression (if avaliable).",
+                   "Python's zlib module is used for compression (if available).",
     'license': 'Apache-2',
     'author': 'R\u00e9gis D\u00e9camps',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
