@@ -4,7 +4,7 @@ that will save the files of a DTS into a zip file.
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-
+import os
 def package(dts, rootdir=None):
     if dts.fileSource.isArchive:
         return
@@ -19,12 +19,13 @@ def package(dts, rootdir=None):
                  _("Python's zlib module is not available, output is not compressed."),
                  modelObject=dts)
     entryFilename = dts.fileSource.url
+    files = sorted(dts.urlDocs.keys())
     if rootdir is None:
-        rootdir = os.path.dirname(entryFilename)
+        rootdir = commondir(files)
     pkgFilename = entryFilename + ".zip"
     with ZipFile(pkgFilename, 'w', compression) as zipFile:
         numFiles = 0
-        for fileUri in sorted(dts.urlDocs.keys()):
+        for fileUri in files:
             if fileUri.startswith(rootdir):
                 numFiles += 1
                 f = fileUri[len(rootdir):]
@@ -70,6 +71,21 @@ def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl):
             return
         package(cntlr.modelManager.modelXbrl, options.rootDir)
 
+def commondir(paths):
+    """
+    :param paths: a list of paths
+    :returns: The common directory root shared by all paths
+    """
+    # assert paths is not empty
+    from functools import reduce
+    list_dir = [d.split(os.sep) for d in paths if not(d.startswith('http://') or d.startswith('https://'))]
+    min_len = reduce(min, (len(d) for d in list_dir))
+    pivot = list_dir[0]
+    for i in range(min_len):
+        for d in list_dir:
+            if pivot[i] != d[i]:
+                return os.sep.join(pivot[:i])
+    return os.path.dirname(paths[0])
 
 __pluginInfo__ = {
     'name': 'Save DTS',
