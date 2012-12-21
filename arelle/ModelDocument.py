@@ -136,6 +136,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     modelObject=referringElement, fileName=os.path.basename(uri), 
                     error=str(err), sourceAction=("including" if isIncluded else "importing"))
             return None
+    except Exception as err:
+        modelXbrl.error(type(err).__name__,
+                _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
+                modelObject=referringElement, fileName=os.path.basename(uri), 
+                error=str(err), sourceAction=("including" if isIncluded else "importing"))
+        return None
     
     # identify document
     #modelXbrl.modelManager.addToLog("discovery: {0}".format(
@@ -150,7 +156,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         
         # type classification
         if ns == XbrlConst.xsd and ln == "schema":
-            type = Type.SCHEMA
+            _type = Type.SCHEMA
             if not isEntry and not isIncluded:
                 # check if already loaded under a different url
                 targetNamespace = rootNode.get("targetNamespace")
@@ -164,33 +170,33 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         return otherModelDoc 
         elif ns == XbrlConst.link:
             if ln == "linkbase":
-                type = Type.LINKBASE
+                _type = Type.LINKBASE
             elif ln == "xbrl":
-                type = Type.INSTANCE
+                _type = Type.INSTANCE
         elif ns == XbrlConst.xbrli:
             if ln == "xbrl":
-                type = Type.INSTANCE
+                _type = Type.INSTANCE
         elif ns == XbrlConst.xhtml and \
              (ln == "html" or ln == "xhtml"):
-            type = Type.UnknownXML
+            _type = Type.UnknownXML
             if XbrlConst.ixbrl in rootNode.nsmap.values():
-                type = Type.INLINEXBRL
+                _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
-            type = Type.VERSIONINGREPORT
+            _type = Type.VERSIONINGREPORT
         elif ln == "testcases" or ln == "documentation":
-            type = Type.TESTCASESINDEX
+            _type = Type.TESTCASESINDEX
         elif ln == "testcase":
-            type = Type.TESTCASE
+            _type = Type.TESTCASE
         elif ln == "registry" and ns == XbrlConst.registry:
-            type = Type.REGISTRY
+            _type = Type.REGISTRY
         elif ln == "rss":
-            type = Type.RSSFEED
+            _type = Type.RSSFEED
         elif ln == "ptvl":
-            type = Type.ARCSINFOSET
+            _type = Type.ARCSINFOSET
         elif ln == "facts":
-            type = Type.FACTDIMSINFOSET
+            _type = Type.FACTDIMSINFOSET
         else:
-            type = Type.UnknownXML
+            _type = Type.UnknownXML
             nestedInline = None
             for htmlElt in rootNode.iter(tag="{http://www.w3.org/1999/xhtml}html"):
                 nestedInline = htmlElt
@@ -201,18 +207,18 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     break
             if nestedInline is not None:
                 if XbrlConst.ixbrl in nestedInline.nsmap.values():
-                    type = Type.INLINEXBRL
+                    _type = Type.INLINEXBRL
                     rootNode = nestedInline
 
         #create modelDocument object or subtype as identified
-        if type == Type.VERSIONINGREPORT:
+        if _type == Type.VERSIONINGREPORT:
             from arelle.ModelVersReport import ModelVersReport
-            modelDocument = ModelVersReport(modelXbrl, type, mappedUri, filepath, xmlDocument)
-        elif type == Type.RSSFEED:
+            modelDocument = ModelVersReport(modelXbrl, _type, mappedUri, filepath, xmlDocument)
+        elif _type == Type.RSSFEED:
             from arelle.ModelRssObject import ModelRssObject 
-            modelDocument = ModelRssObject(modelXbrl, type, mappedUri, filepath, xmlDocument)
+            modelDocument = ModelRssObject(modelXbrl, _type, mappedUri, filepath, xmlDocument)
         else:
-            modelDocument = ModelDocument(modelXbrl, type, mappedUri, filepath, xmlDocument)
+            modelDocument = ModelDocument(modelXbrl, _type, mappedUri, filepath, xmlDocument)
         rootNode.init(modelDocument)
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
         modelDocument.parserLookupName = _parserLookupName
@@ -225,25 +231,25 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelDocument.inDTS = True
         
         # discovery (parsing)
-        if type == Type.SCHEMA:
+        if _type == Type.SCHEMA:
             modelDocument.schemaDiscover(rootNode, isIncluded, namespace)
-        elif type == Type.LINKBASE:
+        elif _type == Type.LINKBASE:
             modelDocument.linkbaseDiscover(rootNode)
-        elif type == Type.INSTANCE:
+        elif _type == Type.INSTANCE:
             modelDocument.instanceDiscover(rootNode)
-        elif type == Type.INLINEXBRL:
+        elif _type == Type.INLINEXBRL:
             modelDocument.inlineXbrlDiscover(rootNode)
-        elif type == Type.VERSIONINGREPORT:
+        elif _type == Type.VERSIONINGREPORT:
             modelDocument.versioningReportDiscover(rootNode)
-        elif type == Type.TESTCASESINDEX:
+        elif _type == Type.TESTCASESINDEX:
             modelDocument.testcasesIndexDiscover(xmlDocument)
-        elif type == Type.TESTCASE:
+        elif _type == Type.TESTCASE:
             modelDocument.testcaseDiscover(rootNode)
-        elif type == Type.REGISTRY:
+        elif _type == Type.REGISTRY:
             modelDocument.registryDiscover(rootNode)
-        elif type == Type.VERSIONINGREPORT:
+        elif _type == Type.VERSIONINGREPORT:
             modelDocument.versioningReportDiscover(rootNode)
-        elif type == Type.RSSFEED:
+        elif _type == Type.RSSFEED:
             modelDocument.rssFeedDiscover(rootNode)
     return modelDocument
 
@@ -521,9 +527,11 @@ class ModelDocument:
         if visited is None: visited = []
         visited.append(self)
         try:
-            for referencedDocument in self.referencesDocument.keys():
+            for referencedDocument, modelDocumentReference in self.referencesDocument.items():
                 if referencedDocument not in visited:
                     referencedDocument.close(visited=visited,urlDocs=urlDocs)
+                modelDocumentReference.__dict__.clear() # dereference its contents
+            self.referencesDocument.clear()
             if self.type == Type.VERSIONINGREPORT:
                 if self.fromDTS:
                     self.fromDTS.close()
@@ -667,8 +675,8 @@ class ModelDocument:
             else:
                 doc = load(self.modelXbrl, importSchemaLocation, isDiscovered=self.inDTS, 
                            isIncluded=isIncluded, namespace=importNamespace, referringElement=element)
-            if doc is not None and self.referencesDocument.get(doc) is None:
-                self.referencesDocument[doc] = element.localName #import or include
+            if doc is not None and doc not in self.referencesDocument:
+                self.referencesDocument[doc] = ModelDocumentReference(element.localName, element)  #import or include
                 self.referencedNamespaces.add(importNamespace)
                 
     def schemalocateElementNamespace(self, element):
@@ -805,8 +813,8 @@ class ModelDocument:
             else:
                 # href discovery only can happein within a DTS
                 doc = load(self.modelXbrl, url, isDiscovered=not nonDTS, base=self.baseForElement(element), referringElement=element)
-                if not nonDTS and doc is not None and self.referencesDocument.get(doc) is None:
-                    self.referencesDocument[doc] = "href"
+                if not nonDTS and doc is not None and doc not in self.referencesDocument:
+                    self.referencesDocument[doc] = ModelDocumentReference("href", element)
                     if not doc.inDTS and doc.type > Type.UnknownTypes:    # non-XBRL document is not in DTS
                         doc.inDTS = True    # now known to be discovered
                         if doc.type == Type.SCHEMA: # schema coming newly into DTS
@@ -823,6 +831,7 @@ class ModelDocument:
         XmlValidate.validate(self.modelXbrl, xbrlElement) # validate instance elements
 
     def instanceContentsDiscover(self,xbrlElement):
+        nextUndefinedFact = len(self.modelXbrl.undefinedFacts)
         for instElement in xbrlElement.iterchildren():
             if isinstance(instElement,ModelObject):
                 ln = instElement.localName
@@ -836,6 +845,12 @@ class ModelDocument:
                     pass
                 else: # concept elements
                     self.factDiscover(instElement, self.modelXbrl.facts)
+        if len(self.modelXbrl.undefinedFacts) > nextUndefinedFact:
+            undefFacts = self.modelXbrl.undefinedFacts[nextUndefinedFact:]
+            self.modelXbrl.error("xbrl:schemaImportMissing",
+                    _("Instance facts missing schema definition: %(elements)s"),
+                    modelObject=undefFacts, 
+                    elements=", ".join(sorted(set(str(f.prefixedName) for f in undefFacts))))
                     
     def contextDiscover(self, modelContext):
         id = modelContext.id
@@ -932,9 +947,6 @@ class ModelDocument:
                     self.factDiscover(tupleElement, modelFact.modelTupleFacts)
         else:
             self.modelXbrl.undefinedFacts.append(modelFact)
-            self.modelXbrl.error("xbrl:schemaImportMissing",
-                    _("Instance fact %(element)s missing schema definition "),
-                    modelObject=modelFact, element=modelFact.prefixedName)
     
     def testcasesIndexDiscover(self, rootNode):
         for testcasesElement in rootNode.iter():
@@ -949,8 +961,8 @@ class ModelDocument:
                         if testcaseElement.get("uri"):
                             uriAttr = testcaseElement.get("uri")
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            if doc is not None and self.referencesDocument.get(doc) is None:
-                                self.referencesDocument[doc] = "testcaseIndex"
+                            if doc is not None and doc not in self.referencesDocument:
+                                self.referencesDocument[doc] = ModelDocumentReference("testcaseIndex", testcaseElement)
 
     def testcaseDiscover(self, testcaseElement):
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
@@ -986,9 +998,14 @@ class ModelDocument:
                         testbase = functionDoc.filepath
                         if testuri is not None:
                             testcaseDoc = load(self.modelXbrl, testuri, base=testbase, referringElement=testUriElt)
-                            if testcaseDoc is not None and self.referencesDocument.get(testcaseDoc) is None:
-                                self.referencesDocument[testcaseDoc] = "registryIndex"
+                            if testcaseDoc is not None and testcaseDoc not in self.referencesDocument:
+                                self.referencesDocument[testcaseDoc] = ModelDocumentReference("registryIndex", testUriElt)
             
 class LoadingException(Exception):
     pass
+
+class ModelDocumentReference:
+    def __init__(self, referenceType, referringModelObject=None):
+        self.referenceType = referenceType
+        self.referringModelObject = referringModelObject
 
