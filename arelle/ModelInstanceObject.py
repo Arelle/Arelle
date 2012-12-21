@@ -38,6 +38,8 @@ from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundV
 from math import isnan
 from arelle.ModelObject import ModelObject
 Aspect = None
+POSINF = float("inf")
+NEGINF = float("-inf")
 
 class NewFactItemOptions():
     """
