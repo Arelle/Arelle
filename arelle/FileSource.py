@@ -49,6 +49,14 @@ class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave 
 
     def __str__(self):
         return self.fileName
+    
+class ArchiveFileIOError(IOError):
+    def __init__(self, fileSource, fileName):
+        self.fileName = fileName
+        self.url = fileSource.url
+        
+    def __str__(self):
+        return _("Archive does not contain file: {0}, archive: {1}").format(self.fileName, self.url)
             
 class FileSource:
     def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
@@ -78,7 +86,13 @@ class FileSource:
                 if l == match:
                     self.isEis = True
             except EnvironmentError as err:
+                if self.cntlr:
+                    self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                 pass
+            
+    def logError(self, err):
+        if self.cntlr:
+            self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
     def open(self):
         if not self.isOpen:
@@ -114,6 +128,7 @@ class FileSource:
                         buf += zlib.decompress(compressedBytes)
                     file.close()
                 except EnvironmentError as err:
+                    self.logError(err)
                     pass
                 #uncomment to save for debugging
                 #with open("c:/temp/test.xml", "wb") as f:
@@ -126,8 +141,10 @@ class FileSource:
                         file.close()
                         self.isOpen = True
                     except EnvironmentError as err:
+                        self.logError(err)
                         return # provide error message later
                     except etree.LxmlError as err:
+                        self.logError(err)
                         return # provide error message later
                 
             elif self.isXfd:
@@ -177,8 +194,10 @@ class FileSource:
                     file.close()
                     self.isOpen = True
                 except EnvironmentError as err:
+                    self.logError(err)
                     return # provide error message later
                 except etree.LxmlError as err:
+                    self.logError(err)
                     return # provide error message later
                 
             elif self.isRss:
@@ -186,8 +205,10 @@ class FileSource:
                     self.rssDocument = etree.parse(self.basefile)
                     self.isOpen = True
                 except EnvironmentError as err:
+                    self.logError(err)
                     return # provide error message later
                 except etree.LxmlError as err:
+                    self.logError(err)
                     return # provide error message later
 
     def openZipStream(self, sourceZipStream):
@@ -291,7 +312,7 @@ class FileSource:
                             return (io.TextIOWrapper(
                                 io.BytesIO(b), 
                                 encoding=XmlUtil.encoding(b)), "latin-1")
-                return (None,None)
+                raise ArchiveFileIOError(self, archiveFileName)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
                     outfn = data.findtext("filename")
@@ -319,7 +340,7 @@ class FileSource:
                             return (io.TextIOWrapper(
                                 io.BytesIO(b), 
                                 encoding=XmlUtil.encoding(b)), "latin-1")
-                return (None,None)
+                raise ArchiveFileIOError(self, archiveFileName)
         # check encoding
         with open(filepath, 'rb') as fb:
             hdrBytes = fb.read(512)
