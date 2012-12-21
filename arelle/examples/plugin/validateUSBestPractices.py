@@ -103,7 +103,7 @@ def factCheck(val, fact):
         return # not checkable
     
     try:
-        if fact.isNumeric and not fact.isNil and fact.xValue is not None:
+        if fact.isNumeric:
             # 2.3.3 additional unit tests beyond UTR spec
             unit = fact.unit
             if unit is not None and concept.type is not None and val.validateUTR:
@@ -116,29 +116,29 @@ def factCheck(val, fact):
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, denominator=", ".join((str(m) for m in unit.measures[1])))
                         
-                                                            
-
-            # 2.4.1 decimal disagreement
-            if fact.decimals and fact.decimals != "INF":
-                vf = float(fact.value)
-                if _ISFINITE(vf):
-                    dec = _INT(fact.decimals)
-                    vround = round(vf, dec)
-                    if vf != vround: 
-                        val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.4.1",
-                            _("Decimal disagreement %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has insignificant value %(insignificantValue)s"),
-                            modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
-                            value=fact.effectiveValue, insignificantValue=Locale.format(val.modelXbrl.locale, "%.*f", 
-                                                                                        (dec + 2 if dec > 0 else 0, vf - vround), 
-                                                                                        True))
-            # 2.5.1 fractions disallowed on a disclosure
-            if fact.isFraction:
-                if any(val.linroleDefinitionIsDisclosure.match(roleType.definition)
-                       for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(concept)
-                       for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,())):
-                    val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.5.1",
-                        _("Disclosure %(fact)s in context %(contextID)s value %(value)s is a fraction"),
-                        modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value)
+            if not fact.isNil and fact.xValue is not None:                 
+    
+                # 2.4.1 decimal disagreement
+                if fact.decimals and fact.decimals != "INF":
+                    vf = float(fact.value)
+                    if _ISFINITE(vf):
+                        dec = _INT(fact.decimals)
+                        vround = round(vf, dec)
+                        if vf != vround: 
+                            val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.4.1",
+                                _("Decimal disagreement %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has insignificant value %(insignificantValue)s"),
+                                modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
+                                value=fact.effectiveValue, insignificantValue=Locale.format(val.modelXbrl.locale, "%.*f", 
+                                                                                            (dec + 2 if dec > 0 else 0, vf - vround), 
+                                                                                            True))
+                # 2.5.1 fractions disallowed on a disclosure
+                if fact.isFraction:
+                    if any(val.linroleDefinitionIsDisclosure.match(roleType.definition)
+                           for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(concept)
+                           for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,())):
+                        val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.5.1",
+                            _("Disclosure %(fact)s in context %(contextID)s value %(value)s is a fraction"),
+                            modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value)
                     
         # deprecated concept
         if concept.qname.namespaceURI == ugtNamespace:
