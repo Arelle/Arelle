@@ -6,9 +6,10 @@ Created on Oct 17, 2010
 '''
 import os, sys, traceback
 from collections import defaultdict
-from arelle import (ModelXbrl, ModelVersReport, XbrlConst, ModelDocument,
+from arelle import (ModelXbrl, ModelVersReport, XbrlConst, 
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
+from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 
@@ -57,10 +58,10 @@ class Validate:
             self.modelXbrl.info("arelle:notValdated",
                 _("Validation skipped, document not successfully loaded: %(file)s"),
                 modelXbrl=self.modelXbrl, file=self.modelXbrl.modelDocument.basename)
-        elif self.modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+        elif self.modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.REGISTRY):
             for doc in sorted(self.modelXbrl.modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
                 self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
-        elif self.modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+        elif self.modelXbrl.modelDocument.type in (Type.TESTCASE, Type.REGISTRYTESTCASE):
             try:
                 self.validateTestcase(self.modelXbrl.modelDocument)
             except Exception as err:
@@ -70,7 +71,7 @@ class Validate:
                     testcase=self.modelXbrl.modelDocument.basename, error=err,
                     #traceback=traceback.format_tb(sys.exc_info()[2]),
                     exc_info=True)
-        elif self.modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
+        elif self.modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
             try:
                 ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(self.modelXbrl)
             except Exception as err:
@@ -123,14 +124,14 @@ class Validate:
                             dtsName = inputDTSes[dtsName]
                         else:
                             modelXbrl = ModelXbrl.create(self.modelXbrl.modelManager, 
-                                         ModelDocument.Type.DTSENTRIES,
+                                         Type.DTSENTRIES,
                                          self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(readMeFirstUri[:-4] + ".dts", baseForElement),
                                          isEntry=True)
                         DTSdoc = modelXbrl.modelDocument
                         DTSdoc.inDTS = True
-                        doc = ModelDocument.load(modelXbrl, readMeFirstUri, base=baseForElement)
+                        doc = modelDocumentLoad(modelXbrl, readMeFirstUri, base=baseForElement)
                         if doc is not None:
-                            DTSdoc.referencesDocument[doc] = "import"  #fake import
+                            DTSdoc.referencesDocument[doc] = ModelDocumentReference("import", DTSdoc.xmlRootElement)  #fake import
                             doc.inDTS = True
                     else: # not a multi-schemaRef versioning report
                         modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
@@ -146,11 +147,11 @@ class Validate:
                         self.determineNotLoadedTestStatus(modelTestcaseVariation)
                     elif resultIsVersioningReport:
                         inputDTSes[dtsName] = modelXbrl
-                    elif modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
+                    elif modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
                         ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelXbrl)
                         self.determineTestStatus(modelTestcaseVariation, modelXbrl)
                         modelXbrl.close()
-                    elif testcase.type == ModelDocument.Type.REGISTRYTESTCASE:
+                    elif testcase.type == Type.REGISTRYTESTCASE:
                         self.instValidator.validate(modelXbrl)  # required to set up dimensions, etc
                         self.instValidator.executeCallTest(modelXbrl, modelTestcaseVariation.id, 
                                    modelTestcaseVariation.cfcnCall, modelTestcaseVariation.cfcnTest)
@@ -164,7 +165,7 @@ class Validate:
                         modelTestcaseVariation.versioningReportUri, baseForElement)
                     if os.path.exists(versReportFile): #validate existing
                         modelVersReport = ModelXbrl.load(self.modelXbrl.modelManager, versReportFile, _("validating existing version report"))
-                        if modelVersReport and modelVersReport.modelDocument and modelVersReport.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
+                        if modelVersReport and modelVersReport.modelDocument and modelVersReport.modelDocument.type == Type.VERSIONINGREPORT:
                             ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelVersReport)
                             self.determineTestStatus(modelTestcaseVariation, modelVersReport)
                             modelVersReport.close()
