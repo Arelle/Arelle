@@ -43,7 +43,7 @@ def checkDimensions(val, drsELRs):
                         if hc in positiveHypercubes:
                             val.modelXbrl.error(("EFM.6.16.08", "GFM.1.08.08"),
                                 _("Not all hypercube %(hypercube)s in DRS role %(linkrole)s, is also the target of a positive hypercube"),
-                                modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR)
+                                modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR))
                     dimELR = hasHcRel.targetRole
                     dimTargetRequired = (dimELR is not None)
                     if not dimELR:
@@ -54,7 +54,9 @@ def checkDimensions(val, drsELRs):
                     if dimTargetRequired and len(hcDimRels) == 0:
                         val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
                             _("Table %(hypercube)s in DRS role %(linkrole)s, missing targetrole consecutive relationship"),
-                            modelObject=hasHcRel, hypercube=hc.qname, fromConcept=sourceConcept.qname, toConcept=hc.qname, linkrole=ELR, arcrole=os.path.basename(hasHcRel.arcrole))
+                            modelObject=hasHcRel, hypercube=hc.qname, fromConcept=sourceConcept.qname, toConcept=hc.qname, 
+                            linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), 
+                            arcrole=os.path.basename(hasHcRel.arcrole))
                     for hcDimRel in hcDimRels:
                         dim = hcDimRel.toModelObject
                         domELR = hcDimRel.targetRole
@@ -78,7 +80,7 @@ def checkDimensions(val, drsELRs):
                                               sourceConcept, positiveAxisTableSources[dim])):
                             val.modelXbrl.error(("EFM.6.16.07", "GFM.1.08.08"),
                                 _("Negative table axis %(dimension)s in DRS role %(linkrole)s, not in any positive table in same role"),
-                                 modelObject=hcDimRel, dimension=dim.qname, linkrole=ELR, primaryItem=sourceConcept.qname)
+                                 modelObject=hcDimRel, dimension=dim.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), primaryItem=sourceConcept.qname)
                         dimDomRels = val.modelXbrl.relationshipSet(
                              XbrlConst.dimensionDomain, domELR).fromModelObject(dim)   
                         if domTargetRequired and len(dimDomRels) == 0:
@@ -99,7 +101,8 @@ def checkDimensions(val, drsELRs):
                                 val.modelXbrl.error(("EFM.6.16.04", "GFM.1.08.04"),
                                     _("Dimension relationships have an undirected cycle in DRS role %(linkrole)s \nstarting from table %(hypercube)s, \naxis %(dimension)s, \npath %(path)s"),
                                     modelObject=[hc, dim] + [rel for rel in cycleCausingConcept if not isinstance(rel, bool)], 
-                                    linkrole=ELR, hypercube=hc.qname, dimension=dim.qname, conceptFrom=dim.qname,
+                                    linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), 
+                                    hypercube=hc.qname, dimension=dim.qname, conceptFrom=dim.qname,
                                     path=cyclePath(hc,cycleCausingConcept))
                             fromConceptELRs.clear()
                         elif val.validateSBRNL:
@@ -108,7 +111,7 @@ def checkDimensions(val, drsELRs):
                     val.modelXbrl.error(("EFM.6.16.05", "GFM.1.08.05"),
                         _("Multiple tables (%(hypercubeCount)s) DRS role %(linkrole)s, source %(concept)s, only 1 allowed"),
                         modelObject=[sourceConcept] + hasHcRels, 
-                        hypercubeCount=len(hasHcRels), linkrole=ELR, 
+                        hypercubeCount=len(hasHcRels), linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                         concept=sourceConcept.qname,
                         hypercubes=', '.join(str(r.toModelObject.qname) for r in hasHcRels))
                     

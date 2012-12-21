@@ -18,11 +18,11 @@ namePattern = None
 namespacesConflictPattern = None
 linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
-    "calculationLink": "cal",
-    "definitionLink": "def",
-    "labelLink": "lab",
-    "presentationLink": "pre",
-    "referenceLink": "ref"}
+    "calculationLink": "_cal",
+    "definitionLink": "_def",
+    "labelLink": "_lab",
+    "presentationLink": "_pre",
+    "referenceLink": "_ref"}
 
 def checkDTS(val, modelDocument, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, \
@@ -31,7 +31,7 @@ def checkDTS(val, modelDocument, visited):
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
-        efmFilenamePattern = re.compile(r"^[a-z0-9][a-z0-9_\.\-]*(\.xsd|\.xml)$")
+        efmFilenamePattern = re.compile(r"^[a-z0-9][a-zA-Z0-9_\.\-]*(\.xsd|\.xml)$")
         roleTypePattern = re.compile(r"^.*/role/[^/\s]+$")
         arcroleTypePattern = re.compile(r"^.*/arcrole/[^/\s]+$")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
@@ -46,16 +46,16 @@ def checkDTS(val, modelDocument, visited):
         
     visited.append(modelDocument)
     definesLabelLinkbase = False
-    for referencedDocument in modelDocument.referencesDocument.items():
+    for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         #6.07.01 no includes
-        if referencedDocument[1] == "include":
+        if modelDocumentReference.referenceType == "include":
             val.modelXbrl.error(("EFM.6.07.01", "GFM.1.03.01", "SBR.NL.2.2.0.18"),
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
-                modelObject=modelDocument,
+                modelObject=modelDocumentReference.referringModelObject,
                     schema=os.path.basename(modelDocument.uri), 
-                    include=os.path.basename(referencedDocument[0].uri))
-        if referencedDocument[0] not in visited:
-            checkDTS(val, referencedDocument[0], visited)
+                    include=os.path.basename(referencedDocument.uri))
+        if referencedDocument not in visited:
+            checkDTS(val, referencedDocument, visited)
             
     if val.disclosureSystem.standardTaxonomiesDict is None:
         pass
@@ -74,7 +74,7 @@ def checkDTS(val, modelDocument, visited):
                     modelObject=modelDocument, filename=modelDocument.basename)
             if not efmFilenamePattern.match(modelDocument.basename):
                 val.modelXbrl.error("EFM.5.01.01",
-                    _("Document file name %(filename)s must start with a-z or 0-9, contain lower case letters, ., -, _, and end with .xsd or .xml."),
+                    _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .xsd or .xml."),
                     modelObject=modelDocument, filename=modelDocument.basename)
     
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
@@ -166,7 +166,7 @@ def checkDTS(val, modelDocument, visited):
                                   not c.modelDocument.uri.startswith(val.modelXbrl.uriDir)):
                                 val.modelXbrl.error(("EFM.6.07.16", "GFM.1.03.18"),
                                     _("Concept %(concept)s is also defined in standard taxonomy schema schema %(standardSchema)s"),
-                                    modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
+                                    modelObject=(modelConcept,c), concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri), standardConcept=c.qname)
                             elif val.validateSBRNL:
                                 if not (genrlSpeclRelSet.isRelated(modelConcept, "child", c) or genrlSpeclRelSet.isRelated(c, "child", modelConcept)):
                                     val.modelXbrl.error("SBR.NL.2.2.2.02",
@@ -217,7 +217,7 @@ def checkDTS(val, modelDocument, visited):
                     if modelConcept.abstract == "true" and not isDuration:
                         val.modelXbrl.error(("EFM.6.07.21", "GFM.1.03.23"),
                             _("Taxonomy schema %(schema)s element %(concept)s is abstract but period type is not duration"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=name)
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
                         
                     # 6.7.22 abstract must be stringItemType
                     ''' removed SEC EFM v.17, Edgar release 10.4, and GFM 2011-04-08
@@ -592,35 +592,61 @@ def checkDTS(val, modelDocument, visited):
                     _("A schema that defines non-abstract items MUST have a linked (2.1) reference linkbase AND/OR a label linkbase with @xlink:role=documentation"),
                     modelObject=modelDocument)
 
-        if val.fileNameBasePart:
-            #6.3.3 filename check
-            expectedFilename = "{0}-{1}.xsd".format(val.fileNameBasePart, val.fileNameDatePart)
-            if modelDocument.basename != expectedFilename and not ( # skip if an edgar testcase
-               re.match("e[0-9]{8}(gd|ng)", val.fileNameBasePart) and re.match("e.*-[0-9]{8}.*", modelDocument.basename)):
+        #6.3.3 filename check
+        m = re.match(r"^\w+-([12][0-9]{3}[01][0-9][0-3][0-9]).xsd$", modelDocument.basename)
+        if m:
+            try: # check date value
+                datetime.datetime.strptime(m.group(1),"%Y%m%d").date()
+                # date and format are ok, check "should" part of 6.3.3
+                if val.fileNameBasePart:
+                    expectedFilename = "{0}-{1}.xsd".format(val.fileNameBasePart, val.fileNameDatePart)
+                    if modelDocument.basename != expectedFilename:
+                        val.modelXbrl.log("WARNING-SEMANTIC", ("EFM.6.03.03.matchInstance", "GFM.1.01.01.matchInstance"),
+                            _('Schema file name warning: %(filename)s, should match %(expectedFilename)s'),
+                            modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
+            except ValueError:
                 val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
-                    _('Invalid schema file name: %(filename)s, expected %(expectedFilename)s'),
-                    modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
+                    _('Invalid schema file base name part (date) in "{base}-{yyyymmdd}.xsd": %(filename)s'),
+                    modelObject=modelDocument, filename=modelDocument.basename)
+        else:
+            val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                _('Invalid schema file name, must match "{base}-{yyyymmdd}.xsd": %(filename)s'),
+                modelObject=modelDocument, filename=modelDocument.basename)
 
     elif modelDocument.type == ModelDocument.Type.LINKBASE:
         # if it is part of the submission (in same directory) check name
         if modelDocument.filepath.startswith(val.modelXbrl.modelDocument.filepathdir):
             #6.3.3 filename check
             extLinkElt = XmlUtil.descendant(modelDocument.xmlRootElement, XbrlConst.link, "*", "{http://www.w3.org/1999/xlink}type", "extended")
-            if val.fileNameBasePart:
-                if extLinkElt is not None:
-                    if extLinkElt.localName in extLinkEltFileNameEnding: 
-                        expectedFilename = "{0}-{1}_{2}.xml".format(val.fileNameBasePart, val.fileNameDatePart, 
-                                                                    extLinkEltFileNameEnding[extLinkElt.localName])
-                        if modelDocument.basename != expectedFilename and not ( # skip if an edgar testcase
-                            re.match("e[0-9]{8}(gd|ng)", val.fileNameBasePart) and re.match("e.*-[0-9]{8}.*", modelDocument.basename)):
-                            val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
-                                _('Invalid linkbase file name: %(filename)s, expected %(expectedFilename)s'),
-                                modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
-                else: # no ext link element
-                    val.modelXbrl.error(("EFM.6.03.03.noLinkElement", "GFM.1.01.01.noLinkElement"),
-                        _('Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.'),
-                        modelObject=modelDocument, filename=modelDocument.basename)
-            
+            if extLinkElt is None:# no ext link element
+                val.modelXbrl.error(("EFM.6.03.03.noLinkElement", "GFM.1.01.01.noLinkElement"),
+                    _('Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.'),
+                    modelObject=modelDocument, filename=modelDocument.basename)
+            elif extLinkElt.localName not in extLinkEltFileNameEnding:
+                val.modelXbrl.error("EFM.6.03.02",
+                    _('Invalid linkbase link element %(linkElement)s in %(filename)s'),
+                    modelObject=modelDocument, linkElement=extLinkElt.localName, filename=modelDocument.basename)
+            else:
+                m = re.match(r"^\w+-([12][0-9]{3}[01][0-9][0-3][0-9])(_[a-z]{3}).xml$", modelDocument.basename)
+                expectedSuffix = extLinkEltFileNameEnding[extLinkElt.localName]
+                if m and m.group(2) == expectedSuffix:
+                    try: # check date value
+                        datetime.datetime.strptime(m.group(1),"%Y%m%d").date()
+                        # date and format are ok, check "should" part of 6.3.3
+                        if val.fileNameBasePart:
+                            expectedFilename = "{0}-{1}{2}.xml".format(val.fileNameBasePart, val.fileNameDatePart, expectedSuffix)
+                            if modelDocument.basename != expectedFilename:
+                                val.modelXbrl.log("WARNING-SEMANTIC", ("EFM.6.03.03.matchInstance", "GFM.1.01.01.matchInstance"),
+                                    _('Linkbase name warning: %(filename)s should match %(expectedFilename)s'),
+                                    modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
+                    except ValueError:
+                        val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                            _('Invalid linkbase base file name part (date) in "{base}-{yyyymmdd}_{suffix}.xml": %(filename)s'),
+                            modelObject=modelDocument, filename=modelDocument.basename)
+                else:
+                    val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                        _('Invalid linkbase name, must match "{base}-{yyyymmdd}%(expectedSuffix)s.xml": %(filename)s'),
+                        modelObject=modelDocument, filename=modelDocument.basename, expectedSuffix=expectedSuffix)
     visited.remove(modelDocument)
     
 def tupleCycle(val, concept, ancestorTuples=None):

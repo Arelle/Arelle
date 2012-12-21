@@ -902,7 +902,8 @@ def checkElements(val, modelDocument, parent):
                             modelsRole[0].modelDocument.targetNamespace not in val.disclosureSystem.standardTaxonomiesDict):
                             val.modelXbrl.error(("EFM.6.09.05", "GFM.1.04.05", "SBR.NL.2.3.10.14"),
                                 _("Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role"),
-                                modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"), role=xlinkRole, element=elt.qname)
+                                modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"), role=xlinkRole, element=elt.qname,
+                                roleDefinition=val.modelXbrl.roleTypeDefinition(xlinkRole))
                     if val.validateSBRNL:
                         if elt.localName == "reference":
                             for child in elt.iterdescendants():

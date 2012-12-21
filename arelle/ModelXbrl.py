@@ -337,6 +337,12 @@ class ModelXbrl:
                 return modelLink
         return None
     
+    def roleTypeDefinition(self, roleURI):
+        modelRoles = self.roleTypes.get(roleURI, ())
+        if modelRoles:
+            return modelRoles[0].definition or roleURI
+        return roleURI
+    
     def matchSubstitutionGroup(self, elementQname, subsGrpMatchTable):
         """Resolve a subsitutionGroup for the elementQname from the match table
         
@@ -857,6 +863,8 @@ class ModelXbrl:
             elif argName != "exc_info":
                 if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO)):
                     fmtArgs[argName] = str(argValue)
+                elif argValue is None:
+                    fmtArgs[argName] = "(none)"
                 elif isinstance(argValue, _INT_TYPES):
                     # need locale-dependent formatting
                     fmtArgs[argName] = format_string(self.modelManager.locale, '%i', argValue)

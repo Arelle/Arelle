@@ -12,6 +12,7 @@ from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, a
 from arelle.FormulaEvaluator import aspectMatches
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
+from arelle.ModelRenderingObject import ModelClosedDefinitionNode
 from arelle.PrototypeInstanceObject import FactPrototype
 from collections import defaultdict
 
@@ -372,7 +373,8 @@ class ViewRenderedGrid(ViewFile.View):
                                         childrenFirst, childrenFirst, False)
                 isAbstract = yStructuralNode.isAbstract
                 isNonAbstract = not isAbstract
-                label = yStructuralNode.header(lang=self.lang)
+                label = yStructuralNode.header(lang=self.lang,
+                                               returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))
                 topRow = row
                 #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
                 if renderNow:
@@ -480,7 +482,8 @@ class ViewRenderedGrid(ViewFile.View):
                                                    childrenFirst, childrenFirst, False)
                 isAbstract = yStructuralNode.isAbstract
                 isNonAbstract = not isAbstract
-                label = yStructuralNode.header(lang=self.lang)
+                label = yStructuralNode.header(lang=self.lang,
+                                               returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))
                 topRow = row
                 if childrenFirst and isNonAbstract:
                     row = nextRow

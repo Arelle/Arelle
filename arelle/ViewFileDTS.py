@@ -35,8 +35,8 @@ class ViewDTS(ViewFile.View):
             attr["inDTS"] = "false"
         self.addRow(["{0} - {1}".format(modelDocument.basename, dtsObjectType)], treeIndent=indent,
                     xmlRowElementName=dtsObjectType, xmlRowEltAttr=attr, xmlCol0skipElt=True)
-        for referencedDocument, typeOfRef in modelDocument.referencesDocument.items():
+        for referencedDocument, ref in modelDocument.referencesDocument.items():
             if referencedDocument not in visited:
-                self.viewDtsElement(referencedDocument, typeOfRef, indent + 1, visited)
+                self.viewDtsElement(referencedDocument, ref.referenceType, indent + 1, visited)
         visited.remove(modelDocument)
                 
