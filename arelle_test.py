@@ -64,8 +64,10 @@ class TestLogFormatter(logging.Formatter):
 logging.basicConfig(level=logging.DEBUG)
 testLogHandler = TestLogHandler()
 
-def test_checker(section, testcase, variation, name, status, expected, actual):
-    assert status == "pass", ("[%s] %s:%s %s (%s != %s)" % (section, testcase, variation, name, expected, actual))
+def test(section, testcase, variation, name, status, expected, actual):
+    assert status == "pass"
+
+# assert status == "pass", ("[%s] %s:%s %s (%s != %s)" % (section, testcase, variation, name, expected, actual))
 
 # Pytest test parameter generator
 def pytest_generate_tests(metafunc):
@@ -86,7 +88,10 @@ def pytest_generate_tests(metafunc):
         print("section {0} run arguments {1}".format(section, " ".join(arelleRunArgs)))
         cntlr_run = runTest(section, arelleRunArgs)
         for variation in cntlr_run:
-            metafunc.addcall(funcargs=variation)
+            metafunc.addcall(funcargs=variation,
+                             id="[{0}] {1}: {2}".format(variation["section"],
+                                                       variation["testcase"].rpartition(".")[0],
+                                                       variation["variation"]))
         # if i == 1: break # stop on first test  -- uncomment to do just counted number of tests
     
 def runTest(section, args):
