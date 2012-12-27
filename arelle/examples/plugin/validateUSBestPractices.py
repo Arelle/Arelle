@@ -189,12 +189,18 @@ def final(val, conceptsUsed):
                     date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
                 
     # check for unused extension concepts
+    dimensionDefaults = set(defaultMemConcept for defaultMemConcept in val.modelXbrl.dimensionDefaultConcepts.values())
     extensionConceptsUnused = [concept
                                for qn, concept in val.modelXbrl.qnameConcepts.items()
                                if concept.isItem and 
                                qn.namespaceURI not in val.disclosureSystem.standardTaxonomiesDict
                                if concept not in conceptsUsed and
-                               (not concept.isAbstract or concept.isDimensionItem)]
+                               (not concept.isAbstract or 
+                                # report a dimension which has no default and not used
+                                (concept.isDimensionItem and concept not in val.modelXbrl.dimensionDefaultConcepts) or
+                                # report a domain member which isn't default and isn't used
+                                (concept.type is not None and concept.type.isDomainItemType and concept not in dimensionDefaults))
+                               ]
     if extensionConceptsUnused:
         for concept in sorted(extensionConceptsUnused, key=lambda c: str(c.qname)):
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1",
@@ -232,7 +238,11 @@ def final(val, conceptsUsed):
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),
                 modelObject=locs, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
-        elif not concept.isAbstract or concept.isDimensionItem:
+        elif (not concept.isAbstract or 
+              # report a dimension which has no default and not used
+              (concept.isDimensionItem and concept not in val.modelXbrl.dimensionDefaultConcepts) or
+              # report a domain member which isn't default and isn't used
+              (concept.type is not None and concept.type.isDomainItemType and concept not in dimensionDefaults)):
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1",
                 _("Company extension relationships of unused standard concept: %(concept)s"),
                 modelObject=locs, concept=concept.qname) 
@@ -250,7 +260,7 @@ def final(val, conceptsUsed):
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
     val.modelXbrl.profileStat(_("validate US-BGP unused concepts"), time.time() - startedAt)
         
-    del standardRelationships, extensionConceptsUnused, standardConceptsUnused, standardConceptsDeprecated
+    del standardRelationships, extensionConceptsUnused, standardConceptsUnused, standardConceptsDeprecated, dimensionDefaults
     del val.deprecatedFactConcepts
     del val.deprecatedDimensions
     del val.deprecatedMembers
