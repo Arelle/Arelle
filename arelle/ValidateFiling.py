@@ -1119,10 +1119,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
                                     else:
                                         orderRels[order] = rel
-                                if self.directedCycle(relFrom,relFrom,fromRelationships):
+                                directedCycleRels = self.directedCycle(relFrom,relFrom,fromRelationships,{relFrom})
+                                if directedCycleRels is not None:
                                     self.modelXbrl.error(("EFM.6.14.04", "GFM.1.07.04"),
                                         _("Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"),
-                                        modelObject=[relFrom] + rels, linkrole=ELR, concept=relFrom.qname, linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR))
+                                        modelObject=[relFrom] + directedCycleRels, linkrole=ELR, concept=relFrom.qname, linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR))
                                 orderRels.clear()
                                 # if relFrom used by fact and multiple calc networks from relFrom, test 6.15.04
                                 if rels and relFrom in conceptsUsed:
@@ -1342,13 +1343,20 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             self._isStandardUri[uri] = isStd
             return isStd
 
-    def directedCycle(self, relFrom, origin, fromRelationships):
+    def directedCycle(self, relFrom, origin, fromRelationships, path):
         if relFrom in fromRelationships:
             for rel in fromRelationships[relFrom]:
                 relTo = rel.toModelObject
-                if relTo == origin or self.directedCycle(relTo, origin, fromRelationships):
-                    return True
-        return False
+                if relTo == origin:
+                    return [rel]
+                if relTo not in path: # report cycle only where origin causes the cycle
+                    path.add(relTo)
+                    foundCycle = self.directedCycle(relTo, origin, fromRelationships, path)
+                    if foundCycle is not None:
+                        foundCycle.insert(0, rel)
+                        return foundCycle
+                    path.discard(relTo)
+        return None
     
     ''' this may be unused now, if common stock class members are only taken from observed facts, not defined members, per Dean R
     def getDimMembers(self, dim, default=None, rels=None, members=None, visited=None):
