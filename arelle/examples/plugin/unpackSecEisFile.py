@@ -15,10 +15,11 @@ def unpackEIS(cntlr, eisFile, unpackToDir):
     unpackedFiles = []
     
     for file in filesource.dir:
-        with filesource.file(os.path.join(eisFile,file))[0] as fIn:
-            with open(os.path.join(unpackToDir, file), "w", encoding="utf-8") as fOut:
-                fOut.write(fIn.read())
-                unpackedFiles.append(file)
+        fIn, encoding = filesource.file(os.path.join(eisFile,file))
+        with open(os.path.join(unpackToDir, file), "w", encoding=encoding) as fOut:
+            fOut.write(fIn.read())
+            unpackedFiles.append(file)
+        fIn.close()
                 
     cntlr.addToLog("[info:unpackEIS] Unpacked files " + ', '.join(unpackedFiles))
 
