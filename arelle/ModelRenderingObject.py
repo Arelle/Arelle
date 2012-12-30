@@ -42,6 +42,7 @@ class StructuralNode:
         else:
             self.contextItemBinding = None
         self.subtreeRollUp = ROLLUP_NOT_ANALYZED
+        self.depth = parentStructuralNode.depth + 1 if parentStructuralNode else 0
         
     @property
     def modelXbrl(self):

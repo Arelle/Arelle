@@ -12,7 +12,7 @@ from arelle.ModelValue import qname, QName
 from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelRenderingObject import ModelClosedDefinitionNode
+from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord
 from arelle.FormulaEvaluator import aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -137,13 +137,17 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, viewTblELR) 
         
         if tblAxisRelSet:
-            gridHdr(self.gridTblHdr, 0, 0, 
-                    (self.modelTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
-                     self.roledefinition),
-                    anchor="nw",
-                    #columnspan=(self.dataFirstCol - 1),
-                    #rowspan=(self.dataFirstRow),
-                    wraplength=200) # in screen units
+            #print("tbl hdr width rowHdrCols {0}".format(self.rowHdrColWidth))
+            self.gridTblHdr.tblHdrWraplength = 200 # to  adjust dynamically during configure callbacks
+            self.gridTblHdr.tblHdrLabel = \
+                gridHdr(self.gridTblHdr, 0, 0, 
+                        (self.modelTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
+                         self.roledefinition),
+                        anchor="nw",
+                        #columnspan=(self.dataFirstCol - 1),
+                        #rowspan=(self.dataFirstRow),
+                        wraplength=200) # in screen units
+                        #wraplength=sum(self.rowHdrColWidth)) # in screen units
             zAspects = defaultdict(set)
             self.zAxis(1, zTopStructuralNode, zAspects, clearZchoices)
             xStructuralNodes = []
@@ -158,6 +162,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspects, self.yAxisChildrenFirst.get())
                 
             # data cells
+            #print("body cells done")
                 
         self.modelXbrl.profileStat("viewTable_" + os.path.basename(viewTblELR), time.time() - startedAt)
 
@@ -234,7 +239,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     if nonAbstract:
                         width += 100 # width for this label, in screen units
                     widthToSpanParent += width
-                    label = xStructuralNode.header(lang=self.lang)
+                    label = xStructuralNode.header(lang=self.lang,
+                                                   returnGenLabel=isinstance(xStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
                     if childrenFirst:
                         thisCol = rightCol
                         sideBorder = RIGHTBORDER
@@ -313,10 +319,12 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     nestRow, nextRow = self.yAxis(leftCol + 1, row, yStructuralNode,  # nested items before totals
                                             childrenFirst, childrenFirst, False)
                     
-                    isAbstract = yStructuralNode.isAbstract
+                    isAbstract = (yStructuralNode.isAbstract or 
+                                  (yStructuralNode.childStructuralNodes and
+                                   not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
                     isNonAbstract = not isAbstract
                     label = yStructuralNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))
+                                                   returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
                     topRow = row
                     if childrenFirst and isNonAbstract:
                         row = nextRow
@@ -329,15 +337,15 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         if childrenFirst and row > topRow:
                             gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
                                        columnspan=(self.rowHdrCols - leftCol))
+                        depth = yStructuralNode.depth
                         gridHdr(self.gridRowHdr, leftCol, row, 
                                 label if label is not None else "         ", 
                                 anchor=("w" if isNonAbstract or nestRow == row else "center"),
                                 columnspan=columnspan,
                                 rowspan=(nestRow - row if isAbstract else None),
                                 # wraplength is in screen units
-                                wraplength=(self.rowHdrColWidth[leftCol] if isAbstract else
-                                            self.rowHdrWrapLength -
-                                              sum(self.rowHdrColWidth[i] for i in range(leftCol))),
+                                wraplength=(self.rowHdrColWidth[depth] if isAbstract else
+                                            self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth])),
                                 #minwidth=self.rowHdrColWidth[leftCol],
                                 minwidth=(16 if isNonAbstract and nextRow > topRow else None),
                                 objectId=yStructuralNode.objectId(),
@@ -383,7 +391,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     elif childrenFirst:
                         row = nextRow
                     if nestRow > nestedBottomRow:
-                        nestedBottomRow = nestRow + (not childrenFirst)
+                        nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
                     if row > nestedBottomRow:
                         nestedBottomRow = row
                     #if renderNow and not childrenFirst:
