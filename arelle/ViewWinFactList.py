@@ -101,8 +101,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                     self.treeView.set(node, "decimals", modelFact.decimals)
                     self.treeView.set(node, "precision", modelFact.precision)
                     self.treeView.set(node, "language", modelFact.xmlLang)
-                    self.treeView.set(node, "value", 
-                              "(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue.strip())
+                    self.treeView.set(node, "value", modelFact.effectiveValue.strip())
                 self.id += 1;
                 n += 1
                 self.viewFacts(modelFact.modelTupleFacts, node, n)
