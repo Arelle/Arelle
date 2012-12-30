@@ -101,7 +101,7 @@ def prefixedNameToClarkNotation(element, prefixedName):
     if ns is None: return localname
     return "{{{0}}}{1}".format(ns, localname)
 
-def encoding(xml):
+def encoding(xml, default="utf-8"):
     if isinstance(xml,bytes):
         s = xml[0:120]
         if b"x\0m\0l" in s:
@@ -113,7 +113,7 @@ def encoding(xml):
     match = xmlEncodingPattern.match(str)
     if match and match.lastindex == 1:
         return match.group(1)
-    return "utf-8"
+    return default
 
 def text(element):   
     return textNotStripped(element).strip()
