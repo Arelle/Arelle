@@ -38,6 +38,8 @@ def main():
     parseAndRun(args)
        
 def parseAndRun(args):
+    """interface used by Main program and py.test (arelle_test.py)
+    """
     try:
         from arelle import webserver
         hasWebServer = True
