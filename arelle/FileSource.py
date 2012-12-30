@@ -286,9 +286,8 @@ class FileSource:
             if archiveFileSource.isZip:
                 b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
                 encoding = XmlUtil.encoding(b)
-                return (io.TextIOWrapper(
-                        io.BytesIO(b), 
-                        encoding=encoding), encoding)
+                return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
+                        encoding)
             elif archiveFileSource.isEis:
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
                     outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
@@ -304,14 +303,9 @@ class FileSource:
                             else:
                                 start = 0;
                                 length = len(b);
-                            # pass back as ascii
-                            #str = ""
-                            #for bChar in b[start:start + length]:
-                            #    str += chr( bChar )
-                            #return str
-                            return (io.TextIOWrapper(
-                                io.BytesIO(b), 
-                                encoding=XmlUtil.encoding(b)), "latin-1")
+                            encoding = XmlUtil.encoding(b, default="latin-1")
+                            return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
+                                    encoding)
                 raise ArchiveFileIOError(self, archiveFileName)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
@@ -319,10 +313,6 @@ class FileSource:
                     if outfn == archiveFileName:
                         b64data = data.findtext("mimedata")
                         if b64data:
-                            # convert to bytes
-                            #byteData = []
-                            #for c in b64data:
-                            #    byteData.append(ord(c))
                             b = base64.b64decode(b64data.encode("latin-1"))
                             # remove BOM codes if present
                             if len(b) > 3 and b[0] == 239 and b[1] == 187 and b[2] == 191:
@@ -332,14 +322,9 @@ class FileSource:
                             else:
                                 start = 0;
                                 length = len(b);
-                            # pass back as ascii
-                            #str = ""
-                            #for bChar in b[start:start + length]:
-                            #    str += chr( bChar )
-                            #return str
-                            return (io.TextIOWrapper(
-                                io.BytesIO(b), 
-                                encoding=XmlUtil.encoding(b)), "latin-1")
+                            encoding = XmlUtil.encoding(b, default="latin-1")
+                            return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
+                                    encoding)
                 raise ArchiveFileIOError(self, archiveFileName)
         # check encoding
         with open(filepath, 'rb') as fb:
