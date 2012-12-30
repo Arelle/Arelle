@@ -445,6 +445,7 @@ def removeEntities(text):
 def validateTextBlockFacts(modelXbrl):
     #handler = TextBlockHandler(modelXbrl)
     loadDTD(modelXbrl)
+    checkedGraphicsFiles = set() #  only check any graphics file reference once per fact
     
     for f1 in modelXbrl.facts:
         # build keys table for 6.5.14
@@ -505,7 +506,7 @@ def validateTextBlockFacts(modelXbrl):
                                         _("Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
-                                if attrTag == "src":
+                                if attrTag == "src" and attrValue not in checkedGraphicsFiles:
                                     if attrValue.lower()[-4:] not in ('.jpg', '.gif'):
                                         modelXbrl.error("EFM.6.05.16.graphicFileType",
                                             _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
@@ -523,6 +524,7 @@ def validateTextBlockFacts(modelXbrl):
                                                 _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't openable '%(attribute)s' for <%(element)s>, error: %(error)s"),
                                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                                 attribute=attrValue, element=eltTag, error=err)
+                                    checkedGraphicsFiles.add(attrValue)
                         if eltTag == "table" and any(a is not None for a in elt.iterancestors("table")):
                             modelXbrl.error("EFM.6.05.16.nestedTable",
                                 _("Fact %(fact)s of context %(contextID)s has nested <table> elements."),
@@ -534,6 +536,8 @@ def validateTextBlockFacts(modelXbrl):
                         _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
                         modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
                     
+                checkedGraphicsFiles.clear()
+                
             #handler.fact = None
                 #handler.modelXbrl = None
     
@@ -548,6 +552,7 @@ def copyHtml(sourceXml, targetHtml):
 def validateFootnote(modelXbrl, footnote):
     #handler = TextBlockHandler(modelXbrl)
     loadDTD(modelXbrl)
+    checkedGraphicsFiles = set() # only check any graphics file reference once per footnote
     
     try:
         footnoteHtml = XML("<body/>")
@@ -574,7 +579,7 @@ def validateFootnote(modelXbrl, footnote):
                             _("Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
                             modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
                             attribute=attrTag, element=eltTag, value=attrValue)
-                    if attrTag == "src":
+                    if attrTag == "src" and attrValue not in checkedGraphicsFiles:
                         if attrValue.lower()[-4:] not in ('.jpg', '.gif'):
                             modelXbrl.error("EFM.6.05.34.graphicFileType",
                                 _("Footnote %(xlinkLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
@@ -592,6 +597,7 @@ def validateFootnote(modelXbrl, footnote):
                                     _("Footnote %(xlinkLabel)s references a graphics file which isn't openable '%(attribute)s' for <%(element)s>, error: %(error)s"),
                                     modelObject=footnote, xlinkLabel=footnote.get("{http://www.w3.org/1999/xlink}label"),
                                     attribute=attrValue, element=eltTag, error=err)
+                        checkedGraphicsFiles.add(attrValue)
             if eltTag == "table" and any(a is not None for a in elt.iterancestors("table")):
                 modelXbrl.error("EFM.6.05.34.nestedTable",
                     _("Footnote %(xlinkLabel)s has nested <table> elements."),
