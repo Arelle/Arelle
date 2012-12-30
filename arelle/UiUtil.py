@@ -384,6 +384,7 @@ class scrolledHeaderedFrame(Frame):
 
         self.colsConfigured = False
         self.bodyCellsConfigured = False
+        self.blockConfigureCell = False
         self.hdrVscrollbar = Scrollbar(self, orient=VERTICAL)
         self.hdrHscrollbar = Scrollbar(self, orient=HORIZONTAL)
         self.bodyVscrollbar = Scrollbar(self, orient=VERTICAL)
@@ -485,6 +486,7 @@ class scrolledHeaderedFrame(Frame):
         self.colsConfigured = False
 
     def _configure_colHdrInterior(self,event):
+        #print("configure_colHdrInterior")
         # seems to not help:
         #if not self.colsConfigured:
         #    self.conformHdrsToBody()
@@ -499,6 +501,7 @@ class scrolledHeaderedFrame(Frame):
         #if interiorH != self.tblHdrInterior.winfo_height():
         #    self.tblHdrInterior.tk.call( ('grid', 'rowconfigure', self.tblHdrInterior._w, 1, '-minsize', interiorH ) )
     def _configure_rowHdrInterior(self,event):
+        #print("configure_rowHdrInterior")
         interiorW = self.rowHdrInterior.winfo_reqwidth()
         interiorH = self.rowHdrInterior.winfo_reqheight()
         # width doesn't set wide enough when first expanding, force by setting wider before scroll region
@@ -513,6 +516,7 @@ class scrolledHeaderedFrame(Frame):
         #   interiorW != self.tblHdrInterior.tk.call( ('grid', 'columnconfigure', self.tblHdrInterior._w, 1, '-minsize' ) ):
         #    self.tblHdrInterior.tk.call( ('grid', 'columnconfigure', self.tblHdrInterior._w, 1, '-minsize', interiorW ) )
     def _configure_bodyInterior(self,event):
+        #print("configure_bodyInterior")
         # seems to not help:
         #if not self.bodyCellsConfigured:
         #    self.conformBodyCellsToHeader()
@@ -520,19 +524,27 @@ class scrolledHeaderedFrame(Frame):
         interiorH = self.bodyInterior.winfo_reqheight()
         self.bodyCanvas.config(scrollregion=(0,0,interiorW,interiorH))
     def _configure_colHdrCanvas(self, event):
+        #print("configure_colHdrCanvas")
         canvasH = self.colHdrCanvas.winfo_height()
         if self.colHdrInterior.winfo_reqheight() != canvasH:
             self.colHdrCanvas.itemconfigure(self.colHdrInterior_id, height=canvasH)
     def _configure_rowHdrCanvas(self, event):
         canvasW = self.rowHdrCanvas.winfo_width()
+        #print("configure_rowHdrCanvas width {0}".format(canvasW))
         if self.rowHdrInterior.winfo_reqwidth() != canvasW:
             self.rowHdrCanvas.itemconfigure(self.rowHdrInterior_id, width=canvasW)
+        # set table header wrap length
+        if hasattr(self.tblHdrInterior, "tblHdrLabel") and canvasW > self.tblHdrInterior.tblHdrWraplength:
+            self.tblHdrInterior.tblHdrWraplength = canvasW - 4
+            self.tblHdrInterior.tblHdrLabel.config(wraplength=canvasW - 4)
     def _configure_bodyCanvas(self, event):
+        #print("configure_bodyCanvas")
         #canvasW = self.rowHdrCanvas.winfo_width()
         #if self.rowHdrInterior.winfo_reqwidth() != canvasW:
         #    self.rowHdrCanvas.itemconfigure(self.rowHdrInterior_id, width=canvasW)
         pass
     def _configure_interiors(self,event):
+        #print("configure_interiors")
         bodyW = self.bodyInterior.winfo_reqwidth()
         bodyH = self.bodyInterior.winfo_reqheight()
         colHdrW = self.colHdrInterior.winfo_reqwidth()
@@ -545,13 +557,18 @@ class scrolledHeaderedFrame(Frame):
         self.colHdrCanvas.config(scrollregion=(0,0,bodyW,colHdrH))
         self.rowHdrCanvas.config(scrollregion=(0,0,rowHdrW,bodyH))
     def _configure_canvases(self, event):
+        #print("configure_canvases")
         canvasH = self.colHdrCanvas.winfo_height()
         if self.colHdrInterior.winfo_reqheight() != canvasH:
             self.colHdrCanvas.itemconfigure(self.colHdrInterior_id, height=canvasH)
         canvasW = self.rowHdrCanvas.winfo_width()
         if self.rowHdrInterior.winfo_reqwidth() != canvasW:
             self.rowHdrCanvas.itemconfigure(self.rowHdrInterior_id, width=canvasW)
+            
     def _configure_cell(self, event):
+        #if self.blockConfigureCell:
+        #    return
+        self.blockConfigureCell = True
         cell = event.widget
         x = cell.x
         y = cell.y
@@ -560,6 +577,7 @@ class scrolledHeaderedFrame(Frame):
         isColHdrCell = event.widget.master == self.colHdrInterior
         isRowHdrCell = event.widget.master == self.rowHdrInterior
         isBodyCell = event.widget.master == self.bodyInterior
+        #print("configure_cell {4} x={0} y={1} w={2} h={3}".format(x,y,cellW,cellH, "colHdr" if isColHdrCell else "rowHdr" if isRowHdrCell else "body" if isBodyCell else "unknown"))
         if isColHdrCell:
             if hasattr(cell,'columnspan') and cell.columnspan:
                 columnspan = cell.columnspan # this is the non borders columns spanned
@@ -590,8 +608,9 @@ class scrolledHeaderedFrame(Frame):
                     #self.bodyInterior.update()
             '''
         if isRowHdrCell:
-            if not hasattr(cell,'rowspan') or not cell.rowspan: # ignore abstract spanned rows
+            if (getattr(cell,'rowspan',None) or 0) <= 1: # ignore abstract spanned rows (probably should divide them equally among children)
                 bodyRowH = self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize' ) )
+                #print("body row height {0}".format(bodyRowH))
                 if cellH > bodyRowH:
                     self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize', cellH ) )
                     #self.bodyInterior.update()
@@ -607,6 +626,7 @@ class scrolledHeaderedFrame(Frame):
             elif colHdrW > cellW:
                 self.bodyInterior.tk.call( ('grid', 'columnconfigure', self.bodyInterior._w, x, '-minsize', colHdrW ) )
                 #self.bodyInterior.update()
+        self.blockConfigureCell = False
     
     def conformHdrsToBody(self):
         self.colsConfigured = True
