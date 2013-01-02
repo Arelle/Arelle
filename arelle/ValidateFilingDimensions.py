@@ -7,12 +7,14 @@ Created on Oct 17, 2010
 from collections import defaultdict
 from arelle import XbrlConst
 import os
+emptySet = set()
 
 def checkDimensions(val, drsELRs):
     
     fromConceptELRs = defaultdict(set)
     hypercubes = set()
     hypercubesInLinkrole = defaultdict(set)
+    domainsInLinkrole = defaultdict(set)
     for ELR in drsELRs:
         domainMemberRelationshipSet = val.modelXbrl.relationshipSet( XbrlConst.domainMember, ELR)
                             
@@ -107,6 +109,9 @@ def checkDimensions(val, drsELRs):
                             fromConceptELRs.clear()
                         elif val.validateSBRNL:
                             checkSBRNLMembers(val, hc, dim, domELR, dimDomRels, ELR, True)
+                            for dimDomRel in dimDomRels:
+                                dom = dimDomRel.toModelObject
+                                domainsInLinkrole[domELR].add(dom) # this is the elr containing the HC-dim relations
                 if hasHypercubeArcrole == XbrlConst.all and len(hasHcRels) > 1:
                     val.modelXbrl.error(("EFM.6.16.05", "GFM.1.08.05"),
                         _("Multiple tables (%(hypercubeCount)s) DRS role %(linkrole)s, source %(concept)s, only 1 allowed"),
@@ -166,12 +171,14 @@ def checkDimensions(val, drsELRs):
                         _("ELR role %(linkrole)s, is not dedicated to %(hypercube)s, but also has %(otherQname)s"),
                         modelObject=val.modelXbrl, linkrole=ELR, hypercube=hc.qname, otherQname=modelRel.fromModelObject.qname)
             '''
+            domains = domainsInLinkrole.get(ELR, emptySet)
             for hc in hypercubes:  # only one member
                 for arcrole in (XbrlConst.parentChild, "XBRL-dimensions"):
                     for modelRel in val.modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
-                        if modelRel.fromModelObject != hc and modelRel.toModelObject != hc:
+                        if (modelRel.fromModelObject != hc and modelRel.toModelObject != hc and
+                            modelRel.fromModelObject not in domains and modelRel.toModelObject not in domains):
                             val.modelXbrl.error("SBR.NL.2.2.3.05",
-                                _("ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube, from %(fromConcept)s to %(toConcept)s"),
+                                _("ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube or primary domain, from %(fromConcept)s to %(toConcept)s"),
                                 modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, arcrole=os.path.basename(modelRel.arcrole), 
                                 fromConcept=modelRel.fromModelObject.qname, toConcept=modelRel.toModelObject.qname)
         domainsInLinkrole = defaultdict(set)

@@ -548,6 +548,15 @@ def checkDTS(val, modelDocument, visited):
 
             definesTypes = (modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None or
                             modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}simpleType") is not None)
+            
+            for enumElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}enumeration"):
+                definesEnumerations = True
+                if any(not valueElt.genLabel(lang="nl")
+                       for valueElt in enumElt.iter(tag="{http://www.w3.org/2001/XMLSchema}value")):
+                    val.modelXbrl.error("SBR.NL.2.2.7.05",
+                        _("Enumeration element has value(s) without generic label."),
+                        modelObject=enumElt)
+
             if (definesLinkroles + definesArcroles + definesLinkParts +
                 definesAbstractItems + definesNonabstractItems + 
                 definesTuples + definesPresentationTuples + definesSpecificationTuples + definesTypes +
@@ -568,9 +577,10 @@ def checkDTS(val, modelDocument, visited):
                 if definesDomains: schemaContents.append(_("domains"))
                 if definesHypercubes: schemaContents.append(_("hypercubes"))
                 if schemaContents:
-                    val.modelXbrl.error("SBR.NL.2.2.1.01",
-                        _("Taxonomy schema may only define one of these: %(contents)s"),
-                        modelObject=modelDocument, contents=', '.join(schemaContents))
+                    if not definesTuples:
+                        val.modelXbrl.error("SBR.NL.2.2.1.01",
+                            _("Taxonomy schema may only define one of these: %(contents)s"),
+                            modelObject=modelDocument, contents=', '.join(schemaContents))
                 elif not any(refDoc.inDTS and refDoc.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces
                              for refDoc in modelDocument.referencesDocument.keys()): # no linkbase ref or includes
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
