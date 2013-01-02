@@ -589,7 +589,7 @@ def about():
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">About arelle</th></tr>
 <tr><td rowspan="12" style="vertical-align:top;"><img src="/images/arelle32.gif"/></td><td>arelle&reg; version: %s %s. An open source XBRL platform</td></tr>
-<tr><td>&copy; 2010-2011 Mark V Systems Limited.  All rights reserved.</td></tr>
+<tr><td>&copy; 2010-2013 Mark V Systems Limited.  All rights reserved.</td></tr>
 <tr><td>Web site: <a href="http://www.arelle.org">http://www.arelle.org</a>.  
 E-mail support: <a href="mailto:support@arelle.org">support@arelle.org</a>.</td></tr>
 <tr><td>Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this file 

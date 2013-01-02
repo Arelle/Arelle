@@ -214,7 +214,7 @@ def parseAndRun(args):
     if options.about:
         print(_("\narelle(r) {0}\n\n"
                 "An open source XBRL platform\n"
-                "(c) 2010-2012 Mark V Systems Limited\n"
+                "(c) 2010-2013 Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                 "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                 "you may not \nuse this file except in compliance with the License.  "
