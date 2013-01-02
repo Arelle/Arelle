@@ -226,14 +226,14 @@ def parseAndRun(args):
                 "See the License for the specific language governing permissions and \n"
                 "limitations under the License."
                 "\n\nIncludes:"
-                "\n   Python(r) (c) 2001-2012 Python Software Foundation"
-                "\n   PyParsing (c) 2003-2012 Paul T. McGuire"
+                "\n   Python(r) (c) 2001-2013 Python Software Foundation"
+                "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
                 "\n   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 "\n   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"
                 "\n   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
                 "{1}"
                 ).format(Version.version,
-                         _("\n   Bottle (c) 2011 Marcel Hellkamp") if hasWebServer else ""))
+                         _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else ""))
     elif len(leftoverArgs) != 0 or (options.entrypointFile is None and 
                                     ((not options.proxy) and (not options.plugins)
                                      and (not hasWebServer or options.webserver is None))):

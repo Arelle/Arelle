@@ -1031,15 +1031,15 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "See the License for the specific language governing permissions and "
                               "limitations under the License."
                               "\n\nIncludes:"
-                              "\n   Python\u00ae \u00a9 2001-2012 Python Software Foundation"
-                              "\n   PyParsing \u00a9 2003-2012 Paul T. McGuire"
+                              "\n   Python\u00ae \u00a9 2001-2013 Python Software Foundation"
+                              "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
                               "\n   lxml \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
                               "\n   xlrd \u00a9 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2001 D. Giffin, \u00a9 2000 A. Khan"
                               "\n   xlwt \u00a9 2007 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2005 R. V. Kiseliov"                              
                               "{2}"
                               )
                             .format(self.__version__, Version.version,
-                                    _("\n   Bottle \u00a9 2011 Marcel Hellkamp") if self.hasWebServer else ""))
+                                    _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp") if self.hasWebServer else ""))
 
     # worker threads addToLog        
     def addToLog(self, message):

@@ -4,7 +4,7 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, os, io, base64, gzip, zlib, re
+import zipfile, os, io, base64, gzip, zlib, re, struct
 from lxml import etree
 from arelle import XmlUtil
 
@@ -117,12 +117,9 @@ class FileSource:
                         if len(l) < 8:
                             break
                         if len(buf) == 0 and l.startswith(b"<?xml "): # not compressed
-                            buf = l + file.read()
+                            buf = l + file.read()  # not compressed
                             break
-                        # compressed
-                        compressedLength = (l[0] << 24) + (l[1] << 16) + (l[2] << 8) + (l[3] << 0)
-                        expandedLength = (l[4] << 24) + (l[5] << 16) + (l[6] << 8) + (l[7] << 0)
-                        compressedBytes = file.read(compressedLength)
+                        compressedBytes = file.read( struct.unpack(">L", l[0:4])[0])
                         if len(compressedBytes) <= 0:
                             break
                         buf += zlib.decompress(compressedBytes)
