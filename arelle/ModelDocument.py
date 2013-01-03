@@ -34,6 +34,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :param reloadCache: True if desired to reload the web cache for any web-referenced files.
     :type reloadCache: bool
     """
+    
     if referringElement is None: # used for error messages
         referringElement = modelXbrl
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
@@ -47,10 +48,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
        not normalizedUri.startswith(modelXbrl.uriDir) and \
        not modelXbrl.modelManager.disclosureSystem.hrefValid(normalizedUri):
         blocked = modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences
-        modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
-                _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
-                modelObject=referringElement, url=normalizedUri,
-                blockedIndicator=_(" blocked") if blocked else "")
+        if normalizedUri not in modelXbrl.urlUnloadableDocs:
+            modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
+                    _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
+                    modelObject=referringElement, url=normalizedUri,
+                    blockedIndicator=_(" blocked") if blocked else "")
+            modelXbrl.urlUnloadableDocs.add(normalizedUri)
         if blocked:
             return None
     if normalizedUri in modelXbrl.modelManager.disclosureSystem.mappedFiles:
@@ -63,6 +66,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 break
     if isEntry:
         modelXbrl.entryLoadingUrl = mappedUri   # for error loggiong during loading
+        
+    # don't try reloading if not loadable
+    
     if modelXbrl.fileSource.isInArchive(mappedUri):
         filepath = mappedUri
     else:
@@ -75,14 +81,19 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     _("File can not be loaded: %(fileName)s \nLoading terminated."),
                     modelObject=referringElement, fileName=mappedUri)
             raise LoadingException()
-        modelXbrl.error("FileNotLoadable",
-                _("File can not be loaded: %(fileName)s"),
-                modelObject=referringElement, fileName=mappedUri)
+        if mappedUri not in modelXbrl.urlUnloadableDocs:
+            modelXbrl.error("FileNotLoadable",
+                    _("File can not be loaded: %(fileName)s"),
+                    modelObject=referringElement, fileName=mappedUri)
+            modelXbrl.urlUnloadableDocs.add(mappedUri)
         return None
     
     modelDocument = modelXbrl.urlDocs.get(mappedUri)
     if modelDocument:
         return modelDocument
+    elif mappedUri in modelXbrl.urlUnloadableDocs:
+        return None
+
     
     # load XML and determine type of model document
     modelXbrl.modelManager.showStatus(_("parsing {0}").format(uri))
@@ -122,6 +133,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
+        modelXbrl.urlUnloadableDocs.add(mappedUri)
         return None
     except (etree.LxmlError,
             SAXParseException,
@@ -135,12 +147,14 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                     modelObject=referringElement, fileName=os.path.basename(uri), 
                     error=str(err), sourceAction=("including" if isIncluded else "importing"))
+            modelXbrl.urlUnloadableDocs.add(mappedUri)
             return None
     except Exception as err:
         modelXbrl.error(type(err).__name__,
                 _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                 modelObject=referringElement, fileName=os.path.basename(uri), 
                 error=str(err), sourceAction=("including" if isIncluded else "importing"))
+        modelXbrl.urlUnloadableDocs.add(mappedUri)
         return None
     
     # identify document

@@ -225,6 +225,7 @@ class ModelXbrl:
         self.uuid = uuid.uuid1().urn
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
+        self.urlUnloadableDocs = set()
         self.errors = []
         self.logCount = {}
         self.arcroleTypes = defaultdict(list)
