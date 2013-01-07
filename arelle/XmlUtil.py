@@ -656,8 +656,12 @@ def copyNonIxChildren(fromElt, toElt):
                     if fromChild.tail is not None:
                         toChild.tail = fromChild.tail
                         
-def xmlstring(elt, stripXmlns=False, prettyPrint=False):
-    xml = etree.tounicode(elt, pretty_print=prettyPrint)
+def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False):
+    if contentsOnly:
+        return ('\n' if prettyPrint else '').join(
+            xmlstring(child, stripXmlns, prettyPrint)
+            for child in elt.iterchildren())
+    xml = etree.tostring(elt, encoding=_STR_UNICODE, pretty_print=prettyPrint)
     if stripXmlns:
         return xmlnsStripPattern.sub('', xml)
     else:

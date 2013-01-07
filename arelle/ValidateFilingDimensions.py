@@ -45,7 +45,7 @@ def checkDimensions(val, drsELRs):
                         if hc in positiveHypercubes:
                             val.modelXbrl.error(("EFM.6.16.08", "GFM.1.08.08"),
                                 _("Not all hypercube %(hypercube)s in DRS role %(linkrole)s, is also the target of a positive hypercube"),
-                                modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR))
+                                modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), primaryItem=sourceConcept.qname)
                     dimELR = hasHcRel.targetRole
                     dimTargetRequired = (dimELR is not None)
                     if not dimELR:
@@ -57,8 +57,8 @@ def checkDimensions(val, drsELRs):
                         val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
                             _("Table %(hypercube)s in DRS role %(linkrole)s, missing targetrole consecutive relationship"),
                             modelObject=hasHcRel, hypercube=hc.qname, fromConcept=sourceConcept.qname, toConcept=hc.qname, 
-                            linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), 
-                            arcrole=os.path.basename(hasHcRel.arcrole))
+                            linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
+                            arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(hasHcRel.arcrole))
                     for hcDimRel in hcDimRels:
                         dim = hcDimRel.toModelObject
                         domELR = hcDimRel.targetRole
@@ -88,7 +88,7 @@ def checkDimensions(val, drsELRs):
                         if domTargetRequired and len(dimDomRels) == 0:
                             val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
                                 _("Axis %(dimension)s in DRS role %(linkrole)s, missing targetrole consecutive relationship"),
-                                modelObject=hcDimRel, dimension=dim.qname, fromConcept=hc.qname, toConcept=dim.qname, linkrole=ELR, arcrole=os.path.basename(hcDimRel.arcrole))
+                                modelObject=hcDimRel, dimension=dim.qname, fromConcept=hc.qname, toConcept=dim.qname, linkrole=ELR, arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(hcDimRel.arcrole))
                         if val.validateEFMorGFM:
                             # flatten DRS member relationsihps in ELR for undirected cycle detection
                             drsRelsFrom = defaultdict(list)
@@ -144,7 +144,7 @@ def checkDimensions(val, drsELRs):
                          XbrlConst.domainMember, toELR).fromModelObject(toMbr)) == 0:
                     val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
                         _("Domain member %(concept)s in DRS role %(linkrole)s, missing targetrole consecutive relationship"),
-                        modelObject=rel, concept=fromMbr.qname, fromConcept=fromMbr.qname, toConcept=fromMbr.qname, linkrole=ELR, arcrole=os.path.basename(rel.arcrole))
+                        modelObject=rel, concept=fromMbr.qname, fromConcept=toMbr.qname, toConcept=fromMbr.qname, linkrole=ELR, arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(rel.arcrole))
                     
     if val.validateSBRNL:
         # check hypercubes for unique set of members

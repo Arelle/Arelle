@@ -489,7 +489,6 @@ class ValidateXbrl:
             modelXbrl.profileStat(_("validateCalculations"))
             
         if self.validateUTR:
-            #(self.validateEFM and any(modelDoc.definesUTR for modelDoc in self.modelXbrl.urlDocs.values()))):
             ValidateUtr.validate(modelXbrl)
             modelXbrl.profileStat(_("validateUTR"))
             

@@ -6,6 +6,7 @@ Created on Oct 17, 2010
 '''
 from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst,
                     XmlValidate)
+from arelle.ModelRelationshipSet import baseSetRelationship
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from lxml import etree
@@ -21,6 +22,20 @@ link_loc_spec_sections = {"labelLink":"5.2.2.1",
                           "definitionLink":"5.2.6.1",
                           "presentationLink":"5.2.4.1",
                           "footnoteLink":"4.11.1.1"}
+
+def arcFromConceptQname(arcElement):
+    modelRelationship = baseSetRelationship(arcElement)
+    if modelRelationship is None:
+        return arcElement.get("{http://www.w3.org/1999/xlink}from")
+    else:
+        return modelRelationship.fromModelObject.qname
+
+def arcToConceptQname(arcElement):
+    modelRelationship = baseSetRelationship(arcElement)
+    if modelRelationship is None:
+        return arcElement.get("{http://www.w3.org/1999/xlink}to")
+    else:
+        return modelRelationship.toModelObject.qname
 
 def checkDTS(val, modelDocument, visited):
     visited.append(modelDocument)
@@ -296,7 +311,7 @@ def checkElements(val, modelDocument, parent):
                                 if l > 255:
                                     val.modelXbrl.error("EFM.6.07.30",
                                         _("Schema targetNamespace length (%(length)s) is over 255 bytes long in utf-8 %(targetNamespace)s"),
-                                        modelObject=elt, length=l, targetNamespace=targetNamespace)
+                                        modelObject=elt, length=l, targetNamespace=targetNamespace, value=targetNamespace)
                         if val.validateSBRNL:
                             if elt.get("targetNamespace") is None:
                                 val.modelXbrl.error("SBR.NL.2.2.0.08",
@@ -521,7 +536,7 @@ def checkElements(val, modelDocument, parent):
                             if l > 255:
                                 val.modelXbrl.error("EFM.6.07.30",
                                     _("Schema %(element)s %(attribute)s length (%(length)s) is over 255 bytes long in utf-8 %(roleURI)s"),
-                                    modelObject=elt, element=elt.qname, attribute=uriAttr, length=l, roleURI=roleURI)
+                                    modelObject=elt, element=elt.qname, attribute=uriAttr, length=l, roleURI=roleURI, value=roleURI)
                     # check for used on duplications
                     usedOns = set()
                     for usedOn in elt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}usedOn"):
@@ -944,6 +959,7 @@ def checkElements(val, modelDocument, parent):
                                 val.modelXbrl.error(("EFM.6.09.09", "GFM.1.04.08"),
                                     _("Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s must be less than 10"),
                                     modelObject=elt, 
+                                    arcElement=elt.qname,
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                     priority=priority)
@@ -951,6 +967,7 @@ def checkElements(val, modelDocument, parent):
                             val.modelXbrl.error(("EFM.6.09.09", "GFM.1.04.08"),
                                 _("Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an integer"),
                                 modelObject=elt, 
+                                arcElement=elt.qname,
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                 xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                 priority=priority)
@@ -960,30 +977,39 @@ def checkElements(val, modelDocument, parent):
                                 _("PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
                                 modelObject=elt, 
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
-                                xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"))
+                                xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
+                                conceptFrom=arcFromConceptQname(elt),
+                                conceptTo=arcToConceptQname(elt))
                         elif elt.localName == "calculationArc":
                             if not elt.get("order"):
                                 val.modelXbrl.error(("EFM.6.14.01", "GFM.1.07.01"),
                                     _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
                                     modelObject=elt, 
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
-                                    xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"))
+                                    xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
+                                    conceptFrom=arcFromConceptQname(elt),
+                                    conceptTo=arcToConceptQname(elt))
                             try:
-                                weight = float(elt.get("weight"))
+                                weightAttr = elt.get("weight")
+                                weight = float(weightAttr)
                                 if not weight in (1, -1):
                                     val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
                                         _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s must be 1 or -1"),
                                         modelObject=elt, 
                                         xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                         xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
-                                        weight=weight)
+                                        conceptFrom=arcFromConceptQname(elt),
+                                        conceptTo=arcToConceptQname(elt),
+                                        weight=weightAttr)
                             except ValueError:
                                 val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
-                                    _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight"),
+                                    _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight (value error in \"%(weight)s\")"),
                                     modelObject=elt, 
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
-                                    weight="(value error)")
+                                    conceptFrom=arcFromConceptQname(elt),
+                                    conceptTo=arcToConceptQname(elt),
+                                    weight=weightAttr)
                         elif elt.localName == "definitionArc":
                             if not elt.get("order"):
                                 val.modelXbrl.error(("EFM.6.16.01", "GFM.1.08.01"),

@@ -71,6 +71,15 @@ def labelroles(modelXbrl, includeConceptName=False):
                         for r in (modelXbrl.labelroles | ({XbrlConst.conceptNameLabelRole} if includeConceptName else set()))
                         if r is not None))
     
+def baseSetRelationship(arcElement):
+    modelXbrl = arcElement.modelXbrl
+    arcrole = arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
+    ELR = arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
+    for rel in modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
+        if rel.arcElement == arcElement:
+            return rel
+    return None
+
 class ModelRelationshipSet:
     __slots__ = ("isChanged", "modelXbrl", "arcrole", "linkrole", "linkqname", "arcqname",
                  "modelRelationshipsFrom", "modelRelationshipsTo", "modelConceptRoots", "modellinkRoleUris",
@@ -209,9 +218,12 @@ class ModelRelationshipSet:
             self.loadModelRelationshipsTo()
         return self.modelRelationshipsTo.get(modelTo, [])
         
-    def fromToModelObjects(self, modelFrom, modelTo):
+    def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False):
         self.loadModelRelationshipsFrom()
-        return [rel for rel in self.fromModelObject(modelFrom) if rel.toModelObject is modelTo]
+        rels = [rel for rel in self.fromModelObject(modelFrom) if rel.toModelObject is modelTo]
+        if checkBothDirections:
+            rels += [rel for rel in self.fromModelObject(modelTo) if rel.toModelObject is modelFrom]
+        return rels
 
     @property
     def rootConcepts(self):

@@ -589,7 +589,7 @@ class ModelDocument:
                 self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(self.uri, targetNamespace)):
                     self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if self.uri.startswith("http") else "SBR.NL.2.2.0.17"),
                             _("Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"),
-                            modelObject=rootElement, namespace=targetNamespace, schemaLocation=self.uri)
+                            modelObject=rootElement, namespace=targetNamespace, schemaLocation=self.uri, url=self.uri)
 
         else:
             if isIncluded == True and namespace:
@@ -668,7 +668,7 @@ class ModelDocument:
                     self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(importSchemaLocation, importNamespace)):
                 self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if importSchemaLocation.startswith("http") else "SBR.NL.2.2.0.17"),
                         _("Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s"),
-                        modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation)
+                        modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation, url=importSchemaLocation)
                 return
             doc = None
             importSchemaLocationBasename = os.path.basename(importNamespace)
