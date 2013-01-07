@@ -61,6 +61,8 @@ class DisclosureSystem:
         self.deiDocumentPeriodEndDateElement = None
         self.deiFilerIdentifierElement = None
         self.deiFilerNameElement = None
+        self.logLevelFilter = None
+        self.logCodeFilter = None
 
     @property
     def dir(self):
@@ -128,10 +130,14 @@ class DisclosureSystem:
                             self.deiDocumentPeriodEndDateElement = dsElt.get("deiDocumentPeriodEndDateElement")
                             self.deiFilerIdentifierElement = dsElt.get("deiFilerIdentifierElement")
                             self.deiFilerNameElement = dsElt.get("deiFilerNameElement")
+                            self.logLevelFilter = dsElt.get("logLevelFilter")
+                            self.logCodeFilter = dsElt.get("logCodeFilter")
                             self.selection = self.name
                             break
             self.loadMappings()
             self.loadStandardTaxonomiesDict()
+            self.modelManager.cntlr.setLoggingFilters(logLevelFilter=self.logLevelFilter,
+                                                      logCodeFilter=self.logCodeFilter)
             status = _("loaded")
             result = True
         except (EnvironmentError,

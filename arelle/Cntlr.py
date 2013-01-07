@@ -225,7 +225,7 @@ class Cntlr:
                                 self.localeDir)
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
-                     logLevel=None, logLevelFilter=None, logCodeFilter=None, logHandler=None):
+                     logLevel=None, logHandler=None):
         # add additional logging levels    
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
@@ -267,6 +267,9 @@ class Cntlr:
                               level=logging.ERROR, messageCode="arelle:logLevel")
             else:
                 self.logger.setLevel(logging.getLevelName((logLevel or "debug").upper()))
+                
+    def setLoggingFilters(self, logLevelFilter=None, logCodeFilter=None):
+        if self.logger:
             self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
             self.logger.messageLevelFilter = re.compile(logLevelFilter) if logLevelFilter else None
                         

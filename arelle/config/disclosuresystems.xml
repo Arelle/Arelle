@@ -117,12 +117,13 @@
      deiFilerNameElement="EntityRegistrantName"
      />
   <DisclosureSystem 
-     names="US SEC (Edgar Filing Manual)|efm"
+     names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
      description="US SEC Edgar Filing Manual\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
-     Disallowed references are processed"
+     Disallowed references are processed\n
+     Includes content (semantic) tests"
      validationType="EFM"
      blockDisallowedReferences="false" 
      defaultXmlLang="en-US" 
@@ -145,12 +146,13 @@
      deiFilerNameElement="EntityRegistrantName"
      />
   <DisclosureSystem 
-     names="US SEC (Block disallowed references)|efm-blocking"
-     description="US SEC Edgar Filing Manual (block disallowed references)\n
+     names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
+     description="US SEC Edgar Filing Manual\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
-     Disallowed references are blocked and not loaded (same as SEC production system)\n"
+     Disallowed references are blocked and not loaded (same as SEC production system)\n
+     No content (semantic) tests are reported"
      validationType="EFM"
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
@@ -171,6 +173,7 @@
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
      deiFilerIdentifierElement="EntityCentralIndexKey" 
      deiFilerNameElement="EntityRegistrantName"
+     logLevelFilter="(?!.*-semantic$)"
      />
   <DisclosureSystem 
      names="US SEC (Global Filing Manual)|us-gfm|gfm-us" 

@@ -259,9 +259,7 @@ def parseAndRun(args):
         # parse and run the FILENAME
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
-                           logLevel=(options.logLevel or "DEBUG"),
-                           logLevelFilter=options.logLevelFilter,
-                           logCodeFilter=options.logCodeFilter)
+                           logLevel=(options.logLevel or "DEBUG"))
         cntlr.run(options)
         
         return cntlr
@@ -368,6 +366,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.disclosureSystem.select("hmrc")
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
+            
+        # disclosure system sets logging filters, override if specified by command line
+        if options.logLevelFilter or options.logCodeFilter:
+            self.setLoggingFilters(logLevelFilter=options.logLevelFilter,
+                                   logCodeFilter=options.logCodeFilter)
         if options.calcDecimals:
             if options.calcPrecision:
                 self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
