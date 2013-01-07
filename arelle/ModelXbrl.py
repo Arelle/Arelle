@@ -21,7 +21,7 @@ AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning
 NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
     
 
-def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
+def load(modelManager, url, nextaction=None, base=None, useFileSource=None, errorCaptureLevel=None):
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an 
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each 
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of 
@@ -39,7 +39,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
    """
     if nextaction is None: nextaction = _("loading")
     from arelle import (ModelDocument, FileSource)
-    modelXbrl = create(modelManager)
+    modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
     if useFileSource is not None:
         modelXbrl.fileSource = useFileSource
         modelXbrl.closeFileSource = False
@@ -71,9 +71,9 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None):
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
 
-def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False):
+def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None):
     from arelle import (ModelDocument, FileSource)
-    modelXbrl = ModelXbrl(modelManager)
+    modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
         modelXbrl.fileSource = FileSource.FileSource(url) # url may be an open file handle, use str(url) below
@@ -99,9 +99,13 @@ class ModelXbrl:
         
         Dict, by URL, of loaded modelDocuments
         
+        .. attribute:: errorCaptureLevel
+        
+        Minimum logging level to capture in errors list (default is INCONSISTENCY)
+        
         .. attribute:: errors
         
-        List of error codes and assertion results, which were sent to logger, via error() method above, used for validation and post-processing
+        Captured error codes (at or over minimum error capture logging level) and assertion results, which were sent to logger, via log() methods, used for validation and post-processing
         
         .. attribute:: logErrorCount, logWarningCoutn, logInfoCount
         
@@ -217,15 +221,16 @@ class ModelXbrl:
 
     """
     
-    def __init__(self, modelManager):
+    def __init__(self, modelManager, errorCaptureLevel=None):
         self.modelManager = modelManager
-        self.init()
+        self.init(errorCaptureLevel=errorCaptureLevel)
         
-    def init(self, keepViews=False):
+    def init(self, keepViews=False, errorCaptureLevel=None):
         self.uuid = uuid.uuid1().urn
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
         self.urlUnloadableDocs = set()
+        self.errorCaptureLevel = (errorCaptureLevel or logging.getLevelName("INCONSISTENCY"))
         self.errors = []
         self.logCount = {}
         self.arcroleTypes = defaultdict(list)
@@ -909,7 +914,7 @@ class ModelXbrl:
               (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):
             numericLevel = logging.getLevelName(level)
             self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
-            if numericLevel > logging.WARNING:
+            if numericLevel >= self.errorCaptureLevel:
                 self.errors.append(messageCode)
             logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
                     

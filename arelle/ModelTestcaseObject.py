@@ -5,7 +5,7 @@ Refactored from ModelObject on Jun 11, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, logging
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 
@@ -211,6 +211,13 @@ class ModelTestcaseVariation(ModelObject):
             return self.get("result")
                 
         return None
+    
+    @property
+    def severityLevel(self):
+        # SEC error cases have <assert severity={err|wrn}>...
+        if XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None:
+            return logging.getLevelName("WARNING")
+        return logging.getLevelName("INCONSISTENCY")
 
     @property
     def expectedVersioningReport(self):

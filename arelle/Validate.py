@@ -110,6 +110,7 @@ class Validate:
                 # try to load instance document
                 self.modelXbrl.info("info", _("Variation %(id)s %(name)s: %(expected)s"),
                     modelObject=modelTestcaseVariation, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, expected=modelTestcaseVariation.expected)
+                errorCaptureLevel = modelTestcaseVariation.severityLevel # default is INCONSISTENCY
                 for readMeFirstUri in modelTestcaseVariation.readMeFirstUris:
                     if isinstance(readMeFirstUri,tuple):
                         # dtsName is for formula instances, but is from/to dts if versioning
@@ -126,7 +127,8 @@ class Validate:
                             modelXbrl = ModelXbrl.create(self.modelXbrl.modelManager, 
                                          Type.DTSENTRIES,
                                          self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(readMeFirstUri[:-4] + ".dts", baseForElement),
-                                         isEntry=True)
+                                         isEntry=True,
+                                         errorCaptureLevel=errorCaptureLevel)
                         DTSdoc = modelXbrl.modelDocument
                         DTSdoc.inDTS = True
                         doc = modelDocumentLoad(modelXbrl, readMeFirstUri, base=baseForElement)
@@ -138,7 +140,8 @@ class Validate:
                                                    readMeFirstUri,
                                                    _("validating"), 
                                                    base=baseForElement,
-                                                   useFileSource=self.useFileSource)
+                                                   useFileSource=self.useFileSource,
+                                                   errorCaptureLevel=errorCaptureLevel)
                     if modelXbrl.modelDocument is None:
                         self.modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
@@ -200,7 +203,8 @@ class Validate:
                                                  modelTestcaseVariation.resultInfosetUri,
                                                    _("loading result infoset"), 
                                                    base=baseForElement,
-                                                   useFileSource=self.useFileSource)
+                                                   useFileSource=self.useFileSource,
+                                                   errorCaptureLevel=errorCaptureLevel)
                         if infoset.modelDocument is None:
                             self.modelXbrl.error("arelle:notLoaded",
                                 _("Testcase %(id)s %(name)s result infoset not loaded: %(file)s"),
@@ -236,7 +240,8 @@ class Validate:
                                                    modelTestcaseVariation.resultXbrlInstanceUri,
                                                    _("loading expected result XBRL instance"), 
                                                    base=baseForElement,
-                                                   useFileSource=self.useFileSource)
+                                                   useFileSource=self.useFileSource,
+                                                   errorCaptureLevel=errorCaptureLevel)
                         if expectedInstance.modelDocument is None:
                             self.modelXbrl.error("arelle:notLoaded",
                                 _("Testcase %(id)s %(name)s expected result instance not loaded: %(file)s"),
