@@ -421,9 +421,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     _("The instance document contained a context(s) %(contextIDs)s that was(are) not used in any fact."),
                                     modelXbrl=modelXbrl, contextIDs=", ".join(contextIDs))
     
-            #6.5.9 start-end durations
+            #6.5.9, .10 start-end durations
             if disclosureSystem.GFM or \
-               documentType in ('20-F', '40-F', '10-Q', '10-K', '10', 'N-CSR', 'N-CSRS', 'NCSR', 'N-Q'):
+               documentType in {
+                        '20-F', '40-F', '10-Q', '10-QT', '10-K', '10-KT', '10', 'N-CSR', 'N-CSRS', 'N-Q',
+                        '20-F/A', '40-F/A', '10-Q/A', '10-QT/A', '10-K/A', '10-KT/A', '10/A', 'N-CSR/A', 'N-CSRS/A', 'N-Q/A'}:
                 '''
                 for c1 in contexts:
                     if c1.isStartEndPeriod:
@@ -922,34 +924,32 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     
                 # 6.5.21
                 for doctypesRequired, deiItemsRequired in (
-                      (("10-K", "10-KT",
-                        "10-Q", "10-QT",
-                        "20-F",
-                        "40-F",
+                      (("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
+                        "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A",
                         "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q",
+                        "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A",
                         "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
+                        "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A", 
                         "8-K", "F-1", "F-3", "F-10", "497", "485BPOS",
+                        "8-K/A", "F-1/A", "F-3/A", "F-10/A", 
                         "Other"),
                         ("EntityRegistrantName", "EntityCentralIndexKey")),
-                      (("10-K", "10-KT",
-                        "20-F",
-                        "40-F"),
+                      (("10-K", "10-KT", "20-F", "40-F",
+                        "10-K/A", "10-KT/A", "20-F/A", "40-F/A"),
                        ("EntityCurrentReportingStatus",)),
-                     (("10-K", "10-KT",),
+                     (("10-K", "10-KT", "10-K/A", "10-KT/A",),
                       ("EntityVoluntaryFilers", "EntityPublicFloat")),
-                      (("10-K", "10-KT",
-                        "10-Q", "10-QT",
-                        "20-F",
-                        "40-F",
-                        "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q"),
+                      (("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
+                        "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A",
+                        "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q",
+                        "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A"),
                         ("CurrentFiscalYearEndDate", "DocumentFiscalYearFocus", "DocumentFiscalPeriodFocus")),
-                      (("10-K", "10-KT",
-                        "10-Q", "10-QT",
-                        "20-F",
-                        "10", "S-1", "S-3", "S-4", "S-11", "POS AM"),
+                      (("10-K", "10-KT", "10-Q", "10-QT", "20-F",
+                        "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A",
+                        "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
+                        "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A"),
                         ("EntityFilerCategory",)),
-                       (("10-K", "10-KT",
-                         "20-F"),
+                       (("10-K", "10-KT", "20-F", "10-K/A", "10-KT/A", "20-F/A"),
                          ("EntityWellKnownSeasonedIssuer",))
                 ):
                     if documentType in doctypesRequired:
@@ -970,7 +970,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
                         elementName=deiItem)
                                 
-                if documentType in ("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F"):
+                if documentType in {"10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
+                                    "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A"}:
                     defaultContextSharesOutstandingValue = deiItems.get("EntityCommonStockSharesOutstanding")
                     errLevel = "WARNING" if validateEFMpragmatic else "ERROR"
                     if commonSharesClassMembers:
@@ -1790,18 +1791,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         for iContributingRel in range(iSibling - 1, -1, -1):
             contributingRel = siblingRels[iContributingRel]
             siblingConcept = contributingRel.toModelObject
-            if siblingConcept is totalConcept: # direct cycle loop likely, possibly among children of abstract sibling
-                break
-            isContributingTotal = self.presumptionOfTotal(contributingRel, siblingRels, iContributingRel, isStatementSheet, True, False)
-            if siblingConcept.isAbstract:
-                childRels = parentChildRels.fromModelObject(siblingConcept)
-                self.checkForCalculations(parentChildRels, childRels, len(childRels), totalConcept, totalRel, reasonPresumedTotal, isStatementSheet, conceptsUsed, True, contributingItems) 
-            elif (siblingConcept in conceptsUsed and
-                  siblingConcept.isNumeric and
-                  siblingConcept.periodType == totalConcept.periodType):
-                contributingItems.add(siblingConcept)
-            if isContributingTotal:
-                break
+            if siblingConcept is not None:
+                if siblingConcept is totalConcept: # direct cycle loop likely, possibly among children of abstract sibling
+                    break
+                isContributingTotal = self.presumptionOfTotal(contributingRel, siblingRels, iContributingRel, isStatementSheet, True, False)
+                if siblingConcept.isAbstract:
+                    childRels = parentChildRels.fromModelObject(siblingConcept)
+                    self.checkForCalculations(parentChildRels, childRels, len(childRels), totalConcept, totalRel, reasonPresumedTotal, isStatementSheet, conceptsUsed, True, contributingItems) 
+                elif (siblingConcept in conceptsUsed and
+                      siblingConcept.isNumeric and
+                      siblingConcept.periodType == totalConcept.periodType):
+                    contributingItems.add(siblingConcept)
+                if isContributingTotal:
+                    break
         if not nestedItems and contributingItems:
             # must check each totalFact and compatible items for a relationship set separately
             # (because different sets of sums/items could, on edge case, be in different ELRs)
