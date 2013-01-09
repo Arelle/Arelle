@@ -1165,12 +1165,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
                     modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
                         _("References for extension concept %(concept)s are not allowed: %(text)s"),
-                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, contentsOnly=True))
+                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
                 elif (self.validateEFM or self.validateSBRNL) and not self.isStandardUri(modelRefRel.modelDocument.uri): 
                     #6.18.2 no extension to add or remove references to standard concepts
                     modelXbrl.error(("EFM.6.18.02", "SBR.NL.2.1.0.08"),
                         _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
-                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, contentsOnly=True))
+                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
             if self.validateSBRNL and (concept.isItem or concept.isTuple):
                 if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
                     if not conceptHasDefaultLangStandardLabel:
@@ -1571,7 +1571,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 else:
                                     order = None
                                     for orderNumRel in ordersRelationshipSet.fromModelObject(modelRoleType):
-                                        order = orderNumRel.toModelObject.xValue
+                                        order = getattr(orderNumRel.toModelObject, "xValue", "(noPSVIvalue)")
                                         if order in presLinkroleNumberURI:
                                             modelXbrl.error("SBR.NL.2.2.3.06",
                                                 _("Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s"),
