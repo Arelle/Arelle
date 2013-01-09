@@ -194,7 +194,7 @@ class ParticlesList(list):
             elif isinstance(particle, ModelAny):
                 p = "any"
             else:
-                p = "{0}({1})".format(particle.localName, particle.dereference().particles)
+                p = "{0}({1})".format(particle.localName, getattr(particle.dereference(), "particles", ""))
             particlesList.append(p + ("" if particle.minOccurs == particle.maxOccurs == 1 else
                                       "{{{0}:{1}}}".format(particle.minOccursStr, particle.maxOccursStr)))
         return ", ".join(particlesList)
