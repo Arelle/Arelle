@@ -1016,7 +1016,9 @@ def checkElements(val, modelDocument, parent):
                                     _("DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
                                     modelObject=elt, 
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
-                                    xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"))
+                                    xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
+                                    conceptFrom=arcFromConceptQname(elt),
+                                    conceptTo=arcToConceptQname(elt))
                             if val.validateSBRNL and arcrole in (XbrlConst.essenceAlias, XbrlConst.similarTuples, XbrlConst.requiresElement):
                                 val.modelXbrl.error({XbrlConst.essenceAlias: "SBR.NL.2.3.2.02",
                                                   XbrlConst.similarTuples: "SBR.NL.2.3.2.03", 
