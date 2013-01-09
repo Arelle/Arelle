@@ -867,7 +867,9 @@ class ModelXbrl:
                 if isinstance(argValue, _INT_TYPES):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
             elif argName != "exc_info":
-                if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO)):
+                if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO,
+                                         # might be a set of lxml objects not dereferencable at shutdown 
+                                         tuple, list, set)):
                     fmtArgs[argName] = str(argValue)
                 elif argValue is None:
                     fmtArgs[argName] = "(none)"
