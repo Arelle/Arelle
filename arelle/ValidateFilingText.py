@@ -724,9 +724,11 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
 def validateGraphicFile(elt, graphicFile):
     base = elt.modelDocument.baseForElement(elt)
     normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(graphicFile, base)
+    if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
+        normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
     # all Edgar graphic files must be resolved locally
     #normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
-    with open(normalizedUri,'rb') as fh:
+    with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
         data = fh.read(11)
         if data[:4] == b'\xff\xd8\xff\xe0' and data[6:] == b'JFIF\0': 
             return "jpg"

@@ -273,7 +273,11 @@ class FileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
         return None
     
-    def file(self,filepath):
+    def file(self, filepath, binary=False):
+        ''' 
+            for text, return a tuple of (open file handle, encoding)
+            for binary, return a tuple of (open file handle, )
+        '''
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
             if filepath.startswith(archiveFileSource.basefile):
@@ -282,6 +286,8 @@ class FileSource:
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
                 b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
+                if binary:
+                    return (io.BytesIO(b), )
                 encoding = XmlUtil.encoding(b)
                 return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                         encoding)
@@ -300,6 +306,8 @@ class FileSource:
                             else:
                                 start = 0;
                                 length = len(b);
+                            if binary:
+                                return (io.BytesIO(b), )
                             encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
@@ -319,10 +327,14 @@ class FileSource:
                             else:
                                 start = 0;
                                 length = len(b);
+                            if binary:
+                                return (io.BytesIO(b), )
                             encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
                 raise ArchiveFileIOError(self, archiveFileName)
+        if binary:
+            return (io.open(filepath, 'rb'), )
         # check encoding
         with open(filepath, 'rb') as fb:
             hdrBytes = fb.read(512)
