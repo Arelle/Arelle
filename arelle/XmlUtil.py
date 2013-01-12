@@ -118,8 +118,8 @@ def encoding(xml, default="utf-8"):
 def text(element):   
     return textNotStripped(element).strip()
 
-def childText(element, childNamespaceURI, childLocalNames):   
-    element = child(element, childNamespaceURI, childLocalNames)
+def childText(element, childNamespaceURIs, childLocalNames):   
+    element = child(element, childNamespaceURIs, childLocalNames)
     return textNotStripped(element).strip() if element is not None else None
 
 def textNotStripped(element):
@@ -207,20 +207,21 @@ def descendantAttr(element, childNamespaceURI, childLocalNames, attrClarkName, a
     descendantElt = descendant(element, childNamespaceURI, childLocalNames, attrName, attrValue)
     return descendantElt.get(attrClarkName) if (descendantElt is not None) else None
 
-def children(element, childNamespaceURI, childLocalNames):
+def children(element, childNamespaceURIs, childLocalNames):
     children = []
     if not isinstance(childLocalNames,tuple): childLocalNames = (childLocalNames ,)
     wildLocalName = childLocalNames == ('*',)
-    wildNamespaceURI = not childNamespaceURI or childNamespaceURI == '*'
+    wildNamespaceURI = not childNamespaceURIs or childNamespaceURIs == '*'
+    if not isinstance(childNamespaceURIs,tuple): childNamespaceURIs = (childNamespaceURIs ,)
     if isinstance(element,ModelObject):
         for child in element.iterchildren():
             if isinstance(child,ModelObject) and \
-                (wildNamespaceURI or child.elementNamespaceURI == childNamespaceURI) and \
+                (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
                 (wildLocalName or child.localName in childLocalNames):
                 children.append(child)
     elif isinstance(element,etree._ElementTree): # document root
         child = element.getroot()
-        if (wildNamespaceURI or child.elementNamespaceURI == childNamespaceURI) and \
+        if (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
            (wildLocalName or child.localName in childLocalNames):
             children.append(child)
     return children

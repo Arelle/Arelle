@@ -405,7 +405,7 @@ class ModelTable(ModelFormulaResource):
 
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableFilter, XbrlConst.tableBreakdown, XbrlConst.tableAxis2011)
+        return (XbrlConst.tableFilter, XbrlConst.tableFilter2011, XbrlConst.tableBreakdown, XbrlConst.tableAxis2011)
                 
     @property
     def filterRelationships(self):
@@ -413,7 +413,7 @@ class ModelTable(ModelFormulaResource):
             return self._filterRelationships
         except AttributeError:
             rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
-            for rel in self.modelXbrl.relationshipSet(XbrlConst.tableFilter).fromModelObject(self):
+            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableFilter,XbrlConst.tableFilter2011)).fromModelObject(self):
                 if isinstance(rel.toModelObject, ModelConceptName):
                     rels.insert(0, rel)  # put conceptName filters first
                 else:
@@ -696,18 +696,18 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
         
     @property
     def relationshipSourceQname(self):
-        sourceQname = XmlUtil.child(self, XbrlConst.table, "relationshipSource")
+        sourceQname = XmlUtil.child(self, (XbrlConst.table, XbrlConst.table2011), "relationshipSource")
         if sourceQname is not None:
             return qname( sourceQname, XmlUtil.text(sourceQname) )
         return None
     
     @property
     def linkrole(self):
-        return XmlUtil.childText(self, XbrlConst.table, "linkrole")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "linkrole")
 
     @property
     def axis(self):
-        a = XmlUtil.childText(self, XbrlConst.table, ("axis", "formulaAxis"))
+        a = XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), ("axis", "formulaAxis"))
         if not a: a = 'descendant'  # would be an XML error
         return a
     
@@ -718,7 +718,7 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
     @property
     def generations(self):
         try:
-            return _INT( XmlUtil.childText(self, XbrlConst.table, "generations") )
+            return _INT( XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "generations") )
         except (TypeError, ValueError):
             if self.axis in ('sibling', 'child', 'parent'): 
                 return 1
@@ -726,19 +726,19 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
 
     @property
     def relationshipSourceQnameExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, "relationshipSourceExpression")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "relationshipSourceExpression")
 
     @property
     def linkroleExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, "linkroleExpression")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "linkroleExpression")
 
     @property
     def axisExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, ("axisExpression", "formulAxisExpression"))
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), ("axisExpression", "formulAxisExpression"))
 
     @property
     def generationsExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, "generationsExpression")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "generationsExpression")
 
     def compile(self):
         if not hasattr(self, "relationshipSourceQnameExpressionProg"):
@@ -822,18 +822,18 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
 
     @property
     def arcrole(self):
-        return XmlUtil.childText(self, XbrlConst.table, "arcrole")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "arcrole")
 
     @property
     def arcQname(self):
-        arcnameElt = XmlUtil.child(self, XbrlConst.table, "arcname")
+        arcnameElt = XmlUtil.child(self, (XbrlConst.table, XbrlConst.table2011), "arcname")
         if arcnameElt is not None:
             return qname( arcnameElt, XmlUtil.text(arcnameElt) )
         return None
 
     @property
     def linkQname(self):
-        linknameElt = XmlUtil.child(self, XbrlConst.table, "linkname")
+        linknameElt = XmlUtil.child(self, (XbrlConst.table, XbrlConst.table2011), "linkname")
         if linknameElt is not None:
             return qname( linknameElt, XmlUtil.text(linknameElt) )
         return None
@@ -869,15 +869,15 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
 
     @property
     def arcroleExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, "arcroleExpression")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "arcroleExpression")
 
     @property
     def linkQnameExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, "linknameExpression")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "linknameExpression")
 
     @property
     def arcQnameExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, "arcnameExpression")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "arcnameExpression")
     
     def coveredAspect(self, ordCntx=None):
         return Aspect.CONCEPT
@@ -920,14 +920,14 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
 
     @property
     def dimensionQname(self):
-        dimensionElt = XmlUtil.child(self, XbrlConst.table, "dimension")
+        dimensionElt = XmlUtil.child(self, (XbrlConst.table, XbrlConst.table2011), "dimension")
         if dimensionElt is not None:
             return qname( dimensionElt, XmlUtil.text(dimensionElt) )
         return None
 
     @property
     def dimensionQnameExpression(self):
-        return XmlUtil.childText(self, XbrlConst.table, "dimensionExpression")
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.table2011), "dimensionExpression")
 
     def compile(self):
         if not hasattr(self, "dimensionQnameExpressionProg"):
@@ -1110,6 +1110,7 @@ elementSubstitutionModelClass.update((
     (XbrlConst.qnEuTable, ModelEuTable),
     (XbrlConst.qnEuAxisCoord, ModelEuAxisCoord),
     (XbrlConst.qnTableTable, ModelTable),
+    (XbrlConst.qnTableTable2011, ModelTable),
     (XbrlConst.qnTableRuleNode, ModelRuleDefinitionNode),
     (XbrlConst.qnTableRuleAxis2011, ModelRuleDefinitionNode),
     (XbrlConst.qnTableCompositionNode, ModelCompositionDefinitionNode),

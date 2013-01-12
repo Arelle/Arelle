@@ -536,7 +536,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.blockViewModelObject -= 1
     
     def saveInstance(self):
-        if not self.newFactItemOptions.entityIdentScheme:  # not initialized yet
+        if (not self.newFactItemOptions.entityIdentScheme or  # not initialized yet
+            not self.newFactItemOptions.entityIdentValue or
+            not self.newFactItemOptions.startDateDate or not self.newFactItemOptions.endDateDate):
             if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
                 return # new instance not set
         newFilename = None # only used when a new instance must be created
