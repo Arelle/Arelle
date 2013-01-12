@@ -21,8 +21,10 @@ caller checks accepted, if True, caller retrieves url
 '''
 def getNewFactItemOptions(mainWin, newInstanceOptions=None):
     if newInstanceOptions is None: newInstanceOptions = NewFactItemOptions() 
-    if not newInstanceOptions.entityIdentScheme:
-        newInstanceOptions.__dict__.update(mainWin.config.get("newFactItemOptions",{}))
+    # use prior prevOptionValues for those keys not in existing newInstanceOptions
+    for prevOptionKey, prevOptionValue in mainWin.config.get("newFactItemOptions",{}).items():
+        if not getattr(newInstanceOptions, prevOptionKey, None):
+            newInstanceOptions.__dict__[prevOptionKey] = prevOptionValue
     dialog = DialogNewFactItemOptions(mainWin, newInstanceOptions)
     if dialog.accepted:
         if dialog.options is not None: # pickle as strings, DateTime won't unpickle right
