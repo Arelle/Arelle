@@ -137,7 +137,7 @@ class ValidateXbrlCalcs:
                                                     concept=sumConcept.qname, linkrole=ELR, 
                                                     reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
                                                     computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
-                                                    contextID=context.id, unitID=unit.id)
+                                                    contextID=fact.context.id, unitID=fact.unit.id)
                             boundSummationItems.clear() # dereference facts in list
                     elif arcrole == XbrlConst.essenceAlias:
                         for modelRel in relsSet.modelRelationships:
@@ -159,13 +159,13 @@ class ValidateXbrlCalcs:
                                                     _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                                     modelObject=(modelRel, eF, aF), 
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
-                                                    linkrole=ELR, contextID=context.id)
+                                                    linkrole=ELR, contextID=eF.context.id)
                                             if not XbrlUtil.vEqual(eF, aF):
                                                 self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                                     modelObject=(modelRel, eF, aF), 
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
-                                                    linkrole=ELR, contextID=context.id)
+                                                    linkrole=ELR, contextID=eF.context.id)
                     elif arcrole == XbrlConst.requiresElement:
                         for modelRel in relsSet.modelRelationships:
                             sourceConcept = modelRel.fromModelObject
