@@ -63,12 +63,13 @@ def checkDimensions(val, drsELRs):
                         dim = hcDimRel.toModelObject
                         domELR = hcDimRel.targetRole
                         domTargetRequired = (domELR is not None)
-                        if not domELR and dim.isExplicitDimension:
-                            domELR = dimELR
-                            if val.validateSBRNL:
-                                val.modelXbrl.error("SBR.NL.2.3.5.04",
-                                    _("Hypercube %(hypercube)s in DRS role %(linkrole)s, missing targetrole to dimension %(dimension)s consecutive relationship"),
-                                    modelObject=hcDimRel, hypercube=hc.qname, linkrole=ELR, dimension=dim.qname)
+                        if not domELR:
+                            if dim.isExplicitDimension:
+                                domELR = dimELR
+                                if val.validateSBRNL:
+                                    val.modelXbrl.error("SBR.NL.2.3.5.04",
+                                        _("Hypercube %(hypercube)s in DRS role %(linkrole)s, missing targetrole to dimension %(dimension)s consecutive relationship"),
+                                        modelObject=hcDimRel, hypercube=hc.qname, linkrole=ELR, dimension=dim.qname)
                         else:
                             if dim.isTypedDimension and val.validateSBRNL:
                                 val.modelXbrl.error("SBR.NL.2.3.5.07",

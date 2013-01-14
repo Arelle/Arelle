@@ -1456,6 +1456,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     _("Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"),
                                     modelObject=modelRel, conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
                                     linkrole=modelRel.linkrole)
+                        ''' removed per RH 2013-01-11
                         if not (XbrlConst.isStandardArcrole(arcrole) or XbrlConst.isDefinitionOrXdtArcrole(arcrole)):
                             for modelRel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
                                 relTo = modelRel.toModelObject
@@ -1469,7 +1470,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         _("The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"),
                                         modelObject=modelRel, elementFrom=relFrom.qname, elementTo=relTo.qname, 
                                         linkrole=modelRel.linkrole, arcrole=arcrole)
-                            
+                            '''
                            
                     # definition tests (GFM only, for now)
                     if XbrlConst.isDefinitionOrXdtArcrole(arcrole) and disclosureSystem.GFM: 
@@ -1587,8 +1588,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             # check arc role definitions for labels
             for arcroleURI, modelRoleTypes in modelXbrl.arcroleTypes.items():
                 for modelRoleType in modelRoleTypes:
-                    if not arcroleURI.startswith("http://xbrl.org/") and (
-                       not modelRoleType.genLabel(lang="nl") or not modelRoleType.genLabel(lang="en")):
+                    if (not arcroleURI.startswith("http://xbrl.org/") and 
+                        modelRoleType.modelDocument.targetNamespace not in disclosureSystem.baseTaxonomyNamespaces and
+                        (not modelRoleType.genLabel(lang="nl") or not modelRoleType.genLabel(lang="en"))):
                         modelXbrl.error("SBR.NL.2.2.4.02",
                             _("ArcroleType missing nl or en generic label: %(arcrole)s"),
                             modelObject=modelRoleType, arcrole=arcroleURI)
