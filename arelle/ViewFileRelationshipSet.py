@@ -24,6 +24,8 @@ class ViewRelationshipSet(ViewFile.View):
         # set up treeView widget and tabbed pane
         if arcrole == "XBRL-dimensions":    # add columns for dimensional information
             heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
+        elif arcrole == XbrlConst.summationItem:    # add columns for calculation relationships
+            heading = ["Calculation Relationships", "Weight", "Balance"]
         else:
             heading = [os.path.basename(arcrole).title() + " Relationships"]
         # relationship set based on linkrole parameter, to determine applicable linkroles
@@ -100,17 +102,21 @@ class ViewRelationshipSet(ViewFile.View):
             text = concept.localName
             xmlRowElementName = text
         cols = [text]
-        if arcrole == "XBRL-dimensions" and isRelation: # extra columns
-            relArcrole = modelObject.arcrole
-            cols.append( os.path.basename( relArcrole ) )
-            if relArcrole in (XbrlConst.all, XbrlConst.notAll):
-                cols.append( modelObject.contextElement )
-                cols.append( modelObject.closed )
-            else:
-                cols.append(None)
-                cols.append(None)
-            if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                cols.append( modelObject.usable  )
+        if isRelation:
+            if arcrole == "XBRL-dimensions": # extra columns
+                relArcrole = modelObject.arcrole
+                cols.append( os.path.basename( relArcrole ) )
+                if relArcrole in (XbrlConst.all, XbrlConst.notAll):
+                    cols.append( modelObject.contextElement )
+                    cols.append( modelObject.closed )
+                else:
+                    cols.append(None)
+                    cols.append(None)
+                if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
+                    cols.append( modelObject.usable  )
+            elif arcrole == XbrlConst.summationItem:
+                cols.append("{:0g} ".format(modelObject.weight))
+                cols.append(concept.balance)
         self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
         if concept not in visited:
             visited.add(concept)
