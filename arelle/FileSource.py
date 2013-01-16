@@ -78,12 +78,11 @@ class FileSource:
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
             self.type == ".xml" and
             checkIfXmlIsEis):
-            match = b'<?xml version="1.0" ?><cor:edgarSubmission'
             try:
-                file = open(self.cntlr.webCache.getfilename(self.url), 'rb')
-                l = file.read(len(match))
+                file = open(self.cntlr.webCache.getfilename(self.url), 'r')
+                l = file.read(128)
                 file.close()
-                if l == match:
+                if re.match(r"\s*<[?]xml[^?]+[?]><cor:edgarSubmission", l):
                     self.isEis = True
             except EnvironmentError as err:
                 if self.cntlr:
@@ -133,7 +132,12 @@ class FileSource:
                 
                 if buf.startswith(b"<?xml "):
                     try:
-                        file = io.StringIO(initial_value=buf.decode("utf-8"))
+                        # must strip encoding
+                        str = buf.decode(XmlUtil.encoding(buf))
+                        endEncoding = str.index("?>", 0, 128)
+                        if endEncoding > 0:
+                            str = str[endEncoding+2:]
+                        file = io.StringIO(initial_value=str)
                         self.eisDocument = etree.parse(file)
                         file.close()
                         self.isOpen = True
