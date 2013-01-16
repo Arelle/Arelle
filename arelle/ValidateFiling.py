@@ -290,9 +290,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 contextIDs.discard(factContextID)
                     
                 context = f.context
-                factElementName = f.localName
+                factQname = f.qname # works for both inline and plain instances
+                factElementName = factQname.localName
                 if disclosureSystem.deiNamespacePattern is not None:
-                    factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(f.namespaceURI)
+                    factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(factQname.namespaceURI)
                 else:
                     factInDeiNamespace = None
                 # standard dei items from required context
