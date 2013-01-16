@@ -302,7 +302,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = sValue = False
                 else: raise ValueError
             elif baseXsdType == "QName":
-                xValue = qname(elt, value, castException=ValueError)
+                xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
                 sValue = value
                 ''' not sure here, how are explicitDimensions validated, but bad units not?
                 if xValue.namespaceURI in modelXbrl.namespaceDocs:
