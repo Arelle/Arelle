@@ -52,13 +52,16 @@ def UnitSatisfies(aRegEntry, unit, modelXbrl): # Return true if entry is satisfi
         if len(unit.measures[1]) > 0 or len(unit.measures[0]) > 1:
             return False # and only one measure
         else:
-            qnameMeasure = unit.measures[0][0]
-            if qnameMeasure.namespaceURI != aRegEntry[1] or qnameMeasure.localName != aRegEntry[0]: 
-                #print(_("NOT EQUAL {0} {1}").format(sQName,sRequiredQName))
-                return False
-            else: 
-                #print(_("EQUAL {0} {1}").format(sQName,sRequiredQName))
-                return True # hooray       
+            try:
+                qnameMeasure = unit.measures[0][0]
+                if qnameMeasure.namespaceURI != aRegEntry[1] or qnameMeasure.localName != aRegEntry[0]: 
+                    #print(_("NOT EQUAL {0} {1}").format(sQName,sRequiredQName))
+                    return False
+                else: 
+                    #print(_("EQUAL {0} {1}").format(sQName,sRequiredQName))
+                    return True # hooray       
+            except IndexError:
+                return False  # no measure, so it can't possibly be equal
     else: # Entry requires a Divide
         if not unit.isDivide:
             return False
