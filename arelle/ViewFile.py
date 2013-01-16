@@ -64,6 +64,7 @@ class View:
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
+        <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css"> 
             table {font-family:Arial,sans-serif;vertical-align:middle;white-space:normal;}
             th {background:#eee;}
@@ -96,6 +97,7 @@ class View:
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
+        <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css"> 
             table {font-family:Arial,sans-serif;vertical-align:middle;white-space:normal;
                     border-top:.5pt solid windowtext;border-right:1.5pt solid windowtext;border-bottom:1.5pt solid windowtext;border-left:.5pt solid windowtext;}
@@ -262,7 +264,8 @@ class View:
                 if self.type == JSON:
                     fh.write(json.dumps(self.jsonObject, ensure_ascii=False))
                 else:
-                    XmlUtil.writexml(fh, self.xmlDoc, encoding="utf-8")
+                    XmlUtil.writexml(fh, self.xmlDoc, encoding="utf-8",
+                                     xmlcharrefreplace= (self.type == HTML) )
                 if not isinstance(self.outfile, FileNamedStringIO):
                     fh.close()
                 self.modelXbrl.info("info", _("Saved output %(type)s to %(file)s"), file=self.outfile, type=fileType)

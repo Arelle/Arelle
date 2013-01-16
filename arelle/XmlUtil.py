@@ -668,7 +668,7 @@ def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False):
     else:
         return xml
 
-def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
+def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, parentNsmap=None):
     # customized from xml.minidom to provide correct indentation for data items
     if isinstance(node,etree._ElementTree):
         if encoding:
@@ -680,9 +680,9 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
                 break   # stop depth first iteration after comment and root node
             if child.tag == 'nsmap':
                 for nsmapChild in child:
-                    writexml(writer, nsmapChild, indent=indent, parentNsmap={}) # force all xmlns in next element
+                    writexml(writer, nsmapChild, indent=indent, xmlcharrefreplace=xmlcharrefreplace, parentNsmap={}) # force all xmlns in next element
             else:
-                writexml(writer, child, indent=indent, parentNsmap={})
+                writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, parentNsmap={})
     elif isinstance(node,etree._Comment): # ok to use minidom implementation
         writer.write(indent+"<!--" + node.text + "-->\n")
     elif isinstance(node,etree._Element):
@@ -756,7 +756,13 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
         firstChild = True
         text = node.text
         if text is not None:
-            text = text.replace("&","&amp;").replace("\u00A0","&nbsp;").strip().replace("<","&lt;").replace("\u00AD","&shy;")
+            text = ''.join("&amp;" if c == "&"
+                           else "&nbsp;" if c == "\u00A0" 
+                           else "&lt;" if c == "<"
+                           else "&shy;" if c == "\u00AD"
+                           else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
+                           else c
+                           for c in text)
         for child in node.iterchildren():
             hasChildNodes = True
             if firstChild:
@@ -764,7 +770,7 @@ def writexml(writer, node, encoding=None, indent='', parentNsmap=None):
                 if text:
                     writer.write(text)
                 firstChild = False
-            writexml(writer, child, indent=indent+'    ')
+            writexml(writer, child, indent=indent+'    ', xmlcharrefreplace=xmlcharrefreplace)
         if hasChildNodes:
             writer.write("%s</%s>\n" % (indent, tag))
         elif text:
