@@ -226,7 +226,7 @@ class Cntlr:
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
                      logLevel=None, logHandler=None):
-        # add additional logging levels    
+        # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
         logging.addLevelName(logging.WARNING + 2, "ASSERTION-SATISFIED")
@@ -263,7 +263,7 @@ class Cntlr:
                 self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
                     logLevel, ', '.join(logging.getLevelName(l).lower()
                                         for l in sorted([i for i in logging._levelNames.keys()
-                                                         if isinstance(i,int) and i > 0]))),
+                                                         if isinstance(i,_INT_TYPES) and i > 0]))),
                               level=logging.ERROR, messageCode="arelle:logLevel")
             else:
                 self.logger.setLevel(logging.getLevelName((logLevel or "debug").upper()))
@@ -440,7 +440,7 @@ class LogFormatter(logging.Formatter):
                                 for file, lines in sorted(fileLines.items()))
         try:
             formattedMessage = super(LogFormatter, self).format(record)
-        except KeyError as ex:
+        except (KeyError, ValueError) as ex:
             formattedMessage = "Message: " + record.args.get('error','') + " \nMessage log error: " + str(ex)
         del record.file
         return formattedMessage
