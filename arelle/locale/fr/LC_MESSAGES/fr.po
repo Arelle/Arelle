@@ -266,8 +266,8 @@ msgstr "La version xml de %(docType)s doit être \"1.0\" mais est "
 "\"%(xmlVersion)s\""
 
 #: ValidateVersReport.py:38
-msgid "%(dts) has errors: %(error)s"
-msgstr "%(dts) a des erreurs : %(error)s"
+msgid "%(dts)s has errors: %(error)s"
+msgstr "%(dts)s a des erreurs : %(error)s"
 
 #: ValidateVersReport.py:31
 msgid "%(dts)s is missing or not loaded"
@@ -356,9 +356,9 @@ msgstr "%(error)s, fichier %(fileName)s, élément source "
 "%(sourceAction)s"
 
 #: ValidateVersReport.py:318
-msgid "%(event)s %(relSet)s arc %(arc) does not reference an element in its "
+msgid "%(event)s %(relSet)s arc %(arc)s does not reference an element in its "
 "DTS"
-msgstr "%(event)s %(relSet)s arc %(arc) ne référence pas un élément dans son "
+msgstr "%(event)s %(relSet)s arc %(arc)s ne référence pas un élément dans son "
 "DTS"
 
 #: ValidateVersReport.py:332
@@ -1359,7 +1359,7 @@ msgstr "Le concept %(concept)s est également défin dans le schéma "
 
 #: ValidateFilingDTS.py:213
 msgid "Concept %(concept)s is an abstract tuple"
-msgstr "Le concept %(concept) est un tuple abstrait"
+msgstr "Le concept %(concept)s est un tuple abstrait"
 
 #: ValidateFilingDTS.py:173
 msgid "Concept %(concept)s is an Axis but not in hypercubeItem substitution "
@@ -1508,15 +1508,15 @@ msgstr "Cohérence de Assertion %(id)s :%(xlinkLabel)s a une relation vers un "
 "%(elementTo)s %(xlinkLabelTo)s "
 
 #: ValidateXbrl.py:419
-msgid "Context %(contextID) startDate or endDate: "
+msgid "Context %(contextID)s startDate or endDate: "
 "%(error)s"
-msgstr "Contexte %(contextID) startDate ou endDate : "
+msgstr "Contexte %(contextID)s startDate ou endDate : "
 "%(error)s"
 
 #: ValidateXbrl.py:612
 msgid "Context %(contextID)s %(contextElement)s cannot be "
 "empty"
-msgstr "Contexte %(contextID) L'élément %(contextElement)s ne peut pas être "
+msgstr "Contexte %(contextID)s L'élément %(contextElement)s ne peut pas être "
 "vide"
 
 #: ValidateXbrl.py:603
@@ -1881,7 +1881,7 @@ msgid "Dimension-default relationship from %(source)s to %(target)s in link "
 "role %(linkrole)s has a typed dimension "
 "source"
 msgstr "La relation dimension-default de %(source)s vers %(target)s dans le "
-"rôle %(linkrole) est associée à une dimension "
+"rôle %(linkrole)s est associée à une dimension "
 "typée"
 
 #: ValidateXbrlDimensions.py:124
@@ -1935,13 +1935,13 @@ msgstr "Dimensions"
 #: ValidateFilingText.py:391
 msgid "Disallowed character '%(text)s' in file %(file)s at line %(line)s col "
 "%(column)s"
-msgstr "Caractère '%(text)s' non autorisée dans le fichier %(file) ligne "
+msgstr "Caractère '%(text)s' non autorisée dans le fichier %(file)s ligne "
 "%(line)s colonne %(column)s"
 
 #: ValidateFilingText.py:387
 msgid "Disallowed entity code %(text)s in file %(file)s line %(line)s column "
 "%(column)s"
-msgstr "Entité '%(text)s' non autorisée dans le fichier %(file) ligne "
+msgstr "Entité '%(text)s' non autorisée dans le fichier %(file)s ligne "
 "%(line)s colonne %(column)s"
 
 #: ValidateFiling.py:956
@@ -1974,13 +1974,13 @@ msgstr "Dans %(fileName)s, l'espace de nommage attendu est %(namespace)s mais "
 #: ValidateFiling.py:569
 msgid "DocumentType '%(documentType)s' of context %(contextID)s inapplicable "
 "to submission form %(submissionType)s"
-msgstr "Le DocumentType '%(documentType)s' du contexte %(contextID) n'est pas "
+msgstr "Le DocumentType '%(documentType)s' du contexte %(contextID)s n'est pas "
 "reconnu"
 
 #: ValidateFiling.py:552
 msgid "DocumentType '%(documentType)s' of context %(contextID)s was not "
 "recognized"
-msgstr "Le DocumentType '%(documentType)s' du contexte %(contextID) n'est pas "
+msgstr "Le DocumentType '%(documentType)s' du contexte %(contextID)s n'est pas "
 "reconnu"
 
 #: ValidateFiling.py:540
@@ -2059,7 +2059,7 @@ msgstr "Élément %(element)s %(attribute)s %(roleURI)s "
 msgid "Duplicate calculations relations from concept %(conceptFrom)s for "
 "order %(order)s in base set role %(linkrole)s to concept "
 "%(conceptTo)s and to concept %(conceptTo2)s"
-msgstr "Relations de calcul dupliquées entre concept %(conceptFrom) pour "
+msgstr "Relations de calcul dupliquées entre concept %(conceptFrom)s pour "
 "l'ordre %(order)s dans le rôle d'ensemble de base %(linkrole)s vers "
 "le concept %(conceptTo)s et vers le concept "
 "%(conceptTo2)s"
@@ -2068,7 +2068,7 @@ msgstr "Relations de calcul dupliquées entre concept %(conceptFrom) pour "
 msgid "Duplicate definitions relations from concept %(conceptFrom)s for "
 "order %(order)s in base set role %(linkrole)s to concept "
 "%(conceptTo)s and to concept %(conceptTo2)s"
-msgstr "Relations de définition dupliquées entre concept %(conceptFrom) pour "
+msgstr "Relations de définition dupliquées entre concept %(conceptFrom)s pour "
 "l'ordre %(order)s dans le rôle d'ensemble de base %(linkrole)s vers "
 "le concept %(conceptTo)s et vers le concept "
 "%(conceptTo2)s"
@@ -2077,7 +2077,7 @@ msgstr "Relations de définition dupliquées entre concept %(conceptFrom) pour "
 msgid "Duplicate presentation relations from concept %(conceptFrom)s for "
 "order %(order)s in base set role %(linkrole)s to concept "
 "%(conceptTo)s and to concept %(conceptTo2)s"
-msgstr "Relations de présentation dupliquées entre concept %(conceptFrom) "
+msgstr "Relations de présentation dupliquées entre concept %(conceptFrom)s "
 "pour l'ordre %(order)s dans le rôle d'ensemble de base %(linkrole)s "
 "vers le concept %(conceptTo)s et vers le concept "
 "%(conceptTo2)s"
@@ -2484,38 +2484,38 @@ msgstr "Le fait %(fact)s doit être un item ou un "
 "tuple"
 
 #: ValidateFilingText.py:543
-msgid "Fact %(fact)s of context %(contextID) has a '>' in text, not "
+msgid "Fact %(fact)s of context %(contextID)s has a '>' in text, not "
 "well-formed XML: '%(text)s'"
 msgstr "Le fait %(fact)s du context %(contextID)s a un '>' dans son texte, le "
 "XML n'est pas correctement formé: [%(text)s]"
 
 #: ValidateFilingText.py:536
-msgid "Fact %(fact)s of context %(contextID) has an invalid external "
+msgid "Fact %(fact)s of context %(contextID)s has an invalid external "
 "reference in '%(attribute)s' for <%(element)s>"
 msgstr "Le fait %(fact)s du context %(contextID)s a une référence externe non "
 "valide dans l'attribut '%(attribute)s' pour "
 "<%(element)s>"
 
 #: ValidateFilingText.py:522
-msgid "Fact %(fact)s of context %(contextID) has attribute '%(attribute)s' "
+msgid "Fact %(fact)s of context %(contextID)s has attribute '%(attribute)s' "
 "not allowed for <%(element)s>"
 msgstr "Le fait %(fact)s du context %(contextID)s a un attribut "
 "'%(attribute)s' non autorisé pour <%(element)s>"
 
 #: ValidateFilingText.py:514
-msgid "Fact %(fact)s of context %(contextID) has disallowed html tag: "
+msgid "Fact %(fact)s of context %(contextID)s has disallowed html tag: "
 "<%(element)s>"
 msgstr "Le fait %(fact)s du context %(contextID)s contient un tag HTML non "
 "autorisé: <%(element)s>"
 
 #: ValidateFilingText.py:529
-msgid "Fact %(fact)s of context %(contextID) has javascript in "
+msgid "Fact %(fact)s of context %(contextID)s has javascript in "
 "'%(attribute)s' for <%(element)s>"
 msgstr "Le fait %(fact)s du context %(contextID)s contient du javascript dans "
 "l'attribut '%(attribute)s' pour <%(element)s>"
 
 #: ValidateFilingText.py:552
-msgid "Fact %(fact)s of context %(contextID) has text which causes the XML "
+msgid "Fact %(fact)s of context %(contextID)s has text which causes the XML "
 "error %(error)s line %(line)s column "
 "%(column)s"
 msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
@@ -2523,7 +2523,7 @@ msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
 "%(column)s"
 
 #: ValidateFilingText.py:559
-msgid "Fact %(fact)s of context %(contextID) has text which causes the XML "
+msgid "Fact %(fact)s of context %(contextID)s has text which causes the XML "
 "fatal error %(error)s line %(line)s column "
 "%(column)s"
 msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
@@ -2531,7 +2531,7 @@ msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
 "%(column)s"
 
 #: ValidateFilingText.py:565
-msgid "Fact %(fact)s of context %(contextID) has text which causes the XML "
+msgid "Fact %(fact)s of context %(contextID)s has text which causes the XML "
 "warning %(error)s line %(line)s column "
 "%(column)s"
 msgstr "Le fait %(fact)s du context %(contextID)s contient du texte qui est à "
@@ -4196,7 +4196,7 @@ msgstr "La référence %(xlinkLabel)s devrait avoir un attribut "
 #: ValidateXbrlDTS.py:905
 msgid "ReferenceArc from %(xlinkFrom)s to %(xlinkTo)s has an "
 "order"
-msgstr "referenceArc de %(xlinkFrom) vers %(xlinkTo)s a un "
+msgstr "referenceArc de %(xlinkFrom)s vers %(xlinkTo)s a un "
 "ordre"
 
 #: ViewWinRelationshipSet.py:62
@@ -4244,7 +4244,7 @@ msgstr "Les relations forment un cycle %(cycle)s dans le rôle d'arc "
 #: ValidateVersReport.py:95
 msgid "ReportRef xlink:arcrole %(arcrole)s is "
 "invalid"
-msgstr "reportRef xlink:arcrole %(arcrole) n'est pas "
+msgstr "reportRef xlink:arcrole %(arcrole)s n'est pas "
 "valide"
 
 #: ValidateVersReport.py:90
@@ -4271,7 +4271,7 @@ msgstr ""
 #: ValidateXbrlDTS.py:819
 msgid "Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy "
 "role"
-msgstr "Resource %(xlinkLabel)s, le rôle %(role) n'est pas un rôle standard "
+msgstr "Resource %(xlinkLabel)s, le rôle %(role)s n'est pas un rôle standard "
 "de taxonomy"
 
 #: WebCache.py:292
@@ -5013,7 +5013,7 @@ msgstr "L'unité %(unitID)s a une mesure non autorisée : "
 #: ValidateXbrl.py:446
 msgid "Unit %(unitID)s numerator measure: %(measure)s also appears as "
 "denominator measure"
-msgstr "Unité %(unitID)s, la mesure %(measure) apparaît à la fois dans le "
+msgstr "Unité %(unitID)s, la mesure %(measure)s apparaît à la fois dans le "
 "numérateur et le dénominateur."
 
 #: ViewWinTree.py:194
@@ -5523,8 +5523,8 @@ msgstr "Le type xlink %(xlinkType)s n'est pas valide dans le lien étendu "
 msgid "XML declaration encoding %(encoding)s and meta content type encoding "
 "%(metaContentTypeEncoding)s must both be "
 "utf-8"
-msgstr "La déclaration d'encodage %(encoding) and le type d'encodage du "
-"méta-contenu %(metaContentTypeEncoding) doivent tous deux être "
+msgstr "La déclaration d'encodage %(encoding)s and le type d'encodage du "
+"méta-contenu %(metaContentTypeEncoding)s doivent tous deux être "
 "UTF-8"
 
 #: DialogFind.py:175

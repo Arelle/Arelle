@@ -295,10 +295,10 @@ class Validate:
                 status = "pass"
         elif expected is None and numErrors == 0:
             status = "pass"
-        elif isinstance(expected,(QName,str,dict)): # string or assertion id counts dict
+        elif isinstance(expected,(QName,_STR_BASE,dict)): # string or assertion id counts dict
             status = "fail"
             for testErr in modelUnderTest.errors:
-                if isinstance(expected,QName) and isinstance(testErr,str):
+                if isinstance(expected,QName) and isinstance(testErr,_STR_BASE):
                     errPrefix, sep, errLocalName = testErr.partition(":")
                     if ((not sep and errPrefix == expected.localName) or
                         (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName)) or
@@ -330,8 +330,8 @@ class Validate:
         else:
             status = "fail"
         modelTestcaseVariation.status = status
+        modelTestcaseVariation.actual = []
         if numErrors > 0: # either coded errors or assertions (in errors list)
-            modelTestcaseVariation.actual = []
             # put error codes first, sorted, then assertion result (dict's)
             for error in modelUnderTest.errors:
                 if isinstance(error,dict):  # asserion results

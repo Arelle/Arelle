@@ -9,6 +9,7 @@ def unpackEIS(cntlr, eisFile, unpackToDir):
     from arelle.FileSource import openFileSource
     filesource = openFileSource(eisFile, cntlr, checkIfXmlIsEis=True)
     if not filesource.isArchive:
+        cntlr.addToLog("[info:unpackEIS] Not recognized as an EIS file: " + eisFile)
         return
     import os, io
     

@@ -319,7 +319,7 @@ def checkDTSdocument(val, modelDocument):
                             val.modelXbrl.error("SBR.NL.3.2.8.01",
                                 _("Custom datatypes MUST be a restriction from XII defined datatypes: %(type)s"),
                                 modelObject=modelType, type=modelType.qname)
-                        if re.match(r"[^a-z0-9_/-]", name):
+                        if re.match(r"[^a-zA-Z0-9_-]", name):
                             val.modelXbrl.error("SBR.NL.3.2.8.02",
                                 _("Datatype names MUST use characters a-zA-Z0-9_- only: %(type)s"),
                                 modelObject=modelDocument, type=modelType.qname)

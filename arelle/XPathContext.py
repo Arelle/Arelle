@@ -287,7 +287,7 @@ class XPathContext:
                     if len(resultStack) == 0:
                         result = []
                     else:
-                        op1 = self.effectiveBooleanValue( p, resultStack.pop() )
+                        op1 = self.effectiveBooleanValue( p, resultStack.pop() ) if len(resultStack) > 0 else False
                         op2 = self.effectiveBooleanValue( p, self.evaluate(p.args, contextItem=contextItem) )
                         result = False;
                         if op == 'and':
@@ -358,7 +358,7 @@ class XPathContext:
                 elif op == 'sequence':
                     result = self.evaluate(p.args, contextItem=contextItem)
                 elif op == 'predicate':
-                    result = self.predicate(p, resultStack.pop())
+                    result = self.predicate(p, resultStack.pop()) if len(resultStack) > 0 else []
                 elif op in FORSOMEEVERY_OPS: # for, some, every
                     result = []
                     self.evaluateRangeVars(op, p.args[0], p.args[1:], contextItem, result)

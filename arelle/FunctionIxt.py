@@ -89,7 +89,7 @@ eraStart = {'\u5E73\u6210': 1988,
             }
 
 def eraYear(era,yr):
-    return eraStart[era] + (1 if yr == '\u5143' else int(yr))
+    return eraStart[era] + (1 if yr == '\u5143' else _INT(yr))
 
 # transforms    
 

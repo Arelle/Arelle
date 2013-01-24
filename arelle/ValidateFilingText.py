@@ -665,7 +665,7 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
                 return
         if not name in bodyTags:
             self.modelXbrl.error("EFM.6.05.16",
-                _("Fact %(fact)s of context %(contextID) has disallowed html tag: <%(element)s>"),
+                _("Fact %(fact)s of context %(contextID)s has disallowed html tag: <%(element)s>"),
                 modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
                 element=name)
         else:
@@ -673,28 +673,28 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
                 if not (item[0] in htmlAttributes and \
                     (name in htmlAttributes[item[0]] or '*' in htmlAttributes[item[0]])):
                     self.modelXbrl.error("EFM.6.05.16",
-                        _("Fact %(fact)s of context %(contextID) has attribute '%(attribute)s' not allowed for <%(element)s>"),
+                        _("Fact %(fact)s of context %(contextID)s has attribute '%(attribute)s' not allowed for <%(element)s>"),
                         modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
                         attribute=item[0], element=name)
                 elif (item[0] == "href" and name == "a") or \
                      (item[0] == "src" and name == "img"):
                     if "javascript:" in item[1]:
                         self.modelXbrl.error("EFM.6.05.16",
-                            _("Fact %(fact)s of context %(contextID) has javascript in '%(attribute)s' for <%(element)s>"),
+                            _("Fact %(fact)s of context %(contextID)s has javascript in '%(attribute)s' for <%(element)s>"),
                             modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
                             attribute=item[0], element=name)
                     elif item[1].startswith("http://www.sec.gov/Archives/edgar/data/") and name == "a":
                         pass
                     elif "http:" in item[1] or "https:" in item[1] or "ftp:" in item[1]:
                         self.modelXbrl.error("EFM.6.05.16",
-                            _("Fact %(fact)s of context %(contextID) has an invalid external reference in '%(attribute)s' for <%(element)s>"),
+                            _("Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                             modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
                             attribute=item[0], element=name)
 
     def characters (self, ch):
         if ">" in ch:
             self.modelXbrl.error("EFM.6.05.15",
-                _("Fact %(fact)s of context %(contextID) has a '>' in text, not well-formed XML: '%(text)s'"),
+                _("Fact %(fact)s of context %(contextID)s has a '>' in text, not well-formed XML: '%(text)s'"),
                  modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, text=ch)
 
     def endElement(self, name):
@@ -703,20 +703,20 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
             
     def error(self, err):
         self.modelXbrl.error("EFM.6.05.15",
-            _("Fact %(fact)s of context %(contextID) has text which causes the XML error %(error)s line %(line)s column %(column)s"),
+            _("Fact %(fact)s of context %(contextID)s has text which causes the XML error %(error)s line %(line)s column %(column)s"),
              modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
     
     def fatalError(self, err):
         msg = err.getMessage()
         self.modelXbrl.error("EFM.6.05.15",
-            _("Fact %(fact)s of context %(contextID) has text which causes the XML fatal error %(error)s line %(line)s column %(column)s"),
+            _("Fact %(fact)s of context %(contextID)s has text which causes the XML fatal error %(error)s line %(line)s column %(column)s"),
              modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
     
     def warning(self, err):
         self.modelXbrl.warning("EFM.6.05.15",
-            _("Fact %(fact)s of context %(contextID) has text which causes the XML warning %(error)s line %(line)s column %(column)s"),
+            _("Fact %(fact)s of context %(contextID)s has text which causes the XML warning %(error)s line %(line)s column %(column)s"),
              modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
 '''

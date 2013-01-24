@@ -49,7 +49,11 @@ def anyUriQuoteForPSVI(uri):
     if any(c in {' ', '<', '>', '"', '{', '}', '|', '\\', '^', '~', '`'} or
            not '\x1f' < c < '\x7f'
            for c in uri):
-        return quote(uri, safe="/_.-%#!~*'();?:@&=+$,")
+        if not isPy3:  # patch for unicode per http://hg.python.org/cpython/rev/1e21d94e05f4/
+            return quote(uri.encode(b'utf-8', b'strict'),
+                         safe=b"/_.-%#!~*'();?:@&=+$,")  # b'str' converts to 2.7 str type which is required here
+        else:
+            return quote(uri, safe="/_.-%#!~*'();?:@&=+$,")
     return uri
 
 def isValidAbsolute(url):

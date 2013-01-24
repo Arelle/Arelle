@@ -145,7 +145,7 @@ def string_join(xc, p, contextItem, args):
     joiner = stringArg(xc, args, 1, "xs:string")
     atomizedArgs = []
     for x in xc.atomize( p, args[0] ):
-        if isinstance(x, str):
+        if isinstance(x, _STR_BASE):
             atomizedArgs.append(x)
         else:
             raise XPathContext.FunctionArgType(0,"xs:string*")
@@ -540,7 +540,7 @@ def boolean(xc, p, contextItem, args):
     if len(inputSequence) == 1:
         if isinstance(item, bool):
             return item
-        if isinstance(item, str):
+        if isinstance(item, _STR_BASE):
             return len(item) > 0
         if isinstance(item, _NUM_TYPES):
             return not math.isnan(item) and item != 0
