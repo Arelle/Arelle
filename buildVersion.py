@@ -37,7 +37,8 @@ if __name__ == "__main__":
             fh.write("mv dist/exe.linux-x86_64-3.2.tar.gz dist/arelle-linux-x86_64-{0}.tar.gz\n".format(distFileDate))
     elif sys.platform == "sunos5":
         with open("buildRenameSol10Sun4.sh", "w") as fh:
-            fh.write("mv dist/exe.solaris-2.10-sun4v-3.2.tar.gz dist/arelle-solaris10-sun4-{0}.tar.gz\n".format(distFileDate))
+            fh.write("mv dist/exe.solaris-2.10-sun4v-{0}.tar.gz dist/arelle-solaris10-sun4-{1}.tar.gz\n"
+                     .format(sys.version[0:3], distFileDate))
     elif sys.platform.startswith("win"):
         renameCmdFile = "buildRenamer.bat"
         with open("buildRenameX86.bat", "w") as fh:
