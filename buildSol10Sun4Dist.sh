@@ -3,13 +3,12 @@
 # this file must have unix newlines (to prevent extraneous errors when running)
 # must run sudo on ubuntu
 
+PYTHON=python3.1
+
 # create version with date and a shell file to name output with the date
-python3.2 buildVersion.py
+${PYTHON} buildVersion.py
 
-# Regenerate messages catalog (doc/messagesCatalog.xml)
-python3.2 generateMessagesCatalog.py
-
-BUILT64=exe.solaris-2.10-sun4v-3.2
+BUILT64=exe.solaris-2.10-sun4v-3.1
 
 if [ -d build/${BUILT64} ]
   then
@@ -23,13 +22,13 @@ if [ ! -d dist ]
 fi
 
 # run cx_Freeze setup
-python3.2 setup.py build_exe
+${PYTHON} setup.py build
 cp arelle/scripts-unix/* build/${BUILT64}
 
 cd build/${BUILT64}
 
 # for now there's no tkinter on solaris sun4 (intended for server only)
-rm arelleGUI
+# rm arelleGUI
 
 tar -cf ../../dist/${BUILT64}.tar .
 gzip ../../dist/${BUILT64}.tar
