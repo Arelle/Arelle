@@ -237,7 +237,7 @@ def parseAndRun(args):
     elif len(leftoverArgs) != 0 or (options.entrypointFile is None and 
                                     ((not options.proxy) and (not options.plugins)
                                      and (not hasWebServer or options.webserver is None))):
-        parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.pyw --help"))
+        parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.py --help"))
     elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.gfmName,
@@ -272,7 +272,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
     """
 
     def __init__(self, logFileName=None):
-        super(CntlrCmdLine, self).__init__()
+        super(CntlrCmdLine, self).__init__(hasGui=False)
         
     def run(self, options, sourceZipStream=None):
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.

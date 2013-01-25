@@ -47,8 +47,7 @@ restartMain = True
 class CntlrWinMain (Cntlr.Cntlr):
 
     def __init__(self, parent):
-        super(CntlrWinMain, self).__init__()
-        self.hasGui = True
+        super(CntlrWinMain, self).__init__(hasGui=True)
         self.parent = parent
         self.filename = None
         self.dirty = False

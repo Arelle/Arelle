@@ -74,9 +74,9 @@ class Cntlr:
     """
     __version__ = "1.0.0"
     
-    def __init__(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
+    def __init__(self, hasGui=False, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         self.hasWin32gui = False
-        self.hasGui = False
+        self.hasGui = hasGui
 
         self.moduleDir = os.path.dirname(__file__)
         # for python 3.2 remove __pycache__
@@ -137,7 +137,7 @@ class Cntlr:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
-            self.hasClipboard = True
+            self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
             self.updateURL = "http://arelle.org/downloads/8"
         elif sys.platform.startswith("win"):
             self.isMac = False
@@ -149,16 +149,19 @@ class Cntlr:
                 else:
                     impliedAppDir = tempDir
                 self.userAppDir = os.path.join( impliedAppDir, "Arelle")
-            try:
-                import win32clipboard
-                self.hasClipboard = True
-            except ImportError:
+            if hasGui:
+                try:
+                    import win32clipboard
+                    self.hasClipboard = True
+                except ImportError:
+                    self.hasClipboard = False
+                try:
+                    import win32gui
+                    self.hasWin32gui = True # active state for open file dialogs
+                except ImportError:
+                    pass
+            else:
                 self.hasClipboard = False
-            try:
-                import win32gui
-                self.hasWin32gui = True # active state for open file dialogs
-            except ImportError:
-                pass
             self.contextMenuClick = "<Button-3>"
             if "64 bit" in sys.version:
                 self.updateURL = "http://arelle.org/downloads/9"
@@ -169,10 +172,13 @@ class Cntlr:
             self.isMSW = False
             if not configHomeDir:
                 self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
-            try:
-                import gtk
-                self.hasClipboard = True
-            except ImportError:
+            if hasGui:
+                try:
+                    import gtk
+                    self.hasClipboard = True
+                except ImportError:
+                    self.hasClipboard = False
+            else:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
         try:
@@ -213,12 +219,20 @@ class Cntlr:
         # Cntlr.Init after logging started
         for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
             pluginMethod(self)
-        
+            
     def setUiLanguage(self, lang, fallbackToDefault=False):
         try:
             gettext.translation("arelle", 
                                 self.localeDir, 
                                 getLanguageCodes(lang)).install()
+            if not isPy3: # 2.7 gettext provides string instead of unicode from .mo files
+                installedGettext = __builtins__['_']
+                def convertGettextResultToUnicode(msg):
+                    translatedMsg = installedGettext(msg)
+                    if isinstance(translatedMsg, _STR_UNICODE):
+                        return translatedMsg
+                    return translatedMsg.decode('utf-8')
+                __builtins__['_'] = convertGettextResultToUnicode
         except Exception:
             if fallbackToDefault or (lang and lang.lower().startswith("en")):
                 gettext.install("arelle", 
