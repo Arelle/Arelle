@@ -209,13 +209,16 @@ def lastDayOfMonth(year, month):
 
 class DateTime(datetime.datetime):
     def __new__(cls, y, m, d, hr=0, min=0, sec=0, microsec=0, tzinfo=None, dateOnly=None, addOneDay=None):
+        lastDay = lastDayOfMonth(y, m)
+        # check day and month before adjustment
+        if not 1 <= m <= 12: raise ValueError("month must be in 1..12")
+        if not 1 <= d <= lastDay: raise ValueError("day is out of range for month")
         if hr == 24:
-            if min != 0 or sec != 0 or microsec != 0: raise ValueError
+            if min != 0 or sec != 0 or microsec != 0: raise ValueError("hour 24 must have 0 mins and secs.")
             hr = 0
             d += 1
         if addOneDay: 
             d += 1
-        lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d -= lastDay; m += 1
         if m > 12: m = 1; y += 1
         dateTime = datetime.datetime.__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
