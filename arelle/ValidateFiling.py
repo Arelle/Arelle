@@ -1420,7 +1420,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     if relFromAndTos in usedCalcFromTosELR:
                                         otherRels = usedCalcFromTosELR[relFromAndTos]
                                         otherELR = otherRels[0].linkrole
-                                        self.modelXbrl.warning(("EFM.6.15.04", "GFM.2.06.04"),
+                                        self.modelXbrl.log("WARNING-SEMANTIC", ("EFM.6.15.04", "GFM.2.06.04"),
                                             _("Calculation relationships should have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s"),
                                             modelObject=[relFrom] + rels + otherRels, linkrole=ELR, linkrole2=otherELR, concept=relFrom.qname)
                                     else:
