@@ -498,6 +498,9 @@ class ValidateXbrl:
                                      else (_("compiling formulae") if modelXbrl.hasFormulae
                                            else _("compiling rendering tables")))
             
+        for pluginXbrlMethod in pluginClassMethods("Validate.Finally"):
+            pluginXbrlMethod(self)
+
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
         
     def checkFacts(self, facts, inTuple=False):  # do in document order
