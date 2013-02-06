@@ -142,86 +142,89 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, parentnode, n, relationshipSet, visited):
         if concept is None:
             return
-        isRelation = isinstance(modelObject, ModelDtsObject.ModelRelationship)
-        if isinstance(concept, ModelDtsObject.ModelConcept):
-            text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
-            if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
-                concept.isTypedDimension and 
-                concept.typedDomainElement is not None):
-                text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
-        elif self.arcrole == "Table-rendering":
-            text = concept.localName
-        elif isinstance(concept, ModelDtsObject.ModelResource):
-            if self.showReferences:
-                text = (concept.viewText() or concept.localName)
-            else:
-                text = (Locale.rtlString(concept.elementText.strip(), lang=concept.xmlLang) or concept.localName)
-        else:   # just a resource
-            text = concept.localName
-        childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
-        if self.arcrole == XbrlConst.parentChild: # extra columns
-            self.treeView.set(childnode, "type", concept.niceType)
-            self.treeView.set(childnode, "references", viewReferences(concept))
-        elif self.arcrole == XbrlConst.summationItem:
-            if isRelation:
-                self.treeView.set(childnode, "weight", "{:0g} ".format(modelObject.weight))
-            self.treeView.set(childnode, "balance", concept.balance)
-        elif self.arcrole == "XBRL-dimensions" and isRelation: # extra columns
-            relArcrole = modelObject.arcrole
-            self.treeView.set(childnode, "arcrole", os.path.basename(relArcrole))
-            if relArcrole in (XbrlConst.all, XbrlConst.notAll):
-                self.treeView.set(childnode, "contextElement", modelObject.contextElement)
-                self.treeView.set(childnode, "closed", modelObject.closed)
-            elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                self.treeView.set(childnode, "usable", modelObject.usable)
-        elif self.arcrole == "Table-rendering": # extra columns
-            try:
-                header = concept.header(lang=self.lang,strip=True,evaluate=False)
-            except AttributeError:
-                header = None # could be a filter
-            if isRelation and header is None:
-                header = "{0} {1}".format(os.path.basename(modelObject.arcrole), concept.xlinkLabel)
-            self.treeView.set(childnode, "header", header)
-            if concept.get("abstract") == "true":
-                self.treeView.set(childnode, "abstract", '\u2713') # checkmark unicode character
-            if isRelation:
-                self.treeView.set(childnode, "axis", modelObject.axisDisposition)
-                if isinstance(concept, (ModelEuAxisCoord,ModelRuleDefinitionNode)):
-                    self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
-                    self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
-                                                                   for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
-        elif self.isResourceArcrole: # resource columns
-            if isRelation:
-                self.treeView.set(childnode, "arcrole", os.path.basename(modelObject.arcrole))
-            if isinstance(concept, ModelDtsObject.ModelResource):
-                self.treeView.set(childnode, "resource", concept.localName)
-                self.treeView.set(childnode, "resourcerole", os.path.basename(concept.role or ''))
-                self.treeView.set(childnode, "lang", concept.xmlLang)
-        self.id += 1
-        self.tag_has[modelObject.objectId()].append(childnode)
-        if isRelation:
-            self.tag_has[modelObject.toModelObject.objectId()].append(childnode)
-        if concept not in visited:
-            visited.add(concept)
-            for modelRel in relationshipSet.fromModelObject(concept):
-                nestedRelationshipSet = relationshipSet
-                targetRole = modelRel.targetRole
-                if self.arcrole == XbrlConst.summationItem:
-                    childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
-                elif targetRole is None or len(targetRole) == 0:
-                    targetRole = relationshipSet.linkrole
-                    childPrefix = ""
+        try:
+            isRelation = isinstance(modelObject, ModelDtsObject.ModelRelationship)
+            if isinstance(concept, ModelDtsObject.ModelConcept):
+                text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
+                if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
+                    concept.isTypedDimension and 
+                    concept.typedDomainElement is not None):
+                    text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
+            elif self.arcrole == "Table-rendering":
+                text = concept.localName
+            elif isinstance(concept, ModelDtsObject.ModelResource):
+                if self.showReferences:
+                    text = (concept.viewText() or concept.localName)
                 else:
-                    nestedRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, targetRole)
-                    childPrefix = "(via targetRole) "
-                toConcept = modelRel.toModelObject
-                if toConcept in visited:
-                    childPrefix += "(loop)"
-                labelrole = modelRel.preferredLabel
-                if not labelrole: labelrole = self.labelrole
-                n += 1 # child has opposite row style of parent
-                self.viewConcept(toConcept, modelRel, childPrefix, labelrole, childnode, n, nestedRelationshipSet, visited)
-            visited.remove(concept)
+                    text = (Locale.rtlString(concept.elementText.strip(), lang=concept.xmlLang) or concept.localName)
+            else:   # just a resource
+                text = concept.localName
+            childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
+            if self.arcrole == XbrlConst.parentChild: # extra columns
+                self.treeView.set(childnode, "type", concept.niceType)
+                self.treeView.set(childnode, "references", viewReferences(concept))
+            elif self.arcrole == XbrlConst.summationItem:
+                if isRelation:
+                    self.treeView.set(childnode, "weight", "{:0g} ".format(modelObject.weight))
+                self.treeView.set(childnode, "balance", concept.balance)
+            elif self.arcrole == "XBRL-dimensions" and isRelation: # extra columns
+                relArcrole = modelObject.arcrole
+                self.treeView.set(childnode, "arcrole", os.path.basename(relArcrole))
+                if relArcrole in (XbrlConst.all, XbrlConst.notAll):
+                    self.treeView.set(childnode, "contextElement", modelObject.contextElement)
+                    self.treeView.set(childnode, "closed", modelObject.closed)
+                elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
+                    self.treeView.set(childnode, "usable", modelObject.usable)
+            elif self.arcrole == "Table-rendering": # extra columns
+                try:
+                    header = concept.header(lang=self.lang,strip=True,evaluate=False)
+                except AttributeError:
+                    header = None # could be a filter
+                if isRelation and header is None:
+                    header = "{0} {1}".format(os.path.basename(modelObject.arcrole), concept.xlinkLabel)
+                self.treeView.set(childnode, "header", header)
+                if concept.get("abstract") == "true":
+                    self.treeView.set(childnode, "abstract", '\u2713') # checkmark unicode character
+                if isRelation:
+                    self.treeView.set(childnode, "axis", modelObject.axisDisposition)
+                    if isinstance(concept, (ModelEuAxisCoord,ModelRuleDefinitionNode)):
+                        self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
+                        self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
+                                                                       for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
+            elif self.isResourceArcrole: # resource columns
+                if isRelation:
+                    self.treeView.set(childnode, "arcrole", os.path.basename(modelObject.arcrole))
+                if isinstance(concept, ModelDtsObject.ModelResource):
+                    self.treeView.set(childnode, "resource", concept.localName)
+                    self.treeView.set(childnode, "resourcerole", os.path.basename(concept.role or ''))
+                    self.treeView.set(childnode, "lang", concept.xmlLang)
+            self.id += 1
+            self.tag_has[modelObject.objectId()].append(childnode)
+            if isRelation:
+                self.tag_has[modelObject.toModelObject.objectId()].append(childnode)
+            if concept not in visited:
+                visited.add(concept)
+                for modelRel in relationshipSet.fromModelObject(concept):
+                    nestedRelationshipSet = relationshipSet
+                    targetRole = modelRel.targetRole
+                    if self.arcrole == XbrlConst.summationItem:
+                        childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
+                    elif targetRole is None or len(targetRole) == 0:
+                        targetRole = relationshipSet.linkrole
+                        childPrefix = ""
+                    else:
+                        nestedRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, targetRole)
+                        childPrefix = "(via targetRole) "
+                    toConcept = modelRel.toModelObject
+                    if toConcept in visited:
+                        childPrefix += "(loop)"
+                    labelrole = modelRel.preferredLabel
+                    if not labelrole: labelrole = self.labelrole
+                    n += 1 # child has opposite row style of parent
+                    self.viewConcept(toConcept, modelRel, childPrefix, labelrole, childnode, n, nestedRelationshipSet, visited)
+                visited.remove(concept)
+        except AttributeError:
+            return # bad object, don't try to display
             
     def getToolTip(self, tvRowId, tvColId):
         # override tool tip when appropriate

@@ -152,7 +152,9 @@ class ViewFacts(ViewFile.View):
             visited.remove(concept)
             
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, n, relationshipSet, visited):
-        if concept is None or concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem:
+        # bad relationship could identify non-concept or be None
+        if (not isinstance(concept, ModelDtsObject.ModelConcept) or 
+            concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
             return
         cols = ['' for i in range(self.numCols)]
         cols[0] = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
