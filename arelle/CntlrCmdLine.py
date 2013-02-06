@@ -204,6 +204,7 @@ def parseAndRun(args):
         parser.add_option("--webserver", action="store", dest="webserver",
                           help=_("start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, "
                                  "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy"))
+    pluginOptionsIndex = len(parser.option_list)
     for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
     parser.add_option("-a", "--about",
@@ -235,8 +236,9 @@ def parseAndRun(args):
                 ).format(Version.version,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else ""))
     elif len(leftoverArgs) != 0 or (options.entrypointFile is None and 
-                                    ((not options.proxy) and (not options.plugins)
-                                     and (not hasWebServer or options.webserver is None))):
+                                    ((not options.proxy) and (not options.plugins) and
+                                     (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:])) and
+                                     (not hasWebServer or options.webserver is None))):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.py --help"))
     elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
@@ -250,7 +252,7 @@ def parseAndRun(args):
                 options.formulaVarExpressionSource, options.formulaVarExpressionCode, options.formulaVarExpressionEvaluation,
                 options.formulaVarExpressionResult, options.formulaVarFiltersResult,
                 options.proxy, options.plugins)):
-            parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.pyw --help"))
+            parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
         else:
             cntlr.startLogging(logFileName='logToBuffer')
             from arelle import CntlrWebMain
@@ -345,7 +347,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
                               moduleItem[0], moduleInfo.get("author"), moduleInfo.get("version"), moduleInfo.get("status"),
                               moduleInfo.get("fileDate"), moduleInfo.get("description"), moduleInfo.get("license")),
                               messageCode="info", file=moduleInfo.get("moduleURL"))
-        if options.proxy or options.plugins:
+                
+        # run utility command line options that don't depend on entrypoint Files
+        hasUtilityPlugin = False
+        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
+            hasUtilityPlugin = True
+            pluginXbrlMethod(self, options)
+            
+        # if no entrypointFile is applicable, quit now
+        if options.proxy or options.plugins or hasUtilityPlugin:
             if not options.entrypointFile:
                 return True # success
         self.username = options.username
@@ -460,8 +470,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                         _("loaded in %.2f secs at %s"), 
                                         (loadTime, timeNow)), 
                                         messageCode="info", file=self.entrypointFile)
-            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
-                pluginXbrlMethod(self, options, modelXbrl)
             if options.importFiles:
                 for importFile in options.importFiles.split("|"):
                     fileName = importFile.strip()
@@ -476,6 +484,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     modelXbrl.profileStat(_("import"), loadTime)
                 if modelXbrl.errors:
                     success = False    # loading errors, don't attempt to utilize loaded DTS
+            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
+                pluginXbrlMethod(self, options, modelXbrl)
         else:
             success = False
         if success and options.diffFile and options.versReportFile:
