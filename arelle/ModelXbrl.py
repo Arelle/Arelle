@@ -863,6 +863,29 @@ class ModelXbrl:
                                 pass # arg may not have sourceline, ignore if so
                         refs.append(ref)
                 extras["refs"] = refs
+            elif argName == "sourceFileLine":
+                # sourceFileLines is pairs of file and line numbers, e.g., ((file,line),(file2,line2),...)
+                ref = {}
+                if isinstance(argValue, (tuple,list)):
+                    ref["href"] = str(arg[0])
+                    if len(arg) > 1 and arg[1]:
+                        ref["sourceLine"] = str(arg[1])
+                else:
+                    ref["href"] = str(arg)
+                extras["refs"] = [ref]
+            elif argName == "sourceFileLines":
+                # sourceFileLines is tuple/list of pairs of file and line numbers, e.g., ((file,line),(file2,line2),...)
+                refs = []
+                for arg in (argValue if isinstance(argValue, (tuple,list)) else (argValue,)):
+                    ref = {}
+                    if isinstance(arg, (tuple,list)):
+                        ref["href"] = str(arg[0])
+                        if len(arg) > 1 and arg[1]:
+                            ref["sourceLine"] = str(arg[1])
+                    else:
+                        ref["href"] = str(arg)
+                    refs.append(ref)
+                extras["refs"] = refs
             elif argName == "sourceLine":
                 if isinstance(argValue, _INT_TYPES):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
