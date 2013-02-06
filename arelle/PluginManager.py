@@ -99,7 +99,7 @@ moduleInfo = {
     'version': (required)
     'fileDate': 2000-01-01
     'description': (optional)
-    'moduleURL': (required) # same as file path, can be a URL
+    'moduleURL': (required) # same as file path, can be a URL (of a non-package .py file or a package directory)
     'localeURL': (optional) # for L10N internationalization within module
     'localeDomain': (optional) # domain for L10N internationalization
     'license': (optional)
@@ -127,6 +127,9 @@ def moduleModuleInfo(moduleURL, reload=False):
     moduleFilename = webCache.getfilename(moduleURL, reload=reload, normalize=True)
     if moduleFilename:
         try:
+            # if moduleFilename is a directory containing an __ini__.py file, open that instead
+            if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
+                moduleFilename = os.path.join(moduleFilename, "__init__.py")
             with open(moduleFilename) as f:
                 tree = ast.parse(f.read(), filename=moduleFilename)
                 for item in tree.body:
@@ -167,10 +170,16 @@ def loadModule(moduleInfo):
     moduleFilename = webCache.getfilename(moduleURL, normalize=True)
     if moduleFilename:
         try:
-            file, path, description = imp.find_module(os.path.basename(moduleFilename).partition('.')[0], [os.path.dirname(moduleFilename)])
-            if file:
+            if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
+                moduleDir = os.path.dirname(moduleFilename)
+                moduleName = os.path.basename(moduleFilename)
+            else:
+                moduleName = os.path.basename(moduleFilename).partition('.')[0]
+                moduleDir = os.path.dirname(moduleFilename)
+            file, path, description = imp.find_module(moduleName, [moduleDir])
+            if file or path: # file returned if non-package module, otherwise just path for package
                 try:
-                    module = imp.load_module(name, file, path, description)
+                    module = imp.load_module(moduleName, file, path, description)
                     pluginInfo = module.__pluginInfo__.copy()
                     if name == pluginInfo.get('name'):
                         pluginInfo["moduleURL"] = moduleURL
@@ -199,8 +208,9 @@ def loadModule(moduleInfo):
                     print(_("Exception loading plug-in {name}: {error}").format(
                             name=name, error=err), file=sys.stderr)
                 finally:
-                    file.close()
-        except (EnvironmentError, ImportError, NameError): #find_module failed, no file to close
+                    if file:
+                        file.close() # non-package module
+        except (EnvironmentError, ImportError, NameError) as err: #find_module failed, no file to close
             print(_("Exception finding plug-in {name}: {error}").format(
                     name=name, error=err), file=sys.stderr)
 
