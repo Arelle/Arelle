@@ -698,14 +698,15 @@
 <Loc>
 	<Family>BASE</Family>
 	<Version>6.0</Version>
-	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/xbrl/xbrl-syntax-extension.xsd</Href>
+	<Href>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension.xsd</Href>
 	<LocalHref>basis/sbr/xbrl/xbrl-syntax-extension.xsd</LocalHref>
 	<AttType>SCH</AttType>
 	<FileTypeName>Schema</FileTypeName>
 	<Elements>1</Elements>
-	<Namespace>http://www.nltaxonomie.nl/6.0/basis/sbr/xbrl/xbrl-syntax-extension</Namespace>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension</Namespace>
 	<Prefix>sbr</Prefix>
 </Loc>
+<!--
 <Loc>
 	<Family>BASE</Family>
 	<Version>6.0</Version>
@@ -714,19 +715,29 @@
 	<AttType>SCH</AttType>
 	<FileTypeName>Schema</FileTypeName>
 	<Elements>1</Elements>
-	<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/xbrl/xbrl-syntax-arcroles</Namespace>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles</Namespace>
 	<Prefix>sbr-a</Prefix>
+</Loc>
+-->
+<Loc>
+	<Family>BASE</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension</Namespace>
+	<Prefix>sbr</Prefix>
 </Loc>
 <Loc>
 	<Family>BASE</Family>
 	<Version>7.0</Version>
-	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/linkroles/xbrl-syntax-extension.xsd</Href>
-	<LocalHref>basis/sbr/linkroles/xbrl-syntax-extension.xsd</LocalHref>
+	<Href>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles.xsd</Href>
 	<AttType>SCH</AttType>
 	<FileTypeName>Schema</FileTypeName>
 	<Elements>1</Elements>
-	<Namespace>http://www.nltaxonomie.nl/7.0/basis/sbr/xbrl/xbrl-syntax-extension</Namespace>
-	<Prefix>sbr</Prefix>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles</Namespace>
+	<Prefix>sbr-a</Prefix>
 </Loc>
 
 </Erxl>
