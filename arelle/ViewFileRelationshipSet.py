@@ -79,60 +79,63 @@ class ViewRelationshipSet(ViewFile.View):
             visited.remove(concept)
             
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, indent, arcrole, relationshipSet, visited):
-        if concept is None:
+        try:
+            if concept is None:
+                return
+            isRelation = isinstance(modelObject, ModelRelationship)
+            if isinstance(concept, ModelDtsObject.ModelConcept):
+                text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
+                if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
+                    concept.isTypedDimension and 
+                    concept.typedDomainElement is not None):
+                    text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
+                xmlRowElementName = "concept"
+                attr = {"name": str(concept.qname)}
+            elif self.arcrole == "Table-rendering":
+                text = concept.localName
+                xmlRowElementName = "element"
+                attr = {"label": concept.xlinkLabel}
+            elif isinstance(concept, ModelDtsObject.ModelResource):
+                text = (concept.text or concept.localName)
+                xmlRowElementName = "resource"
+                attr = {"name": str(concept.elementQname)}
+            else:   # just a resource
+                text = concept.localName
+                xmlRowElementName = text
+            cols = [text]
+            if isRelation:
+                if arcrole == "XBRL-dimensions": # extra columns
+                    relArcrole = modelObject.arcrole
+                    cols.append( os.path.basename( relArcrole ) )
+                    if relArcrole in (XbrlConst.all, XbrlConst.notAll):
+                        cols.append( modelObject.contextElement )
+                        cols.append( modelObject.closed )
+                    else:
+                        cols.append(None)
+                        cols.append(None)
+                    if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
+                        cols.append( modelObject.usable  )
+                elif arcrole == XbrlConst.summationItem:
+                    cols.append("{:0g} ".format(modelObject.weight))
+                    cols.append(concept.balance)
+            self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
+            if concept not in visited:
+                visited.add(concept)
+                for modelRel in relationshipSet.fromModelObject(concept):
+                    nestedRelationshipSet = relationshipSet
+                    targetRole = modelRel.targetRole
+                    if arcrole == XbrlConst.summationItem:
+                        childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
+                    elif targetRole is None or len(targetRole) == 0:
+                        targetRole = relationshipSet.linkrole
+                        childPrefix = ""
+                    else:
+                        nestedRelationshipSet = self.modelXbrl.relationshipSet(arcrole, targetRole)
+                        childPrefix = "(via targetRole) "
+                    toConcept = modelRel.toModelObject
+                    if toConcept in visited:
+                        childPrefix += "(loop) "
+                    self.viewConcept(toConcept, modelRel, childPrefix, (modelRel.preferredLabel or self.labelrole), indent + 1, arcrole, nestedRelationshipSet, visited)
+                visited.remove(concept)
+        except AttributeError: #  bad relationship
             return
-        isRelation = isinstance(modelObject, ModelRelationship)
-        if isinstance(concept, ModelDtsObject.ModelConcept):
-            text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
-            if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
-                concept.isTypedDimension and 
-                concept.typedDomainElement is not None):
-                text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
-            xmlRowElementName = "concept"
-            attr = {"name": str(concept.qname)}
-        elif self.arcrole == "Table-rendering":
-            text = concept.localName
-            xmlRowElementName = "element"
-            attr = {"label": concept.xlinkLabel}
-        elif isinstance(concept, ModelDtsObject.ModelResource):
-            text = (concept.text or concept.localName)
-            xmlRowElementName = "resource"
-            attr = {"name": str(concept.elementQname)}
-        else:   # just a resource
-            text = concept.localName
-            xmlRowElementName = text
-        cols = [text]
-        if isRelation:
-            if arcrole == "XBRL-dimensions": # extra columns
-                relArcrole = modelObject.arcrole
-                cols.append( os.path.basename( relArcrole ) )
-                if relArcrole in (XbrlConst.all, XbrlConst.notAll):
-                    cols.append( modelObject.contextElement )
-                    cols.append( modelObject.closed )
-                else:
-                    cols.append(None)
-                    cols.append(None)
-                if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                    cols.append( modelObject.usable  )
-            elif arcrole == XbrlConst.summationItem:
-                cols.append("{:0g} ".format(modelObject.weight))
-                cols.append(concept.balance)
-        self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
-        if concept not in visited:
-            visited.add(concept)
-            for modelRel in relationshipSet.fromModelObject(concept):
-                nestedRelationshipSet = relationshipSet
-                targetRole = modelRel.targetRole
-                if arcrole == XbrlConst.summationItem:
-                    childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
-                elif targetRole is None or len(targetRole) == 0:
-                    targetRole = relationshipSet.linkrole
-                    childPrefix = ""
-                else:
-                    nestedRelationshipSet = self.modelXbrl.relationshipSet(arcrole, targetRole)
-                    childPrefix = "(via targetRole) "
-                toConcept = modelRel.toModelObject
-                if toConcept in visited:
-                    childPrefix += "(loop) "
-                self.viewConcept(toConcept, modelRel, childPrefix, (modelRel.preferredLabel or self.labelrole), indent + 1, arcrole, nestedRelationshipSet, visited)
-            visited.remove(concept)

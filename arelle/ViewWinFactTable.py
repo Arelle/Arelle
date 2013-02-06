@@ -166,7 +166,9 @@ class ViewFactTable(ViewWinTree.ViewTree):
         return True
 
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, parentnode, n, relationshipSet, visited):
-        if concept is None or concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem:
+        # bad relationship could identify non-concept or be None
+        if (not isinstance(concept, ModelDtsObject.ModelConcept) or 
+            concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
             return
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id),
                     text=labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole), 
