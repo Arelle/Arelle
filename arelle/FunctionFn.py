@@ -242,7 +242,7 @@ def substring_functions(xc, args, contains=None, startEnd=None, beforeAfter=None
     elif beforeAfter is not None:
         if portion == '': return ''
         try:
-            if beforeAfter: return string.lpartition( portion )[0]
+            if beforeAfter: return string.partition( portion )[0]
             else: return string.rpartition( portion )[2]
         except ValueError:
             return ''
