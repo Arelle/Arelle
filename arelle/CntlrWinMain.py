@@ -82,8 +82,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Open Web..."), self.webOpen, "Shift+Alt+O", "<Shift-Alt-o>"),
                 (_("Import File..."), self.importFileOpen, None, None),
                 (_("Import Web..."), self.importWebOpen, None, None),
+                ("PLUG-IN", "CntlrWinMain.Menu.File.Open", None, None),
                 (_("Save..."), self.fileSave, "Ctrl+S", "<Control-s>"),
                 (_("Save DTS Package"), self.saveDTSpackage, None, None),
+                ("PLUG-IN", "CntlrWinMain.Menu.File.Save", None, None),
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
                 (None, None, None, None),
                 (_("Quit"), self.quit, "Ctrl+Q", "<Control-q>"),
@@ -93,6 +95,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ):
             if label is None:
                 self.fileMenu.add_separator()
+            elif label == "PLUG-IN":
+                for pluginMenuExtender in pluginClassMethods(command):
+                    pluginMenuExtender(self, self.fileMenu)
             else:
                 self.fileMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
                 self.parent.bind(shortcut, command)
@@ -172,11 +177,16 @@ class CntlrWinMain (Cntlr.Cntlr):
         for label, command, shortcut_text, shortcut in (
                 (_("Check for updates"), lambda: Updater.checkForUpdates(self), None, None),
                 (_("Manage plug-ins"), lambda: DialogPluginManager.dialogPluginManager(self), None, None),
+                ("PLUG-IN", "CntlrWinMain.Menu.Help.Upper", None, None),
                 (None, None, None, None),
                 (_("About..."), self.helpAbout, None, None),
+                ("PLUG-IN", "CntlrWinMain.Menu.Help.Lower", None, None),
                 ):
             if label is None:
                 helpMenu.add_separator()
+            elif label == "PLUG-IN":
+                for pluginMenuExtender in pluginClassMethods(command):
+                    pluginMenuExtender(self, helpMenu)
             else:
                 helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
                 self.parent.bind(shortcut, command)
@@ -1136,8 +1146,17 @@ class CntlrWinMain (Cntlr.Cntlr):
                 callback(*args)
         widget.after(delayMsecs, lambda: self.uiThreadChecker(widget))
         
-    def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None, owner=None):
-        if self.hasWin32gui:
+    def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None, owner=None, multiple=False):
+        if multiple and action == "open":  # return as simple list of file names
+            return re.findall("[{]([^}]+)[}]",  # multiple returns "{file1} {file2}..."
+                              tkinter.filedialog.askopenfilename(
+                                    multiple=True,
+                                    title=title,
+                                    initialdir=initialdir,
+                                    filetypes=[] if self.isMac else filetypes,
+                                    defaultextension=defaultextension,
+                                    parent=self.parent))
+        elif self.hasWin32gui:
             import win32gui
             try:
                 filename, filter, flags = {"open":win32gui.GetOpenFileNameW,
