@@ -38,7 +38,8 @@ def archiveFilenameParts(filename, checkIfXmlIsEis=False):
             (not archiveSep.startswith(".xml") or checkIfXmlIsEis)):
             filenameParts = filename.partition(archiveSep)
             fileDir = filenameParts[0] + archiveSep[:-1]
-            if os.path.isfile(fileDir): # be sure it is not a directory name
+            if (fileDir.startswith("http://") or
+                os.path.isfile(fileDir)): # if local, be sure it is not a directory name
                 return (fileDir, filenameParts[2])
     return None
 
@@ -103,8 +104,12 @@ class FileSource:
             if not self.basefile:
                 return  # an error should have been logged
             if self.isZip:
-                self.fs = zipfile.ZipFile(self.basefile, mode="r")
-                self.isOpen = True    
+                try:
+                    self.fs = zipfile.ZipFile(self.basefile, mode="r")
+                    self.isOpen = True
+                except EnvironmentError as err:
+                    self.logError(err)
+                    pass
             elif self.isEis:
                 # check first line of file
                 buf = b''
