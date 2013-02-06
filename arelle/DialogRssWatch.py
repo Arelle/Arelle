@@ -28,9 +28,9 @@ def getOptions(mainWin):
 
 rssFeeds = {
     "US SEC US-GAAP Filings": "http://www.sec.gov/Archives/edgar/usgaap.rss.xml",
-    "US SEC Voluntary Filings": "http://www.sec.gov/Archives/edgar/xbrlrss.xml",
-    "US SEC Voluntary Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr-vfp.rss.xml",
-    "US SEC 2010 Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr.rss.xml",
+    # obsolete: "US SEC Voluntary Filings": "http://www.sec.gov/Archives/edgar/xbrlrss.xml",
+    # obsolete: "US SEC Voluntary Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr-vfp.rss.xml",
+    "US SEC Mutual Fund Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr.rss.xml",
     "US SEC All Filings": "http://www.sec.gov/Archives/edgar/xbrlrss.all.xml",
             }
   
