@@ -37,11 +37,11 @@ def helloCommandLineOptionExtender(parser):
                       dest="hello_dolly", 
                       help=_('Print a random lyric from "Hello, Dolly"'))
 
-def helloCommandLineXbrlRun(cntlr, options, modelXbrl):
+def helloCommandLineUtilityRun(cntlr, options):
     if options.hello_dolly:
         hello_dolly = randomLyric();
         try:
-            modelXbrl.info("info", hello_dolly)
+            cntlr.addToLog("[info] " + hello_dolly)
         except:
             print(hello_dolly)
 
@@ -54,10 +54,10 @@ __pluginInfo__ = {
 					"by Louis Armstrong: Hello, Dolly. When activated you will randomly "
 					"see a lyric from Hello, Dolly.",
     'license': 'Apache-2',
-    'author': 'R\u00e9gis D\u00e9camps',
+    'author': 'R\xe9gis D\xce9camps',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': helloMenuEntender,
     'CntlrCmdLine.Options': helloCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': helloCommandLineXbrlRun,
+    'CntlrCmdLine.Utility.Run': helloCommandLineUtilityRun,
 }
