@@ -478,14 +478,14 @@ class LogToPrintHandler(logging.Handler):
             self.logFile = None
         
     def emit(self, logRecord):
-        if isPy3:
-            logEntry = self.format(logRecord)
-        else:
-            logEntry = self.format(logRecord).encode("utf-8")
-        if self.logFile:
-            print(logEntry, file=sys.stderr)
-        else:
-            print(logEntry)
+        file = sys.stderr if self.logFile else None
+        logEntry = self.format(logRecord)
+        if not isPy3:
+            logEntry = logEntry.encode("utf-8", "replace")
+        try:
+            print(logEntry, file=file)
+        except UnicodeEncodeError:
+            print(logEntry.encode("ascii", "replace").decode("ascii"), file=file)
 
 class LogHandlerWithXml(logging.Handler):        
     def __init__(self):
