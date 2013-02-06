@@ -83,6 +83,8 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
         else:
             del xc.inScopeVars[argName]
 
+    if result is None:  # atomic value failed the result cast expression
+        raise XPathContext.FunctionArgType("output",cfSig.outputType,result)
     return result
 
 # for test case 22015 v01        
