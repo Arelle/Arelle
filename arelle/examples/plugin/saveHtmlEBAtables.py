@@ -258,7 +258,10 @@ def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        generateHtmlEbaTablesetFiles(cntlr.modelManager.modelXbrl, options.infosetfile)
+
+        from arelle import RenderingEvaluator        
+        RenderingEvaluator.init(modelXbrl)
+        generateHtmlEbaTablesetFiles(cntlr.modelManager.modelXbrl, options.ebaTablesetIndexFile)
         
 
 __pluginInfo__ = {
