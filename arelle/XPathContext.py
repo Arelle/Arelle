@@ -49,7 +49,7 @@ class FunctionNumArgs(Exception):
 class FunctionArgType(Exception):
     def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004'):
         self.errCode = errCode
-        self.argNum = argIndex + 1
+        self.argNum = (argIndex + 1) if isinstance(argIndex, _NUM_TYPES) else argIndex # may be string
         self.expectedType = expectedType
         self.foundObject = foundObject
         self.args = ( self.__repr__(), )
@@ -353,6 +353,7 @@ class XPathContext:
                                                         result = False
                                     else:
                                         result = False
+                                # elif t.name == "item" comes here and result stays True
                             if not result: 
                                 break
                 elif op == 'sequence':
@@ -408,7 +409,7 @@ class XPathContext:
             if isinstance(type, QName) and type.namespaceURI == XbrlConst.xsd:
                 type = "xs:" + type.localName
             if isinstance(type,str):
-                prefix,sep,localName = type.partition(':')
+                prefix,sep,localName = type.rpartition(':')
                 if prefix == 'xs':
                     if localName.endswith('*'): localName = localName[:-1]
                     if isinstance(result, (tuple,list,set)):
@@ -417,6 +418,8 @@ class XPathContext:
                             return[FunctionXs.call(self,progHeader,localName,(r,)) for r in result]
                         elif len(result) > 0:
                             return FunctionXs.call(self,progHeader,localName,(result[0],))
+                elif localName.startswith("item()"):
+                    return result # can be any type
             else: # no conversion
                 if len(result) == 0: return None
                 elif len(result) == 1: return result[0]
