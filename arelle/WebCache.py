@@ -306,8 +306,14 @@ class WebCache:
                 
                 # rename temporarily named downloaded file to desired name                
                 if os.path.exists(filepath):
-                    os.remove(filepath)
-                os.rename(filepathtmp, filepath)
+                    try:
+                        os.remove(filepath)
+                    except Exception as err:
+                        self.cntlr.addToLog(_("{0} \nUnsuccessful removal of prior file {1} \nPlease remove with file manager.").format(err,filepath))
+                try:
+                    os.rename(filepathtmp, filepath)
+                except Exception as err:
+                    self.cntlr.addToLog(_("{0} \nUnsuccessful renaming of downloaded file to active file {1} \nPlease remove with file manager.").format(err,filepath))
                 webFileTime = lastModifiedTime(headers)
                 if webFileTime: # set mtime to web mtime
                     os.utime(filepath,(webFileTime,webFileTime))
