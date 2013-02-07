@@ -1305,7 +1305,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
                                     ineffectivity=modelRel.ineffectivity)
                     if arcrole == XbrlConst.parentChild:
-                        isStatementSheet = any(linkroleDefinitionStatementSheet.match(roleType.definition)
+                        isStatementSheet = any(linkroleDefinitionStatementSheet.match(roleType.definition or '')
                                                for roleType in self.modelXbrl.roleTypes.get(ELR,()))
                         conceptsPresented = set()
                         # 6.12.2 check for distinct order attributes
