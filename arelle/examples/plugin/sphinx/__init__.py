@@ -56,7 +56,7 @@ def sphinxFilesOpenMenuEntender(cntlr, menu):
                 modelXbrl.sphinxContext.sphinxProgs.update(sphinxProgs) # add to previously loaded progs
             except AttributeError:
                 from .SphinxContext import SphinxContext
-                modelXbrl.sphinxContext = SphinxContext( sphinxProgs )  # first sphinxProgs for DTS
+                modelXbrl.sphinxContext = SphinxContext(sphinxProgs, modelXbrl)  # first sphinxProgs for DTS
         except Exception as ex:
             cntlr.addToLog(
                 _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") % 
@@ -125,8 +125,8 @@ def sphinxCommandLineLoader(cntlr, options, modelXbrl):
     if options.sphinxFilesForValidation:
         from .SphinxParser import parse
         from .SphinxContext import SphinxContext
-        sphinxProgs = parse(cntlr, logMessage, options.sphinxFilesForValidation.split('|'))
-        modelXbrl.sphinxContext = SphinxContext( sphinxProgs )
+        sphinxProgs = parse(cntlr, modelXbrl.log, options.sphinxFilesForValidation.split('|'))
+        modelXbrl.sphinxContext = SphinxContext(sphinxProgs, modelXbrl)
         
 def sphinxValidater(val):
     if hasattr(val.modelXbrl, "sphinxContext"):

@@ -18,8 +18,9 @@ def validate(logMessage, sphinxContext):
     
     from .SphinxParser import (astSourceFile, astNamespaceDeclaration, astRuleBasePreconditions,
                                astNamespaceDeclaration, astStringLiteral, astFactPredicate,
+                               astFunctionDeclaration, astFunctionReference,
                                astPreconditionDeclaration, astPreconditionReference,
-                               astValidationRule, 
+                               astFormulaRule, astReportRule, astValidationRule, 
                                namedAxes
                                )
     
@@ -36,7 +37,9 @@ def validate(logMessage, sphinxContext):
             if isinstance(node, astRuleBasePreconditions):
                 sphinxContext.ruleBasePreconditionsNodes.append(node)
             elif isinstance(node, astPreconditionDeclaration):
-                preconditionNodes[node.name] = node    
+                sphinxContext.preconditionNodes[node.name] = node    
+            elif isinstance(node, astFunctionDeclaration):
+                sphinxContext.functions[node.name] = node    
 
     # check references            
     def checkNodes(nodes):
@@ -53,11 +56,33 @@ def validate(logMessage, sphinxContext):
                             _("Precondition reference is not defined %(name)s"),
                             sourceFileLine=node.sourceFileLine,
                             name=name)
-            elif isinstance(node, astValidationRule):
+            elif isinstance(node, astFormulaRule):
+                checkNodes((node.precondition, node.severity, node.leftExpr, node.rightExpr, node.message))
+                sphinxContext.rules.append(node)
+                if node.severity:
+                    severity = node.severity
+                    if isinstance(severity, astFunctionReference):
+                        severity = severity.name
+                    if severity not in ("error", "warning", "info") and severity not in sphinxContext.functions:
+                        logMessage("ERROR", "sphinxCompiler:functionSeverity",
+                            _("Function severity is not recognized: %(severity)s"),
+                            sourceFileLine=node.sourceFileLine,
+                            severity=severity)
+            elif isinstance(node, (astReportRule, astValidationRule)):
                 checkNodes((node.precondition, node.severity, node.expr, node.message))
+                sphinxContext.rules.append(node)
+                if node.severity:
+                    severity = node.severity
+                    if isinstance(severity, astFunctionReference):
+                        severity = severity.name
+                    if severity not in ("error", "warning", "info"):
+                        logMessage("ERROR", "sphinxCompiler:ruleSeverity",
+                            _("Rule severity is not recognized: %(severity)s"),
+                            sourceFileLine=node.sourceFileLine,
+                            severity=node.severity)
             elif isinstance(node, astFactPredicate) and hasDTS:
                 # check axes
-                for axis, value in node.axes:
+                for axis, value in node.axes.items():
                     if (isinstance(axis, QName) and not (
                          axis in modelXbrl.qnnameConcepts and
                          modelXbrl.qnameConcepts[axis].isDimensionItem)):
@@ -67,7 +92,7 @@ def validate(logMessage, sphinxContext):
                             qname=axis)
                     if (axis not in {"unit", "segment", "scenario"} and
                         isinstance(value, QName) and 
-                        not value in modelXbrl.qnnameConcepts): 
+                        not value in modelXbrl.qnameConcepts): 
                         logMessage("ERROR", "sphinxCompiler:axisNotDimension",
                             _("Hypercube value not in the DTS %(qname)s"),
                             sourceFileLine=node.sourceFileLine,
@@ -83,7 +108,7 @@ def validate(logMessage, sphinxContext):
         
                
 
-    sphinxContext.ruleBasePreconditionNodes = [preconditionNodes[name]
+    sphinxContext.ruleBasePreconditionNodes = [sphinxContext.preconditionNodes[name]
                                                for node in sphinxContext.ruleBasePreconditionsNodes
                                                for ref in node.preconditionReferences
                                                for name in ref.names

@@ -54,23 +54,6 @@ def compileComment( sourceStr, loc, toks ):
 def compileConstant( sourceStr, loc, toks ):
     return astFunctionDeclaration(sourceStr, loc, "constant", toks[0], [], toks[1])
 
-def compileFunctionReference( sourceStr, loc, toks ):
-    name = toks[0]
-    if name == "list":
-        return astList(sourceStr, loc, toks[1:])
-    if name == "set":
-        return astSet(sourceStr, loc, toks[1:])
-    if name == "unit":
-        try:
-            return astFunctionReference(sourceStr, loc, toks[0], toks[compileQname(toks[1])])
-        except PrefixError as err:
-            logMessage("ERROR", "sphinxCompiler:missingXmlnsDeclarations",
-                _("Missing xmlns for prefix in unit %(qname)s"),
-                sourceFileLines=((sphinxFile, lineno(loc, sourceStr)),), 
-                qname=err.qname)
-            return None
-    return astFunctionReference(sourceStr, loc, toks[0], toks[1:])
-
 def compileFactPredicate( sourceStr, loc, toks ):
     try:
         return astFactPredicate(sourceStr, loc, toks)
@@ -93,6 +76,26 @@ def compileFormulaRule( sourceStr, loc, toks ):
 def compileFunctionDeclaration( sourceStr, loc, toks ):
     return astFunctionDeclaration(sourceStr, loc, toks[0], toks[1], toks[3:-2], toks[-1])
 
+def compileFunctionReference( sourceStr, loc, toks ):
+    name = toks[0]
+    if isinstance(name, astFunctionReference) and not name.args:
+        name = name.name
+    if name == "list":
+        return astList(sourceStr, loc, toks[1:])
+    if name == "set":
+        return astSet(sourceStr, loc, toks[1:])
+    if name == "unit":
+        try:
+            return astFunctionReference(sourceStr, loc, name, toks[compileQname(toks[1])])
+        except PrefixError as err:
+            logMessage("ERROR", "sphinxCompiler:missingXmlnsDeclarations",
+                _("Missing xmlns for prefix in unit %(qname)s"),
+                sourceFileLines=((sphinxFile, lineno(loc, sourceStr)),), 
+                qname=err.qname)
+            return None
+    # compile any args
+    return astFunctionReference(sourceStr, loc, name, toks[1:])
+
 def compileIf( sourceStr, loc, toks ):
     return astIf(sourceStr, loc, toks[1], toks[2], toks[3])
 
@@ -108,13 +111,13 @@ def compileMessage( sourceStr, loc, toks ):
 
 def compileMethodReference( sourceStr, loc, toks ):
     if len(toks) > 1 and toks[0] == "::":  # method with no object, e.g., ::taxonomy
-        return astMethodReference(sourceStr, loc, toks[1], None, toks[2:])
+        return astMethodReference(sourceStr, loc, toks[1], [None] + toks[2:])
     elif len(toks) > 2 and toks[1] == "::":
-        return astMethodReference(sourceStr, loc, toks[2], toks[0], toks[3:])
+        return astMethodReference(sourceStr, loc, toks[2], [toks[0]] + toks[3:])
     return toks
 
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
-    prefix = "" if len(toks) == 2 else toks[1]
+    prefix = None if len(toks) == 2 else toks[1]
     namespaceNode = toks[-1]
     if prefix in xmlns:
         logMessage("ERROR", "sphinxCompiler:multipleXmlnsDeclarations",
@@ -133,6 +136,9 @@ def compileNamespaceDeclaration( sourceStr, loc, toks ):
     return astNoOp(sourceStr, loc)
 
 def compileOp( sourceStr, loc, toks ):
+    op = toks[0]
+    if op in {"error", "warning", "info", "pass"}:
+        return astFunctionReference(sourceStr, loc, op, [])
     return toks
 
 def compilePackageDeclaration( sourceStr, loc, toks ):
@@ -172,6 +178,11 @@ def compileSeverity( sourceStr, loc, toks ):
 def compileStringLiteral( sourceStr, loc, toks ):
     return astStringLiteral(sourceStr, loc, toks[0])
 
+def compileTagAssignment( sourceStr, loc, toks ):
+    if len(toks) == 1:
+        return toks[0]
+    return astTagAssignment(sourceStr, loc, toks[2], toks[0])
+
 def compileTransform( sourceStr, loc, toks ):
     return astTransform(sourceStr, loc, toks[0], toks[1], toks[2])
 
@@ -198,7 +209,7 @@ class astNode:
     def __init__(self, sourceStr=None, loc=None):
         self.sphinxFile = sphinxFile
         self.sourceStr = sourceStr
-        self.loc = None
+        self.loc = loc
         
     def clear(self):
         self.__dict__.clear()  # delete local attributes
@@ -292,15 +303,11 @@ class astFor(astNode):
     def __repr__(self):
         return "for({0} in {1}, {2})".format(self.name, self.range, self.expr)
 
-class astFormulaRule(astNode):
-    def __init__(self, sourceStr, loc, nodes):
-        super(astFormulaRule, self).__init__(sourceStr, loc)
-
 class astFunctionDeclaration(astNode):
     def __init__(self, sourceStr, loc, functionType, name, params, expr):
         try:
             super(astFunctionDeclaration, self).__init__(sourceStr, loc)
-            self.functionType = functionType # "function" or "macro"
+            self.functionType = functionType # "function", "macro", "constant"
             self.name = name
             self.params = params
             if (expr) == "unit": # expr is a QName
@@ -351,14 +358,12 @@ class astMessage(astNode):
         return "message({0})".format(self.message)
 
 class astMethodReference(astNode):
-    def __init__(self, sourceStr, loc, name, object, args):
+    def __init__(self, sourceStr, loc, name, args):
         super(astMethodReference, self).__init__(sourceStr, loc)
         self.name = name
-        self.object = object
         self.args = args
     def __repr__(self):
-        return "methodReference({0}({1}{2}))".format(self.name,
-                                                     (", " + str(self.object)) if self.object else "", 
+        return "methodReference({0}({1}))".format(self.name,
                                                      ", ".join(str(a) for a in self.args))
 
 class astNamespaceDeclaration(astNode):
@@ -400,10 +405,6 @@ class astPreconditionReference(astNode):
         return "preconditionRef({0}{1})".format(self.names,
                                                  (" otherwise " + str(self.otherwiseExpr)) if self.otherwiseExpr else "")
 
-class astReportRule(astNode):
-    def __init__(self, sourceStr, loc, nodes):
-        super(astReportRule, self).__init__(sourceStr, loc)
-
 class astRuleBasePreconditions(astNode):
     def __init__(self, sourceStr, loc, preconditionReferences):
         super(astRuleBasePreconditions, self).__init__(sourceStr, loc)
@@ -437,8 +438,19 @@ class astStringLiteral(astNode):
         super(astStringLiteral, self).__init__(sourceStr, loc)
         # dequote leading/trailing quotes and backslashed characters in sphinx table
         self.text = re.sub(r"\\[ntbrf\\'\"]",lambda m: m.group[0][1], quotedString[1:-1])
+    @property
+    def value(self):
+        return self.text
     def __repr__(self):
         return "{0}({1})".format(type(self).__name__, self.text)
+
+class astTagAssignment(astNode):
+    def __init__(self, sourceStr, loc, tagName, expr):
+        super(astTagAssignment, self).__init__(sourceStr, loc)
+        self.tagName = tagName
+        self.expr = expr
+    def __repr__(self):
+        return "tagAssignment({0}#{1})".format(self.expr, self.name)
 
 class astTransform(astNode):
     def __init__(self, sourceStr, loc, transformType, fromExpr, toExpr):
@@ -457,27 +469,67 @@ class astUnaryOperation(astNode):
     def __repr__(self):
         return "unaryOperation({0} {1})".format(self.op, self.expr)
 
-class astValidationRule(astNode):
+class astRule(astNode):
     def __init__(self, sourceStr, loc, nodes):
-        super(astValidationRule, self).__init__(sourceStr, loc)
+        super(astRule, self).__init__(sourceStr, loc)
         self.name = None
         self.precondition = None
         self.severity = None
         self.message = None
-        self.expr = None
         prev = None
         for node in nodes:
             if isinstance(node, astPreconditionReference):
                 self.precondition = node
             elif isinstance(node, astSeverity):
-                self.severity = node
+                self.severity = node.severity
             elif isinstance(node, astMessage):
                 self.message = node
-            elif prev == "raise":
-                self.name = node
             else:
-                self.expr = node
-            prev = node
+                if prev in ("report", "raise"):
+                    self.name = node
+                    self.expr = None
+                    exprName = "expr"
+                elif prev == "formula":
+                    self.name = node
+                    self.leftExpr = None
+                    self.rightExpr = None
+                    exprName = "leftExpr"
+                elif prev == "bind":  # formula only
+                    self.bind = node
+                elif node == ":=":
+                    exprName = "rightExpr"
+                elif node not in ("bind", "formula", "report", "raise"):
+                    setattr(self, exprName, node)
+                prev = node
+
+class astFormulaRule(astRule):
+    def __init__(self, sourceStr, loc, nodes):
+        self.bind = None
+        super(astFormulaRule, self).__init__(sourceStr, loc, nodes)
+    def __repr__(self):
+        return "formula({0}name={1}, {2}{3}{4} := {5}{6})".format(
+                  (str(self.precondition) + ", " ) if self.precondition else "",
+                  self.name,
+                  (str(self.severity) + ", ") if self.severity else "",
+                  ("bind=" + str(self.bind) + ", ") if self.bind else "",
+                  self.leftExpr,
+                  self.rightExpr,
+                  (", " + str(self.message)) if self.message else "")
+
+class astReportRule(astRule):
+    def __init__(self, sourceStr, loc, nodes):
+        super(astReportRule, self).__init__(sourceStr, loc, nodes)
+    def __repr__(self):
+        return "reportRule({0}report={1}, {2}{3}{4})".format(
+                  (str(self.precondition) + ", " ) if self.precondition else "",
+                  self.name,
+                  (str(self.severity) + ", ") if self.severity else "",
+                  self.expr,
+                  (", " + str(self.message)) if self.message else "")
+
+class astValidationRule(astRule):
+    def __init__(self, sourceStr, loc, nodes):
+        super(astValidationRule, self).__init__(sourceStr, loc, nodes)
     def __repr__(self):
         return "validationRule({0}raise={1}, {2}{3}{4})".format(
                   (str(self.precondition) + ", " ) if self.precondition else "",
@@ -510,13 +562,13 @@ class astVariableReference(astNode):
         return "variableReference({0})".format(self.variableName)
 
 class astWith(astNode):
-    def __init__(self, sourceStr, loc, name, range, expr):
+    def __init__(self, sourceStr, loc, withExpr, expr):
         super(astWith, self).__init__(sourceStr, loc)
         self.op = "with"
-        self.factPredicate
+        self.withExpr = withExpr
         self.expr = expr
     def __repr__(self):
-        return "with({0}, {1})".format(self.factPredicate, self.expr)
+        return "with({0}, {1})".format(self.withExpr, self.expr)
 
 def compileSphinxGrammar( cntlr ):
     global isGrammarCompiled, sphinxProg, lineno
@@ -638,10 +690,7 @@ def compileSphinxGrammar( cntlr ):
     rule = Forward()  # rule is referenced recursively by precondition
     precondition = ( Suppress(Keyword("require")) + delimitedList(ncName) +
                      Optional(Keyword("otherwise") + rule) ).setParseAction(compilePrecondition).ignore(sphinxComment).setName("precondition").setDebug(debugParsing)
-    severity = ( Suppress(Keyword("severity")) + ( Keyword("error") |
-                                                   Keyword("warning") |
-                                                   Keyword("info") |
-                                                   Keyword("pass") ) ).setParseAction(compileSeverity).ignore(sphinxComment) 
+    severity = ( Suppress(Keyword("severity")) + ( ncName ) ).setParseAction(compileSeverity).ignore(sphinxComment) 
                 
      
     expr = Forward()
@@ -669,6 +718,7 @@ def compileSphinxGrammar( cntlr ):
            ).ignore(sphinxComment)
     
     valueExpr = atom
+    taggedExpr = ( valueExpr - Optional(tagOp - ncName) ).setParseAction(compileTagAssignment).ignore(sphinxComment)
     
     #filterExpr = ( atom + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
     #axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )         
@@ -679,8 +729,7 @@ def compileSphinxGrammar( cntlr ):
     #             ( relativePathExpr ) |
     #             ( pathStepOp ) )
     #valueExpr = pathExpr
-    methodExpr = ( ( valueExpr - Optional( methodOp - ncName - Suppress(lParen) - Optional(delimitedList(expr)) - Suppress(rParen) )).setParseAction(compileMethodReference) |
-                   ( valueExpr - Optional( methodOp - ncName )).setParseAction(compileMethodReference) |
+    methodExpr = ( ( taggedExpr - Optional( methodOp - ncName - Optional( Suppress(lParen) - delimitedList(expr) - Suppress(rParen)) )).setParseAction(compileMethodReference) |
                    ( methodOp + ncName ).setParseAction(compileMethodReference) ).ignore(sphinxComment)
     unaryExpr = ( Optional(plusMinusOp) + methodExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
     negateExpr = ( Optional(notOp) + unaryExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
@@ -694,8 +743,7 @@ def compileSphinxGrammar( cntlr ):
     comparisonExpr = ( inequalityExpr + Optional( compOp + inequalityExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
     andExpr = ( comparisonExpr + Optional( andOp + comparisonExpr ) ).setParseAction(compileBinaryOperation ).ignore(sphinxComment)
     orExpr = ( andExpr + Optional( orOp + andExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    taggedExpr = ( orExpr + Optional( tagOp + ncName )).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    parsedExpr = taggedExpr
+    parsedExpr = orExpr
 
     expr << parsedExpr
     expr.setName("expr").setDebug(debugParsing)
@@ -721,23 +769,23 @@ def compileSphinxGrammar( cntlr ):
     
     message = ( Suppress(Keyword("message")) + expr ).setParseAction(compileMessage)
     
+    formulaRule = ( Optional( precondition ) +
+                    Keyword("formula") + ncName + 
+                    Optional( severity ) + 
+                    Optional( ( Keyword("bind") + expr ) ) +
+                    expr + Literal(":=") + expr +
+                    Optional( message )).setParseAction(compileFormulaRule).ignore(sphinxComment)
+    reportRule = ( Optional( precondition ) +
+                   Keyword("report") + ncName + 
+                   Optional( severity ) +
+                   expr + 
+                   Optional( message )).setParseAction( compileReportRule).ignore(sphinxComment)
     validationRule = ( Optional( precondition ) +
                        Keyword("raise") + ncName + 
                        Optional( severity ) +
                        ZeroOrMore( assignedExpr ) +
                        expr + 
                        Optional( message )).setParseAction(compileValidationRule).ignore(sphinxComment)
-    formulaRule = ( Optional( precondition ) +
-                    Suppress(Keyword("formula")) + ncName + 
-                    Optional( severity ) + 
-                    Optional( ( Keyword("bind") + expr ) ) +
-                    expr + Literal(":=") + expr +
-                    Optional( message )).setParseAction(compileFormulaRule).ignore(sphinxComment)
-    reportRule = ( Optional( precondition ) +
-                   Suppress(Keyword("report")) + ncName + 
-                   Optional( severity ) +
-                   expr + 
-                   Optional( message )).setParseAction( compileReportRule).ignore(sphinxComment)
     rule << ( validationRule | formulaRule | reportRule )
     
     sphinxProg = ( ZeroOrMore( namespaceDeclaration | sphinxComment ) + 
@@ -755,6 +803,7 @@ def compileSphinxGrammar( cntlr ):
     sphinxProg.ignore(sphinxComment)
     
     startedAt = time.time()
+    cntlr.modelManager.showStatus(_("initializing sphinx grammar"))
     sphinxProg.parseString( "// force initialization\n", parseAll=True )
     from arelle.Locale import format_string
     logMessage("INFO", "info",

@@ -14,6 +14,7 @@ from .SphinxParser import astNode
 from arelle.ModelFormulaObject import aspectModels, Aspect, aspectStr
 from arelle.FormulaEvaluator import implicitFilter
 from arelle.ModelValue import QName
+from arelle import XmlUtil
                                        
 class SphinxContext:
     def __init__(self, sphinxProgs, modelXbrl=None):
@@ -24,12 +25,15 @@ class SphinxContext:
         self.transformQnames = {}
         self.transformNamespaces = {}
         self.constants = {}
+        self.functions = {}
         self.preconditions = {}
         self.localVariables = {}
         self.tags = {}
         self.hyperspaceBindings = None
+        self.staticSeverity = None
+        self.dynamicSeverity = None
         if modelXbrl is not None:
-            self.sphinxOptions = modelXbrl.modelManager.formulaOptions
+            self.formulaOptions = modelXbrl.modelManager.formulaOptions
             self.defaultDimensionAspects = set(modelXbrl.qnameDimensionDefaults.keys())
         
     def close(self):
@@ -46,57 +50,74 @@ class HyperspaceBindings:
     def __init__(self, sphinxContext):
         self.sCtx = sphinxContext
         self.parentHyperspaceBindings = sphinxContext.hyperspaceBindings
+        sphinxContext.hyperspaceBindings = self
         self.hyperspaceBindings = []
         self.nodeBindings = {}
         self.aspectBoundFacts = {}
         
     def close(self):
-        if self.sCtx == self:
-            self.sCtx = self.parentHyperspaceBindingSet
+        if self.sCtx.hyperspaceBindings is self:
+            self.sCtx.hyperspaceBindings = self.parentHyperspaceBindingSet
         for hsBinding in self.hyperspaceBindings:
             hsBinding.close()
         self.__dict__.clear() # dereference
         
-    def nodeBinding(self, node, bindAggregate):
+    def nodeBinding(self, node):
         if node in self.nodeBindings:
             return self.nodeBindings[node]
-        nodeBinding = HyperspaceBinding(self.sCtx, node)
+        nodeBinding = HyperspaceBinding(self, node)
         self.nodeBindings[node] = nodeBinding
+        self.hyperspaceBindings.append(nodeBinding)
         return nodeBinding
         
     def next(self):        
         # iterate hyperspace bindings
         if not self.hyperspaceBindings:
             raise StopIteration
-        for iHsB in range(len(self.hyperspaceBindings) - 1, 0, -1):
+        hsBsToReset = []
+        for iHsB in range(len(self.hyperspaceBindings) - 1, -1, -1):
             hsB = self.hyperspaceBindings[iHsB]
             try:
                 hsB.next()
+                for hsB in hsBsToReset:
+                    hsB.reset()
                 return # hsB has another value to return
             except StopIteration:
-                hsB.reset() # may raise StopIteration if nothing to iterate
+                hsBsToReset.insert(0, hsB)  # reset after outer iterator advanced
         raise StopIteration # no more outermost loop of iteration
+    
+    @property
+    def boundFacts(self):
+        return [binding.yieldedFact
+                for binding in self.hyperspaceBindings
+                if not binding.fallenBack and binding.yieldedFact is not None]
         
 class HyperspaceBinding:
-    def __init__(self, sphinxContext, node, fallback=False):
-        self.sCtx = sphinxContext
+    def __init__(self, hyperspaceBindings, node, fallback=False):
+        self.hyperspaceBindings = hyperspaceBindings
+        self.sCtx = hyperspaceBindings.sCtx
         self.node = node
         self.fallback = fallback
         self.aspectsQualified = set()
         self.varName = None
         self.tagName = None
         self.aspectsDefined = set(aspectModels["dimensional"])
-        self.aspectsQualified.clear()
-        for aspect in self.node.axes.keys():
-            self.aspectsQualified |= aspect
-        self.unQualifiedAspects = self.aspectsDefined = self.aspectsQualified
+        self.aspectsQualified = _DICT_SET(self.node.axes.keys())
         self.reset()  # will raise StopIteration if no facts or fallback
         
     def close(self):
         self.__dict__.clear() # dereference
         
+    @property
+    def value(self):
+        if self.fallenBack:
+            return None
+        if self.yieldedFact is not None:
+            return self.yieldedFact.xValue
+        return None
+        
     def reset(self):
-        if self.sCtx.sphinxOptions.traceVariableFilterWinnowing:
+        if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
             self.sCtx.modelXbrl.info("sphinx:trace",
                  _("Hyperspace %(variable)s binding: start with %(factCount)s facts"), 
                  modelObject=self.node, variable=str(self.node), factCount=len(self.facts))
@@ -104,12 +125,14 @@ class HyperspaceBinding:
         facts = self.sCtx.modelXbrl.nonNilFactsInInstance
         # filter by hyperspace aspects
         facts = self.filterFacts(facts)
-        # implicitly filter by prior uncoveredAspectFacts
-        facts = implicitFilter(self.sCtx, self, facts, self.unQualifiedAspects, self.hyperspaceBindings.aspectBoundFacts)
         for fact in facts:
             if fact.isItem:
                 self.aspectsDefined |= fact.context.dimAspects(self.sCtx.defaultDimensionAspects)
-        if self.sCtx.sphinxOptions.traceVariableFiltersResult:
+        self.unQualifiedAspects = self.aspectsDefined - self.aspectsQualified - {Aspect.DIMENSIONS}
+        # implicitly filter by prior uncoveredAspectFacts
+        if self.hyperspaceBindings.aspectBoundFacts:
+            facts = implicitFilter(self.sCtx, self, facts, self.unQualifiedAspects, self.hyperspaceBindings.aspectBoundFacts)
+        if self.sCtx.formulaOptions.traceVariableFiltersResult:
             self.sCtx.modelXbrl.info("sphinx:trace",
                  _("Hyperspace %(variable)s binding: filters result %(factCount)s facts"), 
                  modelObject=self.node, variable=str(self.node), factCount=len(self.facts))
@@ -127,14 +150,15 @@ class HyperspaceBinding:
                     del uncoveredAspectFacts[aspect]
                 else:
                     uncoveredAspectFacts[aspect] = priorFact
+            self.evaluationContributedUncoveredAspects.clear()
         try:
             self.yieldedFact = next(self.factIter)
             self.evaluationContributedUncoveredAspects = {}
-            for aspect in self.aspectsDefined | self.aspectsQualified:  # covered aspects may not be defined e.g., test 12062 v11, undefined aspect is a complemented aspect
+            for aspect in self.unQualifiedAspects:  # covered aspects may not be defined e.g., test 12062 v11, undefined aspect is a complemented aspect
                 if uncoveredAspectFacts.get(aspect) is None:
                     self.evaluationContributedUncoveredAspects[aspect] = uncoveredAspectFacts.get(aspect,"none")
                     uncoveredAspectFacts[aspect] = None if aspect in self.node.axes else self.yieldedFact
-            if self.sCtx.sphinxOptions.traceVariableFiltersResult:
+            if self.sCtx.formulaOptions.traceVariableFiltersResult:
                 self.sCtx.modelXbrl.info("sphinx:trace",
                      _("Hyperspace %(variable)s: bound value %(result)s"), 
                      modelObject=self.node, variable=str(self.node), result=str(self.yieldedFact))
@@ -142,7 +166,7 @@ class HyperspaceBinding:
             self.yieldedFact = None
             if self.fallback and not self.fallenBack:
                 self.fallenBack = True
-                if self.sCtx.sphinxOptions.traceVariableExpressionResult:
+                if self.sCtx.formulaOptions.traceVariableExpressionResult:
                     self.sCtx.modelXbrl.info("sphinx:trace",
                          _("Hyperspace %(variable)s: fallbackValue result %(result)s"), 
                          modelObject=self.node, variable=str(self.node), result=0)
@@ -163,7 +187,7 @@ class HyperspaceBinding:
             elif isinstance(axis, QName):
                 # explicit dim facts
                 facts = facts & modelXbrl.factsByDimMemQname(axis, value)
-            if self.sCtx.sphinxOptions.traceVariableFilterWinnowing:
+            if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
                 self.sCtx.modelXbrl.info("sphinx:trace",
                      _("Hyperspace %(variable)s: %(filter)s filter passes %(factCount)s facts"), 
                      modelObject=self.node, variable=str(self.node), filter=aspectStr(axis), factCount=len(facts))
