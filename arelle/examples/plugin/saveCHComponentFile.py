@@ -77,7 +77,7 @@ def xbrliType(type):
 def genConcept(dts, parentElt, concept, preferredLabel, arcrole, relationshipSet, visited):
     try:
         if concept is not None:
-            attrs = {"name": concept.name,
+            attrs = {"name": str(concept.qname),
                      "label": concept.label(preferredLabel,linkroleHint=relationshipSet.linkrole),
                      "prefix": concept.qname.prefix}
             if concept.isHypercubeItem:
