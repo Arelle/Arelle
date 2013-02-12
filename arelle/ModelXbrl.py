@@ -18,6 +18,7 @@ ModelRelationshipSet = None # dynamic import
 profileStatNumber = 0
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
+DEFAULT = sys.intern(_STR_8BIT("default"))
 NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
     
 
@@ -712,6 +713,7 @@ class ModelXbrl:
                         fbdq[None].add(fact) # set of all facts that have default value for dimension
                         if dimQname in self.modelXbrl.qnameDimensionDefaults:
                             fbdq[self.qnameDimensionDefaults[dimQname]].add(fact) # set of facts that have this dim and mem
+                            fbdq[DEFAULT].add(fact) # set of all facts that have default value for dimension
                     elif dimValue is not None: # not default
                         fbdq[None].add(fact) # set of all facts that have default value for dimension
                         fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
@@ -867,11 +869,11 @@ class ModelXbrl:
                 # sourceFileLines is pairs of file and line numbers, e.g., ((file,line),(file2,line2),...)
                 ref = {}
                 if isinstance(argValue, (tuple,list)):
-                    ref["href"] = str(arg[0])
-                    if len(arg) > 1 and arg[1]:
-                        ref["sourceLine"] = str(arg[1])
+                    ref["href"] = str(argValue[0])
+                    if len(argValue) > 1 and argValue[1]:
+                        ref["sourceLine"] = str(argValue[1])
                 else:
-                    ref["href"] = str(arg)
+                    ref["href"] = str(argValue)
                 extras["refs"] = [ref]
             elif argName == "sourceFileLines":
                 # sourceFileLines is tuple/list of pairs of file and line numbers, e.g., ((file,line),(file2,line2),...)

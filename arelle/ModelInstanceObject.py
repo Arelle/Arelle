@@ -432,7 +432,7 @@ class ModelFact(ModelObject):
     @property
     def viewConcept(self):
         return self.concept
-
+    
 class ModelInlineFact(ModelFact):
     """
     .. class:: ModelInlineFact(modelDocument)
@@ -773,9 +773,11 @@ class ModelContext(ModelObject):
             return self.modelXbrl.qnameDimensionDefaults[dimQname]
         return None
     
-    def dimAspects(self, defaultDimensionAspects):
+    def dimAspects(self, defaultDimensionAspects=None):
         """(set) -- For formula and instance aspects processing, set of all dimensions reported or defaulted."""
-        return _DICT_SET(self.qnameDims.keys()) | defaultDimensionAspects
+        if defaultDimensionAspects:
+            return _DICT_SET(self.qnameDims.keys()) | defaultDimensionAspects
+        return _DICT_SET(self.qnameDims.keys())
     
     @property
     def dimsHash(self):
