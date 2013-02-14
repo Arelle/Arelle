@@ -24,7 +24,7 @@ from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespace
                                     ModelRelationshipSet, ModelRelationships)
 
 def parser(modelXbrl, baseUrl):
-    parser = etree.XMLParser(recover=True)
+    parser = etree.XMLParser(recover=True, huge_tree=True)
     classLookup = DiscoveringClassLookup(modelXbrl, baseUrl)
     nsNameLookup = KnownNamespacesModelObjectClassLookup(modelXbrl, fallback=classLookup)
     parser.set_element_class_lookup(nsNameLookup)

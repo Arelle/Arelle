@@ -143,7 +143,8 @@ class FileSource:
                         if endEncoding > 0:
                             str = str[endEncoding+2:]
                         file = io.StringIO(initial_value=str)
-                        self.eisDocument = etree.parse(file)
+                        parser = etree.XMLParser(recover=True, huge_tree=True)
+                        self.eisDocument = etree.parse(file, parser=parser)
                         file.close()
                         self.isOpen = True
                     except EnvironmentError as err:
