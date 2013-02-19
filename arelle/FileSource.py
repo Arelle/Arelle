@@ -15,7 +15,7 @@ XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
 def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False):
     if sourceZipStream:
-        filesource = FileSource("POSTupload.zip", cntlr)
+        filesource = FileSource(os.sep + "POSTupload.zip", cntlr)
         filesource.openZipStream(sourceZipStream)
         filesource.select(filename)
         return filesource
