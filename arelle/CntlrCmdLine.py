@@ -11,7 +11,7 @@ This module is Arelle's controller in command line non-interactive mode
 from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser, SUPPRESS_HELP
-from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
+from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version, 
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ModelManager)
 from arelle.ModelValue import qname
@@ -89,13 +89,12 @@ def parseAndRun(args):
                       help=_("Specify calculation linkbase validation inferring precision."))
     parser.add_option("--calcprecision", action="store_true", dest="calcPrecision", help=SUPPRESS_HELP)
     parser.add_option("--efm", action="store_true", dest="validateEFM",
-                      help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation."))
-    parser.add_option("--gfm", action="store", dest="gfmName",
-                      help=_("Specify a Global Filer Manual disclosure system name and"
-                             " select disclosure system validation."))
-    parser.add_option("--disclosureSystem", action="store", dest="gfmName",
+                      help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
+    parser.add_option("--gfm", action="store", dest="disclosureSystemName", help=SUPPRESS_HELP)
+    parser.add_option("--disclosureSystem", action="store", dest="disclosureSystemName",
                       help=_("Specify a disclosure system name and"
-                             " select disclosure system validation."))
+                             " select disclosure system validation.  "
+                             "Enter --disclosureSystem=help for list of names or help-verbose for list of names and descriptions. "))
     parser.add_option("--hmrc", action="store_true", dest="validateHMRC",
                       help=_("Select U.K. HMRC disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
@@ -235,6 +234,12 @@ def parseAndRun(args):
                 "{1}"
                 ).format(Version.version,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else ""))
+    elif options.disclosureSystemName in ("help", "help-verbose"):
+        text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            print(text.encode("ascii", "replace").decode("ascii"))
     elif len(leftoverArgs) != 0 or (options.entrypointFile is None and 
                                     ((not options.proxy) and (not options.plugins) and
                                      (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:])) and
@@ -242,7 +247,7 @@ def parseAndRun(args):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.py --help"))
     elif hasWebServer and options.webserver:
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
-                options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.gfmName,
+                options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.disclosureSystemName,
                 options.utrValidate, options.infosetValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
                 options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
                 options.logFile, options.logFormat, options.logLevel, options.logLevelFilter, options.logCodeFilter, options.formulaParamExprResult, options.formulaParamInputValue,
@@ -363,24 +368,25 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.entrypointFile = options.entrypointFile
         filesource = FileSource.openFileSource(self.entrypointFile, self, sourceZipStream)
         if options.validateEFM:
-            if options.gfmName:
-                self.addToLog(_("both --efm and --gfm validation are requested, proceeding with --efm only"),
+            if options.disclosureSystemName:
+                self.addToLog(_("both --efm and --disclosureSystem validation are requested, proceeding with --efm only"),
                               messageCode="info", file=self.entrypointFile)
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select("efm")
-        elif options.gfmName:
+        elif options.disclosureSystemName:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select(options.gfmName)
+            self.modelManager.disclosureSystem.select(options.disclosureSystemName)
         elif options.validateHMRC:
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select("hmrc")
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             
-        # disclosure system sets logging filters, override if specified by command line
-        if options.logLevelFilter or options.logCodeFilter:
-            self.setLoggingFilters(logLevelFilter=options.logLevelFilter,
-                                   logCodeFilter=options.logCodeFilter)
+        # disclosure system sets logging filters, override disclosure filters, if specified by command line
+        if options.logLevelFilter:
+            self.setLogLevelFilter(options.logLevelFilter)
+        if options.logCodeFilter:
+            self.setLogCodeFilter(options.logCodeFilter)
         if options.calcDecimals:
             if options.calcPrecision:
                 self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),

@@ -281,11 +281,16 @@ class Cntlr:
                               level=logging.ERROR, messageCode="arelle:logLevel")
             else:
                 self.logger.setLevel(logging.getLevelName((logLevel or "debug").upper()))
+            self.logger.messageCodeFilter = None
+            self.logger.messageLevelFilter = None
                 
-    def setLoggingFilters(self, logLevelFilter=None, logCodeFilter=None):
+    def setLogLevelFilter(self, logLevelFilter):
+        if self.logger:
+            self.logger.messageLevelFilter = re.compile(logLevelFilter) if logLevelFilter else None
+            
+    def setLogCodeFilter(self, logCodeFilter):
         if self.logger:
             self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
-            self.logger.messageLevelFilter = re.compile(logLevelFilter) if logLevelFilter else None
                         
     def addToLog(self, message, messageCode="", file="", level=logging.INFO):
         """Add a simple info message to the default logger

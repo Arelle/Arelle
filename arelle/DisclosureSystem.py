@@ -66,15 +66,25 @@ class DisclosureSystem:
 
     @property
     def dir(self):
+        return self.dirlist("dir")
+    
+    def dirlist(self, listFormat):
         self.modelManager.cntlr.showStatus(_("parsing disclosuresystems.xml"))
         namepaths = []
         try:
             xmldoc = etree.parse(self.url)
             for dsElt in xmldoc.iter(tag="DisclosureSystem"):
                 if dsElt.get("names"):
-                    namepaths.append(
-                         (dsElt.get("names").partition("|")[0],
-                          dsElt.get("description")))
+                    names = dsElt.get("names").split("|")
+                    if listFormat == "help": # terse help
+                        namepaths.append('{0}: {1}'.format(names[-1],names[0]))
+                    elif listFormat == "help-verbose":
+                        namepaths.append('{0}: {1}\n{2}\n'.format(names[-1],
+                                                                  names[0], 
+                                                                  dsElt.get("description").replace('\\n','\n')))
+                    elif listFormat == "dir":
+                        namepaths.append((names[0],
+                                          dsElt.get("description")))
         except (EnvironmentError,
                 etree.LxmlError) as err:
             self.modelManager.cntlr.addToLog("disclosuresystems.xml: import error: {0}".format(err))
@@ -136,8 +146,9 @@ class DisclosureSystem:
                             break
             self.loadMappings()
             self.loadStandardTaxonomiesDict()
-            self.modelManager.cntlr.setLoggingFilters(logLevelFilter=self.logLevelFilter,
-                                                      logCodeFilter=self.logCodeFilter)
+            # set log level filters (including resetting prior disclosure systems values if no such filter)
+            self.modelManager.cntlr.setLogLevelFilter(self.logLevelFilter)  # None or "" clears out prior filter if any
+            self.modelManager.cntlr.setLogCodeFilter(self.logCodeFilter)
             status = _("loaded")
             result = True
         except (EnvironmentError,

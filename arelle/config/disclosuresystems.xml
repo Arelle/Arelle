@@ -4,6 +4,9 @@
        names="Middle Earth"
        names="Middle Earth/Rivendell"
        names="Middle Earth/The Shire"
+       
+       only last name is shown on command line help a the "index" keyword
+       
        path structures are presented in a tree view for selection, only leaf nodes can be selected
        
        the first alternative in names is the formal name, others (after "|" are aliases or short cuts)
@@ -29,7 +32,7 @@
   <DisclosureSystem 
      names="Japan FSA|jp-fsa|fsa" 
      description="Japan FSA example entry\n
-     Default language 日本\n
+     Default language Japanese\n
      EDInet identifier patterns\n
      Allowed references TBD"
      defaultXmlLang="jp" 
@@ -174,6 +177,7 @@
      deiFilerIdentifierElement="EntityCentralIndexKey" 
      deiFilerNameElement="EntityRegistrantName"
      logLevelFilter="(?!.*-semantic$)"
+     logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.07.09.roleEnding|EFM.6.07.13.arcroleEnding|EFM.6.10.01.missingLabelLinkbase)"
      />
   <DisclosureSystem 
      names="US SEC (Global Filing Manual)|us-gfm|gfm-us" 
