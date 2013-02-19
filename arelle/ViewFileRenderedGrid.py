@@ -14,6 +14,8 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
 from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord
 from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.XbrlConst import tableModel as tableModelNamespace, tableModelQName
+from arelle.XmlUtil import elementFragmentIdentifier, addQnameValue
 from collections import defaultdict
 
 emptySet = set()
@@ -40,7 +42,7 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
 class ViewRenderedGrid(ViewFile.View):
     def __init__(self, modelXbrl, outfile, lang):
         super(ViewRenderedGrid, self).__init__(modelXbrl, outfile, 
-                                               'tableModel xmlns="http://xbrl.org/2012/table/model"', 
+                                               'tableModel xmlns="{0}"'.format(tableModelNamespace), 
                                                lang, style="rendering")
         class nonTkBooleanVar():
             def __init__(self, value=True):
@@ -91,39 +93,39 @@ class ViewRenderedGrid(ViewFile.View):
                                                  "rowspan": str(self.dataFirstRow - 1)}
                                          ).text = tableLabel
                     elif self.type == XML:
-                        self.ordCntxElts = []
+                        self.structuralNodeModelElements = []
                         if discriminator == 1:
-                            tableSetElt = etree.SubElement(self.tblElt, "{http://xbrl.org/2012/table/model}tableSet")
+                            tableSetElt = etree.SubElement(self.tblElt, tableModelQName("tableSet"))
                             tableSetElt.append(etree.Comment("TableSet linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
                             tableSetElt.append(etree.Comment("TableSet namespace: {0}".format(self.modelTable.namespaceURI)))
                             tableSetElt.append(etree.Comment("TableSet linkrole: {0}".format(tblELR)))
-                            self.zHdrsElt = etree.SubElement(tableSetElt, "{http://xbrl.org/2012/table/model}headers")
+                            self.zHdrsElt = etree.SubElement(tableSetElt, tableModelQName("headers"))
                             zAspects = defaultdict(set)
                             self.zAxis(1, zTopStructuralNode, zAspects, True)
-                        tableElt = etree.SubElement(tableSetElt, "{http://xbrl.org/2012/table/model}table",
+                        tableElt = etree.SubElement(tableSetElt, tableModelQName("table"),
                                                     attrib={"label": tableLabel})
                         hdrsElts = dict((disposition,
-                                         etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}headers",
+                                         etree.SubElement(tableElt, tableModelQName("headers"),
                                                           attrib={"disposition": disposition}))
                                         for disposition in ("y", "x"))
                         self.zHdrsElt = hdrsElts["y"]  # z-comments go before y subelement of tableElt
                         # new y,x cells on each Z combination
                         if yTopStructuralNode.childStructuralNodes: # no row header element if no rows
-                            self.rowHdrElts = [etree.SubElement(hdrsElts["y"], "{http://xbrl.org/2012/table/model}header")
+                            self.rowHdrElts = [etree.SubElement(hdrsElts["y"], tableModelQName("header"))
                                                for i in range(self.rowHdrCols - 1 + len(self.rowHdrNonStdRoles))] # self.rowHdrDocCol + self.rowHdrCodeCol)]
                         else:
                             hdrsElts["y"].append(etree.Comment("no rows in this table"))
                         if xTopStructuralNode.childStructuralNodes: # no col header element if no cols
-                            self.colHdrElts = [etree.SubElement(hdrsElts["x"], "{http://xbrl.org/2012/table/model}header")
+                            self.colHdrElts = [etree.SubElement(hdrsElts["x"], tableModelQName("header"))
                                                for i in range(self.colHdrRows - 1 + len(self.colHdrNonStdRoles))] # self.colHdrDocRow + self.colHdrCodeRow)]
                         else:
                             hdrsElts["x"].append(etree.Comment("no columns in this table"))
-                        self.zCells = etree.SubElement(tableElt, "{http://xbrl.org/2012/table/model}cells",
+                        self.zCells = etree.SubElement(tableElt, tableModelQName("cells"),
                                                           attrib={"disposition": "z"})
-                        self.yCells = etree.SubElement(self.zCells, "{http://xbrl.org/2012/table/model}cells",
+                        self.yCells = etree.SubElement(self.zCells, tableModelQName("cells"),
                                                           attrib={"disposition": "y"})
                         ''' move into body cells, for entry row-by-row
-                        self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
+                        self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
                                                           attrib={"disposition": "x"})
                         '''
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
@@ -140,21 +142,21 @@ class ViewRenderedGrid(ViewFile.View):
                         if yTopStructuralNode.childStructuralNodes: # no row header element if no rows
                             self.yAxisByCol(1, self.dataFirstRow,
                                             yTopStructuralNode, self.yAxisChildrenFirst.get(), True, True)
-                        for ordCntx,elt in self.ordCntxElts: # must do after elements are all arragned
-                            elt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
-                                                          .format(ordCntx._definitionNode.localName,
-                                                                  ordCntx._definitionNode.xlinkLabel,
-                                                                  ordCntx._definitionNode.modelDocument.basename, 
-                                                                  ordCntx._definitionNode.sourceline)))
-                            if ordCntx._definitionNode.get('value'):
-                                elt.addprevious(etree.Comment("   @value {0}".format(ordCntx._definitionNode.get('value'))))
-                            for aspect in sorted(ordCntx.aspectsCovered(), key=lambda a: aspectStr(a)):
-                                if ordCntx.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
-                                    aspectValue = ordCntx.aspectValue(aspect)
+                        for structuralNode,modelElt in self.structuralNodeModelElements: # must do after elements are all arragned
+                            modelElt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
+                                                          .format(structuralNode._definitionNode.localName,
+                                                                  structuralNode._definitionNode.xlinkLabel,
+                                                                  structuralNode._definitionNode.modelDocument.basename, 
+                                                                  structuralNode._definitionNode.sourceline)))
+                            if structuralNode._definitionNode.get('value'):
+                                modelElt.addprevious(etree.Comment("   @value {0}".format(structuralNode._definitionNode.get('value'))))
+                            for aspect in sorted(structuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                                if structuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                                    aspectValue = structuralNode.aspectValue(aspect)
                                     if aspectValue is None: aspectValue = "(bound dynamically)"
-                                    elt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), aspectValue)))
-                            for varName, varValue in ordCntx.variables.items():
-                                    elt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
+                                    modelElt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), aspectValue)))
+                            for varName, varValue in structuralNode.variables.items():
+                                    modelElt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
                             
                     self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspects, self.yAxisChildrenFirst.get())
                 # find next choice structural node
@@ -212,21 +214,21 @@ class ViewRenderedGrid(ViewFile.View):
             elif self.type == XML:
                 # per JS, no header elements inside each table
                 if discriminatorsTable:
-                    hdrElt = etree.SubElement(self.zHdrsElt, "{http://xbrl.org/2012/table/model}header")
-                    self.ordCntxElts.append((zStructuralNode, hdrElt))
+                    hdrElt = etree.SubElement(self.zHdrsElt, tableModelQName("header"))
+                    self.structuralNodeModelElements.append((zStructuralNode, hdrElt))
                     if zStructuralNode.choiceStructuralNodes: # same as combo box selection in GUI mode
                         # hdrElt.set("label", label)
                         if discriminatorsTable:
                             for choiceStructuralNode in zStructuralNode.choiceStructuralNodes:
                                 choiceLabel = choiceStructuralNode.header(lang=self.lang)
-                                elt = etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label")
+                                elt = etree.SubElement(hdrElt, tableModelQName("label"))
                                 if choiceLabel:
                                     elt.text = choiceLabel
                         #else: # choiceLabel from above 
-                        #    etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label"
+                        #    etree.SubElement(hdrElt, tableModelQName("label")
                         #                     ).text = choiceLabel
                     else: # no combo choices, single label
-                        elt = etree.SubElement(hdrElt, "{http://xbrl.org/2012/table/model}label")
+                        elt = etree.SubElement(hdrElt, tableModelQName("label"))
                         if label:
                             elt.text = label
                 else:
@@ -296,18 +298,34 @@ class ViewRenderedGrid(ViewFile.View):
                                             attrib=attrib)
                         self.rowElts[topRow-1].insert(leftCol,elt)
                     elif self.type == XML:
-                        elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                        cellElt = etree.Element(tableModelQName("cell"),
                                             attrib={"span": str(columnspan)} if columnspan > 1 else None)
-                        self.colHdrElts[topRow - self.colHdrTopRow].insert(leftCol,elt)
-                        self.ordCntxElts.append((xStructuralNode, elt))
+                        self.colHdrElts[topRow - self.colHdrTopRow].insert(leftCol,cellElt)
+                        self.structuralNodeModelElements.append((xStructuralNode, cellElt))
+                        elt = etree.SubElement(cellElt, tableModelQName("label"))
                         if nonAbstract or (leafNode and row > topRow):
                             for rollUpCol in range(topRow - self.colHdrTopRow + 1, self.colHdrRows - 1):
-                                rollUpElt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                                rollUpElt = etree.Element(tableModelQName("label"),
                                                           attrib={"rollup":"true"})
                                 if childrenFirst:
                                     self.colHdrElts[rollUpCol].append(rollUpElt)
                                 else:
                                     self.colHdrElts[rollUpCol].insert(leftCol,rollUpElt)
+                        for i, role in enumerate(self.colHdrNonStdRoles):
+                            etree.SubElement(cellElt, tableModelQName("label"), 
+                                             attrib={"role": role,
+                                                     "lang": self.lang}
+                                             ).text = xStructuralNode.header(
+                                                   role=role, lang=self.lang)
+                        for aspect in sorted(xStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                            if xStructuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                                aspectValue = xStructuralNode.aspectValue(aspect)
+                                if aspectValue is None: aspectValue = "(bound dynamically)"
+                                aspElt = etree.SubElement(cellElt, tableModelQName("constraint"))
+                                etree.SubElement(aspElt, tableModelQName("aspect")
+                                                 ).text = aspectStr(aspect)
+                                etree.SubElement(aspElt, tableModelQName("value")
+                                                 ).text = addQnameValue(self.xmlDoc, aspectValue)
                     elt.text = label or "\u00A0" #produces &nbsp;
                     if nonAbstract:
                         if columnspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
@@ -323,17 +341,13 @@ class ViewRenderedGrid(ViewFile.View):
                                     self.rowElts[topRow].append(elt)
                                 else:
                                     self.rowElts[topRow].insert(leftCol,elt)
-                        for i, role in enumerate(self.colHdrNonStdRoles):
-                            hdr = xStructuralNode.header(role=role, lang=self.lang)
-                            if self.type == HTML:
+                        if self.type == HTML:
+                            for i, role in enumerate(self.colHdrNonStdRoles):
                                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                     attrib={"class":"xAxisHdr",
                                                             "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
                                 self.rowElts[self.dataFirstRow - 1 - len(self.colHdrNonStdRoles) + i].insert(thisCol,elt)
-                            elif self.type == XML:
-                                elt = etree.Element("{http://xbrl.org/2012/table/model}label")
-                                self.colHdrElts[self.colHdrRows - 1 + i].insert(thisCol,elt)
-                            elt.text = hdr or "\u00A0"
+                                elt.text = xStructuralNode.header(role=role, lang=self.lang) or "\u00A0"
                         '''
                         if self.colHdrDocRow:
                             doc = xStructuralNode.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
@@ -343,7 +357,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                             "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
                                 self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
                             elif self.type == XML:
-                                elt = etree.Element("{http://xbrl.org/2012/table/model}label")
+                                elt = etree.Element(tableModelQName("label"))
                                 self.colHdrElts[self.colHdrRows - 1].insert(thisCol,elt)
                             elt.text = doc or "\u00A0"
                         if self.colHdrCodeRow:
@@ -354,7 +368,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                             "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
                                 self.rowElts[self.dataFirstRow - 2].insert(thisCol,elt)
                             elif self.type == XML:
-                                elt = etree.Element("{http://xbrl.org/2012/table/model}label")
+                                elt = etree.Element(tableModelQName("label"))
                                 self.colHdrElts[self.colHdrRows - 1 + self.colHdrDocRow].insert(thisCol,elt)
                             elt.text = code or "\u00A0"
                         '''
@@ -495,30 +509,52 @@ class ViewRenderedGrid(ViewFile.View):
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow:
                     rowspan= nestRow - row + 1
-                    elt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                        attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                    cellElt = etree.Element(tableModelQName("cell"),
+                                            attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                    elt = etree.SubElement(cellElt, tableModelQName("label"))
                     elt.text = label
-                    self.rowHdrElts[leftCol - 1].append(elt)
-                    self.ordCntxElts.append((yStructuralNode, elt))
+                    self.rowHdrElts[leftCol - 1].append(cellElt)
+                    self.structuralNodeModelElements.append((yStructuralNode, cellElt))
+                    for aspect in sorted(yStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                        if yStructuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                            aspectValue = yStructuralNode.aspectValue(aspect)
+                            if aspectValue is None: aspectValue = "(bound dynamically)"
+                            elt = etree.SubElement(cellElt, tableModelQName("constraint"))
+                            etree.SubElement(elt, tableModelQName("aspect")
+                                             ).text = aspectStr(aspect)
+                            etree.SubElement(elt, tableModelQName("value")
+                                             ).text = addQnameValue(self.xmlDoc, aspectValue)
                     for rollUpCol in range(leftCol, self.rowHdrCols - 1):
-                        rollUpElt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                        rollUpElt = etree.Element(tableModelQName("cell"),
                                                   attrib={"rollup":"true"})
                         self.rowHdrElts[rollUpCol].append(rollUpElt)
                     if isNonAbstract:
-                        for i, role in enumerate(self.rowHdrNonStdRoles):
-                            elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                        cellElt = etree.Element(tableModelQName("cell"),
                                                 attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                            elt.text = yStructuralNode.header(role=role, lang=self.lang)
-                            self.rowHdrElts[self.rowHdrCols - 1 + i].append(elt)
+                        for i, role in enumerate(self.rowHdrNonStdRoles):
+                            labelElt = etree.SubElement(cellElt, tableModelQName("label"),
+                                                        attrib={"role":role,
+                                                                "lang":self.lang})
+                            labelElt.text = yStructuralNode.header(role=role, lang=self.lang)
+                        self.rowHdrElts[self.rowHdrCols - 1 + i].append(cellElt)
+                        for aspect in sorted(yStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                            if yStructuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                                aspectValue = yStructuralNode.aspectValue(aspect)
+                                if aspectValue is None: aspectValue = "(bound dynamically)"
+                                elt = etree.SubElement(cellElt, tableModelQName("constraint"))
+                                etree.SubElement(elt, tableModelQName("aspect")
+                                                 ).text = aspectStr(aspect)
+                                etree.SubElement(elt, tableModelQName("value")
+                                                 ).text = addQnameValue(self.xmlDoc, aspectValue)
                         '''
                         if self.rowHdrDocCol:
-                            elt = etree.Element("{http://xbrl.org/2012/table/model}label",
-                                                attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                            labelElt = etree.SubElement(cellElt, tableModelQName("label"),
+                                                        attrib={"span": str(rowspan)} if rowspan > 1 else None)
                             elt.text = yStructuralNode.header(role="http://www.xbrl.org/2008/role/documentation",
                                                        lang=self.lang)
                             self.rowHdrElts[self.rowHdrCols - 1].append(elt)
                         if self.rowHdrCodeCol:
-                            elt = etree.Element("{http://xbrl.org/2012/table/model}label",
+                            elt = etree.Element(tableModelQName("label"),
                                                 attrib={"span": str(rowspan)} if rowspan > 1 else None)
                             elt.text = yStructuralNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code",
                                                        lang=self.lang)
@@ -548,7 +584,7 @@ class ViewRenderedGrid(ViewFile.View):
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
                 if not yStructuralNode.isAbstract:
                     if self.type == XML:
-                        self.xCells = etree.SubElement(self.yCells, "{http://xbrl.org/2012/table/model}cells",
+                        self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
                                                        attrib={"disposition": "x"})
                     yAspects = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
@@ -625,14 +661,16 @@ class ViewRenderedGrid(ViewFile.View):
                                                      ).text = value or "\u00A0"
                                 elif self.type == XML:
                                     if value is not None and fact is not None:
-                                        self.xCells.append(etree.Comment("{0}: context {1}, file {2}, line {3}"
+                                        self.xCells.append(etree.Comment("{0}: context {1}, value {2}, file {3}, line {4}"
                                                                          .format(fact.qname,
                                                                                  fact.contextID,
+                                                                                 value,
                                                                                  fact.modelDocument.basename, 
                                                                                  fact.sourceline)))
     
-                                    etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell"
-                                                     ).text = value
+                                    cellElt = etree.SubElement(self.xCells, tableModelQName("cell"))
+                                    etree.SubElement(cellElt, tableModelQName("fact")
+                                                     ).text = '#' + elementFragmentIdentifier(fact)
                             else:
                                 if self.type == HTML:
                                     etree.SubElement(self.rowElts[row - 1], 
@@ -641,7 +679,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                              "style":"text-align:{0};width:8em".format(justify)}
                                                      ).text = "\u00A0\u00A0"
                                 elif self.type == XML:
-                                    etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell",
+                                    etree.SubElement(self.xCells, tableModelQName("cell"),
                                                      attrib={"blocked":"true"})
                         else: # concept is abstract
                             if self.type == HTML:
@@ -651,7 +689,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                          "style":"text-align:{0};width:8em".format(justify)}
                                                  ).text = "\u00A0\u00A0"
                             elif self.type == XML:
-                                etree.SubElement(self.xCells, "{http://xbrl.org/2012/table/model}cell",
+                                etree.SubElement(self.xCells, tableModelQName("cell"),
                                                  attrib={"abstract":"true"})
                         fp.clear()  # dereference
                     row += 1

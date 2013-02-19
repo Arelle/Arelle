@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-01-23 23:23+Pacific Standard Time\n"
+"POT-Creation-Date: 2013-02-19 13:51+Pacific Standard Time\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: arelle\Cntlr.py:263
+#: arelle\Cntlr.py:277
 msgid "Unknown log level name: {0}, please choose from {1}"
 msgstr ""
 
@@ -56,158 +56,154 @@ msgid "Specify calculation linkbase validation inferring precision."
 msgstr ""
 
 #: arelle\CntlrCmdLine.py:92
-msgid "Select Edgar Filer Manual (U.S. SEC) disclosure system validation."
+msgid "Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:94
-msgid "Specify a Global Filer Manual disclosure system name and select disclosure system validation."
+#: arelle\CntlrCmdLine.py:95
+msgid "Specify a disclosure system name and select disclosure system validation.  Enter --disclosureSystem=help for list of names or help-verbose for list of names and descriptions. "
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:97
-msgid "Specify a disclosure system name and select disclosure system validation."
-msgstr ""
-
-#: arelle\CntlrCmdLine.py:100
+#: arelle\CntlrCmdLine.py:99
 msgid "Select U.K. HMRC disclosure system validation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:102
+#: arelle\CntlrCmdLine.py:101
 msgid "Select validation with respect to Unit Type Registry."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:104
+#: arelle\CntlrCmdLine.py:103
 msgid "Select validation with respect testcase infosets."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:106
+#: arelle\CntlrCmdLine.py:105
 msgid "Language for labels in following file options (override system settings)"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:109
+#: arelle\CntlrCmdLine.py:108
 msgid "Label role for labels in following file options (instead of standard label)"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:112
+#: arelle\CntlrCmdLine.py:111
 msgid "Write DTS tree into FILE (may be .csv or .html)"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:114
+#: arelle\CntlrCmdLine.py:113
 msgid "Write fact list into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:116
+#: arelle\CntlrCmdLine.py:115
 msgid "Columns for fact list file"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:118
+#: arelle\CntlrCmdLine.py:117
 msgid "Write fact table into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:120
+#: arelle\CntlrCmdLine.py:119
 msgid "Write concepts into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:122
+#: arelle\CntlrCmdLine.py:121
 msgid "Write presentation linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:124
+#: arelle\CntlrCmdLine.py:123
 msgid "Write calculation linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:126
+#: arelle\CntlrCmdLine.py:125
 msgid "Write dimensions (of definition) linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:128
+#: arelle\CntlrCmdLine.py:127
 msgid "Write formulae linkbase into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:130
+#: arelle\CntlrCmdLine.py:129
 msgid "Write test report of validation (of test cases) into FILE"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:133
+#: arelle\CntlrCmdLine.py:132
 msgid "Columns for test report file"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:136
+#: arelle\CntlrCmdLine.py:135
 msgid "Write log messages into file, otherwise they go to standard output.  If file ends in .xml it is xml-formatted, otherwise it is text. "
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:140
+#: arelle\CntlrCmdLine.py:139
 msgid "Logging format for messages capture, otherwise default is \"[%(messageCode)s] %(message)s - %(file)s\"."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:143
+#: arelle\CntlrCmdLine.py:142
 msgid "Minimum level for messages capture, otherwise the message is ignored.  Current order of levels are debug, info, info-semantic, warning, warning-semantic, warning, assertion-satisfied, inconsistency, error-semantic, assertion-not-satisfied, and error. "
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:147
+#: arelle\CntlrCmdLine.py:146
 msgid "Regular expression filter for logLevel.  (E.g., to not match *-semantic levels, logLevelFilter=(?!^.*-semantic$)(.+). "
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:151
+#: arelle\CntlrCmdLine.py:150
 msgid "Regular expression filter for log message code."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:153
+#: arelle\CntlrCmdLine.py:152
 msgid "Specify parameters for formula and validation (name=value[,name=value])."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:154
+#: arelle\CntlrCmdLine.py:153
 msgid "Specify parameters separator string (if other than comma)."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:157
+#: arelle\CntlrCmdLine.py:156
 msgid "Specify formula action: validate - validate only, without running, run - validate and run, or none - prevent formula validation or running when also specifying -v or --validate.  if this option is not specified, -v or --validate will validate and run formulas if present"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:162 arelle\CntlrCmdLine.py:163
-#: arelle\CntlrCmdLine.py:164 arelle\CntlrCmdLine.py:165
-#: arelle\CntlrCmdLine.py:166 arelle\CntlrCmdLine.py:167
-#: arelle\CntlrCmdLine.py:168 arelle\CntlrCmdLine.py:169
-#: arelle\CntlrCmdLine.py:171 arelle\CntlrCmdLine.py:172
-#: arelle\CntlrCmdLine.py:173 arelle\CntlrCmdLine.py:174
-#: arelle\CntlrCmdLine.py:175 arelle\CntlrCmdLine.py:176
-#: arelle\CntlrCmdLine.py:177 arelle\CntlrCmdLine.py:178
-#: arelle\CntlrCmdLine.py:179
+#: arelle\CntlrCmdLine.py:161 arelle\CntlrCmdLine.py:162
+#: arelle\CntlrCmdLine.py:163 arelle\CntlrCmdLine.py:164
+#: arelle\CntlrCmdLine.py:165 arelle\CntlrCmdLine.py:166
+#: arelle\CntlrCmdLine.py:167 arelle\CntlrCmdLine.py:168
+#: arelle\CntlrCmdLine.py:170 arelle\CntlrCmdLine.py:171
+#: arelle\CntlrCmdLine.py:172 arelle\CntlrCmdLine.py:173
+#: arelle\CntlrCmdLine.py:174 arelle\CntlrCmdLine.py:175
+#: arelle\CntlrCmdLine.py:176 arelle\CntlrCmdLine.py:177
+#: arelle\CntlrCmdLine.py:178
 msgid "Specify formula tracing."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:170
+#: arelle\CntlrCmdLine.py:169
 msgid "Specify showing times of variable set evaluation."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:181
+#: arelle\CntlrCmdLine.py:180
 msgid "Language for user interface (override system settings, such as program messages).  Does not save setting."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:184
+#: arelle\CntlrCmdLine.py:183
 msgid "Modify and re-save proxy settings configuration.  Enter 'system' to use system proxy setting, 'none' to use no proxy, 'http://[user[:password]@]host[:port]'  (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080),  or 'show' to show current setting, ."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:190
+#: arelle\CntlrCmdLine.py:189
 msgid "Specify internet connectivity: online or offline"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:193
+#: arelle\CntlrCmdLine.py:192
 msgid "Specify internet connection timeout in seconds (0 means unlimited)."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:196
+#: arelle\CntlrCmdLine.py:195
 msgid "Modify and re-save plug-in configuration.  Enter 'show' to show current plug-in configuration, or '|' separated modules: +url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name,  (e.g., '+http://arelle.org/files/hello_web.py', '+C:\\Program Files\\Arelle\\examples\\plugin\\hello_dolly.py' to load, ~Hello Dolly to reload, -Hello Dolly to remove)"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:201
+#: arelle\CntlrCmdLine.py:200
 msgid "Abort process on major error, such as when load is unable to find an entry or discovered file."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:202
+#: arelle\CntlrCmdLine.py:201
 msgid "Collect profile statistics, such as timing of validation activities and formulae."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:205
+#: arelle\CntlrCmdLine.py:204
 msgid "start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy"
 msgstr ""
 
@@ -250,157 +246,163 @@ msgid ""
 "   Bottle (c) 2011-2013 Marcel Hellkamp"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:240
+#: arelle\CntlrCmdLine.py:238
+msgid ""
+"Disclosure system choices: \n"
+"{0}"
+msgstr ""
+
+#: arelle\CntlrCmdLine.py:247
 msgid ""
 "incorrect arguments, please try\n"
-"  python CntlrCmdLine.pyw --help"
+"  python CntlrCmdLine.py --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:253
+#: arelle\CntlrCmdLine.py:260
 msgid ""
 "incorrect arguments with --webserver, please try\n"
-"  python CntlrCmdLine.pyw --help"
+"  python CntlrCmdLine.py --help"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:294
+#: arelle\CntlrCmdLine.py:301
 msgid "Proxy configuration has been set."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:297
+#: arelle\CntlrCmdLine.py:304
 msgid "Proxy configured to use {0}."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:298 arelle\DialogUserPassword.py:79
+#: arelle\CntlrCmdLine.py:305 arelle\DialogUserPassword.py:79
 msgid "Microsoft Windows Internet Settings"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:299 arelle\DialogUserPassword.py:81
+#: arelle\CntlrCmdLine.py:306 arelle\DialogUserPassword.py:81
 msgid "Mac OS X System Configuration"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:300 arelle\DialogUserPassword.py:83
+#: arelle\CntlrCmdLine.py:307 arelle\DialogUserPassword.py:83
 msgid "environment variables"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:302
+#: arelle\CntlrCmdLine.py:309
 msgid "Proxy setting: http://{0}{1}{2}{3}{4}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:309
+#: arelle\CntlrCmdLine.py:316
 msgid "Proxy is disabled."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:319
+#: arelle\CntlrCmdLine.py:326
 msgid "Addition of plug-in {0} successful."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:323
+#: arelle\CntlrCmdLine.py:330
 msgid "Unable to load plug-in."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:326
+#: arelle\CntlrCmdLine.py:333
 msgid "Reload of plug-in successful."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:329
+#: arelle\CntlrCmdLine.py:336
 msgid "Unable to reload plug-in."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:332
+#: arelle\CntlrCmdLine.py:339
 msgid "Deletion of plug-in successful."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:335
+#: arelle\CntlrCmdLine.py:342
 msgid "Unable to delete plug-in."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:337
+#: arelle\CntlrCmdLine.py:344
 msgid "Plug-in action not recognized (may need +uri or [~-]module."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:341
+#: arelle\CntlrCmdLine.py:348
 msgid "Plug-in modules:"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:344
+#: arelle\CntlrCmdLine.py:351
 msgid "Plug-in: {0}; author: {1}; version: {2}; status: {3}; date: {4}; description: {5}; license {6}."
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:357
-msgid "both --efm and --gfm validation are requested, proceeding with --efm only"
+#: arelle\CntlrCmdLine.py:372
+msgid "both --efm and --disclosureSystem validation are requested, proceeding with --efm only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:376
+#: arelle\CntlrCmdLine.py:392
 msgid "both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:448 arelle\CntlrCmdLine.py:485
+#: arelle\CntlrCmdLine.py:464 arelle\CntlrCmdLine.py:501
 #: arelle\CntlrGenVersReports.py:322 arelle\CntlrProfiler.py:20
-#: arelle\CntlrWinMain.py:597
+#: arelle\CntlrWinMain.py:606
 msgid "views loading"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:452 arelle\CntlrCmdLine.py:573
+#: arelle\CntlrCmdLine.py:468 arelle\CntlrCmdLine.py:589
 msgid ""
 "[Exception] Failed to complete request: \n"
 "{0} \n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:458 arelle\CntlrCmdLine.py:492
+#: arelle\CntlrCmdLine.py:474 arelle\CntlrCmdLine.py:508
 msgid "load"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:460
+#: arelle\CntlrCmdLine.py:476
 msgid "loaded in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:473
+#: arelle\CntlrCmdLine.py:487
 msgid "import in %.2f secs at %s"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:476
+#: arelle\CntlrCmdLine.py:490
 msgid "import"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:494
+#: arelle\CntlrCmdLine.py:510
 msgid "diff comparison DTS loaded in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:500
+#: arelle\CntlrCmdLine.py:516
 msgid "diff"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:502 arelle\CntlrWinMain.py:787
+#: arelle\CntlrCmdLine.py:518 arelle\CntlrWinMain.py:796
 msgid "compared in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:509
+#: arelle\CntlrCmdLine.py:525
 msgid ""
 "[Exception] Failed to doad diff file: \n"
 "{0} \n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:524 arelle\CntlrWinMain.py:755
+#: arelle\CntlrCmdLine.py:540 arelle\CntlrWinMain.py:764
 msgid "validated in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:536
+#: arelle\CntlrCmdLine.py:552
 msgid "formula validation and execution in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:538
+#: arelle\CntlrCmdLine.py:554
 msgid "formula validation only in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:570
+#: arelle\CntlrCmdLine.py:586
 msgid ""
 "[IOError] Failed to save output:\n"
 " {0}"
 msgstr ""
 
-#: arelle\CntlrCmdLine.py:577
+#: arelle\CntlrCmdLine.py:593
 msgid "total"
 msgstr ""
 
@@ -773,19 +775,19 @@ msgid ""
 "</table>"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:82
+#: arelle\CntlrWinMain.py:81
 msgid "Open File..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:83
+#: arelle\CntlrWinMain.py:82
 msgid "Open Web..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:84
+#: arelle\CntlrWinMain.py:83
 msgid "Import File..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:85
+#: arelle\CntlrWinMain.py:84
 msgid "Import Web..."
 msgstr ""
 
@@ -797,457 +799,457 @@ msgstr ""
 msgid "Save DTS Package"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:88 arelle\CntlrWinMain.py:204
+#: arelle\CntlrWinMain.py:89 arelle\CntlrWinMain.py:213
 #: arelle\DialogFind.py:145 arelle\DialogPluginManager.py:173
 #: arelle\ViewWinFactGrid.py:31 arelle\ViewWinTree.py:216
 #: arelle\ViewWinTupleGrid.py:25
 msgid "Close"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:90
+#: arelle\CntlrWinMain.py:91
 msgid "Quit"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:102 arelle\DialogOpenArchive.py:35
+#: arelle\CntlrWinMain.py:106 arelle\DialogOpenArchive.py:35
 #: arelle\DialogOpenArchive.py:43 arelle\DialogOpenArchive.py:260
 #: arelle\DialogOpenArchive.py:262
 msgid "File"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:107
+#: arelle\CntlrWinMain.py:111
 msgid "Validation"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:108 arelle\CntlrWinMain.py:985
+#: arelle\CntlrWinMain.py:112 arelle\CntlrWinMain.py:994
 #: arelle\ViewWinXml.py:22
 msgid "Validate"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:112
+#: arelle\CntlrWinMain.py:116
 msgid "Disclosure system checks"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:113
+#: arelle\CntlrWinMain.py:117
 msgid "Select disclosure system..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:117
+#: arelle\CntlrWinMain.py:121
 msgid "Calc Linkbase checks"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:121
+#: arelle\CntlrWinMain.py:125
 msgid "Infer Decimals in calculations"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:125
+#: arelle\CntlrWinMain.py:129
 msgid "Unit Type Registry validation"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:130
+#: arelle\CntlrWinMain.py:134
 msgid "Parameters..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:132 arelle\FormulaEvaluator.py:940
+#: arelle\CntlrWinMain.py:136 arelle\FormulaEvaluator.py:940
 msgid "Formula"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:135
+#: arelle\CntlrWinMain.py:139
 msgid "Compare DTSes..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:139 arelle\ViewWinRssFeed.py:46
+#: arelle\CntlrWinMain.py:143 arelle\ViewWinRssFeed.py:46
 msgid "Options..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:140 arelle\ViewWinRssFeed.py:47
+#: arelle\CntlrWinMain.py:144 arelle\ViewWinRssFeed.py:47
 msgid "Start"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:141 arelle\ViewWinRssFeed.py:48
+#: arelle\CntlrWinMain.py:145 arelle\ViewWinRssFeed.py:48
 msgid "Stop"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:143 arelle\ViewWinRssFeed.py:49
+#: arelle\CntlrWinMain.py:147 arelle\ViewWinRssFeed.py:49
 msgid "RSS Watch"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:146
+#: arelle\CntlrWinMain.py:150
 msgid "Internet"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:150
+#: arelle\CntlrWinMain.py:154
 msgid "Work offline"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:151
+#: arelle\CntlrWinMain.py:155
 msgid "Clear cache"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:152
+#: arelle\CntlrWinMain.py:156
 msgid "Manage cache"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:153 arelle\DialogUserPassword.py:33
+#: arelle\CntlrWinMain.py:157 arelle\DialogUserPassword.py:33
 msgid "Proxy Server"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:156
+#: arelle\CntlrWinMain.py:160
 msgid "Messages log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:157 arelle\CntlrWinMain.py:258
+#: arelle\CntlrWinMain.py:161 arelle\CntlrWinMain.py:267
 msgid "Clear"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:158 arelle\CntlrWinMain.py:259
+#: arelle\CntlrWinMain.py:162 arelle\CntlrWinMain.py:268
 #: arelle\ViewWinList.py:106
 msgid "Save to file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:162
+#: arelle\CntlrWinMain.py:166
 msgid "Collect profile stats"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:163
+#: arelle\CntlrWinMain.py:167
 msgid "Log profile stats"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:164
+#: arelle\CntlrWinMain.py:168
 msgid "Clear profile stats"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:166
+#: arelle\CntlrWinMain.py:170
 msgid "Language..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:170
+#: arelle\CntlrWinMain.py:174
 msgid "Tools"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:174
+#: arelle\CntlrWinMain.py:178
 msgid "Check for updates"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:175
+#: arelle\CntlrWinMain.py:179
 msgid "Manage plug-ins"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:177
+#: arelle\CntlrWinMain.py:182
 msgid "About..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:186
+#: arelle\CntlrWinMain.py:195
 msgid "Help"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:190 arelle\CntlrWinMain.py:700
-#: arelle\CntlrWinMain.py:717 arelle\DialogFind.py:348
+#: arelle\CntlrWinMain.py:199 arelle\CntlrWinMain.py:709
+#: arelle\CntlrWinMain.py:726 arelle\DialogFind.py:348
 #: arelle\ViewWinFactList.py:70
 msgid "Ready..."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:201
+#: arelle\CntlrWinMain.py:210
 msgid "Open by choosing a local XBRL file, testcase, or archive file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:201
+#: arelle\CntlrWinMain.py:210
 msgid "Open local file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:202
+#: arelle\CntlrWinMain.py:211
 msgid "Enter an http:// URL of an XBRL file or testcase"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:202
+#: arelle\CntlrWinMain.py:211
 msgid "Open web file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:203
+#: arelle\CntlrWinMain.py:212
 msgid "Save file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:203
+#: arelle\CntlrWinMain.py:212
 msgid "Saves currently selected local XBRL file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:204
+#: arelle\CntlrWinMain.py:213
 msgid "Closes currently selected instance/DTS or testcase(s)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:206
+#: arelle\CntlrWinMain.py:215
 msgid "Find dialog for scope and method of searching"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:206 arelle\DialogFind.py:67 arelle\DialogFind.py:141
+#: arelle\CntlrWinMain.py:215 arelle\DialogFind.py:67 arelle\DialogFind.py:141
 msgid "Find"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:208
+#: arelle\CntlrWinMain.py:217
 msgid "Validate currently selected DTS or testcase(s)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:209
+#: arelle\CntlrWinMain.py:218
 msgid "Compare DTSes"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:209
+#: arelle\CntlrWinMain.py:218
 msgid "compare two DTSes"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:211
+#: arelle\CntlrWinMain.py:220
 msgid "Clears the messages log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:211
+#: arelle\CntlrWinMain.py:220
 msgid "Messages Log | Clear"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:255
+#: arelle\CntlrWinMain.py:264
 msgid "messages"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:261 arelle\ViewWinList.py:108
+#: arelle\CntlrWinMain.py:270 arelle\ViewWinList.py:108
 #: arelle\ViewWinTree.py:180
 msgid "Copy to clipboard"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:331 arelle\CntlrWinMain.py:369
-#: arelle\CntlrWinMain.py:733
+#: arelle\CntlrWinMain.py:340 arelle\CntlrWinMain.py:378
+#: arelle\CntlrWinMain.py:742
 msgid "arelle - Unnamed"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:352
+#: arelle\CntlrWinMain.py:361
 msgid "Recent files"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:359
+#: arelle\CntlrWinMain.py:368
 msgid "Recent imports"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:376
+#: arelle\CntlrWinMain.py:385
 msgid "arelle - Unsaved Changes"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:377
+#: arelle\CntlrWinMain.py:386
 msgid "Save unsaved changes?"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:393
+#: arelle\CntlrWinMain.py:402
 msgid "arelle - Save HTML-rendered Table"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:395
+#: arelle\CntlrWinMain.py:404
 msgid "HTML file .htm"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:395
+#: arelle\CntlrWinMain.py:404
 msgid "HTML file .html"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:399
+#: arelle\CntlrWinMain.py:408
 msgid "arelle - Save rendered table infoset (XML)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:401
+#: arelle\CntlrWinMain.py:410
 msgid "XML file .xml"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:408 arelle\CntlrWinMain.py:431
-#: arelle\CntlrWinMain.py:450 arelle\CntlrWinMain.py:476
-#: arelle\CntlrWinMain.py:813 arelle\CntlrWinMain.py:1072
+#: arelle\CntlrWinMain.py:417 arelle\CntlrWinMain.py:440
+#: arelle\CntlrWinMain.py:459 arelle\CntlrWinMain.py:485
+#: arelle\CntlrWinMain.py:822 arelle\CntlrWinMain.py:1081
 msgid "arelle - Error"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:409 arelle\CntlrWinMain.py:432
-#: arelle\CntlrWinMain.py:451 arelle\CntlrWinMain.py:477
-#: arelle\CntlrWinMain.py:1073
+#: arelle\CntlrWinMain.py:418 arelle\CntlrWinMain.py:441
+#: arelle\CntlrWinMain.py:460 arelle\CntlrWinMain.py:486
+#: arelle\CntlrWinMain.py:1082
 msgid ""
 "Failed to save {0}:\n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:415
+#: arelle\CntlrWinMain.py:424
 msgid "arelle - Save Instance"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:417
+#: arelle\CntlrWinMain.py:426
 msgid "XBRL instance .xbrl"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:417
+#: arelle\CntlrWinMain.py:426
 msgid "XBRL instance .xml"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:422
+#: arelle\CntlrWinMain.py:431
 msgid "arelle - Save Test Results"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:424
+#: arelle\CntlrWinMain.py:433
 msgid "CSV file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:438
+#: arelle\CntlrWinMain.py:447
 msgid "arelle - Save Formula Result Instance Document"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:440
+#: arelle\CntlrWinMain.py:449
 msgid "XBRL output instance .xbrl"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:440
+#: arelle\CntlrWinMain.py:449
 msgid "XBRL output instance .xml"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:448
+#: arelle\CntlrWinMain.py:457
 msgid "[info] Saved formula output instance to {0}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:457
+#: arelle\CntlrWinMain.py:466
 msgid "arelle - Save File"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:459
+#: arelle\CntlrWinMain.py:468
 msgid "Xbrl file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:470
+#: arelle\CntlrWinMain.py:479
 msgid "Saved {0} items to {1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:473 arelle\CntlrWinMain.py:635
-#: arelle\CntlrWinMain.py:809
+#: arelle\CntlrWinMain.py:482 arelle\CntlrWinMain.py:644
+#: arelle\CntlrWinMain.py:818
 msgid "arelle - {0}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:489
+#: arelle\CntlrWinMain.py:498
 msgid "arelle - Open file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:491 arelle\CntlrWinMain.py:511
+#: arelle\CntlrWinMain.py:500 arelle\CntlrWinMain.py:520
 #: arelle\DialogRssWatch.py:151
 msgid "XBRL files"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:494 arelle\CntlrWinMain.py:514
+#: arelle\CntlrWinMain.py:503 arelle\CntlrWinMain.py:523
 msgid "Loading web-accessed files"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:495
+#: arelle\CntlrWinMain.py:504
 msgid "Please open web-accessed files with the second toolbar button, \"Open web file\", or the File menu, second entry, \"Open web...\""
 msgstr ""
 
-#: arelle\CntlrWinMain.py:505 arelle\CntlrWinMain.py:576
-#: arelle\CntlrWinMain.py:740 arelle\CntlrWinMain.py:765
+#: arelle\CntlrWinMain.py:514 arelle\CntlrWinMain.py:585
+#: arelle\CntlrWinMain.py:749 arelle\CntlrWinMain.py:774
 msgid "arelle - Warning"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:506 arelle\CntlrWinMain.py:577
+#: arelle\CntlrWinMain.py:515 arelle\CntlrWinMain.py:586
 msgid "Import requires an opened DTS"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:509
+#: arelle\CntlrWinMain.py:518
 msgid "arelle - Import file into opened DTS"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:515
+#: arelle\CntlrWinMain.py:524
 msgid "Please import web-accessed files with the File menu, fourth entry, \"Import web...\""
 msgstr ""
 
-#: arelle\CntlrWinMain.py:588
+#: arelle\CntlrWinMain.py:597
 msgid "imported"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:595 arelle\DisclosureSystem.py:141
+#: arelle\CntlrWinMain.py:604 arelle\DisclosureSystem.py:152
 msgid "loaded"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:599 arelle\CntlrWinMain.py:609
+#: arelle\CntlrWinMain.py:608 arelle\CntlrWinMain.py:618
 msgid "Loading terminated, unrecoverable error"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:602
+#: arelle\CntlrWinMain.py:611
 msgid "Exception loading {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:615
+#: arelle\CntlrWinMain.py:624
 msgid "%s in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:618
+#: arelle\CntlrWinMain.py:627
 msgid "Initializing table rendering"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:620
+#: arelle\CntlrWinMain.py:629
 msgid "{0}, preparing views"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:625
+#: arelle\CntlrWinMain.py:634
 msgid "not successfully %s in %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:690
+#: arelle\CntlrWinMain.py:699
 msgid "views %.2f secs"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:694
+#: arelle\CntlrWinMain.py:703
 msgid "Exception preparing {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:698 arelle\CntlrWinMain.py:715
+#: arelle\CntlrWinMain.py:707 arelle\CntlrWinMain.py:724
 msgid "Exception preparing view"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:711
+#: arelle\CntlrWinMain.py:720
 msgid "Exception {0}: {1}, at {2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:741
+#: arelle\CntlrWinMain.py:750
 msgid "Validation - disclosure system checks is requested but no disclosure system is selected, please select one by validation - select disclosure system."
 msgstr ""
 
-#: arelle\CntlrWinMain.py:766
+#: arelle\CntlrWinMain.py:775
 msgid "Two DTSes are required for the Compare DTSes operation, {0} found"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:770
+#: arelle\CntlrWinMain.py:779
 msgid "arelle - Save Versioning Report File"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:772
+#: arelle\CntlrWinMain.py:781
 msgid "Versioning report file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:806
+#: arelle\CntlrWinMain.py:815
 msgid "Loaded {0} items from {1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:814
+#: arelle\CntlrWinMain.py:823
 msgid ""
 "Failed to load {0}\n"
 "{1}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:852
+#: arelle\CntlrWinMain.py:861
 msgid "arelle - Clear Internet Cache"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:853
+#: arelle\CntlrWinMain.py:862
 msgid "Are you sure you want to clear the internet cache?"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:905
+#: arelle\CntlrWinMain.py:914
 msgid "RSS Watch Control Error"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:906
+#: arelle\CntlrWinMain.py:915
 msgid "RSS Feed is not set up, please select options and select feed"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:941
+#: arelle\CntlrWinMain.py:950
 msgid "arelle - Labels language code setting"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:942
+#: arelle\CntlrWinMain.py:951
 msgid ""
 "The system default language is: {0} \n"
 "\n"
@@ -1257,44 +1259,44 @@ msgid ""
 "(Leave empty to use the system default language.)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:966
+#: arelle\CntlrWinMain.py:975
 msgid "Validate versioning report"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:970
+#: arelle\CntlrWinMain.py:979
 msgid ""
 "\n"
 "Check calculations (infer decimals)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:972
+#: arelle\CntlrWinMain.py:981
 msgid ""
 "\n"
 "Check calculations (infer precision)"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:976
+#: arelle\CntlrWinMain.py:985
 msgid ""
 "\n"
 "Check unit type registry"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:980
+#: arelle\CntlrWinMain.py:989
 msgid ""
 "Validate {0}\n"
 "Check disclosure system rules\n"
 "{1}{2}{3}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:983
+#: arelle\CntlrWinMain.py:992
 msgid "Validate {0}{1}{2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1018
+#: arelle\CntlrWinMain.py:1027
 msgid "About arelle"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1020
+#: arelle\CntlrWinMain.py:1029
 msgid ""
 "arelle® {0} {1}\n"
 "An open source XBRL platform\n"
@@ -1317,25 +1319,25 @@ msgid ""
 "   xlwt © 2007 Stephen J. Machin, Lingfo Pty Ltd, © 2005 R. V. Kiseliov{2}"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1042
+#: arelle\CntlrWinMain.py:1051
 msgid ""
 "\n"
 "   Bottle © 2011-2013 Marcel Hellkamp"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1063
+#: arelle\CntlrWinMain.py:1072
 msgid "arelle - Save Messages Log"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1065
+#: arelle\CntlrWinMain.py:1074
 msgid "Txt file"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1205
+#: arelle\CntlrWinMain.py:1223
 msgid "Exception"
 msgstr ""
 
-#: arelle\CntlrWinMain.py:1206
+#: arelle\CntlrWinMain.py:1224
 msgid ""
 "{0}\n"
 "Call trace\n"
@@ -1827,26 +1829,26 @@ msgstr ""
 msgid "Python files"
 msgstr ""
 
-#: arelle\DialogPluginManager.py:316
-msgid "Module is not a plug-in"
+#: arelle\DialogPluginManager.py:320
+msgid "Module is not itself a plug-in or in a directory with package __init__.py plug-in.  "
 msgstr ""
 
-#: arelle\DialogPluginManager.py:317
+#: arelle\DialogPluginManager.py:321
 msgid ""
-"File does not contain a python program with an appropriate __pluginInfo__ declaration: \n"
+"File does not itself contain a python program with an appropriate __pluginInfo__ declaration: \n"
 "\n"
 "{0}"
 msgstr ""
 
-#: arelle\DialogPluginManager.py:369
+#: arelle\DialogPluginManager.py:373
 msgid "{0} reloaded"
 msgstr ""
 
-#: arelle\DialogPluginManager.py:371
+#: arelle\DialogPluginManager.py:375
 msgid "Module error"
 msgstr ""
 
-#: arelle\DialogPluginManager.py:372
+#: arelle\DialogPluginManager.py:376
 msgid ""
 "File or module cannot be reloaded: \n"
 "\n"
@@ -2006,32 +2008,32 @@ msgstr ""
 msgid "Password:"
 msgstr ""
 
-#: arelle\DisclosureSystem.py:69
+#: arelle\DisclosureSystem.py:72
 msgid "parsing disclosuresystems.xml"
 msgstr ""
 
-#: arelle\DisclosureSystem.py:86
+#: arelle\DisclosureSystem.py:96
 msgid "loading disclosure system and mappings"
 msgstr ""
 
-#: arelle\DisclosureSystem.py:145
+#: arelle\DisclosureSystem.py:156
 msgid "exception during loading"
 msgstr ""
 
-#: arelle\DisclosureSystem.py:149
+#: arelle\DisclosureSystem.py:160
 msgid "Disclosure system and mappings {0}: {1}"
 msgstr ""
 
-#: arelle\DisclosureSystem.py:160 arelle\DisclosureSystem.py:206
+#: arelle\DisclosureSystem.py:171 arelle\DisclosureSystem.py:217
 #: arelle\ModelDocument.py:99
 msgid "parsing {0}"
 msgstr ""
 
-#: arelle\FileSource.py:59
+#: arelle\FileSource.py:60
 msgid "Archive does not contain file: {0}, archive: {1}"
 msgstr ""
 
-#: arelle\FileSource.py:89 arelle\FileSource.py:94
+#: arelle\FileSource.py:90 arelle\FileSource.py:95
 msgid "[{0}] {1}"
 msgstr ""
 
@@ -3030,7 +3032,7 @@ msgstr ""
 
 #: arelle\ModelVersReport.py:408 arelle\Validate.py:278
 #: arelle\ValidateFiling.py:1621 arelle\ValidateFormula.py:158
-#: arelle\ValidateHmrc.py:205 arelle\ValidateXbrl.py:501
+#: arelle\ValidateHmrc.py:205 arelle\ValidateXbrl.py:504
 msgid "ready"
 msgstr ""
 
@@ -3066,48 +3068,48 @@ msgstr ""
 msgid "to value: {0} "
 msgstr ""
 
-#: arelle\ModelXbrl.py:40
+#: arelle\ModelXbrl.py:42
 msgid "loading"
 msgstr ""
 
-#: arelle\ModelXbrl.py:71 arelle\ModelXbrl.py:306
+#: arelle\ModelXbrl.py:73 arelle\ModelXbrl.py:308
 msgid "xbrl loading finished, {0}..."
 msgstr ""
 
-#: arelle\ModelXbrl.py:530
+#: arelle\ModelXbrl.py:532
 msgid "Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"
 msgstr ""
 
-#: arelle\ModelXbrl.py:551
+#: arelle\ModelXbrl.py:553
 msgid "Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"
 msgstr ""
 
-#: arelle\ModelXbrl.py:798
+#: arelle\ModelXbrl.py:801
 msgid "Exception viewing properties {0} {1} at {2}"
 msgstr ""
 
-#: arelle\ModelXbrl.py:952 arelle\ModelXbrl.py:953
+#: arelle\ModelXbrl.py:978 arelle\ModelXbrl.py:979
 msgid "%.3f secs"
 msgstr ""
 
-#: arelle\ModelXbrl.py:955
+#: arelle\ModelXbrl.py:981
 msgid ""
 "Profile statistics \n"
 msgstr ""
 
-#: arelle\ModelXbrl.py:956
+#: arelle\ModelXbrl.py:982
 msgid "%s %.3f secs, %.0fK"
 msgstr ""
 
-#: arelle\ModelXbrl.py:1024
+#: arelle\ModelXbrl.py:1050
 msgid "DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"
 msgstr ""
 
-#: arelle\PluginManager.py:199
+#: arelle\PluginManager.py:208
 msgid "Exception loading plug-in {name}: {error}"
 msgstr ""
 
-#: arelle\PluginManager.py:204
+#: arelle\PluginManager.py:214
 msgid "Exception finding plug-in {name}: {error}"
 msgstr ""
 
@@ -5203,135 +5205,135 @@ msgstr ""
 msgid "compiling formulae"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:511
+#: arelle\ValidateXbrl.py:514
 msgid "Fact %(fact)s context %(contextID)s is numeric and must have a unit"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:518
+#: arelle\ValidateXbrl.py:521
 msgid "Fact %(fact)s context %(contextID)s must have a single unit measure which is monetary %(unitID)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:523
+#: arelle\ValidateXbrl.py:526
 msgid "Fact %(fact)s context %(contextID)s must have a monetary unit measure %(unitID)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:529
+#: arelle\ValidateXbrl.py:532
 msgid "Fact %(fact)s context %(contextID)s must have a single xbrli:shares unit %(unitID)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:533
+#: arelle\ValidateXbrl.py:536
 msgid "Fact %(fact)s context %(contextID)s must have a xbrli:shares unit %(unitID)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:539 arelle\ValidateXbrl.py:545
+#: arelle\ValidateXbrl.py:542 arelle\ValidateXbrl.py:548
 msgid "Fact %(fact)s context %(contextID)s precision %(precision)s is invalid"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:549
+#: arelle\ValidateXbrl.py:552
 msgid "Fact %(fact)s context %(contextID)s can not have both precision and decimals"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:552
+#: arelle\ValidateXbrl.py:555
 msgid "xbrl.4.6.5:decimals"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:553
+#: arelle\ValidateXbrl.py:556
 msgid "Fact %(fact)s context %(contextID)s decimals %(decimals)s is invalid"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:559
+#: arelle\ValidateXbrl.py:562
 msgid "Item %(fact)s must have a context"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:566
+#: arelle\ValidateXbrl.py:569
 msgid "Fact %(fact)s context %(contextID)s has period type %(periodType)s conflict with context"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:573
+#: arelle\ValidateXbrl.py:576
 msgid "Fact %(fact)s context %(contextID)s can not be nil and have either precision or decimals"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:578
+#: arelle\ValidateXbrl.py:581
 msgid "Fact %(fact)s context %(contextID)s is a fraction concept and cannot have either precision or decimals"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:583
+#: arelle\ValidateXbrl.py:586
 msgid "Fact %(fact)s context %(contextID)s is a fraction with invalid numerator %(numerator)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:587
+#: arelle\ValidateXbrl.py:590
 msgid "Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:594
+#: arelle\ValidateXbrl.py:597
 msgid "Fact %(fact)s context %(contextID)s may not have child elements %(childElementName)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:599
+#: arelle\ValidateXbrl.py:602
 msgid "Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:604
+#: arelle\ValidateXbrl.py:607
 msgid "Tuple %(fact)s must not have a context"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:608
+#: arelle\ValidateXbrl.py:611
 msgid "Fact %(fact)s is a tuple and cannot have either precision or decimals"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:613
+#: arelle\ValidateXbrl.py:616
 msgid "xbrl.4.9:tupleAttribute"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:614
+#: arelle\ValidateXbrl.py:617
 msgid "Fact %(fact)s is a tuple and must not have attribute in this namespace %(attribute)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:618
+#: arelle\ValidateXbrl.py:621
 msgid "Fact %(fact)s must be an item or tuple"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:624
+#: arelle\ValidateXbrl.py:627
 msgid "Fact %(fact)s missing schema definition or missing name attribute"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:628
+#: arelle\ValidateXbrl.py:631
 msgid "Fact %(fact)s is missing a contextRef"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:632
+#: arelle\ValidateXbrl.py:635
 msgid "Fact %(fact)s is missing a unitRef"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:639
+#: arelle\ValidateXbrl.py:642
 msgid "Fact %(fact)s has unrecognized transformation namespace %(namespace)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:643
+#: arelle\ValidateXbrl.py:646
 msgid "Fact %(fact)s has unrecognized transformation name %(name)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:651
+#: arelle\ValidateXbrl.py:654
 msgid "Fact %(fact)s must not have an order (%(order)s) unless in a tuple"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:672
+#: arelle\ValidateXbrl.py:675
 msgid "Fact %(fact)s is recursively nested in tuple %(tuple)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:676
+#: arelle\ValidateXbrl.py:679
 msgid "Fact %(fact)s missing an order in tuple %(tuple)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:728
+#: arelle\ValidateXbrl.py:731
 msgid "Context %(contextID)s %(contextElement)s cannot have xbrli element %(elementName)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:734
+#: arelle\ValidateXbrl.py:737
 msgid "Context %(contextID)s %(contextElement)s cannot have item or tuple element %(elementName)s"
 msgstr ""
 
-#: arelle\ValidateXbrl.py:743
+#: arelle\ValidateXbrl.py:746
 msgid "Context %(contextID)s %(contextElement)s cannot be empty"
 msgstr ""
 
@@ -6021,11 +6023,11 @@ msgstr ""
 msgid "viewing relationships {0}"
 msgstr ""
 
-#: arelle\ViewFileRenderedGrid.py:23
+#: arelle\ViewFileRenderedGrid.py:25
 msgid "saving rendering"
 msgstr ""
 
-#: arelle\ViewFileRenderedGrid.py:38
+#: arelle\ViewFileRenderedGrid.py:40
 msgid "rendering saved to {0}"
 msgstr ""
 
@@ -6415,15 +6417,29 @@ msgid ""
 "switching to work offline"
 msgstr ""
 
-#: arelle\WebCache.py:326
+#: arelle\WebCache.py:312
+msgid ""
+"{0} \n"
+"Unsuccessful removal of prior file {1} \n"
+"Please remove with file manager."
+msgstr ""
+
+#: arelle\WebCache.py:316
+msgid ""
+"{0} \n"
+"Unsuccessful renaming of downloaded file to active file {1} \n"
+"Please remove with file manager."
+msgstr ""
+
+#: arelle\WebCache.py:332
 msgid "web caching {0}: {1:.0f} of {2:.0f} KB"
 msgstr ""
 
-#: arelle\WebCache.py:331
+#: arelle\WebCache.py:337
 msgid "web caching {0}: {1:.0f} KB"
 msgstr ""
 
-#: arelle\WebCache.py:391
+#: arelle\WebCache.py:397
 msgid "retrieval incomplete: got only %i out of %i bytes"
 msgstr ""
 
@@ -6483,19 +6499,19 @@ msgstr ""
 msgid "Unary expression sequence length error"
 msgstr ""
 
-#: arelle\XPathContext.py:466
+#: arelle\XPathContext.py:469
 msgid "Axis step {0} context item is not a node: {1}"
 msgstr ""
 
-#: arelle\XPathContext.py:607
+#: arelle\XPathContext.py:610
 msgid "Atomizing tuple {0} that does not have a typed value"
 msgstr ""
 
-#: arelle\XPathContext.py:635
+#: arelle\XPathContext.py:638
 msgid "Atomizing {0} to a {1} does not have a proper value"
 msgstr ""
 
-#: arelle\XPathContext.py:645
+#: arelle\XPathContext.py:648
 msgid "Atomizing {0} to an integer does not have a proper value"
 msgstr ""
 
@@ -6551,31 +6567,31 @@ msgid ""
 "%(source)s"
 msgstr ""
 
-#: arelle\XbrlConst.py:334
+#: arelle\XbrlConst.py:338
 msgid "1Dimension"
 msgstr ""
 
-#: arelle\XbrlConst.py:335
+#: arelle\XbrlConst.py:339
 msgid "1Formula"
 msgstr ""
 
-#: arelle\XbrlConst.py:336
+#: arelle\XbrlConst.py:340
 msgid "1Rendering"
 msgstr ""
 
-#: arelle\XbrlConst.py:337
+#: arelle\XbrlConst.py:341
 msgid "1Presentation"
 msgstr ""
 
-#: arelle\XbrlConst.py:338
+#: arelle\XbrlConst.py:342
 msgid "1Calculation"
 msgstr ""
 
-#: arelle\XbrlConst.py:342
+#: arelle\XbrlConst.py:346
 msgid "1Standard Label"
 msgstr ""
 
-#: arelle\XbrlConst.py:343
+#: arelle\XbrlConst.py:347
 msgid "0Name"
 msgstr ""
 

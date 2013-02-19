@@ -20,6 +20,7 @@ profileStatNumber = 0
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
 DEFAULT = sys.intern(_STR_8BIT("default"))
 NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
+DEFAULTorNONDEFAULT = sys.intern(_STR_8BIT("default-or-non-default"))
     
 
 def load(modelManager, url, nextaction=None, base=None, useFileSource=None, errorCaptureLevel=None):

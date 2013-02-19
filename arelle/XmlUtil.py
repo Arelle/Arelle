@@ -460,14 +460,21 @@ def addComment(parent, commentText):
     parent.append(child)
     
 def addQnameValue(modelDocument, qnameValue):
-    if isinstance(modelDocument, ModelObject): modelDocument = modelDocument.modelDocument
-    existingPrefix = xmlnsprefix(modelDocument.xmlRootElement, qnameValue.namespaceURI)
+    if not isinstance(qnameValue, QName):
+        return qnameValue # may be just a string
+    if hasattr(modelDocument, "modelDocument"): 
+        modelDocument = modelDocument.modelDocument
+        xmlRootElement = modelDocument.xmlRootElement
+    elif isinstance(modelDocument, etree._ElementTree):
+        xmlRootElement = modelDocument.getroot()
+        if xmlRootElement.tag == "nsmap": xmlRootElement = xmlRootElement[0]
+    existingPrefix = xmlnsprefix(xmlRootElement, qnameValue.namespaceURI)
     if existingPrefix is not None:  # namespace is already declared, use that for qnameValue's prefix
         return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName
     prefix = qnameValue.prefix
     dupNum = 2 # start with _2 being 'second' use of same prefix, etc.
     while (dupNum < 10000): # check if another namespace has prefix already (but don't die if running away)
-        if xmlns(modelDocument.xmlRootElement, prefix) is None:
+        if xmlns(xmlRootElement, prefix) is None:
             break   # ok to use this prefix
         prefix = "{0}_{1}".format(qnameValue.prefix if qnameValue.prefix else '', dupNum)
         dupNum += 1
@@ -475,8 +482,12 @@ def addQnameValue(modelDocument, qnameValue):
     return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName
 
 def setXmlns(modelDocument, prefix, namespaceURI):
-    elementTree = modelDocument.xmlDocument
-    root = elementTree.getroot()
+    if isinstance(modelDocument, etree._ElementTree):
+        elementTree = modelDocument
+        root = modelDocument.getroot()
+    else:
+        elementTree = modelDocument.xmlDocument
+        root = elementTree.getroot()
     if prefix == "":
         prefix = None  # default xmlns prefix stores as None
     if prefix not in root.nsmap:
