@@ -25,7 +25,7 @@ def numericArgs(node, sphinxContext, expectedArgsLen):
                                     sourceFileLine=node.sourceFileLine,
                                     name=node.name, required=expectedArgsLen, provided=len(node.args))
     numArgs = []
-    for arg, i in enumerate(node.args):
+    for i, arg in enumerate(node.args):
         if i >= expectedArgsLen:
             break
         value = evaluate(arg, sphinxContext, value=True)

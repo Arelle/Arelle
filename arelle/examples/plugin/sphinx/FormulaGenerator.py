@@ -301,7 +301,7 @@ def genTestExpr(node, sc, bindAsSeq):
         sc.assertionTest.append({"sum": "sum(",
                                  "count": "count(",
                                  }.get(node.name, "$$$functionNotImplemented_{0}$$$(".format(node.name)))
-        for arg, i in enumerate(node.args):
+        for i, arg in enumerate(node.args):
             if i: 
                 sc.assertionTest.append(",")
             genTestExpr(arg, sc, nestedBindAsSeq)

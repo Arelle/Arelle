@@ -10,10 +10,12 @@ Sphinx copyright applies to the Sphinx language, not to this software.
 Mark V Systems conveys neither rights nor license for the Sphinx language. 
 '''
 
-from .SphinxParser import astNode
+from .SphinxParser import astNode, astWith
 from arelle.ModelFormulaObject import aspectModels, Aspect, aspectStr
-from arelle.FormulaEvaluator import implicitFilter
+from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.FormulaEvaluator import implicitFilter, aspectsMatch
 from arelle.ModelValue import QName
+from arelle.ModelXbrl import DEFAULT, NONDEFAULT
 from arelle import XmlUtil
                                        
 class SphinxContext:
@@ -32,6 +34,7 @@ class SphinxContext:
         self.hyperspaceBindings = None
         self.staticSeverity = None
         self.dynamicSeverity = None
+        self.dimensionIsExplicit = {}  # qname of dimension (axis), True if explicit, False if typed
         if modelXbrl is not None:
             self.formulaOptions = modelXbrl.modelManager.formulaOptions
             self.defaultDimensionAspects = set(modelXbrl.qnameDimensionDefaults.keys())
@@ -53,6 +56,7 @@ class HyperspaceBindings:
         sphinxContext.hyperspaceBindings = self
         self.hyperspaceBindings = []
         self.nodeBindings = {}
+        self.withRestrictionBindings = []
         self.aspectBoundFacts = {}
         
     def close(self):
@@ -62,10 +66,10 @@ class HyperspaceBindings:
             hsBinding.close()
         self.__dict__.clear() # dereference
         
-    def nodeBinding(self, node):
+    def nodeBinding(self, node, isWithRestrictionNode=False):
         if node in self.nodeBindings:
             return self.nodeBindings[node]
-        nodeBinding = HyperspaceBinding(self, node)
+        nodeBinding = HyperspaceBinding(self, node, isWithRestrictionNode=isWithRestrictionNode)
         self.nodeBindings[node] = nodeBinding
         self.hyperspaceBindings.append(nodeBinding)
         return nodeBinding
@@ -93,16 +97,21 @@ class HyperspaceBindings:
                 if not binding.fallenBack and binding.yieldedFact is not None]
         
 class HyperspaceBinding:
-    def __init__(self, hyperspaceBindings, node, fallback=False):
+    def __init__(self, hyperspaceBindings, node, fallback=False, isWithRestrictionNode=False):
         self.hyperspaceBindings = hyperspaceBindings
         self.sCtx = hyperspaceBindings.sCtx
         self.node = node
+        self.isWithRestrictionNode = isWithRestrictionNode
         self.fallback = fallback
         self.aspectsQualified = set()
         self.varName = None
         self.tagName = None
         self.aspectsDefined = set(aspectModels["dimensional"])
-        self.aspectsQualified = _DICT_SET(self.node.axes.keys())
+        if hyperspaceBindings.withRestrictionBindings:
+            withAspectsQualified = hyperspaceBindings.withRestrictionBindings[-1].aspectsQualified
+        else:
+            withAspectsQualified = set()
+        self.aspectsQualified = _DICT_SET(self.node.axes.keys()) | withAspectsQualified
         self.reset()  # will raise StopIteration if no facts or fallback
         
     def close(self):
@@ -117,12 +126,15 @@ class HyperspaceBinding:
         return None
         
     def reset(self):
+        # start with all facts
+        if self.hyperspaceBindings.withRestrictionBindings:
+            facts = self.hyperspaceBindings.withRestrictionBindings[-1].yieldedFactsPartition
+        else:
+            facts = self.sCtx.modelXbrl.nonNilFactsInInstance
         if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
             self.sCtx.modelXbrl.info("sphinx:trace",
                  _("Hyperspace %(variable)s binding: start with %(factCount)s facts"), 
-                 modelObject=self.node, variable=str(self.node), factCount=len(self.facts))
-        # start with all facts
-        facts = self.sCtx.modelXbrl.nonNilFactsInInstance
+                 modelObject=self.node, variable=str(self.node), factCount=len(facts))
         # filter by hyperspace aspects
         facts = self.filterFacts(facts)
         for fact in facts:
@@ -136,11 +148,25 @@ class HyperspaceBinding:
             self.sCtx.modelXbrl.info("sphinx:trace",
                  _("Hyperspace %(variable)s binding: filters result %(factCount)s facts"), 
                  modelObject=self.node, variable=str(self.node), factCount=len(self.facts))
-        self.facts = facts
-        self.factIter = iter(self.facts)
+        if self.isWithRestrictionNode: # if withNode, combine facts into partitions by qualified aspects
+            factsPartitions = []
+            for fact in facts:
+                matched = False
+                for partition in factsPartitions:
+                    if aspectsMatch(self.sCtx, fact, partition[0], self.aspectsQualified):
+                        partition.append(fact)
+                        matched = True
+                        break
+                if not matched:
+                    factsPartitions.append([fact,])
+            self.factIter = iter([set(p) for p in factsPartitions])  # must be sets
+            self.yieldedFactsPartition = []
+        else: # just a hyperspaceExpression node
+            self.factIter = iter(facts)
         self.yieldedFact = None
         self.fallenBack = False
         self.next()
+
         
     def next(self): # will raise StopIteration if no (more) facts or fallback
         uncoveredAspectFacts = self.hyperspaceBindings.aspectBoundFacts
@@ -152,7 +178,12 @@ class HyperspaceBinding:
                     uncoveredAspectFacts[aspect] = priorFact
             self.evaluationContributedUncoveredAspects.clear()
         try:
-            self.yieldedFact = next(self.factIter)
+            if not self.isWithRestrictionNode:
+                self.yieldedFact = next(self.factIter)
+            else:
+                self.yieldedFactsPartition = next(self.factIter)
+                for self.yieldedFact in self.yieldedFactsPartition:
+                    break
             self.evaluationContributedUncoveredAspects = {}
             for aspect in self.unQualifiedAspects:  # covered aspects may not be defined e.g., test 12062 v11, undefined aspect is a complemented aspect
                 if uncoveredAspectFacts.get(aspect) is None:
@@ -164,6 +195,8 @@ class HyperspaceBinding:
                      modelObject=self.node, variable=str(self.node), result=str(self.yieldedFact))
         except StopIteration:
             self.yieldedFact = None
+            if self.isWithRestrictionNode:
+                self.yieldedFactsPartition = []
             if self.fallback and not self.fallenBack:
                 self.fallenBack = True
                 if self.sCtx.formulaOptions.traceVariableExpressionResult:
@@ -176,20 +209,64 @@ class HyperspaceBinding:
     def filterFacts(self, facts):
         modelXbrl = self.sCtx.modelXbrl
         orderedAxes = []
-        for axisValue in self.node.axes.items():
-            if axisValue[0] == Aspect.CONCEPT:
-                orderedAxes.insert(0, axisValue)
+        # process with bindings and this node
+        for aspect, hsAxis in self.node.axes.items():
+            if aspect == Aspect.CONCEPT:
+                orderedAxes.insert(0, hsAxis)
             else:
-                orderedAxes.append(axisValue)
-        for axis,value in orderedAxes:
-            if axis == Aspect.CONCEPT:
-                facts = facts & modelXbrl.factsByQname[value]
-            elif isinstance(axis, QName):
-                # explicit dim facts
-                facts = facts & modelXbrl.factsByDimMemQname(axis, value)
+                orderedAxes.append(hsAxis)
+        for hsAxis in orderedAxes:
+            # value is an astHyperspaceAxis
+            if hsAxis.whereExpr:
+                whereMatchedFacts = set()
+                for fact in facts:
+                    if hsAxis.asVariableName:
+                        self.sCtx.localVariables[hsAxis.asVariableName] = factAspectValue(fact, haAxis.aspect)
+                    self.sCtx.localVariables["item"] = fact
+                    if evaluate(hsAxis.whereExpr):
+                        whereMatchedFacts.add(fact)
+                facts = whereMatchedFacts
+            elif hsAxis.aspect == Aspect.CONCEPT:
+                facts = facts & set.union(*[modelXbrl.factsByQname[qn]
+                                            for qn in hsAxis.restriction
+                                            if isinstance(qn, QName)])
+            elif isinstance(hsAxis.aspect, QName):
+                if self.sCtx.dimensionIsExplicit.get(hsAxis.aspect):
+                    # explicit dim facts (value None will match the default member)
+                    facts = facts & set.union(*[modelXbrl.factsByDimMemQname(hsAxis.aspect, qn)
+                                                for qn in hsAxis.restriction
+                                                if isinstance(qn, QName)])
+                else:
+                    facts = facts & set(fact 
+                                        for fact in facts
+                                        for typedDimValue in hsAxis.restriction
+                                        if typedDimTest(hsAxis.aspect, typedDimValue, fact))
             if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
                 self.sCtx.modelXbrl.info("sphinx:trace",
                      _("Hyperspace %(variable)s: %(filter)s filter passes %(factCount)s facts"), 
                      modelObject=self.node, variable=str(self.node), filter=aspectStr(axis), factCount=len(facts))
+        if self.node.isClosed: # winnow out non-qualified dimension breakdowns
+            facts = facts - set(fact
+                                for fact in facts
+                                if fact.dimAspects - self.aspectsQualified )
+            if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
+                self.sCtx.modelXbrl.info("sphinx:trace",
+                     _("Hyperspace %(variable)s: closed selection filter passes %(factCount)s facts"), 
+                     modelObject=self.node, variable=str(self.node), factCount=len(facts))
         return facts
 
+def typedDimTest(aspect, value, fact):
+    if fact.context is None:
+        return False
+    modelDim = fact.context.dimValue(aspect)
+    if isinstance(modelDim, ModelDimensionValue):
+        memElt = modelDim.typedMember
+        if memElt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
+            return value is DEFAULT
+        if value is NONDEFAULT:
+            return True
+        return memElt.elementText == value
+    else:
+        return value is DEFAULT
+    
+from .SphinxEvaluator import evaluate, factAspectValue
