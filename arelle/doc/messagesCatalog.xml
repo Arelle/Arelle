@@ -25,7 +25,7 @@ dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %
 
 <message code="(dynamic)"
          level="critical"
-         module="ModelXbrl.py" line="947"
+         module="ModelXbrl.py" line="973"
          args="">
 (dynamic)
 </message>
@@ -162,7 +162,7 @@ Exception: %(error)s
 
 <message code="(dynamic)"
          level="error"
-         module="ModelXbrl.py" line="942"
+         module="ModelXbrl.py" line="968"
          args="">
 (dynamic)
 </message>
@@ -264,35 +264,35 @@ Calculation relationship has illegal weight %(weight)s from %(source)s, %(source
 
 <message code="(dynamic)"
          level="error"
-         module="ValidateXbrl.py" line="552"
+         module="ValidateXbrl.py" line="555"
          args="fact contextID decimals">
 Fact %(fact)s context %(contextID)s decimals %(decimals)s is invalid
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="ValidateXbrl.py" line="613"
+         module="ValidateXbrl.py" line="616"
          args="fact attribute">
 Fact %(fact)s is a tuple and must not have attribute in this namespace %(attribute)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="ValidateXbrl.py" line="727"
+         module="ValidateXbrl.py" line="730"
          args="contextID contextElement elementName">
 Context %(contextID)s %(contextElement)s cannot have xbrli element %(elementName)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="ValidateXbrl.py" line="733"
+         module="ValidateXbrl.py" line="736"
          args="contextID contextElement elementName">
 Context %(contextID)s %(contextElement)s cannot have item or tuple element %(elementName)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="ValidateXbrl.py" line="742"
+         module="ValidateXbrl.py" line="745"
          args="contextID contextElement">
 Context %(contextID)s %(contextElement)s cannot be empty
 </message>
@@ -600,7 +600,7 @@ The %(fact1)s %(value1)s must be later than the %(fact2)s %(value2)s.
 
 <message code="(dynamic)"
          level="info"
-         module="ModelXbrl.py" line="900"
+         module="ModelXbrl.py" line="926"
          args="">
 (dynamic)
 </message>
@@ -628,7 +628,7 @@ Link:%(elementName)s not child of link:linkbase or xbrli:instance
 
 <message code="(dynamic)"
          level="warning"
-         module="ModelXbrl.py" line="905"
+         module="ModelXbrl.py" line="931"
          args="">
 (dynamic)
 </message>
@@ -1703,7 +1703,7 @@ Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not par
 </message>
 
 <message code="EFM.6.15.04"
-         level="warning"
+         level="warning-semantic"
          module="ValidateFiling.py" line="1423"
          args="linkrole linkrole2 concept">
 Calculation relationships should have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s
@@ -2769,7 +2769,7 @@ Concept %(concept)s is monetary without a balance and must have a documentation 
 </message>
 
 <message code="GFM.2.06.04"
-         level="warning"
+         level="warning-semantic"
          module="ValidateFiling.py" line="1423"
          args="linkrole linkrole2 concept">
 Calculation relationships should have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s
@@ -4698,14 +4698,14 @@ Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered
 
 <message code="arelleLinfo"
          level="info"
-         module="ModelXbrl.py" line="529"
+         module="ModelXbrl.py" line="531"
          args="priItem">
 Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes
 </message>
 
 <message code="arelleLinfo"
          level="info"
-         module="ModelXbrl.py" line="550"
+         module="ModelXbrl.py" line="552"
          args="dimension">
 Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue
 </message>
@@ -4800,6 +4800,13 @@ Versioning report exception: %(error)s, testcase: %(reportFile)s
          module="Validate.py" line="89"
          args="modelXbrl instance error exc_info">
 Instance validation exception: %(error)s, instance: %(instance)s
+</message>
+
+<message code="exception"
+         level="error"
+         module="examples/plugin/saveCHComponentFile.py" line="138"
+         args="error modelXbrl exc_info">
+Component file generation exception: %(error)s
 </message>
 
 <message code="exception"
@@ -5181,7 +5188,7 @@ Updated Table Linkbase file cannot be an archive: %(tableLBOutputFile)s.
 
 <message code="info"
          level="info"
-         module="ModelXbrl.py" line="1023"
+         module="ModelXbrl.py" line="1049"
          args="entryFile packageOutputFile numberOfFiles">
 DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s
 </message>
@@ -5212,13 +5219,6 @@ Formula validation skipped due to %(error)s error
          module="ViewFile.py" line="271"
          args="file type">
 Saved output %(type)s to %(file)s
-</message>
-
-<message code="info"
-         level="info"
-         module="examples/plugin/hello_dolly.py" line="44"
-         args="">
-(dynamic)
 </message>
 
 <message code="info:duplicatedSchema"
@@ -5258,9 +5258,16 @@ DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFi
 
 <message code="info:profileStats"
          level="info"
-         module="ModelXbrl.py" line="954"
+         module="ModelXbrl.py" line="980"
          args="profileStats timeTotal timeEFM">
 (dynamic)
+</message>
+
+<message code="info:saveCHComponentFile"
+         level="info"
+         module="examples/plugin/saveCHComponentFile.py" line="58"
+         args="entryFile componentOutputFile">
+Component file for %(entryFile)s in file %(componentOutputFile)s.
 </message>
 
 <message code="info:saveEBAtables"
@@ -5300,21 +5307,21 @@ Updated Table Linkbase of %(entryFile)s has %(numberOfLinkroles)s linkroles, %(n
 
 <message code="ix.13.1.2:tupleOrder"
          level="error"
-         module="ValidateXbrl.py" line="650"
+         module="ValidateXbrl.py" line="653"
          args="fact order">
 Fact %(fact)s must not have an order (%(order)s) unless in a tuple
 </message>
 
 <message code="ix.13.1.2:tupleOrder"
          level="error"
-         module="ValidateXbrl.py" line="675"
+         module="ValidateXbrl.py" line="678"
          args="fact tuple">
 Fact %(fact)s missing an order in tuple %(tuple)s
 </message>
 
 <message code="ix.13.1.2:tupleRecursion"
          level="error"
-         module="ValidateXbrl.py" line="671"
+         module="ValidateXbrl.py" line="674"
          args="fact tuple">
 Fact %(fact)s is recursively nested in tuple %(tuple)s
 </message>
@@ -5328,28 +5335,28 @@ Inline XBRL tupleRef %(tupleRef)s not found
 
 <message code="ix.14.2:invalidTransformation"
          level="error"
-         module="ValidateXbrl.py" line="638"
+         module="ValidateXbrl.py" line="641"
          args="fact namespace">
 Fact %(fact)s has unrecognized transformation namespace %(namespace)s
 </message>
 
 <message code="ix.14.2:invalidTransformation"
          level="error"
-         module="ValidateXbrl.py" line="642"
+         module="ValidateXbrl.py" line="645"
          args="fact name">
 Fact %(fact)s has unrecognized transformation name %(name)s
 </message>
 
 <message code="ix:missingContextRef"
          level="error"
-         module="ValidateXbrl.py" line="627"
+         module="ValidateXbrl.py" line="630"
          args="fact">
 Fact %(fact)s is missing a contextRef
 </message>
 
 <message code="ix:missingUnitRef"
          level="error"
-         module="ValidateXbrl.py" line="631"
+         module="ValidateXbrl.py" line="634"
          args="fact">
 Fact %(fact)s is missing a unitRef
 </message>
@@ -6057,77 +6064,77 @@ LinkbaseRef %(linkbaseHref)s role %(role)s has wrong extended link %(link)s
 
 <message code="xbrl.4.6.1:itemContextRef"
          level="error"
-         module="ValidateXbrl.py" line="558"
+         module="ValidateXbrl.py" line="561"
          args="fact">
 Item %(fact)s must have a context
 </message>
 
 <message code="xbrl.4.6.1:tupleContextRef"
          level="error"
-         module="ValidateXbrl.py" line="603"
+         module="ValidateXbrl.py" line="606"
          args="fact">
 Tuple %(fact)s must not have a context
 </message>
 
 <message code="xbrl.4.6.2:numericUnit"
          level="error"
-         module="ValidateXbrl.py" line="510"
+         module="ValidateXbrl.py" line="513"
          args="fact contextID">
 Fact %(fact)s context %(contextID)s is numeric and must have a unit
 </message>
 
 <message code="xbrl.4.6.3:bothPrecisionAndDecimals"
          level="error"
-         module="ValidateXbrl.py" line="548"
+         module="ValidateXbrl.py" line="551"
          args="fact contextID">
 Fact %(fact)s context %(contextID)s can not have both precision and decimals
 </message>
 
 <message code="xbrl.4.6.3:fractionPrecisionDecimals"
          level="error"
-         module="ValidateXbrl.py" line="577"
+         module="ValidateXbrl.py" line="580"
          args="fact contextID">
 Fact %(fact)s context %(contextID)s is a fraction concept and cannot have either precision or decimals
 </message>
 
 <message code="xbrl.4.6.3:missingPrecisionDecimals"
          level="error"
-         module="ValidateXbrl.py" line="598"
+         module="ValidateXbrl.py" line="601"
          args="fact contextID">
 Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals
 </message>
 
 <message code="xbrl.4.6.3:nilPrecisionDecimals"
          level="error"
-         module="ValidateXbrl.py" line="572"
+         module="ValidateXbrl.py" line="575"
          args="fact contextID">
 Fact %(fact)s context %(contextID)s can not be nil and have either precision or decimals
 </message>
 
 <message code="xbrl.4.6.3:tuplePrecisionDecimals"
          level="error"
-         module="ValidateXbrl.py" line="607"
+         module="ValidateXbrl.py" line="610"
          args="fact">
 Fact %(fact)s is a tuple and cannot have either precision or decimals
 </message>
 
 <message code="xbrl.4.6.4:precision"
          level="error"
-         module="ValidateXbrl.py" line="538"
+         module="ValidateXbrl.py" line="541"
          args="fact contextID precision">
 Fact %(fact)s context %(contextID)s precision %(precision)s is invalid
 </message>
 
 <message code="xbrl.4.6.4:precision"
          level="error"
-         module="ValidateXbrl.py" line="544"
+         module="ValidateXbrl.py" line="547"
          args="fact contextID precision">
 Fact %(fact)s context %(contextID)s precision %(precision)s is invalid
 </message>
 
 <message code="xbrl.4.6:notItemOrTuple"
          level="error"
-         module="ValidateXbrl.py" line="617"
+         module="ValidateXbrl.py" line="620"
          args="fact">
 Fact %(fact)s must be an item or tuple
 </message>
@@ -6148,7 +6155,7 @@ Context %(contextID)s instant date: %(error)s
 
 <message code="xbrl.4.7.2:contextPeriodType"
          level="error"
-         module="ValidateXbrl.py" line="565"
+         module="ValidateXbrl.py" line="568"
          args="fact contextID periodType">
 Fact %(fact)s context %(contextID)s has period type %(periodType)s conflict with context
 </message>
@@ -6176,28 +6183,28 @@ Unit %(unitID)s illegal measure: %(measure)s
 
 <message code="xbrl.4.8.2:monetaryFactUnit-notMonetaryMeasure"
          level="error"
-         module="ValidateXbrl.py" line="522"
+         module="ValidateXbrl.py" line="525"
          args="fact contextID unitID">
 Fact %(fact)s context %(contextID)s must have a monetary unit measure %(unitID)s
 </message>
 
 <message code="xbrl.4.8.2:monetaryFactUnit-notSingleMeasure"
          level="error"
-         module="ValidateXbrl.py" line="517"
+         module="ValidateXbrl.py" line="520"
          args="fact contextID unitID">
 Fact %(fact)s context %(contextID)s must have a single unit measure which is monetary %(unitID)s
 </message>
 
 <message code="xbrl.4.8.2:sharesFactUnit-notSharesMeasure"
          level="error"
-         module="ValidateXbrl.py" line="532"
+         module="ValidateXbrl.py" line="535"
          args="fact contextID unitID">
 Fact %(fact)s context %(contextID)s must have a xbrli:shares unit %(unitID)s
 </message>
 
 <message code="xbrl.4.8.2:sharesFactUnit-notSingleMeasure"
          level="error"
-         module="ValidateXbrl.py" line="528"
+         module="ValidateXbrl.py" line="531"
          args="fact contextID unitID">
 Fact %(fact)s context %(contextID)s must have a single xbrli:shares unit %(unitID)s
 </message>
@@ -6302,21 +6309,21 @@ Item %(concept)s type %(itemType)s invalid
 
 <message code="xbrl.5.1.1:fractionPrecisionDecimals"
          level="error"
-         module="ValidateXbrl.py" line="582"
+         module="ValidateXbrl.py" line="585"
          args="fact contextID numerator">
 Fact %(fact)s context %(contextID)s is a fraction with invalid numerator %(numerator)s
 </message>
 
 <message code="xbrl.5.1.1:fractionPrecisionDecimals"
          level="error"
-         module="ValidateXbrl.py" line="586"
+         module="ValidateXbrl.py" line="589"
          args="">
 Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)
 </message>
 
 <message code="xbrl.5.1.1:itemMixedContent"
          level="error"
-         module="ValidateXbrl.py" line="593"
+         module="ValidateXbrl.py" line="596"
          args="fact contextID childElementName">
 Fact %(fact)s context %(contextID)s may not have child elements %(childElementName)s
 </message>
@@ -6477,7 +6484,7 @@ Instance facts missing schema definition: %(elements)s
 
 <message code="xbrl:schemaImportMissing"
          level="error"
-         module="ValidateXbrl.py" line="623"
+         module="ValidateXbrl.py" line="626"
          args="fact">
 Fact %(fact)s missing schema definition or missing name attribute
 </message>
