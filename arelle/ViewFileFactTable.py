@@ -4,7 +4,7 @@ Created on Jan 24, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ViewFile, XbrlConst, XmlUtil
+from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
 from arelle.ViewFile import CSV, HTML, XML, JSON
 import datetime
 from collections import defaultdict
