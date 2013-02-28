@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- (c) 2005-2010 XBRL International. All Rights Reserved. http://www.XBRL.org/legal/ 
+<!-- (c) 2005-2011 XBRL International. All Rights Reserved. http://www.XBRL.org/legal/ 
      This document may be copied and furnished to others, and derivative works that 
      comment on or otherwise explain it or assist in its implementation may be 
      prepared, copied, published and distributed, in whole or in part, without 
@@ -8,409 +8,288 @@
      trademark or service mark of XBRL International, Inc., registered in the
      United States and in other countries. -->
 <xs:schema xmlns:utr="http://www.xbrl.org/2009/utr" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:xhtml="http://www.w3.org/1999/xhtml" targetNamespace="http://www.xbrl.org/2009/utr"
-	elementFormDefault="qualified" attributeFormDefault="unqualified">
-	<xs:import namespace="http://www.w3.org/1998/Math/MathML"
-		schemaLocation="http://www.w3.org/Math/XMLSchema/mathml2/mathml2.xsd"/>
-	<xs:complexType name="DocumentationType" mixed="true">
-		<xs:annotation>
-			<xs:documentation>Element type that may contain mixed text and XHTML
-				markup</xs:documentation>
-		</xs:annotation>
-		<xs:complexContent mixed="true">
-			<xs:restriction base="xs:anyType">
-				<xs:sequence minOccurs="0" maxOccurs="unbounded">
-					<xs:any namespace="http://www.w3.org/1999/xhtml" processContents="lax"/>
-				</xs:sequence>
-				<!--<xs:attribute name="version" type="xs:string"/>-->
-			</xs:restriction>
-		</xs:complexContent>
-	</xs:complexType>
-	<xs:group name="unitGroup">
-		<xs:sequence>
-			<xs:element ref="utr:unitId"/>
-			<xs:element ref="utr:unitName"/>
-			<xs:element ref="utr:nsUnit"/>
-			<xs:element ref="utr:itemType"/>
-			<xs:element ref="utr:nsItemType" minOccurs="0"/>
-			<xs:element ref="utr:itemTypeDate" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>Absent itemTypeDate means the type is not in the Data Types
-						registry</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element ref="utr:symbol" minOccurs="0"/>
-			<xs:group ref="utr:numeratorGroup" minOccurs="0"/>
-			<xs:group ref="utr:denominatorGroup" minOccurs="0"/>
-			<xs:element ref="utr:definition"/>
-			<xs:element ref="utr:baseStandard"/>
-			<xs:element ref="utr:conversionPresentation" minOccurs="0" maxOccurs="1"/>
-			<xs:element ref="utr:conversionContent" minOccurs="0" maxOccurs="1"/>
-			<xs:element ref="utr:status"/>
-			<xs:element ref="utr:versionDate"/>
-		</xs:sequence>
-	</xs:group>
-	<xs:group name="numeratorGroup">
-		<xs:sequence>
-			<xs:element ref="utr:numeratorItemType" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>A</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element ref="utr:nsNumeratorItemType" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>A</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-		</xs:sequence>
-	</xs:group>
-	<xs:element name="numeratorItemType" type="xs:NCName">
-		<xs:annotation>
-			<xs:documentation>If the unit name contains {numerator} then the unit numerator must be
-				for a unit that is compatible with this item type.</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="nsNumeratorItemType" type="xs:anyURI">
-		<xs:annotation>
-			<xs:documentation/>
-		</xs:annotation>
-	</xs:element>
-	<xs:group name="denominatorGroup">
-		<xs:sequence>
-			<xs:element ref="utr:denominatorItemType" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>A</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element ref="utr:nsDenominatorItemType" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>A</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-		</xs:sequence>
-	</xs:group>
-	<xs:element name="denominatorItemType" type="xs:NCName">
-		<xs:annotation>
-			<xs:documentation>If the unit name contains {denominator} then the unit denominator must
-				be for a unit that is compatible with this item type.</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="nsDenominatorItemType" type="xs:anyURI">
-		<xs:annotation>
-			<xs:documentation/>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="utr">
-		<xs:annotation>
-			<xs:documentation>Root element of the XBRL Data Type Registry</xs:documentation>
-		</xs:annotation>
-		<xs:complexType>
-			<xs:sequence>
-				<xs:element name="units">
-					<xs:complexType>
-						<xs:sequence minOccurs="0" maxOccurs="unbounded">
-							<xs:element name="unit">
-								<xs:complexType>
-									<xs:group ref="utr:unitGroup"/>
-									<xs:attribute name="id" type="xs:ID"/>
-								</xs:complexType>
-							</xs:element>
-						</xs:sequence>
-					</xs:complexType>
-				</xs:element>
-			</xs:sequence>
-			<xs:attribute name="version" type="xs:token" fixed="1.0"/>
-		</xs:complexType>
-	</xs:element>
-	<xs:element name="unitId">
-		<xs:annotation>
-			<xs:documentation>The identifier to be used in the id attribute of the xs:unit
-				declaration of instances. It will not be unique in the scope of the DTR because there could be
-				(for example) a REC definition of a unit, and an IWD version of
-				it.</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:token">
-				<xs:pattern value="(\{numerator\})?[^\{\}]+(\{denominator\})?[^\{\}]*"/>
-			</xs:restriction>
-		</xs:simpleType>
-	</xs:element>
-	<xs:element name="nsUnit">
-		<xs:annotation>
-			<xs:documentation>The namespace in which the unit is declared in a xbrli:measure element.
-			If absent, it means that the unit is not a simple measure.</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:anyURI"/>
-		</xs:simpleType>
-	</xs:element>
-	<xs:element name="unitName">
-		<xs:annotation>
-			<xs:documentation>This is the id of the unit being defined. It may start with
-				{numerator}, contain {denominator}, and have both or neither.</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:token">
-				<xs:pattern value="(\{numerator\})?[^\{\}]+(\{denominator\})?[^\{\}]*"/>
-			</xs:restriction>
-		</xs:simpleType>
-	</xs:element>
-	<xs:element name="itemType">
-		<xs:annotation>
-			<xs:documentation>Type name, without namespace.</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:NCName"/>
-		</xs:simpleType>
-	</xs:element>
-	<xs:element name="nsItemType">
-		<xs:annotation>
-			<xs:documentation>Type name namespace; absent if the namespace does not
-				matter.</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:anyURI"/>
-		</xs:simpleType>
-	</xs:element>
-	<xs:element name="itemTypeDate" type="xs:date">
-		<xs:annotation>
-			<xs:documentation>Version date of the XBRL specification or data type registry in which
-				the item type first appears, or empty if the type is not yet
-				present.</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="symbol">
-		<xs:annotation>
-			<xs:documentation>The symbol used when rendering figures measured in the unit. This may
-				be unicode such as a currency symbol. Monetary symbols are conventionally displayed
-				before a number; other symbols conventionally displayed after.</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:token"/>
-		</xs:simpleType>
-	</xs:element>
-	<!--<xs:element name="scalePrefix">
-		<xs:annotation>
-			<xs:documentation>SI Prefixes<xhtml:a href="http://www.bipm.org/en/si/prefixes.html"
-					>http://www.bipm.org/en/si/prefixes.html</xhtml:a></xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:token">
-				<xs:enumeration value="yocto">
-					<xs:annotation>
-						<xs:documentation>y</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-24</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="zepto">
-					<xs:annotation>
-						<xs:documentation>z</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-21</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="atto">
-					<xs:annotation>
-						<xs:documentation>a</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-18</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="femto">
-					<xs:annotation>
-						<xs:documentation>f</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-15</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="pico">
-					<xs:annotation>
-						<xs:documentation>p</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-12</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="nano">
-					<xs:annotation>
-						<xs:documentation>n</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-9</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="micro">
-					<xs:annotation>
-						<xs:documentation>&#x3BC;</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-6</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="milli">
-					<xs:annotation>
-						<xs:documentation>m 10<xhtml:sup>-3</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="centi">
-					<xs:annotation>
-						<xs:documentation>c</xs:documentation>
-						<xs:documentation>c 10<xhtml:sup>-2</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="deci">
-					<xs:annotation>
-						<xs:documentation>d</xs:documentation>
-						<xs:documentation>10<xhtml:sup>-1</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="deca">
-					<xs:annotation>
-						<xs:documentation>da</xs:documentation>
-						<xs:documentation>10<xhtml:sup>1</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="hecto">
-					<xs:annotation>
-						<xs:documentation>h</xs:documentation>
-						<xs:documentation>10<xhtml:sup>2</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="kilo">
-					<xs:annotation>
-						<xs:documentation>K</xs:documentation>
-						<xs:documentation>10<xhtml:sup>3</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="mega">
-					<xs:annotation>
-						<xs:documentation>M</xs:documentation>
-						<xs:documentation>10<xhtml:sup>6</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="giga">
-					<xs:annotation>
-						<xs:documentation>G</xs:documentation>
-						<xs:documentation>10<xhtml:sup>9</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="tera">
-					<xs:annotation>
-						<xs:documentation>T</xs:documentation>
-						<xs:documentation>10<xhtml:sup>12</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="peta">
-					<xs:annotation>
-						<xs:documentation>P</xs:documentation>
-						<xs:documentation>10<xhtml:sup>15</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="exa">
-					<xs:annotation>
-						<xs:documentation>E</xs:documentation>
-						<xs:documentation>10<xhtml:sup>18</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="zetta">
-					<xs:annotation>
-						<xs:documentation>Z</xs:documentation>
-						<xs:documentation>10<xhtml:sup>21</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="yotta">
-					<xs:annotation>
-						<xs:documentation>Y</xs:documentation>
-						<xs:documentation>10<xhtml:sup>24</xhtml:sup></xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-			</xs:restriction>
-		</xs:simpleType>
-	</xs:element>-->
-	<xs:element name="definition" type="utr:DocumentationType">
-		<xs:annotation>
-			<xs:documentation>The meaning of the unit. Text in different languages are distinguished
-				by using XHTML sections with different xml:lang attributes.</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="baseStandard">
-		<xs:annotation>
-			<xs:documentation>Customary,ISO4217,Non-SI,SI,XBRL</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:string">
-				<xs:enumeration value="ISO4217"/>
-				<xs:enumeration value="SI"/>
-				<xs:enumeration value="Customary"/>
-				<xs:enumeration value="Non-SI"/>
-				<xs:enumeration value="XBRL"/>
-				<xs:enumeration value=""/>
-			</xs:restriction>
-		</xs:simpleType>
-	</xs:element>
-	
-	<xs:complexType name="mathExpression">
-		<xs:sequence>
-			<xs:element ref="math:math" xmlns:math="http://www.w3.org/1998/Math/MathML"/>
-		</xs:sequence>
-	</xs:complexType>
-	
-	<xs:element name="conversionPresentation" type="utr:mathExpression"/>
-	<xs:element name="conversionContent" type="utr:mathExpression"/>
-	
-<!--	
-	<xs:element name="conversionSI" type="utr:DocumentationType">
-		<xs:annotation>
-			<xs:documentation>Conversion factor to SI Base Type.</xs:documentation>
-		</xs:annotation>
-		</xs:element>
--->
-	
-	<xs:element name="status">
-		<xs:annotation>
-			<xs:documentation>The XBRL International status of this unit.
-				CR,PWD,REC,NIE,PROPOSED,IWD,ACK,RR</xs:documentation>
-		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:token">
-				<xs:enumeration value="PWD">
-					<xs:annotation>
-						<xs:documentation>Public Working Draft</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="CR">
-					<xs:annotation>
-						<xs:documentation>Candidate Recommendation</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="REC">
-					<xs:annotation>
-						<xs:documentation>Recommendation</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="NIE">
-					<xs:annotation>
-						<xs:documentation>Not In Effect</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="PROPOSED">
-					<xs:annotation>
-						<xs:documentation>Proposed</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="IWD">
-					<xs:annotation>
-						<xs:documentation>Internal Working Draft</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="ACK">
-					<xs:annotation>
-						<xs:documentation>Acknowledged</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-				<xs:enumeration value="RR">
-					<xs:annotation>
-						<xs:documentation>Huh?</xs:documentation>
-					</xs:annotation>
-				</xs:enumeration>
-			</xs:restriction>
-		</xs:simpleType>
-	</xs:element>
-	<xs:element name="versionDate" type="xs:date">
-		<xs:annotation>
-			<xs:documentation>Effective date of this version of the unit; all versions of the same
-				uhit with earlier dates are superseded</xs:documentation>
-		</xs:annotation>
-	</xs:element>
+  xmlns:xhtml="http://www.w3.org/1999/xhtml" targetNamespace="http://www.xbrl.org/2009/utr"
+  elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:import namespace="http://www.w3.org/1998/Math/MathML"
+    schemaLocation="http://www.w3.org/Math/XMLSchema/mathml2/mathml2.xsd"/>
+  <xs:complexType name="DocumentationType" mixed="true">
+    <xs:annotation>
+      <xs:documentation>Element type that may contain mixed text and XHTML markup</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent mixed="true">
+      <xs:restriction base="xs:anyType">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:any namespace="http://www.w3.org/1999/xhtml" processContents="lax"/>
+        </xs:sequence>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:group name="unitSimpleGroup">
+    <xs:sequence>
+      <xs:element ref="utr:nsUnit"/>
+      <xs:element ref="utr:itemType" minOccurs="0"/>
+      <xs:element ref="utr:nsItemType" minOccurs="0"/>
+      <xs:element ref="utr:itemTypeDate" minOccurs="0"/>
+      <xs:element ref="utr:symbol" minOccurs="0"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:group name="unitDivisionGroup">
+    <xs:sequence>
+      <xs:element ref="utr:itemType" minOccurs="0"/>
+      <xs:element ref="utr:nsItemType" minOccurs="0"/>
+      <xs:element ref="utr:itemTypeDate" minOccurs="0"/>
+      <xs:element ref="utr:symbol" minOccurs="0"/>
+      <xs:group ref="utr:numeratorGroup"/>
+      <xs:group ref="utr:denominatorGroup"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:group name="numeratorGroup">
+    <xs:sequence>
+      <xs:element ref="utr:numeratorItemType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>When present, the unit numerator must be for a unit that is compatible with this item type
+            local name. The numeratorItemType cannot be an item type whose units require a numerator and
+            denominator.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element ref="utr:nsNumeratorItemType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>If the namespace of the numerator item type is constrained, then it is provided
+            here.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="numeratorItemType" type="xs:NCName">
+    <xs:annotation>
+      <xs:documentation>When present, then the unit numerator must be for a unit that is compatible with this item
+        type.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="nsNumeratorItemType" type="xs:anyURI">
+    <xs:annotation>
+      <xs:documentation/>
+    </xs:annotation>
+  </xs:element>
+  <xs:group name="denominatorGroup">
+    <xs:sequence>
+      <xs:element ref="utr:denominatorItemType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>When present, then the unit denominator must be for a unit that is compatible with this item
+            type. The denominatorItemType cannot be an item type whose units require a numerator and
+            denominator.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element ref="utr:nsDenominatorItemType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>If the namespace of the denominator item type is constrained, then it is provided
+            here.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="denominatorItemType" type="xs:NCName">
+    <xs:annotation>
+      <xs:documentation>When present, then the unit denominator must be for a unit that is compatible with this item
+        type.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="nsDenominatorItemType" type="xs:anyURI">
+    <xs:annotation>
+      <xs:documentation/>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="utr">
+    <xs:annotation>
+      <xs:documentation>Root element of the XBRL Data Type Registry</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="units">
+          <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+              <xs:element name="unit">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="utr:unitId"/>
+                    <xs:element ref="utr:unitName"/>
+                    <xs:choice>
+                      <xs:group ref="utr:unitSimpleGroup"/>
+                      <xs:group ref="utr:unitDivisionGroup"/>
+                    </xs:choice>
+                    <xs:element ref="utr:definition"/>
+                    <xs:element ref="utr:baseStandard"/>
+                    <xs:element ref="utr:conversionPresentation" minOccurs="0" maxOccurs="1"/>
+                    <xs:element ref="utr:conversionContent" minOccurs="0" maxOccurs="1"/>
+                    <xs:element ref="utr:status"/>
+                    <xs:element ref="utr:versionDate"/>
+                  </xs:sequence>
+                  <xs:attribute name="id" type="xs:ID"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string" fixed="1.0"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="unitId">
+    <xs:annotation>
+      <xs:documentation>The NCName to be used in the measure element of occurrences of simple units with any numerator
+        or denominator measure; nsUnit must be empty. In either case, this This need not be unique in the scope of the
+        UTR because there could be (for example) a REC definition of a unit, and an IWD version of it.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:NCName"> </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="unitName">
+    <xs:annotation>
+      <xs:documentation>The name of the unit being defined, which may have embedded spaces and other characters and is
+        conventionally in Proper Case.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:pattern value="[^\s].*[^\s]"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="nsUnit">
+    <xs:annotation>
+      <xs:documentation> The namespace in which the unit is declared in a xbrli:measure element. If the content is
+        empty, it means that the unit is not a simple measure. The combination of Unit ID and non-empty Unit Namespace
+        must be unique within the scope of the registry. </xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="itemType">
+    <xs:annotation>
+      <xs:documentation>The local-name of a type with which this unit may be used.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:NCName"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="nsItemType">
+    <xs:annotation>
+      <xs:documentation>Item type namespace; absent if the namespace does not matter.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="itemTypeDate" type="xs:date">
+    <xs:annotation>
+      <xs:documentation>Version date of the XBRL specification or data type registry in which the item type first
+        appears, or empty if the type is not (yet) present.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="symbol">
+    <xs:annotation>
+      <xs:documentation>The symbol used when rendering figures measured in the unit. This may be unicode such as a
+        currency symbol. Monetary symbols are conventionally displayed before a number; other symbols conventionally
+        displayed after.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="definition" type="utr:DocumentationType">
+    <xs:annotation>
+      <xs:documentation>The meaning of the unit, in English.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="baseStandard">
+    <xs:annotation>
+      <xs:documentation>A token indicating the authority or source of the unit definition: Customary, ISO4217, Non-SI,
+        SI, XBRL.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="ISO4217"/>
+        <xs:enumeration value="SI"/>
+        <xs:enumeration value="Customary"/>
+        <xs:enumeration value="Non-SI"/>
+        <xs:enumeration value="XBRL"/>
+        <xs:enumeration value=""/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:complexType name="mathExpression">
+    <xs:sequence>
+      <xs:element ref="math:math" xmlns:math="http://www.w3.org/1998/Math/MathML"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="conversionPresentation" type="utr:mathExpression">
+    <xs:annotation>
+      <xs:documentation> MathML definition using elements such as mrow and msup to present a formula for conversion into
+        standard international base units, if such a conversion exists. </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="conversionContent" type="utr:mathExpression">
+    <xs:annotation>
+      <xs:documentation> MathML definition using elements such as mrow and msup to present a formula for conversion into
+        standard international base units, if such a conversion exists. </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="status">
+    <xs:annotation>
+      <xs:documentation>The XBRL International status of this unit: CR, PWD, REC, NIE, PROPOSED, IWD, ACK,
+        RR</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:token">
+        <xs:enumeration value="PWD">
+          <xs:annotation>
+            <xs:documentation>Public Working Draft</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="CR">
+          <xs:annotation>
+            <xs:documentation>Candidate Recommendation</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="REC">
+          <xs:annotation>
+            <xs:documentation>Recommendation</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="NIE">
+          <xs:annotation>
+            <xs:documentation>Not In Effect</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="PROPOSED">
+          <xs:annotation>
+            <xs:documentation>Proposed</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="IWD">
+          <xs:annotation>
+            <xs:documentation>Internal Working Draft</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="ACK">
+          <xs:annotation>
+            <xs:documentation>Acknowledged</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="RR">
+          <xs:annotation>
+            <xs:documentation>Rescinded Recommendation</xs:documentation>
+          </xs:annotation>
+        </xs:enumeration>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="versionDate" type="xs:date">
+    <xs:annotation>
+      <xs:documentation>Effective date of this version of the unit; all versions of the same uhit with earlier dates are
+        superseded</xs:documentation>
+    </xs:annotation>
+  </xs:element>
 </xs:schema>
