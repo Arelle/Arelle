@@ -15,6 +15,7 @@ from arelle.ModelValue import dateTime
 from arelle import XmlUtil
 from arelle.UiUtil import gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip
+from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isValidAbsolute
 
 '''
@@ -58,69 +59,86 @@ class DialogRssWatch(Toplevel):
         frame = Frame(self)
 
         # checkbox entries
-        label(frame, 1, 1, "RSS Feed:")
+        row = 1 # row number (to allow future plugins
+        label(frame, 1, row, "RSS Feed:")
         feedSources = sorted(rssFeeds.keys())
-        self.cellFeed = gridCombobox(frame, 2, 1, options.get("feedSource",""), values=feedSources)
+        self.cellFeed = gridCombobox(frame, 2, row, options.get("feedSource",""), values=feedSources)
         self.cellFeed.grid(pady=2)
         ToolTip(self.cellFeed, text=_("Select an RSS feed to process for item matching, formulas, and validations as selected below"), wraplength=240)
-        label(frame, 1, 2, "Match fact text:")
-        self.cellMatchText = gridCell(frame, 2, 2, options.get("matchTextExpr",""))
+        row += 1
+        label(frame, 1, row, "Match fact text:")
+        self.cellMatchText = gridCell(frame, 2, row, options.get("matchTextExpr",""))
         ToolTip(self.cellMatchText, text=_("Enter a regular expression to be matched to the text of each filing instance fact item. "
                                            "Regular expressions may contain patterns to detect, such as ab.?c, for any single character between b and c, or ab.*c for any number of characters between b and c."), wraplength=240)
-        label(frame, 1, 3, "Formula file:")
-        self.cellFormulaFile = gridCell(frame,2, 3, options.get("formulaFileUri",""))
+        row += 1
+        label(frame, 1, row, "Formula file:")
+        self.cellFormulaFile = gridCell(frame,2, row, options.get("formulaFileUri",""))
         ToolTip(self.cellFormulaFile, text=_("Select a formula linkbase to to evaluate each filing.  "
                                              "The formula linkbase may contain one or more assertions, the results of which is recorded in the log file.  "
                                              "If unsuccessful assertion alerts are selected and an e-mail address provided, the recipient will be notified of filings with assertions that do not pass."), wraplength=240)
         openFileImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarOpenFile.gif"))
         chooseFormulaFileButton = Button(frame, image=openFileImage, width=12, command=self.chooseFormulaFile)
-        chooseFormulaFileButton.grid(row=3, column=3, sticky=W)
-        label(frame, 1, 4, "Log file:")
-        self.cellLogFile = gridCell(frame,2, 4, options.get("logFileUri",""))
+        chooseFormulaFileButton.grid(row=row, column=3, sticky=W)
+        row += 1
+        for pluginXbrlMethod in pluginClassMethods("DialogRssWatch.FileChoices"):
+            pluginXbrlMethod(self, frame, row, options, mainWin)
+            row += 1
+        label(frame, 1, row, "Log file:")
+        self.cellLogFile = gridCell(frame,2, row, options.get("logFileUri",""))
         ToolTip(self.cellLogFile, text=_("Select a log file in which to save an activity log, including validation results, matched item text, and formula results.\n\n "
                                          "Two files are produced, (1) .txt with the log messages, and (2) .csv with the RSS feed items and status.  "), wraplength=240)
         chooseLogFileButton = Button(frame, image=openFileImage, width=12, command=self.chooseLogFile)
-        chooseLogFileButton.grid(row=4, column=3, sticky=W)
-        label(frame, 1, 5, "E-mail alerts to:")
-        self.cellEmailAddress = gridCell(frame,2, 5, options.get("emailAddress",""))
+        chooseLogFileButton.grid(row=row, column=3, sticky=W)
+        row += 1
+        label(frame, 1, row, "E-mail alerts to:")
+        self.cellEmailAddress = gridCell(frame,2, row, options.get("emailAddress",""))
         ToolTip(self.cellEmailAddress, text=_("Specify e-mail recipient(s) for alerts per below."), wraplength=240)
-        label(frame, 1, 6, "Latest pub date:")
+        row += 1
+        label(frame, 1, row, "Latest pub date:")
         pubdate = getattr(options,"latestPubDate",None)
-        self.cellLatestPubDate = gridCell(frame,2, 6, str(pubdate) if pubdate else "")
+        self.cellLatestPubDate = gridCell(frame,2, row, str(pubdate) if pubdate else "")
         ToolTip(self.cellLatestPubDate, text=_("Specify pub dateTime of last processed submission.  Next item to examine will be after this dateTime."), wraplength=240)
         clearImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarDelete.gif"))
         clearPubDateButton = Button(frame, image=clearImage, width=12, command=self.clearPubDate)
-        clearPubDateButton.grid(row=6, column=3, sticky=W)
+        clearPubDateButton.grid(row=row, column=3, sticky=W)
         ToolTip(clearPubDateButton, text=_("Clear pub dateTime so that next cycle processes all entries in RSS feed."), wraplength=240)
-        label(frame, 2, 7, "Validate:")
-        label(frame, 2, 12, "Alert on:")
+        row += 1
+        label(frame, 2, row, "Validate:")
+        row += 1
         self.checkboxes = (
-           checkbox(frame, 2, 8, 
+           checkbox(frame, 2, row, 
                     "XBRL 2.1 and Dimensions rules", 
                     "validateXbrlRules"),
-           checkbox(frame, 2, 9, 
+           checkbox(frame, 2, row+1, 
                     "Selected disclosure system rules", 
                     "validateDisclosureSystemRules"),
-           checkbox(frame, 2, 10,
+           checkbox(frame, 2, row+2,
                     "Calculation linkbase roll-up", 
                     "validateCalcLinkbase"),
-           checkbox(frame, 2, 11,
+           checkbox(frame, 2, row+3,
                     "Formula assertions", 
                     "validateFormulaAssertions"),
-           checkbox(frame, 2, 13, 
+           # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
+        )
+        row += 4
+        for pluginXbrlMethod in pluginClassMethods("DialogRssWatch.ValidateChoices"):
+            pluginXbrlMethod(self, frame, row, options, mainWin)
+            row += 1
+        label(frame, 2, row, "Alert on:")
+        row += 1
+        self.checkboxes += (
+           checkbox(frame, 2, row, 
                     "Facts with matching text", 
                     "alertMatchedFactText"),
-           checkbox(frame, 2, 14,
+           checkbox(frame, 2, row+1,
                     "Unsuccessful formula assertions", 
                     "alertAssertionUnsuccessful"),
-           checkbox(frame, 2, 15, 
+           checkbox(frame, 2, row+2, 
                     "Validation errors", 
                     "alertValiditionError"),
-
-        
            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
-        
            )
+        row += 3
         
         mainWin.showStatus(None)
 
@@ -128,8 +146,8 @@ class DialogRssWatch(Toplevel):
         ToolTip(cancelButton, text=_("Cancel operation, discarding changes and entries"))
         okButton = Button(frame, text=_("OK"), width=8, command=self.ok)
         ToolTip(okButton, text=_("Accept the options as entered above"))
-        cancelButton.grid(row=16, column=1, columnspan=3, sticky=E, pady=3, padx=3)
-        okButton.grid(row=16, column=1, columnspan=3, sticky=E, pady=3, padx=86)
+        cancelButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=3)
+        okButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=86)
         
         frame.grid(row=0, column=0, sticky=(N,S,E,W))
         frame.columnconfigure(2, weight=1)

@@ -8,6 +8,7 @@ Refactored from ModelObject on Jun 11, 2011
 import os, logging
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
+from arelle.PluginManager import pluginClassMethods
 
 class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
@@ -72,18 +73,22 @@ class ModelTestcaseVariation(ModelObject):
             return self._readMeFirstUris
         except AttributeError:
             self._readMeFirstUris = []
-            for anElement in self.iterdescendants():
-                if isinstance(anElement,ModelObject) and anElement.get("readMeFirst") == "true":
-                    if anElement.get("{http://www.w3.org/1999/xlink}href"):
-                        uri = anElement.get("{http://www.w3.org/1999/xlink}href")
-                    else:
-                        uri = XmlUtil.innerText(anElement)
-                    if anElement.get("name"):
-                        self._readMeFirstUris.append( (ModelValue.qname(anElement, anElement.get("name")), uri) )
-                    elif anElement.get("dts"):
-                        self._readMeFirstUris.append( (anElement.get("dts"), uri) )
-                    else:
-                        self._readMeFirstUris.append(uri)
+            # first look if any plugin method to get readme first URIs
+            if not any(pluginXbrlMethod(self)
+                       for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReadMeFirstUris")):
+                # default built-in method for readme first uris
+                for anElement in self.iterdescendants():
+                    if isinstance(anElement,ModelObject) and anElement.get("readMeFirst") == "true":
+                        if anElement.get("{http://www.w3.org/1999/xlink}href"):
+                            uri = anElement.get("{http://www.w3.org/1999/xlink}href")
+                        else:
+                            uri = XmlUtil.innerText(anElement)
+                        if anElement.get("name"):
+                            self._readMeFirstUris.append( (ModelValue.qname(anElement, anElement.get("name")), uri) )
+                        elif anElement.get("dts"):
+                            self._readMeFirstUris.append( (anElement.get("dts"), uri) )
+                        else:
+                            self._readMeFirstUris.append(uri)
             if not self._readMeFirstUris:  # provide a dummy empty instance document
                 self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
@@ -185,6 +190,9 @@ class ModelTestcaseVariation(ModelObject):
     
     @property
     def expected(self):
+        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedResult"):
+            return pluginXbrlMethod(self)
+        # default behavior without plugins
         if self.localName == "testcase":
             return self.document.basename[:4]   #starts with PASS or FAIL
         errorElement = XmlUtil.descendant(self, None, "error")
@@ -214,6 +222,9 @@ class ModelTestcaseVariation(ModelObject):
     
     @property
     def severityLevel(self):
+        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedSeverity"):
+            return pluginXbrlMethod(self)
+        # default behavior without plugins
         # SEC error cases have <assert severity={err|wrn}>...
         if XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None:
             return logging.getLevelName("WARNING")

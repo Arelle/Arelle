@@ -490,8 +490,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     modelXbrl.profileStat(_("import"), loadTime)
                 if modelXbrl.errors:
                     success = False    # loading errors, don't attempt to utilize loaded DTS
-            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
-                pluginXbrlMethod(self, options, modelXbrl)
+            if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
+                for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
+                    pluginXbrlMethod(self, options, modelXbrl)
+            else: # not a test case, probably instance or DTS
+                for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
+                    pluginXbrlMethod(self, options, modelXbrl)
         else:
             success = False
         if success and options.diffFile and options.versReportFile:

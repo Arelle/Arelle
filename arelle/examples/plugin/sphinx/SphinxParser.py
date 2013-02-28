@@ -10,7 +10,7 @@ Sphinx copyright applies to the Sphinx language, not to this software.
 Mark V Systems conveys neither rights nor license for the Sphinx language. 
 '''
 
-import time, sys, os, re
+import time, sys, os, os.path, re, zipfile
 from arelle.ModelValue import qname
 from arelle.ModelFormulaObject import Aspect, aspectStr
 from arelle.ModelXbrl import DEFAULT, NONDEFAULT, DEFAULTorNONDEFAULT
@@ -20,8 +20,12 @@ debug_flag=True
 
 logMessage = None
 sphinxFile = None
+lastLoc = 0
 lineno = None
 xmlns = {}
+
+reservedWords = {"tuple", "primary", "entity", "period", "unit", "segment", "scenario"
+                 }
 
 isGrammarCompiled = False
 
@@ -34,16 +38,19 @@ class PrefixError(Exception):
         return _("QName prefix undeclared: {0}").format(self.qname)
 
 # parse operations ("compile methods") are listed alphabetically
-    
+
 def compileAnnotation( sourceStr, loc, toks ):
     return None
 
 def compileAnnotationDeclaration( sourceStr, loc, toks ):
+    global lastLoc # for exception handling
+    lastLoc = loc
     return astAnnotationDeclaration(sourceStr, loc, toks[0], toks[1] if len(toks) > 1 else None)
 
 def compileBinaryOperation( sourceStr, loc, toks ):
     if len(toks) == 1:
         return toks
+    global lastLoc; lastLoc = loc
     return astBinaryOperation(sourceStr, loc, toks[0], toks[1], toks[2])
 
 def compileBrackets( sourceStr, loc, toks ):
@@ -52,24 +59,29 @@ def compileBrackets( sourceStr, loc, toks ):
     return astList(sourceStr, loc, [tok for tok in toks if tok != ','])
 
 def compileComment( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astComment(sourceStr, loc, toks[0])
 
 def compileConstant( sourceStr, loc, toks ):
-    return astFunctionDeclaration(sourceStr, loc, "constant", toks[0], [], toks[1])
+    return astConstant(sourceStr, loc, toks)
 
 def compileFloatLiteral( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astNumericLiteral(sourceStr, loc, float(toks[0]))
 
 def compileFor( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astFor(sourceStr, loc, toks[1], toks[2], toks[3])
 
 def compileFormulaRule( sourceStr, loc, toks ):
     return astFormulaRule(sourceStr, loc, toks)
 
 def compileFunctionDeclaration( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astFunctionDeclaration(sourceStr, loc, toks[0], toks[1], toks[3:-2], toks[-1])
 
 def compileFunctionReference( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     name = toks[0]
     if isinstance(name, astFunctionReference) and not name.args:
         name = name.name
@@ -79,7 +91,7 @@ def compileFunctionReference( sourceStr, loc, toks ):
         return astSet(sourceStr, loc, toks[1:])
     if name == "unit":
         try:
-            return astFunctionReference(sourceStr, loc, name, toks[compileQname(toks[1])])
+            return astFunctionReference(sourceStr, loc, name, toks[astQnameLiteral(sourceStr, loc, toks[1])])
         except PrefixError as err:
             logMessage("ERROR", "sphinxCompiler:missingXmlnsDeclarations",
                 _("Missing xmlns for prefix in unit %(qname)s"),
@@ -110,35 +122,55 @@ def compileHyperspaceExpression( sourceStr, loc, toks ):
         return None
 
 def compileIf( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astIf(sourceStr, loc, toks[1], toks[2], toks[3])
 
 def compileIntegerLiteral( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astNumericLiteral(sourceStr, loc, int(toks[0]))
 
 def compileMessage( sourceStr, loc, toks ):
     # construct a message object and return it
+    global lastLoc; lastLoc = loc
     return astMessage(sourceStr, loc, toks[0])
 
 def compileMethodReference( sourceStr, loc, toks ):
     if len(toks) == 1:
         return toks
+    global lastLoc; lastLoc = loc
     if len(toks) > 1 and toks[0] == "::":  # method with no object, e.g., ::taxonomy
         result = None
         methNameTokNdx = 1
     elif len(toks) > 2 and toks[1] == "::":
         result = toks[0]
         methNameTokNdx = 2
+    else:
+        return toks
     while methNameTokNdx < len(toks):
-        methArg = toks[methNameTokNdx]
+        taggedExpr = toks[methNameTokNdx]
+        if isinstance(taggedExpr, astTagAssignment):
+            methArg = taggedExpr.expr
+        else:
+            methArg = taggedExpr 
         if isinstance(methArg, str):
             methName = methArg
+            methArgs = []
+        elif isinstance(methArg, astQnameLiteral) and methArg.value.namespaceURI is None:
+            methName = methArg.value.localName
             methArgs = []
         elif isinstance(methArg, astFunctionReference):
             methName = methArg.name
             methArgs = methArg.args
         else:
-            pass # probably syntax error?? need message???
+            logMessage("ERROR", "sphinxCompiler:methodNameNotRecognized",
+                _("Method name not recognized: %(name)s"),
+                sourceFileLines=((sphinxFile, lineno(loc, sourceStr)),), 
+                name=methArg)
+            return "none" # probably syntax error?? need message???
         result = astMethodReference(sourceStr, loc, methName, [result] + methArgs)
+        if isinstance(taggedExpr, astTagAssignment):
+            taggedExpr.expr = result
+            result = taggedExpr
         if methNameTokNdx + 2 < len(toks) and toks[methNameTokNdx + 1] == "::":
             methNameTokNdx += 2
         else:
@@ -147,6 +179,7 @@ def compileMethodReference( sourceStr, loc, toks ):
     return result
 
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     prefix = None if len(toks) == 2 else toks[1]
     namespaceNode = toks[-1]
     if prefix in xmlns:
@@ -166,59 +199,65 @@ def compileNamespaceDeclaration( sourceStr, loc, toks ):
     return astNoOp(sourceStr, loc)
 
 def compileOp( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     op = toks[0]
     if op in {"error", "warning", "info", "pass"}:
         return astFunctionReference(sourceStr, loc, op, [])
     return toks
 
 def compilePackageDeclaration( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     global currentPackage
     currentPackage = toks[0]
     return None
 
 def compilePrecondition( sourceStr, loc, toks ):
     # construct a precondition object and return it
-    if len(toks) >= 2 and toks[-2] == "otherwise": # has otherwise
-        return astPreconditionReference(sourceStr, loc, toks[0:-2], toks[-1])
-    return astPreconditionReference(sourceStr, loc, toks, None)
+    return astPreconditionReference(sourceStr, loc, toks)
 
 def compilePreconditionDeclaration( sourceStr, loc, toks ):
-    return astPreconditionDeclaration(sourceStr, loc, toks[0], toks[1])
+    global lastLoc; lastLoc = loc
+    if len(toks) >= 2 and toks[-2] == "otherwise": # has otherwise
+        return astPreconditionReference(sourceStr, loc, toks[0:-2], toks[-1])
+    return astPreconditionDeclaration(sourceStr, loc, toks[0], toks[1], None)
 
-def compileQname( qnameToken ):
-    try:
-        return qname(qnameToken, xmlns, prefixException=KeyError)
-    except KeyError:
-        raise PrefixError(qnameToken)
+def compileQname( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
+    return astQnameLiteral(sourceStr, loc, toks[0])
 
 def compileReportRule( sourceStr, loc, toks ):
     return astReportRule(sourceStr, loc, toks)
 
 def compileRuleBase( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     result = [tok for tok in toks if isinstance(tok, astTransform)]
-    if any(isinstance(tok, astPreconditionReference) for tok in toks):
-        result.append(astRuleBasePreconditions(sourceStr, loc, 
-                                               [tok for tok in toks if isinstance(tok, astPreconditionReference)]))
+    if len(toks) >= 1 and isinstance(toks[0], astPreconditionReference):
+        result.insert(0, astRuleBasePrecondition(sourceStr, loc, toks[0]))
     return result
 
 def compileSeverity( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     # construct a severity object and return it
     return astSeverity(sourceStr, loc, toks[0])
 
 def compileStringLiteral( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astStringLiteral(sourceStr, loc, toks[0])
 
 def compileTagAssignment( sourceStr, loc, toks ):
     if len(toks) == 1:
         return toks
+    global lastLoc; lastLoc = loc
     return astTagAssignment(sourceStr, loc, toks[2], toks[0])
 
 def compileTransform( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astTransform(sourceStr, loc, toks[0], toks[1], toks[2])
 
 def compileUnaryOperation( sourceStr, loc, toks ):
     if len(toks) == 1:
         return toks
+    global lastLoc; lastLoc = loc
     return astUnaryOperation(sourceStr, loc, toks[0], toks[1])
 
 def compileValidationRule( sourceStr, loc, toks ):
@@ -230,6 +269,7 @@ def compileVariableAssignment( sourceStr, loc, toks ):
     return astVariableAssignment(sourceStr, loc, toks)
 
 def compileVariableReference( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
     return astVariableReference(sourceStr, loc, toks[0][1:])
 
 def compileWith( sourceStr, loc, toks ):
@@ -242,6 +282,8 @@ class astNode:
         self.sphinxFile = sphinxFile
         self.sourceStr = sourceStr
         self.loc = loc
+        global lastLoc # for exception handling
+        lastLoc = loc
         
     def clear(self):
         self.__dict__.clear()  # delete local attributes
@@ -286,6 +328,23 @@ class astComment(astNode):
     def __repr__(self):
         return "comment({0})".format(self.text)
 
+class astConstant(astNode):
+    def __init__(self, sourceStr, loc, toks):
+        super(astConstant, self).__init__(sourceStr, loc)
+        self.constantName = toks[0]
+        self.expr = toks[-1]
+        self.value = None # dynamically assigned
+        self.tagName = None
+        if len(toks) > 2 and toks[1] == "#": # has tag
+            if len(toks) > 3: # named tag
+                self.tagName = toks[2]
+            else: # use name for tag
+                self.tagName = self.constantName
+    def __repr__(self):
+        return "constant({0}{1} = {2})".format(self.variableName,
+                                               ("#" + self.tagName) if self.tagName else "", 
+                                               self.expr)
+
 namedAxes = {"primary": Aspect.CONCEPT, 
              "entity":  Aspect.ENTITY_IDENTIFIER,
              "period":  Aspect.PERIOD,
@@ -300,17 +359,17 @@ class astFor(astNode):
         self.collectionExpr = collectionExpr
         self.expr = expr
     def __repr__(self):
-        return "for({0} in {1}, {2})".format(self.name, self.range, self.expr)
+        return "for({0} in {1}, {2})".format(self.name, self.collectionExpr, self.expr)
 
 class astFunctionDeclaration(astNode):
     def __init__(self, sourceStr, loc, functionType, name, params, expr):
         try:
             super(astFunctionDeclaration, self).__init__(sourceStr, loc)
-            self.functionType = functionType # "function", "macro", "constant"
+            self.functionType = functionType # "function", "macro"
             self.name = name
             self.params = params
             if (expr) == "unit": # expr is a QName
-                self.expr = compileQname(expr)
+                self.expr = astQnameLiteral(sourceStr, loc, expr)
             else:
                 self.expr = expr
         except PrefixError as err:
@@ -328,7 +387,8 @@ class astFunctionReference(astNode):
     def __init__(self, sourceStr, loc, name, args):
         super(astFunctionReference, self).__init__(sourceStr, loc)
         self.name = name
-        self.args = args
+        self.localVariables = [a for a in args if isinstance(a, astVariableAssignment)]
+        self.args = [a for a in args if not isinstance(a, astVariableAssignment)]
     def __repr__(self):
         return "functionReference({0}({1}))".format(self.name, ", ".join(str(a) for a in self.args))
 
@@ -340,6 +400,8 @@ class astHyperspaceAxis(astNode):
         STATE_IN_LIST = 11
         STATE_AS_NAME = 20
         STATE_AS_NAMED = 21
+        STATE_AS_EQ_VALUE = 22
+        STATE_AS_EQ_WHERE = 23
         STATE_AS_RESTRICTION = 30
         STATE_WHERE = 40
         STATE_INDETERMINATE = 99
@@ -353,7 +415,7 @@ class astHyperspaceAxis(astNode):
         
         state = STATE_AXIS_NAME_EXPECTED
         for tok in toks:
-            if tok == "where" and state in (STATE_AXIS_NAME_EXPECTED, ):
+            if tok == "where" and state in (STATE_AXIS_NAME_EXPECTED, STATE_AS_EQ_WHERE):
                 state = STATE_WHERE
             elif tok == "=" and state == STATE_EQ_VALUE:
                 state = STATE_EQ_VALUE
@@ -361,16 +423,18 @@ class astHyperspaceAxis(astNode):
                 state = STATE_IN_LIST
             elif tok == "as" and state == STATE_AXIS_NAMED:
                 state = STATE_AS_NAME
-            elif tok == "=" and state in (STATE_AXIS_NAMED, STATE_AS_NAMED):
+            elif tok == "=" and state == STATE_AXIS_NAMED:
                 state = STATE_EQ_VALUE
+            elif tok == "=" and state == STATE_AS_NAMED:
+                state = STATE_AS_EQ_VALUE
             elif state == STATE_AXIS_NAME_EXPECTED:
                 if tok in namedAxes:
                     self.name = tok
                     self.aspect = namedAxes[tok]
                 else:
-                    self.name = self.aspect = compileQname(tok)
+                    self.name = self.aspect = astQnameLiteral(sourceStr, loc, tok)
                 state = STATE_AXIS_NAMED
-            elif state == STATE_EQ_VALUE:
+            elif state in (STATE_EQ_VALUE, STATE_AS_EQ_VALUE):
                 if isinstance(tok, astNode):
                     self.restriction = [tok]
                 elif tok == '*':
@@ -380,8 +444,11 @@ class astHyperspaceAxis(astNode):
                 elif tok == 'none':
                     self.restriction = (DEFAULT,)
                 elif isinstance(tok, str):
-                    self.restriction = [compileQname(tok)]
-                state = STATE_INDETERMINATE
+                    self.restriction = [astQnameLiteral(sourceStr, loc, tok)]
+                elif isinstance(tok, astQnameLiteral):
+                    self.restriction = [tok]
+                state = {STATE_EQ_VALUE: STATE_INDETERMINATE,
+                         STATE_AS_EQ_VALUE: STATE_AS_EQ_WHERE}[state]
             elif state == STATE_IN_LIST:
                 if isinstance(tok, astList):
                     self.restriction = tok
@@ -394,7 +461,7 @@ class astHyperspaceAxis(astNode):
                 state = STATE_INDETERMINATE
             else:
                 logMessage("ERROR", "sphinxCompiler:axisIndeterminate",
-                    _("Axis indeterminte expression at %(tok)s."),
+                    _("Axis indeterminte expression at %(element)s."),
                     sourceFileLines=((sphinxFile, lineno(loc, sourceStr)),),
                     element=tok)
     def __repr__(self):
@@ -405,7 +472,10 @@ class astHyperspaceAxis(astNode):
         if self.asVariableName:
             s += " as " + str(self.asVariableName) + "=" + str(self.restriction)
         elif self.restriction:
-            s += "=" + str(self.restriction)
+            if len(self.restriction) == 1:
+                s += "=" + str(self.restriction[0])
+            else:
+                s += " in " + str(self.restriction)
         if self.whereExpr:
             s += " where " + str(self.whereExpr)
         return s
@@ -431,7 +501,7 @@ class astHyperspaceExpression(astNode):
             
     def __repr__(self):
         return "{0}{1}{2}".format({False:'[',True:'[['}[self.isClosed],
-                                  "; ".join(str(axis) for axis in self.axes),
+                                  "; ".join(str(axis) for axis in self.axes.values()),
                                   {False:']',True:']]'}[self.isClosed])
 
 class astIf(astNode):
@@ -476,8 +546,8 @@ class astNamespaceDeclaration(astNode):
                                      self.namespace)
 
 class astNoOp(astNode):
-    def __init__(self, fileName):
-        super(astNoOp, self).__init__(None, 0)
+    def __init__(self, sourceStr, loc):
+        super(astNoOp, self).__init__(sourceStr, loc)
     def __repr__(self):
         return "noOp()"
     
@@ -489,28 +559,41 @@ class astNumericLiteral(astNode):
         return "{0}({1})".format(type(self).__name__, self.value)
 
 class astPreconditionDeclaration(astNode):
-    def __init__(self, sourceStr, loc, name, expr):
+    def __init__(self, sourceStr, loc, name, expr, otherwiseExpr):
         super(astPreconditionDeclaration, self).__init__(sourceStr, loc)
         self.name = name
         self.expr = expr
+        self.otherwiseExpr = otherwiseExpr
     def __repr__(self):
         return "preconditionDeclaration({0}, {1}(".format(self.name, self.expr)
 
 class astPreconditionReference(astNode):
-    def __init__(self, sourceStr, loc, names, otherwiseExpr):
+    def __init__(self, sourceStr, loc, names):
         super(astPreconditionReference, self).__init__(sourceStr, loc)
         self.names = names
-        self.otherwiseExpr = otherwiseExpr
     def __repr__(self):
-        return "preconditionRef({0}{1})".format(self.names,
-                                                 (" otherwise " + str(self.otherwiseExpr)) if self.otherwiseExpr else "")
+        return "preconditionRef({0})".format(self.names)
 
-class astRuleBasePreconditions(astNode):
-    def __init__(self, sourceStr, loc, preconditionReferences):
-        super(astRuleBasePreconditions, self).__init__(sourceStr, loc)
-        self.preconditionReferences = preconditionReferences
+class astQnameLiteral(astNode):
+    def __init__(self, sourceStr, loc, qnameToken):
+        super(astQnameLiteral, self).__init__(sourceStr, loc)
+        try:
+            self.value = qname(qnameToken, 
+                               xmlns, 
+                               prefixException=KeyError,
+                               noPrefixIsNoNamespace=(qnameToken in methodImplementation or 
+                                                      qnameToken in reservedWords))
+        except KeyError:
+            raise PrefixError(qnameToken)
     def __repr__(self):
-        return "ruleBasePreconditions({0})".format(", ".join(str(p) for p in self.preconditionReferences))
+        return "{0}({1})".format(type(self).__name__, self.value)
+
+class astRuleBasePrecondition(astNode):
+    def __init__(self, sourceStr, loc, precondition):
+        super(astRuleBasePrecondition, self).__init__(sourceStr, loc)
+        self.precondition = precondition
+    def __repr__(self):
+        return "ruleBasePrecondition({0})".format(self.precondition)
 
 class astSet(astNode):
     def __init__(self, sourceStr, loc, toks):
@@ -537,7 +620,7 @@ class astStringLiteral(astNode):
     def __init__(self, sourceStr, loc, quotedString):
         super(astStringLiteral, self).__init__(sourceStr, loc)
         # dequote leading/trailing quotes and backslashed characters in sphinx table
-        self.text = re.sub(r"\\[ntbrf\\'\"]",lambda m: m.group[0][1], quotedString[1:-1])
+        self.text = re.sub(r"\\[ntbrf\\'\"]",lambda m: m.group(0)[1], quotedString[1:-1])
     @property
     def value(self):
         return self.text
@@ -550,7 +633,7 @@ class astTagAssignment(astNode):
         self.tagName = tagName
         self.expr = expr
     def __repr__(self):
-        return "tagAssignment({0}#{1})".format(self.expr, self.name)
+        return "tagAssignment({0}#{1})".format(self.expr, self.tagName)
 
 class astTransform(astNode):
     def __init__(self, sourceStr, loc, transformType, fromExpr, toExpr):
@@ -603,7 +686,7 @@ class astFormulaRule(astRule):
         super(astFormulaRule, self).__init__(sourceStr, loc, nodes)
     def __repr__(self):
         return "formula({0}name={1}, {2}{3}{4} := {5}{6})".format(
-                  (str(self.precondition) + ", " ) if self.precondition else "",
+                  ("str(self.precondition) + ", "" ) if self.precondition else "",
                   self.name,
                   (str(self.severity) + ", ") if self.severity else "",
                   ("bind=" + str(self.bind) + ", ") if self.bind else "",
@@ -789,20 +872,21 @@ def compileSphinxGrammar( cntlr ):
     atom = ( 
              ( forOp - Suppress(lParen) - ncName - Suppress(inOp) - expr - Suppress(rParen) - expr ).setParseAction(compileFor) |
              ( ifOp - Suppress(lParen) - expr - Suppress(rParen) -  expr - Suppress(elseOp) - expr ).setParseAction(compileIf) | 
-             ( ncName + Suppress(lParen) + Optional(delimitedList( Optional( ncName + varAssign ) + expr
+             ( ncName + Suppress(lParen) + Optional(delimitedList( ZeroOrMore( ( ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment) ) +
+                                                                   Optional( ncName + varAssign ) + expr
                                                                    )) + Suppress(rParen) ).setParseAction(compileFunctionReference) |
              ( floatLiteral ).setParseAction(compileFloatLiteral) |
              ( integerLiteral ).setParseAction(compileIntegerLiteral) |
              ( quotedString ).setParseAction(compileStringLiteral) |
+             ( Optional(qName) + lPred + Optional(delimitedList( ((whereOp + expr) |
+                                                                  ((qName | variableRef) + Optional( tagOp + Optional(ncName) ) +
+                                                                   Optional( (varAssign + (wildOp | expr) | 
+                                                                             (inOp + expr) | 
+                                                                             (asOp + ncName + varAssign + wildOp + Optional( whereOp + expr ) ) ) ) )
+                                                                  ).setParseAction(compileHyperspaceAxis), 
+                                                                delim=';')) + rPred).setParseAction(compileHyperspaceExpression) |
              ( variableRef ).setParseAction(compileVariableReference)  |
-             ( Optional(qName) + lPred + Optional(delimitedList( (qName + Optional( tagOp + Optional(ncName) ) +
-                                                                  Optional( (varAssign + (wildOp | expr) | 
-                                                                            (inOp + expr) | 
-                                                                            (asOp + ncName + varAssign + wildOp + Optional( whereOp + expr ) ) |
-                                                                            (whereOp + expr) ) )).setParseAction(compileHyperspaceAxis), 
-                                                                 delim=';')) + rPred).setParseAction(compileHyperspaceExpression) |
-            # does this need to be qName or just ncName?
-             ( ncName ).setParseAction(compileOp) |
+             ( qName ).setParseAction(compileQname) |
              ( Suppress(lParen) - expr - Optional( commaOp - Optional( expr - ZeroOrMore( commaOp - expr ) ) ) - Suppress(rParen) ).setParseAction(compileBrackets)
            ).ignore(sphinxComment)
     
@@ -836,7 +920,7 @@ def compileSphinxGrammar( cntlr ):
     orExpr = ( andExpr + Optional( orOp + andExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
     formulaExpr = ( orExpr + Optional( formulaOp + orExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
     withExpr = ( Optional( withOp + Suppress(lParen) + expr + Suppress(rParen) ) + 
-                 ZeroOrMore( ( ncName + Optional( tagOp + ncName ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment) ) +
+                 ZeroOrMore( ( ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment) ) +
                  formulaExpr ).setParseAction(compileWith)
     parsedExpr = withExpr
 
@@ -845,19 +929,19 @@ def compileSphinxGrammar( cntlr ):
     
     annotation = ( annotationName + Optional( Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen) ) ).setParseAction(compileAnnotation).ignore(sphinxComment).setName("annotation").setDebug(debugParsing)
 
-    constant = ( Suppress(Keyword("constant")) + ncName + Suppress( Literal("=") ) + expr ).setParseAction(compileConstant).ignore(sphinxComment)
+    constant = ( Suppress(Keyword("constant")) + ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr ).setParseAction(compileConstant).ignore(sphinxComment)
     
     functionDeclaration = ( (Keyword("function") | Keyword("macro")) + ncName + lParen + Optional(delimitedList(ncName)) + rParen + expr ).setParseAction(compileFunctionDeclaration).ignore(sphinxComment)
     
-    preconditionDeclaration = ( Suppress(Keyword("precondition")) + ncName + expr ).setParseAction(compilePreconditionDeclaration).ignore(sphinxComment)
-
-    assignedExpr = ( ncName + Optional( tagOp + ncName ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment)
-
     message = ( Suppress(Keyword("message")) + expr ).setParseAction(compileMessage)
     
-    precondition = ( Suppress(Keyword("require")) + delimitedList(ncName) +
-                     Optional(Keyword("otherwise") + Keyword("raise") + ncName + Optional( severity ) + Optional( message ) ) 
-                     ).setParseAction(compilePrecondition).ignore(sphinxComment).setName("precondition").setDebug(debugParsing)
+    preconditionDeclaration = ( Suppress(Keyword("precondition")) + ncName + expr +
+                                Optional(Keyword("otherwise") + Keyword("raise") + ncName + Optional( severity ) + Optional( message ) ) 
+                                ).setParseAction(compilePreconditionDeclaration).ignore(sphinxComment)
+
+    assignedExpr = ( ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment)
+
+    precondition = ( Suppress(Keyword("require")) + delimitedList(ncName) ).setParseAction(compilePrecondition).ignore(sphinxComment).setName("precondition").setDebug(debugParsing)
     
     formulaRule = ( Optional( precondition ) +
                     Keyword("formula") + ncName + 
@@ -922,7 +1006,7 @@ def parse(cntlr, _logMessage, sphinxFiles):
     else: 
         from pyparsing import ParseException, ParseSyntaxException
     
-    global logMessage, sphinxFile
+    global logMessage
     logMessage = _logMessage
     
     sphinxGrammar = compileSphinxGrammar(cntlr)
@@ -930,36 +1014,82 @@ def parse(cntlr, _logMessage, sphinxFiles):
     sphinxProgs = []
     
     successful = True
-    for sphinxFile in sphinxFiles:
+
+    def parseSourceString(sourceString):
+        global lastLoc
+        successful = True
         cntlr.showStatus("Compiling sphinx file {0}".format(os.path.basename(sphinxFile)))
         
-        with open(sphinxFile, "r", encoding="utf-8") as fh:
-            sourceString = fh.read()
-            try:
-                prog = sphinxGrammar.parseString( sourceString, parseAll=True )
-                xmlns.clear()  # dereference xmlns definitions
-                prog.insert(0, astSourceFile(sphinxFile)) # keep the source file name
-                sphinxProgs.append( prog )
-            except (ParseException, ParseSyntaxException) as err:
-                from arelle.XPathParser import exceptionErrorIndication
-                logMessage("ERROR", "sphinxCompiler:syntaxError",
-                    _("Parse error in %(sphinxFile)s error:\n%(error)s"),
-                    sphinxFile=os.path.basename(sphinxFile),
-                    sourceFileLines=((sphinxFile, lineno(err.loc,err.pstr)),),
-                    error=exceptionErrorIndication(err))
-                successful = False
-            except (ValueError) as err:
-                logMessage("ERROR", "sphinxCompiler:valueError",
-                    _("Parsing of %(sphinxFile)s terminated due to error: %(error)s"), 
-                    sphinxFileLines=((os.path.basename(sphinxFile),0),),
-                    error=err)
-                successful = False
+        try:
+            lastLoc = 0
+            prog = sphinxGrammar.parseString( sourceString, parseAll=True )
+            xmlns.clear()  # dereference xmlns definitions
+            prog.insert(0, astSourceFile(sphinxFile)) # keep the source file name
+            sphinxProgs.append( prog )
+        except (ParseException, ParseSyntaxException) as err:
+            from arelle.XPathParser import exceptionErrorIndication
+            file = os.path.basename(sphinxFile)
+            logMessage("ERROR", "sphinxCompiler:syntaxError",
+                _("Parse error: \n%(error)s"),
+                sphinxFile=sphinxFile,
+                sourceFileLines=((file, lineno(err.loc,err.pstr)),),
+                error=exceptionErrorIndication(err))
+            successful = False
+        except (ValueError) as err:
+            file = os.path.basename(sphinxFile)
+            logMessage("ERROR", "sphinxCompiler:valueError",
+                _("Parsing terminated due to error: \n%(error)s"), 
+                sphinxFile=sphinxFile,
+                sourceFileLines=((file,lineno(lastLoc,sourceString)),), 
+                error=err)
+            successful = False
+        except Exception as err:
+            file = os.path.basename(sphinxFile)
+            logMessage("ERROR", "sphinxCompiler:parserException",
+                _("Parsing of terminated due to error: \n%(error)s"), 
+                sphinxFile=sphinxFile,
+                sourceFileLines=((file,lineno(lastLoc,sourceString)),),
+                error=err, exc_info=True)
+            successful = False
 
         cntlr.showStatus("Compiled sphinx files {0}".format({True:"successful", 
                                                              False:"with errors"}[successful]),
                          clearAfter=5000)
+        xmlns.clear()
+        return successful
+        
+    def parseFile(filename):
+        successful = True
+        # parse the xrb zip or individual xsr files
+        global sphinxFile
+        if os.path.isdir(filename):
+            for root, dirs, files in os.walk(filename):
+                for file in files:
+                    sphinxFile = os.path.join(root, file)
+                    parseFile(sphinxFile)
+        elif filename.endswith(".xrb"): # zip archive
+            archive = zipfile.ZipFile(filename, mode="r")
+            for zipinfo in archive.infolist():
+                zipcontent = zipinfo.filename
+                if zipcontent.endswith(".xsr"):
+                    sphinxFile = os.path.join(filename, zipcontent)
+                    if not parseSourceString( archive.read(zipcontent).decode("utf-8") ):
+                        successful = False
+            archive.close()
+        elif filename.endswith(".xsr"):
+            sphinxFile = filename
+            with open(filename, "r", encoding="utf-8") as fh:
+                if not parseSourceString( fh.read() ):
+                    successful = False
+        return successful
+          
+    successful = True          
+    for filename in sphinxFiles:
+        if not parseFile(filename):
+            successful = False
                 
     logMessage = None # dereference
                     
     return sphinxProgs
 
+from .SphinxMethods import methodImplementation

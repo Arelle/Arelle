@@ -743,13 +743,17 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.setValidateTooltipText()
 
     def validate(self):
-        if self.modelManager.modelXbrl:
-            if (self.modelManager.modelXbrl.modelManager.validateDisclosureSystem and 
-                not self.modelManager.modelXbrl.modelManager.disclosureSystem.selection):
+        modelXbrl = self.modelManager.modelXbrl
+        if modelXbrl:
+            if (modelXbrl.modelManager.validateDisclosureSystem and 
+                not modelXbrl.modelManager.disclosureSystem.selection):
                 tkinter.messagebox.showwarning(_("arelle - Warning"),
                                 _("Validation - disclosure system checks is requested but no disclosure system is selected, please select one by validation - select disclosure system."),
                                 parent=self.parent)
             else:
+                if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
+                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
+                        pluginXbrlMethod(self, None, modelXbrl)
                 thread = threading.Thread(target=lambda: self.backgroundValidate())
                 thread.daemon = True
                 thread.start()

@@ -376,6 +376,8 @@ class Type:
     RSSFEED=12
     ARCSINFOSET=13
     FACTDIMSINFOSET=14
+    
+    TESTCASETYPES = (TESTCASESINDEX, TESTCASE, REGISTRY, REGISTRY)
 
     typeName = ("unknown XML",
                 "unknown non-XML", 

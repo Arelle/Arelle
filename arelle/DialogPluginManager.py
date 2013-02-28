@@ -48,6 +48,7 @@ class DialogPluginManager(Toplevel):
         self.pluginConfig = PluginManager.pluginConfig
         self.pluginConfigChanged = False
         self.uiClassMethodsChanged = False
+        self.modelClassesChanged = False
         self.modulesWithNewerFileDates = modulesWithNewerFileDates
         
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
@@ -229,13 +230,20 @@ class DialogPluginManager(Toplevel):
             PluginManager.pluginConfig = self.pluginConfig
             PluginManager.pluginConfigChanged = True
             PluginManager.reset()  # force reloading of modules
-        if self.uiClassMethodsChanged:  # may require reloading UI
+        if self.uiClassMethodsChanged or self.modelClassesChanged:  # may require reloading UI
+            affectedItems = ""
+            if self.uiClassMethodsChanged:
+                affectedItems += _("menus of the user interface")
+            if self.uiClassMethodsChanged and self.modelClassesChanged:
+                affectedItems += _(" and ")
+            if self.modelClassesChanged:
+                affectedItems += _("model objects of the processor")
             if messagebox.askyesno(_("User interface plug-in change"),
-                                   _("A change in plug-in class methods may have affected the menus "
-                                     "of the user interface.  It may be necessary to restart Arelle to "
-                                     "access the menu entries or the changes to their plug-in methods.  \n\n"
-                                     "Should Arelle restart with changed user interface language, "
-                                     "(if there are any unsaved changes they would be lost!)?"),
+                                   _("A change in plug-in class methods may have affected {0}.  " 
+                                     "Please restart Arelle to due to these changes.  \n\n"
+                                     "Should Arelle restart itself now "
+                                     "(if there are any unsaved changes they would be lost!)?"
+                                     ).format(affectedItems),
                                    parent=self):
                 self.cntlr.uiThreadQueue.put((self.cntlr.quit, [None, True]))
         self.close()
@@ -333,6 +341,8 @@ class DialogPluginManager(Toplevel):
                         del self.pluginConfig["classes"][classMethod] # remove class
                     if classMethod.startswith("CntlrWinMain.Menu"):
                         self.uiClassMethodsChanged = True  # may require reloading UI
+                    elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
+                        self.modelClassesChanged = True # model object factor classes changed
             del self.pluginConfig["modules"][name]
             self.pluginConfigChanged = True
 
@@ -348,6 +358,8 @@ class DialogPluginManager(Toplevel):
                 classMethods.append(name)
             if classMethod.startswith("CntlrWinMain.Menu"):
                 self.uiClassMethodsChanged = True  # may require reloading UI
+            elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
+                self.modelClassesChanged = True # model object factor classes changed
         self.pluginConfigChanged = True
 
     def moduleEnable(self):

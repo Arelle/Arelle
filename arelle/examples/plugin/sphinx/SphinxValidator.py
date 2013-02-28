@@ -11,8 +11,8 @@ Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
 from arelle.ModelValue import QName
-from .SphinxParser import (astBinaryOperation, astSourceFile, astNamespaceDeclaration, astRuleBasePreconditions,
-                           astNamespaceDeclaration, astStringLiteral, 
+from .SphinxParser import (astBinaryOperation, astSourceFile, astNamespaceDeclaration, astRuleBasePrecondition,
+                           astConstant, astNamespaceDeclaration, astStringLiteral, 
                            astHyperspaceExpression, astHyperspaceAxis,
                            astFunctionDeclaration, astFunctionReference, astNode,
                            astPreconditionDeclaration, astPreconditionReference,
@@ -32,19 +32,26 @@ def validate(logMessage, sphinxContext):
     if hasDTS:
         import logging
         initialErrorCount = modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0)
+
+        # must also have default dimensions loaded
+        from arelle import ValidateXbrlDimensions
+        ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
         
-    sphinxContext.ruleBasePreconditionsNodes = []
+    sphinxContext.ruleBasePreconditionNodes = []
     sphinxContext.preconditionNodes = {}
     
     # accumulate definitions
     for prog in sphinxContext.sphinxProgs:
         for node in prog:
-            if isinstance(node, astRuleBasePreconditions):
-                sphinxContext.ruleBasePreconditionsNodes.append(node)
+            if isinstance(node, astRuleBasePrecondition):
+                sphinxContext.ruleBasePreconditionNodes.append(node)
             elif isinstance(node, astPreconditionDeclaration):
                 sphinxContext.preconditionNodes[node.name] = node    
             elif isinstance(node, astFunctionDeclaration):
                 sphinxContext.functions[node.name] = node
+            elif isinstance(node, astConstant):
+                sphinxContext.constants[node.constantName] = node
+                node.value = None   # compute dynamically on first reference
 
     # check references            
     def checkNodes(nodes):
@@ -54,8 +61,6 @@ def validate(logMessage, sphinxContext):
                 continue
             elif isinstance(node, (list,set)):
                 checkNodes(node)
-            elif isinstance(node, astRuleBasePreconditions):
-                checkNodes(node.preconditionReferences)
             elif isinstance(node, astPreconditionReference):
                 for name in node.names:
                     if name not in sphinxContext.preconditionNodes:
@@ -105,7 +110,7 @@ def validate(logMessage, sphinxContext):
                                     _("Hypercube value not in the DTS %(qname)s"),
                                     sourceFileLine=node.sourceFileLine,
                                     qname=restrictionValue)
-                        checkNodes(value.whereExpr)
+                        checkNodes((value.whereExpr,))
             elif isinstance(node, astWith):
                 node.axes = {}
                 def checkWithAxes(withNode):
@@ -126,20 +131,13 @@ def validate(logMessage, sphinxContext):
     for prog in sphinxContext.sphinxProgs:
         checkNodes(prog)
                     
-    if len(sphinxContext.ruleBasePreconditionsNodes) > 1:
+    if len(sphinxContext.ruleBasePreconditionNodes) > 1:
         logMessage("ERROR", "sphinxCompiler:multipleRuleBaseDeclarations",
             _("Multiple rule-base declarations %(preconditions)s"),
-            sourceFileLines=[node.sourceFileLine for node in sphinxContext.ruleBasePreconditionsNodes],
-            preconditions=", ".join(str(r) for f, r in sphinxContext.ruleBasePreconditionsNodes)) 
+            sourceFileLines=[node.sourceFileLine for node in sphinxContext.ruleBasePreconditionNodes],
+            preconditions=", ".join(str(r) for r in sphinxContext.ruleBasePreconditionNodes)) 
         
                
-
-    sphinxContext.ruleBasePreconditionNodes = [sphinxContext.preconditionNodes[name]
-                                               for node in sphinxContext.ruleBasePreconditionsNodes
-                                               for ref in node.preconditionReferences
-                                               for name in ref.names
-                                               if name in sphinxContext.preconditionNodes]
-
     if hasDTS:
         # if no errors in checking sphinx
         if initialErrorCount == modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0):

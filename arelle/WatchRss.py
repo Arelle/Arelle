@@ -9,6 +9,7 @@ from arelle import (ModelXbrl, XmlUtil, ModelVersReport, XbrlConst, ModelDocumen
                ValidateXbrl, ValidateFiling, ValidateVersReport, ValidateFormula)
 from arelle.FileSource import openFileSource
 from arelle.ModelValue import (qname, QName)
+from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import parseRfcDatetime
 import datetime
 
@@ -86,7 +87,10 @@ class WatchRss:
                 rssWatchOptions.get("validateXbrlRules") or
                 rssWatchOptions.get("validateCalcLinkbase") or
                 rssWatchOptions.get("validateFormulaAssertions") or
-                rssWatchOptions.get("alertMatchedFactText")):
+                rssWatchOptions.get("alertMatchedFactText") or
+                any(pluginXbrlMethod(rssWatchOptions)
+                    for pluginXbrlMethod in pluginClassMethods("RssWatch.HasWatchAction"))
+                ):
                 # form keys in ascending order of pubdate
                 pubDateRssItems = []
                 for rssItem in self.rssModelXbrl.modelDocument.rssItems:
@@ -127,7 +131,8 @@ class WatchRss:
                                 self.instValidator.validate(modelXbrl)
                                 if modelXbrl.errors and rssWatchOptions.get("alertValiditionError"):
                                     emailAlert = True
-                                    
+                            for pluginXbrlMethod in pluginClassMethods("RssWatch.DoWatchAction"):  
+                                pluginXbrlMethod(modelXbrl, rssWatchOptions)      
                             # check match expression
                             if matchPattern:
                                 for fact in modelXbrl.factsInInstance:

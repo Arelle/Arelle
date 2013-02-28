@@ -187,6 +187,8 @@ class Validate:
                 elif inputDTSes:
                     # validate schema, linkbase, or instance
                     modelXbrl = inputDTSes[None][0]
+                    for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Loaded"):
+                        pluginXbrlMethod(self.modelXbrl, modelXbrl)
                     parameters = modelTestcaseVariation.parameters.copy()
                     for dtsName, inputDTS in inputDTSes.items():  # input instances are also parameters
                         if dtsName: # named instance

@@ -181,6 +181,7 @@ def loadModule(moduleInfo):
                 try:
                     module = imp.load_module(moduleName, file, path, description)
                     pluginInfo = module.__pluginInfo__.copy()
+                    elementSubstitutionClasses = None
                     if name == pluginInfo.get('name'):
                         pluginInfo["moduleURL"] = moduleURL
                         modulePluginInfos[name] = pluginInfo
@@ -201,9 +202,18 @@ def loadModule(moduleInfo):
                                 classModuleNames = pluginConfig['classes'].setdefault(key, [])
                                 if name and name not in classModuleNames:
                                     classModuleNames.append(name)
+                            if key == 'ModelObjectFactory.ElementSubstitutionClasses':
+                                elementSubstitutionClasses = value
                         module._ = _gettext
                         global pluginConfigChanged
                         pluginConfigChanged = True
+                    if elementSubstitutionClasses:
+                        try:
+                            from arelle.ModelObjectFactory import elementSubstitutionModelClass
+                            elementSubstitutionModelClass.update(elementSubstitutionClasses)
+                        except Exception as err:
+                            print(_("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
+                                    name=name, error=err), file=sys.stderr)
                 except (ImportError, AttributeError) as err:
                     print(_("Exception loading plug-in {name}: {error}").format(
                             name=name, error=err), file=sys.stderr)

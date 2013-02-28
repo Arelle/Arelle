@@ -44,16 +44,17 @@ class ViewProperties(ViewWinTree.ViewTree):
             
     def showProperties(self, properties, parentNode, id):
         for tuple in properties:
-            lenTuple = len(tuple)
-            if 2 <= lenTuple <= 3:
-                strId = str(id)
-                node = self.treeView.insert(parentNode, "end", strId, text=tuple[0], tags=("odd" if id & 1 else "even",))
-                self.treeView.set(strId, "value", tuple[1])
-                id += 1;
-                if lenTuple == 3:
-                    if tuple[0] in self.openProperties:
-                        self.treeView.item(node,open=True)
-                    id = self.showProperties(tuple[2], node, id)
+            if tuple:
+                lenTuple = len(tuple)
+                if 2 <= lenTuple <= 3:
+                    strId = str(id)
+                    node = self.treeView.insert(parentNode, "end", strId, text=tuple[0], tags=("odd" if id & 1 else "even",))
+                    self.treeView.set(strId, "value", tuple[1])
+                    id += 1;
+                    if lenTuple == 3:
+                        if tuple[0] in self.openProperties:
+                            self.treeView.item(node,open=True)
+                        id = self.showProperties(tuple[2], node, id)
         return id
     
     def viewModelObject(self, modelObject):

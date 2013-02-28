@@ -14,21 +14,22 @@ import operator
 from .SphinxContext import HyperspaceBindings, HyperspaceBinding
 from .SphinxParser import (astFunctionReference, astHyperspaceExpression, astNode, 
                            astFormulaRule, astReportRule)
-from .SphinxMethods import methodImplementation
+from .SphinxMethods import methodImplementation, functionImplementation, aggreateFunctionImplementation, moduleInit as SphinxMethodsModuleInit
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelValue import QName
 from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelXbrl import DEFAULT, NONDEFAULT, DEFAULTorNONDEFAULT
 from arelle import XbrlConst, XmlUtil
 
 class SphinxException(Exception):
-    def __init__(self, node, code, message, objects ):
+    def __init__(self, node, code, message, **kwargs ):
         self.node = node
         self.code = code
         self.message = message
-        self.objects = objects
+        self.kwargs = kwargs
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[{0}] exception at {1} in {2}').format(self.code, self.column, self.message)
+        return _('[{0}] exception: {1} at {2}').format(self.code, self.message % self.kwargs, self.node.sourceFileLine)
             
 class UnboundClass:
     def __init__(self, name="unbound"):
@@ -43,8 +44,8 @@ UNBOUND1 = UnboundClass("unbound1")
 def evaluateRuleBase(sphinxContext):
     
     # check any rule-base preconditions
-    for file, preconditionNode in sphinxContext.ruleBasePreconditionsNodes:
-        if not preconditionNode.evaluate(sphinxContext):
+    for preconditionNode in sphinxContext.ruleBasePreconditionNodes:
+        if not evaluate(preconditionNode, sphinxContext):
             return
         
     # evaluate rules
@@ -55,7 +56,7 @@ def evaluateRuleBase(sphinxContext):
         sphinxContext.staticSeverity = None
         sphinxContext.dynamicSeverity = None
         
-def evaluate(node, sphinxContext, value=False, fallback=None):
+def evaluate(node, sphinxContext, value=False, fallback=None, dereferenceHsBinding=False):
     if isinstance(node, astNode):
         if fallback is None:
             result = evaluator[node.__class__.__name__](node, sphinxContext)
@@ -66,17 +67,22 @@ def evaluate(node, sphinxContext, value=False, fallback=None):
                 if sphinxContext.formulaOptions.traceVariableSetExpressionResult:
                     sphinxContext.modelXbrl.info("sphinx:trace",
                          _("%(node)s has fallback result"), 
-                         modelObject=node, node=str(node))
+                         sourceFileLine=node.sourceFileLine, node=str(node))
                 return fallback
         if sphinxContext.formulaOptions.traceVariableSetExpressionResult:
             sphinxContext.modelXbrl.info("sphinx:trace",
                  _("%(node)s result: %(result)s"), 
-                 modelObject=node, node=str(node), result=result)
-        if result is not None and value and isinstance(result, (astNode, HyperspaceBinding)):
+                 sourceFileLine=node.sourceFileLine, node=str(node), result=result)
+        if result is not None:
+            if isinstance(result, HyperspaceBinding):
+                if value:
+                    return result.value
+                elif dereferenceHsBinding:
+                    return result.yieldedFact
             # dereference nodes to their value
-            if isinstance(result, astHyperspaceExpression):
+            if value and isinstance(result, astNode):
                 return evaluate(result, sphinxContext, value)
-            result = result.value
+            return result
         return result
     else:
         return node
@@ -111,6 +117,8 @@ def evaluateBinaryOperation(node, sphinxContext):
         if op == "or" and leftValue:
             return True
         return UNBOUND
+    if rightValue == 0 and op == "/":  # prevent divide by zero
+        return UNBOUND
     try:
         result = {'+': operator.add, '-': operator.sub, '*': operator.mul, '/': operator.truediv,
                   '<': operator.lt, '>': operator.gt, '<=': operator.le, '>=': operator.ge,
@@ -120,8 +128,12 @@ def evaluateBinaryOperation(node, sphinxContext):
         return result
     except KeyError:
         sphinxContext.modelXbrl.error("sphinx:error",
-             _("%(node)s operation %(op)s not implemented"), 
-             modelObject=node, op=op)
+             _("Operation \"%(op)s\" not implemented for %(node)s"), 
+             sourceFileLine=node.sourceFileLine, op=op, node=str(node))
+    except (TypeError, ZeroDivisionError) as err:
+        sphinxContext.modelXbrl.error("sphinx:error",
+             _("Operation \"%(op)s\" raises exception %(error)s for %(node)s"), 
+             sourceFileLine=node.sourceFileLine, op=op, node=str(node), error=str(err))
     return None
 
 def evaluateFor(node, sphinxContext):
@@ -131,7 +143,7 @@ def evaluateFor(node, sphinxContext):
     for entry in collection:
         sphinxContext.localVariables[node.name] = entry
         resultList.append(evaluate(node.expr, sphinxContext))
-    if priorValue:
+    if priorValue is not None:
         sphinxContext.localVariables[node.name] = priorValue
     return resultList
 
@@ -178,10 +190,18 @@ def evaluateFunctionReference(node, sphinxContext):
         sphinxContext.dynamicSeverity = node.name
     elif name == "unbound":
         return UNBOUND
+    
+    if name in aggreateFunctionImplementation:
+        return evaluateAggregateFunction(node, sphinxContext, name)
+
     if name in sphinxContext.functions:  # user defined function
         resolveValues = sphinxContext.functions[name].functionType == "function"
     else:
         resolveValues = True
+
+    # evaluate local variables
+    for localVar in node.localVariables:
+        evaluate(localVar, sphinxContext)
     # evaluate args
     args = []
     tagNames = []
@@ -196,10 +216,74 @@ def evaluateFunctionReference(node, sphinxContext):
             args.append(arg)
             for tag in tagNames:
                 sphinxContext.tags[tag] = arg
+            
+    if name in ("error", "warning", "info", "pass"):
+        result = None
+    
     # call function here
-    if name in sphinxContext.functions:  # user defined function
-        return evaluateFunctionDeclaration(sphinxContext.functions[name], sphinxContext, args)
-    return None
+    elif name in sphinxContext.functions:  # user defined function
+        result = evaluateFunctionDeclaration(sphinxContext.functions[name], sphinxContext, args)
+        
+    # call built-in functions
+    elif name in functionImplementation:
+        result = functionImplementation[name](node, sphinxContext, args)
+    
+    else:
+        raise SphinxException(node, 
+                              "sphinx:functionName", 
+                              _("unassigned function name %(name)s"),
+                              name=name)
+        
+    # remove local variables
+    for localVar in node.localVariables:
+        del sphinxContext.localVariables[localVar.name]
+    return result
+    
+def evaluateAggregateFunction(node, sphinxContext, name):
+    # determine if evaluating args found hyperspace (first time)
+    args = []
+    iterateAbove, bindingsLen = getattr(node, "aggregationHsBindings", (None, None))
+    firstTime = bindingsLen is None
+    hsBindings = sphinxContext.hyperspaceBindings
+    hsBindings.nestedAggregationsDepth += 1 # block removing nested aspect bindings
+    prevHsBindingsLen = len(hsBindings.hyperspaceBindings)
+    arg = node.args[0]
+    try:
+        while (True):   # possibly multiple bindings
+            # evaluate local variables
+            for localVar in node.localVariables:
+                evaluate(localVar, sphinxContext)
+                
+            value = evaluate(arg, sphinxContext, value=True)
+            if isinstance(value, (list,set)):
+                for listArg in value:
+                    args.append(evaluate(listArg, sphinxContext, value=True))
+            else:
+                args.append(value)
+            if firstTime:
+                if len(hsBindings.hyperspaceBindings) == prevHsBindingsLen:
+                    # no hs bindings, just scalar
+                    break
+                else:    # has hs bindings, evaluate rest of them
+                    firstTime = False
+                    iterateAbove = prevHsBindingsLen - 1
+                    bindingsLen = len(hsBindings.hyperspaceBindings)
+                    node.aggregationHsBindings = (iterateAbove, bindingsLen)
+            hsBindings.next(iterateAbove, bindingsLen)
+    except StopIteration:
+        pass # no more bindings
+    hsBindings.nestedAggregationsDepth -= 1
+    # remove local variables
+    for localVar in node.localVariables:
+        if localVar in sphinxContext.localVariables:
+            del sphinxContext.localVariables[localVar.name]
+    try:
+        return aggreateFunctionImplementation[name](node, sphinxContext, args)
+    except (TypeError, ZeroDivisionError) as err:
+        sphinxContext.modelXbrl.error("sphinx:error",
+             _("Function %(name)s raises exception %(error)s in %(node)s"), 
+             sourceFileLine=node.sourceFileLine, name=name, node=str(node), error=str(err))
+        return None
 
 def evaluateHyperspaceExpression(node, sphinxContext):
     # add a hyperspaceBinding to sphinxContext for this node
@@ -216,7 +300,7 @@ def evaluateIf(node, sphinxContext):
     return evaluate(expr, sphinxContext)
 
 def evaluateList(node, sphinxContext):
-    collectionExpr = evaluate(node.expr, sphinxContext)
+    collectionExpr = evaluate(node.list, sphinxContext)
     return list(entry for entry in collectionExpr)
 
 def evaluateMessage(node, sphinxContext, resultTags, hsBindings):
@@ -233,7 +317,7 @@ def evaluateMessage(node, sphinxContext, resultTags, hsBindings):
                 text.append("{" + str(len(args)) + "}")
                 tag, sep, modifier = msgstr[j+2:k].strip().partition(".")
                 if tag == "context":
-                    value = sphinxContext(sphinxContext),
+                    value = contextView(sphinxContext),
                 elif tag in resultTags:
                     value = resultTags[tag]
                 elif tag in sphinxContext.tags:
@@ -263,9 +347,17 @@ def evaluateMessage(node, sphinxContext, resultTags, hsBindings):
     return messageStr.format(*args)
 
 def evaluateMethodReference(node, sphinxContext):
+    args = []
+    l = len(node.args)
+    for i in range(l):
+        arg = evaluate(node.args[i], 
+                       sphinxContext, 
+                       value=(i > 0),
+                       dereferenceHsBinding=(i == 0)) # don't deref arg 0
+        args.append(arg)
     return methodImplementation.get(node.name,                       # requested method
                                     methodImplementation["unknown"]  # default if missing method
-                                    )(node, sphinxContext)
+                                    )(node, sphinxContext, args)
 
 def evaluateNoOp(node, sphinxContext):
     return None
@@ -274,19 +366,31 @@ def evaluateNumericLiteral(node, sphinxContext):
     return node.value
 
 def evaluatePreconditionDeclaration(node, sphinxContext):
-    return None
+    hsBindings = HyperspaceBindings(sphinxContext)
+    result = evaluate(node.expr, sphinxContext, value=True)
+    hsBindings.close()
+    return result
 
 def evaluatePreconditionReference(node, sphinxContext):
-    return None
+    for name in node.names:
+        if name in sphinxContext.preconditionNodes:
+            if not evaluate(sphinxContext.preconditionNodes[name], sphinxContext, value=True):
+                return False
+    return True
+
+def evaluateQnameLiteral(node, sphinxContext):
+    return node.value
 
 def evaluateReportRule(node, sphinxContext):
     return None
 
 def evaluateRuleBasePrecondition(node, sphinxContext):
-    return None
+    if node.precondition:
+        return evaluate(node.precondition, sphinxContext, value=True)
+    return True
 
 def evaluateSet(node, sphinxContext):
-    collectionExpr = evaluate(node.expr, sphinxContext)
+    collectionExpr = evaluate(node.set, sphinxContext)
     return set(entry for entry in collectionExpr)
 
 def evaluateStringLiteral(node, sphinxContext):
@@ -300,7 +404,10 @@ def evaluateTagReference(node, sphinxContext):
     try:
         return sphinxContext.tags[node.name]
     except KeyError:
-        raise SphinxException(node, "sphinx:tagName", _("unassigned tag name"))
+        raise SphinxException(node, 
+                              "sphinx:tagName", 
+                              _("unassigned tag name %(name)s"),
+                              name=node.name )
 
 def evaluateRule(node, sphinxContext):
     isFormulaRule = isinstance(node, astFormulaRule)
@@ -311,12 +418,13 @@ def evaluateRule(node, sphinxContext):
             return None
     # nest hyperspace binding
     sphinxContext.ruleNode = node
+    hsBindings = None
     try:
         hsBindings = HyperspaceBindings(sphinxContext)
         while True:
             for varAssignNode in node.variableAssignments:
                 evaluateVariableAssignment(varAssignNode, sphinxContext)
-            result = evaluate(node.expr, sphinxContext)
+            result = evaluate(node.expr, sphinxContext, value=True)
             if isFormulaRule:
                 left, right = result
                 if isinstance(left, UnboundClass):
@@ -381,9 +489,18 @@ def evaluateRule(node, sphinxContext):
                                                 severity=severity,
                                                 aspects=contextView(sphinxContext))
             hsBindings.next() # raises StopIteration when done
-        hsBindings.close()
     except StopIteration:
         pass # no more bindings
+    except SphinxException as ex:
+        sphinxContext.modelXbrl.log("ERROR",
+                                    ex.code,
+                                    _("Exception in rule %(ruleName)s: %(exception)s"),
+                                    ruleName=node.name,
+                                    exception=ex.message % ex.kwargs,
+                                    sourceFileLine=[node.sourceFileLine] + ([ex.node.sourceFileLine] if ex.node is not node else []),
+                                    **ex.kwargs)
+    if hsBindings is not None:
+        hsBindings.close()
     return None
 
 def noop(arg):
@@ -397,7 +514,7 @@ def evaluateUnaryOperation(node, sphinxContext):
         return UNBOUND
     try:
         result = {'+': operator.pos, '-': operator.neg, 'not': operator.not_,
-                  'value': noop,
+                  'values': noop,
                   }[node.op](value)
         return result
     except KeyError:
@@ -417,7 +534,17 @@ def evaluateVariableReference(node, sphinxContext):
     try:
         return sphinxContext.localVariables[node.variableName]
     except KeyError:
-        raise SphinxException(node, "sphinx:variableName", _("unassigned variable name"))
+        if node.variableName in sphinxContext.constants:
+            constantNode = sphinxContext.constants[node.variableName]
+            if constantNode.value is None: # first time
+                constantNode.value = evaluate(constantNode.expr, sphinxContext)
+            if constantNode.tagName:
+                sphinxContext.tags[constantNode.tagName] = constantNode.value
+            return constantNode.value
+        raise SphinxException(node, 
+                              "sphinx:variableName", 
+                              _("unassigned variable name %(name)s"),
+                              name=node.variableName)
 
 def evaluateWith(node, sphinxContext):
     # covered clauses of withExpr match uncovered aspects of expr
@@ -463,9 +590,14 @@ def aspectName(aspect):
     else:
         return str(aspect)
 
-
 def factAspectValue(fact, aspect):
-    if aspect == Aspect.LOCATION:
+    if fact is DEFAULT:
+        return 'none'
+    elif fact is NONDEFAULT:
+        return '*'
+    elif fact is DEFAULTorNONDEFAULT:
+        return '**'
+    elif aspect == Aspect.LOCATION:
         parentQname = fact.getparent().qname
         if parentQname == XbrlConst.qnXbrliXbrl: # not tuple
             return "none"
@@ -503,7 +635,7 @@ def factAspectValue(fact, aspect):
                 elif dimValue.isExplicit:
                     return dimValue.memberQname
                 else: # explicit
-                    return XmlUtil.xmlstring(XmlUtil.child(dimValue), stripXmlns=True, prettyPrint=True)
+                    return dimValue.typedMember.xValue # typed element value
 
 
 
@@ -525,6 +657,7 @@ evaluator = {
     "astNoOp":                    evaluateNoOp,
     "astNumericLiteral":          evaluateNumericLiteral,
     "astPreconditionDeclaration": evaluatePreconditionDeclaration,
+    "astQnameLiteral":            evaluateQnameLiteral,
     "astReportRule":              evaluateRule,
     "astSourceFile":              evaluateNoOp,
     "astSet":                     evaluateSet,
@@ -540,3 +673,4 @@ evaluator = {
     "astWith":                    evaluateWith,
           }
         
+SphinxMethodsModuleInit()
