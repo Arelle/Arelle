@@ -23,12 +23,11 @@ from arelle import XbrlConst, XmlUtil
 evaluate = None # initialized at end
 SphinxException = None
 UNBOUND = None
-
-QNameNone = QName(None, None, "none")
+NONE = None
 
 def moduleInit():
-    global evaluate, SphinxException, UNBOUND
-    from .SphinxEvaluator import evaluate, SphinxException, UNBOUND
+    global evaluate, SphinxException, UNBOUND, NONE
+    from .SphinxEvaluator import evaluate, SphinxException, UNBOUND, NONE
 
 class Balance(): # fake class for balance type
     pass
@@ -51,6 +50,71 @@ class Period():
         return self.start is not None and self.end is not None
     def __repr__(self):
         return "({0},{1})".format(self.start, self.end)
+    def __eq__(self, other):
+        if isinstance(other, Period):
+            return self.start == other.start and self.end == other.end
+        return False
+    def __ne__(self, other):
+        if isinstance(other, Period):
+            return self.start != other.start or self.end != other.end
+        return False
+    def __lt__(self, other):
+        if not isinstance(other, Period):
+            return False
+        if self.isInstant:
+            if other.isInstant:
+                return self.end < other.end
+            elif other.isStartEnd:
+                return self.end <= other.start
+        elif self.isStartEnd:
+            if other.isInstant:
+                return self.end < other.end
+            elif other.isStartEnd:
+                return self.end <= other.start
+        return False
+    def __le__(self, other):
+        if not isinstance(other, Period):
+            return False
+        if self.isInstant:
+            if other.isInstant:
+                return self.end <= other.end
+            elif other.isStartEnd:
+                return self.end <= other.start or self == other
+        elif self.isStartEnd:
+            if other.isInstant:
+                return self.end <= other.end
+            elif other.isStartEnd:
+                return self.end <= other.start or self == other
+        return False
+    def __gt__(self, other):
+        if not isinstance(other, Period):
+            return False
+        if self.isInstant:
+            if other.isInstant:
+                return self.end > other.end
+            elif other.isStartEnd:
+                return self.start > other.end
+        elif self.isStartEnd:
+            if other.isInstant:
+                return self.end > other.end
+            elif other.isStartEnd:
+                return self.start > other.end
+        return False
+    def __ge__(self, other):
+        if not isinstance(other, Period):
+            return False
+        if self.isInstant:
+            if other.isInstant:
+                return self.end >= other.end
+            elif other.isStartEnd:
+                return self.start >= other.start or self == other
+        elif self.isStartEnd:
+            if other.isInstant:
+                return self.end >= other.end
+            elif other.isStartEnd:
+                return self.start >= other.start or self == other
+        return False
+
 
 def hasArg(node, sphinxContext, args, i):
     if i >= len(args):
@@ -109,7 +173,7 @@ def strArgs(node, sphinxContext, args, expectedArgsLen):
         if not isinstance(value, _STR_BASE):
             raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                                   _("Function %(name)s string parameters but %(num)s is not numeric: %(value)s"),
-                                  num=i, value=value)
+                                  name=node.name, num=i, value=value)
             value = 0
         strArgs.append(value)
     for i in range(i, expectedArgsLen):
@@ -118,7 +182,7 @@ def strArgs(node, sphinxContext, args, expectedArgsLen):
     
 def factArg(node, sphinxContext, args, i):
     hasArg(node, sphinxContext, args, i)
-    fact = evaluate(args[i], sphinxContext, value=False, dereferenceHsBinding=True)
+    fact = evaluate(args[i], sphinxContext, value=False, hsBoundFact=True)
     if isinstance(fact, ModelFact):
         return fact
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
@@ -168,7 +232,7 @@ def networkConceptArg(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 1)
     arg = args[1]
     if isinstance(arg, QName):
-        arg = network.modelXbrl.qnameConcepts.get(arg, QNameNone)
+        arg = network.modelXbrl.qnameConcepts.get(arg, NONE)
     if isinstance(arg, ModelConcept):
         return arg
     raise SphinxException(node, "sphinx.methodArgumentsMismatch",
@@ -233,7 +297,7 @@ def _concept(node, sphinxContext, args):
     if isinstance(args[0], ModelXbrl):
         dts = dtsArg(node, sphinxContext, args)
         hasArg(node, sphinxContext, args, 1)
-        return dts.qnameConcepts.get(args[1], QNameNone)
+        return dts.qnameConcepts.get(args[1], UNBOUND)
     fact = factArg(node, sphinxContext, args, 0)
     return fact.concept
 
@@ -321,7 +385,7 @@ def _dimension(node, sphinxContext, args):
             return modelDimension.memberQname
         else:
             return modelDimension.typedMember
-    return QNameNone
+    return NONE
 
 def _dtsDocumentLocations(node, sphinxContext, args):
     dts = dtsArg(node, sphinxContext, args)
@@ -338,9 +402,26 @@ def _duration(node, sphinxContext, args):
                           name=node.name, value=args[0])
 
 def _durationFunction(node, sphinxContext, args):
-    dates = strArgs(node, sphinxContext, args, 2)
-    return Period(XmlUtil.datetimeValue(dates[0], none=QNameNone),
-                  XmlUtil.datetimeValue(dates[1], addOneDay=True, none=QNameNone))
+    hasArg(node, sphinxContext, args, 1)
+    startArg = args[0]
+    if isinstance(startArg, str):
+        startDateTime = Period(None, XmlUtil.datetimeValue(startArg, none=NONE))
+    elif isinstance(startArg, datetime.datetime):
+        startDateTime = startArg
+    elif isinstance(arg, datetime.date):
+        startDateTime = datetime.date(startArg.year, startArg.month, startArg.day)
+    endArg = args[1]
+    if isinstance(endArg, str):
+        endDateTime = Period(None, XmlUtil.datetimeValue(startArg, addOneDay=True, none=NONE))
+    elif isinstance(endArg, datetime.datetime):
+        endDateTime = endArg
+    elif isinstance(endArg, datetime.date):
+        endDateTime = datetime.date(endArg.year, endArg.month, endArg.day) + datetime.timedelta(1)
+    if (startDateTime and endDateTime):
+        return Period(startDateTime, endDateTime)
+    raise SphinxException(node, "sphinx.functionArgumentsMismatch",
+                          _("Function %(name)s requires two argument that are a date or datetime string or value: %(start)s and %(end)s", ),
+                          name=node.name, start=startArg, end=endArg)
       
 def _endDate(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
@@ -360,7 +441,10 @@ def _endsWith(node, sphinxContext, args):
        
 def _entityMethod(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
-    return fact.entityIdentifier
+    if fact.context is not None:
+        return fact.context.entityIdentifier
+    else:
+        return UNBOUND
 
 def _entityFunction(node, sphinxContext, args):
     args = strArgs(node, sphinxContext, args, 2)
@@ -381,7 +465,7 @@ def _identifier(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     arg = args[0]
     if isinstance(arg, tuple) and len(arg) == 2:
-        return arg[0]
+        return arg[1]
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not an entity identifier %(value)s"),
                           name=node.name, value=arg)
@@ -408,8 +492,19 @@ def _instant(node, sphinxContext, args):
                           name=node.name, value=args[0])
     
 def _instantFunction(node, sphinxContext, args):
-    dates = strArgs(node, sphinxContext, args, 1)
-    return Period(None, XmlUtil.datetimeValue(dates[0], addOneDay=True, none=QNameNone))
+    hasArg(node, sphinxContext, args, 0)
+    arg = args[0]
+    if isinstance(arg, str):
+        instDateTime = Period(None, XmlUtil.datetimeValue(arg, addOneDay=True, none=NONE))
+        if instDateTime:  # none if date is not valid
+            return instDateTime
+    elif isinstance(arg, datetime.datetime):
+        return Period(None, arg)
+    elif isinstance(arg, datetime.date): # must be turned into midnight of the day reported
+        return Period(None, datetime.date(arg.year, arg.month, arg.day) + datetime.timedelta(1))
+    raise SphinxException(node, "sphinx.functionArgumentsMismatch",
+                          _("Function %(name)s argument is not a date or datetime string or value %(value)s"),
+                          name=node.name, value=arg)
       
 def _isForever(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
@@ -505,7 +600,7 @@ def _period(node, sphinxContext, args):
         if context.isStartEndPeriod:
             return Period(context.startDatetime, context.endDatetime)
         return Period(None, context.instantDatetime)
-    return QNameNone
+    return NONE
 
 def _periodType(node, sphinxContext, args):
     if len(node.args) == 1 and node.args[0] is None:
@@ -518,7 +613,7 @@ def _periodType(node, sphinxContext, args):
         elif arg.isStartEnd:
             return "duration"
         return "instant"
-    elif args[0] is QNameNone: # special case, such as for tuples
+    elif args[0] is NONE: # special case, such as for tuples
         return "none"
     concept = conceptArg(node, sphinxContext, args, 0)
     return concept.periodType
@@ -588,9 +683,9 @@ def _scheme(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     arg = args[0]
     if isinstance(arg, tuple) and len(arg) == 2:
-        return arg[1]
-    raise SphinxException(node, "sphinx.functionArgumentsMismatch",
-                          _("Function %(name)s argument is not an entity identifier %(value)s"),
+        return arg[0]
+    raise SphinxException(node, "sphinx.methodArgumentsMismatch",
+                          _("Method %(name)s argument is not an entity identifier %(value)s"),
                           name=node.name, value=arg)
         
 def _segment(node, sphinxContext, args):
@@ -683,7 +778,7 @@ def _tuple(node, sphinxContext, args):
     parentModelObject = fact.getparent()
     parentQn = parentModelObject.qname
     if parentQn == XbrlConst.qnXbrliXbrl:
-        return QNameNone
+        return NONE
     return parentQn
 
 def _unitMethod(node, sphinxContext, args):
@@ -703,7 +798,7 @@ def _xbrlTypeMethod(node, sphinxContext, args):
     concept = conceptArg(node, sphinxContext, args, 0)
     baseTypeLocalName = concept.baseXbrliType
     if not baseTypeLocalName:
-        return QNameNone
+        return NONE
     return QName("{http://www.xbrl.org/2003/instance}xbrli:" + baseTypeLocalName)
 
 
@@ -944,7 +1039,12 @@ def _exists(node, sphinxContext, args):
     return len(args) > 0
 
 def _first(node, sphinxContext, args):
-    return args[0]
+    if len(args):
+        return args[0]
+    return UNBOUND
+
+def _list(node, sphinxContext, args):
+    return [args]
 
 def _max(node, sphinxContext, args):
     return max(args)
@@ -989,6 +1089,9 @@ def _modes(node, sphinxContext, args):
 def _stdevp(node, sphinxContext, args):
     return _notImplemented(node, sphinxContext)
     
+def _set(node, sphinxContext, args):
+    return set(args)
+
 def _sum(node, sphinxContext, args):
     return sum(args)
 
@@ -1146,14 +1249,38 @@ aggreateFunctionImplementation = {
     "count":        _count,
     "exists":       _exists,
     "first":        _first,
+    "list":         _list,
     "max":          _max,
     "median":       _median,
     "min":          _min,
     "missing":      _missing,
     "mode":         _mode,
     "modes":        _modes,
+    "set":          _set,
     "stdevp":       _stdevp,
     "sum":          _sum,
     "var":          _var,
     "varp":         _varp,
     }
+
+aggreateFunctionAcceptsFactArgs = {
+    "all":          False,
+    "any":          False,
+    "avg":          False,
+    "count":        True,
+    "exists":       True,
+    "first":        True,
+    "list":         True,
+    "max":          True,
+    "median":       False,
+    "min":          False,
+    "missing":      True,
+    "mode":         False,
+    "modes":        False,
+    "set":          True,
+    "stdevp":       False,
+    "sum":          False,
+    "var":          False,
+    "varp":         False,
+    }
+

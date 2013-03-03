@@ -24,8 +24,8 @@ lastLoc = 0
 lineno = None
 xmlns = {}
 
-reservedWords = {"tuple", "primary", "entity", "period", "unit", "segment", "scenario"
-                 }
+reservedWords = {"tuple", "primary", "entity", "period", "unit", "segment", "scenario",
+                 "NaN", "unbound", "none"}
 
 isGrammarCompiled = False
 
@@ -56,7 +56,7 @@ def compileBinaryOperation( sourceStr, loc, toks ):
 def compileBrackets( sourceStr, loc, toks ):
     if len(toks) == 1:  # parentheses around an expression
         return astUnaryOperation(sourceStr, loc, "brackets", toks[0])
-    return astList(sourceStr, loc, [tok for tok in toks if tok != ','])
+    return astFunctionReference(sourceStr, loc, "list", [tok for tok in toks if tok != ','])
 
 def compileComment( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -85,10 +85,6 @@ def compileFunctionReference( sourceStr, loc, toks ):
     name = toks[0]
     if isinstance(name, astFunctionReference) and not name.args:
         name = name.name
-    if name == "list":
-        return astList(sourceStr, loc, toks[1:])
-    if name == "set":
-        return astSet(sourceStr, loc, toks[1:])
     if name == "unit":
         try:
             return astFunctionReference(sourceStr, loc, name, toks[astQnameLiteral(sourceStr, loc, toks[1])])
@@ -200,9 +196,6 @@ def compileNamespaceDeclaration( sourceStr, loc, toks ):
 
 def compileOp( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    op = toks[0]
-    if op in {"error", "warning", "info", "pass"}:
-        return astFunctionReference(sourceStr, loc, op, [])
     return toks
 
 def compilePackageDeclaration( sourceStr, loc, toks ):
@@ -223,7 +216,10 @@ def compilePreconditionDeclaration( sourceStr, loc, toks ):
 
 def compileQname( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    return astQnameLiteral(sourceStr, loc, toks[0])
+    qnameTok = toks[0]
+    if qnameTok in {"error", "warning", "info", "pass"}:
+        return astFunctionReference(sourceStr, loc, qnameTok, [])
+    return astQnameLiteral(sourceStr, loc, qnameTok)
 
 def compileReportRule( sourceStr, loc, toks ):
     return astReportRule(sourceStr, loc, toks)
@@ -259,6 +255,12 @@ def compileUnaryOperation( sourceStr, loc, toks ):
         return toks
     global lastLoc; lastLoc = loc
     return astUnaryOperation(sourceStr, loc, toks[0], toks[1])
+
+def compileValuesIteration( sourceStr, loc, toks ):
+    if len(toks) == 1:
+        return toks
+    global lastLoc; lastLoc = loc
+    return astValuesIteration(sourceStr, loc, toks[1])
 
 def compileValidationRule( sourceStr, loc, toks ):
     return astValidationRule(sourceStr, loc, toks)
@@ -298,6 +300,10 @@ class astNode:
     def sourceFileLine(self):
         return (self.sphinxFile, self.sourceLine)
     
+    @property
+    def nodeTypeName(self):
+        return type(self).__name__[3:]
+    
     def __repr__(self):
         return "{0}({1})".format(type(self).__name__, "")
 
@@ -336,7 +342,7 @@ class astConstant(astNode):
         self.value = None # dynamically assigned
         self.tagName = None
         if len(toks) > 2 and toks[1] == "#": # has tag
-            if len(toks) > 3: # named tag
+            if len(toks) > 4: # named tag
                 self.tagName = toks[2]
             else: # use name for tag
                 self.tagName = self.constantName
@@ -390,7 +396,8 @@ class astFunctionReference(astNode):
         self.localVariables = [a for a in args if isinstance(a, astVariableAssignment)]
         self.args = [a for a in args if not isinstance(a, astVariableAssignment)]
     def __repr__(self):
-        return "functionReference({0}({1}))".format(self.name, ", ".join(str(a) for a in self.args))
+        return "functionReference({0}({1}))".format(self.name,
+                                                    ", ".join(str(a) for a in self.args))
 
 class astHyperspaceAxis(astNode):
     def __init__(self, sourceStr, loc, toks):
@@ -407,7 +414,7 @@ class astHyperspaceAxis(astNode):
         STATE_INDETERMINATE = 99
         
         super(astHyperspaceAxis, self).__init__(sourceStr, loc)
-        self.aspect = 0
+        self.aspect = None # case of only a where clause has no specified aspect
         self.name = None
         self.asVariableName = None
         self.restriction = None # qname, expr, * or **
@@ -428,11 +435,19 @@ class astHyperspaceAxis(astNode):
             elif tok == "=" and state == STATE_AS_NAMED:
                 state = STATE_AS_EQ_VALUE
             elif state == STATE_AXIS_NAME_EXPECTED:
-                if tok in namedAxes:
+                if isinstance(tok, astQnameLiteral):
+                    axisQname = tok.value
+                    if axisQname.namespaceURI is None and axisQname.localName in namedAxes:
+                        self.name = axisQname.localName
+                        self.aspect = namedAxes[self.name]
+                    else:
+                        self.name = self.aspect = axisQname
+                elif isinstance(tok, astVariableReference):
+                    self.name = '$' + tok.variableName
+                    self.aspect = tok
+                elif tok in namedAxes:  # e.g., "primary"
                     self.name = tok
                     self.aspect = namedAxes[tok]
-                else:
-                    self.name = self.aspect = astQnameLiteral(sourceStr, loc, tok)
                 state = STATE_AXIS_NAMED
             elif state in (STATE_EQ_VALUE, STATE_AS_EQ_VALUE):
                 if isinstance(tok, astNode):
@@ -450,8 +465,7 @@ class astHyperspaceAxis(astNode):
                 state = {STATE_EQ_VALUE: STATE_INDETERMINATE,
                          STATE_AS_EQ_VALUE: STATE_AS_EQ_WHERE}[state]
             elif state == STATE_IN_LIST:
-                if isinstance(tok, astList):
-                    self.restriction = tok
+                self.restriction = tok
                 state = STATE_INDETERMINATE
             elif state == STATE_AS_NAME:
                 self.asVariableName = tok
@@ -472,7 +486,7 @@ class astHyperspaceAxis(astNode):
         if self.asVariableName:
             s += " as " + str(self.asVariableName) + "=" + str(self.restriction)
         elif self.restriction:
-            if len(self.restriction) == 1:
+            if isinstance(self.restriction, (tuple,list)) and len(self.restriction) == 1:
                 s += "=" + str(self.restriction[0])
             else:
                 s += " in " + str(self.restriction)
@@ -484,12 +498,12 @@ class astHyperspaceExpression(astNode):
     def __init__(self, sourceStr, loc, toks):
         super(astHyperspaceExpression, self).__init__(sourceStr, loc)
         self.isClosed = False
-        self.axes = {}
+        self.axes = []
         for i, tok in enumerate(toks):
             if tok in ('[', '[['):
                 if i == 1:
-                    self.axes[Aspect.CONCEPT] = astHyperspaceAxis(sourceStr, loc,
-                                                                  ["primary", "=", toks[i-1]])
+                    self.axes.append(astHyperspaceAxis(sourceStr, loc,
+                                                       ["primary", "=", toks[i-1]]))
                 self.isClosed = tok == '[['
             elif tok in (']', ']]'):
                 if self.isClosed != tok == ']]':
@@ -497,11 +511,11 @@ class astHyperspaceExpression(astNode):
                         _("Axis restrictions syntax mismatches closed brackets."),
                         sourceFileLines=((sphinxFile, lineno(loc, sourceStr)),))
             elif isinstance(tok, astHyperspaceAxis):
-                self.axes[tok.aspect] = tok
+                self.axes.append(tok)
             
     def __repr__(self):
         return "{0}{1}{2}".format({False:'[',True:'[['}[self.isClosed],
-                                  "; ".join(str(axis) for axis in self.axes.values()),
+                                  "; ".join(str(axis) for axis in self.axes),
                                   {False:']',True:']]'}[self.isClosed])
 
 class astIf(astNode):
@@ -512,13 +526,6 @@ class astIf(astNode):
         self.elseExpr = elseExpr
     def __repr__(self):
         return "if(({0}) {1} else {2})".format(self.condition, self.thenExpr, self.elseExpr)
-
-class astList(astNode):
-    def __init__(self, sourceStr, loc, toks):
-        super(astList, self).__init__(sourceStr, loc)
-        self.list = list(toks)
-    def __repr__(self):
-        return "list({0})".format(", ".join(str(t) for t in self.list))
 
 class astMessage(astNode):
     def __init__(self, sourceStr, loc, message):
@@ -556,7 +563,7 @@ class astNumericLiteral(astNode):
         super(astNumericLiteral, self).__init__(sourceStr, loc)
         self.value = value
     def __repr__(self):
-        return "{0}({1})".format(type(self).__name__, self.value)
+        return "numericLiteral({0})".format(self.value)
 
 class astPreconditionDeclaration(astNode):
     def __init__(self, sourceStr, loc, name, expr, otherwiseExpr):
@@ -572,7 +579,7 @@ class astPreconditionReference(astNode):
         super(astPreconditionReference, self).__init__(sourceStr, loc)
         self.names = names
     def __repr__(self):
-        return "preconditionRef({0})".format(self.names)
+        return "preconditionReference({0})".format(self.names)
 
 class astQnameLiteral(astNode):
     def __init__(self, sourceStr, loc, qnameToken):
@@ -586,7 +593,7 @@ class astQnameLiteral(astNode):
         except KeyError:
             raise PrefixError(qnameToken)
     def __repr__(self):
-        return "{0}({1})".format(type(self).__name__, self.value)
+        return "qnameLiteral({0})".format(self.value)
 
 class astRuleBasePrecondition(astNode):
     def __init__(self, sourceStr, loc, precondition):
@@ -594,13 +601,6 @@ class astRuleBasePrecondition(astNode):
         self.precondition = precondition
     def __repr__(self):
         return "ruleBasePrecondition({0})".format(self.precondition)
-
-class astSet(astNode):
-    def __init__(self, sourceStr, loc, toks):
-        super(astSet, self).__init__(sourceStr, loc)
-        self.set = set(toks)
-    def __repr__(self):
-        return "set({0})".format(", ".join(str(t) for t in self.set))
 
 class astSeverity(astNode):
     def __init__(self, sourceStr, loc, severity):
@@ -614,18 +614,26 @@ class astSourceFile(astNode):
         super(astSourceFile, self).__init__(None, 0)
         self.fileName = fileName
     def __repr__(self):
-        return "fileName({0})".format(self.fileName)
+        return "sourceFile({0})".format(self.fileName)
 
+escChar = {r"\n": "\n", 
+           r"\t": "\t", 
+           r"\b": "\b", 
+           r"\r": "\r", 
+           r"\f": "\f", 
+           r"\\": "\\",
+           r"\'": "'",
+           r"\"": '"'}
 class astStringLiteral(astNode):
     def __init__(self, sourceStr, loc, quotedString):
         super(astStringLiteral, self).__init__(sourceStr, loc)
         # dequote leading/trailing quotes and backslashed characters in sphinx table
-        self.text = re.sub(r"\\[ntbrf\\'\"]",lambda m: m.group(0)[1], quotedString[1:-1])
+        self.text = re.sub(r"\\[ntbrf\\'\"]",lambda m: escChar[m.group(0)], quotedString[1:-1])
     @property
     def value(self):
         return self.text
     def __repr__(self):
-        return "{0}({1})".format(type(self).__name__, self.text)
+        return "stringLiteral({0})".format(self.text)
 
 class astTagAssignment(astNode):
     def __init__(self, sourceStr, loc, tagName, expr):
@@ -652,6 +660,13 @@ class astUnaryOperation(astNode):
     def __repr__(self):
         return "unaryOperation({0} {1})".format(self.op, self.expr)
 
+class astValuesIteration(astNode):
+    def __init__(self, sourceStr, loc, expr):
+        super(astValuesIteration, self).__init__(sourceStr, loc)
+        self.expr = expr
+    def __repr__(self):
+        return "values {0}".format(self.expr)
+
 class astRule(astNode):
     def __init__(self, sourceStr, loc, nodes):
         super(astRule, self).__init__(sourceStr, loc)
@@ -672,7 +687,7 @@ class astRule(astNode):
                 self.variableAssignments.append(node)
             else:
                 if prev in ("formula", "report", "raise"):
-                    self.name = node
+                    self.name = currentPackage + '.' + node if currentPackage else node
                     self.expr = None
                 elif prev == "bind":  # formula only
                     self.bind = node
@@ -892,22 +907,11 @@ def compileSphinxGrammar( cntlr ):
     
     valueExpr = atom
     taggedExpr = ( valueExpr - Optional(tagOp - ncName) ).setParseAction(compileTagAssignment).ignore(sphinxComment)
-    
-    #filterExpr = ( atom + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
-    #axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )         
-    #stepExpr = filterExpr | axisStep
-    #relativePathExpr = ( stepExpr + ZeroOrMore( ( pathStepOp | pathDescOp ) + stepExpr ).setParseAction( pushOperation ) )
-    #pathExpr = ( ( pathDescOp + relativePathExpr ) |
-    #             ( pathStepOp + relativePathExpr ) |
-    #             ( relativePathExpr ) |
-    #             ( pathStepOp ) )
-    #valueExpr = pathExpr
-    # methodExpr = ( ( taggedExpr + methodOp + ncName + Optional(Suppress(lParen) + delimitedList(expr) + Suppress(rParen)) ).setParseAction(compileMethodReference) |
     methodExpr = ( ( methodOp + ncName + ZeroOrMore(methodOp + taggedExpr) ).setParseAction(compileMethodReference) |
                    ( ZeroOrMore(taggedExpr + methodOp) + taggedExpr )).setParseAction(compileMethodReference).ignore(sphinxComment)
     unaryExpr = ( Optional(plusMinusOp) + methodExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
     negateExpr = ( Optional(notOp) + unaryExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
-    valuesExpr = ( Optional(valuesOp) + negateExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
+    valuesExpr = ( Optional(valuesOp) + negateExpr ).setParseAction(compileValuesIteration).ignore(sphinxComment)
     method2Expr = ( valuesExpr + Optional( methodOp + methodExpr ) ).setParseAction(compileMethodReference).ignore(sphinxComment)
     multiplyExpr = ( method2Expr + Optional( multOp + method2Expr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
     divideExpr = ( multiplyExpr + Optional( divOp + multiplyExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
@@ -1016,12 +1020,13 @@ def parse(cntlr, _logMessage, sphinxFiles):
     successful = True
 
     def parseSourceString(sourceString):
-        global lastLoc
+        global lastLoc, currentPackage
         successful = True
         cntlr.showStatus("Compiling sphinx file {0}".format(os.path.basename(sphinxFile)))
         
         try:
             lastLoc = 0
+            currentPackage = None
             prog = sphinxGrammar.parseString( sourceString, parseAll=True )
             xmlns.clear()  # dereference xmlns definitions
             prog.insert(0, astSourceFile(sphinxFile)) # keep the source file name
@@ -1092,4 +1097,4 @@ def parse(cntlr, _logMessage, sphinxFiles):
                     
     return sphinxProgs
 
-from .SphinxMethods import methodImplementation
+from .SphinxMethods import methodImplementation, aggreateFunctionImplementation

@@ -52,15 +52,17 @@ def validate(logMessage, sphinxContext):
             elif isinstance(node, astConstant):
                 sphinxContext.constants[node.constantName] = node
                 node.value = None   # compute dynamically on first reference
+                if node.tagName:
+                    sphinxContext.taggedConstants[node.tagName] = node
 
     # check references            
-    def checkNodes(nodes):
+    def checkNodes(nodes, inMacro=False):
         if not nodes: return
         for node in nodes:
             if node is None:
                 continue
             elif isinstance(node, (list,set)):
-                checkNodes(node)
+                checkNodes(node, inMacro)
             elif isinstance(node, astPreconditionReference):
                 for name in node.names:
                     if name not in sphinxContext.preconditionNodes:
@@ -71,7 +73,7 @@ def validate(logMessage, sphinxContext):
             elif isinstance(node, (astFormulaRule, astReportRule, astValidationRule)):
                 checkNodes((node.precondition, node.severity, 
                             node.variableAssignments, 
-                            node.expr, node.message))
+                            node.expr, node.message), inMacro)
                 sphinxContext.rules.append(node)
                 if node.severity:
                     severity = node.severity
@@ -91,8 +93,8 @@ def validate(logMessage, sphinxContext):
                         name=node.name)
             elif isinstance(node, astHyperspaceExpression) and hasDTS:
                 # check axes
-                for axis, value in node.axes.items():
-                    if isinstance(axis, QName):
+                for axis in node.axes:
+                    if isinstance(axis.aspect, QName):
                         concept = modelXbrl.qnameConcepts.get(axis)
                         if concept is None or not concept.isDimensionItem:
                             logMessage("ERROR", "sphinxCompiler:axisNotDimension",
@@ -101,32 +103,40 @@ def validate(logMessage, sphinxContext):
                                 qname=axis)
                         elif axis not in sphinxContext.dimensionIsExplicit:
                             sphinxContext.dimensionIsExplicit[axis] = concept.isExplicitDimension
-                    if (axis not in {"unit", "segment", "scenario"} and
-                        isinstance(value, astHyperspaceAxis) and
-                        isinstance(value.restriction, (list, tuple))):
-                        for restrictionValue in value.restriction:
+                    elif isinstance(axis.aspect, astNode):
+                        if not inMacro:
+                            logMessage("ERROR", "sphinxCompiler:axisDisallowed",
+                                _("Hypercube axis aspect not static %(aspect)s"),
+                                sourceFileLine=node.sourceFileLine,
+                                aspect=axis.aspect)
+                    elif (axis.aspect not in {"unit", "segment", "scenario"} and
+                        isinstance(axis.restriction, (list, tuple))):
+                        for restrictionValue in axis.restriction:
                             if isinstance(restrictionValue, QName) and not restrictionValue in modelXbrl.qnameConcepts: 
                                 logMessage("ERROR", "sphinxCompiler:axisNotDimension",
                                     _("Hypercube value not in the DTS %(qname)s"),
                                     sourceFileLine=node.sourceFileLine,
                                     qname=restrictionValue)
-                        checkNodes((value.whereExpr,))
+                        checkNodes((axis.whereExpr,), inMacro)
             elif isinstance(node, astWith):
                 node.axes = {}
                 def checkWithAxes(withNode):
                     if isinstance(withNode, astHyperspaceExpression):
-                        checkNodes((withNode,))
+                        checkNodes((withNode,), inMacro)
                         node.axes.update(withNode.axes)
                     else:
                         logMessage("ERROR", "sphinxCompiler:withRestrictionError",
                             _("With restriction is not a single hyperspace expression"),
                             sourceFileLine=withNode.sourceFileLine)
                 checkWithAxes(node.restrictionExpr)
-                checkNodes((node.variableAssignments, node.bodyExpr,))
+                checkNodes((node.variableAssignments, node.bodyExpr,), inMacro)
             elif isinstance(node, astNode):
+                nestedMacro = inMacro or (isinstance(node, astFunctionDeclaration) and 
+                                          node.functionType == "macro")
                 checkNodes([expr
                             for expr in node.__dict__.values() 
-                            if isinstance(expr, (astNode, list, set))])
+                            if isinstance(expr, (astNode, list, set))],
+                           nestedMacro)
                 
     for prog in sphinxContext.sphinxProgs:
         checkNodes(prog)

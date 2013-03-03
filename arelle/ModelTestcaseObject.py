@@ -223,7 +223,7 @@ class ModelTestcaseVariation(ModelObject):
     @property
     def severityLevel(self):
         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedSeverity"):
-            return pluginXbrlMethod(self)
+            return logging.getLevelName(pluginXbrlMethod(self) or "ERROR")
         # default behavior without plugins
         # SEC error cases have <assert severity={err|wrn}>...
         if XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None:
