@@ -97,17 +97,23 @@ def sphinxToLBMenuEntender(cntlr, menu):
         generatedFormulasDir = generatedFormulasDirDialog(cntlr)
         if not generatedFormulasDir:
             return False    
-        try: 
-            generateFormulaLB(cntlr, sphinxFiles, generatedFormulasDir)
-        except Exception as ex:
-            cntlr.addToLog(
-                _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") % 
-                {"error": ex,
-                 "exc_info": True,
-                 "traceback": traceback.format_tb(sys.exc_info()[2])})
+        
+        def backgroundSphinxGenerateFormula():
+            try: 
+                generateFormulaLB(cntlr, sphinxFiles, generatedFormulasDir)
+            except Exception as ex:
+                cntlr.addToLog(
+                    _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") % 
+                    {"error": ex,
+                     "exc_info": True,
+                     "traceback": traceback.format_tb(sys.exc_info()[2])})
+        import threading
+        thread = threading.Thread(target=backgroundSphinxGenerateFormula)
+        thread.daemon = True
+        thread.start()
             
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Compile Sphinx into Formula Linkbase", 
+    menu.add_command(label="Compile Sphinx to Formula", 
                      underline=0, 
                      command=sphinxToLBMenuCommand)
 
