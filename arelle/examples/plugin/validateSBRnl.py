@@ -45,9 +45,10 @@ def final(val, conceptsUsed):
     # check non-concept elements that can appear in elements for labels (concepts checked by 
     labelsRelationshipSet = val.modelXbrl.relationshipSet((XbrlConst.conceptLabel,XbrlConst.elementLabel))
     standardXbrlSchmas = _DICT_SET(XbrlConst.standardNamespaceSchemaLocations.values())
+    baseTaxonomyNamespaces = val.disclosureSystem.baseTaxonomyNamespaces
     for eltDef in val.modelXbrl.qnameConcepts.values():
         if (not (eltDef.isItem or eltDef.isTuple or eltDef.isLinkPart) and
-            eltDef.modelDocument.uri not in standardXbrlSchmas):
+            eltDef.qname.namespaceURI not in baseTaxonomyNamespaces):
             eltDefHasDefaultLangStandardLabel = False
             for modelLabelRel in labelsRelationshipSet.fromModelObject(eltDef):
                 modelLabel = modelLabelRel.toModelObject
