@@ -36,6 +36,15 @@ def sphinxFilesDialog(cntlr):
     cntlr.saveConfig()
     return sphinxFiles
 
+def generatedFormulasDirDialog(cntlr):
+    from tkinter.filedialog import askdirectory
+    generatedFormulasDir = askdirectory(parent=cntlr.parent,
+                                        initialdir=cntlr.config.setdefault("sphinxGeneratedFormulasDir","."),
+                                        title='Please select a directory for formulas generated from sphinx')
+    cntlr.config["sphinxGeneratedFormulasDir"] = generatedFormulasDir
+    cntlr.saveConfig()
+    return generatedFormulasDir
+
 def sphinxFilesOpenMenuEntender(cntlr, menu):
     
     def sphinxFileMenuCommand():
@@ -85,8 +94,11 @@ def sphinxToLBMenuEntender(cntlr, menu):
         sphinxFiles = sphinxFilesDialog(cntlr)
         if not sphinxFiles:
             return False    
+        generatedFormulasDir = generatedFormulasDirDialog(cntlr)
+        if not generatedFormulasDir:
+            return False    
         try: 
-            generateFormulaLB(cntlr, sphinxFiles)
+            generateFormulaLB(cntlr, sphinxFiles, generatedFormulasDir)
         except Exception as ex:
             cntlr.addToLog(
                 _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") % 
@@ -182,7 +194,7 @@ def sphinxTestcaseVariationExpectedSeverity(modelTestcaseVariation):
         return issueElement.get("severity")
     return None # no issue or not a sphinx test case variation
     
-def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr):
+def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFileImage):
     from tkinter import PhotoImage, N, S, E, W
     try:
         from tkinter.ttk import Button
@@ -209,7 +221,6 @@ def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr):
     dialog.cellSphinxFiles = gridCell(frame,2, row, options.get("sphinxRulesFiles",""))
     ToolTip(dialog.cellSphinxFiles, text=_("Select a sphinx rules (file(s) or archive(s)) to to evaluate each filing.  "
                                            "The results are recorded in the log file.  "), wraplength=240)
-    openFileImage = PhotoImage(file=os.path.join(cntlr.imagesDir, "toolbarOpenFile.gif"))
     chooseFormulaFileButton = Button(frame, image=openFileImage, width=12, command=chooseSphinxFiles)
     chooseFormulaFileButton.grid(row=row, column=3, sticky=W)
     
@@ -242,9 +253,9 @@ sphinxModelObjectElementSubstitutionClasses = (
     )
 
 __pluginInfo__ = {
-    'name': 'Compile Sphinx Formula Linkbase',
+    'name': 'Sphinx 2.0 Processor',
     'version': '0.9',
-    'description': "This plug-in compiles a formula linkbase from a file containing sphinx rules.  ",
+    'description': "This plug-in provides a Sphinx 2.0 processor (and in future a compiler into formula linkbase).  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',

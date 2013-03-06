@@ -5,6 +5,7 @@ Created on Dec 16, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, re
+from collections import defaultdict
 from lxml import etree
 from arelle import (UrlUtil)
 
@@ -162,8 +163,8 @@ class DisclosureSystem:
     
     def loadStandardTaxonomiesDict(self):
         if self.selection:
-            self.standardTaxonomiesDict = {}
-            self.standardLocalHrefs = set()
+            self.standardTaxonomiesDict = defaultdict(set)
+            self.standardLocalHrefs = defaultdict(set)
             self.standardAuthorities = set()
             if not self.standardTaxonomiesUrl:
                 return
@@ -194,16 +195,15 @@ class DisclosureSystem:
                                 family = value
                         if href:
                             if namespaceUri and (attType == "SCH" or attType == "ENT"):
-                                if namespaceUri not in self.standardTaxonomiesDict:
-                                    self.standardTaxonomiesDict[namespaceUri] = (href, localHref)
+                                self.standardTaxonomiesDict[namespaceUri].add(href)
+                                if localHref:
+                                    self.standardLocalHrefs[namespaceUri].add(localHref)
                                 authority = UrlUtil.authority(namespaceUri)
                                 self.standardAuthorities.add(authority)
                                 if family == "BASE":
                                     self.baseTaxonomyNamespaces.add(namespaceUri)
                             if href not in self.standardTaxonomiesDict:
                                 self.standardTaxonomiesDict[href] = "Allowed" + attType
-                            if localHref:
-                                self.standardLocalHrefs.add(localHref)
                         elif attType == "SCH" and family == "BASE":
                             self.baseTaxonomyNamespaces.add(namespaceUri)
 
@@ -231,9 +231,13 @@ class DisclosureSystem:
     
     def disallowedHrefOfNamespace(self, href, namespaceUri):
         if namespaceUri in self.standardTaxonomiesDict:
-            stdHref, localHref = self.standardTaxonomiesDict[namespaceUri]
-            return not (href == stdHref or
-                        (localHref and not href.startswith("http://") and href.replace("\\","/").endswith(localHref)))
+            if href in self.standardTaxonomiesDict[namespaceUri]:
+                return False
+        if namespaceUri in self.standardLocalHrefs and not href.startswith("http://"):
+            normalizedHref = href.replace("\\","/")
+            if any(normalizedHref.endswith(localHref)
+                   for localHref in self.standardLocalHrefs[namespaceUri]):
+                return False
         return False
 
     def hrefValid(self, href):

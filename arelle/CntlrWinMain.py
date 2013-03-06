@@ -1150,7 +1150,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 callback(*args)
         widget.after(delayMsecs, lambda: self.uiThreadChecker(widget))
         
-    def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None, owner=None, multiple=False):
+    def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None, owner=None, multiple=False, parent=None):
+        if parent is None: parent = self.parent
         if multiple and action == "open":  # return as simple list of file names
             return re.findall("[{]([^}]+)[}]",  # multiple returns "{file1} {file2}..."
                               tkinter.filedialog.askopenfilename(
@@ -1159,13 +1160,13 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     initialdir=initialdir,
                                     filetypes=[] if self.isMac else filetypes,
                                     defaultextension=defaultextension,
-                                    parent=self.parent))
+                                    parent=parent))
         elif self.hasWin32gui:
             import win32gui
             try:
                 filename, filter, flags = {"open":win32gui.GetOpenFileNameW,
                                            "save":win32gui.GetSaveFileNameW}[action](
-                            hwndOwner=(owner if owner else self.parent).winfo_id(), 
+                            hwndOwner=(owner if owner else parent).winfo_id(), 
                             hInstance=win32gui.GetModuleHandle(None),
                             Filter='\0'.join(e for t in filetypes+['\0'] for e in t),
                             MaxFile=4096,
@@ -1182,7 +1183,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             initialdir=initialdir,
                             filetypes=[] if self.isMac else filetypes,
                             defaultextension=defaultextension,
-                            parent=self.parent)
+                            parent=parent)
 
 from arelle import DialogFormulaParameters
 

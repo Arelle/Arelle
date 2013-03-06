@@ -24,12 +24,12 @@ def validate(logMessage, sphinxContext):
     modelXbrl = sphinxContext.modelXbrl
     hasDTS = modelXbrl is not None
     
-    # if no formulas loaded, set
-    if not hasattr(modelXbrl, "modelFormulaEqualityDefinitions"):
-        modelXbrl.modelFormulaEqualityDefinitions = {}
-    
     
     if hasDTS:
+        # if no formulas loaded, set
+        if not hasattr(modelXbrl, "modelFormulaEqualityDefinitions"):
+            modelXbrl.modelFormulaEqualityDefinitions = {}
+    
         import logging
         initialErrorCount = modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0)
 

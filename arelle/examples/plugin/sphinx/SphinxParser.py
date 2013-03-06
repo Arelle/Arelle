@@ -347,7 +347,7 @@ class astConstant(astNode):
             else: # use name for tag
                 self.tagName = self.constantName
     def __repr__(self):
-        return "constant({0}{1} = {2})".format(self.variableName,
+        return "constant({0}{1} = {2})".format(self.constantName,
                                                ("#" + self.tagName) if self.tagName else "", 
                                                self.expr)
 

@@ -81,7 +81,7 @@ class DialogRssWatch(Toplevel):
         chooseFormulaFileButton.grid(row=row, column=3, sticky=W)
         row += 1
         for pluginXbrlMethod in pluginClassMethods("DialogRssWatch.FileChoices"):
-            pluginXbrlMethod(self, frame, row, options, mainWin)
+            pluginXbrlMethod(self, frame, row, options, mainWin, openFileImage)
             row += 1
         label(frame, 1, row, "Log file:")
         self.cellLogFile = gridCell(frame,2, row, options.get("logFileUri",""))
