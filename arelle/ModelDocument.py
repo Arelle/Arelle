@@ -56,7 +56,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.urlUnloadableDocs.add(normalizedUri)
         if blocked:
             return None
-    if normalizedUri in modelXbrl.modelManager.disclosureSystem.mappedFiles:
+    if any(normalizedUri.startswith(mapFrom) for mapFrom in modelXbrl.fileSource.mappedPaths):
+        for mapFrom, mapTo in modelXbrl.fileSource.mappedPaths.items():
+            if normalizedUri.startswith(mapFrom):
+                mappedUri = mapTo + normalizedUri[len(mapFrom):]
+                break
+    elif normalizedUri in modelXbrl.modelManager.disclosureSystem.mappedFiles:
         mappedUri = modelXbrl.modelManager.disclosureSystem.mappedFiles[normalizedUri]
     else:  # handle mapped paths
         mappedUri = normalizedUri

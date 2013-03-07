@@ -97,9 +97,13 @@ class DialogOpenArchive(Toplevel):
                 if len(metadataFiles) > 1:
                     raise IOError(_("Taxonomy package contained more than one metadata file: {0}.")
                                   .format(', '.join(metadataFiles)))
-                metadata = filesource.file(filesource.url + os.sep + metadataFiles[0])[0]
+                metadataFile = metadataFiles[0]
+                metadata = filesource.file(filesource.url + os.sep + metadataFile)[0]
+                self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
+                if self.metadataFilePrefix:
+                    self.metadataFilePrefix += os.sep
         
-                self.nameToUrls = parseTxmyPkg(mainWin, metadata)
+                self.nameToUrls, self.remappings = parseTxmyPkg(mainWin, metadata)
             except Exception as e:
                 self.close()
                 err = _("Failed to parse metadata; the underlying error was: {0}").format(e)
@@ -242,14 +246,21 @@ class DialogOpenArchive(Toplevel):
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
                 urlOrFile = self.nameToUrls[epName][0]
+                
+                # load file source remappings
+                self.filesource.mappedPaths = \
+                    dict((prefix, 
+                          remapping if (remapping.startswith("http://") or remapping.startswith("https://"))
+                          else (self.filesource.baseurl + os.sep + self.metadataFilePrefix +remapping.replace("/", os.sep)))
+                          for prefix, remapping in self.remappings.items())
     
                 if not urlOrFile.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
                     if urlOrFile.startswith("http://") or urlOrFile.startswith("https://"):
-                        self.webUrl = urlOrFile
+                        self.filesource.select(urlOrFile)  # absolute path selection
                     else:
                         # assume it's a path inside the archive:
-                        self.filesource.select(urlOrFile)
+                        self.filesource.select(self.metadataFilePrefix + urlOrFile)
                     self.accepted = True
                     self.close()
         
@@ -346,7 +357,7 @@ def parseTxmyPkg(mainWin, metadataFile):
             #perform prefix remappings
             remappedUrl = resolvedUrl
             for prefix, replace in remappings.items():
-                remappedUrl = resolvedUrl.replace(prefix, replace, 1)
+                remappedUrl = remappedUrl.replace(prefix, replace, 1)
             result[name] = (remappedUrl, resolvedUrl)
 
-    return result
+    return (result, remappings)

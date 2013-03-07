@@ -76,6 +76,7 @@ class FileSource:
         self.selection = None
         self.filesDir = None
         self.referencedFileSources = {}  # archive file name, fileSource object
+        self.mappedPaths = {}  # remappings of path segments may be loaded by taxonomyPackage manifest
         
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
