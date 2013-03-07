@@ -1153,14 +1153,17 @@ class CntlrWinMain (Cntlr.Cntlr):
     def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None, owner=None, multiple=False, parent=None):
         if parent is None: parent = self.parent
         if multiple and action == "open":  # return as simple list of file names
-            return re.findall("[{]([^}]+)[}]",  # multiple returns "{file1} {file2}..."
-                              tkinter.filedialog.askopenfilename(
+            multFileNames = tkinter.filedialog.askopenfilename(
                                     multiple=True,
                                     title=title,
                                     initialdir=initialdir,
                                     filetypes=[] if self.isMac else filetypes,
                                     defaultextension=defaultextension,
-                                    parent=parent))
+                                    parent=parent)
+            if self.isMac:
+                return multFileNames
+            return re.findall("[{]([^}]+)[}]",  # multiple returns "{file1} {file2}..."
+                              multFileNames)
         elif self.hasWin32gui:
             import win32gui
             try:
