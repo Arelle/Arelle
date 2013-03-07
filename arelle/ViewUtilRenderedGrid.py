@@ -21,7 +21,7 @@ class ResolutionException(Exception):
         self.message = message
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[{0}] exception {1}').format(self.code, self.message)
+        return _('[{0}] exception {1}').format(self.code, self.message % self.kwargs)
 
 def resolveAxesStructure(view, viewTblELR):
     if isinstance(viewTblELR, (ModelEuTable, ModelTable)):
@@ -318,7 +318,8 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                     structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: 
                                                              childStructuralNode.header(lang=view.lang, 
                                                                                         returnGenLabel=False, 
-                                                                                        returnMsgFormatString=False))
+                                                                                        returnMsgFormatString=False) 
+                                                             or '') # exception on trying to sort if header returns None
                     
                     # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent structuralNode 
                 elif isinstance(definitionNode, ModelTupleDefinitionNode):
@@ -333,7 +334,7 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                         analyzeHdrs(view, childStructuralNode, definitionNode, depth, axisDisposition, [tupleFact]) #recurse
                     # sort by header (which is likely to be typed dim value, for example)
                     if any(sOC.header(lang=view.lang) for sOC in structuralNode.childStructuralNodes):
-                        structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: childStructuralNode.header(lang=view.lang))
+                        structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: childStructuralNode.header(lang=view.lang) or '')
     
                 if axisDisposition == "z":
                     if structuralNode.choiceStructuralNodes:
@@ -354,7 +355,8 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
         except Exception as ex:
             raise ResolutionException("arelle:resolutionException",
                                       _("Exception in resolution of definition node %(node)s: %(error)s"),
-                                      modelObject=definitionNode, node=definitionNode.qname, error=str(ex))
+                                      modelObject=definitionNode, node=definitionNode.qname, error=str(ex)
+                                      ).with_traceback(ex.__traceback__)  # provide original traceback information
             
 def analyzeCartesianProductHdrs(childStructuralNode, view, depth, axisDisposition, facts, tblAxisRels, i):
     if i is not None: # recurse table relationships for cartesian product
