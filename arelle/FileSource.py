@@ -13,6 +13,8 @@ archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xf
 
 XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
+TAXONOMY_PACKAGE_FILE_NAME = '.taxonomyPackage.xml'
+
 def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False):
     if sourceZipStream:
         filesource = FileSource(os.sep + "POSTupload.zip", cntlr)
@@ -252,6 +254,14 @@ class FileSource:
     @property
     def isArchive(self):
         return self.isZip or self.isEis or self.isXfd
+    
+    @property
+    def isTaxonomyPackage(self):
+        return self.isZip and self.taxonomyPackageMetadataFiles
+    
+    @property
+    def taxonomyPackageMetadataFiles(self):
+        return [f for f in (self.dir or []) if os.path.split(f)[-1] == TAXONOMY_PACKAGE_FILE_NAME]
     
     def isInArchive(self,filepath):
         return self.fileSourceContainingFilepath(filepath) is not None
