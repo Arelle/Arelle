@@ -518,10 +518,10 @@ def Node_functions(xc, contextItem, args, name=None, localName=None, namespaceUR
         if namespaceURI: return node.namespaceURI
     return ''
 
-nan = float('NaN')
+NaN = float('NaN')
 
 def number(xc, p, contextItem, args):
-    return numericArg(xc, p, args, missingArgFallback=contextItem, emptyFallback=nan, convertFallback=nan)
+    return numericArg(xc, p, args, missingArgFallback=contextItem, emptyFallback=NaN, convertFallback=NaN)
 
 def lang(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -643,6 +643,11 @@ def avg(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     addends = xc.atomize( p, args[0] )
     try:
+        if len(addends) == 0: 
+            return ()  # xpath allows empty sequence argument
+        if any(isinstance(a, float) and (math.isnan(a) or math.isinf(a)) 
+               for a in addends):
+            return NaN
         return sum( addends / len( args[0] ) )
     except TypeError:
         raise XPathContext.FunctionArgType(1,"sumable values", addends, errCode='err:FORG0001')
@@ -651,6 +656,10 @@ def fn_max(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     comparands = xc.atomize( p, args[0] )
     try:
+        if len(comparands) == 0: 
+            return ()  # xpath allows empty sequence argument
+        if any(isinstance(c, float) and math.isnan(c) for c in comparands):
+            return NaN
         return max( comparands )
     except TypeError:
         raise XPathContext.FunctionArgType(1,"comparable values", comparands, errCode='err:FORG0001')
@@ -659,6 +668,10 @@ def fn_min(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     comparands = xc.atomize( p, args[0] )
     try:
+        if len(comparands) == 0: 
+            return ()  # xpath allows empty sequence argument
+        if any(isinstance(c, float) and math.isnan(c) for c in comparands):
+            return NaN
         return min( comparands )
     except TypeError:
         raise XPathContext.FunctionArgType(1,"comparable values", comparands, errCode='err:FORG0001')
@@ -667,6 +680,10 @@ def fn_sum(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     addends = xc.atomize( p, args[0] )
     try:
+        if len(addends) == 0: 
+            return 0  # xpath allows empty sequence argument
+        if any(isinstance(a, float) and math.isnan(a) for a in addends):
+            return NaN
         return sum( addends )
     except TypeError:
         raise XPathContext.FunctionArgType(1,"summable sequence", addends, errCode='err:FORG0001')
