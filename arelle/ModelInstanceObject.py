@@ -35,6 +35,7 @@ from collections import defaultdict
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
+from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan
 from arelle.ModelObject import ModelObject
 Aspect = None
@@ -765,7 +766,7 @@ class ModelContext(ModelObject):
     def dimMemberQname(self, dimQname, includeDefaults=False):
         """(QName) -- QName of explicit dimension if reported (or defaulted if includeDefaults is True), else None"""
         dimValue = self.dimValue(dimQname)
-        if isinstance(dimValue, ModelDimensionValue) and dimValue.isExplicit:
+        if isinstance(dimValue, (ModelDimensionValue,DimValuePrototype)) and dimValue.isExplicit:
             return dimValue.memberQname
         elif isinstance(dimValue, ModelValue.QName):
             return dimValue
@@ -1044,10 +1045,10 @@ class ModelDimensionValue(ModelObject):
         if other is None:
             return False
         if self.isExplicit: # other is either ModelDimensionValue or the QName value of explicit dimension
-            return self.memberQname == (other.memberQname if isinstance(other, ModelDimensionValue) else other)
+            return self.memberQname == (other.memberQname if isinstance(other, (ModelDimensionValue,DimValuePrototype)) else other)
         else: # typed dimension compared to another ModelDimensionValue or other is the value nodes
             return XbrlUtil.nodesCorrespond(self.modelXbrl, self.typedMember, 
-                                            other.typedMember if isinstance(other, ModelDimensionValue) else other, 
+                                            other.typedMember if isinstance(other, (ModelDimensionValue,DimValuePrototype)) else other, 
                                             equalMode=equalMode, excludeIDs=XbrlUtil.NO_IDs_EXCLUDED)
         
     @property
