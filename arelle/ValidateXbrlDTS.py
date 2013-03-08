@@ -37,11 +37,11 @@ def arcToConceptQname(arcElement):
     else:
         return modelRelationship.toModelObject.qname
 
-def checkDTS(val, modelDocument, visited):
-    visited.append(modelDocument)
+def checkDTS(val, modelDocument, checkedModelDocuments):
+    checkedModelDocuments.add(modelDocument)
     for referencedDocument in modelDocument.referencesDocument.keys():
-        if referencedDocument not in visited:
-            checkDTS(val, referencedDocument, visited)
+        if referencedDocument not in checkedModelDocuments:
+            checkDTS(val, referencedDocument, checkedModelDocuments)
             
     # skip processing versioning report here
     if modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:

@@ -473,8 +473,12 @@ class ValidateXbrl:
             
         modelXbrl.modelManager.showStatus(_("validating DTS"))
         self.DTSreferenceResourceIDs = {}
-        ValidateXbrlDTS.checkDTS(self, modelXbrl.modelDocument, [])
-        del self.DTSreferenceResourceIDs
+        checkedModelDocuments = set()
+        ValidateXbrlDTS.checkDTS(self, modelXbrl.modelDocument, checkedModelDocuments)
+        # ARELLE-220: check imported documents that aren't DTS discovered
+        for importedModelDocument in (set(modelXbrl.urlDocs.values()) - checkedModelDocuments):
+            ValidateXbrlDTS.checkDTS(self, importedModelDocument, checkedModelDocuments)
+        del checkedModelDocuments, self.DTSreferenceResourceIDs
         
         global validateUniqueParticleAttribution
         if validateUniqueParticleAttribution is None:
