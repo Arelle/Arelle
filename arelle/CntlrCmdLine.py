@@ -99,6 +99,8 @@ def parseAndRun(args):
                       help=_("Select U.K. HMRC disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
                       help=_("Select validation with respect to Unit Type Registry."))
+    parser.add_option("--utrUrl", action="store", dest="utrUrl",
+                      help=_("Override disclosure systems Unit Type Registry location (URL or file path)."))
     parser.add_option("--infoset", action="store_true", dest="infosetValidate",
                       help=_("Select validation with respect testcase infosets."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
@@ -381,6 +383,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.disclosureSystem.select("hmrc")
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
+        if options.utrUrl:  # override disclosureSystem utrUrl
+            self.modelManager.disclosureSystem.utrUrl = options.utrUrl
+            # can be set now because the utr is first loaded at validation time 
             
         # disclosure system sets logging filters, override disclosure filters, if specified by command line
         if options.logLevelFilter:

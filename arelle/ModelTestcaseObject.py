@@ -191,7 +191,9 @@ class ModelTestcaseVariation(ModelObject):
     @property
     def expected(self):
         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedResult"):
-            return pluginXbrlMethod(self)
+            expected = pluginXbrlMethod(self)
+            if expected:
+                return expected
         # default behavior without plugins
         if self.localName == "testcase":
             return self.document.basename[:4]   #starts with PASS or FAIL

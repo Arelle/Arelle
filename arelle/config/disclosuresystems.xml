@@ -27,7 +27,12 @@
        submission may include discoverable files in the directory tree of its grandparent directory.
        
        mappingsUrl (if provided) means that the indicated file is to be read instead of mappings.xml
-       for this disclosure system.
+       for this disclosure system.  If a relative pathname, it is relative to this this file's directory.
+       
+       utrUrl (if provided) means that the indicated file is to be read instead of http://www.xbrl.org/utr/utr.xml
+       for this disclosure system.  If a relative pathname, it is relative to this this file's directory.
+       utrUrl may be mapped by an entry in the mappings file.
+       
   -->
   <DisclosureSystem 
      names="Japan FSA|jp-fsa|fsa" 

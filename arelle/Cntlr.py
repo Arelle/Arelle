@@ -460,7 +460,12 @@ class LogFormatter(logging.Formatter):
         try:
             formattedMessage = super(LogFormatter, self).format(record)
         except (KeyError, ValueError) as ex:
-            formattedMessage = "Message: " + record.args.get('error','') + " \nMessage log error: " + str(ex)
+            formattedMessage = "Message: "
+            if getattr(record, "messageCode", ""):
+                formattedMessage += "[{0}] ".format(record.messageCode)
+            if getattr(record, "msg", ""):
+                formattedMessage += record.msg + " "
+            formattedMessage += record.args.get('error','') + " \nMessage log error: " + str(ex)
         del record.file
         return formattedMessage
 

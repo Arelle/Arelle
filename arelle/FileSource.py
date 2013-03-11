@@ -267,6 +267,17 @@ class FileSource:
     def isInArchive(self,filepath):
         return self.fileSourceContainingFilepath(filepath) is not None
     
+    def isMappedUrl(self, url):
+        return any(url.startswith(mapFrom) 
+                   for mapFrom in self.mappedPaths)        
+
+    def mappedUrl(self, url):
+        for mapFrom, mapTo in self.mappedPaths.items():
+            if url.startswith(mapFrom):
+                mappedUri = mapTo + url[len(mapFrom):]
+                break
+        return url
+    
     def fileSourceContainingFilepath(self, filepath):
         if self.isOpen:
             # archiveFiles = self.dir
