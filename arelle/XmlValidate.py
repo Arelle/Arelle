@@ -285,6 +285,14 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     if "fractionDigits" in facets and ( '.' in value and
                         len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
                         raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
+                    if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
+                        raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
+                    if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
+                        raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                    if "minInclusive" in facets and xValue > facets["maxInclusive"]:
+                        raise ValueError(" < minInclusive {0}".format(facets["maxInclusive"]))
+                    if "minExclusive" in facets and xValue >= facets["maxInclusive"]:
+                        raise ValueError(" <= minInclusive {0}".format(facets["maxInclusive"]))
             elif baseXsdType in {"integer",
                                  "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
                                  "long","unsignedLong",
@@ -302,6 +310,20 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     (baseXsdType == "unsignedShort" and not 0 <= xValue < 65535) or
                     (baseXsdType == "positiveInteger" and xValue <= 0)):
                     raise ValueError("{0} is not {1}".format(value, baseXsdType))
+                if facets:
+                    if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
+                        raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
+                    if "fractionDigits" in facets and ( '.' in value and
+                        len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
+                        raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
+                    if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
+                        raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
+                    if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
+                        raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                    if "minInclusive" in facets and xValue > facets["maxInclusive"]:
+                        raise ValueError(" < minInclusive {0}".format(facets["maxInclusive"]))
+                    if "minExclusive" in facets and xValue >= facets["maxInclusive"]:
+                        raise ValueError(" <= minInclusive {0}".format(facets["maxInclusive"]))
             elif baseXsdType == "boolean":
                 if value in ("true", "1"):  
                     xValue = sValue = True
