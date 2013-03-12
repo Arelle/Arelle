@@ -101,6 +101,7 @@ def parseAndRun(args):
                       help=_("Select validation with respect to Unit Type Registry."))
     parser.add_option("--utrUrl", action="store", dest="utrUrl",
                       help=_("Override disclosure systems Unit Type Registry location (URL or file path)."))
+    parser.add_option("--utrurl", action="store", dest="utrUrl", help=SUPPRESS_HELP)
     parser.add_option("--infoset", action="store_true", dest="infosetValidate",
                       help=_("Select validation with respect testcase infosets."))
     parser.add_option("--labelLang", action="store", dest="labelLang",
