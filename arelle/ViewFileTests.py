@@ -78,9 +78,9 @@ class ViewTests(ViewFile.View):
         cols = []
         for col in self.cols:
             if col == "ID":
-                cols.append(id)
+                cols.append(id or modelTestcaseVariation.name)
             elif col == "Name":
-                cols.append(modelTestcaseVariation.name or modelTestcaseVariation.description)
+                cols.append(modelTestcaseVariation.description or modelTestcaseVariation.name)
             elif col == "Reference":
                 cols.append(modelTestcaseVariation.reference)
             elif col == "ReadMeFirst":

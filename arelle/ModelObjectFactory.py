@@ -86,6 +86,8 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             elif ln == "variation" and (
                 ns is None or ns in ("http://edgar/2009/conformance",) or ns.startswith("http://xbrl.org/")):
                 return ModelTestcaseVariation
+            elif ln == "testGroup" and ns in ("http://www.w3.org/XML/2004/xml-schema-test-suite/",):
+                return ModelTestcaseVariation
             elif ns == XbrlConst.ver:
                 if self.type is None:
                     self.type = VERSIONINGREPORT

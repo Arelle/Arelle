@@ -95,7 +95,7 @@ class ViewTests(ViewWinTree.ViewTree):
                 self.viewTestcaseVariation(modelTestcaseVariation, node, n + i + 1)
                 
     def viewTestcaseVariation(self, modelTestcaseVariation, parentNode, n):
-        if self.isTransformRegistry:
+        if self.isTransformRegistry or modelTestcaseVariation.localName == "testGroup":
             id = modelTestcaseVariation.name
         else:
             id = modelTestcaseVariation.id
@@ -104,7 +104,7 @@ class ViewTests(ViewWinTree.ViewTree):
         node = self.treeView.insert(parentNode, "end", modelTestcaseVariation.objectId(), 
                                     text=id, 
                                     tags=("odd" if n & 1 else "even",))
-        self.treeView.set(node, "name", (modelTestcaseVariation.name or modelTestcaseVariation.description))
+        self.treeView.set(node, "name", (modelTestcaseVariation.description or modelTestcaseVariation.name))
         self.treeView.set(node, "readMeFirst", ",".join(str(uri) for uri in modelTestcaseVariation.readMeFirstUris))
         self.treeView.set(node, "status", modelTestcaseVariation.status)
         call = modelTestcaseVariation.cfcnCall

@@ -43,7 +43,7 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def description(self):
-        nameElement = XmlUtil.descendant(self, None, "description")
+        nameElement = XmlUtil.descendant(self, None, ("description", "documentation"))
         if nameElement is not None:
             return XmlUtil.innerText(nameElement)
         return None
@@ -57,6 +57,9 @@ class ModelTestcaseVariation(ModelObject):
         referenceElement = XmlUtil.descendant(self, None, "reference")
         if referenceElement is not None: # formula test suite
             return "{0}#{1}".format(referenceElement.get("specification"), referenceElement.get("id"))
+        referenceElement = XmlUtil.descendant(self, None, "documentationReference")
+        if referenceElement is not None: # w3c test suite
+            return referenceElement.get("{http://www.w3.org/1999/xlink}href")
         descriptionElement = XmlUtil.descendant(self, None, "description")
         if descriptionElement is not None and descriptionElement.get("reference"):
             return descriptionElement.get("reference")  # xdt test suite
@@ -76,19 +79,32 @@ class ModelTestcaseVariation(ModelObject):
             # first look if any plugin method to get readme first URIs
             if not any(pluginXbrlMethod(self)
                        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReadMeFirstUris")):
-                # default built-in method for readme first uris
-                for anElement in self.iterdescendants():
-                    if isinstance(anElement,ModelObject) and anElement.get("readMeFirst") == "true":
-                        if anElement.get("{http://www.w3.org/1999/xlink}href"):
-                            uri = anElement.get("{http://www.w3.org/1999/xlink}href")
-                        else:
-                            uri = XmlUtil.innerText(anElement)
-                        if anElement.get("name"):
-                            self._readMeFirstUris.append( (ModelValue.qname(anElement, anElement.get("name")), uri) )
-                        elif anElement.get("dts"):
-                            self._readMeFirstUris.append( (anElement.get("dts"), uri) )
-                        else:
-                            self._readMeFirstUris.append(uri)
+                if self.localName == "testGroup":  #w3c testcase
+                    instanceTestElement = XmlUtil.descendant(self, None, "instanceTest")
+                    if instanceTestElement is not None: # take instance first
+                        self._readMeFirstUris.append(XmlUtil.descendantAttr(instanceTestElement, None, 
+                                                                            "instanceDocument", 
+                                                                            "{http://www.w3.org/1999/xlink}href"))
+                    else:
+                        schemaTestElement = XmlUtil.descendant(self, None, "schemaTest")
+                        if schemaTestElement is not None:
+                            self._readMeFirstUris.append(XmlUtil.descendantAttr(schemaTestElement, None, 
+                                                                                "schemaDocument", 
+                                                                                "{http://www.w3.org/1999/xlink}href"))
+                else:
+                    # default built-in method for readme first uris
+                    for anElement in self.iterdescendants():
+                        if isinstance(anElement,ModelObject) and anElement.get("readMeFirst") == "true":
+                            if anElement.get("{http://www.w3.org/1999/xlink}href"):
+                                uri = anElement.get("{http://www.w3.org/1999/xlink}href")
+                            else:
+                                uri = XmlUtil.innerText(anElement)
+                            if anElement.get("name"):
+                                self._readMeFirstUris.append( (ModelValue.qname(anElement, anElement.get("name")), uri) )
+                            elif anElement.get("dts"):
+                                self._readMeFirstUris.append( (anElement.get("dts"), uri) )
+                            else:
+                                self._readMeFirstUris.append(uri)
             if not self._readMeFirstUris:  # provide a dummy empty instance document
                 self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
@@ -197,6 +213,14 @@ class ModelTestcaseVariation(ModelObject):
         # default behavior without plugins
         if self.localName == "testcase":
             return self.document.basename[:4]   #starts with PASS or FAIL
+        elif self.localName == "testGroup":  #w3c testcase
+            instanceTestElement = XmlUtil.descendant(self, None, "instanceTest")
+            if instanceTestElement is not None: # take instance first
+                return XmlUtil.descendantAttr(instanceTestElement, None, "expected", "validity")
+            else:
+                schemaTestElement = XmlUtil.descendant(self, None, "schemaTest")
+                if schemaTestElement is not None:
+                    return XmlUtil.descendantAttr(schemaTestElement, None, "expected", "validity")
         errorElement = XmlUtil.descendant(self, None, "error")
         if errorElement is not None:
             return ModelValue.qname(errorElement, XmlUtil.text(errorElement))
@@ -225,7 +249,9 @@ class ModelTestcaseVariation(ModelObject):
     @property
     def severityLevel(self):
         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedSeverity"):
-            return logging.getLevelName(pluginXbrlMethod(self) or "ERROR")
+            severityLevelName = pluginXbrlMethod(self)
+            if severityLevelName: # ignore plug in if not a plug-in-recognized test case
+                return logging.getLevelName
         # default behavior without plugins
         # SEC error cases have <assert severity={err|wrn}>...
         if XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None:

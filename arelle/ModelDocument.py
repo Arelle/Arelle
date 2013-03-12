@@ -194,9 +194,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
             _type = Type.VERSIONINGREPORT
-        elif ln == "testcases" or ln == "documentation":
+        elif ln in ("testcases", "documentation", "testSuite"):
             _type = Type.TESTCASESINDEX
-        elif ln == "testcase":
+        elif ln in ("testcase", "testSet"):
             _type = Type.TESTCASE
         elif ln == "registry" and ns == XbrlConst.registry:
             _type = Type.REGISTRY
@@ -962,16 +962,16 @@ class ModelDocument:
     
     def testcasesIndexDiscover(self, rootNode):
         for testcasesElement in rootNode.iter():
-            if isinstance(testcasesElement,ModelObject) and testcasesElement.localName == "testcases":
+            if isinstance(testcasesElement,ModelObject) and testcasesElement.localName in ("testcases", "testSuite"):
                 rootAttr = testcasesElement.get("root")
                 if rootAttr:
                     base = os.path.join(os.path.dirname(self.filepath),rootAttr) + os.sep
                 else:
                     base = self.filepath
                 for testcaseElement in testcasesElement:
-                    if isinstance(testcaseElement,ModelObject) and testcaseElement.localName == "testcase":
-                        if testcaseElement.get("uri"):
-                            uriAttr = testcaseElement.get("uri")
+                    if isinstance(testcaseElement,ModelObject) and testcaseElement.localName in ("testcase", "testSetRef"):
+                        uriAttr = testcaseElement.get("uri") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
+                        if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
                             if doc is not None and doc not in self.referencesDocument:
                                 self.referencesDocument[doc] = ModelDocumentReference("testcaseIndex", testcaseElement)
@@ -983,7 +983,7 @@ class ModelDocument:
         self.outpath = self.xmlRootElement.get("outpath") 
         self.testcaseVariations = []
         priorTransformName = None
-        for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, "variation"):
+        for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, ("variation", "testGroup")):
             self.testcaseVariations.append(modelVariation)
             if isTransformTestcase and modelVariation.getparent().get("name") is not None:
                 transformName = modelVariation.getparent().get("name")
