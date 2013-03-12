@@ -673,6 +673,19 @@
 	<Elements>0</Elements>
 </Loc>
 
+<!-- NT 2011 targetNamespaces -->
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/2011/basis/sbr/items/nl-common-data.xsd</Href>
+	<LocalHref>basis/sbr/items/nl-common-data.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/items/nl-common-data</Namespace>
+	<Prefix>nl-cd</Prefix>
+</Loc>
+
 <!-- do not examine sbr-nl rules in these files, this is why they are marked as BASE family -->
 <Loc>
 	<Family>BASE</Family>
@@ -706,7 +719,6 @@
 	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension</Namespace>
 	<Prefix>sbr</Prefix>
 </Loc>
-<!--
 <Loc>
 	<Family>BASE</Family>
 	<Version>6.0</Version>
@@ -718,7 +730,6 @@
 	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles</Namespace>
 	<Prefix>sbr-a</Prefix>
 </Loc>
--->
 <Loc>
 	<Family>BASE</Family>
 	<Version>7.0</Version>
