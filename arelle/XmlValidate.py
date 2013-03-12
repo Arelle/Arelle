@@ -289,10 +289,10 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
                     if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
                         raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
-                    if "minInclusive" in facets and xValue > facets["maxInclusive"]:
-                        raise ValueError(" < minInclusive {0}".format(facets["maxInclusive"]))
-                    if "minExclusive" in facets and xValue >= facets["maxInclusive"]:
-                        raise ValueError(" <= minInclusive {0}".format(facets["maxInclusive"]))
+                    if "minInclusive" in facets and xValue < facets["minInclusive"]:
+                        raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
+                    if "minExclusive" in facets and xValue <= facets["minExclusive"]:
+                        raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
             elif baseXsdType in {"integer",
                                  "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
                                  "long","unsignedLong",
@@ -320,10 +320,10 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
                     if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
                         raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
-                    if "minInclusive" in facets and xValue > facets["maxInclusive"]:
-                        raise ValueError(" < minInclusive {0}".format(facets["maxInclusive"]))
-                    if "minExclusive" in facets and xValue >= facets["maxInclusive"]:
-                        raise ValueError(" <= minInclusive {0}".format(facets["maxInclusive"]))
+                    if "minInclusive" in facets and xValue < facets["minInclusive"]:
+                        raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
+                    if "minExclusive" in facets and xValue <= facets["minExclusive"]:
+                        raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
             elif baseXsdType == "boolean":
                 if value in ("true", "1"):  
                     xValue = sValue = True
