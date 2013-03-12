@@ -59,8 +59,10 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                      _("Existence Assertion %(xlinkLabel)s \nResult: %(result)s"), 
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, result=result)
             msg = varSet.message(result)
-            if msg:
-                xpCtx.modelXbrl.error(msg.evaluate(xpCtx), "info", "message:" + varSet.id)
+            if msg is not None:
+                xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
+                    msg.evaluate(xpCtx),
+                    modelObject=varSet)
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging.getLevelName('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
                  _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
