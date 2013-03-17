@@ -362,6 +362,14 @@ def roundValue(value, precision=None, decimals=None):
     except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
         return NaN
     if precision:
+        if not isinstance(precision, (int,float)):
+            if precision == "INF":
+                precision = floatINF
+            else:
+                try:
+                    precision = int(precision)
+                except ValueError: # would be a schema error
+                    precision = floatNaN
         if isinf(precision):
             vRounded = vDecimal
         elif precision == 0 or isnan(precision):
@@ -374,6 +382,14 @@ def roundValue(value, precision=None, decimals=None):
             d = precision - int(log) - (1 if vAbs >= 1 else 0)
             vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
     elif decimals:
+        if not isinstance(decimals, (int,float)):
+            if decimals == "INF":
+                decimals = floatINF
+            else:
+                try:
+                    decimals = int(decimals)
+                except ValueError: # would be a schema error
+                    decimals = floatNaN
         if isinf(decimals):
             vRounded = vDecimal
         elif isnan(decimals):

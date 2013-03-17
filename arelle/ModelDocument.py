@@ -8,7 +8,7 @@ import os, sys
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
@@ -200,6 +200,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             _type = Type.TESTCASE
         elif ln == "registry" and ns == XbrlConst.registry:
             _type = Type.REGISTRY
+        elif ln == "test-suite" and ns == "http://www.w3.org/2005/02/query-test-XQTSCatalog":
+            _type = Type.XPATHTESTSUITE
         elif ln == "rss":
             _type = Type.RSSFEED
         elif ln == "ptvl":
@@ -258,6 +260,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelDocument.testcaseDiscover(rootNode)
         elif _type == Type.REGISTRY:
             modelDocument.registryDiscover(rootNode)
+        elif _type == Type.XPATHTESTSUITE:
+            modelDocument.xPathTestSuiteDiscover(rootNode)
         elif _type == Type.VERSIONINGREPORT:
             modelDocument.versioningReportDiscover(rootNode)
         elif _type == Type.RSSFEED:
@@ -370,11 +374,12 @@ class Type:
     TESTCASE=9
     REGISTRY=10
     REGISTRYTESTCASE=11
-    RSSFEED=12
-    ARCSINFOSET=13
-    FACTDIMSINFOSET=14
+    XPATHTESTSUITE=12
+    RSSFEED=13
+    ARCSINFOSET=14
+    FACTDIMSINFOSET=15
     
-    TESTCASETYPES = (TESTCASESINDEX, TESTCASE, REGISTRY, REGISTRY)
+    TESTCASETYPES = (TESTCASESINDEX, TESTCASE, REGISTRY, REGISTRYTESTCASE, XPATHTESTSUITE)
 
     typeName = ("unknown XML",
                 "unknown non-XML", 
@@ -388,6 +393,7 @@ class Type:
                 "testcase",
                 "registry",
                 "registry testcase",
+                "xpath test suite",
                 "RSS feed",
                 "arcs infoset",
                 "fact dimensions infoset")
@@ -572,6 +578,23 @@ class ModelDocument:
         except AttributeError:
             return "unknown"
         
+    @property
+    def creationSoftwareComment(self):
+        # first try for comments before root element
+        initialComment = ''
+        node = self.xmlRootElement
+        while node.getprevious() is not None:
+            node = node.getprevious()
+            if isinstance(node, ModelComment):
+                initialComment = node.text + '\n' + initialComment
+        if initialComment:
+            return initialComment
+        for i, node in enumerate(self.xmlDocument.iter()):
+            if isinstance(node, ModelComment):
+                return node.text
+            if i > 10:  # give up, no heading comment
+                break
+        return None
     
     def schemaDiscover(self, rootElement, isIncluded, namespace):
         targetNamespace = rootElement.get("targetNamespace")
@@ -1012,6 +1035,10 @@ class ModelDocument:
                             testcaseDoc = load(self.modelXbrl, testuri, base=testbase, referringElement=testUriElt)
                             if testcaseDoc is not None and testcaseDoc not in self.referencesDocument:
                                 self.referencesDocument[testcaseDoc] = ModelDocumentReference("registryIndex", testUriElt)
+            
+    def xPathTestSuiteDiscover(self, rootNode):
+        # no child documents to reference
+        pass
             
 class LoadingException(Exception):
     pass

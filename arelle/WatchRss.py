@@ -132,7 +132,7 @@ class WatchRss:
                                 if modelXbrl.errors and rssWatchOptions.get("alertValiditionError"):
                                     emailAlert = True
                             for pluginXbrlMethod in pluginClassMethods("RssWatch.DoWatchAction"):  
-                                pluginXbrlMethod(modelXbrl, rssWatchOptions)      
+                                pluginXbrlMethod(modelXbrl, rssWatchOptions, rssItem)      
                             # check match expression
                             if matchPattern:
                                 for fact in modelXbrl.factsInInstance:

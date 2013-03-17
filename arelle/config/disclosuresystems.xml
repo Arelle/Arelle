@@ -166,6 +166,7 @@
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies.xml"
+     utrUrl="http://www.xbrl.org/utr/2012-11-30/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 

@@ -644,8 +644,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.parent.title(_("arelle - {0}").format(
                             os.path.basename(modelXbrl.modelDocument.uri)))
             self.setValidateTooltipText()
-            if modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, 
-                        ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.REGISTRYTESTCASE):
+            if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                 currentAction = "tree view of tests"
                 ViewWinTests.viewTests(modelXbrl, self.tabWinTopRt)
             elif modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:

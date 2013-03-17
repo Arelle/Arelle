@@ -25,7 +25,7 @@ def askUserPassword(parent, host, realm, untilDoneEvent, result):
     untilDoneEvent.set()
 
 def askProxy(parent, priorProxySettings):
-    if isinstance(priorProxySettings,tuple) and len(priorProxySettings) == 5:
+    if isinstance(priorProxySettings,(tuple,list)) and len(priorProxySettings) == 5:
         useOsProxy, urlAddr, urlPort, user, password = priorProxySettings
     else:
         useOsProxy = True
@@ -35,9 +35,19 @@ def askProxy(parent, priorProxySettings):
         return (dialog.useOsProxyCb.value, dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
+def askDatabase(parent, priorDatabaseSettings):
+    if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 5:
+        urlAddr, urlPort, user, password, database = priorDatabaseSettings
+    else:
+        urlAddr = urlPort = user = password = database = None
+    dialog = DialogUserPassword(parent, _("XBRL Database Server"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, database=database, showHost=False, showUrl=True, showUser=True, showRealm=False, showDatabase=True)
+    if dialog.accepted:
+        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database)
+    return None
+
 
 class DialogUserPassword(Toplevel):
-    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, showUrl=False, showUser=False, showHost=True, showRealm=True):
+    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, database=None, showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False):
         super(DialogUserPassword, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
@@ -54,6 +64,8 @@ class DialogUserPassword(Toplevel):
         self.userVar.set(user if user else "")
         self.passwordVar = StringVar()
         self.passwordVar.set(password if password else "")
+        self.databaseVar = StringVar()
+        self.databaseVar.set(database if database else "")
         
         frame = Frame(self)
         y = 0
@@ -125,6 +137,14 @@ class DialogUserPassword(Toplevel):
         passwordEntry.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
         self.enabledWidgets.append(passwordEntry)
         y += 1
+        if showDatabase:
+            urlDatabaseLabel = Label(frame, text=_("Database:"), underline=0)
+            urlDatabaseEntry = Entry(frame, textvariable=self.databaseVar, width=25)
+            urlDatabaseLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
+            urlDatabaseEntry.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
+            ToolTip(urlAddrEntry, text=_("Enter database name (optional) or leave blank"), wraplength=360)
+            self.enabledWidgets.append(urlDatabaseEntry)
+            y += 1
         okButton = Button(frame, text=_("OK"), command=self.ok)
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         okButton.grid(row=y, column=2, sticky=E, pady=3)
@@ -155,6 +175,7 @@ class DialogUserPassword(Toplevel):
         self.urlPort = self.urlPortVar.get()
         self.user = self.userVar.get()
         self.password = self.passwordVar.get()
+        self.database = self.databaseVar.get()
         self.accepted = True
         self.close()
         

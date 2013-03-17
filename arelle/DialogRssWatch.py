@@ -80,8 +80,9 @@ class DialogRssWatch(Toplevel):
         chooseFormulaFileButton = Button(frame, image=openFileImage, width=12, command=self.chooseFormulaFile)
         chooseFormulaFileButton.grid(row=row, column=3, sticky=W)
         row += 1
+        openDatabaseImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarOpenDatabase.gif"))
         for pluginXbrlMethod in pluginClassMethods("DialogRssWatch.FileChoices"):
-            pluginXbrlMethod(self, frame, row, options, mainWin, openFileImage)
+            pluginXbrlMethod(self, frame, row, options, mainWin, openFileImage, openDatabaseImage)
             row += 1
         label(frame, 1, row, "Log file:")
         self.cellLogFile = gridCell(frame,2, row, options.get("logFileUri",""))

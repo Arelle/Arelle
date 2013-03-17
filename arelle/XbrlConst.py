@@ -366,9 +366,8 @@ def isNumericXsdType(xsdType):
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte", "decimal", "float", "double"}
-    
-def isStandardRole(role):
-    return role in {"http://www.xbrl.org/2003/role/label",
+
+standardRoles = {   "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/terseLabel",
                     "http://www.xbrl.org/2003/role/verboseLabel",
                     "http://www.xbrl.org/2003/role/link",
@@ -408,6 +407,8 @@ def isStandardRole(role):
                     "http://www.xbrl.org/2003/role/referenceLinkbaseRef",
                     "http://www.xbrl.org/2003/role/footnote"}
 
+def isStandardRole(role):
+    return role in standardRoles
 def isTotalRole(role):
     return role in {"http://www.xbrl.org/2003/role/totalLabel",
                     "http://xbrl.us/us-gaap/role/label/negatedTotal",

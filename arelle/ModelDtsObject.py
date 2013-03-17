@@ -381,9 +381,25 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             typeqname = self.typeQname
             if typeqname is not None and typeqname.namespaceURI == XbrlConst.xbrli:
-                return typeqname.localName
-            self._baseXbrliType = self.type.baseXbrliType if self.type is not None else None
+                self._baseXbrliType =  typeqname.localName
+            else:
+                self._baseXbrliType = self.type.baseXbrliType if self.type is not None else None
             return self._baseXbrliType
+        
+    @property
+    def baseXbrliTypeQname(self):
+        """(qname) -- Attempts to return the base xsd type QName that this concept's type 
+        is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType, 
+        decimal is returned."""
+        try:
+            return self._baseXbrliTypeQname
+        except AttributeError:
+            typeqname = self.typeQname
+            if typeqname is not None and typeqname.namespaceURI == XbrlConst.xbrli:
+                self._baseXbrliTypeQname = typeqname
+            else:
+                self._baseXbrliTypeQname = self.type.baseXbrliTypeQname if self.type is not None else None
+            return self._baseXbrliTypeQname
         
     def instanceOfType(self, typeqname):
         """(bool) -- True if element is declared by, or derived from type of given qname"""
@@ -963,29 +979,45 @@ class ModelType(ModelNamableTerm):
             return self._baseXsdType
     
     @property
+    def baseXbrliTypeQname(self):
+        """(qname) -- The qname of the parent type in the xbrli namespace, if any, otherwise the localName of the parent in the xsd namespace."""
+        try:
+            return self._baseXbrliTypeQname
+        except AttributeError:
+            self._baseXbrliTypeQname = None
+            if self.qname == XbrlConst.qnXbrliDateUnion:
+                self._baseXbrliTypeQname = self.qname
+            else:
+                qnameDerivedFrom = self.qnameDerivedFrom
+                if isinstance(qnameDerivedFrom,list): # union
+                    if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
+                        self._baseXbrliTypeQname = qnameDerivedFrom
+                    # TBD implement union types
+                    else:
+                        self._baseXbrliTypeQname = None 
+                elif qnameDerivedFrom is not None:
+                    if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
+                        self._baseXbrliTypeQname = qnameDerivedFrom
+                    elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:    # xsd type
+                        self._baseXbrliTypeQname = qnameDerivedFrom
+                    else:
+                        typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+                        self._baseXbrliTypeQname = typeDerivedFrom.baseXbrliTypeQname if typeDerivedFrom is not None else None
+                else:
+                    self._baseXbrliType = None
+            return self._baseXbrliTypeQname
+    
+    @property
     def baseXbrliType(self):
         """(str) -- The localName of the parent type in the xbrli namespace, if any, otherwise the localName of the parent in the xsd namespace."""
         try:
             return self._baseXbrliType
         except AttributeError:
-            self._baseXbrliType = None
-            if self.qname == XbrlConst.qnXbrliDateUnion:
-                return "XBRLI_DATEUNION"
-            qnameDerivedFrom = self.qnameDerivedFrom
-            if isinstance(qnameDerivedFrom,list): # union
-                if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
-                    self._baseXbrliType = "dateTime"
-                # TBD implement union types
-                else:
-                    self._baseXbrliType == None 
-            elif qnameDerivedFrom is not None:
-                if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
-                    self._baseXbrliType = qnameDerivedFrom.localName
-                elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:    # xsd type
-                    self._baseXbrliType = qnameDerivedFrom.localName
-                else:
-                    typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
-                    self._baseXbrliType = typeDerivedFrom.baseXbrliType if typeDerivedFrom is not None else None
+            baseXbrliTypeQname = self.baseXbrliTypeQname
+            if baseXbrliTypeQname == XbrlConst.qnXbrliDateUnion:
+                self._baseXbrliType = "XBRLI_DATEUNION"
+            elif baseXbrliTypeQname is not None:
+                self._baseXbrliType = baseXbrliTypeQname.localName
             else:
                 self._baseXbrliType = None
             return self._baseXbrliType

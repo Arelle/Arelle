@@ -1,0 +1,52 @@
+/*
+ * This file is part of the XBRL-US ratios.
+ */
+
+xmlns:dei="http://xbrl.sec.gov/dei/2012-01-31"
+xmlns="http://fasb.org/us-gaap/2012-01-31"
+
+/*
+ * References on XBRL-US Ratios:
+ * (1) http://web.ku.edu/~eycarat/myssi/_pdf/2-Debreceny-XBRL%20Ratios%2020101213.pdf
+ *     Debreceney, et al, 2011 KU XBRL Conference
+ * (2) http://www.xbrlsite.com/Demos/Ontologies/2011-04-15/US-GAAP-KeyRatios.xml
+ *     Hoffman, C, 2009
+ */
+
+report EntityRegistrantName
+  dei:EntityRegistrantName[]
+
+report DocumentType
+  dei:DocumentType[]
+
+report DocumentPeriodEndDate
+  dei:DocumentPeriodEndDate[]
+
+report CurrentRatio
+  AssetsCurrent[] / LiabilitiesCurrent[]
+
+report WorkingCapital
+  AssetsCurrent[] - LiabilitiesCurrent[]
+
+report CashRatio
+  (CashAndCashEquivalentsAtCarryingValue[] + 
+   MarketableSecuritiesCurrent[]) / 
+  LiabilitiesCurrent[]
+
+report DebtEquity
+  (LiabilitiesCurrent[] + AccountsPayableInterestBearingNoncurrent[]) /
+   (AssetsCurrent[] + LiabilitiesCurrent[])
+
+report ReturnOnEquity
+   ROE = NetIncomeLoss[];
+   $ROE /
+   (AssetsCurrent[period=$ROE::period::end-date] + 
+    LiabilitiesCurrent[period=$ROE::period::end-date])
+
+report SalesToAccountsReceivable
+    Revenue = NetIncomeLoss[];
+    $Revenue / AccountsReceivableNetCurrent[period=$Revenue::period::end-date]
+
+report SalesToFixedAssets
+    Revenue = NetIncomeLoss[];
+    $Revenue / PropertyPlantAndEquipmentNet[period=$Revenue::period::end-date]

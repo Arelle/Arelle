@@ -649,7 +649,7 @@ def _replace(node, sphinxContext, args):
        
 def _roundItem(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
-    return roundValue(fact.xValue, decmials=fact.decimals, precision=fact.precision)
+    return roundValue(fact.xValue, decimals=fact.decimals, precision=fact.precision)
     
 def _roundDecimals(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 2)

@@ -200,7 +200,7 @@ def sphinxTestcaseVariationExpectedSeverity(modelTestcaseVariation):
         return issueElement.get("severity")
     return None # no issue or not a sphinx test case variation
     
-def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFileImage):
+def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage):
     from tkinter import PhotoImage, N, S, E, W
     try:
         from tkinter.ttk import Button
@@ -261,7 +261,7 @@ sphinxModelObjectElementSubstitutionClasses = (
 __pluginInfo__ = {
     'name': 'Sphinx 2.0 Processor',
     'version': '0.9',
-    'description': "This plug-in provides a Sphinx 2.0 processor (and in future a compiler into formula linkbase).  ",
+    'description': "This plug-in provides a Sphinx 2.0 processor and a compiler (of a limited subset of Sphinx) into formula linkbase.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',

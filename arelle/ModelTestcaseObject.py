@@ -5,7 +5,7 @@ Refactored from ModelObject on Jun 11, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, logging
+import os, io, logging
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
@@ -69,7 +69,7 @@ class ModelTestcaseVariation(ModelObject):
         if functRegistryRefElt is not None: # function registry
             return functRegistryRefElt.get("{http://www.w3.org/1999/xlink}href")
         return None
-
+    
     @property
     def readMeFirstUris(self):
         try:
@@ -91,6 +91,10 @@ class ModelTestcaseVariation(ModelObject):
                             self._readMeFirstUris.append(XmlUtil.descendantAttr(schemaTestElement, None, 
                                                                                 "schemaDocument", 
                                                                                 "{http://www.w3.org/1999/xlink}href"))
+                elif self.localName == "test-case":  #xpath testcase
+                    inputFileElement = XmlUtil.descendant(self, None, "input-file")
+                    if inputFileElement is not None: # take instance first
+                        self._readMeFirstUris.append("TestSources/" + inputFileElement.text + ".xml")
                 else:
                     # default built-in method for readme first uris
                     for anElement in self.iterdescendants():
@@ -178,9 +182,18 @@ class ModelTestcaseVariation(ModelObject):
             return self._cfcnCall
         except AttributeError:
             self._cfcnCall = None
-            for callElement in XmlUtil.descendants(self, XbrlConst.cfcn, "call"):
-                self._cfcnCall = (XmlUtil.innerText(callElement), callElement)
-                break
+            if self.localName == "test-case":  #xpath testcase
+                queryElement = XmlUtil.descendant(self, None, "query")
+                if queryElement is not None: 
+                    filepath = (self.modelDocument.filepathdir + "/" + "Queries/XQuery/" +
+                                self.get("FilePath") + queryElement.get("name") + '.xq')
+                    if os.sep != "/": filepath = filepath.replace("/", os.sep)
+                    with io.open(filepath, 'rt', encoding='utf-8') as f:
+                        self._cfcnCall = (f.read(), self)
+            else:
+                for callElement in XmlUtil.descendants(self, XbrlConst.cfcn, "call"):
+                    self._cfcnCall = (XmlUtil.innerText(callElement), callElement)
+                    break
             if self._cfcnCall is None and self.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
                 name = self.getparent().get("name")
                 input = self.get("input")
@@ -195,13 +208,22 @@ class ModelTestcaseVariation(ModelObject):
             return self._cfcnTest
         except AttributeError:
             self._cfcnTest = None
-            testElement = XmlUtil.descendant(self, XbrlConst.cfcn, "test")
-            if testElement is not None:
-                self._cfcnTest = (XmlUtil.innerText(testElement), testElement)
-            elif self.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
-                output = self.get("output")
-                if output:
-                    self._cfcnTest =  ("$result eq '{0}'".format(output.replace("'","''")), self)
+            if self.localName == "test-case":  #xpath testcase
+                outputFileElement = XmlUtil.descendant(self, None, "output-file")
+                if outputFileElement is not None and outputFileElement.get("compare") == "Text": 
+                    filepath = (self.modelDocument.filepathdir + "/" + "ExpectedTestResults/" +
+                                self.get("FilePath") + outputFileElement.text)
+                    if os.sep != "/": filepath = filepath.replace("/", os.sep)
+                    with io.open(filepath, 'rt', encoding='utf-8') as f:
+                        self._cfcnTest = ("xs:string($result) eq '{0}'".format(f.read()), self)
+            else:
+                testElement = XmlUtil.descendant(self, XbrlConst.cfcn, "test")
+                if testElement is not None:
+                    self._cfcnTest = (XmlUtil.innerText(testElement), testElement)
+                elif self.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
+                    output = self.get("output")
+                    if output:
+                        self._cfcnTest =  ("$result eq '{0}'".format(output.replace("'","''")), self)
             return self._cfcnTest
     
     @property
