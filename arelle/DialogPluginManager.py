@@ -300,7 +300,7 @@ class DialogPluginManager(Toplevel):
         filename = self.cntlr.uiFileDialog("open",
                                            owner=self,
                                            title=_("Choose plug-in module file"),
-                                           initialdir=self.cntlr.config.setdefault("pluginOpenDir","."),
+                                           initialdir=self.cntlr.config.setdefault("pluginOpenDir", self.cntlr.userAppDir + os.sep + "plugin"),
                                            filetypes=[(_("Python files"), "*.py")],
                                            defaultextension=".py")
         if filename:

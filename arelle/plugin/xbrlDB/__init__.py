@@ -1,30 +1,22 @@
 '''
-xbrlPublicDB is an example of a relational database interface for Arelle, based on the
-XBRL US Public Database.  It may be loaded by Arelle's RSS feed, or from an opened
-DTS by interactive or command line/web service mode.
+xbrlDB is an interface to XBRL databases.
+
+Two implementations are provided:
+
+(1) the XBRL Public Database schema for Postgres, published by XBRL US.
+
+(2) an graph database, based on the XBRL Abstract Model PWD 2.
 
 (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 and does not apply to the XBRL US Database schema and description.
 
-The XBRL US Database schema and description is (c) Copyright XBRL US 2011, The 
-resulting database may contain data from SEC interactive data filings (or any other XBRL
-instance documents and DTS) in a relational model. Mark V Systems conveys neither 
-rights nor license for the database schema.
- 
-The XBRL US Database and this code is intended for Postgres.  XBRL-US uses Postgres 8.4, 
-Arelle uses 9.1, via Python DB API 2.0 interface.
-
-Information for the 'official' XBRL US-maintained database (this schema, containing SEC filings):
-    Database Name: edgar_db 
-    Database engine: Postgres version 8.4 
-    \Host: public.xbrl.us 
-    Port: 5432
-
 '''
 
 import time, os, io, sys
 from arelle.Locale import format_string
+from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
+from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
 
 def xbrlDBmenuEntender(cntlr, menu):
     
@@ -35,9 +27,23 @@ def xbrlDBmenuEntender(cntlr, menu):
             return
         from arelle.DialogUserPassword import askDatabase
         # (user, password, host, port, database)
-        db = askDatabase(cntlr.parent, cntlr.config.get("xbrlDBconnection", None))
-        if db:
-            cntlr.config["xbrlDBconnection"] = db
+        priorDBconnection = cntlr.config.get("xbrlDBconnection", None)
+        dbConnection = askDatabase(cntlr.parent, priorDBconnection)
+        if dbConnection:
+            host, port, user, password, db = dbConnection
+            # identify server
+            if isPostgresPort(host, port):
+                insertIntoDB = insertIntoPostgresDB
+            elif isRexsterPort(host, port):
+                insertIntoDB = insertIntoRexsterDB
+            else:
+                from tkinter import messagebox
+                messagebox.showwarning(_("Unable to determine server type!"),
+                                       _("Probing host {0} port {1} unable to determine server type.")
+                                       .format(host, port),
+                                       parent=cntlr.parent)
+                return
+            cntlr.config["xbrlDBconnection"] = dbConnection
             cntlr.saveConfig()
         else:  # action cancelled
             return
@@ -45,9 +51,8 @@ def xbrlDBmenuEntender(cntlr, menu):
         def backgroundStoreIntoDB():
             try: 
                 startedAt = time.time()
-                from .XbrlPublicPostgresDB import insertIntoDB
                 insertIntoDB(cntlr.modelManager.modelXbrl, 
-                             host=db[0], port=db[1], user=db[2], password=db[3], database=db[4])
+                             host=host, port=port, user=user, password=password, database=db)
                 cntlr.addToLog(format_string(cntlr.modelManager.locale, 
                                             _("stored to database in %.2f secs"), 
                                             time.time() - startedAt))
@@ -129,14 +134,13 @@ def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
         
  
 __pluginInfo__ = {
-    'name': 'XBRL Public Database',
+    'name': 'XBRL Database',
     'version': '0.9',
     'description': "This plug-in implements the XBRL Public Postgres and Abstract Model Graph Databases.  ",
-    'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 and Bulbs libraries)',
+    'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved,\n'
-                'uses libraries: pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (XBRL Public Postgres DB), and \n'
-                'and Bulbs, Copyright (c) 2012 James Thornton (XBRL Abstract Model Graph DB)',
+                'uses: pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (XBRL Public Postgres DB)',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': xbrlDBmenuEntender,
     'CntlrCmdLine.Options': xbrlDBcommandLineOptionExtender,

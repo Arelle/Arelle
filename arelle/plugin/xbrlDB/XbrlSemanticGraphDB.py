@@ -1,89 +1,72 @@
 '''
-XbrlPublicPostgresDB.py implements a relational database interface for Arelle, based
-on the XBRL US Public Database.  The database schema is described by "XBRL US Public Database",
-published by XBRL US, 2011.  This is a syntactic representation of XBRL information. 
+XbrlSemanticGraphDB.py implements a graph database interface for Arelle, based
+on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic 
+representation of XBRL information. 
 
-This module provides the execution context for saving a dts and assession in 
-XBRL Public Database Tables.  It may be loaded by Arelle'sRSS feed, or by individual
+This module provides the execution context for saving a dts and instances in 
+XBRL Rexter-interfaced graph.  It may be loaded by Arelle's RSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
 (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
-and does not apply to the XBRL US Database schema and description.
 
-The XBRL US Database schema and description is (c) Copyright XBRL US 2011, The 
-resulting database may contain data from SEC interactive data filings (or any other XBRL
-instance documents and DTS) in a relational model. Mark V Systems conveys neither 
-rights nor license for the database schema.
- 
-The XBRL US Database and this code is intended for Postgres.  XBRL-US uses Postgres 8.4, 
-Arelle uses 9.1, via Python DB API 2.0 interface, using the pg8000 library.
-
-Information for the 'official' XBRL US-maintained database (this schema, containing SEC filings):
-    Database Name: edgar_db 
-    Database engine: Postgres version 8.4 
-    \Host: public.xbrl.us 
-    Port: 5432
 
 '''
 
-import os, io, re, time
+import os, io, re, time, json, socket
 from math import isnan, isinf
-from pg8000 import DBAPI
-from pg8000.errors import CursorClosedError, ConnectionClosedError
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelValue import qname, datetime
 from arelle.ValidateXbrlCalcs import roundValue
-from arelle import XbrlConst
+from arelle import XbrlConst, XmlUtil
+import urllib.request
+from urllib.error import HTTPError, URLError
 
-TRACESQLFILE = None
-#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+TRACEGREMLINFILE = None
+TRACEGREMLINFILE = r"c:\temp\rexstertrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None,
                  rssItem=None):
     db = None
     try:
-        db = XbrlPublicPostgresDatabaseConnection(modelXbrl, user, password, host, port, database)
-        db.verifyTables()
-        db.insertXbrl(rssItem=rssItem)
-        db.close()
+        xsgdb = XbrlSemanticGraphDatabaseConnection(modelXbrl, user, password, host, port, database)
+        xsgdb.verifyGraphs()
+        xsgdb.insertXbrl(rssItem=rssItem)
+        xsgdb.close()
     except Exception as ex:
-        if db is not None:
+        if xsgdb is not None:
             try:
-                db.close(rollback=True)
+                xsgdb.close(rollback=True)
             except Exception as ex2:
                 pass
         raise # reraise original exception with original traceback    
     
-XBRLDBTABLES = {
-                "fact", "fact_aug",
-                "entity",
-                "entity_name_history",
-                "unit", "unit_measure", 
-                "context", "context_aug", "context_dimension",
-                "accession", "accession_document_association", "accession_element", "accession_timestamp",
-                "attribute_value",
-                "custom_role_type",
-                "uri",
-                "document",
-                "qname",
-                "taxonomy", "taxonomy_version", "namespace",
-                "element", "element_attribute", "element_attribute_value_association",
-                "network", "relationship",
-                "custom_arcrole_type", "custom_arcrole_used_on", "custom_role_used_on",
-                "label_resource",
-                "reference_part", "reference_part_type", "reference_resource",
-                "resource",
-                "enumeration_arcrole_cycles_allowed",
-                "enumeration_element_balance",
-                "enumeration_element_period_type",
-                "enumeration_unit_measure_location",
-                "industry", "industry_level",
-                "industry_structure",
-                "query_log",
-                "sic_code", 
+def isDBPort(host, port, timeout=10):
+    # determine if postgres port
+    t = 2
+    while t < timeout:
+        try:
+            conn = urllib.request.urlopen("http://{0}:{1}/graphs".format(host, port or '8182'))
+        except HTTPError:
+            return True # success, this is really a postgres socket, wants user name
+        except URLError:
+            return False # something is there but not postgres
+        except socket.timeout:
+            t = t + 2  # relax - try again with longer timeout
+    return False
+    
+XBRLDBGRAPHS = {
+                "accessions",    # filings (graph of documents)
+                "documents",    # graph of namespace->names->types/elts, datapoints
+                "data_dictionary",
+                "types", 
+                "instances"
                 }
+
+HTTPHEADERS = {'User-agent':   'Arelle/1.0',
+               'Accept':       'application/json',
+               'Content-Type': 'application/json'}
 
 def pyBoolFromDbBool(str):
     return str in ("TRUE", "t")
@@ -109,25 +92,31 @@ class XPDBException(Exception):
             
 
 
-class XbrlPublicPostgresDatabaseConnection():
+class XbrlSemanticGraphDatabaseConnection():
     def __init__(self, modelXbrl, user, password, host, port, database):
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
-        self.conn = DBAPI.connect(user=user, password=password, host=host, 
-                                  port=int(port) if port else None, 
-                                  database=database)
-        self.tableColTypes = {}
+        #self.conn = RexProConnection(host, int(port or '8182'), (database or 'emptygraph'),
+        #                             user=user, password=password)
+        connectionUrl = "http://{0}:{1}".format(host, port or '8182')
+        self.url = connectionUrl + '/graphs/' + database
+        # Create an OpenerDirector with support for Basic HTTP Authentication...
+        auth_handler = urllib.request.HTTPBasicAuthHandler()
+        auth_handler.add_password(realm='rexster',
+                                  uri=connectionUrl,
+                                  user=user,
+                                  passwd=password)
+        self.conn = urllib.request.build_opener(auth_handler)
+        self.timeout = 10
+        self.verticePropTypes = {}
         
     def close(self, rollback=False):
         try:
-            self.closeCursor()
-            if rollback:
-                self.rollback()
             self.conn.close()
             self.__dict__.clear() # dereference everything
         except Exception as ex:
             self.__dict__.clear() # dereference everything
-            raise ex.with_traceback(ex.__traceback__)
+            raise
         
     @property
     def isClosed(self):
@@ -136,141 +125,63 @@ class XbrlPublicPostgresDatabaseConnection():
     def showStatus(self, msg, clearAfter=None):
         self.modelXbrl.modelManager.showStatus(msg, clearAfter)
         
-    @property
-    def cursor(self):
-        try:
-            return self._cursor
-        except AttributeError:
-            self._cursor = self.conn.cursor()
-            return self._cursor
-        
-    def closeCursor(self):
-        try:
-            self._cursor.close()
-            del self._cursor
-        except (AttributeError, CursorClosedError, ConnectionClosedError):
-            if hasattr(self, '_cursor'):
-                del self._cursor
-        
-    def commit(self):
-        self.conn.commit()
-        
-    def rollback(self):
-        try:
-            self.conn.rollback()
-        except (ConnectionClosedError):
-            pass
-        
-    def verifyTables(self):
-        missingTables = XBRLDBTABLES - self.tablesInDB()
+    def verifyGraphs(self):
+        foundGraphs = self.load()
         # if no tables, initialize database
-        if missingTables == XBRLDBTABLES:
+        if XBRLDBGRAPHS - foundGraphs:  # some are missing
             self.create()
-            missingTables = XBRLDBTABLES - self.tablesInDB()
-        if missingTables:
-            raise XPDBException("xpDB:MissingTables",
-                                _("The following tables are missing: %(missingTableNames)s"),
-                                missingTableNames=', '.join(t for t in sorted(missingTables))) 
+            missingGraphs = XBRLDBGRAPHS - self.foundGraphs()
+            if missingGraphs:
+                raise XPDBException("xsgDB:MissingGraphs",
+                                    _("The following graphs are missing: %(missingGraphNames)s"),
+                                    missingGraphNames=', '.join(t for t in sorted(missingGraphs))) 
             
-    def execute(self, sql, commit=False, close=True, fetch=True):
-        cursor = self.cursor
-        cursor.execute(sql)
-        if fetch:
-            result = cursor.fetchall()
-        else:
-            if cursor.rowcount > 0:
-                cursor.fetchall()  # must get anyway
-            result = None
-        if commit:
-            self.conn.commit()
-        if close:
-            self.closeCursor()
-        return result
+    def execute(self, script, params=None, commit=False, close=True, fetch=True):
+        gremlin = {"script": script}
+        if params:
+            gremlin["params"] = params
+        if TRACEGREMLINFILE:
+            with io.open(TRACEGREMLINFILE, "a", encoding='utf-8') as fh:
+                fh.write("\n\n>>> sent: \n{0}".format(str(gremlin)))
+        request = urllib.request.Request(self.url + "/tp/gremlin",
+                                         data=json.dumps(gremlin, ensure_ascii=False).encode('utf-8'),
+                                         headers=HTTPHEADERS)
+        try:
+            with self.conn.open(request, timeout=self.timeout) as fp:
+                results = json.loads(fp.read().decode('utf-8'))
+        except HTTPError as err:
+            if err.code == 500: # results are not successful but returned nontheless
+                results = json.loads(err.fp.read().decode('utf-8'))
+            else:
+                raise  # reraise any other errors
+        if TRACEGREMLINFILE:
+            with io.open(TRACEGREMLINFILE, "a", encoding='utf-8') as fh:
+                fh.write("\n\n>>> received: \n{0}".format(str(results)))
+        return results
     
     def create(self):
-        # drop tables
-        startedAt = time.time()
-        self.showStatus("Dropping prior tables")
-        for table in self.tablesInDB():
-            result = self.execute('DROP TABLE %s' % table[0],
-                                  close=False, commit=False, fetch=False)
-        self.showStatus("Dropping prior sequences")
-        for sequence in self.sequencesInDB():
-            result = self.execute('DROP SEQUENCE %s' % sequence[0],
-                                  close=False, commit=False, fetch=False)
-        self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
-                    
-        startedAt = time.time()
-        with io.open(os.path.dirname(__file__) + os.sep + "xbrlPublicPostgresDB.ddl", 
-                     'rt', encoding='utf-8') as fh:
-            sql = fh.read().replace('%', '%%')
-        # separate dollar-quoted bodies and statement lines
-        sqlstatements = []
-        def findstatements(start, end, laststatement):
-            for line in sql[start:end].split('\n'):
-                stmt, comment1, comment2 = line.partition("--")
-                laststatement += stmt + '\n'
-                if ';' in stmt:
-                    sqlstatements.append(laststatement)
-                    laststatement = ''
-            return laststatement
-        stmt = ''
-        i = 0
-        patternDollarEsc = re.compile(r"([$]\w*[$])", re.DOTALL + re.MULTILINE)
-        while i < len(sql):  # preserve $$ function body escaping
-            match = patternDollarEsc.search(sql, i)
-            if not match:
-                stmt = findstatements(i, len(sql), stmt)
-                sqlstatements.append(stmt)
-                break
-            # found match
-            dollarescape = match.group()
-            j = match.end()
-            stmt = findstatements(i, j, stmt)  # accumulate statements before match
-            i = sql.find(dollarescape, j)
-            if i > j: # found end of match
-                i += len(dollarescape)
-                stmt += dollarescape + sql[j:i]
-                # problem with driver and $$ statements, skip them (for now)
-                stmt = ''
-        for sql in sqlstatements:
-            if 'CREATE TABLE' in sql or 'CREATE SEQUENCE' in sql:
-                statusMsg, sep, rest = sql.strip().partition('\n')
-                self.showStatus(statusMsg[0:50])
-                result = self.execute(sql, close=False, commit=False, fetch=False)
-        # fixed tables
-        self.getTable('enumeration_arcrole_cycles_allowed', 'enumeration_arcrole_cycles_allowed_id', 
-                      ('description',), ('description',),
-                      (('any',), ('undirected',), ('none',)))
-        self.getTable('enumeration_element_balance', 'enumeration_element_balance_id', 
-                      ('description',), ('description',),
-                      (('credit',), ('debit',)))
-        self.getTable('enumeration_element_period_type', 'enumeration_element_period_type_id', 
-                      ('description',), ('description',),
-                      (('instant',), ('duration',), ('forever',)))
-        self.showStatus("")
-        self.conn.commit()
-        self.modelXbrl.profileStat(_("XbrlPublicDB: create tables"), time.time() - startedAt)
-        self.closeCursor()
+        self.showStatus("Create graph nodes")
+        for v in self.execute("""
+            g.clear()
+            root = g.addVertex(['name':'semantic_root'])
+            new_vertices.each{g.addEdge(root, g.addVertex(['name':it]), "model")}
+            [root] + [root.outE.inV]
+            """, 
+            params={"new_vertices":list(XBRLDBGRAPHS)})["results"]:
+            setattr(self, "root_" + v[0]['name'] + "_id", v[0]['_id'])
+            
+    def load(self):
+        self.showStatus("Load graph")
+        found_vertices = self.execute("""
+            def found_vertices = []
+            expected_vertices.each{ found_vertices << g.V('name', it) }
+            found_vertices
+            """, 
+            params={"expected_vertices":list(XBRLDBGRAPHS)})["results"]
+        for v in found_vertices:
+            setattr(self, "root_" + v[0]['name'] + "_id", int(v[0]['_id']))
+        return set(v[0]['name'] for v in found_vertices)
         
-    def databasesInDB(self):
-        return self.execute("SELECT datname FROM pg_database;")
-    
-    def dropAllTablesInDB(self):
-        # drop all tables (clean out database)
-        self.execute("drop schema public cascade;")
-        self.execute("create schema public;", commit=True)
-        
-    def tablesInDB(self):
-        return set(tableRow[0]
-                   for tableRow in 
-                   self.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public';"))
-    
-    def sequencesInDB(self):
-        return set(sequenceRow[0]
-                   for sequenceRow in
-                   self.execute("SELECT c.relname FROM pg_class c WHERE c.relkind = 'S';"))
-    
     def columnTypeFunctions(self, table):
         if table not in self.tableColTypes:
             colTypes = self.execute("SELECT c.column_name, c.data_type "
@@ -296,6 +207,7 @@ class XbrlPublicPostgresDatabaseConnection():
         return self.tableColTypes[table]
     
     def getTable(self, table, idCol, newCols, matchCols, data, commit=False, comparisonOperator='='):
+        """
         # note: comparison by = will never match NULL fields
         # use 'IS NOT DISTINCT FROM' to match nulls, but this is not indexed and verrrrry slooooow
         if not data or not newCols or not matchCols:
@@ -360,7 +272,7 @@ WITH row_values (%(newCols)s) AS (
                                 for col in matchCols),
              "values": values
              }
-        if TRACESQLFILE:
+        if TRACEFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"
                          .format(self.accessionId, table, len(sql), len(data)))
@@ -370,6 +282,7 @@ WITH row_values (%(newCols)s) AS (
                            colTypeFunction[i](colValue)  # convert to int, datetime, etc
                            for i, colValue in enumerate(row))
                      for row in tableRows)
+        """
         
     def insertXbrl(self, rssItem):
         try:
@@ -378,11 +291,12 @@ WITH row_values (%(newCols)s) AS (
             ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
             
             startedAt = time.time()
+            # self.load()  this done in the verify step
             self.insertAccession(rssItem)
+            self.insertDocuments()
             self.insertUris()
             self.insertQnames()
             self.insertNamespaces()
-            self.insertDocuments()
             self.insertCustomArcroles()
             self.insertCustomRoles()
             self.insertElements()
@@ -402,29 +316,40 @@ WITH row_values (%(newCols)s) AS (
             raise
         
     def insertAccession(self, rssItem):
-        if rssItem is None:
-            self.accessionId = int(time.time())    # only available if entered from an SEC filing
+        self.showStatus("insert accession")
+        # accession graph -> document vertices
+        new_accession = {'is_most_current': True}
+        if self.modelXbrl.modelDocument.creationSoftwareComment:
+            new_accession['creation_software'] = self.modelXbrl.modelDocument.creationSoftwareComment
+        if rssItem is not None:  # sec accession
+            # set self.
+            accessionType = "SEC_accession"
+            new_accession['accepted_timestamp'] = XmlUtil.dateunionValue(rssItem.acceptanceDatetime)
+            new_accession['filing_date'] = XmlUtil.dateunionValue(rssItem.filingDate)
+            new_accession['entity_id'] = rssItem.cikNumber
+            new_accession['entity_name'] = rssItem.companyName
+            new_accession['standard_industrial_classification'] = rssItem.assignedSic 
+            new_accession['sec_html_url'] = rssItem.htmlUrl 
+            new_accession['entry_url'] = rssItem.url
+            new_accession['filing_accession_number'] = rssItem.accessionNumber
         else:
-            self.accessionId = "(TBD)"
-            self.showStatus("insert accession")
-            table = self.getTable('accession', 'accession_id', 
-                                  ('accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
-                                   'entity_name', 'creation_software', 'standard_industrial_classification', 
-                                   'sec_html_url', 'entry_url', 'filing_accession_number'), 
-                                  ('accepted_timestamp', 'entity_id', 'filing_accession_number'), 
-                                  ((rssItem.acceptanceDatetime,
-                                    True,
-                                    rssItem.filingDate,
-                                    rssItem.cikNumber,
-                                    rssItem.companyName,
-                                    self.modelXbrl.modelDocument.creationSoftwareComment,
-                                    rssItem.assignedSic,
-                                    rssItem.htmlUrl,
-                                    rssItem.url,
-                                    rssItem.accessionNumber),))
-            for id, timestamp, cik, accessionNbr in table:
-                self.accessionId = id
-                break
+            self.accessionId = int(time.time())    # only available if entered from an SEC filing
+            datetimeNow = datetime.datetime.now()
+            intNow = int(time.time())
+            accessionType = "independent_filing"
+            new_accession['accepted_timestamp'] = XmlUtil.dateunionValue(datetimeNow)
+            new_accession['filing_date'] = XmlUtil.dateunionValue(datetimeNow)
+            new_accession['entry_url'] = self.modelXbrl.fileSource.url
+            new_accession['filing_accession_number'] = str(intNow)
+        for v in self.execute("""
+            new_accession = g.addVertex(new_accession)
+            g.addEdge(g.v(root_accession_id), new_accession, 'independent_filing')
+            new_accession
+            """, 
+            params={'root_accession_id': self.root_accession_id,
+                    'new_accession': new_accession
+                   })["results"]:
+            self.accession_id = int(v['_id'])
         
     def insertUris(self):
         uris = (_DICT_SET(self.modelXbrl.namespaceDocs.keys()) |
@@ -459,6 +384,9 @@ WITH row_values (%(newCols)s) AS (
                             for id, ns, ln in table)
                      
     def insertNamespaces(self):
+        # separate graph
+        # document-> targetNamespace
+        # document-> roleDefs
         self.showStatus("insert namespaces")
         table = self.getTable('namespace', 'namespace_id', 
                               ('uri', 'is_base', 'taxonomy_version_id'), 
@@ -469,7 +397,32 @@ WITH row_values (%(newCols)s) AS (
                                 for id, uri in table)
         
     def insertDocuments(self):
+        # accession->documents
+        # 
         self.showStatus("insert documents")
+        for v in self.execute("""
+            entry_doc = g.addVertex(entry_document)
+            docs = [entrydoc]
+            g.addEdge(g.v(root_document_id), entry_doc), 
+            referenced_documents.each{g.addEdge(entry_doc, docs << g.addVertex(it), "independent_filing")}
+            docs
+            """, 
+            params={'root_accession_id': self.root_accessions_id,
+                    'root_document_id': self.root_documents_id,
+                    'entry_document': {
+                        'url': self.modelXbrl.modelDocument.url,
+                        'document_type': self.modelXbrl.modelDocument.getType(),
+                        },
+                    'referenced_documents': [{
+                        'url': modelDocument.url,
+                        'document_type': modelDocument.getType()} 
+                         for modelDocument in self.modelXbrl.urlDocs.values()
+                         if modelDocument is not self.modelXbrl.modelDocument]
+                    })["results"]:
+            pass
+
+        
+        
         table = self.getTable('document', 'document_id', 
                               ('document_uri',), 
                               ('document_uri',), 
@@ -479,6 +432,8 @@ WITH row_values (%(newCols)s) AS (
                                 for id, uri in table)
         
     def insertCustomArcroles(self):
+        # vertices from accession and from documents
+        
         self.showStatus("insert arcrole types")
         arcroleTypesByIds = dict(((self.documentIds[arcroleType.modelDocument.uri],
                                    self.uriId[arcroleType.arcroleURI]), # key on docId, uriId
@@ -501,6 +456,8 @@ WITH row_values (%(newCols)s) AS (
                                     for usedOn in arcroleTypesByIds[(docid,uriid)].usedOns))
         
     def insertCustomRoles(self):
+        # vertices from accession and from documents
+
         self.showStatus("insert role types")
         roleTypesByIds = dict(((self.documentIds[roleType.modelDocument.uri],
                                 self.uriId[roleType.roleURI]), # key on docId, uriId
@@ -522,6 +479,7 @@ WITH row_values (%(newCols)s) AS (
                                     for usedOn in roleTypesByIds[(docid,uriid)].usedOns))
         
     def insertElements(self):
+        # all DTS objects: particles, types, elements, attrs
         self.showStatus("insert elements")
         table = self.getTable('element', 'element_id', 
                               ('qname_id', 'datatype_qname_id', 'xbrl_base_datatype_qname_id', 'balance_id',
@@ -635,6 +593,7 @@ WITH row_values (%(newCols)s) AS (
                                     for rel, sequence, depth, networkId in dbRels))
 
     def insertFacts(self):
+        # all belong to instance document
         accsId = self.accessionId
         self.showStatus("insert facts")
         # units
