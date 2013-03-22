@@ -16,6 +16,7 @@ Mark V copyright applies to this software, which is licensed according to the te
 import os, io, re, time, json, socket
 from math import isnan, isinf
 from arelle.ModelDtsObject import ModelConcept, ModelResource
+from arelle.ModelDocument import Type
 from arelle.ModelValue import qname, datetime
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle import XbrlConst, XmlUtil
@@ -130,7 +131,7 @@ class XbrlSemanticGraphDatabaseConnection():
         # if no tables, initialize database
         if XBRLDBGRAPHS - foundGraphs:  # some are missing
             self.create()
-            missingGraphs = XBRLDBGRAPHS - self.foundGraphs()
+            missingGraphs = XBRLDBGRAPHS - self.load()
             if missingGraphs:
                 raise XPDBException("xsgDB:MissingGraphs",
                                     _("The following graphs are missing: %(missingGraphNames)s"),
@@ -159,130 +160,34 @@ class XbrlSemanticGraphDatabaseConnection():
                 fh.write("\n\n>>> received: \n{0}".format(str(results)))
         return results
     
+    def commit(self):
+        pass # TBD
+    
     def create(self):
         self.showStatus("Create graph nodes")
-        for v in self.execute("""
+        results = self.execute("""
             g.clear()
-            root = g.addVertex(['name':'semantic_root'])
-            new_vertices.each{g.addEdge(root, g.addVertex(['name':it]), "model")}
-            [root] + [root.outE.inV]
+            root = g.addVertex(['class':'semantic_root'])
+            new_vertices.each{g.addEdge(root, g.addVertex(['class':it]), "model")}
+            [root.outE.inV] << [root]
             """, 
-            params={"new_vertices":list(XBRLDBGRAPHS)})["results"]:
-            setattr(self, "root_" + v[0]['name'] + "_id", v[0]['_id'])
+            params={"new_vertices":list(XBRLDBGRAPHS)})["results"]
+        for vList in results:
+            for v in vList:
+                setattr(self, "root_" + v['class'] + "_id", v['_id'])
             
     def load(self):
         self.showStatus("Load graph")
-        found_vertices = self.execute("""
+        results = self.execute("""
             def found_vertices = []
-            expected_vertices.each{ found_vertices << g.V('name', it) }
+            expected_vertices.each{ found_vertices << g.V('class', it) }
             found_vertices
             """, 
             params={"expected_vertices":list(XBRLDBGRAPHS)})["results"]
-        for v in found_vertices:
-            setattr(self, "root_" + v[0]['name'] + "_id", int(v[0]['_id']))
-        return set(v[0]['name'] for v in found_vertices)
-        
-    def columnTypeFunctions(self, table):
-        if table not in self.tableColTypes:
-            colTypes = self.execute("SELECT c.column_name, c.data_type "
-                                    "FROM information_schema.columns c "
-                                    "WHERE c.table_name = '%s' "
-                                    "ORDER BY c.ordinal_position;" % table)
-            self.tableColTypes[table] = dict((name, 
-                                              # (type cast, conversion function)
-                                              ('::' + typename if typename in # takes first word of full type
-                                                    {"integer", "smallint", "int", "bigint",
-                                                     "real", "numeric",
-                                                     "int2", "int4", "int8", "float4", "float8",
-                                                     "boolean", "date", "timestamp"}
-                                               else "::double precision" if fulltype.startswith("double precision") 
-                                               else '',
-                                              int if typename in ("integer", "smallint", "int", "bigint") else
-                                              float if typename in ("double precision", "real", "numeric") else
-                                              pyBoolFromDbBool if typename == "boolean" else
-                                              datetime if typename in ("date","timestamp") else  # ModelValue.datetime !!! not python class
-                                              str))
-                                             for name, fulltype in colTypes
-                                             for typename in (fulltype.partition(' ')[0],))
-        return self.tableColTypes[table]
-    
-    def getTable(self, table, idCol, newCols, matchCols, data, commit=False, comparisonOperator='='):
-        """
-        # note: comparison by = will never match NULL fields
-        # use 'IS NOT DISTINCT FROM' to match nulls, but this is not indexed and verrrrry slooooow
-        if not data or not newCols or not matchCols:
-            # nothing can be done, just return
-            return () # place breakpoint here to debug
-        returningCols = []
-        if idCol: # idCol is the first returned column if present
-            returningCols.append(idCol)
-        for matchCol in matchCols:
-            returningCols.append(matchCol)
-        colTypeFunctions = self.columnTypeFunctions(table)
-        try:
-            colTypeCast = tuple(colTypeFunctions[colName][0] for colName in newCols)
-            colTypeFunction = tuple(colTypeFunctions[colName][1] for colName in returningCols)
-        except KeyError as err:
-            raise XPDBException("xpDB:MissingColumnDefinition",
-                                _("Table %(table)s column definition missing: %(missingColumnName)s"),
-                                table=table, missingColumnName=str(err)) 
-        rowValues = []
-        for row in data:
-            colValues = []
-            for col in row:
-                if isinstance(col, bool):
-                    colValues.append('TRUE' if col else 'FALSE')
-                elif isinstance(col, (int,float)):
-                    colValues.append(str(col))
-                elif col is None:
-                    colValues.append('NULL')
-                else:
-                    colValues.append("'" + str(col).replace("'","''").replace('%', '%%') + "'")
-            if not rowValues:  # first row
-                for i, cast in enumerate(colTypeCast):
-                    if cast:
-                        colValues[i] = colValues[i] + cast
-            rowValues.append("(" + ", ".join(colValues) + ")")
-        values = ", \n".join(rowValues)
-        # insert new rows, return id and cols of new and existing rows
-        # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
-        sql = '''
-WITH row_values (%(newCols)s) AS (
-  VALUES %(values)s
-  ), insertions AS (
-  INSERT INTO %(table)s (%(newCols)s)
-  SELECT %(newCols)s
-  FROM row_values v
-  WHERE NOT EXISTS (SELECT 1 
-                    FROM %(table)s x 
-                    WHERE %(match)s)
-  RETURNING %(returningCols)s
-)
-(  SELECT %(x_returningCols)s
-   FROM %(table)s x JOIN row_values v ON (%(match)s)
-) UNION ( 
-   SELECT %(returningCols)s
-   FROM insertions
-);''' %     {"table": table,
-             "idCol": idCol,
-             "newCols": ', '.join(newCols),
-             "returningCols": ', '.join(returningCols),
-             "x_returningCols": ', '.join('x.{0}'.format(c) for c in returningCols),
-             "match": ' AND '.join('x.{0} {1} v.{0}'.format(col, comparisonOperator) 
-                                for col in matchCols),
-             "values": values
-             }
-        if TRACEFILE:
-            with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
-                fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"
-                         .format(self.accessionId, table, len(sql), len(data)))
-                fh.write(sql)
-        tableRows = self.execute(sql,commit=commit, close=False)
-        return tuple(tuple(None if colValue == "NULL" or colValue is None else
-                           colTypeFunction[i](colValue)  # convert to int, datetime, etc
-                           for i, colValue in enumerate(row))
-                     for row in tableRows)
-        """
+        for vList in results:
+            for v in vList:
+                setattr(self, "root_" + v['class'] + "_id", int(v['_id']))
+        return set(v['class'] for vList in results for v in vList)
         
     def insertXbrl(self, rssItem):
         try:
@@ -294,18 +199,16 @@ WITH row_values (%(newCols)s) AS (
             # self.load()  this done in the verify step
             self.insertAccession(rssItem)
             self.insertDocuments()
-            self.insertUris()
-            self.insertQnames()
-            self.insertNamespaces()
-            self.insertCustomArcroles()
-            self.insertCustomRoles()
-            self.insertElements()
-            self.insertResources()
-            self.insertNetworks()
+            self.insertDataDictionary() # XML namespaces types aspects
+            #self.insertRelationshipTypeSets()
+            #self.insertResourceRoleSets()
+            #self.insertAspectValues()
+            #self.insertResources()
+            #self.insertRelationshipSets()
             self.modelXbrl.profileStat(_("XbrlPublicDB: DTS insertion"), time.time() - startedAt)
             startedAt = time.time()
-            self.insertFacts()
-            self.modelXbrl.profileStat(_("XbrlPublicDB: instance insertion"), time.time() - startedAt)
+            self.insertDataPoints()
+            self.modelXbrl.profileStat(_("XbrlPublicDB: data points insertion"), time.time() - startedAt)
             startedAt = time.time()
             self.showStatus("Committing entries")
             self.commit()
@@ -318,7 +221,8 @@ WITH row_values (%(newCols)s) AS (
     def insertAccession(self, rssItem):
         self.showStatus("insert accession")
         # accession graph -> document vertices
-        new_accession = {'is_most_current': True}
+        new_accession = {'class':'accession',
+                         'is_most_current': True}
         if self.modelXbrl.modelDocument.creationSoftwareComment:
             new_accession['creation_software'] = self.modelXbrl.modelDocument.creationSoftwareComment
         if rssItem is not None:  # sec accession
@@ -343,93 +247,184 @@ WITH row_values (%(newCols)s) AS (
             new_accession['filing_accession_number'] = str(intNow)
         for v in self.execute("""
             new_accession = g.addVertex(new_accession)
-            g.addEdge(g.v(root_accession_id), new_accession, 'independent_filing')
+            g.addEdge(g.v(root_accessions_id), new_accession, 'independent_filing')
             new_accession
             """, 
-            params={'root_accession_id': self.root_accession_id,
+            params={'root_accessions_id': self.root_accessions_id,
                     'new_accession': new_accession
                    })["results"]:
             self.accession_id = int(v['_id'])
-        
-    def insertUris(self):
-        uris = (_DICT_SET(self.modelXbrl.namespaceDocs.keys()) |
-                _DICT_SET(self.modelXbrl.arcroleTypes.keys()) |
-                _DICT_SET(XbrlConst.standardArcroleCyclesAllowed.keys()) |
-                _DICT_SET(self.modelXbrl.roleTypes.keys()) |
-                XbrlConst.standardRoles)
-        self.showStatus("insert uris")
-        table = self.getTable('uri', 'uri_id', 
-                              ('uri',), 
-                              ('uri',), 
-                              tuple((uri,) 
-                                    for uri in uris))
-        self.uriId = dict((uri, id)
-                          for id, uri in table)
-                     
-    def insertQnames(self):
-        qnames = (_DICT_SET(self.modelXbrl.qnameConcepts.keys()) |
-                  _DICT_SET(self.modelXbrl.qnameAttributes.keys()) |
-                  _DICT_SET(self.modelXbrl.qnameTypes.keys()) |
-                  set(measure
-                      for unit in self.modelXbrl.units.values()
-                      for measures in unit.measures
-                      for measure in measures))
-        self.showStatus("insert qnames")
-        table = self.getTable('qname', 'qname_id', 
-                              ('namespace', 'local_name'), 
-                              ('namespace', 'local_name'), 
-                              tuple((qn.namespaceURI, qn.localName) 
-                                    for qn in qnames))
-        self.qnameId = dict((qname(ns, ln), id)
-                            for id, ns, ln in table)
-                     
-    def insertNamespaces(self):
-        # separate graph
-        # document-> targetNamespace
-        # document-> roleDefs
-        self.showStatus("insert namespaces")
-        table = self.getTable('namespace', 'namespace_id', 
-                              ('uri', 'is_base', 'taxonomy_version_id'), 
-                              ('uri',), 
-                              tuple((uri, True, 0) 
-                                    for uri in self.disclosureSystem.baseTaxonomyNamespaces))
-        self.namespaceId = dict((uri, id)
-                                for id, uri in table)
         
     def insertDocuments(self):
         # accession->documents
         # 
         self.showStatus("insert documents")
-        for v in self.execute("""
+        results = self.execute("""
+            dts = g.addVertex(dts)
+            g.addEdge(g.v(root_accession_id), dts, "dts")
             entry_doc = g.addVertex(entry_document)
-            docs = [entrydoc]
-            g.addEdge(g.v(root_document_id), entry_doc), 
-            referenced_documents.each{g.addEdge(entry_doc, docs << g.addVertex(it), "independent_filing")}
-            docs
+            ref_docs = []
+            g.addEdge(dts, entry_doc, "dts")
+            g.addEdge(g.v(root_documents_id), entry_doc, "filed_document")
+            g.addEdge(g.v(root_accession_id), entry_doc, "entry_document")
+            referenced_documents.each{ref_docs << g.addVertex(it)}
+            ref_docs.each{g.addEdge(entry_doc, it, "referenced_document")}
+            results = ref_docs
+            results << entry_doc
+            results << dts
+            results
             """, 
-            params={'root_accession_id': self.root_accessions_id,
-                    'root_document_id': self.root_documents_id,
+            params={'root_accession_id': self.accession_id,
+                    'root_documents_id': self.root_documents_id,
+                    'dts': {
+                        'class': 'dts'},
                     'entry_document': {
-                        'url': self.modelXbrl.modelDocument.url,
-                        'document_type': self.modelXbrl.modelDocument.getType(),
+                        'class': 'document',
+                        'url': self.modelXbrl.modelDocument.uri,
+                        'document_type': self.modelXbrl.modelDocument.gettype(),
                         },
                     'referenced_documents': [{
-                        'url': modelDocument.url,
-                        'document_type': modelDocument.getType()} 
+                        'class': 'document',
+                        'url': modelDocument.uri,
+                        'document_type': modelDocument.gettype()} 
                          for modelDocument in self.modelXbrl.urlDocs.values()
                          if modelDocument is not self.modelXbrl.modelDocument]
-                    })["results"]:
-            pass
-
+                    })["results"]
+        self.document_ids = {}
+        for v in results:
+            if v['class'] == 'dts':
+                self.dts_id = int(v['_id'])
+            elif v['class'] == 'document':
+                self.document_ids[v['url']] = int(v['_id'])
         
+    def insertDataDictionary(self):
+        # separate graph
+        # document-> dataTypeSet -> dataType
+        self.showStatus("insert DataDictionary")
         
-        table = self.getTable('document', 'document_id', 
-                              ('document_uri',), 
-                              ('document_uri',), 
-                              tuple((docUri,) 
-                                    for docUri in self.modelXbrl.urlDocs.keys()))
-        self.documentIds = dict((uri, id)
-                                for id, uri in table)
+        # do all schema dataTypeSet vertices
+            
+        self.type_id = {}
+        self.aspect_id = {}
+        for modelDocument in self.modelXbrl.urlDocs.values():
+            if modelDocument.type == Type.SCHEMA:
+                modelTypes = [modelType
+                              for modelType in self.modelXbrl.qnameTypes.values()
+                              if modelType.modelDocument is modelDocument]
+                modelConcepts = [modelConcept
+                                 for modelConcept in self.modelXbrl.qnameConcepts.values()
+                                 if modelConcept.modelDocument is modelDocument]
+                results = self.execute("""
+                    results = []
+                    docV = g.v(document_id)
+                    dictV = g.addVertex(dict)
+                    g.addEdge(docV, dictV, "data_dictionary")
+                    t.each{results << g.addEdge(dictV, g.addVertex(it), "data_type")}
+                    a.each{results << g.addEdge(dictV, g.addVertex(it), "aspect")}
+                    results << dictV
+                    """, 
+                    params={'document_id': self.document_ids[modelDocument.uri],
+                    'dict': {
+                        'class': 'data_dictionary',
+                        'namespace': modelDocument.targetNamespace},
+                    't': [{
+                        'class': 'data_type',
+                        'name': modelType.name
+                          } for modelType in modelTypes],
+                    'a': [{
+                        'class': 'aspect',
+                        'name': modelConcept.name
+                          } for modelConcept in modelConcepts],
+                    })["results"]
+                iT = iC = 0
+                for e in results: # results here are edges, and vertices
+                    if e['_type'] == 'edge':
+                        if e['_label'] == 'data_type':
+                            self.type_id[modelTypes[iT].qname] = int(e['_inV'])
+                            iT += 1
+                        elif e['_label'] == 'aspect':
+                            self.aspect_id[modelConcepts[iC].qname] = int(e['_inV'])
+                            iC += 1
+                
+        typeDerivationEdges = []
+        for modelType in self.modelXbrl.qnameTypes.values():
+            qnamesDerivedFrom = modelType.qnameDerivedFrom
+            if not isinstance(qnamesDerivedFrom, (list,tuple)): # list if a union
+                qnamesDerivedFrom = (qnamesDerivedFrom,)
+            for qnameDerivedFrom in qnamesDerivedFrom:
+                if modelType.qname in self.type_id and qnameDerivedFrom in self.type_id:
+                    typeDerivationEdges.append({
+                            'from_id': self.type_id[modelType.qname],
+                            'to_id': self.type_id[qnameDerivedFrom],
+                            'rel': "derived_from"})
+        self.execute("""
+            e.each{g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel}
+            """, 
+            params={'e': typeDerivationEdges})
+        aspectEdges = []
+        for modelConcept in self.modelXbrl.qnameConcepts.values():
+            if modelConcept.qname in self.aspect_id:
+                if modelConcept.typeQname in self.type_id:
+                    aspectEdges.append({'from_id': self.aspect_id[modelConcept.qname],
+                                        'to_id': self.type_id[modelConcept.typeQname],
+                                        'rel': "data_type"})
+                if modelConcept.substitutesForQname in self.type_id:
+                    aspectEdges.append({'from_id': self.aspect_id[modelConcept.qname],
+                                        'to_id': self.type_id[modelConcept.substitutesForQname.typeQname],
+                                        'rel': "substitutes_for"})
+                if modelConcept.baseXbrliTypeQname in self.type_id:
+                    aspectEdges.append({'from_id': self.aspect_id[modelConcept.qname],
+                                        'to_id': self.type_id[modelConcept.baseXbrliTypeQname],
+                                        'rel': "base_xbrli_type"})
+        self.execute("""
+            e.each{g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel}
+            """, 
+            params={'e': aspectEdges})
+        
+    def insertAspects(self):
+        # separate graph
+        # document-> dataTypeSet -> dataType
+        self.showStatus("insert Aspects")
+        
+        # do all schema element vertices
+        self.conceptAspectId = []
+        for modelDocument in self.modelXbrl.urlDocs.values():
+            if modelDocument.type == Type.SCHEMA:
+                results = self.execute("""
+                    results = []
+                    docV = g.v(document_id)
+                    aspectsV = g.addVertex(type_set)
+                    g.addEdge(docV, typeSetV, "data_type_set")
+                    t.each{results << g.addEdge(typeSetV, g.addVertex(it), "data_type")}
+                    results << typeSetV
+                    """, 
+                    params={'document_id': self.document_ids[modelDocument.uri],
+                    'type_set': {
+                        'class': 'data_type_set',
+                        'namespace': modelDocument.targetNamespace},
+                    't': [{
+                        'class': 'data_type',
+                        'name': modelType.name
+                          } for modelType in self.modelXbrl.qnameTypes.values()
+                            if modelType.modelDocument is modelDocument]
+                    })["results"]
+                self.document_ids = {}
+                for v in results:
+                    if v['class'] == 'data_type':
+                        self.type_id[qname(modelDocument.targetNamespace,v['name'])] = int(v['_id'])
+                
+        results = self.execute("""
+            e.each{g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel}
+            """, 
+            params={
+            'e': [{
+                'from_id': self.type_id[modelType.qname],
+                'to_id': self.type_id[modelType.qnameDerivedFrom],
+                'rel': "derived_from"
+                  } for modelType in self.modelXbrl.qnameTypes.values()
+                    if modelType.qname in self.type_id and 
+                       modelType.qnameDerivedFrom in self.type_id]
+            })["results"]
         
     def insertCustomArcroles(self):
         # vertices from accession and from documents
@@ -677,4 +672,71 @@ WITH row_values (%(newCols)s) AS (
                                      'decimals' in fact.xAttributes and fact.xAttributes['decimals'].xValue == 'INF',
                                      )
                                     for fact in self.modelXbrl.facts))
-        # hashes
+    def insertDataPoints(self):
+        # separate graph
+        # document-> dataTypeSet -> dataType
+        self.showStatus("insert DataPoints")
+        
+        # do all schema element vertices
+        self.conceptAspectId = []
+        if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
+            instanceDocument = self.modelXbrl.modelDocument
+            dataPoints = []
+            dataPointObjectIndices = []
+            dataPointVertexIds = []
+            contexts = {}
+            units = {} 
+            for fact in self.modelXbrl.factsInInstance:
+                dataPointObjectIndices.append(fact.objectIndex)
+                datapoint = {'class': 'data_point',
+                             'name': str(fact.qname)}
+                if fact.id is not None:
+                    datapoint['id'] = fact.id
+                if fact.context is not None:
+                    datapoint['context'] = fact.contextID
+                    if fact.isNumeric:
+                        datapoint['effective_value'] = str(fact.effectiveValue)
+                    datapoint['value'] = str(fact.value),
+                    if fact.isNumeric and fact.precision:
+                        datapoint['precision'] = fact.precision
+                    if fact.isNumeric and fact.decimals:
+                        datapoint['decimals'] = fact.decimals
+                    if fact.id:
+                        datapoint['id'] = fact.id
+                    if fact.precision:
+                        datapoint['presision'] = fact.precision
+                    if fact.decimals:
+                        datapoint['decimals'] = fact.decimals
+                if fact.unit is not None:
+                    datapoint['unit']= fact.unitID
+                dataPoints.append(datapoint)
+            results = self.execute("""
+                results = []
+                docV = g.v(document_id)
+                datapointsV = g.addVertex(datapoints_set)
+                g.addEdge(docV, datapointsV, "data_points")
+                datapoints.each{results << g.addEdge(datapointsV, g.addVertex(it), "data_point")}
+                results << datapointsV
+                """, 
+                params={'document_id': self.document_ids[instanceDocument.uri],
+                        'datapoints_set': {
+                            'class': 'datapoints_set'},
+                        'datapoints': dataPoints
+                      }
+                )["results"]
+            self.fact_ids = []
+            for e in results: # returns edges and vertices
+                if e['_type'] == 'edge' and e['_label'] == 'data_point':
+                    dataPointVertexIds.append(int(e['_inV']))
+                
+        results = self.execute("""
+            e.each{g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel)}
+            """, 
+            params={
+            'e': [{
+                'from_id': dataPointVertexIds[i],
+                'to_id': self.aspect_id[self.modelXbrl.modelObjects[objId].qname],
+                'rel': "fact_concept"
+                  } for i, objId in enumerate(dataPointObjectIndices)]
+            })["results"]
+        

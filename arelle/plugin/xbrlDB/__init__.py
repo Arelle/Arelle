@@ -59,8 +59,9 @@ def xbrlDBmenuEntender(cntlr, menu):
             except Exception as ex:
                 import traceback
                 cntlr.addToLog(
-                    _("[xpDB:exception] XBRL Database Exception: %(error)s \n%(traceback)s") % 
-                    {"error": str(ex),
+                    _("[xpDB:exception] Loading XBRL DB: %(exception)s: %(error)s \n%(traceback)s") % 
+                    {"exception": ex.__class__.__name__,
+                     "error": str(ex),
                      "exc_info": True,
                      "traceback": traceback.format_tb(sys.exc_info()[2])})
         import threading
