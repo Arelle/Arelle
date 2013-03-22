@@ -545,7 +545,10 @@ WITH row_values (%(newCols)s) AS (
                               ('qname_id',), 
                               tuple((self.qnameId[concept.qname],
                                      self.qnameId.get(concept.typeQname), # may be None
-                                     self.qnameId.get(concept.baseXbrliTypeQname), # may be None
+                                     self.qnameId.get(concept.baseXbrliTypeQname
+                                                      if not isinstance(concept.baseXbrliTypeQname, list)
+                                                      else concept.baseXbrliTypeQname[0]
+                                                      ), # may be None or may be a list for a union
                                      {'debit':1, 'credit':2, None:None}[concept.balance],
                                      {'instant':1, 'duration':2, 'forever':3, None:0}[concept.periodType],
                                      self.qnameId.get(concept.substitutionGroupQname), # may be None

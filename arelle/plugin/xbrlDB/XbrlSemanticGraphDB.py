@@ -399,10 +399,14 @@ class XbrlSemanticGraphDatabaseConnection():
                     aspectEdges.append({'from_id': self.aspect_id[modelConcept.qname],
                                         'to_id': self.type_id[modelConcept.substitutesForQname.typeQname],
                                         'rel': "substitutes_for"})
-                if modelConcept.baseXbrliTypeQname in self.type_id:
-                    aspectEdges.append({'from_id': self.aspect_id[modelConcept.qname],
-                                        'to_id': self.type_id[modelConcept.baseXbrliTypeQname],
-                                        'rel': "base_xbrli_type"})
+                baseXbrliTypeQnames = modelConcept.baseXbrliTypeQname # may be union or single
+                if not isinstance(baseXbrliTypeQnames, (list,tuple)):
+                    baseXbrliTypeQnames = (baseXbrliTypeQnames,) # was single base type
+                for baseXbrliTypeQname in baseXbrliTypeQnames:
+                    if baseXbrliTypeQname in self.type_id:
+                        aspectEdges.append({'from_id': self.aspect_id[modelConcept.qname],
+                                            'to_id': self.type_id[baseXbrliTypeQname],
+                                            'rel': "base_xbrli_type"})
         self.execute("""
         e.each{g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel)}
         """, 
