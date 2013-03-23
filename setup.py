@@ -135,7 +135,7 @@ if sys.platform == 'darwin':
                                iconfile='arelle/images/arelle.icns', 
                                plist=plist, 
                                includes=['lxml', 'lxml.etree',  
-                                         'lxml._elementpath', 'gzip', 'zlib'])) 
+                                         'lxml._elementpath', 'pg8000', 'gzip', 'zlib'])) 
 
     packages = find_packages('.')
     dataFiles = [
@@ -147,6 +147,7 @@ if sys.platform == 'darwin':
     ('images',['arelle/images/' + f for f in os.listdir('arelle/images')]),
     ('examples/plugin',['arelle/examples/plugin/' + f for f in os.listdir('arelle/examples/plugin')]),
     ('examples/plugin/locale/fr/LC_MESSAGES',['arelle/examples/plugin/locale/fr/LC_MESSAGES/' + f for f in os.listdir('arelle/examples/plugin/locale/fr/LC_MESSAGES')]),
+    ('plugin',['arelle/plugin/' + f for f in os.listdir('arelle/plugin')]),
     ('scripts',['arelle/scripts/' + f for f in os.listdir('arelle/scripts-macOS')]),
       ]
     for dir, subDirs, files in os.walk('arelle/locale'):
@@ -181,9 +182,10 @@ elif sys.platform in ('linux2', 'sunos5'): # works on ubuntu with hand-built cx_
                           ('arelle/examples','examples'), 
                           ('arelle/examples/plugin','examples/plugin'), 
                           ('arelle/examples/plugin/locale/fr/LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'), 
+                          ('arelle/plugin','plugin'), 
                           ('arelle/scripts-unix','scripts'),
                           ],
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'zlib'], 
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'zlib'], 
         "packages": packages, 
         } ) 
     
@@ -203,6 +205,7 @@ elif sys.platform == 'win32':
                          ('arelle\\examples','examples'),
                          ('arelle\\examples\\plugin','examples/plugin'),
                          ('arelle\\examples\\plugin\\locale\\fr\\LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'),
+                         ('arelle\\plugin','plugin'),
                          ('arelle\\scripts-windows','scripts')]
     if 'arelle.webserver' in packages:
         win32includeFiles.append('QuickBooks.qwc')

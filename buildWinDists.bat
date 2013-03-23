@@ -29,6 +29,17 @@ mkdir lxml
 copy "%PYTHON32DIR%\Lib\site-packages\lxml\__pycache__\_elementpath.cpython-32.pyc" lxml\_elementpath.pyc
 "%CMDLINEZIP%" a "%BUILT32DIR%\library.zip" lxml\_elementpath.pyc
 rmdir lxml/s/q
+rem fix up pg8000 missing modules in cx_freeze build
+mkdir pg8000
+copy "%PYTHON32DIR%\Lib\site-packages\pg8000\__pycache__\__init__.cpython-32.pyc" pg8000\__init__.pyc
+copy "%PYTHON32DIR%\Lib\site-packages\pg8000\__pycache__\dbapi.cpython-32.pyc" pg8000\dbapi.pyc
+copy "%PYTHON32DIR%\Lib\site-packages\pg8000\__pycache__\errors.cpython-32.pyc" pg8000\errors.pyc
+copy "%PYTHON32DIR%\Lib\site-packages\pg8000\__pycache__\interface.cpython-32.pyc" pg8000\interface.pyc
+copy "%PYTHON32DIR%\Lib\site-packages\pg8000\__pycache__\protocol.cpython-32.pyc" pg8000\protocol.pyc
+copy "%PYTHON32DIR%\Lib\site-packages\pg8000\__pycache__\types.cpython-32.pyc" pg8000\types.pyc
+copy "%PYTHON32DIR%\Lib\site-packages\pg8000\__pycache__\util.cpython-32.pyc" pg8000\util.pyc
+"%CMDLINEZIP%" a "%BUILT32DIR%\library.zip" pg8000
+rmdir pg8000/s/q
 "%NSISDIR%\makensis" installWin86.nsi
 rem rename for build date
 call buildRenameX86.bat
@@ -40,6 +51,17 @@ mkdir lxml
 copy "%PYTHON64DIR%\Lib\site-packages\lxml\__pycache__\_elementpath.cpython-32.pyc" lxml\_elementpath.pyc
 "%CMDLINEZIP%" a "%BUILT64DIR%\library.zip" lxml\_elementpath.pyc
 rmdir lxml/s/q
+rem fix up pg8000 missing modules in cx_freeze build
+mkdir pg8000
+copy "%PYTHON64DIR%\Lib\site-packages\pg8000\__pycache__\__init__.cpython-32.pyc" pg8000\__init__.pyc
+copy "%PYTHON64DIR%\Lib\site-packages\pg8000\__pycache__\dbapi.cpython-32.pyc" pg8000\dbapi.pyc
+copy "%PYTHON64DIR%\Lib\site-packages\pg8000\__pycache__\errors.cpython-32.pyc" pg8000\errors.pyc
+copy "%PYTHON64DIR%\Lib\site-packages\pg8000\__pycache__\interface.cpython-32.pyc" pg8000\interface.pyc
+copy "%PYTHON64DIR%\Lib\site-packages\pg8000\__pycache__\protocol.cpython-32.pyc" pg8000\protocol.pyc
+copy "%PYTHON64DIR%\Lib\site-packages\pg8000\__pycache__\types.cpython-32.pyc" pg8000\types.pyc
+copy "%PYTHON64DIR%\Lib\site-packages\pg8000\__pycache__\util.cpython-32.pyc" pg8000\util.pyc
+"%CMDLINEZIP%" a "%BUILT64DIR%\library.zip" pg8000
+rmdir pg8000/s/q
 "%NSISDIR%\makensis" installWin64.nsi
 rem rename for build date
 call buildRenameX64.bat

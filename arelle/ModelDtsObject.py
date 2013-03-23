@@ -995,7 +995,7 @@ class ModelType(ModelNamableTerm):
                     # TBD implement union types
                     else:
                         self._baseXbrliTypeQname = None 
-                elif qnameDerivedFrom is not None:
+                elif isinstance(qnameDerivedFrom, ModelValue.QName):
                     if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
                         self._baseXbrliTypeQname = qnameDerivedFrom
                     elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:    # xsd type
