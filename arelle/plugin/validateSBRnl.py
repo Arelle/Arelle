@@ -113,7 +113,7 @@ def final(val, conceptsUsed):
 
     for domainElt in val.typedDomainElements:
         if domainElt.modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces:
-            if not domainElt.genLabel(fallbackToQname=False,lang="nl"):
+            if not domainElt.genLabel(fallbackToQname=False, lang="nl"):
                 modelXbrl.error("SBR.NL.2.2.8.01",
                     _("Typed dimension domain element %(concept)s must have a generic label"),
                     modelObject=domainElt, concept=domainElt.qname)
@@ -132,10 +132,10 @@ def final(val, conceptsUsed):
                 if NS in val.namespacePrefix and prefix != val.namespacePrefix[NS]:
                     modelXbrl.error("SBR.NL.3.2.4.04",
                         _("The assigned namespace prefix %(assignedPrefix)s for the schema that declares the targetnamespace %(namespace)s, MUST be adhired by all other NT schemas, referencedPrefix: %(referencedPrefix)s"),
-                        modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS,''), referencedPrefix=prefix)
+                        modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS, ''), referencedPrefix=prefix)
 
     # check non-concept elements that can appear in elements for labels (concepts checked by 
-    labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel,XbrlConst.elementLabel))
+    labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel, XbrlConst.elementLabel))
     standardXbrlSchmas = _DICT_SET(XbrlConst.standardNamespaceSchemaLocations.values())
     baseTaxonomyNamespaces = val.disclosureSystem.baseTaxonomyNamespaces
     for eltDef in modelXbrl.qnameConcepts.values():
@@ -165,16 +165,16 @@ def checkDTSdocument(val, modelDocument):
         if docinfo and docinfo.xml_version != "1.0":
             modelXbrl.error("SBR.NL.2.2.0.02" if isSchema else "SBR.NL.2.3.0.02",
                     _('%(docType)s xml version must be "1.0" but is "%(xmlVersion)s"'),
-                    modelObject=modelDocument, docType=modelDocument.gettype().title(), 
+                    modelObject=modelDocument, docType=modelDocument.gettype().title(),
                     xmlVersion=docinfo.xml_version)
         if modelDocument.documentEncoding.lower() != "utf-8":
             modelXbrl.error("SBR.NL.2.2.0.03" if isSchema else "SBR.NL.2.3.0.03",
                     _('%(docType)s encoding must be "utf-8" but is "%(xmlEncoding)s"'),
-                    modelObject=modelDocument, docType=modelDocument.gettype().title(), 
+                    modelObject=modelDocument, docType=modelDocument.gettype().title(),
                     xmlEncoding=modelDocument.documentEncoding)
         lookingForPrecedingComment = True
         for commentNode in modelDocument.xmlRootElement.itersiblings(preceding=True):
-            if isinstance(commentNode,etree._Comment):
+            if isinstance(commentNode, etree._Comment):
                 if lookingForPrecedingComment:
                     lookingForPrecedingComment = False
                 else:
@@ -192,14 +192,14 @@ def checkDTSdocument(val, modelDocument):
                 (modelDocument.type != ModelDocument.Type.SCHEMA or ns != modelDocument.targetNamespace)):
                 modelXbrl.error("SBR.NL.2.2.0.11" if modelDocument.type == ModelDocument.Type.SCHEMA else "SBR.NL.2.3.0.08",
                     _('%(docType)s namespace declaration "%(declaration)s" is not used'),
-                    modelObject=modelDocument, docType=modelDocument.gettype().title(), 
+                    modelObject=modelDocument, docType=modelDocument.gettype().title(),
                     declaration=("xmlns" + (":" + prefix if prefix else "") + "=" + ns))
                 
         if isSchema and val.annotationsCount > 1:
             modelXbrl.error("SBR.NL.2.2.0.22",
                 _('Schema has %(annotationsCount)s xs:annotation elements, only 1 allowed'),
                 modelObject=modelDocument, annotationsCount=val.annotationsCount)
-    if modelDocument.type ==  ModelDocument.Type.LINKBASE:
+    if modelDocument.type == ModelDocument.Type.LINKBASE:
         if not val.containsRelationship:
             modelXbrl.error("SBR.NL.2.3.0.12",
                 "Linkbase has no relationships",
@@ -236,7 +236,7 @@ def checkDTSdocument(val, modelDocument):
         # label checks
         for qnLabel in (XbrlConst.qnLinkLabel, XbrlConst.qnGenLabel):
             for modelLabel in modelDocument.xmlRootElement.iterdescendants(tag=qnLabel.clarkNotation):
-                if isinstance(modelLabel,ModelResource):
+                if isinstance(modelLabel, ModelResource):
                     if not modelLabel.text or not modelLabel.text[:1].isupper():
                         modelXbrl.error("SBR.NL.3.2.7.05",
                             _("Labels MUST have a capital first letter, label %(label)s: %(text)s"),
@@ -253,7 +253,7 @@ def checkDTSdocument(val, modelDocument):
                             modelObject=modelLabel, label=modelLabel.xlinkLabel, text=modelLabel.text[:64])
         for modelResource in modelDocument.modelObjects:
             # locator checks
-            if isinstance(modelResource,ModelLocator):
+            if isinstance(modelResource, ModelLocator):
                 hrefModelObject = modelResource.dereference()
                 if isinstance(hrefModelObject, ModelObject):
                     expectedLocLabel = hrefModelObject.id + "_loc"
@@ -300,7 +300,7 @@ def checkDTSdocument(val, modelDocument):
         elif namespacePrefix in val.prefixNamespace:
             modelXbrl.error("SBR.NL.3.2.4.02",
                 _("Namespace prefix MUST be unique within the NT but prefix '%(prefix)s' is used by both %(namespaceURI)s and %(namespaceURI2)s."),
-                modelObject=modelDocument, prefix=namespacePrefix, 
+                modelObject=modelDocument, prefix=namespacePrefix,
                 namespaceURI=modelDocument.targetNamespace, namespaceURI2=val.prefixNamespace[namespacePrefix])
         else:
             val.prefixNamespace[namespacePrefix] = modelDocument.targetNamespace
@@ -319,6 +319,7 @@ def checkDTSdocument(val, modelDocument):
     if modelDocument.filepathdir.startswith(modelXbrl.uriDir):
         partnerPrefix = None
         pathDir = modelDocument.filepathdir[len(modelXbrl.uriDir) + 1:].replace("\\", "/")
+        lastPathSegment = None
         for pathSegment in pathDir.split("/"):
             if pathSegment.lower() != pathSegment:
                 modelXbrl.error("SBR.NL.3.2.1.02",
@@ -330,15 +331,16 @@ def checkDTSdocument(val, modelDocument):
                     modelObject=modelDocument, folder=pathSegment)
             if pathSegment in ("bd", "kvk", "cbs"):
                 partnerPrefix = pathSegment + '-'
+            lastPathSegment = pathSegment
         if modelDocument.basename.lower() != modelDocument.basename:
             modelXbrl.error("SBR.NL.3.2.1.05",
                 _("File names must be in lower case: %(file)s"),
                 modelObject=modelDocument, file=modelDocument.basename)
         if partnerPrefix and not modelDocument.basename.startswith(partnerPrefix):
-            modelXbrl.error("SBR.NL.3.2.2.01",
+            modelXbrl.error("SBR.NL.3.2.1.14",
                 "NT Partner DTS files MUST start with %(partnerPrefix)s consistently: %(filename)s",
                 modelObject=modelDocument, partnerPrefix=partnerPrefix, filename=modelDocument.uri)
-        if modelDocument.type ==  ModelDocument.Type.SCHEMA:
+        if modelDocument.type == ModelDocument.Type.SCHEMA:
             if modelDocument.targetNamespace:
                 nsParts = modelDocument.targetNamespace.split("/")
                 # [0] = https, [1] = // [2] = nl.taxonomie  [3] = year
@@ -354,7 +356,7 @@ def checkDTSdocument(val, modelDocument):
                 requiredLinkrole = ''
             # concept checks
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
-                if isinstance(modelConcept,ModelConcept):
+                if isinstance(modelConcept, ModelConcept):
                     # 6.7.16 name not duplicated in standard taxonomies
                     name = modelConcept.get("name")
                     if name: 
@@ -399,7 +401,7 @@ def checkDTSdocument(val, modelDocument):
             # type checks
             for typeType in ("simpleType", "complexType"):
                 for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}" + typeType):
-                    if isinstance(modelType,ModelType):
+                    if isinstance(modelType, ModelType):
                         name = modelType.get("name")
                         if name is None: 
                             name = ""
@@ -422,6 +424,13 @@ def checkDTSdocument(val, modelDocument):
                                 modelXbrl.error("SBR.NL.3.2.13.01",
                                     _("Enumerations MUST use a restriction on xbrli:stringItemType: %(type)s"),
                                     modelObject=modelDocument, type=modelType.qname)
+            if lastPathSegment == "entrypoints":
+                if not modelDocument.xmlRootElement.id:
+                    modelXbrl.error("SBR.NL.2.2.0.23",
+                        _("xs:schema/@id MUST be present in schema files in the reports/{NT partner}/entrypoints/ folder"),
+                        modelObject=modelDocument)
+                    
+                
     # check for idObject conflicts
     for id, modelObject in modelDocument.idObjects.items():
         if id in val.idObjects:
@@ -454,6 +463,7 @@ def checkDTSdocument(val, modelDocument):
                     modelXbrl.error("SBR.NL.3.2.9.04",
                         _("Linkrole URI's MUST NOT be longer than 255 characters, length is %(len)s: %(linkrole)s"),
                         modelObject=modelRoleTypes, len=len(roleURI), linkrole=roleURI)
+                ''' removed per RH 2013-03-13 e-mail
                 if not roleURI.startswith('http://www.nltaxonomie.nl'):
                     modelXbrl.error("SBR.NL.3.2.9.05",
                         _("Linkrole URI's MUST start with 'http://www.nltaxonomie.nl': %(linkrole)s"),
@@ -464,12 +474,31 @@ def checkDTSdocument(val, modelDocument):
                         modelXbrl.error("SBR.NL.3.2.9.06",
                             _("Linkrole URI's MUST have the following construct: http://www.nltaxonomie.nl / {folder path} / {functional name} - {domain or axis or table or lineitem}: %(linkrole)s"),
                             modelObject=modelRoleTypes, linkrole=roleURI)
+                '''
                 for modelRoleType in modelRoleTypes:
                     if len(modelRoleType.id) > 255:
                         modelXbrl.error("SBR.NL.3.2.10.02",
                             _("Linkrole @id MUST NOT exceed 255 characters, length is %(length)s: %(linkroleID)s"),
                             modelObject=modelRoleType, length=len(modelRoleType.id), linkroleID=modelRoleType.id)
-
+                partnerPrefix = modelRoleTypes[0].modelDocument.basename.split('-')
+                if partnerPrefix:  # first element before dash is prefix
+                    urnPartnerLinkroleStart = "urn:{0}:linkrole:".format(partnerPrefix[0])
+                    if not roleURI.startswith(urnPartnerLinkroleStart): 
+                        modelXbrl.error("SBR.NL.3.2.9.10",
+                            _("Linkrole MUST start with urn:{NT partner code}:linkrole:, \nexpecting: %(expectedStart)s..., \nfound: %(linkrole)s"),
+                            modelObject=modelRoleType, expectedStart=urnPartnerLinkroleStart, linkrole=roleURI)
+                        
+def checkForBOMs(modelXbrl, file, mappedUri, filepath):
+    #must read file in binary and return nothing to not replace standard loading
+    with open(filepath, 'rb') as fb:
+        startingBytes = fb.read(8)
+        if re.match(b"\\x00\\x00\\xFE\\xFF|\\xFF\\xFE\\x00\\x00|\\x2B\\x2F\\x76\\x38|\\x2B\\x2F\\x76\\x39|\\x2B\\x2F\\x76\\x2B|\\x2B\\x2F\\x76\\x2F|\\xDD\\x73\\x66\\x73|\\xEF\\xBB\\xBF|\\x0E\\xFE\\xFF|\\xFB\\xEE\\x28|\\xFE\\xFF|\\xFF\\xFE",
+                    startingBytes):
+            modelXbrl.error("SBR.NL.2.1.0.09",
+                _("File MUST not start with a Byte Order Mark (BOM): %(filename)s"),
+                modelObject=modelXbrl, filename=mappedUri)
+    return None # must return None for regular document loading to continue    
+                
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate SBR-NL',
@@ -483,4 +512,5 @@ __pluginInfo__ = {
     # 'Validate.SBRNL.Fact': factCheck  (no instances being checked by SBRNL,
     'Validate.SBRNL.Finally': final,
     'Validate.SBRNL.DTS.document': checkDTSdocument,
+    'ModelDocument.CustomLoader': checkForBOMs
 }
