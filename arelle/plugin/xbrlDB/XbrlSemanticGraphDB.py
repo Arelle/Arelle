@@ -10,6 +10,16 @@ DTS and instances opened by interactive or command line/web service mode.
 (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
+to do:
+
+1) add AMTF cube regions (dimensions)
+2) add resources (labels, etc)
+3) check existence of (shared) documents and contained elements before adding
+4) tuple structure declaration (particles in elements of data dictionary?)
+5) tuple structure (instance facts)
+6) add footnote resources to relationships (and test with EDInet footnote references)
+7) test some filings with text blocks (shred them?)  (30mB - 50mB sized text blocks?)
+8) add mappings to, or any missing relationships, of Charlie's financial model
 
 '''
 
@@ -349,12 +359,12 @@ class XbrlSemanticGraphDatabaseConnection():
                     'roletypes': [{
                         'class': 'role_type',
                         'uri': modelRoleType.roleURI,
-                        'definition': modelRoleType.definition
+                        'definition': modelRoleType.definition or ''
                           } for modelRoleType in roleTypes],
                     'arcroletypes': [{
                         'class': 'arcrole_type',
                         'uri': modelRoleType.arcroleURI,
-                        'definition': modelRoleType.definition
+                        'definition': modelRoleType.definition or ''
                           } for modelRoleType in arcroleTypes],
                     })["results"]
                 iT = iC = iRT = iAT = 0
@@ -473,7 +483,8 @@ class XbrlSemanticGraphDatabaseConnection():
                     if e not in entityIdentifiers:
                         entityIdentifiers.append(e)
                     for dimVal in context.qnameDims.values():
-                        key = (dimVal.dimensionQname, dimVal.memberQname)
+                        key = (dimVal.dimensionQname, dimVal.isExplicit,
+                               dimVal.memberQname if dimVal.isExplicit else dimVal.typedMember.innerText)
                         if key not in dimensions:
                             dimensions.append(key)
                     if fact.isNumeric:
@@ -558,6 +569,14 @@ class XbrlSemanticGraphDatabaseConnection():
                     
             if dimensions:
                     
+                dims = []
+                for dimQn, isExplicit, value in dimensions:
+                    if isExplicit:
+                        dims.append({'name':dimQn.localName + '-' + value.localName})
+                    else:
+                        dims.append({'name':dimQn.localName + '-' + str(len(dims)+1),
+                                     'typed_value': value})
+                
                 for e in self.execute("""
                     results = []
                     dimsV = g.addVertex(dim_aspect)
@@ -565,26 +584,28 @@ class XbrlSemanticGraphDatabaseConnection():
                     results
                     """, 
                     params={'dim_aspect': {'name': 'dimensions'},
-                            'dims': [{'name':dimQn.localName + '-' + memQn.localName} #{'dim': str(dimQn),'mem': str(memQn)} 
-                                       for dimQn,memQn in dimensions]}
+                            'dims': dims}
                     )["results"]:
                     if e['_type'] == 'edge':
                         dimensionVertexIds.append(int(e['_outV']))
 
                 # connect dimensions to dimension and member concepts   
                 self.execute("""
-                    dimensions.each{
-                        g.addEdge(g.v(aspect_id), g.v(dimension_id), 'dimension')
-                        g.addEdge(g.v(aspect_id), g.v(member_id), 'member')
-                    }
-                    results
+                    dims.each{g.addEdge(g.v(it.aspect_id), g.v(it.dimension_id), 'dimension')}
+                    mems.each{g.addEdge(g.v(it.aspect_id), g.v(it.member_id), 'member')}
+                    []
                     """, 
-                    params={'dimensions': [{
+                    params={'dims': [{
                                 'aspect_id': aspect_id,
-                                'dimension_id': self.aspect_id[dimQn],
+                                'dimension_id': self.aspect_id[dimQn]}
+                                for i, aspect_id in enumerate(dimensionVertexIds) 
+                                for dimQn,isExplicit,memQn in dimensions[i:i+1]],
+                            'mems': [{
+                                'aspect_id': aspect_id,
                                 'member_id': self.aspect_id[memQn]}
                                 for i, aspect_id in enumerate(dimensionVertexIds) 
-                                for dimQn,memQn in dimensions[i:i+1]]}
+                                for dimQn,isExplicit,memQn in dimensions[i:i+1]
+                                if isExplicit]}
                     )["results"]    
                       
         # add aspect relationships
