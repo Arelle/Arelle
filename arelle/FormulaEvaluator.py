@@ -263,7 +263,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 facts = filterFacts(xpCtx, vb, facts, var.filterRelationships, None) # also finds covered aspects (except aspect cover filter dims, not known until after this complete pass)
                 # adding dim aspects must be done after explicit filterin
                 for fact in facts:
-                    if fact.isItem:
+                    if fact.isItem and fact.context is not None:
                         vb.aspectsDefined |= fact.context.dimAspects(xpCtx.defaultDimensionAspects)
                 coverAspectCoverFilterDims(xpCtx, vb, var.filterRelationships) # filters need to know what dims are covered
                 if varHasNoVariableDependencies:
@@ -1023,7 +1023,7 @@ class VariableBinding:
         return dimension in self.definedDimensions
     
     def definedDimensions(self, dimension):
-        return self.yieldedFact.context.dimAspects(self.xpCtx.defaultDimensionAspects) if self.yieldedFact.isItem else set()
+        return self.yieldedFact.context.dimAspects(self.xpCtx.defaultDimensionAspects) if self.yieldedFact.isItem and self.yieldedFact.context is not None else set()
     
     def isDimensionalValid(self, dimension):
         return False
@@ -1058,6 +1058,7 @@ class VariableBinding:
             return fact.qname
         elif fact.isTuple or fact.context is None:
             return None     #subsequent aspects don't exist for tuples
+        # context is known to be not None after here
         elif aspect == Aspect.PERIOD:
             return fact.context.period
         elif aspect == Aspect.PERIOD_TYPE:
@@ -1080,14 +1081,15 @@ class VariableBinding:
         elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO,
                         Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
             return fact.context.nonDimValues(aspect)
-        elif aspect == Aspect.UNIT and fact.unit is not None:
-            return fact.unit
-        elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
-            return fact.unit.measures
         elif aspect == Aspect.DIMENSIONS:
             return fact.context.dimAspects(self.xpCtx.defaultDimensionAspects)
         elif isinstance(aspect, QName):
             return fact.context.dimValue(aspect)
+        elif fact.unit is not None:
+            if aspect == Aspect.UNIT:
+                return fact.unit
+            elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
+                return fact.unit.measures
         return None
 
      
