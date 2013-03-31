@@ -266,6 +266,28 @@ def final(val, conceptsUsed):
     del val.deprecatedMembers
 
     if hasattr(val, 'usgaapCalculations'):
+        """
+        The UGT calcuations are loaded and cached from the 2012 US-GAAP.  
+        (This has to be updated!!!)
+        
+        UGT calculation link roles are presumed to (and do) reflect the statement sheets they 
+        correspond to, and therefore each set of UGT summation-item arc-sets are cached and 
+        identified as to whether a statement sheet or other. 
+        
+        A concept that has facts in the instance and is a total concept with summation-item 
+        arc-sets in UGT is examined if it appears on any submission face statement 
+        parent-child link role.  (No examination is made if the concept is only on 
+        non-face statements of the submission, even if on some UGT face statement.)
+        
+        Each UGT link role that has facts reported with a total concept has its 
+        summation-item arc-sets examained to see if any compatible pair of UGT total 
+        and item facts in the instance document do not have any submission calculation 
+        sibling or descendant relationship.  (Compatible here only means context and unit 
+        equivalence.)  Addition of descendancy in the submission was needed to avoid 
+        excessive false positives.  Each such issue is reported by filing parent-child 
+        link role, UGT calculation link role, contributing item, and total item.  The 
+        report of these items is sorted by contributing item.
+        """
         startedAt = time.time()
         # check for usgaap calculations missing from extension
         ugtTotalConceptNames = set(totalConceptName 
@@ -277,8 +299,8 @@ def final(val, conceptsUsed):
             if (totalConcept.qname.namespaceURI == ugtNamespace and
                 totalConcept.qname.localName in ugtTotalConceptNames and
                 any(val.linkroleDefinitionStatementSheet.match(roleType.definition)
-                   for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(totalConcept)
-                   for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()))):
+                    for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(totalConcept)
+                    for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()))):
                 # is it a total in usgaap-calculations on a statement
                 for ugtELR, ugtRels in val.usgaapCalculations.items():
                     if ugtRels["#isStatementSheet"] and totalConcept.name in ugtRels:

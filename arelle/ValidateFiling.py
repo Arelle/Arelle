@@ -1696,9 +1696,28 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     hasDefaultLang = True
         except Exception as err:
             pass
-        
+
     # check if concept is behaving as a total based on role, deed, or circumstances
     def presumptionOfTotal(self, rel, siblingRels, iSibling, isStatementSheet, nestedInTotal, checkLabelRoleOnly):
+        """
+        A numeric concept target of a parent-child relationship is presumed total if:
+        
+        (i) its preferredLabel role is a total role (pre XbrlConst static function of 
+        current such total roles) or
+        
+        (ii) if not in a nested total (abstract child relationship to a known total's 
+        contributing siblings):
+        
+        the parent is not SupplementalCashFlowInformationAbstract and the preceding 
+        sibling relationship is monetary and it's on a statement sheet and it's the 
+        last of more than one monetary item
+        
+        (a) Last monetary parented by an abstract or non-monetary and not in a nested 
+        (breakdown) total, or 
+        (b) effective label (en-US of preferred role) has "Total" in its wording.
+        (c) (commented out for now due to false positives: Concept name has "Total" 
+        in its name)
+        """
         concept = rel.toModelObject
         if concept is not None and concept.isNumeric:
             preferredLabel = rel.preferredLabel
@@ -1742,6 +1761,66 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
 
     # 6.15.02, 6.15.03
     def checkCalcsTreeWalk(self, parentChildRels, concept, isStatementSheet, inNestedTotal, conceptsUsed, visited):
+        """
+        -  EFM-strict validation 6.15.2/3: finding presumed totals in presentation and inspecting for 
+           equivalents in calculation (noted as error-semantic, in efm-strict mode).
+        
+        -  Best practice approach: inspecting for calcuations in the UGT calculations that would hint 
+           that like filing constructs should have presentation (noted as warning-semantic in best practices plug-in, when loaded and enabled)
+        
+        EFM-strict missing-calcs
+        
+        a. Presumption of total
+        
+        The presentation linkbase is tree-walked to find items presumed to be totals and their contributing 
+        items.  (see description of presumptionOfTotal, above)
+        
+        b. Finding calculation link roles with least mis-fit to presumed total and its contributing items 
+        (presumptionOfTotal in ValidateFiling.py).
+        
+        For each presumed total (checkForCalculations in ValidateFiling.py):
+        
+        b.1 Contributing items are found for the presumed total as follows:
+        
+        From the presumed total, walking back through its preceding sibilings (with caution to avoid 
+        looping on allowed direct cycles), a preceding sibling is a contributing item if it has facts, 
+        same period type, and numeric.  If a preceding sibling is abstract, the abstract's children are 
+        likewise recursively checked (as they often represent a breakdown, and such children of an 
+        abstract sibling to the total are also contributing items (except for such children preceding 
+        a total at the child level).
+        
+        b.2 Finding the facts of these total/contributing item sets
+        
+        Sets of total and compatible contributing facts that match the sets of total concept and 
+        contributing concept must next be found, because each of these different sets (of total 
+        and compatible contributing facts) may fit different calculation link roles (according to 
+        which compatible contributing facts are present for each total).  This is particularly 
+        important when totals and contributing items exist both on face statements and notes, but 
+        the contributing compatible fact population is different).
+        
+        For each fact of the total concept, that has a specified end/instant datetime and unit, if 
+        (i) it's not on a statement or 
+        (ii) required context is absent or 
+        (iii) the fact's end/instant is within the required context's duration, the contributing 
+        item facts are those unit and context equivalent to such total fact.
+        
+        b.3 Finding least-mis-matched calculation link role
+        
+        Each link role in calculation produces a different set of summation-item arc-sets, and 
+        each set of presumed-total facts and compatible contributing item facts is separately 
+        considered to find the least-mismatched calculation summation-item arc-set.
+        
+        The link roles are not intermixed or aggregated, each link role produces independent 
+        summation-item arc-sets (XBRL 2.1 section 5.2.5.2).
+        
+        For each total fact and compatible contributing item facts, the calculation link roles 
+        are examined one-by-one for that link-role where the total has children missing the 
+        least of the compatible contributing item fact children, and reported either as 6.15.02 
+        (for statement sheet presentation link roles) or 6.15.03 (for non-statement link roles).  
+        The determination of statement sheet is according to the presentation tree walk.  The 
+        search for least-misfit calculation link role does not care or consider the value of the 
+        calculation link role, just the summation-item arc-set from the presumed-total concept.
+        """
         if concept not in visited:
             visited.add(concept)
             siblingRels = parentChildRels.fromModelObject(concept)
@@ -1814,6 +1893,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             leastMissingItemsSet = missingItems
                     else: 
                         foundSummationItemSet = True
+                '''
+                # testing with DH (merge all calc ELRs instead of isolating calc ELRs)...
+                relSet = self.modelXbrl.relationshipSet(XbrlConst.summationItem)
+                missingItems = (compatibleItemConcepts - 
+                                frozenset(r.toModelObject 
+                                          for r in relSet.fromModelObject(totalConcept)))
+                foundSummationItemSet = len(missingItems) == 0
+                '''
                 if not foundSummationItemSet:
                     if isStatementSheet:
                         errs = ("EFM.6.15.02,6.13.02,6.13.03", "GFM.2.06.02,2.05.02,2.05.03")
