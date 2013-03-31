@@ -495,48 +495,6 @@ Context %(contextID)s %(dimension)s %(value)s is not an appropriate dimension it
 
 <message code="(dynamic)"
          level="error"
-         module="examples/plugin/validateSBRnl.py" line="166"
-         args="docType xmlVersion">
-%(docType)s xml version must be &quot;1.0&quot; but is &quot;%(xmlVersion)s&quot;
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="171"
-         args="docType xmlEncoding">
-%(docType)s encoding must be &quot;utf-8&quot; but is &quot;%(xmlEncoding)s&quot;
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="181"
-         args="docType">
-%(docType)s must have only one comment node before schema element
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="185"
-         args="docType">
-%(docType)s must have comment node only on line 2
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="193"
-         args="docType declaration">
-%(docType)s namespace declaration &quot;%(declaration)s&quot; is not used
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="394"
-         args="concept namelength">
-Concept %(concept)s name length %(namelength)s exceeds 200 characters
-</message>
-
-<message code="(dynamic)"
-         level="error"
          module="examples/plugin/validateSchemaLxml.py" line="93"
          args="modelDocument sourceLine">
 (dynamic)
@@ -2965,13 +2923,6 @@ Schema file annotation missing appinfo element must be be behind schema and befo
 Annotation/appinfo record must be followed only by import
 </message>
 
-<message code="SBR.NL.2.2.0.15"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="276"
-         args="importedFile">
-A schema import schemas of which no content is being addressed: %(importedFile)s
-</message>
-
 <message code="SBR.NL.2.2.0.18"
          level="error"
          module="ValidateFilingDTS.py" line="52"
@@ -2991,13 +2942,6 @@ Taxonomy schema %(schema)s includes %(include)s, only import is allowed
          module="ValidateXbrlDTS.py" line="1076"
          args="element fileType prefix localName">
 %(fileType)s element %(element)s must not have %(prefix)s:%(localName)s
-</message>
-
-<message code="SBR.NL.2.2.0.22"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="199"
-         args="annotationsCount">
-Schema has %(annotationsCount)s xs:annotation elements, only 1 allowed
 </message>
 
 <message code="SBR.NL.2.2.1.01"
@@ -3268,27 +3212,6 @@ NL label: %(label)s
 ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube or primary domain, from %(fromConcept)s to %(toConcept)s
 </message>
 
-<message code="SBR.NL.2.2.3.06"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="85"
-         args="linkrole">
-Presentation linkrole %(linkrole)s missing order number relationship set
-</message>
-
-<message code="SBR.NL.2.2.3.06"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="93"
-         args="order linkrole otherLinkrole">
-Presentation linkrole order number %(order)s of %(linkrole)s also used in %(otherLinkrole)s
-</message>
-
-<message code="SBR.NL.2.2.3.06"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="99"
-         args="linkrole">
-Presentation linkrole %(linkrole)s missing order number
-</message>
-
 <message code="SBR.NL.2.2.3.07"
          level="error"
          module="ValidateFilingDTS.py" line="480"
@@ -3308,13 +3231,6 @@ Arcrole type definition is not allowed: %(arcroleURI)s
          module="ValidateXbrlDTS.py" line="524"
          args="roleURI">
 ArcroleType is not allowed %(roleURI)s
-</message>
-
-<message code="SBR.NL.2.2.4.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="110"
-         args="arcrole">
-ArcroleType missing nl or en generic label: %(arcrole)s
 </message>
 
 <message code="SBR.NL.2.2.5.01"
@@ -3338,39 +3254,11 @@ Link part %(element)s is not authorized
 Link part definition %(concept)s must have a generic label in language 'nl'
 </message>
 
-<message code="SBR.NL.2.2.7.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="44"
-         args="typename facets">
-Type %(typename)s has length restriction facets %(facets)s
-</message>
-
-<message code="SBR.NL.2.2.7.04"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="48"
-         args="concept">
-Concept %(concept)s has enumeration and is not based on stringItemType
-</message>
-
 <message code="SBR.NL.2.2.7.05"
          level="error"
          module="ValidateFilingDTS.py" line="547"
          args="">
 Enumeration element has value(s) without generic label.
-</message>
-
-<message code="SBR.NL.2.2.8.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="117"
-         args="concept">
-Typed dimension domain element %(concept)s must have a generic label
-</message>
-
-<message code="SBR.NL.2.2.8.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="121"
-         args="concept">
-Typed dimension domain element %(concept)s has disallowed complex content
 </message>
 
 <message code="SBR.NL.2.3.0.01"
@@ -3420,13 +3308,6 @@ Loc element %(element)s may not be contained in a linkbase with %(element2)s
          module="ValidateXbrlDTS.py" line="951"
          args="element element2">
 Resource element %(element)s may not be contained in a linkbase with %(element2)s
-</message>
-
-<message code="SBR.NL.2.3.0.12"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="204"
-         args="">
-Linkbase has no relationships
 </message>
 
 <message code="SBR.NL.2.3.10.08"
@@ -3705,286 +3586,6 @@ Calculation linkbase linkrole %(linkrole)s
          module="ValidateFormula.py" line="341"
          args="xlinkLabel">
 Formula:formula %(xlinkLabel)s is not allowed
-</message>
-
-<message code="SBR.NL.3.2.1.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="324"
-         args="folder">
-Folder names must be in lower case: %(folder)s
-</message>
-
-<message code="SBR.NL.3.2.1.03"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="328"
-         args="folder">
-Folder names must be less than 15 characters: %(folder)s
-</message>
-
-<message code="SBR.NL.3.2.1.05"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="334"
-         args="file">
-File names must be in lower case: %(file)s
-</message>
-
-<message code="SBR.NL.3.2.1.09"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="222"
-         args="expectedSuffix filename">
-Linkbase filename expected to end with %(expectedSuffix)s: %(filename)s
-</message>
-
-<message code="SBR.NL.3.2.1.10"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="233"
-         args="expectedSuffix filename">
-Generic linkbase filename expected to end with %(expectedSuffix)s: %(filename)s
-</message>
-
-<message code="SBR.NL.3.2.10.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="469"
-         args="length linkroleID">
-Linkrole @id MUST NOT exceed 255 characters, length is %(length)s: %(linkroleID)s
-</message>
-
-<message code="SBR.NL.3.2.11.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="261"
-         args="expectedLocLabel foundLocLabel">
-Locator @xlink:label names MUST be concatenated from: @id from the XML node, underscore, 'loc', expected %(expectedLocLabel)s, found %(foundLocLabel)s
-</message>
-
-<message code="SBR.NL.3.2.11.03"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="267"
-         args="xlinkLabel">
-@xlink:label names MUST use a-zA-Z0-9_- characters only: %(xlinkLabel)s
-</message>
-
-<message code="SBR.NL.3.2.13.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="422"
-         args="type">
-Enumerations MUST use a restriction on xbrli:stringItemType: %(type)s
-</message>
-
-<message code="SBR.NL.3.2.15.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="154"
-         args="element">
-XML nodes that can appear in instances MUST have standard labels in the local language: %(element)s
-</message>
-
-<message code="SBR.NL.3.2.2.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="338"
-         args="partnerPrefix filename">
-NT Partner DTS files MUST start with %(partnerPrefix)s consistently: %(filename)s
-</message>
-
-<message code="SBR.NL.3.2.3.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="280"
-         args="namespaceURI">
-Namespace URI's MUST be lower case: %(namespaceURI)s
-</message>
-
-<message code="SBR.NL.3.2.3.03"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="284"
-         args="namespaceURI">
-Namespace URI's MUST NOT be longer than 255 characters: %(namespaceURI)s
-</message>
-
-<message code="SBR.NL.3.2.3.04"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="288"
-         args="namespaceURI">
-Namespace URI's MUST use only signs from a-z0-9_-/: %(namespaceURI)s
-</message>
-
-<message code="SBR.NL.3.2.3.05"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="292"
-         args="namespaceURI">
-Namespace URI's MUST start with 'http://www.nltaxonomie.nl': %(namespaceURI)s
-</message>
-
-<message code="SBR.NL.3.2.3.06"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="350"
-         args="requiredNamespace namespaceURI">
-Namespace URI's MUST be constructed like %(requiredNamespace)s: %(namespaceURI)s
-</message>
-
-<message code="SBR.NL.3.2.4.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="297"
-         args="namespaceURI">
-TargetNamespaces MUST have a prefix: %(namespaceURI)s
-</message>
-
-<message code="SBR.NL.3.2.4.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="301"
-         args="prefix namespaceURI namespaceURI2">
-Namespace prefix MUST be unique within the NT but prefix '%(prefix)s' is used by both %(namespaceURI)s and %(namespaceURI2)s.
-</message>
-
-<message code="SBR.NL.3.2.4.03"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="309"
-         args="prefix namespaceURI">
-Namespace prefix '%(prefix)s' reserved by organizations for international specifications is used %(namespaceURI)s.
-</message>
-
-<message code="SBR.NL.3.2.4.04"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="133"
-         args="namespace assignedPrefix referencedPrefix">
-The assigned namespace prefix %(assignedPrefix)s for the schema that declares the targetnamespace %(namespace)s, MUST be adhired by all other NT schemas, referencedPrefix: %(referencedPrefix)s
-</message>
-
-<message code="SBR.NL.3.2.4.06"
-         level="warning"
-         module="examples/plugin/validateSBRnl.py" line="313"
-         args="prefix namespaceURI">
-Namespace prefix '%(prefix)s' SHOULD not exceed 20 characters %(namespaceURI)s.
-</message>
-
-<message code="SBR.NL.3.2.5.11"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="365"
-         args="concept">
-Concept %(concept)s must end in Member to be in sbr:domainMemberItem substitution group
-</message>
-
-<message code="SBR.NL.3.2.5.12"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="370"
-         args="concept">
-Concept %(concept)s must end in Domain to be in sbr:domainItem substitution group
-</message>
-
-<message code="SBR.NL.3.2.5.13"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="381"
-         args="concept">
-Concept %(concept)s must end in Axis to be in xbrldt:dimensionItem substitution group if they represent an explicit dimension
-</message>
-
-<message code="SBR.NL.3.2.5.14"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="375"
-         args="concept">
-Concept %(concept)s must end in TypedAxis to be in xbrldt:dimensionItem substitution group if they represent a typed dimension
-</message>
-
-<message code="SBR.NL.3.2.5.15"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="385"
-         args="concept">
-Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group
-</message>
-
-<message code="SBR.NL.3.2.5.16"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="390"
-         args="concept">
-Concept %(concept)s must end in Title to be in sbr:presentationItem substitution group
-</message>
-
-<message code="SBR.NL.3.2.5.21"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="409"
-         args="type namelength">
-Type %(type)s name length %(namelength)s exceeds 200 characters
-</message>
-
-<message code="SBR.NL.3.2.6.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="428"
-         args="id">
-ID %(id)s must be unique in the DTS but is present on two elements.
-</message>
-
-<message code="SBR.NL.3.2.7.05"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="241"
-         args="label text">
-Labels MUST have a capital first letter, label %(label)s: %(text)s
-</message>
-
-<message code="SBR.NL.3.2.7.06"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="246"
-         args="label text">
-Labels with the 'standard' role MUST NOT exceed 255 characters, label %(label)s: %(text)s
-</message>
-
-<message code="SBR.NL.3.2.7.06"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="251"
-         args="label text">
-Labels with the 'standard' role MUST NOT exceed 255 characters, label %(label)s: %(text)s
-</message>
-
-<message code="SBR.NL.3.2.8.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="413"
-         args="type">
-Custom datatypes MUST be a restriction from XII defined datatypes: %(type)s
-</message>
-
-<message code="SBR.NL.3.2.8.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="417"
-         args="type">
-Datatype names MUST use characters a-zA-Z0-9_- only: %(type)s
-</message>
-
-<message code="SBR.NL.3.2.9.01"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="442"
-         args="linkrole">
-Linkrole URI's MUST be unique in the NT: %(linkrole)s
-</message>
-
-<message code="SBR.NL.3.2.9.02"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="446"
-         args="linkrole">
-Linkrole URI's MUST be in lowercase: %(linkrole)s
-</message>
-
-<message code="SBR.NL.3.2.9.03"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="450"
-         args="linkrole">
-Linkrole URI's MUST use characters a-z0-9_-/ only: %(linkrole)s
-</message>
-
-<message code="SBR.NL.3.2.9.04"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="454"
-         args="len linkrole">
-Linkrole URI's MUST NOT be longer than 255 characters, length is %(len)s: %(linkrole)s
-</message>
-
-<message code="SBR.NL.3.2.9.05"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="458"
-         args="linkrole">
-Linkrole URI's MUST start with 'http://www.nltaxonomie.nl': %(linkrole)s
-</message>
-
-<message code="SBR.NL.3.2.9.06"
-         level="error"
-         module="examples/plugin/validateSBRnl.py" line="464"
-         args="linkrole">
-Linkrole URI's MUST have the following construct: http://www.nltaxonomie.nl / {folder path} / {functional name} - {domain or axis or table or lineitem}: %(linkrole)s
 </message>
 
 <message code="arelle.rssError"
