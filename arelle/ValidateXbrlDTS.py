@@ -424,7 +424,9 @@ def checkElements(val, modelDocument, parent):
                                         val.referencedNamespaces.add(qn.namespaceURI)
                                 else: # not union type
                                     val.referencedNamespaces.add(qnameDerivedFrom.namespaceURI)
-                            
+                        elif localName == "attribute":
+                            if elt.typeQname is not None:
+                                val.referencedNamespaces.add(elt.typeQname.namespaceURI)
                     if localName == "redefine":
                         val.modelXbrl.error("xbrl.5.6.1:Redefine",
                             "Redefine is not allowed",
@@ -946,8 +948,8 @@ def checkElements(val, modelDocument, parent):
                             XbrlConst.qnLinkCalculationLink: tuple(),
                             XbrlConst.qnLinkDefinitionLink: tuple(),
                             XbrlConst.qnLinkFootnoteLink: (XbrlConst.qnLinkFootnote,),
-                            XbrlConst.qnGenLink: (XbrlConst.qnGenLabel, XbrlConst.qnGenReference, val.qnSbrLinkroleorder),
-                             }.get(val.extendedElementName,tuple()):
+                            # XbrlConst.qnGenLink: (XbrlConst.qnGenLabel, XbrlConst.qnGenReference, val.qnSbrLinkroleorder),
+                             }.get(val.extendedElementName,(elt.qname,)):  # allow non-2.1 to be ok regardless per RH 2013-03-13
                             val.modelXbrl.error("SBR.NL.2.3.0.11",
                                 _("Resource element %(element)s may not be contained in a linkbase with %(element2)s"),
                                 modelObject=elt, element=elt.qname, element2=val.extendedElementName)
@@ -1050,8 +1052,8 @@ def checkElements(val, modelDocument, parent):
                         XbrlConst.qnLinkCalculationLink: (XbrlConst.qnLinkCalculationArc,),
                         XbrlConst.qnLinkDefinitionLink: (XbrlConst.qnLinkDefinitionArc,),
                         XbrlConst.qnLinkFootnoteLink: (XbrlConst.qnLinkFootnoteArc,),
-                        XbrlConst.qnGenLink: (XbrlConst.qnGenArc,),
-                         }.get(val.extendedElementName, tuple()):
+                        # XbrlConst.qnGenLink: (XbrlConst.qnGenArc,),
+                         }.get(val.extendedElementName, (elt.qname,)):  # allow non-2.1 to be ok regardless per RH 2013-03-13
                         val.modelXbrl.error("SBR.NL.2.3.0.11",
                             _("Arc element %(element)s may not be contained in a linkbase with %(element2)s"),
                             modelObject=elt, element=elt.qname, element2=val.extendedElementName)

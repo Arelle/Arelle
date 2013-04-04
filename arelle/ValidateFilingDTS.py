@@ -568,7 +568,9 @@ def checkDTS(val, modelDocument, visited):
                 if definesDomains: schemaContents.append(_("domains"))
                 if definesHypercubes: schemaContents.append(_("hypercubes"))
                 if schemaContents:
-                    if not definesTuples:
+                    if not ((definesTuples or definesPresentationTuples or definesSpecificationTuples) and
+                            not (definesLinkroles or definesArcroles or definesLinkParts or definesAbstractItems or
+                                 definesTypes or definesDimensions or definesDomains or definesHypercubes)):
                         val.modelXbrl.error("SBR.NL.2.2.1.01",
                             _("Taxonomy schema may only define one of these: %(contents)s"),
                             modelObject=modelDocument, contents=', '.join(schemaContents))
