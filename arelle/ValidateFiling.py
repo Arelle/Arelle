@@ -1905,7 +1905,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if isStatementSheet:
                         errs = ("EFM.6.15.02,6.13.02,6.13.03", "GFM.2.06.02,2.05.02,2.05.03")
                         msg = _("Financial statement calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.  "
-                                "\n\nPresentation link role: \n%(linkrole)s. "
+                                "\n\nPresentation link role: \n%(linkrole)s \n%(linkroleDefinition)s. "
                                 "\n\nTotal concept: \n%(conceptSum)s.  "
                                 "\n\nReason presumed total: \n%(reasonPresumedTotal)s.  "
                                 "\n\nSummation items missing: \n%(missingConcepts)s.  "
@@ -1914,7 +1914,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     else:
                         errs = ("EFM.6.15.03,6.13.02,6.13.03", "GFM.2.06.03,2.05.02,2.05.03")
                         msg = _("Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals. "
-                                "\n\nPresentation link role: \n%(linkrole)s. "
+                                "\n\nPresentation link role: \n%(linkrole)s \n%(linkroleDefinition)s."
                                 "\n\nTotal concept: \n%(conceptSum)s.  "
                                 "\n\nReason presumed total: \n%(reasonPresumedTotal)s.  "
                                 "\n\nSummation items missing \n%(missingConcepts)s.  "
@@ -1922,7 +1922,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 "\n\nCorresponding facts in contexts: \n%(contextIDs)s\n")
                     self.modelXbrl.log("ERROR-SEMANTIC", errs, msg,
                         modelObject=[totalConcept, totalRel, siblingConcept, contributingRel] + [f for f in compatibleFacts], 
-                        conceptSum=totalConcept.qname, linkrole=contributingRel.linkrole,
+                        conceptSum=totalConcept.qname, linkrole=contributingRel.linkrole, linkroleDefinition=self.modelXbrl.roleTypeDefinition(contributingRel.linkrole),
                         reasonPresumedTotal=reasonPresumedTotal,
                         itemConcepts=', \n'.join(sorted(set(str(c.qname) for c in compatibleItemConcepts))),
                         missingConcepts = ', \n'.join(sorted(set(str(c.qname) for c in leastMissingItemsSet))),
