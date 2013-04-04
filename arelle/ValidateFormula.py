@@ -273,6 +273,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 val.modelXbrl.error("xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
                     _("Parameter \n%(name)s \nException: \n%(error)s"), 
                     modelObject=modelParameter, name=paramQname, error=err.message)
+        ''' Removed as per WG discussion 2012-12-20. This duplication checking unfairly presupposes URI based
+           implementation and exceeds the scope of linkbase validation
         elif not parametersOnly: # is a modelInstance
             if val.parameters and paramQname in val.parameters:
                 instanceModelXbrls = val.parameters[paramQname][1]
@@ -288,6 +290,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 val.modelXbrl.error("xbrlvarinste:standardInputInstanceNotUnique",
                     _("Standard input instance resource parameter has multiple XBRL instances"), 
                     modelObject=modelParameter)
+        '''
     val.modelXbrl.profileActivity("... parameter checks and select evaluation", minTimeToShow=1.0)
     
     val.modelXbrl.profileStat(_("parametersProcessing"))
