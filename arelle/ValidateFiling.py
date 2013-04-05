@@ -1251,6 +1251,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         drsELRs = set()
         
         # do calculation, then presentation, then other arcroles
+        self.summationItemRelsSetAllELRs = modelXbrl.relationshipSet(XbrlConst.summationItem)
         for arcroleFilter in (XbrlConst.summationItem, XbrlConst.parentChild, "*"):
             for baseSetKey, baseSetModelLinks  in modelXbrl.baseSets.items():
                 arcrole, ELR, linkqname, arcqname = baseSetKey
@@ -1462,6 +1463,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
 
         del localPreferredLabels # dereference
         del usedCalcFromTosELR
+        del self.summationItemRelsSetAllELRs
+
         self.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
 
                                 
@@ -1717,6 +1720,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         (b) effective label (en-US of preferred role) has "Total" in its wording.
         (c) (commented out for now due to false positives: Concept name has "Total" 
         in its name)
+        (d) last monetary (may be sub level) whose immediate sibling is a calc LB child
         """
         concept = rel.toModelObject
         if concept is not None and concept.isNumeric:
@@ -1739,24 +1743,27 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     iSibling == len(siblingRels) - 1 and 
                     parent.name not in {
                         "SupplementalCashFlowInformationAbstract"
-                    } and
-                    siblingRels[iSibling - 1].toModelObject.isMonetary):
-                    # last fact, may be total
-                    if isStatementSheet:
-                        # check if facts add up??
-                        if (parent.isAbstract or not parent.isMonetary) and not nestedInTotal:
-                            return _("last monetary item in statement sheet monetary line items parented by nonMonetary concept")
-                        elif effectiveLabel and 'Total' in effectiveLabel: 
-                            return _("last monetary item in statement sheet monetary line items with word 'Total' in effective label {0}").format(effectiveLabel)
-                        elif 'Total' in concept.name:
-                            return _("last monetary item in statement sheet monetary line items with word 'Total' in concept name {0}").format(concept.name)
-                    ''' for now unreliable to use total words for notes
-                    else:
-                        if 'Total' in effectiveLabel: # also check for Net ???
-                            return _("last monetary item in note with word 'Total' in effective label {0}").format(effectiveLabel)
-                        if 'Total' in concept.name: # also check for Net ???
-                            return _("last monetary item in note with word 'Total' in concept name {0}").format(concept.name)
-                    '''
+                    }):
+                    preceedingSibling = siblingRels[iSibling - 1].toModelObject
+                    if preceedingSibling.isMonetary:
+                        # last fact, may be total
+                        if isStatementSheet:
+                            # check if facts add up??
+                            if (parent.isAbstract or not parent.isMonetary) and not nestedInTotal:
+                                return _("last monetary item in statement sheet monetary line items parented by nonMonetary concept")
+                            elif effectiveLabel and 'Total' in effectiveLabel: 
+                                return _("last monetary item in statement sheet monetary line items with word 'Total' in effective label {0}").format(effectiveLabel)
+                            elif 'Total' in concept.name:
+                                return _("last monetary item in statement sheet monetary line items with word 'Total' in concept name {0}").format(concept.name)
+                            elif self.summationItemRelsSetAllELRs.isRelated(concept, "child", preceedingSibling):
+                                return _("last monetary item in statement sheet monetary line items is calc sum of previous line item")
+                        ''' for now unreliable to use total words for notes
+                        else:
+                            if 'Total' in effectiveLabel: # also check for Net ???
+                                return _("last monetary item in note with word 'Total' in effective label {0}").format(effectiveLabel)
+                            if 'Total' in concept.name: # also check for Net ???
+                                return _("last monetary item in note with word 'Total' in concept name {0}").format(concept.name)
+                        '''
         return None
 
     # 6.15.02, 6.15.03
@@ -1787,7 +1794,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         same period type, and numeric.  If a preceding sibling is abstract, the abstract's children are 
         likewise recursively checked (as they often represent a breakdown, and such children of an 
         abstract sibling to the total are also contributing items (except for such children preceding 
-        a total at the child level).
+        a total at the child level).  
+        
+        If a preceding sibling is presumed total (on same level), it is a running subtotal (in subsequent
+        same-level total) unless it's independent in the calc LB (separate totaled stuff preceding these
+        siblings) or related to grandparent sum.
         
         b.2 Finding the facts of these total/contributing item sets
         
@@ -1845,6 +1856,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if siblingConcept is totalConcept: # direct cycle loop likely, possibly among children of abstract sibling
                     break
                 isContributingTotal = self.presumptionOfTotal(contributingRel, siblingRels, iContributingRel, isStatementSheet, True, False)
+                isNoncontributingTotal = False
+                isIndependentTotal = False
+                # contributing total may actually be separate non-running subtotal, if so don't include it here
+                if isContributingTotal:
+                    isIndependentTotal = self.summationItemRelsSetAllELRs.fromModelObject(siblingConcept)
+                    for contributingTotalParentRel in self.summationItemRelsSetAllELRs.toModelObject(siblingConcept):
+                        isIndependentTotal = True
+                        if self.summationItemRelsSetAllELRs.isRelated(contributingTotalParentRel.fromModelObject, 'child', totalConcept):
+                            isNoncontributingTotal = True
+                            break
+                if isNoncontributingTotal or isIndependentTotal:
+                    break
                 if siblingConcept.isAbstract:
                     childRels = parentChildRels.fromModelObject(siblingConcept)
                     self.checkForCalculations(parentChildRels, childRels, len(childRels), totalConcept, totalRel, reasonPresumedTotal, isStatementSheet, conceptsUsed, True, contributingItems) 
@@ -1878,7 +1901,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for compatibleItemConcepts, compatibleFacts in compatibleItemsFacts.items():
                 foundSummationItemSet = False 
                 leastMissingItemsSet = compatibleItemConcepts
-                for ELR in self.modelXbrl.relationshipSet(XbrlConst.summationItem).linkRoleUris:
+                for ELR in self.summationItemRelsSetAllELRs.linkRoleUris:
                     relSet = self.modelXbrl.relationshipSet(XbrlConst.summationItem,ELR)
                     missingItems = (compatibleItemConcepts - 
                                     frozenset(r.toModelObject 
