@@ -104,6 +104,16 @@ def prefixedNameToClarkNotation(element, prefixedName):
 def encoding(xml, default="utf-8"):
     if isinstance(xml,bytes):
         s = xml[0:120]
+        if s.startswith(b'\xef\xbb\xbf'):
+            return 'utf-8-sig'
+        if s.startswith(b'\xff\xfe'):
+            return 'utf-16-le'
+        if s.startswith(b'\xfe\xff'):
+            return 'utf-16-be'
+        if s.startswith(b'\xff\xfe\x00\x00'):
+            return 'utf-32-le'
+        if s.startswith(b'\x00\x00\xfe\xff'):
+            return 'utf-32-be'
         if b"x\0m\0l" in s:
             str = s.decode("utf-16")
         else:
