@@ -1925,9 +1925,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 foundSummationItemSet = len(missingItems) == 0
                 '''
                 if not foundSummationItemSet:
+                    linkroleDefinition = self.modelXbrl.roleTypeDefinition(contributingRel.linkrole)
+                    reasonIssueIsWarning = ""
+                    msgCode = "ERROR-SEMANTIC"
                     if isStatementSheet:
                         errs = ("EFM.6.15.02,6.13.02,6.13.03", "GFM.2.06.02,2.05.02,2.05.03")
                         msg = _("Financial statement calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.  "
+                                "%(reasonIssueIsWarning)s"
                                 "\n\nPresentation link role: \n%(linkrole)s \n%(linkroleDefinition)s. "
                                 "\n\nTotal concept: \n%(conceptSum)s.  "
                                 "\n\nReason presumed total: \n%(reasonPresumedTotal)s.  "
@@ -1937,15 +1941,26 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     else:
                         errs = ("EFM.6.15.03,6.13.02,6.13.03", "GFM.2.06.03,2.05.02,2.05.03")
                         msg = _("Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals. "
+                                "%(reasonIssueIsWarning)s"
                                 "\n\nPresentation link role: \n%(linkrole)s \n%(linkroleDefinition)s."
                                 "\n\nTotal concept: \n%(conceptSum)s.  "
                                 "\n\nReason presumed total: \n%(reasonPresumedTotal)s.  "
                                 "\n\nSummation items missing \n%(missingConcepts)s.  "
                                 "\n\nExpected item concepts \n%(itemConcepts)s.  "
                                 "\n\nCorresponding facts in contexts: \n%(contextIDs)s\n")
-                    self.modelXbrl.log("ERROR-SEMANTIC", errs, msg,
+                    # cases causing this issue to be a warning instead of an error
+                    if all(f.isNil for f in compatibleFacts if f.concept in leastMissingItemsSet):
+                        reasonIssueIsWarning = _("\n\nMissing items are nil, which doesn't affect validity but may impair analysis of concept semantics from calculation relationships.  ")
+                        msgCode = "WARNING-SEMANTIC"
+                        errs = tuple(e + '.missingItemsNil' for e in errs)
+                    if "parenthetical" in linkroleDefinition.lower():
+                        reasonIssueIsWarning += _("\n\nLink role is parenthetical.  ")
+                        msgCode = "WARNING-SEMANTIC"
+                        errs = tuple(e + '.parenthetical' for e in errs)
+                    self.modelXbrl.log(msgCode, errs, msg,
                         modelObject=[totalConcept, totalRel, siblingConcept, contributingRel] + [f for f in compatibleFacts], 
-                        conceptSum=totalConcept.qname, linkrole=contributingRel.linkrole, linkroleDefinition=self.modelXbrl.roleTypeDefinition(contributingRel.linkrole),
+                        reasonIssueIsWarning=reasonIssueIsWarning,
+                        conceptSum=totalConcept.qname, linkrole=contributingRel.linkrole, linkroleDefinition=linkroleDefinition,
                         reasonPresumedTotal=reasonPresumedTotal,
                         itemConcepts=', \n'.join(sorted(set(str(c.qname) for c in compatibleItemConcepts))),
                         missingConcepts = ', \n'.join(sorted(set(str(c.qname) for c in leastMissingItemsSet))),
