@@ -1855,19 +1855,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             if siblingConcept is not None:
                 if siblingConcept is totalConcept: # direct cycle loop likely, possibly among children of abstract sibling
                     break
+                if self.summationItemRelsSetAllELRs.isRelated(totalConcept, 'ancestral-sibling', siblingConcept):
+                    break # sibling independently contributes as sibling of totalConcept to grandfather total
+                if any(self.summationItemRelsSetAllELRs.isRelated(contributingItem, 'child', siblingConcept)
+                       for contributingItem in contributingItems):
+                    break # this subtotal is a breakdown of something already being considered
                 isContributingTotal = self.presumptionOfTotal(contributingRel, siblingRels, iContributingRel, isStatementSheet, True, False)
-                isNoncontributingTotal = False
-                isIndependentTotal = False
                 # contributing total may actually be separate non-running subtotal, if so don't include it here
                 if isContributingTotal:
-                    isIndependentTotal = self.summationItemRelsSetAllELRs.fromModelObject(siblingConcept)
-                    for contributingTotalParentRel in self.summationItemRelsSetAllELRs.toModelObject(siblingConcept):
-                        isIndependentTotal = True
-                        if self.summationItemRelsSetAllELRs.isRelated(contributingTotalParentRel.fromModelObject, 'child', totalConcept):
-                            isNoncontributingTotal = True
-                            break
-                if isNoncontributingTotal or isIndependentTotal:
-                    break
+                    if (self.summationItemRelsSetAllELRs.fromModelObject(siblingConcept) and not
+                        self.summationItemRelsSetAllELRs.toModelObject(siblingConcept)):
+                        break # sibling independently contributes as sibling of totalConcept as a root in another hierarchy
                 if siblingConcept.isAbstract:
                     childRels = parentChildRels.fromModelObject(siblingConcept)
                     self.checkForCalculations(parentChildRels, childRels, len(childRels), totalConcept, totalRel, reasonPresumedTotal, isStatementSheet, conceptsUsed, True, contributingItems) 
@@ -1965,8 +1963,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         itemConcepts=', \n'.join(sorted(set(str(c.qname) for c in compatibleItemConcepts))),
                         missingConcepts = ', \n'.join(sorted(set(str(c.qname) for c in leastMissingItemsSet))),
                         contextIDs=', '.join(sorted(set(f.contextID for f in compatibleFacts))))
+                leastMissingItemsSet = None #dereference, can't delete with Python 3.1
                 del foundSummationItemSet 
-                del leastMissingItemsSet
             del compatibleItemsFacts # dereference object references
         
 # for SBR 2.3.4.01
