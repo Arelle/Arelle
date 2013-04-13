@@ -107,13 +107,13 @@ def encoding(xml, default="utf-8"):
         if s.startswith(b'\xef\xbb\xbf'):
             return 'utf-8-sig'
         if s.startswith(b'\xff\xfe'):
-            return 'utf-16-le'
+            return 'utf-16'
         if s.startswith(b'\xfe\xff'):
-            return 'utf-16-be'
+            return 'utf-16'
         if s.startswith(b'\xff\xfe\x00\x00'):
-            return 'utf-32-le'
+            return 'utf-32'
         if s.startswith(b'\x00\x00\xfe\xff'):
-            return 'utf-32-be'
+            return 'utf-32'
         if b"x\0m\0l" in s:
             str = s.decode("utf-16")
         else:
