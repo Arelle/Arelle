@@ -243,11 +243,15 @@ class ModelRelationshipSet:
         if axis.endswith("self") and (modelTo is None or modelFrom == modelTo):
             return True
         isDescendantAxis = "descendant" in axis
+        if axis.startswith("ancestral-"): # allow ancestral-sibling...
+            if self.isRelated(modelFrom, axis[10:], modelTo): # any current-level sibling?
+                return True
+            return any(self.isRelated(modelRel.fromModelObject, axis, modelTo) # any ancestral sibling?
+                       for modelRel in self.toModelObject(modelFrom))
         if axis.startswith("sibling"):  # allow sibling-or-self or sibling-or-descendant
-            for modelRel in self.toModelObject(modelFrom):
-                modelFrom = modelRel.fromModelObject # assumes only one parent
-                break
             axis = axis[7:] # remove sibling, else recursion will loop
+            return any(self.isRelated(modelRel.fromModelObject, axis, modelTo)
+                       for modelRel in self.toModelObject(modelFrom))
         for modelRel in self.fromModelObject(modelFrom):
             toConcept = modelRel.toModelObject
             if modelTo is None or modelTo == toConcept:
