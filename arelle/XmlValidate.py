@@ -35,6 +35,7 @@ QNamePattern = re.compile("^([_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0
 namePattern = re.compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
                             r"[_\-\.:" 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
+
 NMTOKENPattern = re.compile(r"[_\-\.:" 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]+$")
 lexicalPatterns = {
@@ -46,6 +47,17 @@ lexicalPatterns = {
     "gMonth": re.compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"), 
     "language": re.compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),   
     }
+
+# patterns difficult to compile into python
+xmlSchemaPatterns = {
+    r"\c+": NMTOKENPattern,
+    r"\i\c*": namePattern,
+    r"[\i-[:]][\c-[:]]*": NCNamePattern,
+    }
+
+# patterns to replace \c and \i in names
+iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
+cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
 
 baseXsdTypePatterns = {
                 "Name": namePattern,
@@ -113,8 +125,11 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
             else:
                 baseXsdType = modelConcept.baseXsdType
                 facets = modelConcept.facets
-                if len(text) == 0 and modelConcept.default is not None:
-                    text = modelConcept.default
+                if len(text) == 0:
+                    if modelConcept.default is not None:
+                        text = modelConcept.default
+                    elif modelConcept.fixed is not None:
+                        text = modelConcept.fixed
         elif qnElt == XbrlConst.qnXbrldiExplicitMember: # not in DTS
             baseXsdType = "QName"
             type = None
@@ -130,7 +145,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
         isNil = isNillable and elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
         if attrQname is None:
             if text is not INVALIDixVALUE:
-                validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, facets)
+                validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, isNil, facets)
             if type is not None:
                 definedAttributes = type.attributes
             else:
@@ -226,14 +241,14 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
             if isinstance(child, ModelObject):
                 validate(modelXbrl, child, recurse, attrQname, ixFacts)
 
-def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False, facets=None):
+def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False, isNil=False, facets=None):
     if baseXsdType:
         try:
-            if (len(value) == 0 and
-                not attrTag is None and 
-                not isNillable and 
+            '''
+            if (len(value) == 0 and attrTag is None and not isNillable and 
                 baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN", "anyURI", "noContent")):
                 raise ValueError("missing value for not nillable element")
+            '''
             xValid = VALID
             whitespaceReplace = (baseXsdType == "normalizedString")
             whitespaceCollapse = (not whitespaceReplace and baseXsdType != "string")
@@ -243,7 +258,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     pattern = facets["pattern"]
                     # note multiple patterns are or'ed togetner, which isn't yet implemented!
                 if "whiteSpace" in facets:
-                    whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}
+                    whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}[facets["whiteSpace"]]
             if whitespaceReplace:
                 value = normalizeWhitespacePattern.sub(' ', value)
             elif whitespaceCollapse:
@@ -275,7 +290,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 # encode PSVI xValue similarly to Xerces and other implementations
                 xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                 sValue = value
-            elif not value: # rest of types get None if nil/empty value
+            elif not value and isNil and isNillable: # rest of types get None if nil/empty value
                 xValue = sValue = None
             elif baseXsdType in ("decimal", "float", "double"):
                 xValue = sValue = float(value)
@@ -359,8 +374,13 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             elif baseXsdType == "regex-pattern":
                 # for facet compiling
                 try:
-                    xValue = re.compile(value + "$") # must match whole string
                     sValue = value
+                    if value in xmlSchemaPatterns:
+                        xValue = xmlSchemaPatterns[value]
+                    else:
+                        if r"\i" in value or r"\c" in value:
+                            value = value.replace(r"\i", iNameChar).replace(r"\c", cNameChar)
+                        xValue = re.compile(value + "$") # must match whole string
                 except Exception as err:
                     raise ValueError(err)
             else:

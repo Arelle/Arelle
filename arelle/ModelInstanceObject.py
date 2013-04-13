@@ -132,7 +132,7 @@ class ModelFact(ModelObject):
     @property
     def concept(self):
         """(ModelConcept) -- concept of the fact."""
-        return self.elementDeclaration
+        return self.elementDeclaration()  # logical (fact) declaration in own modelXbrl, not physical element (if inline)
         
     @property
     def contextID(self):

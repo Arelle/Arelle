@@ -7,7 +7,7 @@ Created on Oct 3, 2010
 import os, sys
 from lxml import etree
 from xml.sax import SAXParseException
-from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate)
+from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate, XmlValidateSchema)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
@@ -629,6 +629,8 @@ class ModelDocument:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
                         self.basename,
                         err))
+        XmlValidateSchema.validate(self, rootElement, targetNamespace) # validate schema elements
+
             
     def schemaDiscoverChildElements(self, parentModelObject):
         # find roleTypes, elements, and linkbases
