@@ -343,11 +343,22 @@ def checkDTSdocument(val, modelDocument):
         if modelDocument.type == ModelDocument.Type.SCHEMA:
             if modelDocument.targetNamespace:
                 nsParts = modelDocument.targetNamespace.split("/")
-                # [0] = https, [1] = // [2] = nl.taxonomie  [3] = year
-                requiredNamespace = "http://www.nltaxonomie.nl/" + nsParts[3] + "/" + pathDir + "/" + modelDocument.basename[:-4]
-                requiredLinkrole = "http://www.nltaxonomie.nl/" + nsParts[3] + "/" + pathDir + "/"
+                # [0] = https, [1] = // [2] = nl.taxonomie  [3] = year or version
+                nsYrOrVer = nsParts[3]
+                requiredNamespace = "http://www.nltaxonomie.nl/" + nsYrOrVer + "/" + pathDir + "/" + modelDocument.basename[:-4]
+                requiredLinkrole = "http://www.nltaxonomie.nl/" + nsYrOrVer + "/" + pathDir + "/"
                 if modelDocument == modelXbrl.modelDocument:  # entry point
-                    requiredNamespace += '-' + nsParts[3]
+                    nsYr = "{year}"
+                    if '2009' <= nsParts[3] < '2020':  # must be a year, use as year
+                        nsYr = nsParts[3]
+                    else: # look for year in parts of basename of required namespace
+                        for nsPart in nsParts:
+                            for baseNamePart in nsPart.split('-'):
+                                if '2009' <= baseNamePart < '2020':
+                                    nsYr = baseNamePart
+                                    break
+                    if not requiredNamespace.endswith('-' + nsYr):
+                        requiredNamespace += '-' + nsYr
                 if not modelDocument.targetNamespace.startswith(requiredNamespace):
                     modelXbrl.error("SBR.NL.3.2.3.06",
                         _("Namespace URI's MUST be constructed like %(requiredNamespace)s: %(namespaceURI)s"),
@@ -359,7 +370,8 @@ def checkDTSdocument(val, modelDocument):
                 if isinstance(modelConcept, ModelConcept):
                     # 6.7.16 name not duplicated in standard taxonomies
                     name = modelConcept.get("name")
-                    if name: 
+                    if name:
+                        ''' removed per RH 2013-03-25
                         substititutionGroupQname = modelConcept.substitutionGroupQname
                         if substititutionGroupQname:
                             if name.endswith("Member") ^ (substititutionGroupQname.localName == "domainMemberItem" and
@@ -392,6 +404,7 @@ def checkDTSdocument(val, modelDocument):
                                 modelXbrl.error("SBR.NL.3.2.5.16",
                                     _("Concept %(concept)s must end in Title to be in sbr:presentationItem substitution group"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
+                        ''' 
                         if len(name) > 200:
                             modelXbrl.error("SBR.NL.3.2.12.02" if modelConcept.isLinkPart 
                                                 else "SBR.NL.3.2.5.21" if (modelConcept.isItem or modelConcept.isTuple)
