@@ -192,11 +192,22 @@ class ModelObject(etree.ElementBase):
         except AttributeError:
             self._elementQname = qname(self)
             return self._elementQname
+        
+    def vQname(self, validationModelXbrl=None):
+        if validationModelXbrl is not None and validationModelXbrl != self.modelXbrl:
+            # use physical element declaration in specified modelXbrl
+            return self.elementQname
+        # use logical qname (inline element's fact qname, or concept's qname)
+        return self.qname
+             
     
-    @property
-    def elementDeclaration(self):
-        concept = self.modelXbrl.qnameConcepts.get(self.qname)
-        return concept
+    def elementDeclaration(self, validationModelXbrl=None):
+        elementModelXbrl = self.modelXbrl
+        if validationModelXbrl is not None and validationModelXbrl != elementModelXbrl: 
+            # use physical element declaration in specified modelXbrl
+            return validationModelXbrl.qnameConcepts.get(self.elementQname)
+        # use logical element declaration in element's own modelXbrl
+        return elementModelXbrl.qnameConcepts.get(self.qname)
     
     @property
     def parentQname(self):

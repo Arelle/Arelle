@@ -33,8 +33,8 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
                         # for any, check namespace overlap
                         if (isinstance(particle, ModelAny) or 
                             (elementDeclaration is not None and 
-                             (elt.qname == elementDeclaration.qname or 
-                              elt.elementDeclaration.substitutesForQname(elementDeclaration.qname)))):
+                             (elt.vQname(modelXbrl) == elementDeclaration.qname or 
+                              elt.elementDeclaration(modelXbrl).substitutesForQname(elementDeclaration.qname)))):
                             occurences += 1
                             validate(modelXbrl, elt, ixFacts=ixFacts)
                             iNextChild += 1
