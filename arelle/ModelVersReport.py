@@ -2,7 +2,7 @@
 Created on Nov 11, 2010
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+(c) Copyright 2010-2013 Mark V Systems Limited, All rights reserved.
 '''
 import os, re
 from collections import defaultdict
@@ -315,7 +315,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             #'<?xml version="1.0" encoding="UTF-8"?>'
             '<nsmap>'  # for lxml expandable namespace purposes 
             '<report' 
-            '  xmlns="http://xbrl.org/2010/versioning-base"' 
+            '  xmlns="http://xbrl.org/2013/versioning-base"' 
             '  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' 
             '  xmlns:link="http://www.xbrl.org/2003/linkbase"' 
             '  xmlns:xlink="http://www.w3.org/1999/xlink"' 
@@ -346,7 +346,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         self.xmlDocument = etree.parse(file,parser=self.parser,base_url=self.uri)
         file.close()
         self.xmlDocument.getroot().init(self)
-        for self.reportElement in  self.xmlDocument.iter(tag="{http://xbrl.org/2010/versioning-base}report"):
+        for self.reportElement in  self.xmlDocument.iter(tag="{http://xbrl.org/2013/versioning-base}report"):
             self.xmlRootElement = self.reportElement
         self.actionNum = 1
         

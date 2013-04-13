@@ -530,11 +530,11 @@ class ModelAspectProperty(ModelVersObject):
 
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((
-    (qname(XbrlConst.ver, "assignment"), ModelAssignment),
-    (qname(XbrlConst.ver, "action"), ModelAction),
-    (qname(XbrlConst.ver, "namespaceRename"), ModelNamespaceRename),
-    (qname(XbrlConst.ver, "roleChange"), ModelRoleChange),
     # 2010 names
+    (qname(XbrlConst.ver10, "assignment"), ModelAssignment),
+    (qname(XbrlConst.ver10, "action"), ModelAction),
+    (qname(XbrlConst.ver10, "namespaceRename"), ModelNamespaceRename),
+    (qname(XbrlConst.ver10, "roleChange"), ModelRoleChange),
     (qname(XbrlConst.vercb, "conceptAdd"), ModelConceptUseChange),
     (qname(XbrlConst.vercb, "conceptDelete"), ModelConceptUseChange),
     (qname(XbrlConst.vercb, "conceptRename"), ModelConceptUseChange),
@@ -587,7 +587,11 @@ elementSubstitutionModelClass.update((
     (qname(XbrlConst.veria, "multiplyBy"), ModelMeasureAspect),
     (qname(XbrlConst.veria, "divideBy"), ModelMeasureAspect),
     (qname(XbrlConst.veria, "measure"), ModelAspectProperty),
-    # 2012 names
+    # 2013 names
+    (qname(XbrlConst.ver, "assignment"), ModelAssignment),
+    (qname(XbrlConst.ver, "action"), ModelAction),
+    (qname(XbrlConst.ver, "namespaceRename"), ModelNamespaceRename),
+    (qname(XbrlConst.ver, "roleChange"), ModelRoleChange),
     (qname(XbrlConst.vercu, "conceptAdd"), ModelConceptUseChange),
     (qname(XbrlConst.vercu, "conceptDelete"), ModelConceptUseChange),
     (qname(XbrlConst.vercu, "conceptRename"), ModelConceptUseChange),

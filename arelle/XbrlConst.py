@@ -111,16 +111,17 @@ xlinkLinkbase = "http://www.w3.org/1999/xlink/properties/linkbase"
 
 utr = "http://www.xbrl.org/2009/utr"
 
-ver = "http://xbrl.org/2010/versioning-base"
+ver10 = "http://xbrl.org/2010/versioning-base"
 # 2010 names
 vercb = "http://xbrl.org/2010/versioning-concept-basic"
 verce = "http://xbrl.org/2010/versioning-concept-extended"
 verrels = "http://xbrl.org/2010/versioning-relationship-sets"
 veria = "http://xbrl.org/2010/versioning-instance-aspects"
-# 2012 names
-vercu = "http://xbrl.org/2010/versioning-concept-use"
-vercd = "http://xbrl.org/2010/versioning-concept-details"
-verdim = "http://xbrl.org/2010/versioning-dimensions"
+# 2013 names
+ver = "http://xbrl.org/2013/versioning-base"
+vercu = "http://xbrl.org/2013/versioning-concept-use"
+vercd = "http://xbrl.org/2013/versioning-concept-details"
+verdim = "http://xbrl.org/2013/versioning-dimensions"
 verPrefixNS = {"ver":ver,
                "vercu":vercu,
                "vercd":vercd,
