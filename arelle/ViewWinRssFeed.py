@@ -15,9 +15,9 @@ from arelle import (ViewWinTree, ModelDocument)
 def viewRssFeed(modelXbrl, tabWin):
     view = ViewRssFeed(modelXbrl, tabWin)
     modelXbrl.modelManager.showStatus(_("viewing RSS feed"))
-    view.treeView["columns"] = ("form", "filingDate", "cik", "status", "period", "fiscalYrEnd")
+    view.treeView["columns"] = ("form", "filingDate", "cik", "status", "period", "fiscalYrEnd", "results")
     view.treeView.column("#0", width=240, anchor="w")
-    view.treeView.heading("#0", text="ID")
+    view.treeView.heading("#0", text="Company Name")
     view.treeView.column("form", width=30, anchor="w")
     view.treeView.heading("form", text="Form")
     view.treeView.column("filingDate", width=60, anchor="w")
@@ -30,6 +30,8 @@ def viewRssFeed(modelXbrl, tabWin):
     view.treeView.heading("period", text="Period")
     view.treeView.column("fiscalYrEnd", width=25, anchor="w")
     view.treeView.heading("fiscalYrEnd", text="Yr End")
+    view.treeView.column("results", width=100, anchor="w")
+    view.treeView.heading("results",  text="Results")
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -71,6 +73,8 @@ class ViewRssFeed(ViewWinTree.ViewTree):
             self.treeView.set(node, "status", rssItem.status)
             self.treeView.set(node, "period", rssItem.period)
             self.treeView.set(node, "fiscalYrEnd", rssItem.fiscalYearEnd)
+            self.treeView.set(node, "results", " ".join(str(result) for result in (rssItem.results or [])) +
+                                                ((" " + str(rssItem.assertions)) if rssItem.assertions else ""))
             self.id += 1;
         else:
             pass
@@ -106,16 +110,14 @@ class ViewRssFeed(ViewWinTree.ViewTree):
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, rssItem):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            testcaseVariationId = modelObject.objectId()
-            if self.treeView.exists(testcaseVariationId):
-                if hasattr(modelObject, "status"):
-                    self.treeView.set(testcaseVariationId, "status", modelObject.status)
-                if hasattr(modelObject, "actual"):
-                    self.treeView.set(testcaseVariationId, "actual", " ".join(
-                          str(code) for code in modelObject.actual))
-                self.treeView.see(testcaseVariationId)
-                self.treeView.selection_set(testcaseVariationId)
+            rssItemId = rssItem.objectId()
+            if self.treeView.exists(rssItemId):
+                self.treeView.set(rssItemId, "status", rssItem.status)
+                self.treeView.set(rssItemId, "results", " ".join(str(result) for result in (rssItem.results or [])) +
+                                  ((" " + str(rssItem.assertions)) if rssItem.assertions else ""))
+                self.treeView.see(rssItemId)
+                self.treeView.selection_set(rssItemId)
             self.blockViewModelObject -= 1

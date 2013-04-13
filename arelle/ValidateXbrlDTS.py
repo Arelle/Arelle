@@ -437,12 +437,13 @@ def checkElements(val, modelDocument, parent):
                             if qname(elt, ref) not in {"attribute":val.modelXbrl.qnameAttributes, 
                                                        "element":val.modelXbrl.qnameConcepts, 
                                                        "attributeGroup":val.modelXbrl.qnameAttributeGroups}[localName]:
-                                val.modelXbrl.error("xmlschema:refNotFound",
+                                val.modelXbrl.error("xmlSchema:refNotFound",
                                     _("%(element)s ref %(ref)s not found"),
                                     modelObject=elt, element=localName, ref=ref)
                         if val.validateSBRNL and localName == "attribute":
                             val.modelXbrl.error("SBR.NL.2.2.11.06",
                                 _('xs:attribute must not be used'), modelObject=elt)
+                        
                     if localName == "appinfo":
                         if val.validateSBRNL:
                             if (parent.localName != "annotation" or parent.namespaceURI != XbrlConst.xsd or

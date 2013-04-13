@@ -44,7 +44,7 @@ class ModelRssItem(ModelObject):
                 self.status = _("not tested")
         except AttributeError:
             self.status = _("not tested")
-        self.results = []
+        self.results = None
         self.assertions = None
         
     @property
@@ -158,25 +158,20 @@ class ModelRssItem(ModelObject):
         
     def setResults(self, modelXbrl):
         self.results = []
+        self.assertionUnsuccessful = False
         # put error codes first, sorted, then assertion result (dict's)
+        self.status = "pass"
         for error in modelXbrl.errors:
             if isinstance(error,dict):  # assertion results
                 self.assertions = error
-            else:   # error code results
-                self.results.append(error)
-        self.results.sort()
-        self.assertionUnsuccessful = False
-        for error in self.results:
-            if isinstance(error,dict):
-                self.results.append(error)
-                # check if any not successful
                 for countSuccessful, countNotsuccessful in error.items():
                     if countNotsuccessful > 0:
                         self.assertionUnsuccessful = True
-        if self.results:
-            self.status = " \n".join(str(result) for result in self.results)
-        else:
-            self.status = "pass"
+                        self.status = "unsuccessful"
+            else:   # error code results
+                self.results.append(error)
+                self.status = "fail" # error code
+        self.results.sort()
     
     @property
     def propertyView(self):

@@ -81,6 +81,8 @@ class Validate:
                     reportFile=self.modelXbrl.modelDocument.basename, error=err,
                     #traceback=traceback.format_tb(sys.exc_info()[2]),
                     exc_info=True)
+        elif self.modelXbrl.modelDocument.type == Type.RSSFEED:
+            self.validateRssFeed()
         else:
             try:
                 self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
@@ -93,6 +95,30 @@ class Validate:
                     # traceback=traceback.format_tb(sys.exc_info()[2]),
                     exc_info=True)
         self.close()
+        
+    def validateRssFeed(self):
+        self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
+        from arelle.FileSource import openFileSource
+        for rssItem in self.modelXbrl.modelDocument.rssItems:
+            self.modelXbrl.info("info", _("RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
+                modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)
+            modelXbrl = None
+            try:
+                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
+                                           openFileSource(rssItem.zippedUrl, self.modelXbrl.modelManager.cntlr),
+                                           _("validating"))
+                self.instValidator.validate(modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
+                self.instValidator.close()
+                rssItem.setResults(modelXbrl)
+                self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, rssItem.objectId())
+                modelXbrl.close()
+                del modelXbrl  # completely dereference
+            except Exception as err:
+                self.modelXbrl.error("exception",
+                    _("RSS item validation exception: %(error)s, instance: %(instance)s"),
+                    modelXbrl=(self.modelXbrl, modelXbrl),
+                    instance=rssItem.zippedUrl, error=err,
+                    exc_info=True)
 
     def validateTestcase(self, testcase):
         self.modelXbrl.info("info", "Testcase", modelDocument=testcase)
@@ -108,8 +134,12 @@ class Validate:
                 inputDTSes = defaultdict(list)
                 baseForElement = testcase.baseForElement(modelTestcaseVariation)
                 # try to load instance document
-                self.modelXbrl.info("info", _("Variation %(id)s %(name)s: %(expected)s"),
-                    modelObject=modelTestcaseVariation, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, expected=modelTestcaseVariation.expected)
+                self.modelXbrl.info("info", _("Variation %(id)s %(name)s: %(expected)s - %(description)s"),
+                                    modelObject=modelTestcaseVariation, 
+                                    id=modelTestcaseVariation.id, 
+                                    name=modelTestcaseVariation.name, 
+                                    expected=modelTestcaseVariation.expected, 
+                                    description=modelTestcaseVariation.description)
                 errorCaptureLevel = modelTestcaseVariation.severityLevel # default is INCONSISTENCY
                 for readMeFirstUri in modelTestcaseVariation.readMeFirstUris:
                     if isinstance(readMeFirstUri,tuple):
