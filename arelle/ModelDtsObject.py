@@ -848,7 +848,8 @@ class ModelAttributeGroup(ModelNamableTerm):
             return self._attributes
         except AttributeError:
             self._attributes = {}
-            attrs, attrGroups = XmlUtil.schemaAttributesGroups(self)
+            attrs, attrWildcardElts, attrGroups = XmlUtil.schemaAttributesGroups(self)
+            self._attributeWildcards = set(attrWildcardElts)
             for attrGroupRef in attrGroups:
                 attrGroupDecl = attrGroupRef.dereference()
                 if attrGroupDecl is not None:
@@ -856,11 +857,20 @@ class ModelAttributeGroup(ModelNamableTerm):
                         attrDecl = attrRef.dereference()
                         if attrDecl is not None:
                             self._attributes[attrDecl.qname] = attrDecl
+                    self._attributeWildcards.update(attrGroupDecl.attributeWildcards)
             for attrRef in attrs:
                 attrDecl = attrRef.dereference()
                 if attrDecl is not None:
                     self._attributes[attrDecl.qname] = attrDecl
             return self._attributes
+        
+    @property
+    def attributeWildcards(self):
+        try:
+            return self._attributeWildcards
+        except AttributeError:
+            self.attributes # loads attrWildcards
+            return self._attributeWildcards
         
     def dereference(self):
         """(ModelAttributeGroup) -- If element is a ref (instead of name), provides referenced modelAttributeGroup object, else self"""
@@ -1068,7 +1078,8 @@ class ModelType(ModelNamableTerm):
             return self._attributes
         except AttributeError:
             self._attributes = {}
-            attrs, attrGroups = XmlUtil.schemaAttributesGroups(self)
+            attrs, attrWildcardElts, attrGroups = XmlUtil.schemaAttributesGroups(self)
+            self._attributeWildcards = attrWildcardElts
             for attrRef in attrs:
                 attrDecl = attrRef.dereference()
                 if attrDecl is not None:
@@ -1080,7 +1091,22 @@ class ModelType(ModelNamableTerm):
                         attrDecl = attrRef.dereference()
                         if attrDecl is not None:
                             self._attributes[attrDecl.qname] = attrDecl
+                    self._attributeWildcards.extend(attrGroupDecl.attributeWildcards)
+            typeDerivedFrom = self.typeDerivedFrom
+            for t in typeDerivedFrom if isinstance(typeDerivedFrom, list) else [typeDerivedFrom]:
+                if isinstance(t, ModelType):
+                    self._attributes.update(t.attributes)
+                    self._attributeWildcards.extend(t.attributeWildcards)
             return self._attributes
+                
+    @property
+    def attributeWildcards(self):
+        """(dict) -- List of wildcard namespace strings (e.g., ##other)"""
+        try:
+            return self._attributeWildcards
+        except AttributeError:
+            self.attributes # loads attrWildcards
+            return self._attributeWildcards
 
     @property
     def requiredAttributeQnames(self):
@@ -1259,6 +1285,26 @@ class ModelAny(ModelObject, ModelParticle):
 
     def dereference(self):
         return self
+        
+    def allowsNamespace(self, namespaceURI):
+        try:
+            if self._isAny:
+                return True
+            if not namespaceURI:
+                return "##local" in self._namespaces
+            if namespaceURI in self._namespaces:
+                return True
+            if namespaceURI == self.modelDocument.targetNamespace:
+                if "##targetNamespace" in self._namespaces:
+                    return True
+            else: # not equal namespaces
+                if "##other" in self._namespaces:
+                    return True
+            return False        
+        except AttributeError:
+            self._namespaces = self.get("namespace", '').split()
+            self._isAny = (not self._namespaces) or "##any" in self._namespaces
+            return self.allowsNamespace(namespaceURI)
 
 class ModelAnyAttribute(ModelObject):
     """
@@ -1271,6 +1317,26 @@ class ModelAnyAttribute(ModelObject):
     """
     def init(self, modelDocument):
         super(ModelAnyAttribute, self).init(modelDocument)
+        
+    def allowsNamespace(self, namespaceURI):
+        try:
+            if self._isAny:
+                return True
+            if not namespaceURI:
+                return "##local" in self._namespaces
+            if namespaceURI in self._namespaces:
+                return True
+            if namespaceURI == self.modelDocument.targetNamespace:
+                if "##targetNamespace" in self._namespaces:
+                    return True
+            else: # not equal namespaces
+                if "##other" in self._namespaces:
+                    return True
+            return False        
+        except AttributeError:
+            self._namespaces = self.get("namespace", '').split()
+            self._isAny = (not self._namespaces) or "##any" in self._namespaces
+            return self.allowsNamespace(namespaceURI)
 
 class ModelEnumeration(ModelNamableTerm):
     """
