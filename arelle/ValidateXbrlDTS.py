@@ -615,6 +615,12 @@ def checkElements(val, modelDocument, parent):
                                 modelObject=elt, element=elt.qname, refURI=refUri)
                         else:
                             refs[refUri] = hrefUri
+                            roleTypeElt = elt.resolveUri(uri=hrefAttr)
+                            if roleTypeElt not in roleTypeDefs[refUri]:
+                                val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Mismatch".format(elt.localName),
+                                    _("%(element)s %(refURI)s defined with different URI"),
+                                    modelObject=(elt,roleTypeElt), element=elt.qname, refURI=refUri)
+                            
                         
                         if val.validateDisclosureSystem:
                             if elt.localName == "arcroleRef":
