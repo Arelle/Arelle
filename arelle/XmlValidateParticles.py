@@ -29,11 +29,14 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
                 elementDeclaration = particle.dereference()
                 while iNextChild < len(children):
                     elt = children[iNextChild]
+                    vQname = elt.vQname(modelXbrl) # takes care of elements inside inline or other instances
                     if isinstance(elt, ModelObject):
                         # for any, check namespace overlap
-                        if (isinstance(particle, ModelAny) or 
-                            (elementDeclaration is not None and 
-                             (elt.vQname(modelXbrl) == elementDeclaration.qname or 
+                        if ((isinstance(particle, ModelAny) and 
+                             particle.allowsNamespace(vQname.namespaceURI)) or 
+                            (isinstance(particle, ModelConcept) and
+                             elementDeclaration is not None and 
+                             (vQname == elementDeclaration.qname or 
                               elt.elementDeclaration(modelXbrl).substitutesForQname(elementDeclaration.qname)))):
                             occurences += 1
                             validate(modelXbrl, elt, ixFacts=ixFacts)

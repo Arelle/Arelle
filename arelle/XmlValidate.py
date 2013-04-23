@@ -206,6 +206,19 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                         element=qnElt,
                         typeName=baseXsdType,
                         attributes=','.join(str(a) for a in missingAttributes))
+                extraAttributes = presentAttributes - _DICT_SET(definedAttributes.keys()) - XbrlConst.builtinAttributes
+                if extraAttributes:
+                    attributeWildcards = type.attributeWildcards
+                    extraAttributes -= set(a
+                                           for a in extraAttributes
+                                           if validateAnyWildcard(qnElt, a, attributeWildcards))
+                    if extraAttributes:
+                        modelXbrl.error("xmlSchema:attributesExtraneous",
+                            _("Element %(element)s type %(typeName)s extraneous attributes: %(attributes)s"),
+                            modelObject=elt,
+                            element=qnElt,
+                            typeName=baseXsdType,
+                            attributes=','.join(str(a) for a in extraAttributes))
                 # add default attribute values
                 for attrQname in (type.defaultAttributeQnames - presentAttributes):
                     modelAttr = type.attributes[attrQname]
@@ -455,3 +468,10 @@ def validateFacet(typeElt, facetElt):
     if facetElt.xValid == VALID:
         return facetElt.xValue
     return None
+
+def validateAnyWildcard(qnElt, qnAttr, attributeWildcards):
+    # note wildcard is a set of possibly multiple values from inherited attribute groups
+    for attributeWildcard in attributeWildcards:
+        if attributeWildcard.allowsNamespace(qnAttr.namespaceURI):
+            return True
+    return False

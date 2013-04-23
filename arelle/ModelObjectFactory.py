@@ -66,7 +66,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                 elif ln == "any":
                     return ModelAny
                 elif ln == "anyAttribute":
-                    return ModelAttribute
+                    return ModelAnyAttribute
                 elif ln == "enumeration":
                     return ModelEnumeration
             elif ns == XbrlConst.link:

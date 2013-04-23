@@ -356,11 +356,13 @@ def schemaFacets(element, facetTags, facets=None):
             schemaFacets(child, facetTags, facets)
     return facets
 
-def schemaAttributesGroups(element, attributes=None, attributeGroups=None):
-    if attributes is None: attributes = []; attributeGroups = []
+def schemaAttributesGroups(element, attributes=None, attributeWildcards=None, attributeGroups=None):
+    if attributes is None: attributes = []; attributeWildcards = []; attributeGroups = []
     for child in element.iterchildren():
         if child.tag == "{http://www.w3.org/2001/XMLSchema}attribute":
             attributes.append(child) 
+        elif child.tag == "{http://www.w3.org/2001/XMLSchema}anyAttribute":
+            attributeWildcards.append(child) 
         elif child.tag == "{http://www.w3.org/2001/XMLSchema}attributeGroup":
             attributeGroups.append(child) 
         elif child.tag in {"{http://www.w3.org/2001/XMLSchema}complexType",
@@ -370,8 +372,8 @@ def schemaAttributesGroups(element, attributes=None, attributeGroups=None):
                            "{http://www.w3.org/2001/XMLSchema}restriction",
                            "{http://www.w3.org/2001/XMLSchema}extension"
                            }:
-            schemaAttributesGroups(child, attributes=attributes, attributeGroups=attributeGroups)
-    return (attributes, attributeGroups)
+            schemaAttributesGroups(child, attributes, attributeWildcards, attributeGroups)
+    return (attributes, attributeWildcards, attributeGroups)
 
 def emptyContentModel(element):
     for child in element.iterchildren():
