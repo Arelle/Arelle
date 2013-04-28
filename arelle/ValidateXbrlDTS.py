@@ -22,6 +22,21 @@ link_loc_spec_sections = {"labelLink":"5.2.2.1",
                           "definitionLink":"5.2.6.1",
                           "presentationLink":"5.2.4.1",
                           "footnoteLink":"4.11.1.1"}
+standard_roles_for_ext_links = ("xbrl.3.5.3", (XbrlConst.defaultLinkRole,))
+standard_roles_definitions = {
+    "definitionLink": standard_roles_for_ext_links, 
+    "calculationLink": standard_roles_for_ext_links, 
+    "presentationLink": standard_roles_for_ext_links,
+    "labelLink": standard_roles_for_ext_links, 
+    "referenceLink": standard_roles_for_ext_links, 
+    "footnoteLink": standard_roles_for_ext_links,
+    "label": ("xbrl.5.2.2.2.2", XbrlConst.standardLabelRoles),
+    "reference": ("xbrl.5.2.3.2.1", XbrlConst.standardReferenceRoles),
+    "footnote": ("xbrl.4.11.1.2", (XbrlConst.footnote,)),
+    "linkbaseRef": ("xbrl.4.3.4", XbrlConst.standardLinkbaseRefRoles),
+    "loc": ("xbrl.3.5.3.7", ())
+    }
+standard_roles_other = ("xbrl.5.1.3", ())
 
 def arcFromConceptQname(arcElement):
     modelRelationship = baseSetRelationship(arcElement)
@@ -725,7 +740,14 @@ def checkElements(val, modelDocument, parent):
                         val.modelXbrl.error("xbrlgene:nonAbsoluteResourceRoleURI",
                             _("Generic resource role %(xlinkRole)s is not absolute"),
                             modelObject=elt, xlinkRole=xlinkRole)
-                elif not XbrlConst.isStandardRole(xlinkRole):
+                elif XbrlConst.isStandardRole(xlinkRole):
+                    if elt.namespaceURI == XbrlConst.link:
+                        errCode, definedRoles = standard_roles_definitions.get(elt.localName, standard_roles_other)
+                        if xlinkRole not in definedRoles:
+                            val.modelXbrl.error(errCode,
+                                _("Standard role %(xlinkRole)s is not defined for %(element)s"),
+                                modelObject=elt, xlinkRole=xlinkRole, element=elt.qname)
+                else:  # custom role
                     if xlinkRole not in val.roleRefURIs:
                         if XbrlConst.isStandardResourceOrExtLinkElement(elt):
                             val.modelXbrl.error("xbrl.3.5.2.4:missingRoleRef",
