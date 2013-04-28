@@ -373,11 +373,11 @@ def isNumericXsdType(xsdType):
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte", "decimal", "float", "double"}
-
-standardRoles = {   "http://www.xbrl.org/2003/role/label",
+    
+standardLabelRoles = {
+                    "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/terseLabel",
                     "http://www.xbrl.org/2003/role/verboseLabel",
-                    "http://www.xbrl.org/2003/role/link",
                     "http://www.xbrl.org/2003/role/positiveLabel",
                     "http://www.xbrl.org/2003/role/positiveTerseLabel",
                     "http://www.xbrl.org/2003/role/positiveVerboseLabel",
@@ -396,7 +396,9 @@ standardRoles = {   "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/presentationGuidance",
                     "http://www.xbrl.org/2003/role/measurementGuidance",
                     "http://www.xbrl.org/2003/role/commentaryGuidance",
-                    "http://www.xbrl.org/2003/role/exampleGuidance",
+                    "http://www.xbrl.org/2003/role/exampleGuidance"}
+
+standardReferenceRoles = {
                     "http://www.xbrl.org/2003/role/reference",
                     "http://www.xbrl.org/2003/role/definitionRef",
                     "http://www.xbrl.org/2003/role/disclosureRef",
@@ -406,12 +408,17 @@ standardRoles = {   "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/presentationRef",
                     "http://www.xbrl.org/2003/role/measurementRef",
                     "http://www.xbrl.org/2003/role/commentaryRef",
-                    "http://www.xbrl.org/2003/role/exampleRef",
+                    "http://www.xbrl.org/2003/role/exampleRef"}
+
+standardLinkbaseRefRoles = {
                     "http://www.xbrl.org/2003/role/calculationLinkbaseRef",
                     "http://www.xbrl.org/2003/role/definitionLinkbaseRef",
                     "http://www.xbrl.org/2003/role/labelLinkbaseRef",
                     "http://www.xbrl.org/2003/role/presentationLinkbaseRef",
-                    "http://www.xbrl.org/2003/role/referenceLinkbaseRef",
+                    "http://www.xbrl.org/2003/role/referenceLinkbaseRef"}
+
+standardRoles = standardLabelRoles | standardReferenceRoles | standardLinkbaseRefRoles | {   
+                    "http://www.xbrl.org/2003/role/link",
                     "http://www.xbrl.org/2003/role/footnote"}
 
 def isStandardRole(role):
