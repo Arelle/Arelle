@@ -272,7 +272,13 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
     importSchemaLocation = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relativeUrl, baseUrl)
     doc = load(modelXbrl, importSchemaLocation, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element)
     if doc:
-        doc.inDTS = False
+        if doc.targetNamespace != namespace:
+            modelXbrl.error("xmlSchema1.4.2.3:refSchemaNamespace",
+                _("SchemaLocation of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s"),
+                modelObject=element, fileName=baseUrl,
+                namespace=namespace, targetNamespace=doc.targetNamespace)
+        else:
+            doc.inDTS = False
     return doc
             
 def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None):
