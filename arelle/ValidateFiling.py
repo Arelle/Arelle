@@ -1741,11 +1741,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 parent = rel.fromModelObject
                 if (len(siblingRels) > 1 and
                     iSibling == len(siblingRels) - 1 and 
+                    parent is not None and
                     parent.name not in {
                         "SupplementalCashFlowInformationAbstract"
                     }):
                     preceedingSibling = siblingRels[iSibling - 1].toModelObject
-                    if preceedingSibling.isMonetary:
+                    if preceedingSibling is not None and preceedingSibling.isMonetary:
                         # last fact, may be total
                         if isStatementSheet:
                             # check if facts add up??
