@@ -178,7 +178,10 @@ class View:
                 else:
                     # problem, error message? unexpected indent
                     parentElt = self.docEltLevels[0] 
-                rowElt = etree.SubElement(parentElt, xmlRowElementName or self.xmlRowElementName, attrib=xmlRowEltAttr)
+                # escape attributes content
+                escapedRowEltAttr = dict((k, v.replace("&","&amp;").replace("<","&lt;"))
+                                         for k,v in xmlRowEltAttr.items())
+                rowElt = etree.SubElement(parentElt, xmlRowElementName or self.xmlRowElementName, attrib=escapedRowEltAttr)
                 if treeIndent + 1 >= len(self.docEltLevels): # extend levels as needed
                     for extraColIndex in range(len(self.docEltLevels) - 1, treeIndent + 1):
                         self.docEltLevels.append(None)

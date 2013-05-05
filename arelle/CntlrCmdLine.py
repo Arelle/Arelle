@@ -130,6 +130,12 @@ def parseAndRun(args):
                       help=_("Write dimensions (of definition) linkbase into FILE"))
     parser.add_option("--formulae", "--htmlFormulae", action="store", dest="formulaeFile",
                       help=_("Write formulae linkbase into FILE"))
+    parser.add_option("--viewArcrole", action="store", dest="viewArcrole",
+                      help=_("Write linkbase relationships for viewArcrole into viewFile"))
+    parser.add_option("--viewarcrole", action="store", dest="viewArcrole", help=SUPPRESS_HELP)
+    parser.add_option("--viewFile", action="store", dest="viewFile",
+                      help=_("Write linkbase relationships for viewArcrole into viewFile"))
+    parser.add_option("--viewfile", action="store", dest="viewFile", help=SUPPRESS_HELP)
     parser.add_option("--testReport", "--csvTestReport", action="store", dest="testReport",
                       help=_("Write test report of validation (of test cases) into FILE"))
     parser.add_option("--testreport", "--csvtestreport", action="store", dest="testReport", help=SUPPRESS_HELP)
@@ -263,7 +269,7 @@ def parseAndRun(args):
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.disclosureSystemName,
                 options.utrValidate, options.infosetValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
-                options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile,
+                options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile, options.viewArcrole, options.viewFile,
                 options.logFile, options.logFormat, options.logLevel, options.logLevelFilter, options.logCodeFilter, options.formulaParamExprResult, options.formulaParamInputValue,
                 options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
                 options.formulaCallExprResult, options.formulaVarSetExprEval, options.formulaVarSetExprResult,
@@ -606,6 +612,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang)
                 if options.formulaeFile:
                     ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
+                if options.viewArcrole and options.viewFile:
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang)
                 for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                     pluginXbrlMethod(self, options, modelXbrl)
                                         

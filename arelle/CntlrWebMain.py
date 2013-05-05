@@ -140,6 +140,7 @@ def validation(file=None):
     requestPathParts = request.urlparts[2].split('/')
     isValidation = 'validation' == requestPathParts[-1] or 'validation' == requestPathParts[-2]
     view = request.query.view
+    viewArcrole = request.query.viewArcrole
     if request.method == 'POST':
         sourceZipStream = request.body
         mimeType = request.get_header("Content-Type")
@@ -147,15 +148,15 @@ def validation(file=None):
             errors.append(_("POST must provide a zip file, Content-Type '{0}' not recognized as a zip file.").format(mimeType))
     else:
         sourceZipStream = None
-    if not view:
+    if not view and not viewArcrole:
         if requestPathParts[-1] in supportedViews:
             view = requestPathParts[-1]
     if isValidation:
-        if view:
+        if view or viewArcrole:
             errors.append(_("Only validation or one view can be specified in one requested."))
         if media not in ('xml', 'xhtml', 'html', 'json', 'text'):
             errors.append(_("Media '{0}' is not supported for validation (please select xhtml, html, xml, json or text)").format(media))
-    elif view:
+    elif view or viewArcrole:
         if media not in ('xml', 'xhtml', 'html', 'csv', 'json'):
             errors.append(_("Media '{0}' is not supported for view (please select xhtml, html, xml, csv, or json)").format(media))
     elif requestPathParts[-1] not in ("open", "close"):                
@@ -184,7 +185,7 @@ def validation(file=None):
                 setattr(options, "formulaAction", "run")
             elif value == "standard-except-formula":
                 setattr(options, "formulaAction", "none")
-        elif key in("media", "view"):
+        elif key in("media", "view", "viewArcrole"):
             pass
         elif key in validationOptions:
             optionKey, optionValue = validationOptions[key]
@@ -203,6 +204,10 @@ def validation(file=None):
     elif view:
         viewFile = FileNamedStringIO(media)
         setattr(options, view + "File", viewFile)
+    elif viewArcrole:
+        viewFile = FileNamedStringIO(media)
+        setattr(options, "viewArcrole", viewArcrole)
+        setattr(options, "viewFile", viewFile)
     return runOptionsAndGetResult(options, media, viewFile, sourceZipStream)
     
 def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
@@ -503,6 +508,7 @@ as follows:</td></tr>
 <br/><code>json</code>: JSON text results.</td></tr> 
 <tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.</td></tr> 
 <tr><td style="text-indent: 1em;">view</td><td>Alternate way to specify view by a parameter.</td></tr> 
+<tr><td style="text-indent: 1em;">viewArcrole</td><td>Alternate way to specify view by indicating arcrole desired.</td></tr> 
 <tr><td style="text-indent: 1em;">import</td><td>A list of files to import to the DTS, such as additional formula 
 or label linkbases.  Multiple file names are separated by a '|' character.</td></tr> 
 <tr><td style="text-indent: 1em;">factListCols</td><td>A list of column names for facts list.  Multiple names are separated by a space or comma characters.

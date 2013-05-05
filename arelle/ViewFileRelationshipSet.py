@@ -4,7 +4,7 @@ Created on Oct 6, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelObject, ModelDtsObject, XbrlConst, ViewFile
+from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 import os
 
@@ -18,14 +18,21 @@ class ViewRelationshipSet(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, labelrole, lang):
         super(ViewRelationshipSet, self).__init__(modelXbrl, outfile, header, lang)
         self.labelrole = labelrole
+        self.isResourceArcrole = False
         
     def view(self, arcrole, linkrole=None, linkqname=None, arcqname=None):
         # determine relationships indent depth for dimensions linkbases
         # set up treeView widget and tabbed pane
-        if arcrole == "XBRL-dimensions":    # add columns for dimensional information
-            heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
+        if arcrole == XbrlConst.parentChild: # extra columns
+            heading = ["Presentation Relationships", "Type", "References"]
         elif arcrole == XbrlConst.summationItem:    # add columns for calculation relationships
             heading = ["Calculation Relationships", "Weight", "Balance"]
+        if arcrole == "XBRL-dimensions":    # add columns for dimensional information
+            heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
+        elif isinstance(arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(arcrole):
+            self.isResourceArcrole = True
+            self.showReferences = isinstance(arcrole, _STR_BASE) and arcrole.endswith("-reference")
+            heading = ["Resource Relationships", "Arcrole","Resource","ResourceRole","Language"]
         else:
             heading = [os.path.basename(arcrole).title() + " Relationships"]
         # relationship set based on linkrole parameter, to determine applicable linkroles
@@ -96,9 +103,14 @@ class ViewRelationshipSet(ViewFile.View):
                 xmlRowElementName = "element"
                 attr = {"label": concept.xlinkLabel}
             elif isinstance(concept, ModelDtsObject.ModelResource):
-                text = (concept.text or concept.localName)
+                if self.showReferences:
+                    text = (concept.viewText().strip() or concept.localName)
+                    attr = {"text": text,
+                            "innerXml": XmlUtil.xmlstring(concept, stripXmlns=True, prettyPrint=False, contentsOnly=True)}
+                else:
+                    text = (concept.elementText.strip() or concept.localName)
+                    attr = {"text": text}
                 xmlRowElementName = "resource"
-                attr = {"name": str(concept.elementQname)}
             else:   # just a resource
                 text = concept.localName
                 xmlRowElementName = text
@@ -115,9 +127,24 @@ class ViewRelationshipSet(ViewFile.View):
                         cols.append(None)
                     if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                         cols.append( modelObject.usable  )
-                elif arcrole == XbrlConst.summationItem:
+            if self.arcrole == XbrlConst.parentChild: # extra columns
+                cols.append(concept.niceType)
+                cols.append(concept.viewReferences(concept))
+            elif arcrole == XbrlConst.summationItem:
+                if isRelation:
                     cols.append("{:0g} ".format(modelObject.weight))
-                    cols.append(concept.balance)
+                else:
+                    cols.append("") # no weight on roots
+                cols.append(concept.balance)
+            elif self.isResourceArcrole: # resource columns
+                if isRelation:
+                    cols.append(modelObject.arcrole)
+                else:
+                    cols.append("") # no weight on roots
+                if isinstance(concept, ModelDtsObject.ModelResource):
+                    cols.append(concept.localName)
+                    cols.append(concept.role or '')
+                    cols.append(concept.xmlLang)
             self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
             if concept not in visited:
                 visited.add(concept)
