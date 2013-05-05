@@ -13,7 +13,7 @@ and does not apply to the XBRL US Database schema and description.
 
 '''
 
-import time, os, io, sys
+import time, os, io, sys, logging
 from arelle.Locale import format_string
 from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
@@ -73,6 +73,20 @@ def xbrlDBmenuEntender(cntlr, menu):
     menu.add_command(label="Store to XBRL DB", 
                      underline=0, 
                      command=storeIntoDBMenuCommand)
+    
+    # add log handler
+    logging.getLogger("arelle").addHandler(LogToDbHandler())    
+    
+def storeIntoDB(dbConnection, modelXbrl):
+    host, port, user, password, db = dbConnection
+    startedAt = time.time()
+    if isPostgresPort(host, port):
+        insertIntoPostgresDB(modelXbrl, host=host, port=port, user=user, password=password, database=db)
+    elif isRexsterPort(host, port):
+        insertIntoRexsterDB(modelXbrl, host=host, port=port, user=user, password=password, database=db)
+    modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
+                          _("stored to database in %.2f secs"), 
+                          time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
 
 def xbrlDBcommandLineOptionExtender(parser):
     # extend command line options to import sphinx files into DTS for validation
@@ -80,11 +94,23 @@ def xbrlDBcommandLineOptionExtender(parser):
                       action="store", 
                       dest="storeToXbrlDb", 
                       help=_("Store into XBRL DB.  "
-                             "Provides connection string. "))
+                             "Provides connection string: host,port,user,password,database. "))
+    logging.getLogger("arelle").addHandler(LogToDbHandler())    
 
-def xbrlDBCommandLineUtilityRun(cntlr, options):
-    # update or replace loaded instance/DTS in xbrlDB
-    pass
+def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
+    from arelle.ModelDocument import Type
+    if modelXbrl.modelDocument.type == Type.RSSFEED and options.storeToXbrlDb:
+        modelXbrl.xbrlDBconnection = options.storeToXbrlDb.split(",")
+    
+def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
+    from arelle.ModelDocument import Type
+    if modelXbrl.modelDocument.type != Type.RSSFEED and options.storeToXbrlDb:
+        dbConnection = options.storeToXbrlDb.split(",")
+        storeIntoDB(dbConnection, modelXbrl)
+        
+def xbrlDBvalidateRssItem(val, modelXbrl):
+    if hasattr(val.modelXbrl, 'xbrlDBconnection'):
+        storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl)
     
 def xbrlDBdialogRssWatchDBconnection(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage):
     from tkinter import PhotoImage, N, S, E, W
@@ -127,11 +153,35 @@ def xbrlDBrssWatchHasWatchAction(rssWatchOptions):
 def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
     dbConnectionString = rssWatchOptions.get("xbrlDBconnection")
     if dbConnectionString:
-        db = dbConnectionString.split(',')
-        from .XbrlPublicPostgresDB import insertIntoDB
-        insertIntoDB(modelXbrl, 
-                     host=db[0], port=db[1], user=db[2], password=db[3], database=db[4],
-                     rssItem=rssItem)
+        dbConnection = dbConnectionString.split(',')
+        storeIntoDB(dbConnection, modelXbrl)
+
+class LogToDbHandler(logging.Handler):
+    def __init__(self):
+        super(LogToDbHandler, self).__init__()
+        self.logRecordBuffer = []
+        
+    def flush(self):
+        del self.logRecordBuffer[:]
+    
+    def dbHandlerLogEntries(self, clear=True):
+        entries = []
+        for logRec in self.logRecordBuffer:
+            message = { "text": self.format(logRec) }
+            if logRec.args:
+                for n, v in logRec.args.items():
+                    message[n] = v
+            entry = {"code": logRec.messageCode,
+                     "level": logRec.levelname.lower(),
+                     "refs": logRec.refs,
+                     "message": message}
+            entries.append(entry)
+        if clear:
+            del self.logRecordBuffer[:]
+        return entries
+    
+    def emit(self, logRecord):
+        self.logRecordBuffer.append(logRecord)
         
  
 __pluginInfo__ = {
@@ -145,9 +195,11 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': xbrlDBmenuEntender,
     'CntlrCmdLine.Options': xbrlDBcommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': xbrlDBCommandLineUtilityRun,
+    'CntlrCmdLine.Xbrl.Loaded': xbrlDBCommandLineXbrlLoaded,
+    'CntlrCmdLine.Xbrl.Run': xbrlDBCommandLineXbrlRun,
     'DialogRssWatch.FileChoices': xbrlDBdialogRssWatchDBconnection,
     'DialogRssWatch.ValidateChoices': xbrlDBdialogRssWatchValidateChoices,
     'RssWatch.HasWatchAction': xbrlDBrssWatchHasWatchAction,
     'RssWatch.DoWatchAction': xbrlDBrssDoWatchAction,
+    'Validate.RssItem': xbrlDBvalidateRssItem,
 }
