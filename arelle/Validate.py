@@ -111,6 +111,8 @@ class Validate:
                 self.instValidator.close()
                 rssItem.setResults(modelXbrl)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, rssItem.objectId())
+                for pluginXbrlMethod in pluginClassMethods("Validate.RssItem"):
+                    pluginXbrlMethod(self, modelXbrl)
                 modelXbrl.close()
                 del modelXbrl  # completely dereference
             except Exception as err:
