@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import gc, sys, traceback
+import gc, sys, traceback, logging
 from arelle import (ModelXbrl, Validate, DisclosureSystem)
 
 def initialize(cntlr):
@@ -63,7 +63,7 @@ class ModelManager:
     def shutdown(self):
         self.status = "shutdown"
         
-    def addToLog(self, message):
+    def addToLog(self, message, messageCode="", file="", level=logging.INFO):
         """Add a simple info message to the default logger
            
         :param message: Text of message to add to log.
@@ -73,7 +73,7 @@ class ModelManager:
         :param file: File name (and optional line numbers) pertaining to message
         :type file: str
         """
-        self.cntlr.addToLog(message)
+        self.cntlr.addToLog(message, messageCode=messageCode, file=file, level=level)
         
     def showStatus(self, message, clearAfter=None):
         """Provide user feedback on status line of GUI or web page according to type of controller.

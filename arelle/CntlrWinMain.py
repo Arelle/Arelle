@@ -1054,7 +1054,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp") if self.hasWebServer else ""))
 
     # worker threads addToLog        
-    def addToLog(self, message):
+    def addToLog(self, message, messageCode="", file="", level=logging.INFO):
         self.uiThreadQueue.put((self.uiAddToLog, [message]))
         
     # ui thread addToLog
