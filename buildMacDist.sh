@@ -22,6 +22,7 @@ cp -R arelle/doc dist/Arelle.app/Contents/Resources
 cp -R arelle/examples dist/Arelle.app/Contents/Resources
 cp -R arelle/images dist/Arelle.app/Contents/Resources
 cp -R arelle/locale dist/Arelle.app/Contents/Resources
+cp -R arelle/plugin dist/Arelle.app/Contents/Resources
 
 # add tcl and tk 8.6 versions
 cp -R /library/frameworks/tcl.framework/versions dist/Arelle.app/Contents/Frameworks/Tcl.framework
