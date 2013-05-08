@@ -195,11 +195,14 @@ def final(val, conceptsUsed):
                                if concept.isItem and 
                                qn.namespaceURI not in val.disclosureSystem.standardTaxonomiesDict
                                if concept not in conceptsUsed and
-                               (not concept.isAbstract or 
-                                # report a dimension which has no default and not used
-                                (concept.isDimensionItem and concept not in val.modelXbrl.dimensionDefaultConcepts) or
-                                # report a domain member which isn't default and isn't used
-                                (concept.type is not None and concept.type.isDomainItemType and concept not in dimensionDefaults))
+                                  # don't report dimension that has a default member
+                                  concept not in val.modelXbrl.dimensionDefaultConcepts and
+                                  # don't report default members
+                                  concept not in dimensionDefaults and
+                                  (concept.isDimensionItem or 
+                                   (concept.type is not None and concept.type.isDomainItemType) or
+                                   # this or branch only pertains to fact concepts
+                                   not concept.isAbstract)
                                ]
     if extensionConceptsUnused:
         for concept in sorted(extensionConceptsUnused, key=lambda c: str(c.qname)):
@@ -238,11 +241,12 @@ def final(val, conceptsUsed):
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),
                 modelObject=locs, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
-        elif (not concept.isAbstract or 
-              # report a dimension which has no default and not used
-              (concept.isDimensionItem and concept not in val.modelXbrl.dimensionDefaultConcepts) or
-              # report a domain member which isn't default and isn't used
-              (concept.type is not None and concept.type.isDomainItemType and concept not in dimensionDefaults)):
+        elif (concept not in val.modelXbrl.dimensionDefaultConcepts and # don't report dimension that has a default member
+              concept not in dimensionDefaults and # don't report default members
+              (concept.isDimensionItem or 
+              (concept.type is not None and concept.type.isDomainItemType) or
+              # this or branch only pertains to fact concepts
+              not concept.isAbstract)):
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1.unusedStandardConceptInExtensionRelationship",
                 _("Company extension relationships of unused standard concept: %(concept)s"),
                 modelObject=locs, concept=concept.qname) 
@@ -406,5 +410,5 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'Validate.EFM.Start': setup,
     'Validate.EFM.Fact': factCheck,
-    'Validate.EFM.Finally': final,
+    'Validate.EFM.Finally': final
 }
