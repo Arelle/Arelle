@@ -77,6 +77,7 @@ class Cntlr:
     def __init__(self, hasGui=False, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         self.hasWin32gui = False
         self.hasGui = hasGui
+        self.hasFileSystem = True # no file system on Google App Engine servers
 
         self.moduleDir = os.path.dirname(__file__)
         # for python 3.2 remove __pycache__
@@ -133,6 +134,7 @@ class Cntlr:
         if sys.platform == "darwin":
             self.isMac = True
             self.isMSW = False
+            self.isGAE = False
             if not configHomeDir:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             # note that cache is in ~/Library/Caches/Arelle
@@ -142,6 +144,7 @@ class Cntlr:
         elif sys.platform.startswith("win"):
             self.isMac = False
             self.isMSW = True
+            self.isGAE = False
             if not configHomeDir:
                 tempDir = tempfile.gettempdir()
                 if tempDir.endswith('local\\temp'):
@@ -170,8 +173,13 @@ class Cntlr:
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False
-            if not configHomeDir:
+            serverSoftware = os.getenv("SERVER_SOFTWARE")
+            if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
+                self.hasFileSystem = False # no file system
+                self.isGAE = True
+            elif not configHomeDir:
                 self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
+                self.isGAE = False
             if hasGui:
                 try:
                     import gtk
@@ -187,17 +195,18 @@ class Cntlr:
         except ImportError:
             self.hasWebServer = False
         # assert that app dir must exist
-        if not os.path.exists(self.userAppDir):
-            os.makedirs(self.userAppDir)
-        # load config if it exists
-        self.configJsonFile = self.userAppDir + os.sep + "config.json"
         self.config = None
-        if os.path.exists(self.configJsonFile):
-            try:
-                with io.open(self.configJsonFile, 'rt', encoding='utf-8') as f:
-                    self.config = json.load(f)
-            except Exception as ex:
-                self.config = None # restart with a new config
+        if self.hasFileSystem:
+            if not os.path.exists(self.userAppDir):
+                os.makedirs(self.userAppDir)
+            # load config if it exists
+            self.configJsonFile = self.userAppDir + os.sep + "config.json"
+            if os.path.exists(self.configJsonFile):
+                try:
+                    with io.open(self.configJsonFile, 'rt', encoding='utf-8') as f:
+                        self.config = json.load(f)
+                except Exception as ex:
+                    self.config = None # restart with a new config
         if not self.config:
             self.config = {
                 'fileHistory': [],
@@ -335,9 +344,10 @@ class Cntlr:
         
     def saveConfig(self):
         """Save user preferences configuration (in json configuration file)."""
-        with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
-            jsonStr = _STR_UNICODE(json.dumps(self.config, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
-            f.write(jsonStr)  # 2.7 getss unicode this way
+        if self.hasFileSystem:
+            with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
+                jsonStr = _STR_UNICODE(json.dumps(self.config, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+                f.write(jsonStr)  # 2.7 getss unicode this way
             
     # default non-threaded viewModelObject                 
     def viewModelObject(self, modelXbrl, objectId):

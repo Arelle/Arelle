@@ -4,7 +4,7 @@ Created on Sep 13, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, sys
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect
@@ -353,10 +353,14 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
         except ResolutionException as ex:
             raise ex
         except Exception as ex:
-            raise ResolutionException("arelle:resolutionException",
-                                      _("Exception in resolution of definition node %(node)s: %(error)s"),
-                                      modelObject=definitionNode, node=definitionNode.qname, error=str(ex)
-                                      ).with_traceback(ex.__traceback__)  # provide original traceback information
+            e = ResolutionException("arelle:resolutionException",
+                                    _("Exception in resolution of definition node %(node)s: %(error)s"),
+                                    modelObject=definitionNode, node=definitionNode.qname, error=str(ex)
+                                    )
+            if sys.version[0] >= '3':
+                raise e.with_traceback(ex.__traceback__)  # provide original traceback information
+            else:
+                raise e
             
 def analyzeCartesianProductHdrs(childStructuralNode, view, depth, axisDisposition, facts, tblAxisRels, i):
     if i is not None: # recurse table relationships for cartesian product

@@ -15,6 +15,8 @@ else: # python 2.7.2
     from urllib import ContentTooShortError
     from urllib2 import URLError, HTTPError
     import urllib2 as proxyhandlers
+from arelle.FileSource import SERVER_WEB_CACHE
+addServerWebCache = None
     
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 
@@ -76,7 +78,10 @@ class WebCache:
 
         #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
         
-        if sys.platform == "darwin" and "/Application Support/" in cntlr.userAppDir:
+        if cntlr.isGAE:
+            self.cacheDir = SERVER_WEB_CACHE # GAE type servers
+            self.encodeFileChars = re.compile(r'[:^]') 
+        elif sys.platform == "darwin" and "/Application Support/" in cntlr.userAppDir:
             self.cacheDir = cntlr.userAppDir.replace("Application Support","Caches")
             self.encodeFileChars = re.compile(r'[:^]') 
             
@@ -89,11 +94,14 @@ class WebCache:
         self.decodeFileChars = re.compile(r'\^[0-9]{3}')
         self.workOffline = False
         self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
-        self.urlCheckJsonFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
-        try:
-            with io.open(self.urlCheckJsonFile, 'rt', encoding='utf-8') as f:
-                self.cachedUrlCheckTimes = json.load(f)
-        except Exception:
+        if cntlr.hasFileSystem:
+            self.urlCheckJsonFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
+            try:
+                with io.open(self.urlCheckJsonFile, 'rt', encoding='utf-8') as f:
+                    self.cachedUrlCheckTimes = json.load(f)
+            except Exception:
+                self.cachedUrlCheckTimes = {}
+        else:
             self.cachedUrlCheckTimes = {}
         self.cachedUrlCheckTimesModified = False
             
@@ -200,7 +208,7 @@ class WebCache:
         return '/'.join(self.decodeFileChars  # remove cacheDir part
                         .sub(lambda c: chr( int(c.group(0)[1:]) ), # remove ^nnn encoding
                          urlpart) for urlpart in urlparts)
-            
+    
     def getfilename(self, url, base=None, reload=False, checkModifiedTime=False, normalize=False, filenameOnly=False):
         if url is None:
             return url
@@ -210,6 +218,9 @@ class WebCache:
         if schemeSep and urlScheme == "http":
             # form cache file name (substituting _ for any illegal file characters)
             filepath = self.urlToCacheFilepath(url)
+            if self.cacheDir == SERVER_WEB_CACHE:
+                # server web-cached files are downloaded when opening to prevent excessive memcache api calls
+                return filepath
             # quotedUrl has scheme-specific-part quoted except for parameter separators
             quotedUrl = urlScheme + schemeSep + quote(urlSchemeSpecificPart, '/?=&')
             # handle default directory requests
@@ -363,11 +374,14 @@ class WebCache:
                 pass
         return None
         
-    def retrieve(self, url, filename, reporthook=None, data=None):
+    def retrieve(self, url, filename=None, filestream=None, reporthook=None, data=None):
         fp = self.opener.open(url, data, timeout=self.timeout)
         try:
             headers = fp.info()
-            tfp = open(filename, 'wb')
+            if filename:
+                tfp = open(filename, 'wb')
+            elif filestream:
+                tfp = filestream
             try:
                 result = filename, headers
                 bs = 1024*8
@@ -388,15 +402,19 @@ class WebCache:
                     if reporthook:
                         reporthook(blocknum, bs, size)
             finally:
-                tfp.close()
+                if filename:
+                    tfp.close()
         finally:
-            fp.close()
+            if filename:
+                fp.close()
         # raise exception if actual size does not match content-length header
         if size >= 0 and read < size:
             raise ContentTooShortError(
                 _("retrieval incomplete: got only %i out of %i bytes")
                 % (read, size), result)
 
+        if filestream:
+            tfp.seek(0)
         return result
 
 '''

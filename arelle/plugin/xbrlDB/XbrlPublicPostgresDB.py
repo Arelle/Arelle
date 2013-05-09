@@ -27,7 +27,7 @@ Information for the 'official' XBRL US-maintained database (this schema, contain
 
 '''
 
-import os, io, re, time
+import os, sys, io, re, time
 from math import isnan, isinf
 from pg8000 import DBAPI
 from pg8000.errors import CursorClosedError, ConnectionClosedError, InterfaceError, ProgrammingError
@@ -142,7 +142,10 @@ class XbrlPostgresDatabaseConnection():
             self.__dict__.clear() # dereference everything
         except Exception as ex:
             self.__dict__.clear() # dereference everything
-            raise ex.with_traceback(ex.__traceback__)
+            if sys.version[0] >= '3':
+                raise ex.with_traceback(ex.__traceback__)
+            else:
+                raise ex
         
     @property
     def isClosed(self):

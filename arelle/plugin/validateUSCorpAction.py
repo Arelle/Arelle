@@ -516,5 +516,5 @@ __pluginInfo__ = {
     'author': 'Ewe S. Gap',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
-    'Validate.XBRL.Finally': checkCorporateActions,
+    'Validate.XBRL.Finally': checkCorporateActions
 }

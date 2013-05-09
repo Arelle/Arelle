@@ -25,9 +25,9 @@ def startWebserver(_cntlr, options):
     host, sep, portServer = options.webserver.partition(":")
     port, sep, server = portServer.partition(":")
     if server:
-        run(host=host, port=port, server=server)
+        run(host=host, port=port or 80, server=server)
     else:
-        run(host=host, port=port)
+        run(host=host, port=port or 80)
     
 @get('/rest/login')
 def login_form():

@@ -201,5 +201,5 @@ __pluginInfo__ = {
     'DialogRssWatch.ValidateChoices': xbrlDBdialogRssWatchValidateChoices,
     'RssWatch.HasWatchAction': xbrlDBrssWatchHasWatchAction,
     'RssWatch.DoWatchAction': xbrlDBrssDoWatchAction,
-    'Validate.RssItem': xbrlDBvalidateRssItem,
+    'Validate.RssItem': xbrlDBvalidateRssItem
 }

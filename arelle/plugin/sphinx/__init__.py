@@ -281,5 +281,5 @@ __pluginInfo__ = {
     'DialogRssWatch.FileChoices': sphinxDialogRssWatchFileChoices,
     'DialogRssWatch.ValidateChoices': sphinxDialogRssWatchValidateChoices,
     'RssWatch.HasWatchAction': sphinxRssWatchHasWatchAction,
-    'RssWatch.DoWatchAction': sphinxRssDoWatchAction,
+    'RssWatch.DoWatchAction': sphinxRssDoWatchAction
 }

@@ -217,7 +217,7 @@ def final(val, conceptsUsed):
     for rel in standardRelationships.modelRelationships:
         for concept in (rel.fromModelObject, rel.toModelObject):
             if (concept is not None and
-                concept.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and
+                concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and
                 concept not in conceptsUsed):
                 if (not concept.isAbstract or 
                     concept.isDimensionItem or 

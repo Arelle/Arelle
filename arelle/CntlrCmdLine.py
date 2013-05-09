@@ -230,6 +230,9 @@ def parseAndRun(args):
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
     
+    if args is None and cntlr.isGAE:
+        args = ["--webserver=::gae"]
+        
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
         print(_("\narelle(r) {0}\n\n"
@@ -393,7 +396,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.username = options.username
         self.password = options.password
         self.entrypointFile = options.entrypointFile
-        filesource = FileSource.openFileSource(self.entrypointFile, self, sourceZipStream)
+        if self.entrypointFile:
+            filesource = FileSource.openFileSource(self.entrypointFile, self, sourceZipStream)
+        else:
+            filesource = None
         if options.validateEFM:
             if options.disclosureSystemName:
                 self.addToLog(_("both --efm and --disclosureSystem validation are requested, proceeding with --efm only"),
@@ -491,7 +497,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         success = True
         modelXbrl = None
         try:
-            modelXbrl = self.modelManager.load(filesource, _("views loading"))
+            if filesource:
+                modelXbrl = self.modelManager.load(filesource, _("views loading"))
         except ModelDocument.LoadingException:
             pass
         except Exception as err:
@@ -625,14 +632,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             err,
                             traceback.format_tb(sys.exc_info()[2])))
                 success = False
-        modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
-        if options.collectProfileStats and modelXbrl:
-            modelXbrl.logProfileStats()
-        if not options.keepOpen:
-            if modelDiffReport:
-                self.modelManager.close(modelDiffReport)
-            elif modelXbrl:
-                self.modelManager.close(modelXbrl)
+        if modelXbrl:
+            modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
+            if options.collectProfileStats and modelXbrl:
+                modelXbrl.logProfileStats()
+            if not options.keepOpen:
+                if modelDiffReport:
+                    self.modelManager.close(modelDiffReport)
+                elif modelXbrl:
+                    self.modelManager.close(modelXbrl)
         self.username = self.password = None #dereference password
         return success
 
