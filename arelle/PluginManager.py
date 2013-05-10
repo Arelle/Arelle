@@ -9,6 +9,7 @@ based on pull request 4
 '''
 import os, sys, types, time, ast, imp, io, json, gettext
 from arelle.Locale import getLanguageCodes
+from arelle.FileSource import openFileStream
 try:
     from collections import OrderedDict
 except ImportError:
@@ -20,16 +21,18 @@ pluginConfig = None
 pluginConfigChanged = False
 modulePluginInfos = {}
 pluginMethodsForClasses = {}
-webCache = None
+_cntlr = None
+_pluginBase = None
 
 def init(cntlr):
-    global pluginJsonFile, pluginConfig, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, webCache
+    global pluginJsonFile, pluginConfig, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
     try:
         pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
         with io.open(pluginJsonFile, 'rt', encoding='utf-8') as f:
             pluginConfig = json.load(f)
         pluginConfigChanged = False
     except Exception:
+        # on GAE no userAppDir, will always come here
         pluginConfig = {  # savable/reloadable plug in configuration
             "modules": {}, # dict of moduleInfos by module name
             "classes": {}  # dict by class name of list of class modules in execution order
@@ -37,7 +40,8 @@ def init(cntlr):
         pluginConfigChanged = False # don't save until something is added to pluginConfig
     modulePluginInfos = {}  # dict of loaded module pluginInfo objects by module names
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
-    webCache = cntlr.webCache
+    _cntlr = cntlr
+    _pluginBase = cntlr.pluginDir + os.sep
     
 def reset():  # force reloading modules and plugin infos
     modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
@@ -64,10 +68,11 @@ def orderedPluginConfig():
     
 def save(cntlr):
     global pluginConfigChanged
-    if pluginConfigChanged:
+    if pluginConfigChanged and cntlr.hasFileSystem:
         pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
         with io.open(pluginJsonFile, 'wt', encoding='utf-8') as f:
-            json.dump(orderedPluginConfig(), f, indent=2)
+            jsonStr = _STR_UNICODE(json.dumps(orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+            f.write(jsonStr)
         pluginConfigChanged = False
     
 def close():  # close all loaded methods
@@ -114,7 +119,7 @@ moduleInfo = {
 def modulesWithNewerFileDates():
     names = set()
     for moduleInfo in pluginConfig["modules"].values():
-        freshenedFilename = webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True)
+        freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try:
             if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(moduleInfo["name"])
@@ -124,36 +129,39 @@ def modulesWithNewerFileDates():
 
 def moduleModuleInfo(moduleURL, reload=False):
     #TODO several directories, eg User Application Data
-    moduleFilename = webCache.getfilename(moduleURL, reload=reload, normalize=True)
+    moduleFilename = _cntlr.webCache.getfilename(moduleURL, reload=reload, normalize=True, base=_pluginBase)
     if moduleFilename:
+        f = None
         try:
             # if moduleFilename is a directory containing an __ini__.py file, open that instead
             if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
                 moduleFilename = os.path.join(moduleFilename, "__init__.py")
-            with open(moduleFilename) as f:
-                tree = ast.parse(f.read(), filename=moduleFilename)
-                for item in tree.body:
-                    if isinstance(item, ast.Assign):
-                        attr = item.targets[0].id
-                        if attr == "__pluginInfo__":
-                            f.close()
-                            moduleInfo = {}
-                            classMethods = []
-                            for i, key in enumerate(item.value.keys):
-                                _key = key.s
-                                _value = item.value.values[i]
-                                _valueType = _value.__class__.__name__
-                                if _valueType == 'Str':
-                                    moduleInfo[_key] = _value.s
-                                elif _valueType == 'Name':
-                                    classMethods.append(_key)
-                            moduleInfo['classMethods'] = classMethods
-                            moduleInfo["moduleURL"] = moduleURL
-                            moduleInfo["status"] = 'enabled'
-                            moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
-                            return moduleInfo
+            f = openFileStream(_cntlr, moduleFilename)
+            tree = ast.parse(f.read(), filename=moduleFilename)
+            for item in tree.body:
+                if isinstance(item, ast.Assign):
+                    attr = item.targets[0].id
+                    if attr == "__pluginInfo__":
+                        f.close()
+                        moduleInfo = {}
+                        classMethods = []
+                        for i, key in enumerate(item.value.keys):
+                            _key = key.s
+                            _value = item.value.values[i]
+                            _valueType = _value.__class__.__name__
+                            if _valueType == 'Str':
+                                moduleInfo[_key] = _value.s
+                            elif _valueType == 'Name':
+                                classMethods.append(_key)
+                        moduleInfo['classMethods'] = classMethods
+                        moduleInfo["moduleURL"] = moduleURL
+                        moduleInfo["status"] = 'enabled'
+                        moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
+                        return moduleInfo
         except EnvironmentError:
             pass
+        if f:
+            f.close()
     return None
 
 def moduleInfo(pluginInfo):
@@ -167,7 +175,7 @@ def moduleInfo(pluginInfo):
 def loadModule(moduleInfo):
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
-    moduleFilename = webCache.getfilename(moduleURL, normalize=True)
+    moduleFilename = _cntlr.webCache.getfilename(moduleURL, normalize=True, base=_pluginBase)
     if moduleFilename:
         try:
             if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):

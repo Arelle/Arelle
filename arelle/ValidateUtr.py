@@ -18,10 +18,12 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
     utrItemTypeEntries = defaultdict(dict)
     # print('UTR LOADED FROM '+utrUrl);
     modelManager.cntlr.showStatus(_("Loading Unit Type Registry"))
+    file = None
     try:
+        from arelle.FileSource import openXmlFileStream
         # normalize any relative paths to config directory
-        filePath = modelManager.cntlr.webCache.getfilename(modelManager.disclosureSystem.utrUrl)
-        xmldoc = etree.parse(filePath)
+        file = openXmlFileStream(modelManager.cntlr, modelManager.disclosureSystem.utrUrl, stripDeclaration=True)[0]
+        xmldoc = etree.parse(file)
         for unitElt in xmldoc.iter(tag="{http://www.xbrl.org/2009/utr}unit"):
             u = UtrEntry()
             u.id = unitElt.get("id")
@@ -41,6 +43,8 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
             etree.LxmlError) as err:
         modelManager.cntlr.addToLog("Unit Type Registry Import error: {0}".format(err))
         etree.clear_error_log()
+    if file:
+        file.close()
   
 '''
 def MeasureQName(node): # Return the qname of the content of the measure element

@@ -99,12 +99,12 @@ def xbrlDBcommandLineOptionExtender(parser):
 
 def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type
-    if modelXbrl.modelDocument.type == Type.RSSFEED and options.storeToXbrlDb:
+    if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "storeToXbrlDb", False):
         modelXbrl.xbrlDBconnection = options.storeToXbrlDb.split(",")
     
 def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type
-    if modelXbrl.modelDocument.type != Type.RSSFEED and options.storeToXbrlDb:
+    if modelXbrl.modelDocument.type != Type.RSSFEED and getattr(options, "storeToXbrlDb", False):
         dbConnection = options.storeToXbrlDb.split(",")
         storeIntoDB(dbConnection, modelXbrl)
         

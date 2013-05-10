@@ -1,7 +1,7 @@
 from arelle import PluginManager
 from arelle.ModelValue import qname
 from arelle import Locale, ModelXbrl, XbrlConst
-from arelle.FileSource import openFileSource
+from arelle.FileSource import openFileSource, openFileStream, saveFile
 import os, io, re, json, time
 from collections import defaultdict
 
@@ -17,10 +17,14 @@ def setup(val):
     if ugtNamespace in val.modelXbrl.namespaceDocs:
         usgaapDoc = val.modelXbrl.namespaceDocs[ugtNamespace][0]
         deprecationsJsonFile = usgaapDoc.filepathdir + os.sep + "deprecated-concepts.json"
+        file = None
         try:
-            with io.open(deprecationsJsonFile, 'rt', encoding='utf-8') as f:
-                val.usgaapDeprecations = json.load(f)
+            file = openFileStream(cntlr, deprecationsJsonFile, 'rt', encoding='utf-8')
+            val.usgaapDeprecations = json.load(file)
+            file.close()
         except Exception:
+            if file:
+                file.close()
             val.modelXbrl.modelManager.addToLog(_("loading us-gaap deprecated concepts in cache"))
             startedAt = time.time()
             val.usgaapDeprecations = {}
@@ -45,17 +49,20 @@ def setup(val):
                         val.usgaapDeprecations[conceptName] = (val.usgaapDeprecations.get(conceptName, ('',''))[0], modelDocumentation.text)
                     elif modelDocumentation.role == 'http://www.xbrl.org/2009/role/deprecatedDateLabel':
                         val.usgaapDeprecations[conceptName] = (modelDocumentation.text, val.usgaapDeprecations.get(conceptName, ('',''))[1])
-                with io.open(deprecationsJsonFile, 'wt', encoding='utf-8') as f:
-                    jsonStr = _STR_UNICODE(json.dumps(val.usgaapDeprecations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-                    f.write(jsonStr)  # 2.7 gets unicode this way
+                jsonStr = _STR_UNICODE(json.dumps(val.usgaapDeprecations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+                saveFile(cntlr, deprecationsJsonFile, jsonStr)  # 2.7 gets unicode this way
                 deprecationsInstance.close()
                 del deprecationsInstance # dereference closed modelXbrl
             val.modelXbrl.profileStat(_("build us-gaap deprecated concepts cache"), time.time() - startedAt)
         ugtCalcsJsonFile = usgaapDoc.filepathdir + os.sep + "ugt-calculations.json"
+        file = None
         try:
-            with io.open(ugtCalcsJsonFile, 'rt', encoding='utf-8') as f:
-                val.usgaapCalculations = json.load(f)
+            file = openFileStream(cntlr, ugtCalcsJsonFile, 'rt', encoding='utf-8')
+            val.usgaapCalculations = json.load(file)
+            file.close()
         except Exception:
+            if file:
+                file.close()
             val.modelXbrl.modelManager.addToLog(_("loading us-gaap calculations in cache"))
             startedAt = time.time()
             val.usgaapCalculations = {}
@@ -86,9 +93,8 @@ def setup(val):
                     for relFrom, rels in elrRelSet.fromModelObjects().items():
                         elrUgtCalcs[relFrom.name] = [rel.toModelObject.name for rel in rels]
                     val.usgaapCalculations[ELR] = elrUgtCalcs
-                with io.open(ugtCalcsJsonFile, 'wt', encoding='utf-8') as f:
-                    jsonStr = _STR_UNICODE(json.dumps(val.usgaapCalculations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-                    f.write(jsonStr)  # 2.7 gets unicode this way
+                jsonStr = _STR_UNICODE(json.dumps(val.usgaapCalculations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+                saveFile(cntlr, ugtCalcsJsonFile, jsonStr)  # 2.7 gets unicode this way
                 calculationsInstance.close()
                 del calculationsInstance # dereference closed modelXbrl
             val.modelXbrl.profileStat(_("build us-gaap calculations cache"), time.time() - startedAt)

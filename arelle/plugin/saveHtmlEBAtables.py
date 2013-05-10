@@ -249,12 +249,12 @@ def saveHtmlEbaTablesCommandLineOptionExtender(parser):
 def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
     from arelle.ModelDocument import Type
-    if options.ebaTablesetIndexFile and options.ebaTablesetIndexFile == "generateEBAFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
+    if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile == "generateEBAFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateEBAFiles = True
 
 def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.ebaTablesetIndexFile and options.ebaTablesetIndexFile != "generateEBAFiles":
+    if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile != "generateEBAFiles":
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return

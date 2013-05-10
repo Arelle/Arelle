@@ -1,0 +1,5 @@
+backends:
+- name: big
+  class: B8
+  instances: 5
+  options: dynamic, public

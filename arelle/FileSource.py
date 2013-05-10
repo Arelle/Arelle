@@ -112,7 +112,7 @@ class FileSource:
                 return  # an error should have been logged
             if self.isZip:
                 try:
-                    self.fs = zipfile.ZipFile(self.basefile, mode="r")
+                    self.fs = zipfile.ZipFile(openFileStream(self.cntlr, self.basefile, 'rb'), mode="r")
                     self.isOpen = True
                 except EnvironmentError as err:
                     self.logError(err)
@@ -232,30 +232,6 @@ class FileSource:
             self.fs = zipfile.ZipFile(sourceZipStream, mode="r")
             self.isOpen = True    
             
-    def openFileStream(self, filepath, mode='r', encoding=None):
-        # file path may be server (or memcache) or local file system
-        if filepath.startswith(SERVER_WEB_CACHE):
-            filestream = None
-            cacheKey = filepath[len(SERVER_WEB_CACHE) + 1:].replace("\\","/")
-            if self.cntlr.isGAE: # check if in memcache
-                cachedBytes = gaeGet(cacheKey)
-                if cachedBytes:
-                    filestream = io.BytesIO(cachedBytes)
-            if filestream is None:
-                filestream = io.BytesIO()
-                self.cntlr.webCache.retrieve(self.cntlr.webCache.cacheFilepathToUrl(filepath),
-                                             filestream=filestream)
-                if self.cntlr.isGAE:
-                    gaeSet(cacheKey, filestream.getvalue())
-            if mode.endswith('t') or encoding:
-                contents = filestream.getvalue()
-                filestream.close()
-                filestream = io.StringIO(contents.decode(encoding or 'utf-8'))
-            return filestream
-        else:
-            # local file system
-            return io.open(filepath, mode=mode, encoding=encoding)
-                    
     def close(self):
         if self.referencedFileSources:
             for referencedFileSource in self.referencedFileSources.values():
@@ -392,30 +368,10 @@ class FileSource:
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
                 raise ArchiveFileIOError(self, archiveFileName)
-        openedFileStream = self.openFileStream(filepath, 'rb')
         if binary:
-            return (openedFileStream, )
-        # check encoding
-        hdrBytes = openedFileStream.read(512)
-        encoding = XmlUtil.encoding(hdrBytes)
-        if encoding.lower() in ('utf-8','utf8') and not self.cntlr.isGAE:
-            text = None
-            openedFileStream.close()
+            return (openFileStream(self.cntlr, filepath, 'rb'), )
         else:
-            openedFileStream.seek(0)
-            text = openedFileStream.read().decode(encoding)
-            openedFileStream.close()
-            # allow filepath to close
-        # this may not be needed for Mac or Linux, needs confirmation!!!
-        if text is None:  # ok to read as utf-8
-            return io.open(filepath, 'rt', encoding='utf-8'), encoding
-        else:
-            # strip XML declaration
-            xmlDeclarationMatch = XMLdeclaration.search(text)
-            if xmlDeclarationMatch: # remove it for lxml
-                start,end = xmlDeclarationMatch.span()
-                text = text[0:start] + text[end:]
-            return (io.StringIO(initial_value=text), encoding)
+            return openXmlFileStream(self.cntlr, filepath)
 
     
     @property
@@ -486,6 +442,69 @@ class FileSource:
         else: # MSFT os.sep == '\\'
             self.url = self.baseurl + os.sep + selection.replace("/", os.sep)
             
+def openFileStream(cntlr, filepath, mode='r', encoding=None):
+    if filepath.startswith("http://"):
+        filepath = cntlr.webCache.getfilename(filepath)
+    # file path may be server (or memcache) or local file system
+    if filepath.startswith(SERVER_WEB_CACHE):
+        filestream = None
+        cacheKey = filepath[len(SERVER_WEB_CACHE) + 1:].replace("\\","/")
+        if cntlr.isGAE: # check if in memcache
+            cachedBytes = gaeGet(cacheKey)
+            if cachedBytes:
+                filestream = io.BytesIO(cachedBytes)
+        if filestream is None:
+            filestream = io.BytesIO()
+            cntlr.webCache.retrieve(cntlr.webCache.cacheFilepathToUrl(filepath),
+                                    filestream=filestream)
+            if cntlr.isGAE:
+                gaeSet(cacheKey, filestream.getvalue())
+        if mode.endswith('t') or encoding:
+            contents = filestream.getvalue()
+            filestream.close()
+            filestream = io.StringIO(contents.decode(encoding or 'utf-8'))
+        return filestream
+    else:
+        # local file system
+        return io.open(filepath, mode=mode, encoding=encoding)
+    
+def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
+    # returns tuple: (fileStream, encoding)
+    openedFileStream = openFileStream(cntlr, filepath, 'rb')
+    # check encoding
+    hdrBytes = openedFileStream.read(512)
+    encoding = XmlUtil.encoding(hdrBytes)
+    if encoding.lower() in ('utf-8','utf8') and not cntlr.isGAE and not stripDeclaration:
+        text = None
+        openedFileStream.close()
+    else:
+        openedFileStream.seek(0)
+        text = openedFileStream.read().decode(encoding)
+        openedFileStream.close()
+        # allow filepath to close
+    # this may not be needed for Mac or Linux, needs confirmation!!!
+    if text is None:  # ok to read as utf-8
+        return io.open(filepath, 'rt', encoding='utf-8'), encoding
+    else:
+        # strip XML declaration
+        xmlDeclarationMatch = XMLdeclaration.search(text)
+        if xmlDeclarationMatch: # remove it for lxml
+            start,end = xmlDeclarationMatch.span()
+            text = text[0:start] + text[end:]
+        return (io.StringIO(initial_value=text), encoding)
+    
+def saveFile(cntlr, filepath, contents, encoding=None):
+    if filepath.startswith("http://"):
+        filepath = cntlr.webCache.getfilename(filepath)
+    # file path may be server (or memcache) or local file system
+    if filepath.startswith(SERVER_WEB_CACHE):
+        cacheKey = filepath[len(SERVER_WEB_CACHE) + 1:].replace("\\","/")
+        if cntlr.isGAE: # check if in memcache
+            gaeSet(cacheKey, contents.encode(encoding or 'utf-8'))
+    else:
+        with io.open(filepath, 'wt', encoding=(encoding or 'utf-8')) as f:
+            f.write(contents)
+                          
 # GAE Blobcache
 gaeMemcache = None
 GAE_MEMCACHE_MAX_ITEM_SIZE = 900 * 1024
@@ -500,7 +519,7 @@ def gaeGet(key):
     if chunk_keys is None:
         return None
     chunks = []
-    if isinstance(chunk_keys, str):
+    if isinstance(chunk_keys, _STR_BASE):
         chunks.append(chunk_keys)  # only one shard
     else:
         for chunk_key in chunk_keys:
@@ -520,7 +539,7 @@ def gaeDelete(key):
     chunk_keys = gaeMemcache.get(key)
     if chunk_keys is None:
         return False
-    if isinstance(chunk_keys, str):
+    if isinstance(chunk_keys, _STR_BASE):
         chunk_keys = []
     chunk_keys.append(key)
     gaeMemcache.delete_multi(chunk_keys)

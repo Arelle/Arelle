@@ -54,7 +54,7 @@ def saveDtsCommandLineOptionExtender(parser):
 
 def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.packageDTS:
+    if getattr(options, "packageDTS", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return

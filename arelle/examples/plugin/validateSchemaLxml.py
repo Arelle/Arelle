@@ -125,7 +125,7 @@ def validateSchemaWithLxmlCommandLineOptionExtender(parser):
 
 def validateSchemaWithLxmlCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.validateSchemaLxml:
+    if getattr(options, "validateSchemaLxml", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog(_("No taxonomy loaded."))
             return

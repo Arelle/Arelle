@@ -101,15 +101,18 @@ class Cntlr:
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")
             self.localeDir = os.path.join(resources, "locale")
+            self.pluginDir = os.path.join(resources, "plugin")
         elif self.moduleDir.endswith("library.zip\\arelle") or self.moduleDir.endswith("library.zip/arelle"): # cx_Freexe
             resources = os.path.dirname(os.path.dirname(self.moduleDir))
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")
             self.localeDir = os.path.join(resources, "locale")
+            self.pluginDir = os.path.join(resources, "plugin")
         else:
             self.configDir = os.path.join(self.moduleDir, "config")
             self.imagesDir = os.path.join(self.moduleDir, "images")
             self.localeDir = os.path.join(self.moduleDir, "locale")
+            self.pluginDir = os.path.join(self.moduleDir, "plugin")
         
         configHomeDir = os.getenv('XDG_CONFIG_HOME')
         if not configHomeDir:  # look for path configDir/CONFIG_HOME
@@ -175,7 +178,7 @@ class Cntlr:
             self.isMSW = False
             serverSoftware = os.getenv("SERVER_SOFTWARE")
             if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
-                self.hasFileSystem = False # no file system
+                self.hasFileSystem = False # no file system, userAppDir does not exist
                 self.isGAE = True
             elif not configHomeDir:
                 self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")

@@ -38,7 +38,7 @@ def helloCommandLineOptionExtender(parser):
                       help=_('Print a random lyric from "Hello, Dolly"'))
 
 def helloCommandLineUtilityRun(cntlr, options):
-    if options.hello_dolly:
+    if getattr(options, "hello_dolly", False):
         hello_dolly = randomLyric();
         try:
             cntlr.addToLog("[info] " + hello_dolly)

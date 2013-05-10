@@ -10,7 +10,7 @@ BUILT27DIR=../svr-2.7
 rm -f -r ${BUILT27DIR}
 mkdir ${BUILT27DIR}
 
-cp arelleCmdLine.py arelle_test.py conftest.py app.yaml ${BUILT27DIR}
+cp arelleCmdLine.py arelle_test.py conftest.py app.yaml backends.yaml ${BUILT27DIR}
 mkdir ${BUILT27DIR}/arelle
 cp -R arelle ${BUILT27DIR}
 rm -f -r ${BUILT27DIR}/*.pyc

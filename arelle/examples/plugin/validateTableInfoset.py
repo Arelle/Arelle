@@ -26,7 +26,7 @@ def validateTableInfosetCommandLineOptionExtender(parser):
                       help=_("Generate table instance infosets (instead of diffing them)."))
 
 def validateTableInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl):
-    cntlr.modelManager.generateTableInfoset = options.generateTableInfoset
+    cntlr.modelManager.generateTableInfoset = getattr(options, "generateTableInfoset", False)
 
 def validateTableInfoset(modelXbrl, resultTableUri):
     diffToFile = not getattr(modelXbrl.modelManager, 'generateTableInfoset', False)

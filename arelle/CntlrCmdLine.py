@@ -212,10 +212,13 @@ def parseAndRun(args):
                       help=_("Modify plug-in configuration.  "
                              "Re-save unless 'temp' is in the module list.  " 
                              "Enter 'show' to show current plug-in configuration.  "
-                             "Commands temp, show, and module urls are '|' separated: "
+                             "Commands show, and module urls are '|' separated: "
                              "+url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name, "
+                             "relative URLs are relative to installation plug-in directory, "
                              " (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
-                             "~Hello Dolly to reload, -Hello Dolly to remove)" ))
+                             "or +../examples/plugin/hello_dolly.py for relative use of examples directory, "
+                             "~Hello Dolly to reload, -Hello Dolly to remove).  "
+                             "If + is omitted from .py file nothing is saved (same as temp).  " ))
     parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
     parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
     if hasWebServer:
@@ -368,6 +371,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to delete plug-in."), messageCode="info", file=cmd[1:])
+                elif cmd.endswith(".py"):
+                    savePluginChanges = False
+                    moduleInfo = PluginManager.addPluginModule(cmd)
+                    if moduleInfo:
+                        self.addToLog(_("Activation of plug-in {0} successful.").format(moduleInfo.get("name")), 
+                                      messageCode="info", file=moduleInfo.get("moduleURL"))
+                        resetPlugins = True
+                    else:
+                        self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd)
                 else:
                     self.addToLog(_("Plug-in action not recognized (may need +uri or [~-]module."), messageCode="info", file=cmd)
                 if resetPlugins:

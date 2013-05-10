@@ -481,6 +481,7 @@ formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvalua
 </td></tr>
 <tr><td style="text-indent: 1em;">abortOnMajorError</td><td>Abort process on major error, such as when load is unable to find an entry or discovered file.</td></tr> 
 <tr><td style="text-indent: 1em;">collectProfileStats</td><td>Collect profile statistics, such as timing of validation activities and formulae.</td></tr> 
+<tr><td style="text-indent: 1em;">plugins</td><td>Activate plug-ins, specify  '|' separated .py modules (relative to plug-in directory).</td></tr>
 
 <tr><th colspan="2">Versioning Report (diff of two DTSes)</th></tr>
 <tr><td>/rest/xbrl/diff</td><td>Diff two DTSes, producing an XBRL versioning report relative to report directory.</td></tr>
@@ -579,9 +580,9 @@ Enter 'show' to view current setting, 'system' to configure to use system proxy 
 </td></tr>
 <tr><td style="text-indent: 1em;">plugins</td><td>Show or modify and re-save plug-ins configuration:<br/>
 Enter 'show' to view plug-ins configuration, , or '|' separated modules: 
-+url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name, 
++url to add plug-in by its url or filename (relative to plug-in directory else absolute), ~name to reload a plug-in by its name, -name to remove a plug-in by its name, 
  (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load,
-~Hello Dolly to reload, -Hello Dolly to remove)
+~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugin to other rest commands.) 
 </td></tr>
 <tr><td>/rest/stopWebServer</td><td>Shut down (terminate process after 2.5 seconds delay).</td></tr>
 </table>'''))

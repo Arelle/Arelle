@@ -197,7 +197,7 @@ def saveSkosCommandLineOptionExtender(parser):
 
 def saveSkosCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.skosFile:
+    if getattr(options, "skosFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return

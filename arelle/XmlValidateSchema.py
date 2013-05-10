@@ -21,26 +21,27 @@ def validate(modelDocument, schemaElement, targetNamespace):
     if not hasattr(modelManager, "xmlSchemaSchema"):
         if getattr(modelManager, "modelXmlSchemaIsLoading", False):
             return
+        startedAt = time.time()
         modelManager.modelXmlSchemaIsLoading = True
-        '''
         priorValidateDisclosureSystem = modelManager.validateDisclosureSystem
         modelManager.validateDisclosureSystem = False
         modelManager.xmlSchemaSchema = ModelXbrl.load(modelManager, XMLSchemaURI, _("validate schema"))
         modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
         '''
-        startedAt = time.time()
         filePath = modelManager.cntlr.webCache.getfilename(XMLSchemaURI)
         modelManager.showStatus(_("lxml compiling XML Schema for Schemas"))
         modelManager.xmlSchemaSchema = etree.XMLSchema(file=filePath)
+        '''
         modelXbrl.info("info:xmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
                                             _("schema for XML schemas loaded into lxml %.3f secs"), 
                                             time.time() - startedAt),
                                             modelDocument=XMLSchemaURI)
         modelManager.showStatus("")
         del modelManager.modelXmlSchemaIsLoading
-    #XmlValidate.validate(modelManager.xmlSchemaSchema, schemaElement)
+    XmlValidate.validate(modelManager.xmlSchemaSchema, schemaElement)
+    '''
     #startedAt = time.time()
-    validationSuccess = modelManager.xmlSchemaSchema.validate(schemaElement)
+    #validationSuccess = modelManager.xmlSchemaSchema.validate(schemaElement)
     #modelXbrl.info("info:xmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
     #                                    _("schema validated in %.3f secs"), 
     #                                    time.time() - startedAt),
@@ -52,6 +53,7 @@ def validate(modelDocument, schemaElement, targetNamespace):
                     modelObject=modelDocument, fileName=modelDocument.basename, 
                     error=error.message, line=error.line, column=error.column, sourceAction=("xml schema"))
         modelManager.xmlSchemaSchema._clear_error_log()
+    '''
     """
 
     declaredNamespaces = set(doc.targetNamespace

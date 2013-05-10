@@ -7,7 +7,7 @@ Created on Dec 16, 2010
 import os, re
 from collections import defaultdict
 from lxml import etree
-from arelle import (UrlUtil)
+from arelle import UrlUtil
 
 def compileAttrPattern(elt, attrName, flags=None):
     attr = elt.get(attrName)
@@ -38,6 +38,7 @@ class DisclosureSystem:
         self.HMRC = False
         self.SBRNL = False
         self.validateFileText = False
+        self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
         self.maxSubmissionSubdirectoryEntryNesting = 0
         self.defaultXmlLang = None
@@ -178,10 +179,14 @@ class DisclosureSystem:
                 return
             basename = os.path.basename(self.standardTaxonomiesUrl)
             self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
+            file = None
             try:
-                for file in (self.modelManager.cntlr.webCache.getfilename(self.standardTaxonomiesUrl), 
-                            os.path.join(self.modelManager.cntlr.configDir,"xbrlschemafiles.xml")):
+                from arelle.FileSource import openXmlFileStream
+                for filepath in (self.standardTaxonomiesUrl, 
+                                 os.path.join(self.modelManager.cntlr.configDir,"xbrlschemafiles.xml")):
+                    file = openXmlFileStream(self.modelManager.cntlr, filepath, stripDeclaration=True)[0]
                     xmldoc = etree.parse(file)
+                    file.close()
                     for locElt in xmldoc.iter(tag="Loc"):
                         href = None
                         localHref = None
@@ -219,6 +224,8 @@ class DisclosureSystem:
                     etree.LxmlError) as err:
                 self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
                 etree.clear_error_log()
+                if file:
+                    file.close()
 
     def loadMappings(self):
         basename = os.path.basename(self.mappingsUrl)

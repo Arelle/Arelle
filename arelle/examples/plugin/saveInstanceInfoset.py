@@ -84,12 +84,12 @@ def saveInstanceInfosetCommandLineOptionExtender(parser):
 def saveInstanceInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
     from arelle.ModelDocument import Type
-    if options.instanceInfosetFile and options.infosetFile == "generateOutFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
+    if getattr(options, "instanceInfosetFile", None) and options.infosetFile == "generateOutFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateInfosetOutFiles = True
 
 def saveInstanceInfosetCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.instanceInfosetFile and options.instanceInfosetFile != "generateOutFiles":
+    if getattr(options, "instanceInfosetFile", None) and options.instanceInfosetFile != "generateOutFiles":
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return

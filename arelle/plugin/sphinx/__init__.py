@@ -140,7 +140,7 @@ def sphinxToLBCommandLineOptionExtender(parser):
 
 def sphinxToLBCommandLineUtilityRun(cntlr, options):
     # extend XBRL-loaded run processing for this option
-    if options.sphinxFilesForFormulaLinkbase:
+    if getattr(options, "sphinxFilesForFormulaLinkbase", None):
         from .FormulaGenerator import generateFormulaLB
         generateFormulaLB(cntlr, 
                           options.sphinxFilesForFormulaLinkbase.split("|"),
@@ -148,7 +148,7 @@ def sphinxToLBCommandLineUtilityRun(cntlr, options):
 
 def sphinxCommandLineLoader(cntlr, options, modelXbrl):
     # DTS loaded, add in sphinx files if any
-    if options.sphinxFilesForValidation:
+    if getattr(options, "sphinxFilesForValidation", None):
         from .SphinxParser import parse
         from .SphinxContext import SphinxContext
         sphinxProgs = parse(cntlr, modelXbrl.log, options.sphinxFilesForValidation.split('|'))
@@ -174,7 +174,7 @@ def sphinxTestcaseVariationExpectedResult(modelTestcaseVariation):
     return None # no issue or not a sphinx test case variation
     
 def sphinxTestcasesStart(cntlr, options, testcasesModelXbrl):
-    if options and options.sphinxFilesForValidation: # command line mode
+    if options and getattr(options, "sphinxFilesForValidation", None): # command line mode
         testcasesModelXbrl.sphinxFilesList = options.sphinxFilesForValidation.split('|')
     elif (cntlr.hasGui and
           testcasesModelXbrl.modelDocument.xmlRootElement.qname.namespaceURI == 'http://www.corefiling.com/sphinx-conformance-harness/2.0' and

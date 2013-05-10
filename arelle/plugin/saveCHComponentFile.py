@@ -149,7 +149,7 @@ def saveCHComponentCommandLineOptionExtender(parser):
 
 def saveCHComponentCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.chComponentFile:
+    if getattr(options, "chComponentFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return

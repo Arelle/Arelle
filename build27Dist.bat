@@ -16,6 +16,7 @@ copy arelleCmdLine.py %BUILT27DIR%
 copy arelle_test.py %BUILT27DIR%
 copy conftest.py %BUILT27DIR%
 copy app.yaml %BUILT27DIR%
+copy backends.yaml %BUILT27DIR%
 mkdir %BUILT27DIR%\arelle
 xcopy arelle %BUILT27DIR%\arelle /s
 del %BUILT27DIR%\*.pyc /s

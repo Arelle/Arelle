@@ -308,7 +308,7 @@ def saveDtsMatchesCommandLineOptionExtender(parser):
 
 def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if options.secDtsTagMatchesFile:
+    if getattr(options, "secDtsTagMatchesFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
