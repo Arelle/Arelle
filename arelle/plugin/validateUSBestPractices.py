@@ -5,99 +5,114 @@ from arelle.FileSource import openFileSource, openFileStream, saveFile
 import os, io, re, json, time
 from collections import defaultdict
 
-ugtNamespace = "http://fasb.org/us-gaap/2012-01-31"
+# ((year, ugtNamespace, ugtDocLB, ugtEntryPoint) ...)
+ugtDocs = ({"year": 2012, 
+            "namespace": "http://fasb.org/us-gaap/2012-01-31",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/elts/us-gaap-doc-2012-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/entire/us-gaap-entryPoint-std-2012-01-31.xsd",
+            },
+           {"year": 2013, 
+            "namespace": "http://fasb.org/us-gaap/2013-01-31",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/elts/us-gaap-doc-2013-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/entire/us-gaap-entryPoint-std-2013-01-31.xsd",
+            },
+           )
 
 def setup(val):
     val.linroleDefinitionIsDisclosure = re.compile(r"-\s+Disclosure\s+-\s",
                                                    re.IGNORECASE)
     val.linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                       re.IGNORECASE)
+    val.ugtNamespace = None
     cntlr = val.modelXbrl.modelManager.cntlr
-    # load deprecated concepts for 2012 us-gaap
-    if ugtNamespace in val.modelXbrl.namespaceDocs:
-        usgaapDoc = val.modelXbrl.namespaceDocs[ugtNamespace][0]
-        deprecationsJsonFile = usgaapDoc.filepathdir + os.sep + "deprecated-concepts.json"
-        file = None
-        try:
-            file = openFileStream(cntlr, deprecationsJsonFile, 'rt', encoding='utf-8')
-            val.usgaapDeprecations = json.load(file)
-            file.close()
-        except Exception:
-            if file:
+    # load deprecated concepts for filed year of us-gaap
+    for ugtYear, ugtNamespace, ugtDocLB, ugtEntryXsd in ugtDocs:
+        if ugtNamespace in val.modelXbrl.namespaceDocs and len(val.modelXbrl.namespaceDocs[ugtNamespace]) > 0:
+            val.ugtNamespace = ugtNamespace
+            usgaapDoc = val.modelXbrl.namespaceDocs[ugtNamespace][0]
+            deprecationsJsonFile = usgaapDoc.filepathdir + os.sep + "deprecated-concepts.json"
+            file = None
+            try:
+                file = openFileStream(cntlr, deprecationsJsonFile, 'rt', encoding='utf-8')
+                val.usgaapDeprecations = json.load(file)
                 file.close()
-            val.modelXbrl.modelManager.addToLog(_("loading us-gaap deprecated concepts in cache"))
-            startedAt = time.time()
-            val.usgaapDeprecations = {}
-            # load without SEC/EFM validation (doc file would not be acceptable)
-            priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
-            val.modelXbrl.modelManager.validateDisclosureSystem = False
-            deprecationsInstance = ModelXbrl.load(val.modelXbrl.modelManager, 
-                  # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
-                  # load from zip (especially after caching) is incredibly faster
-                  openFileSource("http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/elts/us-gaap-doc-2012-01-31.xml", cntlr), 
-                  _("built deprecations table in cache"))
-            val.modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
-            if deprecationsInstance is None:
-                val.modelXbrl.error("arelle:notLoaded",
-                    _("US-GAAP documentation not loaded: %(file)s"),
-                    modelXbrl=val, file="us-gaap-doc-2012-01-31.xml")
-            else:   # load deprecations
-                for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
-                    modelDocumentation = labelRel.toModelObject
-                    conceptName = labelRel.fromModelObject.name
-                    if modelDocumentation.role == 'http://www.xbrl.org/2009/role/deprecatedLabel':
-                        val.usgaapDeprecations[conceptName] = (val.usgaapDeprecations.get(conceptName, ('',''))[0], modelDocumentation.text)
-                    elif modelDocumentation.role == 'http://www.xbrl.org/2009/role/deprecatedDateLabel':
-                        val.usgaapDeprecations[conceptName] = (modelDocumentation.text, val.usgaapDeprecations.get(conceptName, ('',''))[1])
-                jsonStr = _STR_UNICODE(json.dumps(val.usgaapDeprecations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-                saveFile(cntlr, deprecationsJsonFile, jsonStr)  # 2.7 gets unicode this way
-                deprecationsInstance.close()
-                del deprecationsInstance # dereference closed modelXbrl
-            val.modelXbrl.profileStat(_("build us-gaap deprecated concepts cache"), time.time() - startedAt)
-        ugtCalcsJsonFile = usgaapDoc.filepathdir + os.sep + "ugt-calculations.json"
-        file = None
-        try:
-            file = openFileStream(cntlr, ugtCalcsJsonFile, 'rt', encoding='utf-8')
-            val.usgaapCalculations = json.load(file)
-            file.close()
-        except Exception:
-            if file:
+            except Exception:
+                if file:
+                    file.close()
+                val.modelXbrl.modelManager.addToLog(_("loading us-gaap deprecated concepts in cache"))
+                startedAt = time.time()
+                val.usgaapDeprecations = {}
+                # load without SEC/EFM validation (doc file would not be acceptable)
+                priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
+                val.modelXbrl.modelManager.validateDisclosureSystem = False
+                deprecationsInstance = ModelXbrl.load(val.modelXbrl.modelManager, 
+                      # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
+                      # load from zip (especially after caching) is incredibly faster
+                      openFileSource(ugtDocLB, cntlr), 
+                      _("built deprecations table in cache"))
+                val.modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
+                if deprecationsInstance is None:
+                    val.modelXbrl.error("arelle:notLoaded",
+                        _("US-GAAP documentation not loaded: %(file)s"),
+                        modelXbrl=val, file=os.path.basename(ugtDocLB))
+                else:   # load deprecations
+                    for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
+                        modelDocumentation = labelRel.toModelObject
+                        conceptName = labelRel.fromModelObject.name
+                        if modelDocumentation.role == 'http://www.xbrl.org/2009/role/deprecatedLabel':
+                            val.usgaapDeprecations[conceptName] = (val.usgaapDeprecations.get(conceptName, ('',''))[0], modelDocumentation.text)
+                        elif modelDocumentation.role == 'http://www.xbrl.org/2009/role/deprecatedDateLabel':
+                            val.usgaapDeprecations[conceptName] = (modelDocumentation.text, val.usgaapDeprecations.get(conceptName, ('',''))[1])
+                    jsonStr = _STR_UNICODE(json.dumps(val.usgaapDeprecations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+                    saveFile(cntlr, deprecationsJsonFile, jsonStr)  # 2.7 gets unicode this way
+                    deprecationsInstance.close()
+                    del deprecationsInstance # dereference closed modelXbrl
+                val.modelXbrl.profileStat(_("build us-gaap deprecated concepts cache"), time.time() - startedAt)
+            ugtCalcsJsonFile = usgaapDoc.filepathdir + os.sep + "ugt-calculations.json"
+            file = None
+            try:
+                file = openFileStream(cntlr, ugtCalcsJsonFile, 'rt', encoding='utf-8')
+                val.usgaapCalculations = json.load(file)
                 file.close()
-            val.modelXbrl.modelManager.addToLog(_("loading us-gaap calculations in cache"))
-            startedAt = time.time()
-            val.usgaapCalculations = {}
-            # load without SEC/EFM validation (doc file would not be acceptable)
-            priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
-            val.modelXbrl.modelManager.validateDisclosureSystem = False
-            calculationsInstance = ModelXbrl.load(val.modelXbrl.modelManager, 
-                  # "http://xbrl.fasb.org/us-gaap/2012/entire/us-gaap-entryPoint-std-2012-01-31.xsd",
-                  # load from zip (especially after caching) is incredibly faster
-                  openFileSource("http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/entire/us-gaap-entryPoint-std-2012-01-31.xsd", cntlr), 
-                  _("built us-gaap calculations cache"))
-            val.modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
-            if calculationsInstance is None:
-                val.modelXbrl.error("arelle:notLoaded",
-                    _("US-GAAP calculations not loaded: %(file)s"),
-                    modelXbrl=val, file="http://xbrl.fasb.org/us-gaap/2012/entire/us-gaap-entryPoint-std-2012-01-31.xsd")
-            else:   # load calculations
-                for ELR in calculationsInstance.relationshipSet(XbrlConst.summationItem).linkRoleUris:
-                    elrRelSet = calculationsInstance.relationshipSet(XbrlConst.summationItem, ELR)
-                    definition = ""
-                    for roleType in calculationsInstance.roleTypes.get(ELR,()):
-                        definition = roleType.definition
-                        break
-                    isStatementSheet = bool(val.linkroleDefinitionStatementSheet.match(definition))
-                    elrUgtCalcs = {"#roots": [c.name for c in elrRelSet.rootConcepts],
-                                   "#definition": definition,
-                                   "#isStatementSheet": isStatementSheet}
-                    for relFrom, rels in elrRelSet.fromModelObjects().items():
-                        elrUgtCalcs[relFrom.name] = [rel.toModelObject.name for rel in rels]
-                    val.usgaapCalculations[ELR] = elrUgtCalcs
-                jsonStr = _STR_UNICODE(json.dumps(val.usgaapCalculations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-                saveFile(cntlr, ugtCalcsJsonFile, jsonStr)  # 2.7 gets unicode this way
-                calculationsInstance.close()
-                del calculationsInstance # dereference closed modelXbrl
-            val.modelXbrl.profileStat(_("build us-gaap calculations cache"), time.time() - startedAt)
+            except Exception:
+                if file:
+                    file.close()
+                val.modelXbrl.modelManager.addToLog(_("loading us-gaap calculations in cache"))
+                startedAt = time.time()
+                val.usgaapCalculations = {}
+                # load without SEC/EFM validation (doc file would not be acceptable)
+                priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
+                val.modelXbrl.modelManager.validateDisclosureSystem = False
+                calculationsInstance = ModelXbrl.load(val.modelXbrl.modelManager, 
+                      # "http://xbrl.fasb.org/us-gaap/2012/entire/us-gaap-entryPoint-std-2012-01-31.xsd",
+                      # load from zip (especially after caching) is incredibly faster
+                      openFileSource(ugtEntryXsd, cntlr), 
+                      _("built us-gaap calculations cache"))
+                val.modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
+                if calculationsInstance is None:
+                    val.modelXbrl.error("arelle:notLoaded",
+                        _("US-GAAP calculations not loaded: %(file)s"),
+                        modelXbrl=val, file=os.path.basename(ugtEntryXsd))
+                else:   # load calculations
+                    for ELR in calculationsInstance.relationshipSet(XbrlConst.summationItem).linkRoleUris:
+                        elrRelSet = calculationsInstance.relationshipSet(XbrlConst.summationItem, ELR)
+                        definition = ""
+                        for roleType in calculationsInstance.roleTypes.get(ELR,()):
+                            definition = roleType.definition
+                            break
+                        isStatementSheet = bool(val.linkroleDefinitionStatementSheet.match(definition))
+                        elrUgtCalcs = {"#roots": [c.name for c in elrRelSet.rootConcepts],
+                                       "#definition": definition,
+                                       "#isStatementSheet": isStatementSheet}
+                        for relFrom, rels in elrRelSet.fromModelObjects().items():
+                            elrUgtCalcs[relFrom.name] = [rel.toModelObject.name for rel in rels]
+                        val.usgaapCalculations[ELR] = elrUgtCalcs
+                    jsonStr = _STR_UNICODE(json.dumps(val.usgaapCalculations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+                    saveFile(cntlr, ugtCalcsJsonFile, jsonStr)  # 2.7 gets unicode this way
+                    calculationsInstance.close()
+                    del calculationsInstance # dereference closed modelXbrl
+                val.modelXbrl.profileStat(_("build us-gaap calculations cache"), time.time() - startedAt)
+            break
     val.deprecatedFactConcepts = defaultdict(list)
     val.deprecatedDimensions = defaultdict(list)
     val.deprecatedMembers = defaultdict(list)
@@ -147,14 +162,14 @@ def factCheck(val, fact):
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value)
                     
         # deprecated concept
-        if concept.qname.namespaceURI == ugtNamespace:
+        if concept.qname.namespaceURI == val.ugtNamespace:
             if concept.name in val.usgaapDeprecations:
                 val.deprecatedFactConcepts[concept].append(fact)
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.deprecatedFactConcepts[concept].append(fact)
         if fact.isItem and fact.context is not None:
             for dimConcept, modelDim in fact.context.segDimValues.items():
-                if dimConcept.qname.namespaceURI == ugtNamespace:
+                if dimConcept.qname.namespaceURI == val.ugtNamespace:
                     if dimConcept.name in val.usgaapDeprecations:
                         val.deprecatedDimensions[dimConcept].append(fact)
                 elif dimConcept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
@@ -162,7 +177,7 @@ def factCheck(val, fact):
                 if modelDim.isExplicit:
                     member = modelDim.member
                     if member is not None:
-                        if member.qname.namespaceURI == ugtNamespace:
+                        if member.qname.namespaceURI == val.ugtNamespace:
                             if member.name in val.usgaapDeprecations:
                                 val.deprecatedMembers[member].append(fact)
                         elif member.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
@@ -174,6 +189,7 @@ def factCheck(val, fact):
             value=fact.effectiveValue, err=err)
 
 def final(val, conceptsUsed):
+    ugtNamespace = val.ugtNamespace
     startedAt = time.time()
     for depType, depItems in (("Concept", val.deprecatedFactConcepts),
                               ("Dimension", val.deprecatedDimensions),
@@ -400,6 +416,7 @@ def final(val, conceptsUsed):
 
     del val.linroleDefinitionIsDisclosure
     del val.linkroleDefinitionStatementSheet
+    del val.ugtNamespace
     if hasattr(val, 'usgaapDeprecations'):
         del val.usgaapDeprecations
     if hasattr(val, 'usgaapCalculations'):
