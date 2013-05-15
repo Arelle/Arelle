@@ -176,7 +176,7 @@ class Cntlr:
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False
-            serverSoftware = os.getenv("SERVER_SOFTWARE")
+            serverSoftware = os.getenv("SERVER_SOFTWARE", "")
             if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
                 self.hasFileSystem = False # no file system, userAppDir does not exist
                 self.isGAE = True
