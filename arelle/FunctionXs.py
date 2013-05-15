@@ -8,6 +8,8 @@ import datetime, re
 from arelle import (XPathContext, ModelValue)
 from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.XPathParser import ProgHeader
+from math import isnan, fabs, isinf
+from decimal import Decimal
     
 class FORG0001(Exception):
     def __init__(self):
@@ -255,7 +257,6 @@ def xsString(xc, p, source):
     if isinstance(source,bool):
         return 'true' if source else 'false'
     elif isinstance(source,float):
-        from math import (isnan, fabs, isinf)
         if isnan(source):
             return "NaN"
         elif isinf(source):
@@ -270,6 +271,12 @@ def xsString(xc, p, source):
         if s.endswith(".0"):
             s = s[:-2]
         return s
+    elif isinstance(source,Decimal):
+        if isnan(source):
+            return "NaN"
+        elif isinf(source):
+            return "INF"
+        return str(source)
     elif isinstance(source,ModelValue.DateTime):
         return ('{0:%Y-%m-%d}' if source.dateOnly else '{0:%Y-%m-%dT%H:%M:%S}').format(source)
     return str(source)

@@ -5,6 +5,7 @@ Created on Jan 4, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import re, copy, datetime
+XmlUtil = None
 
 def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, prefixException=None):
     # either value can be an etree ModelObject element: if no name then qname is element tag quanem
@@ -52,7 +53,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         else:
             namespaceURI = None
             namespaceDict = None
-        prefix,sep,localName = value.partition(":")
+        prefix,sep,localName = value.strip().partition(":")  # must be whitespace collapsed
         if len(localName) == 0:
             #default namespace
             localName = prefix
@@ -64,7 +65,9 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     elif namespaceDict and prefix in namespaceDict:
         return QName(prefix, namespaceDict[prefix], localName)
     elif element is not None:
-        from arelle import (XmlUtil)
+        global XmlUtil
+        if XmlUtil is None:
+            from arelle import XmlUtil
         namespaceURI = XmlUtil.xmlns(element, prefix)
     if not namespaceURI:
         if prefix: 

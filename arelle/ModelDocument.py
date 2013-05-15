@@ -143,7 +143,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.error("xmlSchema:syntax",
                     _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                     modelObject=referringElement, fileName=os.path.basename(uri), 
-                    error=str(err), sourceAction=("including" if isIncluded else "importing"))
+                    error=str(err), sourceAction=("including" if isIncluded else "importing"), exc_info=True)
             modelXbrl.urlUnloadableDocs.add(mappedUri)
             return None
     except Exception as err:
@@ -166,6 +166,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         ns = rootNode.namespaceURI
         
         # type classification
+        _type = None
+        _class = ModelDocument
         if ns == XbrlConst.xsd and ln == "schema":
             _type = Type.SCHEMA
             if not isEntry and not isIncluded:
@@ -194,6 +196,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
             _type = Type.VERSIONINGREPORT
+            from arelle.ModelVersReport import ModelVersReport
+            _class = ModelVersReport
         elif ln in ("testcases", "documentation", "testSuite"):
             _type = Type.TESTCASESINDEX
         elif ln in ("testcase", "testSet"):
@@ -204,34 +208,35 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             _type = Type.XPATHTESTSUITE
         elif ln == "rss":
             _type = Type.RSSFEED
+            from arelle.ModelRssObject import ModelRssObject 
+            _class = ModelRssObject
         elif ln == "ptvl":
             _type = Type.ARCSINFOSET
         elif ln == "facts":
             _type = Type.FACTDIMSINFOSET
         else:
-            _type = Type.UnknownXML
-            nestedInline = None
-            for htmlElt in rootNode.iter(tag="{http://www.w3.org/1999/xhtml}html"):
-                nestedInline = htmlElt
-                break
-            if nestedInline is None:
-                for htmlElt in rootNode.iter(tag="{http://www.w3.org/1999/xhtml}xhtml"):
+            for pluginMethod in pluginClassMethods("ModelDocument.IdentifyType"):
+                _identifiedType = pluginMethod(modelXbrl, rootNode, filepath)
+                if _identifiedType is not None:
+                    _type, _class, rootNode = _identifiedType
+                    break
+            if _type is None:
+                _type = Type.UnknownXML
+                    
+                nestedInline = None
+                for htmlElt in rootNode.iter(tag="{http://www.w3.org/1999/xhtml}html"):
                     nestedInline = htmlElt
                     break
-            if nestedInline is not None:
-                if XbrlConst.ixbrl in nestedInline.nsmap.values():
-                    _type = Type.INLINEXBRL
-                    rootNode = nestedInline
+                if nestedInline is None:
+                    for htmlElt in rootNode.iter(tag="{http://www.w3.org/1999/xhtml}xhtml"):
+                        nestedInline = htmlElt
+                        break
+                if nestedInline is not None:
+                    if XbrlConst.ixbrl in nestedInline.nsmap.values():
+                        _type = Type.INLINEXBRL
+                        rootNode = nestedInline
 
-        #create modelDocument object or subtype as identified
-        if _type == Type.VERSIONINGREPORT:
-            from arelle.ModelVersReport import ModelVersReport
-            modelDocument = ModelVersReport(modelXbrl, _type, mappedUri, filepath, xmlDocument)
-        elif _type == Type.RSSFEED:
-            from arelle.ModelRssObject import ModelRssObject 
-            modelDocument = ModelRssObject(modelXbrl, _type, mappedUri, filepath, xmlDocument)
-        else:
-            modelDocument = ModelDocument(modelXbrl, _type, mappedUri, filepath, xmlDocument)
+        modelDocument = _class(modelXbrl, _type, mappedUri, filepath, xmlDocument)
         rootNode.init(modelDocument)
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
         modelDocument.parserLookupName = _parserLookupName
@@ -244,6 +249,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelDocument.inDTS = True
         
         # discovery (parsing)
+        for pluginMethod in pluginClassMethods("ModelDocument.Discover"):
+            if pluginMethod(modelDocument):
+                # discovery was performed by plug-in, we're done
+                return modelDocument
+        
         if _type == Type.SCHEMA:
             modelDocument.schemaDiscover(rootNode, isIncluded, namespace)
         elif _type == Type.LINKBASE:
@@ -375,15 +385,16 @@ class Type:
     INLINEXBRL=5
     lastXBRLtype=5  # first filetype that is XBRL and can hold a linkbase, etc inside it
     DTSENTRIES=6  # multiple schema/linkbase Refs composing a DTS but not from an instance document
-    VERSIONINGREPORT=7
-    TESTCASESINDEX=8
-    TESTCASE=9
-    REGISTRY=10
-    REGISTRYTESTCASE=11
-    XPATHTESTSUITE=12
-    RSSFEED=13
-    ARCSINFOSET=14
-    FACTDIMSINFOSET=15
+    INLINEXBRLDOCUMENTSET=7
+    VERSIONINGREPORT=8
+    TESTCASESINDEX=9
+    TESTCASE=10
+    REGISTRY=11
+    REGISTRYTESTCASE=12
+    XPATHTESTSUITE=13
+    RSSFEED=14
+    ARCSINFOSET=15
+    FACTDIMSINFOSET=16
     
     TESTCASETYPES = (TESTCASESINDEX, TESTCASE, REGISTRY, REGISTRYTESTCASE, XPATHTESTSUITE)
 
@@ -394,6 +405,7 @@ class Type:
                 "instance", 
                 "inline XBRL instance",
                 "entry point set",
+                "inline XBRL document set",
                 "versioning report",
                 "testcases index", 
                 "testcase",

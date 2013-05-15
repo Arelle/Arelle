@@ -80,6 +80,9 @@ qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
 qnIXbrlNonNumeric = qname("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric")
 qnIXbrlNonFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}nonFraction")
 qnIXbrlFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}fraction")
+ixAttributes = set(qname(n, noPrefixIsNoNamespace=True)
+                   for n in ("escape", "footnoteRefs", "format", "name", "order", "scale", "sign", 
+                             "target", "tupleRef"))
 conceptLabel = "http://www.xbrl.org/2003/arcrole/concept-label"
 conceptReference = "http://www.xbrl.org/2003/arcrole/concept-reference"
 footnote = "http://www.xbrl.org/2003/role/footnote"

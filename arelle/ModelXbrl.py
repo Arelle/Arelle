@@ -51,7 +51,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
         modelXbrl.closeFileSource= True
         url = modelXbrl.fileSource.url
     else:
-        modelXbrl.fileSource = FileSource.FileSource(url)
+        modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
     del modelXbrl.entryLoadingUrl
@@ -78,7 +78,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
-        modelXbrl.fileSource = FileSource.FileSource(url) # url may be an open file handle, use str(url) below
+        modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr) # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
             modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry)
@@ -399,7 +399,7 @@ class ModelXbrl:
         if self.modelDocument.type == ModelDocument.Type.INSTANCE: # entry already is an instance
             return self.modelDocument # use existing instance entry point
         priorFileSource = self.fileSource
-        self.fileSource = FileSource.FileSource(url)
+        self.fileSource = FileSource.FileSource(url, self.modelManager.cntlr)
         if self.uri.startswith("http://"):
             schemaRefUri = self.uri
         else:   # relativize local paths
@@ -469,7 +469,7 @@ class ModelXbrl:
         return None
                  
     def createContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, priItem, dims, segOCCs, scenOCCs,
-                      afterSibling=None, beforeSibling=None):
+                      afterSibling=None, beforeSibling=None, id=None):
         """Creates a new ModelContext and validates (integrates into modelDocument object model).
         
         :param entityIdentScheme: Scheme to match
@@ -492,12 +492,14 @@ class ModelXbrl:
         :type beforeSibling: ModelObject
         :param afterSibling: lxml element in instance to insert new concept after
         :type afterSibling: ModelObject
+        :param id: id to assign to new context, if absent an id will be generated
+        :type id: str
         :returns: ModelContext -- New model context object
         """
         xbrlElt = self.modelDocument.xmlRootElement
         if afterSibling == AUTO_LOCATE_ELEMENT:
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
-        cntxId = 'c-{0:02n}'.format( len(self.contexts) + 1)
+        cntxId = id if id else 'c-{0:02n}'.format( len(self.contexts) + 1)
         newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
                                       afterSibling=afterSibling, beforeSibling=beforeSibling)
         entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
@@ -523,18 +525,21 @@ class ModelXbrl:
                 context element, but for shortcut will see if each dimension is already reported in an
                 unambiguous valid contextElement
             '''
-            dims[2] = priItem # Aspect.CONCEPT: prototype needs primary item as an aspect
-            fp = FactPrototype(self, dims)
-            del dims[2] # Aspect.CONCEPT
-            # force trying a valid prototype's context Elements
-            if not isFactDimensionallyValid(self, fp, setPrototypeContextElements=True):
-                self.info("arelleLinfo",
-                    _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"), 
-                    modelObject=self, priItem=priItem)
-            fpDims = fp.context.qnameDims
+            if priItem is not None: # creating concept for a specific fact
+                dims[2] = priItem # Aspect.CONCEPT: prototype needs primary item as an aspect
+                fp = FactPrototype(self, dims)
+                del dims[2] # Aspect.CONCEPT
+                # force trying a valid prototype's context Elements
+                if not isFactDimensionallyValid(self, fp, setPrototypeContextElements=True):
+                    self.info("arelle:info",
+                        _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"), 
+                        modelObject=self, priItem=priItem)
+                fpDims = fp.context.qnameDims
+            else:
+                fpDims = dims # dims known to be valid (such as for inline extraction) 
             for dimQname in sorted(fpDims.keys()):
                 dimValue = fpDims[dimQname]
-                if isinstance(dimValue, DimValuePrototype):
+                if isinstance(dimValue, (DimValuePrototype,ModelDimensionValue)):
                     dimMemberQname = dimValue.memberQname  # None if typed dimension
                     contextEltName = dimValue.contextElement
                 else: # qname for explicit or node for typed
@@ -594,7 +599,7 @@ class ModelXbrl:
                 return u
         return None
 
-    def createUnit(self, multiplyBy, divideBy, afterSibling=None, beforeSibling=None):
+    def createUnit(self, multiplyBy, divideBy, afterSibling=None, beforeSibling=None, id=None):
         """Creates new unit, by measures, as in formula usage, if any
         
         :param multiplyBy: List of multiply-by measure QNames (or top level measures if no divideBy)
@@ -605,12 +610,14 @@ class ModelXbrl:
         :type beforeSibling: ModelObject
         :param afterSibling: lxml element in instance to insert new concept after
         :type afterSibling: ModelObject
+        :param id: id to assign to new unit, if absent an id will be generated
+        :type id: str
         :returns: ModelUnit -- New unit object
         """
         xbrlElt = self.modelDocument.xmlRootElement
         if afterSibling == AUTO_LOCATE_ELEMENT:
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context", "unit"))
-        unitId = 'u-{0:02n}'.format( len(self.units) + 1)
+        unitId = id if id else 'u-{0:02n}'.format( len(self.units) + 1)
         newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
                                       afterSibling=afterSibling, beforeSibling=beforeSibling)
         if len(divideBy) == 0:
@@ -750,8 +757,8 @@ class ModelXbrl:
         :param conceptQname: QNames of concept
         :type conceptQname: QName
         :param attributes: Tuple of name, value, or tuples of name, value tuples (name,value) or ((name,value)[,(name,value...)]), where name is either QName or clark-notation name string
-        :param text: Text content of fact
-        :type text: str
+        :param text: Text content of fact (will be converted to xpath compatible str by FunctionXS.xsString)
+        :type text: object
         :param parent: lxml element in instance to append as child of
         :type parent: ModelObject
         :param beforeSibling: lxml element in instance to insert new concept before

@@ -137,32 +137,51 @@ def textNotStripped(element):
         return ""
     return element.elementText  # allows embedded comment nodes, returns '' if None
 
-def innerText(element, ixExclude=False, strip=True):   
+def innerText(element, ixExclude=False, ixEscape=False, strip=True):   
     try:
-        text = "".join(text for text in innerTextNodes(element, ixExclude))
+        text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape))
         if strip:
             return text.strip()
         return text
     except TypeError:
         return ""
 
-def innerTextList(element, ixExclude=False):   
+def innerTextList(element, ixExclude=False, ixEscape=False):   
     try:
-        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude) if len(text.strip()) > 0)
+        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape) if len(text.strip()) > 0)
     except TypeError:
         return ""
 
-def innerTextNodes(element, ixExclude):
+def innerTextNodes(element, ixExclude, ixEscape):
     if element.text:
         yield element.text
     for child in element.iterchildren():
         if isinstance(child,ModelObject) and (
            not ixExclude or 
            (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL")):
-            for nestedText in innerTextNodes(child, ixExclude):
+            firstChild = True
+            for nestedText in innerTextNodes(child, ixExclude, ixEscape):
+                if firstChild and ixEscape:
+                    yield escapedNode(child, True, False)
+                    firstChild = False
                 yield nestedText
+            if ixEscape:
+                yield escapedNode(child, False, firstChild)
         if child.tail:
             yield child.tail
+            
+def escapedNode(elt, start, empty):
+    s = ['<']
+    if not start and not empty:
+        s.append('/')
+    s.append(str(elt.qname))
+    if start or empty:
+        for n,v in elt.items():
+            s.append(' {0}="{1}"'.format(qname(elt,n),v))
+    if not start and empty:
+        s.append('/')
+    s.append('>')
+    return ''.join(s)
 
 def parentId(element, parentNamespaceURI, parentLocalName):
     while element is not None:
@@ -425,7 +444,7 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
                 child.set(name.clarkNotation, str(value))
             else:
                 child.set(name, xsString(None, None, value) )
-    if text:
+    if text is not None:
         child.text = xsString(None, None, text)
     return child
 
@@ -780,9 +799,10 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
         text = node.text
         if text is not None:
             text = ''.join("&amp;" if c == "&"
-                           else "&nbsp;" if c == "\u00A0" 
+                           else ("&nbsp;" if xmlcharrefreplace else "&#160;") if c == "\u00A0" 
                            else "&lt;" if c == "<"
-                           else "&shy;" if c == "\u00AD"
+                           else "&gt;" if c == ">"
+                           else ("&shy;" if xmlcharrefreplace else "&#173;") if c == "\u00AD"
                            else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
                            else c
                            for c in text)

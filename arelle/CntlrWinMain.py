@@ -663,7 +663,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if modelXbrl.hasTableRendering:  # show rendering grid even without any facts
                     ViewWinRenderedGrid.viewRenderedGrid(modelXbrl, self.tabWinTopRt, lang=self.labelLang)
                     if topView is None: topView = modelXbrl.views[-1]
-                if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                     currentAction = "table view of facts"
                     if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
                         ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.labelLang)

@@ -511,7 +511,19 @@ class ModelInlineFact(ModelFact):
         num = 0
         negate = -1 if self.sign else 1
         try:
-            num = float(value)
+            if self.concept is not None:
+                baseXsdType = self.concept.baseXsdType
+                if baseXsdType in {"integer",
+                                   "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
+                                   "long","unsignedLong",
+                                   "int","unsignedInt",
+                                   "short","unsignedShort",
+                                   "byte","unsignedByte"}:
+                    num = _INT(value)
+                else:
+                    num = float(value)
+            else:
+                num = float(value)
             scale = self.scale
             if scale is not None:
                 num *= 10 ** _INT(self.scale)
@@ -526,7 +538,7 @@ class ModelInlineFact(ModelFact):
         try:
             return self._ixValue
         except AttributeError:
-            v = XmlUtil.innerText(self, ixExclude=True, strip=True) # transforms are whitespace-collapse
+            v = XmlUtil.innerText(self, ixExclude=True, ixEscape=(self.get("escape") == "true"), strip=True) # transforms are whitespace-collapse
             f = self.format
             if f is not None:
                 if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
@@ -555,7 +567,9 @@ class ModelInlineFact(ModelFact):
                 ("html value", XmlUtil.innerText(self)))
         else:
             numProperties = ()
-        return super(ModelInlineFact,self).propertyView + \
+        return (("file", self.modelDocument.basename),
+                ("line", self.sourceline)) + \
+               super(ModelInlineFact,self).propertyView + \
                numProperties
         
     def __repr__(self):

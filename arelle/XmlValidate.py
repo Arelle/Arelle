@@ -212,6 +212,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     extraAttributes -= set(a
                                            for a in extraAttributes
                                            if validateAnyWildcard(qnElt, a, attributeWildcards))
+                    if isIxFact:
+                        extraAttributes -= XbrlConst.ixAttributes
                     if extraAttributes:
                         modelXbrl.error("xmlSchema:attributesExtraneous",
                             _("Element %(element)s type %(typeName)s extraneous attributes: %(attributes)s"),
