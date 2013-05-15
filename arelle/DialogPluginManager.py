@@ -297,10 +297,13 @@ class DialogPluginManager(Toplevel):
             self.moduleRemoveButton.config(state=DISABLED)
         
     def findLocally(self):
+        initialdir = self.cntlr.pluginDir # default plugin directory
+        if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
+            initialdir = self.cntlr.config.setdefault("pluginOpenDir", initialdir)
         filename = self.cntlr.uiFileDialog("open",
                                            owner=self,
                                            title=_("Choose plug-in module file"),
-                                           initialdir=self.cntlr.config.setdefault("pluginOpenDir", self.cntlr.userAppDir + os.sep + "plugin"),
+                                           initialdir=initialdir,
                                            filetypes=[(_("Python files"), "*.py")],
                                            defaultextension=".py")
         if filename:
