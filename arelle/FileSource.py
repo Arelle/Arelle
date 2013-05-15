@@ -87,7 +87,7 @@ class FileSource:
             self.type == ".xml" and
             checkIfXmlIsEis):
             try:
-                file = open(self.cntlr.webCache.getfilename(self.url), 'r')
+                file = open(self.cntlr.webCache.getfilename(self.url), 'r', errors='replace')
                 l = file.read(128)
                 file.close()
                 if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<cor[a-z]*:edgarSubmission", l):
@@ -443,10 +443,10 @@ class FileSource:
             self.url = self.baseurl + os.sep + selection.replace("/", os.sep)
             
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
-    if filepath.startswith("http://"):
+    if filepath.startswith("http://") and cntlr:
         filepath = cntlr.webCache.getfilename(filepath)
     # file path may be server (or memcache) or local file system
-    if filepath.startswith(SERVER_WEB_CACHE):
+    if filepath.startswith(SERVER_WEB_CACHE) and cntlr:
         filestream = None
         cacheKey = filepath[len(SERVER_WEB_CACHE) + 1:].replace("\\","/")
         if cntlr.isGAE: # check if in memcache
@@ -474,7 +474,7 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
     # check encoding
     hdrBytes = openedFileStream.read(512)
     encoding = XmlUtil.encoding(hdrBytes)
-    if encoding.lower() in ('utf-8','utf8') and not cntlr.isGAE and not stripDeclaration:
+    if encoding.lower() in ('utf-8','utf8') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
         openedFileStream.close()
     else:
