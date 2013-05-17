@@ -39,10 +39,10 @@ class ViewConcepts(ViewFile.View):
                                  concept.substitutionGroupQname,
                                  concept.typeQname,
                                  # facets if any, sorted and separated by ;
-                                 " ".join("{0}={1}".format(
+                                 (" ".join("{0}={1}".format(
                                        name,
                                        sorted(value) if isinstance(value,set) else value
-                                       ) for name,value in sorted(concept.type.facets.items())) \
-                                       if concept.type is not None and concept.type.facets else '',
+                                       ) for name,value in sorted(concept.type.facets.items()))) \
+                                 if concept.type is not None and concept.type.facets else '',
                                  concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole)
                                 ])

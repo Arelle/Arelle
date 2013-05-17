@@ -531,6 +531,7 @@ class ViewRenderedGrid(ViewFile.View):
                     if isNonAbstract:
                         cellElt = etree.Element(tableModelQName("cell"),
                                                 attrib={"span": str(rowspan)} if rowspan > 1 else None)
+                        i = -1 # for case where no enumeration takes place
                         for i, role in enumerate(self.rowHdrNonStdRoles):
                             labelElt = etree.SubElement(cellElt, tableModelQName("label"),
                                                         attrib={"role":role,
@@ -667,10 +668,24 @@ class ViewRenderedGrid(ViewFile.View):
                                                                                  value,
                                                                                  fact.modelDocument.basename, 
                                                                                  fact.sourceline)))
-    
+                                    elif fact is not None:
+                                        self.xCells.append(etree.Comment("Fact was not matched {0}: context {1}, value {2}, file {3}, line {4}, aspects not matched: {5}, dimensions expected to have been defaulted: {6}"
+                                                                         .format(fact.qname,
+                                                                                 fact.contextID,
+                                                                                 fact.effectiveValue,
+                                                                                 fact.modelDocument.basename, 
+                                                                                 fact.sourceline,
+                                                                                 ', '.join(str(aspect)
+                                                                                           for aspect in matchableAspects
+                                                                                           if not aspectMatches(rendrCntx, fact, fp, aspect)),
+                                                                                 ', '.join(str(dim)
+                                                                                           for dim in cellDefaultedDims
+                                                                                           if fact.context.dimMemberQname(dim,includeDefaults=True) not in (dimDefaults[dim], None))
+                                                                                 )))
                                     cellElt = etree.SubElement(self.xCells, tableModelQName("cell"))
-                                    etree.SubElement(cellElt, tableModelQName("fact")
-                                                     ).text = '#' + elementFragmentIdentifier(fact)
+                                    if value is not None and fact is not None:
+                                        etree.SubElement(cellElt, tableModelQName("fact")
+                                                         ).text = '#' + elementFragmentIdentifier(fact)
                             else:
                                 if self.type == HTML:
                                     etree.SubElement(self.rowElts[row - 1], 
