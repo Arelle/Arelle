@@ -273,6 +273,7 @@ tableBreakdown = "http://xbrl.org/arcrole/PWD/2013-05-17/table-breakdown"
 tableBreakdownTree = "http://xbrl.org/arcrole/PWD/2013-05-17/breakdown-tree"
 tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/PWD/2013-05-17/definition-node-subtree"
 tableFilter = "http://xbrl.org/arcrole/PWD/2013-05-17/table-filter"
+tableAspectNodeFilter = "http://xbrl.org/arcrole/PWD/2013-05-17/aspect-node-filter"
 qnTableTable = qname("{http://xbrl.org/PWD/2013-05-17/table}table:table")
 qnTableBreakdown = qname("{http://xbrl.org/PWD/2013-05-17/table}table:breakdown")
 qnTableRuleNode = qname("{http://xbrl.org/PWD/2013-05-17/table}table:ruleNode")
@@ -541,7 +542,7 @@ def isDimensionArcrole(arcrole):
 def isTableRenderingArcrole(arcrole):
     return arcrole in {# current PWD 2013-05-17
                        tableBreakdown, tableBreakdownTree, tableFilter,
-                       tableDefinitionNodeSubtree,
+                       tableDefinitionNodeSubtree, tableAspectNodeFilter,
                        # Prior PWD, Montreal and 2013-01-16 
                        tableBreakdown201301, tableAxis2011, tableFilter2011, 
                        tableDefinitionNodeSubtree201301, tableAxisSubtree2011, 

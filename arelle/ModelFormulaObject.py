@@ -2135,7 +2135,7 @@ class ModelTypedDimension(ModelTestFilter):
     @property
     def dimQnameExpression(self):
         qnameExpression = XmlUtil.descendant(self, XbrlConst.df, "qnameExpression")
-        if qnameExpression:
+        if qnameExpression is not None:
             return XmlUtil.text(qnameExpression)
         return None    
    

@@ -1069,13 +1069,18 @@ class ModelSelectionDefinitionNode(ModelOpenDefinitionNode):
         else:
             return xpCtx.flattenSequence(xpCtx.evaluate(self.selectProg, None))
             
+aspectNodeAspectCovered = {"conceptAspect": Aspect.CONCEPT,
+                           "unitAspect": Aspect.UNIT,
+                           "entityIdentifierAspect": Aspect.ENTITY_IDENTIFIER,
+                           "periodAspect": Aspect.PERIOD}
+
 class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
     def init(self, modelDocument):
         super(ModelFilterDefinitionNode, self).init(modelDocument)
         
     @property
     def descendantArcroles(self):        
-        return (XbrlConst.tableFilter, XbrlConst.tableFilterNodeFilter2011, XbrlConst.tableAxisFilter2011,XbrlConst.tableAxisFilter201205, XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011)
+        return (XbrlConst.tableAspectNodeFilter, XbrlConst.tableFilterNodeFilter2011, XbrlConst.tableAxisFilter2011,XbrlConst.tableAxisFilter201205, XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011)
         
     @property
     def filterRelationships(self):
@@ -1083,7 +1088,7 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
             return self._filterRelationships
         except AttributeError:
             rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
-            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableFilter, XbrlConst.tableFilterNodeFilter2011, XbrlConst.tableAxisFilter2011,XbrlConst.tableAxisFilter201205)).fromModelObject(self):
+            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableAspectNodeFilter, XbrlConst.tableFilterNodeFilter2011, XbrlConst.tableAxisFilter2011,XbrlConst.tableAxisFilter201205)).fromModelObject(self):
                 if isinstance(rel.toModelObject, ModelConceptName):
                     rels.insert(0, rel)  # put conceptName filters first
                 else:
@@ -1099,13 +1104,22 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
             return self._aspectsCovered
         except AttributeError:
             self._aspectsCovered = set()
-            for rel in self.filterRelationships:
-                if rel.isCovered:
-                    _filter = rel.toModelObject
-                    self._aspectsCovered |= _filter.aspectsCovered(varBinding)
-            self._dimensionsCovered = set(aspect for aspect in self._aspectsCovered if isinstance(aspect,QName))
-            if self._dimensionsCovered:
-                self._aspectsCovered.add(Aspect.DIMENSIONS)
+            if self.qname == XbrlConst.qnTableAspectNode:
+                aspectElt = XmlUtil.child(self, XbrlConst.table, ("conceptAspect", "unitAspect", "entityIdentifierAspect", "periodAspect", "dimensionAspect"))
+                if aspectElt is not None:
+                    if aspectElt.localName == "dimensionAspect":
+                        self._aspectsCovered.add(qname(aspectElt, aspectElt.elementText))
+                    else:
+                        self._aspectsCovered.add(aspectNodeAspectCovered[aspectElt.localName])                                                  
+            else:
+                # filter node (prior to 2013-05-17)
+                for rel in self.filterRelationships:
+                    if rel.isCovered:
+                        _filter = rel.toModelObject
+                        self._aspectsCovered |= _filter.aspectsCovered(varBinding)
+                self._dimensionsCovered = set(aspect for aspect in self._aspectsCovered if isinstance(aspect,QName))
+                if self._dimensionsCovered:
+                    self._aspectsCovered.add(Aspect.DIMENSIONS)
             return self._aspectsCovered
 
     def aspectValue(self, xpCtx, aspect, inherit=None):
