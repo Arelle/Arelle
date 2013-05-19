@@ -8,7 +8,7 @@ import os, sys
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect
-from arelle.ModelRenderingObject import (ModelEuTable, ModelTable,
+from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdown,
                                          ModelEuAxisCoord, ModelDefinitionNode, ModelClosedDefinitionNode, ModelOpenDefinitionNode,
                                          ModelRelationshipDefinitionNode, ModelSelectionDefinitionNode, ModelFilterDefinitionNode,
                                          ModelCompositionDefinitionNode, ModelTupleDefinitionNode, StructuralNode,
@@ -29,11 +29,11 @@ def resolveAxesStructure(view, viewTblELR):
         
         # find an ELR for this table object
         table = viewTblELR
-        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011)).fromModelObject(table):
+        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011)).fromModelObject(table):
             # find relationships in table's linkrole
-            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableDefinitionNodeSubtree,XbrlConst.tableAxisSubtree2011), rel.linkrole)
+            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), rel.linkrole)
             return resolveTableAxesStructure(view, table,
-                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), rel.linkrole))
+                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), rel.linkrole))
         # no relationships from table found
         return (None, None, None, None)
     
@@ -42,8 +42,8 @@ def resolveAxesStructure(view, viewTblELR):
     if len(tblAxisRelSet.modelRelationships) > 0:
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
-        tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011), viewTblELR)
-        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableDefinitionNodeSubtree,XbrlConst.tableAxisSubtree2011), viewTblELR)
+        tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownTree, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
         return (None, None, None, None)
@@ -90,17 +90,17 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
         for i, tblAxisRel in enumerate(tblAxisRels):
             definitionNode = tblAxisRel.toModelObject
             if (tblAxisRel.axisDisposition == disposition and 
-                isinstance(definitionNode, (ModelEuAxisCoord, ModelDefinitionNode))):
+                isinstance(definitionNode, (ModelEuAxisCoord, ModelBreakdown, ModelDefinitionNode))):
                 if disposition == "x" and xTopStructuralNode is None:
                     xTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx)
-                    if isinstance(definitionNode,ModelClosedDefinitionNode) and definitionNode.parentChildOrder is not None:
+                    if isinstance(definitionNode,(ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.parentChildOrder is not None:
                         view.xTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
                     analyzeHdrs(view, xTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     view.dataCols = leafNodeCount(xTopStructuralNode)
                     break
                 elif disposition == "y" and yTopStructuralNode is None:
                     yTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx)
-                    if isinstance(definitionNode,ModelClosedDefinitionNode) and definitionNode.parentChildOrder is not None:
+                    if isinstance(definitionNode,(ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.parentChildOrder is not None:
                         view.yAxisChildrenFirst.set(definitionNode.parentChildOrder == "children-first")
                         view.yTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
                     analyzeHdrs(view, yTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
@@ -144,7 +144,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
         view.xAxisChildrenFirst.set(view.topRollup["x"] == CHILD_ROLLUP_LAST)
     if view.topRollup["y"]:
         view.yAxisChildrenFirst.set(view.topRollup["y"] == CHILD_ROLLUP_LAST)
-    
+
     return (tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode)
 
 def sortkey(obj):
@@ -172,7 +172,7 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                     if widestWordLen > view.rowNonAbstractHdrSpanMin[structuralNode.depth]:
                         view.rowNonAbstractHdrSpanMin[structuralNode.depth] = widestWordLen
                         
-    if structuralNode and isinstance(definitionNode, (ModelEuAxisCoord, ModelDefinitionNode)):
+    if structuralNode and isinstance(definitionNode, (ModelBreakdown, ModelEuAxisCoord, ModelDefinitionNode)):
         try:
             #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
             ordCardinality, ordDepth = definitionNode.cardinalityAndDepth(structuralNode)
@@ -241,7 +241,7 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                     if not view.topRollup.get(axisDisposition):
                         view.topRollup[axisDisposition] = structuralNode.subtreeRollUp
                 else:
-                    if (isinstance(definitionNode, ModelCompositionDefinitionNode) and
+                    if (isinstance(definitionNode, (ModelBreakdown, ModelCompositionDefinitionNode)) and
                         isinstance(childDefinitionNode, ModelRelationshipDefinitionNode)): # append list products to composititionAxes subObjCntxs
                         childStructuralNode = structuralNode
                     else:
@@ -306,6 +306,11 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                     filteredFactsPartitions = structuralNode.evaluate(definitionNode, 
                                                                       definitionNode.filteredFactsPartitions, 
                                                                       evalArgs=(facts,))
+                    if structuralNode._rendrCntx.formulaOptions.traceVariableFilterWinnowing:
+                        view.modelXbrl.info("table:trace",
+                            _("Filter node %(xlinkLabel)s facts partitions: %(factsPartitions)s"), 
+                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel,
+                            factsPartitions=str(filteredFactsPartitions))
                     for factsPartition in filteredFactsPartitions:
                         childStructuralNode = StructuralNode(structuralNode, definitionNode, contextItemFact=factsPartition[0])
                         childStructuralNode.indent = 0

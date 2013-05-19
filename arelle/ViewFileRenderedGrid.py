@@ -8,14 +8,16 @@ from arelle import ViewFile
 from lxml import etree
 from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
 from arelle.ViewFile import HTML, XML
+from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.FormulaEvaluator import aspectMatches
+from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
 from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.XbrlConst import tableModel as tableModelNamespace, tableModelQName
-from arelle.XmlUtil import elementFragmentIdentifier, addQnameValue
+from arelle.XmlUtil import innerTextList, elementFragmentIdentifier, addQnameValue
 from collections import defaultdict
 
 emptySet = set()
@@ -151,10 +153,10 @@ class ViewRenderedGrid(ViewFile.View):
                             if structuralNode._definitionNode.get('value'):
                                 modelElt.addprevious(etree.Comment("   @value {0}".format(structuralNode._definitionNode.get('value'))))
                             for aspect in sorted(structuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                                if structuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                                if structuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                     aspectValue = structuralNode.aspectValue(aspect)
                                     if aspectValue is None: aspectValue = "(bound dynamically)"
-                                    modelElt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), aspectValue)))
+                                    modelElt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), xsString(None,None,aspectValue))))
                             for varName, varValue in structuralNode.variables.items():
                                     modelElt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
                             
@@ -300,7 +302,10 @@ class ViewRenderedGrid(ViewFile.View):
                     elif self.type == XML:
                         cellElt = etree.Element(tableModelQName("cell"),
                                             attrib={"span": str(columnspan)} if columnspan > 1 else None)
-                        self.colHdrElts[topRow - self.colHdrTopRow].insert(leftCol,cellElt)
+                        try:
+                            self.colHdrElts[topRow - self.colHdrTopRow].insert(leftCol,cellElt)
+                        except IndexError:
+                            pass
                         self.structuralNodeModelElements.append((xStructuralNode, cellElt))
                         elt = etree.SubElement(cellElt, tableModelQName("label"))
                         if nonAbstract or (leafNode and row > topRow):
@@ -318,14 +323,16 @@ class ViewRenderedGrid(ViewFile.View):
                                              ).text = xStructuralNode.header(
                                                    role=role, lang=self.lang)
                         for aspect in sorted(xStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                            if xStructuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                            if xStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                 aspectValue = xStructuralNode.aspectValue(aspect)
                                 if aspectValue is None: aspectValue = "(bound dynamically)"
+                                if isinstance(aspectValue, ModelObject): # typed dimension value
+                                    aspectValue = innerTextList(aspectValue)
                                 aspElt = etree.SubElement(cellElt, tableModelQName("constraint"))
                                 etree.SubElement(aspElt, tableModelQName("aspect")
                                                  ).text = aspectStr(aspect)
                                 etree.SubElement(aspElt, tableModelQName("value")
-                                                 ).text = addQnameValue(self.xmlDoc, aspectValue)
+                                                 ).text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
                     elt.text = label or "\u00A0" #produces &nbsp;
                     if nonAbstract:
                         if columnspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
@@ -513,17 +520,22 @@ class ViewRenderedGrid(ViewFile.View):
                                             attrib={"span": str(rowspan)} if rowspan > 1 else None)
                     elt = etree.SubElement(cellElt, tableModelQName("label"))
                     elt.text = label
-                    self.rowHdrElts[leftCol - 1].append(cellElt)
+                    try:
+                        self.rowHdrElts[leftCol - 1].append(cellElt)
+                    except IndexError:
+                        pass
                     self.structuralNodeModelElements.append((yStructuralNode, cellElt))
                     for aspect in sorted(yStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                        if yStructuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                        if yStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                             aspectValue = yStructuralNode.aspectValue(aspect)
                             if aspectValue is None: aspectValue = "(bound dynamically)"
+                            if isinstance(aspectValue, ModelObject): # typed dimension value
+                                aspectValue = innerTextList(aspectValue)
                             elt = etree.SubElement(cellElt, tableModelQName("constraint"))
                             etree.SubElement(elt, tableModelQName("aspect")
                                              ).text = aspectStr(aspect)
                             etree.SubElement(elt, tableModelQName("value")
-                                             ).text = addQnameValue(self.xmlDoc, aspectValue)
+                                             ).text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
                     for rollUpCol in range(leftCol, self.rowHdrCols - 1):
                         rollUpElt = etree.Element(tableModelQName("cell"),
                                                   attrib={"rollup":"true"})
@@ -539,14 +551,16 @@ class ViewRenderedGrid(ViewFile.View):
                             labelElt.text = yStructuralNode.header(role=role, lang=self.lang)
                         self.rowHdrElts[self.rowHdrCols - 1 + i].append(cellElt)
                         for aspect in sorted(yStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                            if yStructuralNode.hasAspect(aspect) and aspect != Aspect.DIMENSIONS:
+                            if yStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                 aspectValue = yStructuralNode.aspectValue(aspect)
                                 if aspectValue is None: aspectValue = "(bound dynamically)"
+                                if isinstance(aspectValue, ModelObject): # typed dimension value
+                                    aspectValue = innerTextList(aspectValue)
                                 elt = etree.SubElement(cellElt, tableModelQName("constraint"))
                                 etree.SubElement(elt, tableModelQName("aspect")
                                                  ).text = aspectStr(aspect)
                                 etree.SubElement(elt, tableModelQName("value")
-                                                 ).text = addQnameValue(self.xmlDoc, aspectValue)
+                                                 ).text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
                         '''
                         if self.rowHdrDocCol:
                             labelElt = etree.SubElement(cellElt, tableModelQName("label"),
@@ -621,6 +635,7 @@ class ViewRenderedGrid(ViewFile.View):
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)
                         conceptNotAbstract = concept is None or not concept.isAbstract
                         from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
+                        fact = None
                         value = None
                         objectId = None
                         justify = None

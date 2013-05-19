@@ -25,7 +25,7 @@ def init(modelXbrl):
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and XbrlConst.isTableRenderingArcrole(arcrole):
             ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
-            if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableAxis2011):
+            if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011):
                 hasXbrlTables = True
 
     # provide context for view
@@ -48,8 +48,9 @@ def init(modelXbrl):
         # validate parameters and custom function signatures
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
         
+        # deprecated as of 2013-05-17
         # check and extract message expressions into compilable programs
-        for msgArcrole in (XbrlConst.tableDefinitionNodeMessage, XbrlConst.tableDefinitionNodeSelectionMessage,
+        for msgArcrole in (XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableDefinitionNodeSelectionMessage201301,
                            XbrlConst.tableAxisMessage2011, XbrlConst.tableAxisSelectionMessage2011):
             for msgRel in modelXbrl.relationshipSet(msgArcrole).modelRelationships:
                 ValidateFormula.checkMessageExpressions(modelXbrl, msgRel.toModelObject)
@@ -69,7 +70,7 @@ def init(modelXbrl):
                 # check ordinate aspects against aspectModel
                 oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
                 uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[modelTable.aspectModel]
-                for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown,XbrlConst.tableAxis2011)).fromModelObject(modelTable):
+                for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdown201301,XbrlConst.tableAxis2011)).fromModelObject(modelTable):
                     checkDefinitionNodeAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverableAspects)
                 del modelTable.priorAspectAxisDisposition
     
@@ -103,7 +104,7 @@ def checkDefinitionNodeAspectModel(modelXbrl, modelTable, tblAxisRel, uncoverabl
                 _("DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model"),
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel)
     definitionNodeHasChild = False
-    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableAxisSubtree2011)).fromModelObject(definitionNode):
+    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011)).fromModelObject(definitionNode):
         checkDefinitionNodeAspectModel(modelXbrl, modelTable, axisSubtreeRel, uncoverableAspects)
         childDefinitionNode = axisSubtreeRel.toModelObject
         definitionNodeHasChild = True

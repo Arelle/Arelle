@@ -16,6 +16,7 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
             self.isItem = self.concept is not None and self.concept.isItem
             self.isTuple = self.concept is not None and self.concept.isTuple
         else:
+            self.qname = None # undefined concept
             self.concept = None # undefined concept
             self.isTuple = False # don't block aspectMatches
         if Aspect.LOCATION in aspectValues:
