@@ -7,7 +7,7 @@ Created on Oct 5, 2010
 import os, posixpath, sys, re, shutil, time, calendar, io, json
 if sys.version[0] >= '3':
     from urllib.parse import quote, unquote
-    from urllib.error import (URLError, HTTPError, ContentTooShortError)
+    from urllib.error import URLError, HTTPError, ContentTooShortError
     from urllib import request
     from urllib import request as proxyhandlers
 else: # python 2.7.2
@@ -405,7 +405,7 @@ class WebCache:
                 if filename:
                     tfp.close()
         finally:
-            if filename:
+            if fp:
                 fp.close()
         # raise exception if actual size does not match content-length header
         if size >= 0 and read < size:
