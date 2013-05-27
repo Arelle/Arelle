@@ -126,7 +126,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
-     description="US SEC Edgar Filing Manual\n
+     description="US SEC Edgar Filing Manual, 2013\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -155,7 +155,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
-     description="US SEC Edgar Filing Manual\n
+     description="US SEC Edgar Filing Manual, 2013\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -166,6 +166,67 @@
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies.xml"
+     utrUrl="http://www.xbrl.org/utr/2012-11-30/utr.xml"
+     validateFileText="true"
+     identifierSchemePattern="^http://www\.sec\.gov/CIK$"
+     identifierValuePattern="^[0-9]{10}$" 
+     identifierValueName="CIK" 
+     contextElement="segment" 
+     roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
+     labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
+     labelTrimPattern="[ \n\r\t]"
+     deiNamespacePattern="^http://xbrl\.us/dei/|^http://xbrl\.sec\.gov/dei"
+     deiAmendmentFlagElement="AmendmentFlag"
+     deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
+     deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
+     deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
+     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerNameElement="EntityRegistrantName"
+     logLevelFilter="(?!.*-semantic$)"
+     logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.07.09.roleEnding|EFM.6.07.13.arcroleEnding|EFM.6.10.01.missingLabelLinkbase)"
+     />
+  <DisclosureSystem 
+     names="US SEC (Edgar Filing Manual, Strict, 2012)|efm-2012|efm-strict-2012"
+     description="US SEC Edgar Filing Manual, 2012\n
+     Default language en-US (en allowed in some cases per EFM)\n
+     CIK identifier patterns\n
+     Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
+     Disallowed references are processed\n
+     Includes content (semantic) tests"
+     validationType="EFM"
+     blockDisallowedReferences="false" 
+     defaultXmlLang="en-US" 
+     defaultLanguage="English" 
+     standardTaxonomiesUrl="edgartaxonomies-2012.xml"
+     validateFileText="true"
+     identifierSchemePattern="^http://www\.sec\.gov/CIK$"
+     identifierValuePattern="^[0-9]{10}$" 
+     identifierValueName="CIK" 
+     contextElement="segment" 
+     roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
+     labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;*&amp;#60;|&amp;#x3C"
+     labelTrimPattern="[ \n\r\t]"
+     deiNamespacePattern="^http://xbrl\.us/dei/|^http://xbrl\.sec\.gov/dei"
+     deiAmendmentFlagElement="AmendmentFlag"
+     deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
+     deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
+     deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
+     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerNameElement="EntityRegistrantName"
+     />
+  <DisclosureSystem 
+     names="US SEC (Edgar Filing Manual, Pragmatic, 2012)|efm-blocking-2012|efm-pragmatic-2012"
+     description="US SEC Edgar Filing Manual, 2012\n
+     Default language en-US (en allowed in some cases per EFM)\n
+     CIK identifier patterns\n
+     Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
+     Disallowed references are blocked and not loaded (same as SEC production system)\n
+     No content (semantic) tests are reported"
+     validationType="EFM"
+     blockDisallowedReferences="true" 
+     defaultXmlLang="en-US" 
+     defaultLanguage="English" 
+     standardTaxonomiesUrl="edgartaxonomies-2012.xml"
      utrUrl="http://www.xbrl.org/utr/2012-11-30/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
