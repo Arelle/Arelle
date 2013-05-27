@@ -76,13 +76,14 @@ qnXlResourceType = qname("{http://www.xbrl.org/2003/XLink}xl:resourceType")
 qnXlArcType = qname("{http://www.xbrl.org/2003/XLink}xl:arcType")
 xhtml = "http://www.w3.org/1999/xhtml"
 ixbrl = "http://www.xbrl.org/2008/inlineXBRL"
+qnIXbrlResources = qname("{http://www.xbrl.org/2008/inlineXBRL}resources")
 qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
 qnIXbrlNonNumeric = qname("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric")
 qnIXbrlNonFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}nonFraction")
 qnIXbrlFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}fraction")
 ixAttributes = set(qname(n, noPrefixIsNoNamespace=True)
                    for n in ("escape", "footnoteRefs", "format", "name", "order", "scale", "sign", 
-                             "target", "tupleRef"))
+                             "target", "tupleRef", "tupleID"))
 conceptLabel = "http://www.xbrl.org/2003/arcrole/concept-label"
 conceptReference = "http://www.xbrl.org/2003/arcrole/concept-reference"
 footnote = "http://www.xbrl.org/2003/role/footnote"
