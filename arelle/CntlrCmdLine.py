@@ -166,6 +166,7 @@ def parseAndRun(args):
     parser.add_option("--logCodeFilter", action="store", dest="logCodeFilter",
                       help=_("Regular expression filter for log message code."))
     parser.add_option("--logcodefilter", action="store", dest="logCodeFilter", help=SUPPRESS_HELP)
+    parser.add_option("--showOptions", action="store_true", dest="showOptions", help=SUPPRESS_HELP)
     parser.add_option("--parameters", action="store", dest="parameters", help=_("Specify parameters for formula and validation (name=value[,name=value])."))
     parser.add_option("--parameterSeparator", action="store", dest="parameterSeparator", help=_("Specify parameters separator string (if other than comma)."))
     parser.add_option("--parameterseparator", action="store", dest="parameterSeparator", help=SUPPRESS_HELP)
@@ -235,6 +236,25 @@ def parseAndRun(args):
     
     if args is None and cntlr.isGAE:
         args = ["--webserver=::gae"]
+    elif cntlr.isMSW:
+        # if called from java on Windows any empty-string arguments are lost, see:
+        # http://bugs.sun.com/view_bug.do?bug_id=6518827
+        # insert needed arguments
+        args = []
+        namedOptions = set()
+        optionsWithArg = set()
+        for option in parser.option_list:
+            names = str(option).split('/')
+            namedOptions.update(names)
+            if option.action == "store":
+                optionsWithArg.update(names)
+        priorArg = None
+        for arg in sys.argv[1:]:
+            if priorArg in optionsWithArg and arg in namedOptions:
+                # probable java/MSFT interface bug 6518827
+                args.append('')  # add empty string argument
+            args.append(arg)
+            priorArg = arg
         
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
@@ -316,6 +336,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
+        if options.showOptions: # debug options
+            for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
+                self.addToLog("Option {0}={1}".format(optName, optValue), messageCode="info")
+            self.addToLog("sys.argv {0}".format(sys.argv), messageCode="info")
         if options.uiLang: # set current UI Lang (but not config setting)
             self.setUiLanguage(options.uiLang)
         if options.proxy:
