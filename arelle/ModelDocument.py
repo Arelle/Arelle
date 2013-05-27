@@ -176,10 +176,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 if targetNamespace and modelXbrl.namespaceDocs.get(targetNamespace):
                     otherModelDoc = modelXbrl.namespaceDocs[targetNamespace][0]
                     if otherModelDoc.basename == os.path.basename(uri):
-                        modelXbrl.urlDocs[uri] = otherModelDoc
-                        modelXbrl.warning("info:duplicatedSchema",
-                                _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
-                                modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
+                        if os.path.normpath(otherModelDoc.uri) != otherModelDoc(uri): # tolerate \ vs / or ../ differences
+                            modelXbrl.urlDocs[uri] = otherModelDoc
+                            modelXbrl.warning("info:duplicatedSchema",
+                                    _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
+                                    modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
                         return otherModelDoc 
         elif ns == XbrlConst.link:
             if ln == "linkbase":
