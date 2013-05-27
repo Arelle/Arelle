@@ -77,7 +77,8 @@ def jpDigitsToNormal(jpDigits):
         else:
             normal += d
     return normal
-        
+
+# see: http://www.i18nguy.com/l10n/emperor-date.html        
 eraStart = {'\u5E73\u6210': 1988, 
             '\u5E73': 1988,
             '\u660E\u6CBB': 1867,

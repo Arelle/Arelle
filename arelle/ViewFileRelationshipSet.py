@@ -6,6 +6,7 @@ Created on Oct 6, 2010
 '''
 from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
+from arelle.ViewUtil import viewReferences
 import os
 
 def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, labelrole=None, lang=None):
@@ -27,7 +28,7 @@ class ViewRelationshipSet(ViewFile.View):
             heading = ["Presentation Relationships", "Type", "References"]
         elif arcrole == XbrlConst.summationItem:    # add columns for calculation relationships
             heading = ["Calculation Relationships", "Weight", "Balance"]
-        if arcrole == "XBRL-dimensions":    # add columns for dimensional information
+        elif arcrole == "XBRL-dimensions":    # add columns for dimensional information
             heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
         elif isinstance(arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(arcrole):
             self.isResourceArcrole = True
@@ -129,7 +130,7 @@ class ViewRelationshipSet(ViewFile.View):
                         cols.append( modelObject.usable  )
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 cols.append(concept.niceType)
-                cols.append(concept.viewReferences(concept))
+                cols.append(viewReferences(concept))
             elif arcrole == XbrlConst.summationItem:
                 if isRelation:
                     cols.append("{:0g} ".format(modelObject.weight))

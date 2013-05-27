@@ -192,6 +192,7 @@ class View:
                     rowElt.text = xmlRowText if xmlRowText else cols[0]
                 else:
                     isDimensionName = isDimensionValue = False
+                    elementName = "element" # need a default
                     for i, col in enumerate(cols):
                         if (i != 0 or not xmlCol0skipElt) and col:
                             if i < len(xmlColElementNames):
