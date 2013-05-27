@@ -606,7 +606,7 @@ def checkElements(val, modelDocument, parent):
                            }[elt.localName]
                     if parentIsAppinfo:
                         pass    #ignore roleTypes in appinfo (test case 160 v05)
-                    elif not (parentIsLinkbase or isInstance):
+                    elif not (parentIsLinkbase or isInstance or elt.parentQname == XbrlConst.qnIXbrlResources):
                         val.modelXbrl.info("info:{1}Location".format(xbrlSection,elt.localName),
                             _("Link:%(elementName)s not child of link:linkbase or xbrli:instance"),
                             modelObject=elt, elementName=elt.localName)
