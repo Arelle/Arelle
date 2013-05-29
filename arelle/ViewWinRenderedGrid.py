@@ -622,6 +622,12 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         if fact.concept.isNumeric:
                             value = Locale.atof(self.modelXbrl.locale, value, str.strip)
                         if fact.value != value:
+                            if fact.concept.isNumeric and fact.isNil != (not value):
+                                fact.isNil = not value
+                                if value: # had been nil, now it needs decimals
+                                    fact.decimals = (self.newFactItemOptions.monetaryDecimals
+                                                     if fact.concept.isMonetary else
+                                                     self.newFactItemOptions.nonMonetaryDecimals)
                             fact.text = value
                             XmlValidate.validate(instance, fact)
                     bodyCell.isChanged = False  # clear change flag

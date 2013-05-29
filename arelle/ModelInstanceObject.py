@@ -242,6 +242,11 @@ class ModelFact(ModelObject):
                 self._decimals = type.fixedOrDefaultAttrValue("decimals") if type is not None else None
             return  self._decimals
 
+    @decimals.setter
+    def decimals(self, value):
+        self._decimals = value
+        self.set("decimals", value)
+        
     @property
     def precision(self):
         """(str) -- Value of precision attribute, or fixed or default value for precision on concept type declaration"""
@@ -276,6 +281,19 @@ class ModelFact(ModelObject):
     def isNil(self):
         """(bool) -- True if xsi:nil is 'true'"""
         return self.xsiNil == "true"
+    
+    @isNil.setter
+    def isNil(self, value):
+        """:param value: if true, set xsi:nil to 'true', if false, remove xsi:nil attribute """
+        if value:
+            XmlUtil.setXmlns(self.modelDocument, "xsi", "http://www.w3.org/2001/XMLSchema-instance")
+            self.set("{http://www.w3.org/2001/XMLSchema-instance}nil", "true")
+            self.attrib.pop("decimals", "0")  # can't leave decimals or precision
+            self.attrib.pop("precision", "0")
+            del self._decimals
+            del self._precision
+        else: # also remove decimals and precision, if they were there
+            self.attrib.pop("{http://www.w3.org/2001/XMLSchema-instance}nil", "false")
     
     @property
     def value(self):
