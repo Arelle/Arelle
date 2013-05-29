@@ -12,6 +12,7 @@ from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject
 from arelle.Locale import format_string
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
+from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 ModelRelationshipSet = None # dynamic import
 
@@ -400,7 +401,7 @@ class ModelXbrl:
             return self.modelDocument # use existing instance entry point
         priorFileSource = self.fileSource
         self.fileSource = FileSource.FileSource(url, self.modelManager.cntlr)
-        if self.uri.startswith("http://"):
+        if isHttpUrl(self.uri):
             schemaRefUri = self.uri
         else:   # relativize local paths
             schemaRefUri = os.path.relpath(self.uri, os.path.dirname(url))
@@ -1049,7 +1050,7 @@ class ModelXbrl:
         with ZipFile(pkgFilename, 'w') as zip:
             numFiles = 0
             for fileUri in sorted(self.urlDocs.keys()): 
-                if not (fileUri.startswith("http://") or fileUri.startswith("https://")): 
+                if not isHttpUrl(fileUri): 
                     numFiles += 1
                     # this has to be a relative path because the hrefs will break
                     zip.write(fileUri, os.path.basename(fileUri)) 

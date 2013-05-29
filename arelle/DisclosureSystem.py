@@ -8,6 +8,7 @@ import os, re
 from collections import defaultdict
 from lxml import etree
 from arelle import UrlUtil
+from arelle.UrlUtil import isHttpUrl
 
 def compileAttrPattern(elt, attrName, flags=None):
     attr = elt.get(attrName)
@@ -259,7 +260,7 @@ class DisclosureSystem:
         if namespaceUri in self.standardTaxonomiesDict:
             if href in self.standardTaxonomiesDict[namespaceUri]:
                 return False
-        if namespaceUri in self.standardLocalHrefs and not href.startswith("http://"):
+        if namespaceUri in self.standardLocalHrefs and not isHttpUrl(href):
             normalizedHref = href.replace("\\","/")
             if any(normalizedHref.endswith(localHref)
                    for localHref in self.standardLocalHrefs[namespaceUri]):

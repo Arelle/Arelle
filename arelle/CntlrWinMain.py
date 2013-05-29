@@ -21,6 +21,7 @@ from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 from arelle.PluginManager import pluginClassMethods
+from arelle.UrlUtil import isHttpUrl
 import logging
 
 import threading, queue
@@ -554,10 +555,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                 
         if filename:
             if importToDTS:
-                if not filename.startswith("http://"):
+                if not isHttpUrl(filename):
                     self.config["importOpenDir"] = os.path.dirname(filename)
             else:
-                if not filename.startswith("http://"):
+                if not isHttpUrl(filename):
                     self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
             self.updateFileHistory(filename, importToDTS)
             thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,importToDTS,selectTopView))
@@ -864,8 +865,14 @@ class CntlrWinMain (Cntlr.Cntlr):
                     _("arelle - Clear Internet Cache"),
                     _("Are you sure you want to clear the internet cache?"), 
                     parent=self.parent):
-            self.webCache.clear()
-
+            def backgroundClearCache():
+                self.showStatus(_("Clearing internet cache"))
+                self.webCache.clear()
+                self.showStatus(_("Internet cache cleared"), 5000)
+            thread = threading.Thread(target=lambda: backgroundClearCache())
+            thread.daemon = True
+            thread.start()
+            
     def manageWebCache(self):
         if sys.platform.startswith("win"):
             command = 'explorer'

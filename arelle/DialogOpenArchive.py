@@ -11,6 +11,7 @@ except ImportError:
     from ttk import Frame, Button, Treeview, Scrollbar
 import re, os, sys
 from arelle.CntlrWinTooltip import ToolTip
+from arelle.UrlUtil import isHttpUrl
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -250,13 +251,13 @@ class DialogOpenArchive(Toplevel):
                 # load file source remappings
                 self.filesource.mappedPaths = \
                     dict((prefix, 
-                          remapping if (remapping.startswith("http://") or remapping.startswith("https://"))
+                          remapping if isHttpUrl(remapping)
                           else (self.filesource.baseurl + os.sep + self.metadataFilePrefix +remapping.replace("/", os.sep)))
                           for prefix, remapping in self.remappings.items())
     
                 if not urlOrFile.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
-                    if urlOrFile.startswith("http://") or urlOrFile.startswith("https://"):
+                    if isHttpUrl(urlOrFile):
                         self.filesource.select(urlOrFile)  # absolute path selection
                     else:
                         # assume it's a path inside the archive:

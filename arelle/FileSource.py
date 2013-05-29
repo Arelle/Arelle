@@ -7,6 +7,7 @@ Created on Oct 20, 2010
 import zipfile, os, io, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
+from arelle.UrlUtil import isHttpUrl
 
 archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
                         ((".zip/", ".eis/", ".xml/", ".xfd/", ".frm/") if os.sep != "/" else ()) #acomodate windows and http styles
@@ -44,7 +45,7 @@ def archiveFilenameParts(filename, checkIfXmlIsEis=False):
             (not archiveSep.startswith(".xml") or checkIfXmlIsEis)):
             filenameParts = filename.partition(archiveSep)
             fileDir = filenameParts[0] + archiveSep[:-1]
-            if (fileDir.startswith("http://") or
+            if (isHttpUrl(fileDir) or
                 os.path.isfile(fileDir)): # if local, be sure it is not a directory name
                 return (fileDir, filenameParts[2])
     return None
@@ -68,7 +69,7 @@ class ArchiveFileIOError(IOError):
 class FileSource:
     def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
         self.url = str(url)  # allow either string or FileNamedStringIO
-        self.baseIsHttp = self.url.startswith("http://")
+        self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
         self.type = self.url.lower()[-4:]
         self.isZip = self.type == ".zip"
@@ -435,7 +436,7 @@ class FileSource:
     
     def select(self, selection):
         self.selection = selection
-        if selection.startswith("http://") or os.path.isabs(selection):
+        if isHttpUrl(selection) or os.path.isabs(selection):
             self.url = selection
         elif self.baseIsHttp or os.sep == '/':
             self.url = self.baseurl + "/" + selection
@@ -443,7 +444,7 @@ class FileSource:
             self.url = self.baseurl + os.sep + selection.replace("/", os.sep)
             
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
-    if filepath.startswith("http://") and cntlr:
+    if isHttpUrl(filepath) and cntlr:
         filepath = cntlr.webCache.getfilename(filepath)
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE) and cntlr:
@@ -494,7 +495,7 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
         return (io.StringIO(initial_value=text), encoding)
     
 def saveFile(cntlr, filepath, contents, encoding=None):
-    if filepath.startswith("http://"):
+    if isHttpUrl(filepath):
         filepath = cntlr.webCache.getfilename(filepath)
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE):

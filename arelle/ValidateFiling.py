@@ -14,6 +14,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PluginManager import pluginClassMethods
+from arelle.UrlUtil import isHttpUrl
 
 datePattern = None
 linkroleDefinitionStatementSheet = None
@@ -1596,7 +1597,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             return self._isStandardUri[uri]
         except KeyError:
             isStd = (uri in self.disclosureSystem.standardTaxonomiesDict or
-                     (not uri.startswith("http://") and 
+                     (not isHttpUrl(uri) and 
                       # try 2011-12-23 RH: if works, remove the localHrefs
                       # any(u.endswith(e) for u in (uri.replace("\\","/"),) for e in disclosureSystem.standardLocalHrefs)
                       "/basis/sbr/" in uri.replace("\\","/")

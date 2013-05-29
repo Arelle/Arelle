@@ -363,6 +363,9 @@ def isAbsolute(url):
             return True
     return False
 
+def isHttpUrl(url):
+    return url and (url.startswith("http://") or url.startswith("https://"))
+
 def parseRfcDatetime(rfc2822date):
     from email.utils import parsedate
     from datetime import datetime

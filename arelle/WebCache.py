@@ -16,6 +16,7 @@ else: # python 2.7.2
     from urllib2 import URLError, HTTPError
     import urllib2 as proxyhandlers
 from arelle.FileSource import SERVER_WEB_CACHE
+from arelle.UrlUtil import isHttpUrl
 addServerWebCache = None
     
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
@@ -141,13 +142,13 @@ class WebCache:
         
     
     def normalizeUrl(self, url, base=None):
-        if url and not (url.startswith('http://') or os.path.isabs(url)):
-            if base is not None and not base.startswith('http:') and '%' in url:
+        if url and not (isHttpUrl(url) or os.path.isabs(url)):
+            if base is not None and not isHttpUrl(base) and '%' in url:
                 url = unquote(url)
             if base:
-                if base.startswith("http://"):
-                    prot, sep, path = base.partition("://")
-                    normedPath = prot + sep + posixpath.normpath(os.path.dirname(path) + "/" + url)
+                if isHttpUrl(base):
+                    scheme, sep, path = base.partition("://")
+                    normedPath = scheme + sep + posixpath.normpath(os.path.dirname(path) + "/" + url)
                 else:
                     if '%' in base:
                         base = unquote(base)
@@ -164,10 +165,11 @@ class WebCache:
             normedPath = url
         
         if normedPath:
-            if normedPath.startswith('http://'):
-                pathpart = normedPath[7:].replace('\\','/')
+            if isHttpUrl(normedPath):
+                scheme, sep, pathpart = normedPath.partition("://")
+                pathpart = pathpart.replace('\\','/')
                 endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
-                return "http://" + posixpath.normpath(pathpart) + endingSep
+                return scheme + "://" + posixpath.normpath(pathpart) + endingSep
             normedPath = os.path.normpath(normedPath)
             if normedPath.startswith(self.cacheDir):
                 normedPath = self.cacheFilepathToUrl(normedPath)
@@ -177,8 +179,9 @@ class WebCache:
         return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
     
     def urlToCacheFilepath(self, url):
-        filepath = [self.cacheDir, 'http'] 
-        pathparts = url[7:].split('/')
+        scheme, sep, path = url.partition("://")
+        filepath = [self.cacheDir, scheme] 
+        pathparts = path.split('/')
         user, sep, server = pathparts[0].partition("@")
         if not sep:
             server = user
@@ -215,7 +218,7 @@ class WebCache:
         if base is not None or normalize:
             url = self.normalizeUrl(url, base)
         urlScheme, schemeSep, urlSchemeSpecificPart = url.partition("://")
-        if schemeSep and urlScheme == "http":
+        if schemeSep and urlScheme in ("http", "https"):
             # form cache file name (substituting _ for any illegal file characters)
             filepath = self.urlToCacheFilepath(url)
             if self.cacheDir == SERVER_WEB_CACHE:
@@ -350,10 +353,13 @@ class WebCache:
                     blockCount * blockSize / 1024))
 
     def clear(self):
-        shutil.rmtree(self.cacheDir + os.sep + 'http', True)
+        for cachedProtocol in ("http", "https"):
+            cachedProtocolDir = os.path.join(self.cacheDir, cachedProtocol)
+            if os.path.exists(cachedProtocolDir):
+                shutil.rmtree(cachedProtocolDir, True)
         
     def getheaders(self, url):
-        if url and url.startswith('http://'):
+        if url and isHttpUrl(url):
             try:
                 fp = self.opener.open(url, timeout=self.timeout)
                 headers = fp.info()
@@ -364,7 +370,7 @@ class WebCache:
         return {}
     
     def geturl(self, url):  # get the url that the argument url redirects or resolves to
-        if url and url.startswith('http://'):
+        if url and isHttpUrl(url):
             try:
                 fp = self.opener.open(url, timeout=self.timeout)
                 actualurl = fp.geturl()
