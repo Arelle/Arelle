@@ -176,7 +176,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 if targetNamespace and modelXbrl.namespaceDocs.get(targetNamespace):
                     otherModelDoc = modelXbrl.namespaceDocs[targetNamespace][0]
                     if otherModelDoc.basename == os.path.basename(uri):
-                        if os.path.normpath(otherModelDoc.uri) != otherModelDoc(uri): # tolerate \ vs / or ../ differences
+                        if os.path.normpath(otherModelDoc.uri) != os.path.normpath(uri): # tolerate \ vs / or ../ differences
                             modelXbrl.urlDocs[uri] = otherModelDoc
                             modelXbrl.warning("info:duplicatedSchema",
                                     _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
