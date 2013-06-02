@@ -24,7 +24,7 @@ python3.2 setup.py build_exe
 cp arelle/scripts-unix/* build/${BUILT64}
 
 cd build/${BUILT64}
-tar -c -gzip -f ../../dist/${BUILT64}.tar.gz .
+tar -czf ../../dist/${BUILT64}.tar.gz .
 cd ../..
 
 /bin/sh buildRenameLinux-x86_64.sh
