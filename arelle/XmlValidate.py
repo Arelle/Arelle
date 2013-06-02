@@ -280,7 +280,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 value = collapseWhitespacePattern.sub(' ', value.strip())
             if pattern is not None and pattern.match(value) is None:
                     raise ValueError("pattern facet " + facets["pattern"].pattern if facets and "pattern" in facets else "pattern mismatch")
-            if facets:
+            if facets and not (isNil and isNillable):
                 if "enumeration" in facets and value not in facets["enumeration"]:
                     raise ValueError("{0} is not in {1}".format(value, facets["enumeration"]))
                 if "length" in facets and len(value) != facets["length"]:
@@ -292,6 +292,8 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             if baseXsdType == "noContent":
                 if len(value) > 0 and not value.isspace():
                     raise ValueError("value content not permitted")
+                xValue = sValue = None
+            elif not value and isNil and isNillable: # rest of types get None if nil/empty value
                 xValue = sValue = None
             elif baseXsdType in {"string", "normalizedString", "language", "token", "NMTOKEN","Name","NCName","IDREF","ENTITY"}:
                 xValue = sValue = value
@@ -305,8 +307,6 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 # encode PSVI xValue similarly to Xerces and other implementations
                 xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                 sValue = value
-            elif not value and isNil and isNillable: # rest of types get None if nil/empty value
-                xValue = sValue = None
             elif baseXsdType in ("decimal", "float", "double"):
                 xValue = sValue = float(value)
                 if facets:
