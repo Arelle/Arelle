@@ -178,6 +178,8 @@ def loadModule(moduleInfo):
     moduleFilename = _cntlr.webCache.getfilename(moduleURL, normalize=True, base=_pluginBase)
     if moduleFilename:
         try:
+            if os.path.basename(moduleFilename) == "__init__.py" and os.path.isfile(moduleFilename):
+                moduleFilename = os.path.dirname(moduleFilename) # want just the dirpart of package
             if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
                 moduleDir = os.path.dirname(moduleFilename)
                 moduleName = os.path.basename(moduleFilename)

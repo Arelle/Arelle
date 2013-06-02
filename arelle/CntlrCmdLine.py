@@ -219,7 +219,8 @@ def parseAndRun(args):
                              " (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
                              "or +../examples/plugin/hello_dolly.py for relative use of examples directory, "
                              "~Hello Dolly to reload, -Hello Dolly to remove).  "
-                             "If + is omitted from .py file nothing is saved (same as temp).  " ))
+                             "If + is omitted from .py file nothing is saved (same as temp).  "
+                             "Packaged plug-in urls are their directory's url.  " ))
     parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
     parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
     if hasWebServer:
@@ -395,7 +396,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to delete plug-in."), messageCode="info", file=cmd[1:])
-                elif cmd.endswith(".py"):
+                else: # assume it is a module or package
                     savePluginChanges = False
                     moduleInfo = PluginManager.addPluginModule(cmd)
                     if moduleInfo:
@@ -403,9 +404,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                         resetPlugins = True
                     else:
-                        self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd)
-                else:
-                    self.addToLog(_("Plug-in action not recognized (may need +uri or [~-]module."), messageCode="info", file=cmd)
+                        self.addToLog(_("Unable to load {0} as a plug-in or {0} is not recognized as a command. ").format(cmd), messageCode="info", file=cmd)
                 if resetPlugins:
                     PluginManager.reset()
                     if savePluginChanges:
