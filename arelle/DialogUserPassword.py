@@ -4,7 +4,7 @@ Created on Oct 10, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import Toplevel, StringVar, N, S, E, W, EW, DISABLED, NORMAL
+from tkinter import Toplevel, StringVar, N, S, E, W, EW, DISABLED, NORMAL, messagebox
 try:
     from tkinter.ttk import Frame, Button, Label, Entry
 except ImportError:
@@ -36,18 +36,18 @@ def askProxy(parent, priorProxySettings):
     return None
 
 def askDatabase(parent, priorDatabaseSettings):
-    if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 5:
-        urlAddr, urlPort, user, password, database = priorDatabaseSettings
+    if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 6:
+        urlAddr, urlPort, user, password, database, timeout = priorDatabaseSettings
     else:
-        urlAddr = urlPort = user = password = database = None
+        urlAddr = urlPort = user = password = database = timeout = None
     dialog = DialogUserPassword(parent, _("XBRL Database Server"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, database=database, showHost=False, showUrl=True, showUser=True, showRealm=False, showDatabase=True)
     if dialog.accepted:
-        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database)
+        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout)
     return None
 
 
 class DialogUserPassword(Toplevel):
-    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, database=None, showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False):
+    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, database=None, timeout=None, showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False):
         super(DialogUserPassword, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
@@ -66,6 +66,8 @@ class DialogUserPassword(Toplevel):
         self.passwordVar.set(password if password else "")
         self.databaseVar = StringVar()
         self.databaseVar.set(database if database else "")
+        self.timeoutVar = StringVar()
+        self.timeoutVar.set(timeout if timeout else "")
         
         frame = Frame(self)
         y = 0
@@ -145,6 +147,13 @@ class DialogUserPassword(Toplevel):
             ToolTip(urlAddrEntry, text=_("Enter database name (optional) or leave blank"), wraplength=360)
             self.enabledWidgets.append(urlDatabaseEntry)
             y += 1
+            urlTimeoutLabel = Label(frame, text=_("Timeout:"), underline=0)
+            urlTimeoutEntry = Entry(frame, textvariable=self.timeoutVar, width=25)
+            urlTimeoutLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
+            urlTimeoutEntry.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
+            ToolTip(urlAddrEntry, text=_("Enter timeout seconds (optional) or leave blank for default (60 secs.)"), wraplength=360)
+            self.enabledWidgets.append(urlTimeoutEntry)
+            y += 1
         okButton = Button(frame, text=_("OK"), command=self.ok)
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         okButton.grid(row=y, column=2, sticky=E, pady=3)
@@ -167,6 +176,18 @@ class DialogUserPassword(Toplevel):
         self.grab_set()
         self.wait_window(self)
             
+    def checkEntries(self):
+        errors = []
+        if self.urlPort and not self.urlPort.isdigit():
+            errors.append(_("Port number invalid"))
+        if self.timeout and not self.timeout.isdigit():
+            errors.append(_("Timeout seconds invalid"))
+        if errors:
+            messagebox.showwarning(_("Dialog validation error(s)"),
+                                "\n ".join(errors), parent=self)
+            return False
+        return True
+    
     def ok(self, event=None):
         if hasattr(self, "useOsProxyCb"):
             self.useOsProxy = self.useOsProxyCb.value
@@ -176,6 +197,9 @@ class DialogUserPassword(Toplevel):
         self.user = self.userVar.get()
         self.password = self.passwordVar.get()
         self.database = self.databaseVar.get()
+        self.timeout = self.timeoutVar.get()
+        if not self.checkEntries():
+            return
         self.accepted = True
         self.close()
         

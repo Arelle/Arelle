@@ -41,11 +41,11 @@ TRACESQLFILE = None
 #TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def insertIntoDB(modelXbrl, 
-                 user=None, password=None, host=None, port=None, database=None,
+                 user=None, password=None, host=None, port=None, database=None, timeout=None,
                  rssItem=None):
     xpgdb = None
     try:
-        xpgdb = XbrlPostgresDatabaseConnection(modelXbrl, user, password, host, port, database)
+        xpgdb = XbrlPostgresDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)
         xpgdb.verifyTables()
         xpgdb.insertXbrl(rssItem=rssItem)
         xpgdb.close()
@@ -125,12 +125,12 @@ class XPDBException(Exception):
 
 
 class XbrlPostgresDatabaseConnection():
-    def __init__(self, modelXbrl, user, password, host, port, database):
+    def __init__(self, modelXbrl, user, password, host, port, database, timeout):
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         self.conn = DBAPI.connect(user=user, password=password, host=host, 
                                   port=int(port) if port else None, 
-                                  database=database)
+                                  database=database, socket_timeout=timeout)
         self.tableColTypes = {}
         
     def close(self, rollback=False):
