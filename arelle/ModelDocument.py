@@ -78,17 +78,17 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     _("File can not be loaded: %(fileName)s \nLoading terminated."),
                     modelObject=referringElement, fileName=mappedUri)
             raise LoadingException()
-        if mappedUri not in modelXbrl.urlUnloadableDocs:
+        if normalizedUri not in modelXbrl.urlUnloadableDocs:
             modelXbrl.error("FileNotLoadable",
                     _("File can not be loaded: %(fileName)s"),
-                    modelObject=referringElement, fileName=mappedUri)
-            modelXbrl.urlUnloadableDocs.add(mappedUri)
+                    modelObject=referringElement, fileName=normalizedUri)
+            modelXbrl.urlUnloadableDocs.add(normalizedUri)
         return None
     
-    modelDocument = modelXbrl.urlDocs.get(mappedUri)
+    modelDocument = modelXbrl.urlDocs.get(normalizedUri)
     if modelDocument:
         return modelDocument
-    elif mappedUri in modelXbrl.urlUnloadableDocs:
+    elif normalizedUri in modelXbrl.urlUnloadableDocs:
         return None
 
     
@@ -130,7 +130,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
-        modelXbrl.urlUnloadableDocs.add(mappedUri)
+        modelXbrl.urlUnloadableDocs.add(normalizedUri)
         return None
     except (etree.LxmlError,
             SAXParseException,
@@ -138,20 +138,20 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if file:
             file.close()
         if not isEntry and str(err) == "Start tag expected, '<' not found, line 1, column 1":
-            return ModelDocument(modelXbrl, Type.UnknownNonXML, mappedUri, filepath, None)
+            return ModelDocument(modelXbrl, Type.UnknownNonXML, normalizedUri, filepath, None)
         else:
             modelXbrl.error("xmlSchema:syntax",
                     _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                     modelObject=referringElement, fileName=os.path.basename(uri), 
                     error=str(err), sourceAction=("including" if isIncluded else "importing"), exc_info=True)
-            modelXbrl.urlUnloadableDocs.add(mappedUri)
+            modelXbrl.urlUnloadableDocs.add(normalizedUri)
             return None
     except Exception as err:
         modelXbrl.error(type(err).__name__,
                 _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                 modelObject=referringElement, fileName=os.path.basename(uri), 
                 error=str(err), sourceAction=("including" if isIncluded else "importing"))
-        modelXbrl.urlUnloadableDocs.add(mappedUri)
+        modelXbrl.urlUnloadableDocs.add(normalizedUri)
         return None
     
     # identify document
@@ -237,7 +237,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         _type = Type.INLINEXBRL
                         rootNode = nestedInline
 
-        modelDocument = _class(modelXbrl, _type, mappedUri, filepath, xmlDocument)
+        modelDocument = _class(modelXbrl, _type, normalizedUri, filepath, xmlDocument)
         rootNode.init(modelDocument)
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
         modelDocument.parserLookupName = _parserLookupName
@@ -648,7 +648,13 @@ class ModelDocument:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
                         self.basename,
                         err))
-        XmlValidateSchema.validate(self, rootElement, targetNamespace) # validate schema elements
+        if self.targetNamespace: 
+            nsDocs = self.modelXbrl.namespaceDocs
+            if targetNamespace in nsDocs and nsDocs[targetNamespace].index(self) == 0: # not an included document
+                for doc in nsDocs[targetNamespace]: # includes self and included documents of this namespace
+                    XmlValidateSchema.validate(doc, doc.xmlRootElement, targetNamespace) # validate schema elements
+        else:  # no target namespace, no includes to worry about order of validation
+            XmlValidateSchema.validate(self, rootElement, targetNamespace) # validate schema elements
 
             
     def schemaDiscoverChildElements(self, parentModelObject):
