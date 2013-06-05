@@ -106,6 +106,8 @@ dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 defaultLinkRole = "http://www.xbrl.org/2003/role/link"
 iso4217 = "http://www.xbrl.org/2003/iso4217"
+def qnIsoCurrency(token):
+    return qname(iso4217, "iso4217:" + token) if token else None
 standardLabel = "http://www.xbrl.org/2003/role/label"
 genStandardLabel = "http://www.xbrl.org/2008/role/label"
 documentationLabel = "http://www.xbrl.org/2003/role/documentation"
@@ -539,6 +541,12 @@ def isStandardArcQname(qName):
     
 def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
+
+consecutiveArcrole = {
+    all: dimensionDomain, notAll: dimensionDomain,
+    dimensionDomain: domainMember,
+    domainMember: domainMember,
+    dimensionDefault: dimensionDefault}
 
 def isTableRenderingArcrole(arcrole):
     return arcrole in {# current PWD 2013-05-17

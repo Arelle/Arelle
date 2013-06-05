@@ -18,6 +18,15 @@ def compileAttrPattern(elt, attrName, flags=None):
     else:
         return re.compile(attr)
 
+class ErxlLoc:
+    def __init__(self, family, version, href, attType, elements, namespace):
+        self.family = family
+        self.version = version
+        self.href = href
+        self.attType = attType
+        self.elements = elements
+        self.namespace = namespace
+
 class DisclosureSystem:
     def __init__(self, modelManager):
         self.modelManager = modelManager
@@ -27,6 +36,7 @@ class DisclosureSystem:
     def clear(self):
         self.selection = None
         self.standardTaxonomiesDict = {}
+        self.familyHrefs = {}
         self.standardLocalHrefs = set()
         self.standardAuthorities = set()
         self.baseTaxonomyNamespaces = set()
@@ -174,6 +184,7 @@ class DisclosureSystem:
     def loadStandardTaxonomiesDict(self):
         if self.selection:
             self.standardTaxonomiesDict = defaultdict(set)
+            self.familyHrefs = defaultdict(set)
             self.standardLocalHrefs = defaultdict(set)
             self.standardAuthorities = set()
             if not self.standardTaxonomiesUrl:
@@ -194,6 +205,8 @@ class DisclosureSystem:
                         namespaceUri = None
                         attType = None
                         family = None
+                        elements = None
+                        version = None
                         for childElt in locElt.iterchildren():
                             ln = childElt.tag
                             value = childElt.text.strip()
@@ -207,6 +220,10 @@ class DisclosureSystem:
                                 attType = value
                             elif ln == "Family":
                                 family = value
+                            elif ln == "Elements":
+                                elements = value
+                            elif ln == "Version":
+                                version = value
                         if href:
                             if namespaceUri and (attType == "SCH" or attType == "ENT"):
                                 self.standardTaxonomiesDict[namespaceUri].add(href)
@@ -218,6 +235,8 @@ class DisclosureSystem:
                                     self.baseTaxonomyNamespaces.add(namespaceUri)
                             if href not in self.standardTaxonomiesDict:
                                 self.standardTaxonomiesDict[href] = "Allowed" + attType
+                            if family:
+                                self.familyHrefs[family].add(ErxlLoc(family, version, href, attType, elements, namespaceUri))
                         elif attType == "SCH" and family == "BASE":
                             self.baseTaxonomyNamespaces.add(namespaceUri)
 
@@ -269,4 +288,5 @@ class DisclosureSystem:
 
     def hrefValid(self, href):
         return href in self.standardTaxonomiesDict
-    
+
+

@@ -6,7 +6,7 @@ Created on Feb 20, 2011
 '''
 import os, re
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI, INVALIDixVALUE
+from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
@@ -407,7 +407,23 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         month, day, zSign, zHrMin, zHr, zMin = match.groups()
                         if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
                             raise ValueError("invalid day {0} for month {1}".format(day, month))
-                xValue = value
+                        xValue = gMonthDay(month, day)
+                    elif baseXsdType == "gYearMonth":
+                        year, month, zSign, zHrMin, zHr, zMin = match.groups()
+                        xValue = gMonthDay(month, day)
+                    elif baseXsdType == "gYear":
+                        year, zSign, zHrMin, zHr, zMin = match.groups()
+                        xValue = gYear(year)
+                    elif baseXsdType == "gMonth":
+                        month, zSign, zHrMin, zHr, zMin = match.groups()
+                        xValue = gMonth(month)
+                    elif baseXsdType == "gDay":
+                        day, zSign, zHrMin, zHr, zMin = match.groups()
+                        xValue = gDay(day)
+                    else:
+                        xValue = value
+                else: # no lexical pattern, forget compiling value
+                    xValue = value
                 sValue = value
         except ValueError as err:
             if ModelInlineFact is not None and isinstance(elt, ModelInlineFact):

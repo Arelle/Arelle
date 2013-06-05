@@ -10,6 +10,7 @@ from collections import defaultdict
 from arelle import ModelDtsObject, XbrlConst, XmlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
+from arelle.XbrlConst import consecutiveArcrole
 import os
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
@@ -237,9 +238,13 @@ class ModelRelationshipSet:
     
     # if modelFrom and modelTo are provided determine that they have specified relationship
     # if only modelFrom, determine that there are relationships present of specified axis
-    def isRelated(self, modelFrom, axis, modelTo=None, visited=None): # either model concept or qname
-        if isinstance(modelFrom,ModelValue.QName): modelFrom = self.modelXbrl.qnameConcepts[modelFrom]
-        if isinstance(modelTo,ModelValue.QName): modelTo = self.modelXbrl.qnameConcepts[modelTo]
+    def isRelated(self, modelFrom, axis, modelTo=None, visited=None, isDRS=False): # either model concept or qname
+        if isinstance(modelFrom,ModelValue.QName): 
+            modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom) # fails if None
+        if isinstance(modelTo,ModelValue.QName): 
+            modelTo = self.modelXbrl.qnameConcepts.get(modelTo)
+            if modelTo is None: # note that modelTo None (not a bad QName) means to check for any relationship
+                return False # if a QName and not existent then fails
         if axis.endswith("self") and (modelTo is None or modelFrom == modelTo):
             return True
         isDescendantAxis = "descendant" in axis
@@ -266,8 +271,14 @@ class ModelRelationshipSet:
                 if visited is None: visited = set()
                 if toConcept not in visited:
                     visited.add(toConcept)
-                    if self.isRelated(toConcept, axis, modelTo, visited):
-                        return True
+                    if isDRS:
+                        if (self.modelXbrl.relationshipSet(consecutiveArcrole[modelRel.arcrole], 
+                                                           modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
+                            .isRelated(toConcept, axis, modelTo, visited, isDRS)):
+                            return True
+                    else:
+                        if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
+                            return True
                     visited.discard(toConcept)
         return False
     

@@ -356,6 +356,44 @@ class Time(datetime.time):
         time.hour24 = hour24
         return time
     
+class gYearMonth():
+    def __init__(self, year, month):
+        self.year = year
+        self.month = month
+
+    def __repr__(self):
+        return "-{0}-{1}".format(self.year, self.month)
+    
+    
+class gMonthDay():
+    def __init__(self, month, day):
+        self.month = month
+        self.day = day
+
+    def __repr__(self):
+        return "--{0}-{1}".format(self.month, self.day)
+    
+class gYear():
+    def __init__(self, year):
+        self.year = year
+
+    def __repr__(self):
+        return "-{0}".format(self.year)
+    
+class gMonth():
+    def __init__(self, month):
+        self.month = month
+
+    def __repr__(self):
+        return "--{0}".format(self.month)
+    
+class gDay():
+    def __init__(self, day):
+        self.day = day
+
+    def __repr__(self):
+        return "---{0}".format(self.day)
+    
 class InvalidValue(str):
     def __new__(cls, value):
         return str.__new__(cls, value)
