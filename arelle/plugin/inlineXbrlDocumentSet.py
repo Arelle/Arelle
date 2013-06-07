@@ -9,7 +9,7 @@ Saves extracted instance document.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelXbrl, ValidateXbrlDimensions
+from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
 import os
 
@@ -52,7 +52,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                     if fact.get("precision"):
                         attrs.append(("precision", fact.get("precision")))
                 if fact.isNil:
-                    attrs.append(("{http://www.w3.org/2001/XMLSchema-instance}nil","true"))
+                    attrs.append((XbrlConst.qnXsiNil,"true"))
                     text = None
                 else:
                     text = fact.xValue if fact.xValid else fact.elementText
