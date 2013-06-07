@@ -748,6 +748,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             "S-4",
                                             "S-4EF",
                                             "S-4MEF",
+                                            "SD",
+                                            "SD/A",
                                             "SP 15D2",
                                             "SP 15D2/A"
                                           }:
@@ -847,7 +849,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             "S-4EF": ("S-4", "S-4EF"),
                                             "S-4MEF": ("S-4MEF",),
                                             "SD": ("SD",),
-                                            "SD": ("SD", "SD/A"),
+                                            "SD/A": ("SD/A",),
                                             "SP 15D2": ("SP 15D2",),
                                             "SP 15D2/A": ("SP 15D2/A",)
                             }.get(submissionType)
@@ -959,18 +961,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     hasRxdPre = hasRxdDef = False
                     for rxdLoc in disclosureSystem.familyHrefs["RXD"]:
                         rxdUri = rxdLoc.href
-                        if rxdUri.endswith(".xsd") and rxdUri in modelXbrl.urlDocs and rxdLoc.elements == "1":
-                            if rxdNs is None:
-                                rxdDoc = modelXbrl.urlDocs[rxdUri]
-                                rxdNs = rxdDoc.targetNamespace
-                            else:
-                                modelXbrl.error("EFM.6.23.10",
-                                    _("The DTS of must use only one version of the RXD schema"),
-                                    modelObject=(rxdDoc, modelXbrl.urlDocs[rxdUri]), instance=instanceName)
-                        elif "/rxd-pre-" in rxdUri:
-                            hasRxdPre = True
-                        elif "/rxd-def-" in rxdUri:
-                            hasRxdDef = True
+                        if rxdUri in modelXbrl.urlDocs:
+                            if rxdUri.endswith(".xsd") and rxdLoc.elements == "1":
+                                if rxdNs is None:
+                                    rxdDoc = modelXbrl.urlDocs[rxdUri]
+                                    rxdNs = rxdDoc.targetNamespace
+                                else:
+                                    modelXbrl.error("EFM.6.23.10",
+                                        _("The DTS of must use only one version of the RXD schema"),
+                                        modelObject=(rxdDoc, modelXbrl.urlDocs[rxdUri]), instance=instanceName)
+                            elif "/rxd-pre-" in rxdUri:
+                                hasRxdPre = True
+                            elif "/rxd-def-" in rxdUri:
+                                hasRxdDef = True
                     if not hasRxdPre:
                         modelXbrl.error("EFM.6.23.08",
                             _("The DTS must use a standard presentation linkbase from Family RXD in edgartaxonomies.xml."),
@@ -997,9 +1000,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
 
                     if rxdNs:
                         qn = ModelValue.qname(rxdNs, "AmendmentNumber")
-                        if qn not in modelXbrl.factsByQname or not any(
-                           f.context is not None and not f.context.hasSegment 
-                           for f in modelXbrl.factsByQname[qn]):
+                        if amendmentFlag == "true" and (
+                                    qn not in modelXbrl.factsByQname or not any(
+                                           f.context is not None and not f.context.hasSegment 
+                                           for f in modelXbrl.factsByQname[qn])):
                             modelXbrl.error("EFM.6.23.06",
                                 _("The value for dei:DocumentType, %(documentType)s, requires a value for rxd:AmendmentNumber in the Required Context."),
                                 modelObject=modelXbrl, documentType=documentType)
@@ -1011,15 +1015,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         def __init__(self):
                             for name in ("CountryAxis", "GovernmentAxis", "PaymentTypeAxis", "ProjectAxis","PmtAxis",
                                         "AllGovernmentsMember", "AllProjectsMember","BusinessSegmentAxis", "EntityDomain", 
-                                        "A", "APr", "Cm", "Co", "Cu", "D", "Gv", "E", "K", "Km", "P", "Payments", "Pr", "Sm"):
+                                        "A", "Cm", "Co", "Cu", "D", "Gv", "E", "K", "Km", "P", "Payments", "Pr", "Sm"):
                                 setattr(self, name, ModelValue.qname(rxdNs, "rxd:" + name))
+    
                     rxd = Rxd()
                     f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
-                    if (f1 is not None and documentPeriodEndDateFact is not None and f1.xValid and documentPeriodEndDateFact.xValid and
-                        (f1.xValue.month != documentPeriodEndDateFact.xValue.month or f1.xValue.day != documentPeriodEndDateFact.xValue.day)):
-                        modelXbrl.error("EFM.6.23.26",
-                            _("The dei:CurrentFiscalYearEndDate, %(fyEndDate)s does not match the dei:DocumentReportingPeriod %(reportingPeriod)s"),
-                            modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
+                    if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid and documentPeriodEndDateFact.xValid:
+                        d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
+                        if f1.xValue.month != d.month or f1.xValue.day != d.day:
+                            modelXbrl.error("EFM.6.23.26",
+                                _("The dei:CurrentFiscalYearEndDate, %(fyEndDate)s does not match the dei:DocumentReportingPeriod %(reportingPeriod)s"),
+                                modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
                     if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid and
                         not any(f2.xValue == documentPeriodEndDateFact.xValue
                                 for f2 in modelXbrl.factsByQname[rxd.D]
@@ -1099,8 +1105,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if (not f.isNil and f.xValid and
                                 not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
                                 modelXbrl.error(errCode,
-                                    _("The %(fact)s %(prValue)s in context %(context)s is not a %(domain)s."),
-                                    modelObject=f, fact=priItem, prValue=f.xValue, context=context.id, domain=dom)
+                                    _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
+                                    modelObject=f, fact=priItem, value=f.xValue, context=context.id, domain=dom)
                     cntxEqualFacts = defaultdict(list)
                     for f in modelXbrl.facts:
                         if f.context is not None:
@@ -1114,8 +1120,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         context = cntxFacts[0].context
                         contextDims = cntxFacts[0].context.qnameDims
                         # required priItem values based on context dimension
-                        for dim, priItem, errCode in ((rxd.ProjectAxis, rxd.APr, "EFM.6.23.19"),
-                                                      (rxd.ProjectAxis, rxd.P, "EFM.6.23.20"),
+                        for dim, priItem, errCode in ((rxd.PmtAxis, rxd.P, "EFM.6.23.20"),
                                                       (rxd.GovernmentAxis, rxd.Payments, "EFM.6.23.22")):
                             if context.hasDimension(dim) and (priItem not in qnameFacts or qnameFacts[priItem].isNil): 
                                 modelXbrl.error(errCode,
@@ -1160,13 +1165,21 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 _("The unit %(unit)s of rxd:A in context {$context} is not consistent with the value %(currency)s of rxd:Cu."),
                                 modelObject=(qnameFacts[rxd.A],qnameFacts[rxd.Cu]), context=context.id, unit=qnameFacts[rxd.A].unit.value, currency=qnameFacts[rxd.Cu].value)
                                                     
+                        if (context.hasDimension(rxd.ProjectAxis) and
+                            not any(f.xValue == m
+                                    for m in (contextDims[rxd.ProjectAxis].memberQname,)
+                                    for f in modelXbrl.factsByQname[rxd.Pr]
+                                    if f.context is not None)):
+                            modelXbrl.error("EFM.6.23.19",
+                                _("The Context %(context)s has dimension %(dimension)s but is missing any payment."),
+                                modelObject=context, context=context.id, dimension=rxd.GovernmentAxis)
                         if (context.hasDimension(rxd.GovernmentAxis) and
-                            not any(f.context.dimMemberQname(rxd.GovernmentAxis) == m and f.context.hasDimension(rxd.PmtAxis)
-                                    for m in (contextDims[rxd.GovernmentAxis],)
+                            not any(f.xValue == m and f.context.hasDimension(rxd.PmtAxis)
+                                    for m in (contextDims[rxd.GovernmentAxis].memberQname,)
                                     for f in modelXbrl.factsByQname[rxd.Gv]
                                     if f.context is not None)):
                             modelXbrl.error("EFM.6.23.21",
-                                _("The Context %(context)s has dimension %(dimension)s but is missing required payment."),
+                                _("The Context %(context)s has dimension %(dimension)s but is missing any payment."),
                                 modelObject=context, context=context.id, dimension=rxd.GovernmentAxis)
                         if rxd.P in qnameFacts and not any(f.context is not None and not f.context.hasSegment
                                                            for f in modelXbrl.factsByQname.get(qnameFacts[rxd.P].xValue,())):
@@ -1177,15 +1190,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelXbrl.error("EFM.6.23.40",
                                 _("There is a non-nil rxd:A in context %(context)s but missing a dimension rxd:PmtAxis."),
                                 modelObject=(context, qnameFacts[rxd.A]), context=context.id)
-                    oneDay = datetime.timedelta(days=1)
                     for f in modelXbrl.factsByQname[rxd.D]:
-                        if not f.isNil and f.xValid and f.xValue + oneDay != f.context.endDatetime: # date needs to be midnite to compare to datetime
+                        if not f.isNil and f.xValid and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
                             modelXbrl.error("EFM.6.23.32",
                                 _("The rxd:D %(value)s in context %(context)s does not match the context end date %(endDate)s."),
                                 modelObject=f, value=f.xValue, context=f.context.id, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True))
-
-                    del dimDomRelSet, dimDefRelSet, domMemRelSet, rxdDoc, memDim, cntxEqualFacts
-                    del rxd
+                    # deference object references no longer needed
+                    del rxdDoc, cntxEqualFacts
+                    # dereference compatibly with 2.7 (as these may be used in nested contexts above
+                    dimDefRelSet.clear()
+                    domMemRelSet.clear()
+                    dimDomRelSet.clear()
+                    memDim.clear()
                 else: # non-SD documentType
                     pass # no non=SD tests yet
             elif disclosureSystem.GFM:
