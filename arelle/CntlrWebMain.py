@@ -436,8 +436,8 @@ def help():
 
 <tr><th colspan="2">Validation</th></tr>
 <tr><td>/rest/xbrl/{file}/validation/xbrl</td><td>Validate document at {file}.</td></tr>
-''' +
-('''
+''') +
+(_('''
 <tr><td>\u00A0</td><td>For an http POST of a zip file (mime type application/zip), {file} is the relative file path inside the zip file.</td></tr>
 <tr><td>\u00A0</td><td>For an http GET request, {file} may be a web url, and may have "/" characters replaced by ";" characters 
 (but that is not necessary).</td></tr>
@@ -446,9 +446,9 @@ document in the POSTed zip archived file c.xbrl and return structured xml result
 <tr><td>/rest/xbrl/validation</td><td>(Alternative syntax) Validate document, file is provided as a parameter (see below).</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/validation?file=c.xbrl&amp;media=xml</code>: Validate entry instance
 document c.xbrl (in POSTed zip) and return structured xml results.</td></tr>
-'''
+''')
 if cntlr.isGAE else
-'''
+_('''
 <tr><td>\u00A0</td><td>For a browser request or http GET request, {file} may be local or web url, and may have "/" characters replaced by ";" characters 
 (but that is not necessary).</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/c:/a/b/c.xbrl/validation/xbrl?media=xml</code>: Validate entry instance
@@ -457,8 +457,8 @@ document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</t
 <tr><td>/rest/xbrl/validation</td><td>(Alternative syntax) Validate document, file is provided as a parameter (see below).</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/validation?file=c:/a/b/c.xbrl&amp;media=xml</code>: Validate entry instance
 document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>
-''') +
-'''
+''')) +
+_('''
 <tr><td></td><td>Parameters are optional after "?" character, and are separated by "&amp;" characters, 
 as follows:</td></tr>
 <tr><td style="text-indent: 1em;">flavor</td><td><code>standard</code>: XBRL 2.1 and XDT validation.  (If formulas are present they will also be compiled and run.)  (default)
@@ -599,11 +599,11 @@ Enter 'show' to view plug-ins configuration, , or '|' separated modules:
  (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load,
 ~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugin to other rest commands.) 
 </td></tr>
-''' +
-('''
+''') +
+(_('''
 <tr><td>/rest/stopWebServer</td><td>Shut down (terminate process after 2.5 seconds delay).</td></tr>
-''' if cntlr.isGAE else '') +
-'</table>'))
+''') if cntlr.isGAE else '') +
+'</table>')
 
 @route('/about')
 def about():
