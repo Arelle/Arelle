@@ -1048,6 +1048,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         modelObject=concept, schemaName=doc.basename, name=concept.name, concept=concept.qname)
                     dimDefRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDefault)
                     dimDomRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDomain)
+                    hypDimRelSet = modelXbrl.relationshipSet(XbrlConst.hypercubeDimension)
+                    hasHypRelSet = modelXbrl.relationshipSet(XbrlConst.all)
                     for rel in dimDomRelSet.modelRelationships:
                         if (rel.fromModelObject is not None and rel.toModelObject is not None and 
                             not dimDefRelSet.isRelated(rel.fromModelObject, "child", rel.toModelObject)):
@@ -1058,25 +1060,16 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 source=rel.fromModelObject.qname, target=rel.toModelObject.qname)
                     domMemRelSet = modelXbrl.relationshipSet(XbrlConst.domainMember)
                     memDim = {}
-                    def checkMemMultDims(memRel, elt, ELR, visited):
+                    def checkMemMultDims(memRel, dimRel, elt, ELR, visited):
                         if elt not in visited:
                             visited.add(elt)
-                            for rel in dimDomRelSet.toModelObject(elt):
+                            for rel in domMemRelSet.toModelObject(elt):
                                 if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
-                                    checkMemMultDims(memRel, rel.fromModelObject, rel.linkrole, visited)
+                                    checkMemMultDims(memRel, None, rel.fromModelObject, rel.linkrole, visited)
                             for rel in dimDomRelSet.toModelObject(elt):
                                 if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
                                     dim = rel.fromModelObject
                                     mem = memRel.toModelObject
-                                    if mem not in memDim:
-                                        memDim[mem] = (rel, memRel)
-                                    else:
-                                        otherDimRel, otherMemRel = memDim[mem]
-                                        modelXbrl.error("EFM.6.23.16",
-                                            _("The member %(member)s has two dimensions, %(dimension1)s in linkrole %(linkrole1)s and  %(dimension2)s in linkrole %(linkrole2)s. "),
-                                            modelObject=(rel, otherDimRel, memRel, otherMemRel, dim, otherDimRel.fromModelObject),
-                                            member=mem.qname, dimension1=dim.qname, linkrole1=rel.linkrole, 
-                                            dimension2=otherDimRel.fromModelObject.qname, linkrole2=otherDimRel.linkrole)
                                     if dim.qname == rxd.PaymentTypeAxis and not mem.qname.namespaceURI.startswith("http://xbrl.sec.gov/rxd/"):
                                         modelXbrl.error("EFM.6.23.17",
                                             _("The member %(member)s in dimension rxd:PaymentTypeAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/rxd/\". "),
@@ -1085,6 +1078,23 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         modelXbrl.error("EFM.6.23.18",
                                             _("The member %(member)s in dimension rxd:CountryAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/country//\". "),
                                             modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
+                                    checkMemMultDims(memRel, rel, rel.fromModelObject, rel.linkrole, visited)
+                            for rel in hypDimRelSet.toModelObject(elt):
+                                if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
+                                    checkMemMultDims(memRel, dimRel, rel.fromModelObject, rel.linkrole, visited)
+                            for rel in hasHypRelSet.toModelObject(elt):
+                                if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
+                                    linkrole = rel.linkrole
+                                    mem = memRel.toModelObject
+                                    if (mem,linkrole) not in memDim:
+                                        memDim[mem,linkrole] = (dimRel, memRel)
+                                    else:
+                                        otherDimRel, otherMemRel = memDim[mem,linkrole]
+                                        modelXbrl.error("EFM.6.23.16",
+                                            _("The member %(member)s has two dimensions, %(dimension1)s in linkrole %(linkrole1)s and  %(dimension2)s in linkrole %(linkrole2)s. "),
+                                            modelObject=(dimRel, otherDimRel, memRel, otherMemRel, dimRel.fromModelObject, otherDimRel.fromModelObject),
+                                            member=mem.qname, dimension1=dimRel.fromModelObject.qname, linkrole1=linkrole, 
+                                            dimension2=otherDimRel.fromModelObject.qname, linkrole2=otherDimRel.linkrole)
                             visited.discard(elt)
                     for rel in domMemRelSet.modelRelationships:
                         if rel.fromModelObject is not None and rel.toModelObject is not None:
@@ -1095,7 +1105,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         modelObject=(rel, rel.fromModelObject, rel.toModelObject), 
                                         linkrole=rel.linkrole, linkrole2=rel2.linkrole,
                                         source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
-                            checkMemMultDims(rel, rel.fromModelObject, rel.linkrole, set())
+                            checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
                     qnDeiEntityDomain = ModelValue.qname(deiNS, "dei:EntityDomain")
                     for relSet, dom, priItem, errCode in ((domMemRelSet, rxd.AllProjectsMember, rxd.Pr, "EFM.6.23.30"),
                                                           (domMemRelSet, rxd.AllGovernmentsMember, rxd.Gv, "EFM.6.23.31"),
@@ -1124,8 +1134,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                       (rxd.GovernmentAxis, rxd.Payments, "EFM.6.23.22")):
                             if context.hasDimension(dim) and (priItem not in qnameFacts or qnameFacts[priItem].isNil): 
                                 modelXbrl.error(errCode,
-                                    _("The Context %(context)s has dimension %(dimension)s but is missing required fact %(fact)s"),
-                                    modelObject=context, context=context.id, dimension=dim, fact=priItem)
+                                    _("The Context %(context)s has dimension %(dimension)s member %(member)s but is missing required fact %(fact)s"),
+                                    modelObject=context, context=context.id, dimension=dim, member=context.dimMemberQname(dim), fact=priItem)
                         if (rxd.Co in qnameFacts and not qnameFacts[rxd.Co].isNil and
                             not domMemRelSet.isRelated(qnAllCountriesDomain, "descendant", qnameFacts[rxd.Co].xValue, isDRS=True)):
                             modelXbrl.error("EFM.6.23.44",
@@ -1162,7 +1172,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             rxd.Cu in qnameFacts and not qnameFacts[rxd.Cu].isNil and
                             qnameFacts[rxd.A].unit is not None and qnameFacts[rxd.A].unit.measures != ([XbrlConst.qnIsoCurrency(qnameFacts[rxd.Cu].xValue)],[])): 
                             modelXbrl.error("EFM.6.23.41",
-                                _("The unit %(unit)s of rxd:A in context {$context} is not consistent with the value %(currency)s of rxd:Cu."),
+                                _("The unit %(unit)s of rxd:A in context %(context) is not consistent with the value %(currency)s of rxd:Cu."),
                                 modelObject=(qnameFacts[rxd.A],qnameFacts[rxd.Cu]), context=context.id, unit=qnameFacts[rxd.A].unit.value, currency=qnameFacts[rxd.Cu].value)
                                                     
                         if (context.hasDimension(rxd.ProjectAxis) and
@@ -1179,8 +1189,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     for f in modelXbrl.factsByQname[rxd.Gv]
                                     if f.context is not None)):
                             modelXbrl.error("EFM.6.23.21",
-                                _("The Context %(context)s has dimension %(dimension)s but is missing any payment."),
-                                modelObject=context, context=context.id, dimension=rxd.GovernmentAxis)
+                                _("The Context %(context)s has dimension %(dimension)s member %(member)s but is missing any payment."),
+                                modelObject=context, context=context.id, dimension=rxd.GovernmentAxis, member=context.dimMemberQname(rxd.GovernmentAxis))
                         if rxd.P in qnameFacts and not any(f.context is not None and not f.context.hasSegment
                                                            for f in modelXbrl.factsByQname.get(qnameFacts[rxd.P].xValue,())):
                             modelXbrl.error("EFM.6.23.23",
@@ -1198,9 +1208,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     # deference object references no longer needed
                     del rxdDoc, cntxEqualFacts
                     # dereference compatibly with 2.7 (as these may be used in nested contexts above
-                    dimDefRelSet.clear()
-                    domMemRelSet.clear()
-                    dimDomRelSet.clear()
+                    hasHypRelSet = hypDimRelSet = dimDefRelSet = domMemRelSet = dimDomRelSet = None
                     memDim.clear()
                 else: # non-SD documentType
                     pass # no non=SD tests yet
