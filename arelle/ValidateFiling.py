@@ -1116,7 +1116,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
                                 modelXbrl.error(errCode,
                                     _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
-                                    modelObject=f, fact=priItem, value=f.xValue, context=context.id, domain=dom)
+                                    modelObject=f, fact=priItem, value=f.xValue, context=f.context.id, domain=dom)
                     cntxEqualFacts = defaultdict(list)
                     for f in modelXbrl.facts:
                         if f.context is not None:
@@ -1147,6 +1147,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                                   (rxd.A, False, rxd.Gv, False, "EFM.6.23.28"),
                                                                   (rxd.A, False, rxd.Co, False, "EFM.6.23.29"),
                                                                   (rxd.Km, False, rxd.K, False, "EFM.6.23.35"),
+                                                                  (rxd.K, False, rxd.Km, False, "EFM.6.23.35"),
                                                                   (rxd.Cm, False, rxd.Cu, False, "EFM.6.23.39"),
                                                                   (rxd.K, False, rxd.A, False, "EFM.6.23.42"),
                                                                   (rxd.Pr, False, rxd.A, False, "EFM.6.23.43")):
@@ -1172,7 +1173,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             rxd.Cu in qnameFacts and not qnameFacts[rxd.Cu].isNil and
                             qnameFacts[rxd.A].unit is not None and qnameFacts[rxd.A].unit.measures != ([XbrlConst.qnIsoCurrency(qnameFacts[rxd.Cu].xValue)],[])): 
                             modelXbrl.error("EFM.6.23.41",
-                                _("The unit %(unit)s of rxd:A in context %(context) is not consistent with the value %(currency)s of rxd:Cu."),
+                                _("The unit %(unit)s of rxd:A in context %(context)s is not consistent with the value %(currency)s of rxd:Cu."),
                                 modelObject=(qnameFacts[rxd.A],qnameFacts[rxd.Cu]), context=context.id, unit=qnameFacts[rxd.A].unit.value, currency=qnameFacts[rxd.Cu].value)
                                                     
                         if (context.hasDimension(rxd.ProjectAxis) and
