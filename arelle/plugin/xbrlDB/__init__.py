@@ -79,7 +79,7 @@ def xbrlDBmenuEntender(cntlr, menu):
     # add log handler
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
     
-def storeIntoDB(dbConnection, modelXbrl):
+def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
     host = port = user = password = db = timeout = None
     if isinstance(dbConnection, (list, tuple)): # variable length list
         if len(dbConnection) > 0: host = dbConnection[0]
@@ -92,9 +92,12 @@ def storeIntoDB(dbConnection, modelXbrl):
 
     startedAt = time.time()
     if isPostgresPort(host, port):
-        insertIntoPostgresDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout)
+        insertIntoPostgresDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
     elif isRexsterPort(host, port):
-        insertIntoRexsterDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout)
+        insertIntoRexsterDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
+    else:
+        modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.')
+        return
     modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
                           _("stored to database in %.2f secs"), 
                           time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
@@ -119,9 +122,9 @@ def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
         dbConnection = options.storeToXbrlDb.split(",")
         storeIntoDB(dbConnection, modelXbrl)
         
-def xbrlDBvalidateRssItem(val, modelXbrl):
+def xbrlDBvalidateRssItem(val, modelXbrl, rssItem):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):
-        storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl)
+        storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl, rssItem)
     
 def xbrlDBdialogRssWatchDBconnection(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage):
     from tkinter import PhotoImage, N, S, E, W

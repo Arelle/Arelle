@@ -25,6 +25,18 @@ Information for the 'official' XBRL US-maintained database (this schema, contain
     \Host: public.xbrl.us 
     Port: 5432
 
+to use from command line:
+
+linux
+   # be sure plugin is installed
+   arelleCmdLine --plugin '+xbrlDB|show'
+   arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB 'myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds'
+   
+windows
+   rem be sure plugin is installed
+   arelleCmdLine --plugin "+xbrlDB|show"
+   arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB 'myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds'
+
 '''
 
 import os, sys, io, re, time
@@ -33,12 +45,12 @@ from pg8000 import DBAPI
 from pg8000.errors import CursorClosedError, ConnectionClosedError, InterfaceError, ProgrammingError
 import socket
 from arelle.ModelDtsObject import ModelConcept, ModelResource
-from arelle.ModelValue import qname, datetime
+from arelle.ModelValue import qname, dateTime
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle import XbrlConst
 
-TRACESQLFILE = None
-#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+#TRACESQLFILE = None
+TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -130,9 +142,11 @@ class XbrlPostgresDatabaseConnection():
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         self.conn = DBAPI.connect(user=user, password=password, host=host, 
                                   port=int(port) if port else None, 
-                                  database=database, socket_timeout=timeout)
+                                  database=database, 
+                                  socket_timeout=timeout or 60)
         self.tableColTypes = {}
-        
+        self.accessionId = "(None)"
+                
     def close(self, rollback=False):
         try:
             self.closeCursor()
@@ -307,7 +321,7 @@ class XbrlPostgresDatabaseConnection():
                                               int if typename in ("integer", "smallint", "int", "bigint") else
                                               float if typename in ("double precision", "real", "numeric") else
                                               pyBoolFromDbBool if typename == "boolean" else
-                                              datetime if typename in ("date","timestamp") else  # ModelValue.datetime !!! not python class
+                                              dateTime if typename in ("date","timestamp") else  # ModelValue.datetime !!! not python class
                                               str))
                                              for name, fulltype in colTypes
                                              for typename in (fulltype.partition(' ')[0],))
@@ -323,7 +337,8 @@ class XbrlPostgresDatabaseConnection():
         if idCol: # idCol is the first returned column if present
             returningCols.append(idCol)
         for matchCol in matchCols:
-            returningCols.append(matchCol)
+            if matchCol not in returningCols: # allow idCol to be specified or default assigned
+                returningCols.append(matchCol)
         colTypeFunctions = self.columnTypeFunctions(table)
         try:
             colTypeCast = tuple(colTypeFunctions[colName][0] for colName in newCols)
@@ -384,6 +399,10 @@ WITH row_values (%(newCols)s) AS (
                          .format(self.accessionId, table, len(sql), len(data)))
                 fh.write(sql)
         tableRows = self.execute(sql,commit=commit, close=False)
+        if TRACESQLFILE:
+            with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
+                fh.write("\n\n>>> accession {0} table {1} result row count {2}\n{3}\n"
+                         .format(self.accessionId, table, len(tableRows), '\n'.join(str(r) for r in tableRows)))
         return tuple(tuple(None if colValue == "NULL" or colValue is None else
                            colTypeFunction[i](colValue)  # convert to int, datetime, etc
                            for i, colValue in enumerate(row))
@@ -580,6 +599,22 @@ WITH row_values (%(newCols)s) AS (
                                     if isinstance(resource, ModelResource)))
         self.resourceId = dict(((roleId, qnId, docId, line, offset), id)
                                for id, roleId, qnId, docId, line, offset in table)
+        
+        self.showStatus("insert labels")
+        table = self.getTable('label_resource', 'resource_id', 
+                              ('resource_id', 'label', 'xml_lang'), 
+                              ('resource_id',), 
+                              tuple((self.resourceId[self.uriId[resource.role],
+                                                     self.qnameId[resource.qname],
+                                                     self.documentIds[resource.modelDocument.uri],
+                                                     resource.sourceline,
+                                                     0],
+                                     resource.elementText,
+                                     resource.xmlLang)
+                                    for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
+                                    for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
+                                    for resource in (rel.fromModelObject, rel.toModelObject)
+                                    if isinstance(resource, ModelResource) and XbrlConst.isLabelRole(resource.role)))
     
     def insertNetworks(self):
         self.showStatus("insert networks")
