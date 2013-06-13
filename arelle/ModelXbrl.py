@@ -787,7 +787,7 @@ class ModelXbrl:
         # assume it is a string with ID in a tokenized representation, like xyz_33
         try:
             return self.modelObjects[_INT(objectId.rpartition("_")[2])]
-        except ValueError:
+        except (IndexError, ValueError):
             return None
     
     # UI thread viewModelObject
@@ -1033,7 +1033,7 @@ class ModelXbrl:
             if activityCompleted:
                 timeTaken = time.time() - self._startedProfiledActivity
                 if timeTaken > minTimeToShow:
-                    self.modelManager.addToLog("{0} {1:.2f} secs".format(activityCompleted, timeTaken))
+                    self.modelManager.addToLog("{0} {1:.2f} secs".format(activityCompleted, timeTaken), messageCode="info:profileActivity")
         except AttributeError:
             pass
         self._startedProfiledActivity = time.time()
