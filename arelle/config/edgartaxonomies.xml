@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="erxl.xsd">
+<Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd">
 <Loc>
 <Family>BASE</Family>
 <Version>2010</Version>
@@ -987,5 +987,85 @@
 <FileTypeName>Roles/Arcroles</FileTypeName>
 <Elements>0</Elements>
 <Namespace>http://www.xbrl.org/2009/arcrole/fact-explanatoryFact</Namespace>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-2013-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.sec.gov/rxd/2013-01-31</Namespace>
+<Prefix>rxd</Prefix>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-ent-2013-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Entry Point</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rxd-ent/2013-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-cal-2013-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Entry Point</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rxd-cal/2013-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-def-2013-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Entry Point</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rxd-def/2013-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-pre-2013-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Entry Point</FileTypeName>
+<Elements>0</Elements>
+<Namespace>http://xbrl.sec.gov/rxd-pre/2013-01-31</Namespace>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-cal-2013-01-31.xml</Href>
+<AttType>CAL</AttType>
+<FileTypeName>Calculation</FileTypeName>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-def-2013-01-31.xml</Href>
+<AttType>DEF</AttType>
+<FileTypeName>Definition, Dimensions</FileTypeName>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2013</Version>
+<Href>http://xbrl.sec.gov/rxd/2013/rxd-pre-2013-01-31.xml</Href>
+<AttType>PRE</AttType>
+<FileTypeName>Presentation</FileTypeName>
+<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>RXD</Family>
+<Version>2000</Version>
+<Href>http://xbrl.sec.gov/rxd/2000/rxd-2000-01-01.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.sec.gov/rxd/2000-01-001</Namespace>
+<Prefix>rxd00</Prefix>
 </Loc>
 </Erxl>
