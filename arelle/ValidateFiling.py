@@ -956,6 +956,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the default context because there are not multiple classes of common shares"),
                             modelObject=documentTypeFact, documentType=documentType)
                 if documentType in ("SD", "SD/A"): # SD documentType
+                    self.modelXbrl.profileActivity("... filer required facts checks (other than SD)", minTimeToShow=1.0)
                     rxdNs = None # find RXD schema
                     rxdDoc = None
                     hasRxdPre = hasRxdDef = False
@@ -1046,6 +1047,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     modelXbrl.error("EFM.6.23.13",
                                         _("Extension concept %(concept)s is not allowed in an extension schema."),
                                         modelObject=concept, schemaName=doc.basename, name=concept.name, concept=concept.qname)
+                    self.modelXbrl.profileActivity("... SD checks 6-13, 26-27", minTimeToShow=1.0)
                     dimDefRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDefault)
                     dimDomRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDomain)
                     hypDimRelSet = modelXbrl.relationshipSet(XbrlConst.hypercubeDimension)
@@ -1106,6 +1108,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         linkrole=rel.linkrole, linkrole2=rel2.linkrole,
                                         source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
                             checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
+                    self.modelXbrl.profileActivity("... SD checks 14-18", minTimeToShow=1.0)
                     qnDeiEntityDomain = ModelValue.qname(deiNS, "dei:EntityDomain")
                     for relSet, dom, priItem, errCode in ((domMemRelSet, rxd.AllProjectsMember, rxd.Pr, "EFM.6.23.30"),
                                                           (domMemRelSet, rxd.AllGovernmentsMember, rxd.Gv, "EFM.6.23.31"),
@@ -1117,10 +1120,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 modelXbrl.error(errCode,
                                     _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
                                     modelObject=f, fact=priItem, value=f.xValue, context=f.context.id, domain=dom)
+                    self.modelXbrl.profileActivity("... SD checks 30, 31, 33, 34", minTimeToShow=1.0)
                     cntxEqualFacts = defaultdict(list)
                     for f in modelXbrl.facts:
                         if f.context is not None:
                             cntxEqualFacts[f.context.contextDimAwareHash].append(f)
+                    self.modelXbrl.profileActivity("... SD prepare facts by context", minTimeToShow=1.0)
                     
                     qnCurrencyMeasure = XbrlConst.qnIsoCurrency(deiItems.get("EntityReportingCurrencyISOCode"))
                     currencyMeasures = ([qnCurrencyMeasure],[])
@@ -1201,11 +1206,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             modelXbrl.error("EFM.6.23.40",
                                 _("There is a non-nil rxd:A in context %(context)s but missing a dimension rxd:PmtAxis."),
                                 modelObject=(context, qnameFacts[rxd.A]), context=context.id)
+                    self.modelXbrl.profileActivity("... SD by context for 19-25, 28-29, 35, 37-39, 40-44", minTimeToShow=1.0)
                     for f in modelXbrl.factsByQname[rxd.D]:
                         if not f.isNil and f.xValid and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
                             modelXbrl.error("EFM.6.23.32",
                                 _("The rxd:D %(value)s in context %(context)s does not match the context end date %(endDate)s."),
                                 modelObject=f, value=f.xValue, context=f.context.id, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True))
+                    self.modelXbrl.profileActivity("... SD checks 32 (last SD check)", minTimeToShow=1.0)
                     # deference object references no longer needed
                     del rxdDoc, cntxEqualFacts
                     # dereference compatibly with 2.7 (as these may be used in nested contexts above
@@ -1222,7 +1229,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error("GFM.3.02.01",
                             _("dei:%(elementName)s is required in the default context"),
                             modelXbrl=modelXbrl, elementName=deiItem)
-            self.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
+            if documentType not in ("SD", "SD/A"):
+                self.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
     
             #6.5.27 footnote elements, etc
             footnoteLinkNbr = 0
