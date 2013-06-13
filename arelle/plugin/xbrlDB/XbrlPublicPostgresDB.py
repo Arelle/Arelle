@@ -49,8 +49,8 @@ from arelle.ModelValue import qname, dateTime
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle import XbrlConst
 
-#TRACESQLFILE = None
-TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+TRACESQLFILE = None
+#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -266,7 +266,7 @@ class XbrlPostgresDatabaseConnection():
                 # problem with driver and $$ statements, skip them (for now)
                 stmt = ''
         for sql in sqlstatements:
-            if 'CREATE TABLE' in sql or 'CREATE SEQUENCE' in sql:
+            if 'CREATE TABLE' in sql or 'CREATE SEQUENCE' in sql or 'INSERT INTO' in sql:
                 statusMsg, sep, rest = sql.strip().partition('\n')
                 self.showStatus(statusMsg[0:50])
                 result = self.execute(sql, close=False, commit=False, fetch=False)
