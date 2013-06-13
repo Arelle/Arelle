@@ -180,9 +180,10 @@ class Cntlr:
             if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
                 self.hasFileSystem = False # no file system, userAppDir does not exist
                 self.isGAE = True
-            elif not configHomeDir:
-                self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
+            else:
                 self.isGAE = False
+                if not configHomeDir:
+                    self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
                 try:
                     import gtk
