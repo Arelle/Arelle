@@ -28,7 +28,7 @@ rm -f -r ${BUILT27DIR}/*.pyw
 rm -f ${BUILT27DIR}/arelle/CntlrQuickBooks.py
 rm -f ${BUILT27DIR}/arelle/CntlrWinMain.py
 rm -f ${BUILT27DIR}/arelle/CntlrWinTooltip.py
-rm -f ${BUILT27DIR}/arelle/Dialog*.py
+find ${BUILT27DIR}/arelle -name 'Dialog*.py' -print0 | xargs -0 rm -f
 rm -f ${BUILT27DIR}/arelle/UiUtil.py
 rm -f ${BUILT27DIR}/arelle/ViewWin*.py
 rm -f ${BUILT27DIR}/arelle/WatchRss.py

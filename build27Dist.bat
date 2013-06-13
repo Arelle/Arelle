@@ -31,7 +31,8 @@ del %BUILT27DIR%\*.pyw /s
 del %BUILT27DIR%\arelle\CntlrQuickBooks.py
 del %BUILT27DIR%\arelle\CntlrWinMain.py
 del %BUILT27DIR%\arelle\CntlrWinTooltip.py
-del %BUILT27DIR%\arelle\Dialog*.py
+del %BUILT27DIR%\arelle\Dialog*.py /s
+del %BUILT27DIR%\arelle\plugin\Dialog*.py
 del %BUILT27DIR%\arelle\UiUtil.py
 del %BUILT27DIR%\arelle\ViewWin*.py
 del %BUILT27DIR%\arelle\WatchRss.py
