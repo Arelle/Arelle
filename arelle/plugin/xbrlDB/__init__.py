@@ -96,7 +96,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
     elif isRexsterPort(host, port):
         insertIntoRexsterDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
     else:
-        modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.')
+        modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return
     modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
                           _("stored to database in %.2f secs"), 
@@ -126,33 +126,12 @@ def xbrlDBvalidateRssItem(val, modelXbrl, rssItem):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):
         storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl, rssItem)
     
-def xbrlDBdialogRssWatchDBconnection(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage):
-    from tkinter import PhotoImage, N, S, E, W
-    from tkinter.simpledialog import askstring
-    from arelle.CntlrWinTooltip import ToolTip
-    from arelle.UiUtil import gridCell, label
+def xbrlDBdialogRssWatchDBconnection(*args, **kwargs):
     try:
-        from tkinter.ttk import Button
+        from .DialogRssWatchExtender import dialogRssWatchDBextender
+        dialogRssWatchDBextender(*args, **kwargs)
     except ImportError:
-        from ttk import Button
-        
-    # add sphinx formulas to RSS dialog
-    def enterConnectionString():
-        from arelle.DialogUserPassword import askDatabase
-        # (user, password, host, port, database)
-        db = askDatabase(cntlr.parent, dialog.cellDBconnection.value.split(',') if dialog.cellDBconnection.value else None)
-        if db:
-            dbConnectionString = ','.join(db)
-            dialog.options["xbrlDBconnection"] = dbConnectionString 
-            dialog.cellDBconnection.setValue(dbConnectionString)
-        else:  # deleted
-            dialog.options.pop("xbrlDBconnection", "")  # remove entry
-    label(frame, 1, row, "DB Connection:")
-    dialog.cellDBconnection = gridCell(frame,2, row, options.get("xbrlDBconnection",""))
-    ToolTip(dialog.cellDBconnection, text=_("Enter an XBRL Database (Postgres) connection string.  "
-                                           "E.g., host,port,user,password,db[,timeout].  "), wraplength=240)
-    enterDBconnectionButton = Button(frame, image=openDatabaseImage, width=12, command=enterConnectionString)
-    enterDBconnectionButton.grid(row=row, column=3, sticky=W)
+        pass
     
 def xbrlDBdialogRssWatchValidateChoices(dialog, frame, row, options, cntlr):
     from arelle.UiUtil import checkbox
