@@ -39,7 +39,7 @@ windows
 
 '''
 
-import os, sys, io, re, time
+import os, sys, io, re, time, datetime
 from math import isnan, isinf
 from pg8000 import DBAPI
 from pg8000.errors import CursorClosedError, ConnectionClosedError, InterfaceError, ProgrammingError
@@ -451,14 +451,15 @@ WITH row_values (%(newCols)s) AS (
                                   ('accepted_timestamp', 'entity_id', 'filing_accession_number'), 
                                   ((rssItem.acceptanceDatetime,
                                     True,
-                                    rssItem.filingDate,
-                                    rssItem.cikNumber,
+                                    rssItem.filingDate or datetime.datetime.min,  # NOT NULL
+                                    rssItem.cikNumber or 0,  # NOT NULL
                                     rssItem.companyName,
                                     self.modelXbrl.modelDocument.creationSoftwareComment,
-                                    rssItem.assignedSic,
+                                    rssItem.assignedSic or -1,  # NOT NULL
                                     rssItem.htmlUrl,
                                     rssItem.url,
-                                    rssItem.accessionNumber),))
+                                    rssItem.accessionNumber or 'UNKNOWN'  # NOT NULL
+                                    ),))
             for id, timestamp, cik, accessionNbr in table:
                 self.accessionId = id
                 break
