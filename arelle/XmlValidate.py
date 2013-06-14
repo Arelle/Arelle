@@ -411,7 +411,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                             xValue = gMonthDay(month, day)
                         elif baseXsdType == "gYearMonth":
                             year, month, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gMonthDay(month, day)
+                            xValue = gYearMonth(year, month)
                         elif baseXsdType == "gYear":
                             year, zSign, zHrMin, zHr, zMin = match.groups()
                             xValue = gYear(year)
