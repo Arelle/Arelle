@@ -1003,8 +1003,13 @@ class ModelType(ModelNamableTerm):
                     if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
                         self._baseXbrliTypeQname = qnameDerivedFrom
                     # TBD implement union types
-                    else:
-                        self._baseXbrliTypeQname = None 
+                    elif len(qnameDerivedFrom) == 1:
+                        qn0 = qnameDerivedFrom[0]
+                        if qn0.namespaceURI in (XbrlConst.xbrli, XbrlConst.xsd):
+                            self._baseXbrliTypeQname = qn0
+                        else:
+                            typeDerivedFrom = self.modelXbrl.qnameTypes.get(qn0)
+                            self._baseXbrliTypeQname = typeDerivedFrom.baseXbrliTypeQname if typeDerivedFrom is not None else None
                 elif isinstance(qnameDerivedFrom, ModelValue.QName):
                     if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
                         self._baseXbrliTypeQname = qnameDerivedFrom
@@ -1024,8 +1029,12 @@ class ModelType(ModelNamableTerm):
             return self._baseXbrliType
         except AttributeError:
             baseXbrliTypeQname = self.baseXbrliTypeQname
-            if baseXbrliTypeQname == XbrlConst.qnXbrliDateUnion:
-                self._baseXbrliType = "XBRLI_DATEUNION"
+            if isinstance(baseXbrliTypeQname,list): # union
+                if baseXbrliTypeQname == XbrlConst.qnDateUnionXsdTypes: 
+                    self._baseXbrliType = "XBRLI_DATEUNION"
+                # TBD implement union types
+                else:
+                    self._baseXbrliType = "anyType" 
             elif baseXbrliTypeQname is not None:
                 self._baseXbrliType = baseXbrliTypeQname.localName
             else:
