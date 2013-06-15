@@ -321,12 +321,15 @@ class FileSource:
             else: # filepath.startswith(self.baseurl)
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
-                b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
-                if binary:
-                    return (io.BytesIO(b), )
-                encoding = XmlUtil.encoding(b)
-                return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
-                        encoding)
+                try:
+                    b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
+                    if binary:
+                        return (io.BytesIO(b), )
+                    encoding = XmlUtil.encoding(b)
+                    return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
+                            encoding)
+                except KeyError:
+                    raise ArchiveFileIOError(self, archiveFileName)
             elif archiveFileSource.isEis:
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
                     outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
