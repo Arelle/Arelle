@@ -4,7 +4,7 @@ Sample custom functions plugin for formula XML Element, Attribute creation funct
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import XPathContext, XbrlUtil
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, QName
 from arelle.ModelInstanceObject import ModelDimensionValue, XmlUtil
 from arelle.FunctionUtil import qnameArg, nodeArg, atomicArg
 from arelle import XmlValidate
@@ -36,13 +36,14 @@ A function definition is required in the formula linkbase:
 </variable:function>
 '''
 def  xfxc_element(xc, p, contextItem, args):
-    if not 3 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
+    if not 2 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
     qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     attrArg = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
     # attributes have to be pairs
     if attrArg:
-        if len(attrArg) & 1:
-            raise XPathContext.FunctionArgType(1,"((xs:qname|xs:string),xs:anyAtomicValue)", errCode="xfc:AttributesNotPairs")
+        if len(attrArg) & 1 or any(not isinstance(attrArg[i], (QName, _STR_BASE))
+                                   for i in range(0, len(attrArg),2)):
+            raise XPathContext.FunctionArgType(1,"((xs:qname|xs:string),xs:anyAtomicValue)", errCode="xfxce:AttributesNotNameValuePairs")
         else:
             attrParam = [(attrArg[i],attrArg[i+1]) # need name-value pairs for XmlUtil function
                          for i in range(0, len(attrArg),2)]
