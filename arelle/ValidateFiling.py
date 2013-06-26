@@ -87,6 +87,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         self.entityRegistrantName = None
         self.requiredContext = None
         self.standardNamespaceConflicts = defaultdict(set)
+        self.exhibitType = None # e.g., EX-101, EX-201
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             instanceName = modelXbrl.modelDocument.basename
@@ -96,7 +97,6 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             paramFilerIdentifiers = None
             paramFilerNames = None
             submissionType = None
-            exhibitType = None # e.g., EX-101, EX-201
             if self.validateEFM and self.parameters:
                 p = self.parameters.get(ModelValue.qname("CIK",noPrefixIsNoNamespace=True))
                 if p and len(p) == 2 and p[1] not in ("null", "None"):
@@ -116,7 +116,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     submissionType = p[1]
                 p = self.parameters.get(ModelValue.qname("exhibitType",noPrefixIsNoNamespace=True))
                 if p and len(p) == 2:
-                    exhibitType = p[1]
+                    self.exhibitType = p[1]
                         
 
             #6.3.3 filename check
@@ -125,18 +125,18 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 self.fileNameBasePart = m.group(1)
                 self.fileNameDatePart = m.group(2)
                 if not self.fileNameBasePart:
-                    modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                    modelXbrl.error((self.EFM60303, "GFM.1.01.01"),
                         _('Invalid instance document base name part (ticker or mnemonic name) in "{base}-{yyyymmdd}.xml": %(filename)s'),
                         modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
                 else:
                     try:
                         self.fileNameDate = datetime.datetime.strptime(self.fileNameDatePart,"%Y%m%d").date()
                     except ValueError:
-                        modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                        modelXbrl.error((self.EFM60303, "GFM.1.01.01"),
                             _('Invalid instance document base name part (date) in "{base}-{yyyymmdd}.xml": %(filename)s'),
                             modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
             else:
-                modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                modelXbrl.error((self.EFM60303, "GFM.1.01.01"),
                     _('Invalid instance document name, must match "{base}-{yyyymmdd}.xml": %(filename)s'),
                     modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
             
@@ -854,16 +854,16 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             "SP 15D2/A": ("SP 15D2/A",)
                             }.get(submissionType)
                     if expectedDocumentTypes and documentType not in expectedDocumentTypes:
-                        modelXbrl.error("EFM.6.05.20.submissionDocumentType",
+                        modelXbrl.error("EFM.6.05.20.submissionDocumentType" if self.exhibitType != "EX-2.01" else "EFM.6.23.03",
                             _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
                             modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=submissionType)
-                if exhibitType:
-                    if (documentType in ("SD", "SD/A")) != (exhibitType == "EX-2.01"):
+                if self.exhibitType:
+                    if (documentType in ("SD", "SD/A")) != (self.exhibitType == "EX-2.01"):
                         modelXbrl.error({"EX-100":"EFM.6.23.04",
                                          "EX-101":"EFM.6.23.04",
-                                         "EX-2.01":"EFM.6.23.05"}.get(exhibitType,"EX-101"),
+                                         "EX-2.01":"EFM.6.23.05"}.get(self.exhibitType,"EX-101"),
                             _("The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments."),
-                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=exhibitType)
+                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=self.exhibitType)
                     
                 # 6.5.21
                 for doctypesRequired, deiItemsRequired in (
@@ -2177,6 +2177,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 leastMissingItemsSet = None #dereference, can't delete with Python 3.1
                 del foundSummationItemSet 
             del compatibleItemsFacts # dereference object references
+           
+    @property 
+    def EFM60303(self):
+        if self.exhibitType == "EX-2.01": # only applicable for edgar production and parameterized testcases
+            return "EFM.6.23.01"
+        else:
+            return "EFM.6.03.03"
         
 # for SBR 2.3.4.01
 def pLinkedNonAbstractDescendantQnames(modelXbrl, concept, descendants=None):

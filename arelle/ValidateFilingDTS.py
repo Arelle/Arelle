@@ -608,11 +608,11 @@ def checkDTS(val, modelDocument, visited):
                             _('Schema file name warning: %(filename)s, should match %(expectedFilename)s'),
                             modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
             except ValueError:
-                val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                     _('Invalid schema file base name part (date) in "{base}-{yyyymmdd}.xsd": %(filename)s'),
                     modelObject=modelDocument, filename=modelDocument.basename)
         else:
-            val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+            val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                 _('Invalid schema file name, must match "{base}-{yyyymmdd}.xsd": %(filename)s'),
                 modelObject=modelDocument, filename=modelDocument.basename)
 
@@ -622,7 +622,7 @@ def checkDTS(val, modelDocument, visited):
             #6.3.3 filename check
             extLinkElt = XmlUtil.descendant(modelDocument.xmlRootElement, XbrlConst.link, "*", "{http://www.w3.org/1999/xlink}type", "extended")
             if extLinkElt is None:# no ext link element
-                val.modelXbrl.error(("EFM.6.03.03.noLinkElement", "GFM.1.01.01.noLinkElement"),
+                val.modelXbrl.error((val.EFM60303 + ".noLinkElement", "GFM.1.01.01.noLinkElement"),
                     _('Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.'),
                     modelObject=modelDocument, filename=modelDocument.basename)
             elif extLinkElt.localName not in extLinkEltFileNameEnding:
@@ -643,11 +643,11 @@ def checkDTS(val, modelDocument, visited):
                                     _('Linkbase name warning: %(filename)s should match %(expectedFilename)s'),
                                     modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
                     except ValueError:
-                        val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                        val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                             _('Invalid linkbase base file name part (date) in "{base}-{yyyymmdd}_{suffix}.xml": %(filename)s'),
                             modelObject=modelDocument, filename=modelDocument.basename)
                 else:
-                    val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                    val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                         _('Invalid linkbase name, must match "{base}-{yyyymmdd}%(expectedSuffix)s.xml": %(filename)s'),
                         modelObject=modelDocument, filename=modelDocument.basename, expectedSuffix=expectedSuffix)
     visited.remove(modelDocument)
