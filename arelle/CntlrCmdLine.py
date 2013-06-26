@@ -209,6 +209,8 @@ def parseAndRun(args):
     parser.add_option("--internetTimeout", type="int", dest="internetTimeout", 
                       help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
     parser.add_option("--internettimeout", type="int", action="store", dest="internetTimeout", help=SUPPRESS_HELP)
+    parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome", 
+                      help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
                       help=_("Modify plug-in configuration.  "
                              "Re-save unless 'temp' is in the module list.  " 
@@ -226,7 +228,8 @@ def parseAndRun(args):
     if hasWebServer:
         parser.add_option("--webserver", action="store", dest="webserver",
                           help=_("start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, "
-                                 "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy"))
+                                 "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy. "
+                                 "(It is possible to specify options to be defaults for the web server, such as disclosureSystem and validations, but not including file names.) "))
     pluginOptionsIndex = len(parser.option_list)
     for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
@@ -293,17 +296,11 @@ def parseAndRun(args):
                                      (not hasWebServer or options.webserver is None))):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.py --help"))
     elif hasWebServer and options.webserver:
+        # webserver incompatible with file operations
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
-                options.validate, options.calcDecimals, options.calcPrecision, options.validateEFM, options.validateHMRC, options.disclosureSystemName,
-                options.utrValidate, options.infosetValidate, options.DTSFile, options.factsFile, options.factListCols, options.factTableFile,
+                options.factsFile, options.factListCols, options.factTableFile,
                 options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile, options.viewArcrole, options.viewFile,
-                options.logFile, options.logFormat, options.logLevel, options.logLevelFilter, options.logCodeFilter, options.formulaParamExprResult, options.formulaParamInputValue,
-                options.formulaCallExprSource, options.formulaCallExprCode, options.formulaCallExprEval,
-                options.formulaCallExprResult, options.formulaVarSetExprEval, options.formulaVarSetExprResult,
-                options.formulaAsserResultCounts, options.formulaFormulaRules, options.formulaVarsOrder,
-                options.formulaVarExpressionSource, options.formulaVarExpressionCode, options.formulaVarExpressionEvaluation,
-                options.formulaVarExpressionResult, options.formulaVarFiltersResult,
-                options.proxy, options.plugins)):
+                )):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
         else:
             cntlr.startLogging(logFileName='logToBuffer')
