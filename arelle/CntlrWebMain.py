@@ -18,10 +18,14 @@ def startWebserver(_cntlr, options):
     :param options: OptionParser options from parse_args of main argv arguments (the argument *webserver* provides hostname and port), port being used to startup the webserver on localhost.
     :type options: optparse.Values
     """
-    global imagesDir, cntlr, optionsNames
+    global imagesDir, cntlr, optionsPrototype
     cntlr = _cntlr
     imagesDir = cntlr.imagesDir
-    optionsNames = [option for option in dir(options) if not option.startswith('_')]
+    optionValuesTypes = _STR_NUM_TYPES + (type(None),)
+    optionsPrototype = dict((option,value if isinstance(value,_STR_NUM_TYPES) else None)
+                            for option in dir(options)
+                            for value in (getattr(options, option),)
+                            if isinstance(value,optionValuesTypes) and not option.startswith('_'))
     host, sep, portServer = options.webserver.partition(":")
     port, sep, server = portServer.partition(":")
     if server:
@@ -106,8 +110,8 @@ validationOptions = {
 class Options():
     """Class to emulate options needed by CntlrCmdLine.run"""
     def __init__(self):
-        for option in optionsNames:
-            setattr(self, option, None)
+        for option, defaultValue in optionsPrototype.items():
+            setattr(self, option, defaultValue)
             
 supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'factTable', 'formulae'}
 GETorPOST = ('GET', 'POST')
