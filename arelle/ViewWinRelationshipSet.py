@@ -160,6 +160,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             else:   # just a resource
                 text = concept.localName
             childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
+            childRelationshipSet = relationshipSet
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 self.treeView.set(childnode, "type", concept.niceType)
                 self.treeView.set(childnode, "references", viewReferences(concept))
@@ -175,6 +176,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "closed", modelObject.closed)
                 elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                     self.treeView.set(childnode, "usable", modelObject.usable)
+                childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
+                                                                      modelObject.linkrole)
             elif self.arcrole == "Table-rendering": # extra columns
                 try:
                     header = concept.header(lang=self.lang,strip=True,evaluate=False)
@@ -204,8 +207,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.tag_has[modelObject.toModelObject.objectId()].append(childnode)
             if concept not in visited:
                 visited.add(concept)
-                for modelRel in relationshipSet.fromModelObject(concept):
-                    nestedRelationshipSet = relationshipSet
+                for modelRel in childRelationshipSet.fromModelObject(concept):
+                    nestedRelationshipSet = childRelationshipSet
                     targetRole = modelRel.targetRole
                     if self.arcrole == XbrlConst.summationItem:
                         childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
@@ -213,7 +216,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                         targetRole = relationshipSet.linkrole
                         childPrefix = ""
                     else:
-                        nestedRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, targetRole)
+                        nestedRelationshipSet = self.modelXbrl.relationshipSet(childRelationshipSet.arcrole, targetRole)
                         childPrefix = "(via targetRole) "
                     toConcept = modelRel.toModelObject
                     if toConcept in visited:
