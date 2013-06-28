@@ -225,12 +225,18 @@ class ValidateXbrl:
                 for relFrom, rels in fromRelationships.items():
                     cycleFound = self.fwdCycle(relsSet, rels, noUndirected, {relFrom})
                     if cycleFound is not None:
-                        path = str(relFrom.qname) + " " + " - ".join(
+                        pathEndsAt = len(cycleFound)  # consistently find start of path
+                        loopedModelObject = cycleFound[1].toModelObject
+                        for i, rel in enumerate(cycleFound[2:]):
+                            if rel.fromModelObject == loopedModelObject:
+                                pathEndsAt = 3 + i # don't report extra path elements before loop
+                                break
+                        path = str(loopedModelObject.qname) + " " + " - ".join(
                             "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
-                            for rel in reversed(cycleFound[1:]))
+                            for rel in reversed(cycleFound[1:pathEndsAt]))
                         modelXbrl.error(specSect,
                             _("Relationships have a %(cycle)s cycle in arcrole %(arcrole)s \nlink role %(linkrole)s \nlink %(linkname)s, \narc %(arcname)s, \npath %(path)s"),
-                            modelObject=cycleFound[1:], cycle=cycleFound[0], path=path,
+                            modelObject=cycleFound[1:pathEndsAt], cycle=cycleFound[0], path=path,
                             arcrole=arcrole, linkrole=ELR, linkname=linkqname, arcname=arcqname), 
                         break
                 
