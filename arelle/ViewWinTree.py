@@ -16,6 +16,7 @@ class ViewTree:
     def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False, lang=None):
         self.tabWin = tabWin
         self.viewFrame = Frame(tabWin)
+        self.viewFrame.view = self
         self.viewFrame.grid(row=0, column=0, sticky=(N, S, E, W))
         tabWin.add(self.viewFrame,text=tabTitle)
         self.tabTitle = tabTitle # for error messages
@@ -34,7 +35,8 @@ class ViewTree:
         self.treeView.tag_configure("selected-even", background=highlightColor)
         self.treeView.tag_configure("selected-odd", background=highlightColor)
         self.treeViewSelection = ()
-        self.treeView.bind("<<TreeviewSelect>>", self.treeViewSelectionChange, '+')
+        self.treeView.bind("<<TreeviewSelect>>", self.viewSelectionChange, '+')
+        self.treeView.bind("<1>", self.onViewClick, '+')
         hScrollbar["command"] = self.treeView.xview
         hScrollbar.grid(row=1, column=0, sticky=(E,W))
         vScrollbar["command"] = self.treeView.yview
@@ -64,7 +66,7 @@ class ViewTree:
             if not lang: 
                 self.lang = modelXbrl.modelManager.defaultLang
                 
-    def treeViewSelectionChange(self, event=None):
+    def viewSelectionChange(self, event=None):
         for node in self.treeViewSelection:
             priorTags = self.treeView.item(node)["tags"]
             if priorTags:
@@ -77,12 +79,17 @@ class ViewTree:
             if priorTags:
                 self.treeView.item(node, tags=("selected-" + priorTags[0],))
             
+    def onViewClick(self, *args):
+        self.modelXbrl.modelManager.cntlr.currentView = self
+
     def close(self):
+        del self.viewFrame.view
         if self.modelXbrl:
             self.tabWin.forget(self.viewFrame)
             self.modelXbrl.views.remove(self)
             self.modelXbrl = None
-        
+            self.view = None
+                
     def select(self):
         self.tabWin.select(self.viewFrame)
         

@@ -46,7 +46,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.menuAddLangs()
     saveMenu = Menu(view.viewFrame, tearoff=0)
     saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
-    saveMenu.add_command(label=_("XML infoset"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
+    saveMenu.add_command(label=_("Table layout infoset"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     view.view()
@@ -54,6 +54,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.blockViewModelObject = 0
     view.viewFrame.bind("<Enter>", view.cellEnter, '+')
     view.viewFrame.bind("<Leave>", view.cellLeave, '+')
+    view.viewFrame.bind("<1>", view.onClick, '+')
     view.blockMenuEvents = 0
             
 class ViewRenderedGrid(ViewWinGrid.ViewGrid):
@@ -500,9 +501,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         else:
             viewableObject = objId
         self.modelXbrl.viewModelObject(viewableObject)
+        self.modelXbrl.modelManager.cntlr.currentView = self
             
     def cellEnter(self, *args):
         self.blockSelectEvent = 0
+        self.modelXbrl.modelManager.cntlr.currentView = self
 
     def cellLeave(self, *args):
         self.blockSelectEvent = 1
@@ -553,7 +556,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
 
     def backgroundSaveInstance(self, newFilename=None):
         cntlr = self.modelXbrl.modelManager.cntlr
-        if newFilename:
+        if newFilename and (self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE or
+                            self.modelXbrl.modelDocument.uri != newFilename):
             self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
             self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
             self.modelXbrl.createInstance(newFilename) # creates an instance as this modelXbrl's entrypoing

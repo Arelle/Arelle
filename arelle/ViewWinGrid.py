@@ -31,6 +31,7 @@ class ViewGrid:
         '''
         
         self.viewFrame = scrolledHeaderedFrame(tabWin)
+        self.viewFrame.view = self
         self.gridTblHdr = self.viewFrame.tblHdrInterior
         self.gridColHdr = self.viewFrame.colHdrInterior
         self.gridRowHdr = self.viewFrame.rowHdrInterior
@@ -46,6 +47,7 @@ class ViewGrid:
         self.toolTipText = StringVar()
         if hasToolTip:
             self.gridBody.bind("<Motion>", self.motion, '+')
+            self.gridBody.bind("<1>", self.onClick, '+')
             self.gridBody.bind("<Leave>", self.leave, '+')
             self.toolTipText = StringVar()
             self.toolTip = ToolTip(self.gridBody, 
@@ -68,6 +70,7 @@ class ViewGrid:
                 self.lang = modelXbrl.modelManager.defaultLang
         
     def close(self):
+        del self.viewFrame.view
         self.tabWin.forget(self.viewFrame)
         if self in self.modelXbrl.views:
             self.modelXbrl.views.remove(self)
@@ -75,6 +78,10 @@ class ViewGrid:
         
     def select(self):
         self.tabWin.select(self.viewFrame)
+
+    def onClick(self, *args):
+        if self.modelXbrl:
+            self.modelXbrl.modelManager.cntlr.currentView = self
         
     def leave(self, *args):
         self.toolTipColId = None

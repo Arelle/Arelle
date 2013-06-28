@@ -35,9 +35,10 @@ from arelle import (DialogURL, DialogLanguage,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
                     ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
-                    ViewWinTests, ViewWinVersReport, ViewWinRssFeed,
+                    ViewWinTests, ViewWinTree, ViewWinVersReport, ViewWinRssFeed,
                     ViewFileTests,
                     ViewFileRenderedGrid,
+                    ViewFileRelationshipSet,
                     Updater
                    )
 from arelle.ModelFormulaObject import FormulaOptions
@@ -250,15 +251,18 @@ class CntlrWinMain (Cntlr.Cntlr):
         paneWinTopBtm.grid(row=1, column=0, sticky=(N, S, E, W))
         paneWinLeftRt = tkinter.PanedWindow(paneWinTopBtm, orient=HORIZONTAL)
         paneWinLeftRt.grid(row=0, column=0, sticky=(N, S, E, W))
+        paneWinLeftRt.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinTopBtm.add(paneWinLeftRt)
         self.tabWinTopLeft = Notebook(paneWinLeftRt, width=250, height=300)
         self.tabWinTopLeft.grid(row=0, column=0, sticky=(N, S, E, W))
         paneWinLeftRt.add(self.tabWinTopLeft)
         self.tabWinTopRt = Notebook(paneWinLeftRt)
         self.tabWinTopRt.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.tabWinTopRt.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinLeftRt.add(self.tabWinTopRt)
         self.tabWinBtm = Notebook(paneWinTopBtm)
         self.tabWinBtm.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.tabWinBtm.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinTopBtm.add(self.tabWinBtm)
 
         from arelle import ViewWinList
@@ -351,6 +355,14 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.setValidateTooltipText()
         
         
+    def onTabChanged(self, event, *args):
+        try:
+            widgetIndex = event.widget.index("current")
+            widget = event.widget.winfo_children()[widgetIndex]
+            self.currentView = widget.view
+        except (AttributeError, TypeError):
+            pass
+
     def loadFileMenuHistory(self):
         self.fileMenu.delete(self.fileMenuLength, self.fileMenuLength + 1)
         fileHistory = self.config.setdefault("fileHistory", [])
@@ -393,11 +405,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         return True
         
     def fileSave(self, view=None, fileType=None, *ignore):
+        if view is None:
+            view = getattr(self, "currentView", None)
         if view is not None:
             modelXbrl = view.modelXbrl
             if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
                 initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
-                if fileType in ("html", "xml"):
+                if fileType in ("html", "xml", None):
                     if fileType == "html":
                         filename = self.uiFileDialog("save",
                                 title=_("arelle - Save HTML-rendered Table"),
@@ -406,18 +420,28 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 defaultextension=".html")
                     elif fileType == "xml":
                         filename = self.uiFileDialog("save",
-                                title=_("arelle - Save rendered table infoset (XML)"),
+                                title=_("arelle - Save Table Layout Infoset"),
                                 initialdir=initialdir,
                                 filetypes=[(_("XML file .xml"), "*.xml")],
                                 defaultextension=".xml")
+                    else: # ask file type
+                        filename = self.uiFileDialog("save",
+                                title=_("arelle - Save XBRL Instance, HTML-rendered Table or Table Layout Infoset"),
+                                initialdir=initialdir,
+                                filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm"), (_("Layout infoset .xml"), "*.xml")],
+                                defaultextension=".html")
+                        
                     if not filename:
                         return False
                     try:
-                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.labelLang, sourceView=view)
+                        if filename.endswith(".xbrl"):
+                            view.saveInstance(filename)
+                        else:
+                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.labelLang, sourceView=view)
                     except (IOError, EnvironmentError) as err:
                         tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
-                                        self.filename, err),
+                                        filename, err),
                                         parent=self.parent)
                     return True
                 elif fileType == "xbrl":
@@ -426,8 +450,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             initialdir=initialdir,
                             filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml")],
                             defaultextension=".xbrl")
-        if self.modelManager.modelXbrl:
-            if self.modelManager.modelXbrl.modelDocument.type == ModelDocument.Type.TESTCASESINDEX:
+            elif isinstance(view, ViewWinTests.ViewTests) and modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save Test Results"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
@@ -440,10 +463,27 @@ class CntlrWinMain (Cntlr.Cntlr):
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
-                                        self.filename, err),
+                                        filename, err),
                                         parent=self.parent)
                 return True
-            elif self.modelManager.modelXbrl.formulaOutputInstance:
+            elif isinstance(view, ViewWinTree.ViewTree):
+                filename = self.uiFileDialog("save",
+                        title=_("arelle - Save {0}").format(view.tabTitle),
+                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
+                        filetypes=[(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
+                        defaultextension=".csv")
+                if not filename:
+                    return False
+                try:
+                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, view.arcrole, labelrole=view.labelrole, lang=view.lang)
+                except (IOError, EnvironmentError) as err:
+                    tkinter.messagebox.showwarning(_("arelle - Error"),
+                                        _("Failed to save {0}:\n{1}").format(
+                                        filename, err),
+                                        parent=self.parent)
+                return True
+                
+            elif isinstance(view, ViewWinXml.ViewXml) and self.modelManager.modelXbrl.formulaOutputInstance:
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save Formula Result Instance Document"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
@@ -462,6 +502,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     self.filename, err),
                                     parent=self.parent)
                 return True
+        tkinter.messagebox.showwarning(_("arelle - Save what?"), 
+                                       _("Nothing has been selected that can be saved.  \nPlease select a view pane that can be saved."),
+                                       parent=self.parent)
+        '''
         if self.filename is None:
             filename = self.uiFileDialog("save",
                     title=_("arelle - Save File"),
@@ -488,6 +532,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 self.filename, err),
                                 parent=self.parent)
         return True;
+        '''
     
     def saveDTSpackage(self):
         self.modelManager.saveDTSpackage(allDTSes=True)
@@ -639,6 +684,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         startedAt = time.time()
         currentAction = "setting title"
         topView = None
+        self.currentView = None
         try:
             if attach:
                 modelXbrl.closeViews()
@@ -648,6 +694,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                 currentAction = "tree view of tests"
                 ViewWinTests.viewTests(modelXbrl, self.tabWinTopRt)
+                topView = modelXbrl.views[-1]
             elif modelXbrl.modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
                 currentAction = "view of versioning report"
                 ViewWinVersReport.viewVersReport(modelXbrl, self.tabWinTopRt)
@@ -656,6 +703,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             elif modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
                 currentAction = "view of RSS feed"
                 ViewWinRssFeed.viewRssFeed(modelXbrl, self.tabWinTopRt)
+                topView = modelXbrl.views[-1]
             else:
                 currentAction = "tree view of tests"
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
@@ -699,6 +747,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         _("views %.2f secs"), viewTime))
             if selectTopView and topView:
                 topView.select()
+            self.currentView = topView
         except Exception as err:
             msg = _("Exception preparing {0}: {1}, at {2}").format(
                      currentAction,
