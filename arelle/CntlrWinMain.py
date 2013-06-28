@@ -358,8 +358,11 @@ class CntlrWinMain (Cntlr.Cntlr):
     def onTabChanged(self, event, *args):
         try:
             widgetIndex = event.widget.index("current")
-            widget = event.widget.winfo_children()[widgetIndex]
-            self.currentView = widget.view
+            tabId = event.widget.tabs()[widgetIndex]
+            for widget in event.widget.winfo_children():
+                if str(widget) == tabId:
+                    self.currentView = widget.view
+                    break
         except (AttributeError, TypeError):
             pass
 
@@ -426,18 +429,16 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 defaultextension=".xml")
                     else: # ask file type
                         filename = self.uiFileDialog("save",
-                                title=_("arelle - Save XBRL Instance, HTML-rendered Table or Table Layout Infoset"),
+                                title=_("arelle - Save XBRL Instance or HTML-rendered Table"),
                                 initialdir=initialdir,
-                                filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm"), (_("Layout infoset .xml"), "*.xml")],
+                                filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
                                 defaultextension=".html")
-                        
+                        if filename and (filename.endswith(".xbrl") or filename.endswith(".xml")):
+                            view.saveInstance(filename)
                     if not filename:
                         return False
                     try:
-                        if filename.endswith(".xbrl"):
-                            view.saveInstance(filename)
-                        else:
-                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.labelLang, sourceView=view)
+                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.labelLang, sourceView=view)
                     except (IOError, EnvironmentError) as err:
                         tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(

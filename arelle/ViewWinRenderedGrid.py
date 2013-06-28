@@ -538,14 +538,14 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             '''
             self.blockViewModelObject -= 1
     
-    def saveInstance(self):
+    def saveInstance(self, newFilename=None):
         if (not self.newFactItemOptions.entityIdentScheme or  # not initialized yet
             not self.newFactItemOptions.entityIdentValue or
             not self.newFactItemOptions.startDateDate or not self.newFactItemOptions.endDateDate):
             if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
                 return # new instance not set
-        newFilename = None # only used when a new instance must be created
-        if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
+        # newFilename = None # only used when a new instance must be created
+        if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE and newFilename is None:
             newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
             if not newFilename:
                 return  # saving cancelled
@@ -556,8 +556,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
 
     def backgroundSaveInstance(self, newFilename=None):
         cntlr = self.modelXbrl.modelManager.cntlr
-        if newFilename and (self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE or
-                            self.modelXbrl.modelDocument.uri != newFilename):
+        if newFilename and self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
             self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
             self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
             self.modelXbrl.createInstance(newFilename) # creates an instance as this modelXbrl's entrypoing
@@ -635,6 +634,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             fact.text = value
                             XmlValidate.validate(instance, fact)
                     bodyCell.isChanged = False  # clear change flag
-        instance.saveInstance()
+        instance.saveInstance(newFilename) # may override prior filename for instance from main menu
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
             
