@@ -1868,7 +1868,7 @@ class ModelInstantDuration(ModelFilter):
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         otherFact = xpCtx.inScopeVars.get(self.variable)
         if otherFact is not None and isinstance(otherFact,ModelFact) and otherFact.isItem and \
-            otherFact.context.isStartEndPeriod:
+            otherFact.context is not None and otherFact.context.isStartEndPeriod:
             if self.boundary == 'start':
                 otherDatetime = otherFact.context.startDatetime
             else:
