@@ -499,9 +499,9 @@ WITH row_values (%(newCols)s) AS (
     def insertNamespaces(self):
         self.showStatus("insert namespaces")
         table = self.getTable('namespace', 'namespace_id', 
-                              ('uri', 'is_base', 'taxonomy_version_id'), 
+                              ('uri', 'is_base', 'taxonomy_version_id', 'prefix'), 
                               ('uri',), 
-                              tuple((uri, True, 0) 
+                              tuple((uri, True, 0, self.disclosureSystem.standardPrefixes.get(uri,None)) 
                                     for uri in self.disclosureSystem.baseTaxonomyNamespaces))
         self.namespaceId = dict((uri, id)
                                 for id, uri in table)
@@ -515,6 +515,11 @@ WITH row_values (%(newCols)s) AS (
                                     for docUri in self.modelXbrl.urlDocs.keys()))
         self.documentIds = dict((uri, id)
                                 for id, uri in table)
+        table = self.getTable('accession_document_association', 'accession_document_association_id', 
+                              ('accession_id','document_id'), 
+                              ('document_id',), 
+                              tuple((self.accessionId, docId) 
+                                    for docId in self.documentIds.values()))
         
     def insertCustomArcroles(self):
         self.showStatus("insert arcrole types")
@@ -660,19 +665,19 @@ WITH row_values (%(newCols)s) AS (
                 for rootConcept in relationshipSet.rootConcepts:
                     seq = walkTree(relationshipSet.fromModelObject(rootConcept), seq, 1, relationshipSet, set(), dbRels, networkId)
 
-        def conceptId(concept):
+        def conceptElementId(concept):
             if isinstance(concept, ModelConcept):
-                self.elementId.get(self.qnameId.get(concept.qname))
+                return self.elementId.get(self.qnameId.get(concept.qname))
             else:
                 return None            
-        def resourceId(resource):
+        def resourceResourceId(resource):
             if isinstance(resource, ModelResource):
                 return self.resourceId.get((self.uriId[resource.role],
                                             self.qnameId[resource.qname],
                                             self.documentIds[resource.modelDocument.uri],
                                             resource.sourceline, 0))
             else:
-                return 0            
+                return None     
         
         table = self.getTable('relationship', 'relationship_id', 
                               ('network_id', 'from_element_id', 'to_element_id', 'reln_order', 
@@ -680,11 +685,11 @@ WITH row_values (%(newCols)s) AS (
                                'tree_sequence', 'tree_depth', 'preferred_label_role_uri_id'), 
                               ('network_id', 'tree_sequence'), 
                               tuple((networkId,
-                                     conceptId(rel.fromModelObject.qname), # may be None
-                                     conceptId(rel.toModelObject.qname), # may be None
+                                     conceptElementId(rel.fromModelObject), # may be None
+                                     conceptElementId(rel.toModelObject), # may be None
                                      dbNum(rel.order),
-                                     resourceId(rel.fromModelObject.qname), # may be None
-                                     resourceId(rel.toModelObject.qname), # may be None
+                                     resourceResourceId(rel.fromModelObject), # may be None
+                                     resourceResourceId(rel.toModelObject), # may be None
                                      dbNum(rel.weight), # none if no weight
                                      sequence,
                                      depth,
