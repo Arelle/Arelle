@@ -435,6 +435,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 defaultextension=".html")
                         if filename and (filename.endswith(".xbrl") or filename.endswith(".xml")):
                             view.saveInstance(filename)
+                            return True
                     if not filename:
                         return False
                     try:
