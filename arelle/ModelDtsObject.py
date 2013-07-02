@@ -1071,13 +1071,21 @@ class ModelType(ModelNamableTerm):
     
     def isDerivedFrom(self, typeqname):
         """(bool) -- True if type is derived from type specified by QName"""
-        qnameDerivedFrom = self.qnameDerivedFrom
-        if qnameDerivedFrom is None:    # not derived from anything
+        qnamesDerivedFrom = self.qnameDerivedFrom # can be single qname or list of qnames if union
+        if qnamesDerivedFrom is None:    # not derived from anything
             return typeqname is None
-        if qnameDerivedFrom == typeqname:
-            return True
-        typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
-        return typeDerivedFrom.isDerivedFrom(typeqname) if typeDerivedFrom is not None else False
+        if isinstance(qnamesDerivedFrom, list): # union
+            if typeqname in qnamesDerivedFrom:
+                return True
+        else: # not union, single type
+            if qnamesDerivedFrom == typeqname:
+                return True
+            qnamesDerivedFrom = (qnamesDerivedFrom,)
+        for qnameDerivedFrom in qnamesDerivedFrom:
+            typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+            if typeDerivedFrom is not None and typeDerivedFrom.isDerivedFrom(typeqname):
+                return True
+        return False
         
     
     @property
