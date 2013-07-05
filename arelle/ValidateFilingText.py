@@ -732,6 +732,6 @@ def validateGraphicFile(elt, graphicFile):
         data = fh.read(11)
         if data[:4] == b'\xff\xd8\xff\xe0' and data[6:] == b'JFIF\0': 
             return "jpg"
-        if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b'):
+        if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             return "gif"
     return None
