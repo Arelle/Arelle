@@ -121,18 +121,17 @@ class ViewRelationshipSet(ViewFile.View):
                 text = concept.localName
                 xmlRowElementName = text
             cols = [text]
-            if isRelation:
-                if arcrole == "XBRL-dimensions": # extra columns
-                    relArcrole = modelObject.arcrole
-                    cols.append( os.path.basename( relArcrole ) )
-                    if relArcrole in (XbrlConst.all, XbrlConst.notAll):
-                        cols.append( modelObject.contextElement )
-                        cols.append( modelObject.closed )
-                    else:
-                        cols.append(None)
-                        cols.append(None)
-                    if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                        cols.append( modelObject.usable  )
+            if arcrole == "XBRL-dimensions" and isRelation:
+                relArcrole = modelObject.arcrole
+                cols.append( os.path.basename( relArcrole ) )
+                if relArcrole in (XbrlConst.all, XbrlConst.notAll):
+                    cols.append( modelObject.contextElement )
+                    cols.append( modelObject.closed )
+                else:
+                    cols.append(None)
+                    cols.append(None)
+                if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
+                    cols.append( modelObject.usable  )
                 childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
                                                                       modelObject.linkrole)
             if self.arcrole == XbrlConst.parentChild: # extra columns

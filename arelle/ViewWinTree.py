@@ -350,7 +350,7 @@ class ViewTree:
             self.lastSortColumn = col
         self.treeView.heading(col, image=self.sortImages[reverse])
         self.sortNestedRows('', col, reverse)
-        self.treeViewSelectionChange()  # reselect selected rows
+        self.viewSelectionChange()  # reselect selected rows
         
     def copyCellToClipboard(self, *ignore):
         self.modelXbrl.modelManager.cntlr.clipboardData(
