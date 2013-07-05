@@ -1136,8 +1136,9 @@ class XbrlSemanticGraphDatabaseConnection():
                                 if arcrole == "XBRL-dimensions" and ELR == rel.targetRole:
                                     targetRelationshipSetId = relationshipSetIDs[i]
                                     break
-                            _relProp['target_linkrole'] = rel.targetRole
-                            _relProp['target_rel_set'] = targetRelationshipSetId
+                            if not doVertices:
+                                _relProp['target_linkrole'] = rel.targetRole
+                                _relProp['target_rel_set'] = targetRelationshipSetId
                         else:
                             targetRelSet = relationshipSet
                         if doVertices:

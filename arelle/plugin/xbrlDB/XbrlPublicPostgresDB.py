@@ -74,7 +74,7 @@ def isDBPort(host, port, timeout=10):
     t = 2
     while t < timeout:
         try:
-            DBAPI.connect(user='', host=host, port=int(port) if port else None, socket_timeout=t)
+            DBAPI.connect(user='', host=host, port=int(port or 5432), socket_timeout=t)
         except ProgrammingError:
             return True # success, this is really a postgres socket, wants user name
         except InterfaceError:
@@ -141,7 +141,7 @@ class XbrlPostgresDatabaseConnection():
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         self.conn = DBAPI.connect(user=user, password=password, host=host, 
-                                  port=int(port) if port else None, 
+                                  port=int(port or 5432), 
                                   database=database, 
                                   socket_timeout=timeout or 60)
         self.tableColTypes = {}
@@ -228,7 +228,7 @@ class XbrlPostgresDatabaseConnection():
                                   close=False, commit=False, fetch=False)
         self.showStatus("Dropping prior sequences")
         for sequence in self.sequencesInDB():
-            result = self.execute('DROP SEQUENCE %s' % sequence[0],
+            result = self.execute('DROP SEQUENCE %s' % sequence,
                                   close=False, commit=False, fetch=False)
         self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
                     
