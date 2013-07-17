@@ -272,18 +272,19 @@ def checkDTS(val, modelDocument, visited):
                             modelObject=modelConcept, concept=modelConcept.qname)
                         
                     # 6.8.5 semantic check, check LC3 name
-                    if not name[0].isupper():
-                        val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.firstLetter", "GFM.2.03.05.firstLetter"),
-                            _("Concept %(concept)s name must start with a capital letter"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if namePattern.search(name):
-                        val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.disallowedCharacter", "GFM.2.03.05.disallowedCharacter"),
-                            _("Concept %(concept)s has disallowed name character"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if len(name) > 200:
-                        val.modelXbrl.log("ERROR-SEMANTIC", "EFM.6.08.05.nameLength",
-                            _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
-                            modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
+                    if name:
+                        if not name[0].isupper():
+                            val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.firstLetter", "GFM.2.03.05.firstLetter"),
+                                _("Concept %(concept)s name must start with a capital letter"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        if namePattern.search(name):
+                            val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.disallowedCharacter", "GFM.2.03.05.disallowedCharacter"),
+                                _("Concept %(concept)s has disallowed name character"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        if len(name) > 200:
+                            val.modelXbrl.log("ERROR-SEMANTIC", "EFM.6.08.05.nameLength",
+                                _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
+                                modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
                         
                     if val.validateEFM:
                         label = modelConcept.label(lang="en-US", fallbackToQname=False)
