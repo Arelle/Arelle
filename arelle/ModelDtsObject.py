@@ -129,11 +129,13 @@ class ModelRoleType(ModelObject):
         if self.isArcrole:
             return (("arcrole Uri", self.arcroleURI),
                     ("definition", self.definition),
-                    ("used on", self.usedOns))
+                    ("used on", self.usedOns),
+                    ("defined in", self.modelDocument.uri))
         else:
             return (("role Uri", self.roleURI),
                     ("definition", self.definition),
-                    ("used on", self.usedOns))
+                    ("used on", self.usedOns),
+                    ("defined in", self.modelDocument.uri))
         
     def __repr__(self):
         return ("{0}[{1}, uri: {2}, definition: {3}, {4} line {5}])"
@@ -1387,7 +1389,7 @@ class ModelLink(ModelObject):
     @property
     def role(self):
         return self.get("{http://www.w3.org/1999/xlink}role")
-        
+
 class ModelResource(ModelObject):
     """
     .. class:: ModelResource(modelDocument)
