@@ -33,6 +33,11 @@ to do:
 6) test some filings with text blocks (shred them?)  (30mB - 50mB sized text blocks?)
 7) add mappings to, or any missing relationships, of Charlie's financial model
 
+---
+
+rdflib pass
+
+
 '''
 
 import os, io, time, json, socket, logging, zlib, datetime
@@ -633,7 +638,7 @@ class XbrlSemanticRdfDatabaseConnection():
                 if fact.context is not None:
                     dataPoints.append("""
                     thisDataPoint:
-                        :context {contextId}.
+                        :contextId {contextId}.
                     """.format(
                          contextId=rdfString(fact.contextID)))
                     context = fact.context
@@ -665,7 +670,7 @@ class XbrlSemanticRdfDatabaseConnection():
                                 units.append(u)
                             dataPoints.append("""
                             thisDataPoint:
-                                :unit {unit}.
+                                :unitId {unit}.
                             """.format(
                                  unit=rdfString(fact.unitID)))
                         if fact.precision:
@@ -768,7 +773,7 @@ class XbrlSemanticRdfDatabaseConnection():
         # fact - aspect relationships
         for i, factObjectIndex in enumerate(dataPointObjectIndices):
             fact =  self.modelXbrl.modelObjects[factObjectIndex]
-            edges.append("@prefix thisDataPoint: <{accessionPrefix}data_point/{i}>.".format(accessionPrefix=self.thisAccessionPrefix,
+            edges.append("@prefix thisDataPoint: <{accessionPrefix}data_point/{i}/>.".format(accessionPrefix=self.thisAccessionPrefix,
                                                                                             i=i))
             edges.append("""
                 thisDataPoint: 
