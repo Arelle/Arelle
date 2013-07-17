@@ -159,7 +159,7 @@ class ViewRelationshipSet(ViewFile.View):
                     nestedRelationshipSet = relationshipSet
                     targetRole = modelRel.targetRole
                     if arcrole == XbrlConst.summationItem:
-                        childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
+                        childPrefix = "({:+0g}) ".format(modelRel.weight) # format without .0 on integer weights
                     elif targetRole is None or len(targetRole) == 0:
                         targetRole = relationshipSet.linkrole
                         childPrefix = ""

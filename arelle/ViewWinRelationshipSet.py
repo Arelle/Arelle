@@ -166,7 +166,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.set(childnode, "references", viewReferences(concept))
             elif self.arcrole == XbrlConst.summationItem:
                 if isRelation:
-                    self.treeView.set(childnode, "weight", "{:0g} ".format(modelObject.weight))
+                    self.treeView.set(childnode, "weight", "{:+0g} ".format(modelObject.weight))
                 self.treeView.set(childnode, "balance", concept.balance)
             elif self.arcrole == "XBRL-dimensions" and isRelation: # extra columns
                 relArcrole = modelObject.arcrole
