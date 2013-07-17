@@ -114,6 +114,8 @@ def encoding(xml, default="utf-8"):
             return 'utf-32'
         if s.startswith(b'\x00\x00\xfe\xff'):
             return 'utf-32'
+        if s.startswith(b'# -*- coding: utf-8 -*-'):
+            return 'utf-8'  # python utf=encoded
         if b"x\0m\0l" in s:
             str = s.decode("utf-16")
         else:
@@ -429,7 +431,6 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
         else:
             localName = prefix
         child = modelDocument.parser.makeelement("{{{0}}}{1}".format(childName1, localName))
-    child.init(modelDocument)
     if afterSibling is not None and afterSibling.getparent() == parent:  # sibling is a hint, parent prevails
         afterSibling.addnext(child)
     elif beforeSibling is not None and beforeSibling.getparent() == parent:  # sibling is a hint, parent prevails
@@ -437,7 +438,7 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
     else:
         parent.append(child)
     if attributes:
-        for name, value in (attributes if len(attributes) > 0 and isinstance(attributes[0],tuple) else (attributes,)):
+        for name, value in (attributes if len(attributes) > 0 and isinstance(attributes[0],(tuple,list)) else (attributes,)):
             if isinstance(name,QName):
                 if name.namespaceURI:
                     addQnameValue(modelDocument, name)
@@ -446,6 +447,7 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
                 child.set(name, xsString(None, None, value) )
     if text is not None:
         child.text = xsString(None, None, text)
+    child.init(modelDocument)
     return child
 
 def copyNodes(parent, elts):
