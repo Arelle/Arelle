@@ -468,6 +468,13 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
             filestream.close()
             filestream = io.StringIO(contents.decode(encoding or 'utf-8'))
         return filestream
+    # local file system
+    elif encoding is None and 'b' not in mode:
+        openedFileStream = io.open(filepath, mode='rb')
+        hdrBytes = openedFileStream.read(512)
+        encoding = XmlUtil.encoding(hdrBytes, default=None)
+        openedFileStream.close()
+        return io.open(filepath, mode=mode, encoding=encoding)
     else:
         # local file system
         return io.open(filepath, mode=mode, encoding=encoding)
