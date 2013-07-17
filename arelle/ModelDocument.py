@@ -314,7 +314,9 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir)
     filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri, filenameOnly=True)
     # XML document has nsmap root element to replace nsmap as new xmlns entries are required
-    if type == Type.INSTANCE:
+    if initialXml and type in (Type.INSTANCE, Type.SCHEMA, Type.LINKBASE, Type.RSSFEED):
+        Xml = '<nsmap>{0}</nsmap>'.format(initialXml or '')
+    elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
         Xml = ('<nsmap>'
                '<xbrl xmlns="http://www.xbrl.org/2003/instance"'
@@ -561,6 +563,14 @@ class ModelDocument:
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
+    def save(self, overrideFilepath=None):
+        """Saves current document file.
+        
+        :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
+        """
+        with open( (overrideFilepath or self.filepath), "w", encoding='utf-8') as fh:
+            XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+    
     def close(self, visited=None, urlDocs=None):
         if visited is None: visited = []
         visited.append(self)

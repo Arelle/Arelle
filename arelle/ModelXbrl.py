@@ -74,7 +74,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
 
-def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None):
+def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None):
     from arelle import (ModelDocument, FileSource)
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
@@ -82,7 +82,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr) # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry)
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
     return modelXbrl
@@ -421,6 +421,7 @@ class ModelXbrl:
         
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
         """
+        self.modelDocument.save(overrideFilepath)
         with open( (overrideFilepath or self.modelDocument.filepath), "w", encoding='utf-8') as fh:
             XmlUtil.writexml(fh, self.modelDocument.xmlDocument, encoding="utf-8")
     
