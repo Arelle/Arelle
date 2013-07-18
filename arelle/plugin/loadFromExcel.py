@@ -530,7 +530,7 @@ def modelManagerLoad(modelManager, fileSource):
     return dts
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach):
-    if cntlr.hasGui:
+    if cntlr.hasGui and getattr(modelXbrl, "loadedFromExcel", False):
         from arelle import ModelDocument
         from tkinter.filedialog import askdirectory
         outputDtsDir = askdirectory(parent=cntlr.parent,
