@@ -74,7 +74,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
 
-def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None):
+def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None):
     from arelle import (ModelDocument, FileSource)
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
@@ -82,7 +82,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr) # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml)
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, base=base)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
     return modelXbrl

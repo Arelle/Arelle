@@ -153,7 +153,7 @@ class WebCache:
                     if '%' in base:
                         base = unquote(base)
                     normedPath = os.path.normpath(os.path.join(os.path.dirname(base),url))
-            else:
+            else: # includes base == '' (for forcing relative path)
                 normedPath = url
             if normedPath.startswith("file://"): normedPath = normedPath[7:]
             elif normedPath.startswith("file:\\"): normedPath = normedPath[6:]

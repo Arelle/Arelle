@@ -750,6 +750,8 @@ class CntlrWinMain (Cntlr.Cntlr):
             if selectTopView and topView:
                 topView.select()
             self.currentView = topView
+            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Loaded"):
+                xbrlLoadedMethod(self, modelXbrl, attach) # runs in GUI thread
         except Exception as err:
             msg = _("Exception preparing {0}: {1}, at {2}").format(
                      currentAction,

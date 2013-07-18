@@ -85,6 +85,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.urlUnloadableDocs.add(normalizedUri)
         return None
     
+    if filepath.endswith(".xlsx") or filepath.endswith(".xls"):
+        modelXbrl.error("FileNotLoadable",
+                _("File can not be loaded, requires loadFromExcel plug-in: %(fileName)s"),
+                modelObject=referringElement, fileName=normalizedUri)
+        return None
+    
     modelDocument = modelXbrl.urlDocs.get(normalizedUri)
     if modelDocument:
         return modelDocument
@@ -292,7 +298,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
             
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None):
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, base=None):
     """Returns a new modelDocument, created from scratch, with any necessary header elements 
     
     (such as the schema, instance, or RSS feed top level elements)
@@ -305,7 +311,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
     :param initialXml is initial xml content for xml documents
     :type isEntry: str
     """
-    normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, None)
+    normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
     if isEntry:
         modelXbrl.uri = normalizedUri
         modelXbrl.entryLoadingUrl = normalizedUri
