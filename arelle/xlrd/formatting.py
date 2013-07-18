@@ -1,12 +1,16 @@
+# -*- coding: cp1252 -*-
+
+##
 # Module for formatting information.
 #
-# Copyright (c) 2005-2008 Stephen John Machin, Lingfo Pty Ltd
-# Copyright (c) 2005-2009 Stephen John Machin, Lingfo Pty Ltd
-# This module is part of the xlrd3 package, which is released under
-# a BSD-style licence.
+# <p>Copyright © 2005-2012 Stephen John Machin, Lingfo Pty Ltd</p>
+# <p>This module is part of the xlrd package, which is released under
+# a BSD-style licence.</p>
+##
 
 # No part of the content of this file was derived from the works of David Giffin.
 
+# 2010-10-30 SJM Added space after colon in "# coding" line to work around IBM iSeries Python bug
 # 2009-05-31 SJM Fixed problem with non-zero reserved bits in some STYLE records in Mac Excel files
 # 2008-08-03 SJM Ignore PALETTE record when Book.formatting_info is false
 # 2008-08-03 SJM Tolerate up to 4 bytes trailing junk on PALETTE record
@@ -19,18 +23,25 @@
 # 2007-07-11 SJM Allow for BIFF2/3-style FORMAT record in BIFF4/8 file
 
 from __future__ import print_function
-DEBUG = False
-import copy
-import re
-from struct import unpack
 
-from arelle.xlrd.biffh import BaseObject, unpack_unicode, unpack_string, \
+DEBUG = 0
+import copy, re
+from struct import unpack
+from .timemachine import *
+from .biffh import BaseObject, unpack_unicode, unpack_string, \
     upkbits, upkbitsL, fprintf, \
     FUN, FDT, FNU, FGE, FTX, XL_CELL_NUMBER, XL_CELL_DATE, \
     XL_FORMAT, XL_FORMAT2, \
     XLRDError
 
-
+_cellty_from_fmtty = {
+    FNU: XL_CELL_NUMBER,
+    FUN: XL_CELL_NUMBER,
+    FGE: XL_CELL_NUMBER,
+    FDT: XL_CELL_DATE,
+    FTX: XL_CELL_NUMBER, # Yes, a number can be formatted as text.
+    }    
+    
 excel_default_palette_b5 = (
     (  0,   0,   0), (255, 255, 255), (255,   0,   0), (  0, 255,   0),
     (  0,   0, 255), (255, 255,   0), (255,   0, 255), (  0, 255, 255),
@@ -50,39 +61,23 @@ excel_default_palette_b5 = (
 
 excel_default_palette_b2 = excel_default_palette_b5[:16]
 
-# Following two tables borrowed from Gnumeric 1.4 source.
-excel_default_palette_b5_gnumeric_14 = (
-    #### dodgy; didn't match Excel results
-    (  0,  0,  0), (255,255,255), (255,  0,  0), (  0,255,  0),
-    (  0,  0,255), (255,255,  0), (255,  0,255), (  0,255,255),
-    (128,  0,  0), (  0,128,  0), (  0,  0,128), (128,128,  0),
-    (128,  0,128), (  0,128,128), (192,192,192), (128,128,128),
-    (128,128,255), (128, 32, 96), (255,255,192), (160,224,224),
-    ( 96,  0,128), (255,128,128), (  0,128,192), (192,192,255),
-    (  0,  0,128), (255,  0,255), (255,255,  0), (  0,255,255),
-    (128,  0,128), (128,  0,  0), (  0,128,128), (  0,  0,255),
-    (  0,204,255), (105,255,255), (204,255,204), (255,255,153),
-    (166,202,240), (204,156,204), (204,153,255), (227,227,227),
-    ( 51,102,255), ( 51,204,204), ( 51,153, 51), (153,153, 51),
-    (153,102, 51), (153,102,102), (102,102,153), (150,150,150),
-    ( 51, 51,204), ( 51,102,102), (  0, 51,  0), ( 51, 51,  0),
-    (102, 51,  0), (153, 51,102), ( 51, 51,153), ( 66, 66, 66),
-    )
+# Following table borrowed from Gnumeric 1.4 source.
+# Checked against OOo docs and MS docs.
 excel_default_palette_b8 = ( # (red, green, blue)
-    (  0,  0,  0), (255,255,255), (255,  0,  0), (  0,255,  0),
-    (  0,  0,255), (255,255,  0), (255,  0,255), (  0,255,255),
-    (128,  0,  0), (  0,128,  0), (  0,  0,128), (128,128,  0),
-    (128,  0,128), (  0,128,128), (192,192,192), (128,128,128),
-    (153,153,255), (153, 51,102), (255,255,204), (204,255,255),
-    (102,  0,102), (255,128,128), (  0,102,204), (204,204,255),
-    (  0,  0,128), (255,  0,255), (255,255,  0), (  0,255,255),
-    (128,  0,128), (128,  0,  0), (  0,128,128), (  0,  0,255),
-    (  0,204,255), (204,255,255), (204,255,204), (255,255,153),
-    (153,204,255), (255,153,204), (204,153,255), (255,204,153),
-    ( 51,102,255), ( 51,204,204), (153,204,  0), (255,204,  0),
-    (255,153,  0), (255,102,  0), (102,102,153), (150,150,150),
-    (  0, 51,102), ( 51,153,102), (  0, 51,  0), ( 51, 51,  0),
-    (153, 51,  0), (153, 51,102), ( 51, 51,153), ( 51, 51, 51),
+    (  0,  0,  0), (255,255,255), (255,  0,  0), (  0,255,  0), # 0
+    (  0,  0,255), (255,255,  0), (255,  0,255), (  0,255,255), # 4
+    (128,  0,  0), (  0,128,  0), (  0,  0,128), (128,128,  0), # 8
+    (128,  0,128), (  0,128,128), (192,192,192), (128,128,128), # 12
+    (153,153,255), (153, 51,102), (255,255,204), (204,255,255), # 16
+    (102,  0,102), (255,128,128), (  0,102,204), (204,204,255), # 20
+    (  0,  0,128), (255,  0,255), (255,255,  0), (  0,255,255), # 24
+    (128,  0,128), (128,  0,  0), (  0,128,128), (  0,  0,255), # 28
+    (  0,204,255), (204,255,255), (204,255,204), (255,255,153), # 32
+    (153,204,255), (255,153,204), (204,153,255), (255,204,153), # 36
+    ( 51,102,255), ( 51,204,204), (153,204,  0), (255,204,  0), # 40
+    (255,153,  0), (255,102,  0), (102,102,153), (150,150,150), # 44
+    (  0, 51,102), ( 51,153,102), (  0, 51,  0), ( 51, 51,  0), # 48
+    (153, 51,  0), (153, 51,102), ( 51, 51,153), ( 51, 51, 51), # 52
     )
 
 default_palette = {
@@ -127,12 +122,12 @@ def initialise_colour_map(book):
     if not book.formatting_info:
         return
     # Add the 8 invariant colours
-    for i in range(8):
+    for i in xrange(8):
         book.colour_map[i] = excel_default_palette_b8[i]
     # Add the default palette depending on the version
     dpal = default_palette[book.biff_version]
     ndpal = len(dpal)
-    for i in range(ndpal):
+    for i in xrange(ndpal):
         book.colour_map[i+8] = dpal[i]
     # Add the specials -- None means the RGB value is not known
     # System window text colour for border lines
@@ -152,7 +147,7 @@ def nearest_colour_index(colour_map, rgb, debug=0):
     # Doesn't have to be fancy.
     best_metric = 3 * 256 * 256
     best_colourx = 0
-    for colourx, cand_rgb in list(colour_map.items()):
+    for colourx, cand_rgb in colour_map.items():
         if cand_rgb is None:
             continue
         metric = 0
@@ -163,11 +158,12 @@ def nearest_colour_index(colour_map, rgb, debug=0):
             best_colourx = colourx
             if metric == 0:
                 break
-    if debug:
+    if 0 and debug:
         print("nearest_colour_index for %r is %r -> %r; best_metric is %d" \
             % (rgb, best_colourx, colour_map[best_colourx], best_metric))
     return best_colourx
 
+##
 # This mixin class exists solely so that Format, Font, and XF.... objects
 # can be compared by value of their attributes.
 class EqNeAttrs(object):
@@ -178,14 +174,16 @@ class EqNeAttrs(object):
     def __ne__(self, other):
         return self.__dict__ != other.__dict__
 
+##
 # An Excel "font" contains the details of not only what is normally
 # considered a font, but also several other display attributes.
 # Items correspond to those in the Excel UI's Format/Cells/Font tab.
-# - New in version 0.6.1
+# <br /> -- New in version 0.6.1
 class Font(BaseObject, EqNeAttrs):
+    ##
     # 1 = Characters are bold. Redundant; see "weight" attribute.
     bold = 0
-
+    ##
     # Values: 0 = ANSI Latin, 1 = System default, 2 = Symbol,
     # 77 = Apple Roman,
     # 128 = ANSI Japanese Shift-JIS,
@@ -204,11 +202,14 @@ class Font(BaseObject, EqNeAttrs):
     # 238 = ANSI Latin II (Central European),
     # 255 = OEM Latin I
     character_set = 0
+    ##
     # An explanation of "colour index" is given in the Formatting
     # section at the start of this document.
     colour_index = 0
+    ##
     # 1 = Superscript, 2 = Subscript.
     escapement = 0
+    ##
     # 0 = None (unknown or don't care)<br />
     # 1 = Roman (variable width, serifed)<br />
     # 2 = Swiss (variable width, sans-serifed)<br />
@@ -216,28 +217,38 @@ class Font(BaseObject, EqNeAttrs):
     # 4 = Script (cursive)<br />
     # 5 = Decorative (specialised, for example Old English, Fraktur)
     family = 0
+    ##
     # The 0-based index used to refer to this Font() instance.
     # Note that index 4 is never used; xlrd supplies a dummy place-holder.
     font_index = 0
+    ##
     # Height of the font (in twips). A twip = 1/20 of a point.
     height = 0
+    ##
     # 1 = Characters are italic.
     italic = 0
+    ##
     # The name of the font. Example: u"Arial"
-    name = ""
+    name = UNICODE_LITERAL("")
+    ##
     # 1 = Characters are struck out.
     struck_out = 0
+    ##
     # 0 = None<br />
     # 1 = Single;  0x21 (33) = Single accounting<br />
     # 2 = Double;  0x22 (34) = Double accounting
     underline_type = 0
+    ##
     # 1 = Characters are underlined. Redundant; see "underline_type" attribute.
     underlined = 0
+    ##
     # Font weight (100-1000). Standard values are 400 for normal text
     # and 700 for bold text.
     weight = 400
+    ##
     # 1 = Font is outline style (Macintosh only)
     outline = 0
+    ##
     # 1 = Font is shadow style (Macintosh only)
     shadow = 0
 
@@ -253,12 +264,12 @@ def handle_font(book, data):
         return
     if not book.encoding:
         book.derive_encoding()
-    verbose = DEBUG or book.verbosity >= 2
+    blah = DEBUG or book.verbosity >= 2
     bv = book.biff_version
     k = len(book.font_list)
     if k == 4:
         f = Font()
-        f.name = 'Dummy Font'
+        f.name = UNICODE_LITERAL('Dummy Font')
         f.font_index = k
         book.font_list.append(f)
         k += 1
@@ -312,7 +323,7 @@ def handle_font(book, data):
         f.underline_type = f.underlined # None or Single
         f.family = 0 # Unknown / don't care
         f.character_set = 1 # System default (0 means "ANSI Latin")
-    if verbose:
+    if blah:
         f.dump(
             book.logfile,
             header="--- handle_font: font[%d] ---" % f.font_index,
@@ -321,25 +332,26 @@ def handle_font(book, data):
 
 # === "Number formats" ===
 
+##
 # "Number format" information from a FORMAT record.
-# - New in version 0.6.1
+# <br /> -- New in version 0.6.1
 class Format(BaseObject, EqNeAttrs):
-
+    ##
     # The key into Book.format_map
     format_key = 0
-
+    ##
     # A classification that has been inferred from the format string.
     # Currently, this is used only to distinguish between numbers and dates.
-    # Values:
-    # FUN = 0 # unknown
-    # FDT = 1 # date
-    # FNU = 2 # number
-    # FGE = 3 # general
-    # FTX = 4 # text
+    # <br />Values:
+    # <br />FUN = 0 # unknown
+    # <br />FDT = 1 # date
+    # <br />FNU = 2 # number
+    # <br />FGE = 3 # general
+    # <br />FTX = 4 # text
     type = FUN
-
+    ##
     # The format string
-    format_str = ''
+    format_str = UNICODE_LITERAL('')
 
     def __init__(self, format_key, ty, format_str):
         self.format_key = format_key
@@ -390,46 +402,51 @@ std_format_strings = {
 
 fmt_code_ranges = [ # both-inclusive ranges of "standard" format codes
     # Source: the openoffice.org doc't
+    # and the OOXML spec Part 4, section 3.8.30
     ( 0,  0, FGE),
     ( 1, 13, FNU),
     (14, 22, FDT),
-    #### (27, 36, FDT), # Japanese dates -- not sure of reliability of this
+    (27, 36, FDT), # CJK date formats
     (37, 44, FNU),
     (45, 47, FDT),
     (48, 48, FNU),
     (49, 49, FTX),
-    ####(50, 58, FDT), # Japanese dates -- but Gnumeric assumes
-                       # built-in formats finish at 49, not at 163
+    # Gnumeric assumes (or assumed) that built-in formats finish at 49, not at 163
+    (50, 58, FDT), # CJK date formats
+    (59, 62, FNU), # Thai number (currency?) formats
+    (67, 70, FNU), # Thai number (currency?) formats
+    (71, 81, FDT), # Thai date formats
     ]
 
 std_format_code_types = {}
 for lo, hi, ty in fmt_code_ranges:
-    for x in range(lo, hi+1):
+    for x in xrange(lo, hi+1):
         std_format_code_types[x] = ty
 del lo, hi, ty, x
 
-date_chars = 'ymdhs' # year, month/minute, day, hour, second
+date_chars = UNICODE_LITERAL('ymdhs') # year, month/minute, day, hour, second
 date_char_dict = {}
 for _c in date_chars + date_chars.upper():
     date_char_dict[_c] = 5
 del _c, date_chars
 
-#(to_py3):
-skip_char_dict = frozenset('$-+/(): ')
+skip_char_dict = {}
+for _c in UNICODE_LITERAL('$-+/(): '):
+    skip_char_dict[_c] = 1
 
 num_char_dict = {
-    '0': 5,
-    '#': 5,
-    '?': 5,
+    UNICODE_LITERAL('0'): 5,
+    UNICODE_LITERAL('#'): 5,
+    UNICODE_LITERAL('?'): 5,
     }
 
 non_date_formats = {
-    '0.00E+00':1,
-    '##0.0E+0':1,
-    'General' :1,
-    'GENERAL' :1, # OOo Calc 1.1.4 does this.
-    'general' :1,  # pyExcelerator 0.6.3 does this.
-    '@'       :1,
+    UNICODE_LITERAL('0.00E+00'):1,
+    UNICODE_LITERAL('##0.0E+0'):1,
+    UNICODE_LITERAL('General') :1,
+    UNICODE_LITERAL('GENERAL') :1, # OOo Calc 1.1.4 does this.
+    UNICODE_LITERAL('general') :1,  # pyExcelerator 0.6.3 does this.
+    UNICODE_LITERAL('@')       :1,
     }
 
 fmt_bracketed_sub = re.compile(r'\[[^]]*\]').sub
@@ -451,26 +468,26 @@ def is_date_format_string(book, fmt):
     # TODO: u'[h]\\ \\h\\o\\u\\r\\s' ([h] means don't care about hours > 23)
     state = 0
     s = ''
-    # (to_py3): ignorable = skip_char_dict.has_key
+    
     for c in fmt:
         if state == 0:
-            if c == '"':
+            if c == UNICODE_LITERAL('"'):
                 state = 1
-            elif c in r"\_*":
+            elif c in UNICODE_LITERAL(r"\_*"):
                 state = 2
-            elif c in skip_char_dict: # (to_py3):
+            elif c in skip_char_dict:
                 pass
             else:
                 s += c
         elif state == 1:
-            if c == '"':
+            if c == UNICODE_LITERAL('"'):
                 state = 0
         elif state == 2:
             # Ignore char after backslash, underscore or asterisk
             state = 0
         assert 0 <= state <= 2
     if book.verbosity >= 4:
-        print("is_date_format_string: reduced format is %r" % s)
+        print("is_date_format_string: reduced format is %s" % REPR(s), file=book.logfile)
     s = fmt_bracketed_sub('', s)
     if s in non_date_formats:
         return False
@@ -491,13 +508,15 @@ def is_date_format_string(book, fmt):
     if num_count and not date_count:
         return False
     if date_count:
-        fprintf(book.logfile,
-            'WARNING *** is_date_format: ambiguous d=%d n=%d fmt=%r\n',
-            date_count, num_count, fmt)
+        if book.verbosity:
+            fprintf(book.logfile,
+                'WARNING *** is_date_format: ambiguous d=%d n=%d fmt=%r\n',
+                date_count, num_count, fmt)
     elif not got_sep:
-        fprintf(book.logfile,
-            "WARNING *** format %r produces constant result\n",
-            fmt)
+        if book.verbosity:
+            fprintf(book.logfile,
+                "WARNING *** format %r produces constant result\n",
+                fmt)
     return date_count > num_count
 
 def handle_format(self, data, rectype=XL_FORMAT):
@@ -519,8 +538,8 @@ def handle_format(self, data, rectype=XL_FORMAT):
         unistrg = unpack_unicode(data, 2)
     else:
         unistrg = unpack_string(data, strpos, self.encoding, lenlen=1)
-    verbose = DEBUG or self.verbosity >= 3
-    if verbose:
+    blah = DEBUG or self.verbosity >= 3
+    if blah:
         fprintf(self.logfile,
             "FORMAT: count=%d fmtkey=0x%04x (%d) s=%r\n",
             self.actualfmtcount, fmtkey, fmtkey, unistrg)
@@ -533,7 +552,7 @@ def handle_format(self, data, rectype=XL_FORMAT):
         std_ty = std_format_code_types.get(fmtkey, FUN)
         # print "std ty", std_ty
         is_date_c = std_ty == FDT
-        if 0 < fmtkey < 50 and (is_date_c ^ is_date_s):
+        if self.verbosity and 0 < fmtkey < 50 and (is_date_c ^ is_date_s):
             DEBUG = 2
             fprintf(self.logfile,
                 "WARNING *** Conflict between "
@@ -544,7 +563,7 @@ def handle_format(self, data, rectype=XL_FORMAT):
             "ty: %d; is_date_c: %r; is_date_s: %r; fmt_strg: %r",
             ty, is_date_c, is_date_s, unistrg)
     fmtobj = Format(fmtkey, ty, unistrg)
-    if verbose:
+    if blah:
         fmtobj.dump(self.logfile,
             header="--- handle_format [%d] ---" % (self.actualfmtcount-1, ))
     self.format_map[fmtkey] = fmtobj
@@ -555,7 +574,7 @@ def handle_format(self, data, rectype=XL_FORMAT):
 def handle_palette(book, data):
     if not book.formatting_info:
         return
-    verbose = DEBUG or book.verbosity >= 2
+    blah = DEBUG or book.verbosity >= 2
     n_colours, = unpack('<H', data[:2])
     expected_n_colours = (16, 56)[book.biff_version >= 50]
     if ((DEBUG or book.verbosity >= 1)
@@ -563,7 +582,7 @@ def handle_palette(book, data):
         fprintf(book.logfile,
             "NOTE *** Expected %d colours in PALETTE record, found %d\n",
             expected_n_colours, n_colours)
-    elif verbose:
+    elif blah:
         fprintf(book.logfile,
             "PALETTE record with %d colours\n", n_colours)
     fmt = '<xx%di' % n_colours # use i to avoid long integers
@@ -576,7 +595,7 @@ def handle_palette(book, data):
     assert book.palette_record == [] # There should be only 1 PALETTE record
     # a colour will be 0xbbggrr
     # IOW, red is at the little end
-    for i in range(n_colours):
+    for i in xrange(n_colours):
         c = colours[i]
         red   =  c        & 0xff
         green = (c >>  8) & 0xff
@@ -585,7 +604,7 @@ def handle_palette(book, data):
         new_rgb = (red, green, blue)
         book.palette_record.append(new_rgb)
         book.colour_map[8+i] = new_rgb
-        if verbose:
+        if blah:
             if new_rgb != old_rgb:
                 print("%2d: %r -> %r" % (i, old_rgb, new_rgb), file=book.logfile)
 
@@ -601,21 +620,22 @@ def palette_epilogue(book):
             continue
         if cx in book.colour_map:
             book.colour_indexes_used[cx] = 1
-        else:
-            print("Size of colour table:", len(book.colour_map))
-            print("*** Font #%d (%r): colour index 0x%04x is unknown" \
-                % (font.font_index, font.name, cx), file=book.logfile)
+        elif book.verbosity:
+            print("Size of colour table:", len(book.colour_map), file=book.logfile)
+            fprintf(self.logfile, "*** Font #%d (%r): colour index 0x%04x is unknown\n",
+                font.font_index, font.name, cx)
     if book.verbosity >= 1:
-        used = list(book.colour_indexes_used.keys())
-        used.sort()
+        used = sorted(book.colour_indexes_used.keys())
         print("\nColour indexes used:\n%r\n" % used, file=book.logfile)
 
 def handle_style(book, data):
-    verbose = DEBUG or book.verbosity >= 2
+    if not book.formatting_info:
+        return
+    blah = DEBUG or book.verbosity >= 2
     bv = book.biff_version
     flag_and_xfx, built_in_id, level = unpack('<HBB', data[:4])
     xf_index = flag_and_xfx & 0x0fff
-    if (data == "\0\0\0\0"
+    if (data == b"\0\0\0\0"
     and "Normal" not in book.style_name_map):
         # Erroneous record (doesn't have built-in bit set).
         # Example file supplied by Jeff Bell.
@@ -632,23 +652,28 @@ def handle_style(book, data):
             name += str(level + 1)
     else:
         # user-defined style
-        if bv >= 80:
-            name = unpack_unicode(data, 2, lenlen=2)
-        else:
-            name = unpack_string(data, 2, book.encoding, lenlen=1)
-        if verbose and not name:
-            print("WARNING *** A user-defined style has a zero-length name", file=book.logfile)
         built_in = 0
         built_in_id = 0
         level = 0
+        if bv >= 80:
+            try:
+                name = unpack_unicode(data, 2, lenlen=2)
+            except UnicodeDecodeError:
+                print("STYLE: built_in=%d xf_index=%d built_in_id=%d level=%d" \
+                    % (built_in, xf_index, built_in_id, level), file=book.logfile)
+                print("raw bytes:", repr(data[2:]), file=book.logfile)
+                raise
+        else:
+            name = unpack_string(data, 2, book.encoding, lenlen=1)
+        if blah and not name:
+            print("WARNING *** A user-defined style has a zero-length name", file=book.logfile)
     book.style_name_map[name] = (built_in, xf_index)
-    if verbose:
-        print("STYLE: built_in=%d xf_index=%d built_in_id=%d level=%d name=%r" \
-            % (built_in, xf_index, built_in_id, level, name), file=book.logfile)
+    if blah:
+        fprintf(book.logfile, "STYLE: built_in=%d xf_index=%d built_in_id=%d level=%d name=%r\n",
+            built_in, xf_index, built_in_id, level, name)
 
 def check_colour_indexes_in_obj(book, obj, orig_index):
-    alist = list(obj.__dict__.items())
-    alist.sort()
+    alist = sorted(obj.__dict__.items())
     for attr, nobj in alist:
         if hasattr(nobj, 'dump'):
             check_colour_indexes_in_obj(book, nobj, orig_index)
@@ -660,10 +685,21 @@ def check_colour_indexes_in_obj(book, obj, orig_index):
             print("*** xf #%d : %s.%s =  0x%04x (unknown)" \
                 % (orig_index, oname, attr, nobj), file=book.logfile)
 
+def fill_in_standard_formats(book):
+    for x in std_format_code_types.keys():
+        if x not in book.format_map:
+            ty = std_format_code_types[x]
+            # Note: many standard format codes (mostly CJK date formats) have
+            # format strings that vary by locale; xlrd does not (yet)
+            # handle those; the type (date or numeric) is recorded but the fmt_str will be None.
+            fmt_str = std_format_strings.get(x)
+            fmtobj = Format(x, ty, fmt_str)
+            book.format_map[x] = fmtobj
+
 def handle_xf(self, data):
     ### self is a Book instance
     # DEBUG = 0
-    verbose = DEBUG or self.verbosity >= 3
+    blah = DEBUG or self.verbosity >= 3
     bv = self.biff_version
     xf = XF()
     xf.alignment = XFAlignment()
@@ -680,12 +716,7 @@ def handle_xf(self, data):
     # fill in the known standard formats
     if bv >= 50 and not self.xfcount:
         # i.e. do this once before we process the first XF record
-        for x in list(std_format_code_types.keys()):
-            if x not in self.format_map:
-                ty = std_format_code_types[x]
-                fmt_str = std_format_strings[x]
-                fmtobj = Format(x, ty, fmt_str)
-                self.format_map[x] = fmtobj
+        fill_in_standard_formats(self)
     if bv >= 80:
         unpack_fmt = '<HHHBBBBIiH'
         (xf.font_index, xf.format_key, pkd_type_par,
@@ -916,21 +947,29 @@ def handle_xf(self, data):
     xf.xf_index = len(self.xf_list)
     self.xf_list.append(xf)
     self.xfcount += 1
-    if verbose:
+    if blah:
         xf.dump(
             self.logfile,
             header="--- handle_xf: xf[%d] ---" % xf.xf_index,
             footer=" ",
         )
+    try:
+        fmt = self.format_map[xf.format_key]
+        cellty = _cellty_from_fmtty[fmt.type]
+    except KeyError:
+        cellty = XL_CELL_NUMBER
+    self._xf_index_to_xl_type_map[xf.xf_index] = cellty
+
     # Now for some assertions ...
     if self.formatting_info:
-        if xf.is_style and xf.parent_style_index != 0x0FFF:
+        if self.verbosity and xf.is_style and xf.parent_style_index != 0x0FFF:
             msg = "WARNING *** XF[%d] is a style XF but parent_style_index is 0x%04x, not 0x0fff\n"
             fprintf(self.logfile, msg, xf.xf_index, xf.parent_style_index)
         check_colour_indexes_in_obj(self, xf, xf.xf_index)
     if xf.format_key not in self.format_map:
         msg = "WARNING *** XF[%d] unknown (raw) format key (%d, 0x%04x)\n"
-        fprintf(self.logfile, msg,
+        if self.verbosity:
+            fprintf(self.logfile, msg,
                 xf.xf_index, xf.format_key, xf.format_key)
         xf.format_key = 0
 
@@ -938,9 +977,9 @@ def xf_epilogue(self):
     # self is a Book instance.
     self._xf_epilogue_done = 1
     num_xfs = len(self.xf_list)
-    verbose = DEBUG or self.verbosity >= 3
-    verbose1 = DEBUG or self.verbosity >= 1
-    if verbose:
+    blah = DEBUG or self.verbosity >= 3
+    blah1 = DEBUG or self.verbosity >= 1
+    if blah:
         fprintf(self.logfile, "xf_epilogue called ...\n")
 
     def check_same(book_arg, xf_arg, parent_arg, attr):
@@ -950,22 +989,16 @@ def xf_epilogue(self):
                 "NOTE !!! XF[%d] parent[%d] %s different\n",
                 xf_arg.xf_index, parent_arg.xf_index, attr)
 
-    for xfx in range(num_xfs):
+    for xfx in xrange(num_xfs):
         xf = self.xf_list[xfx]
         if xf.format_key not in self.format_map:
             msg = "ERROR *** XF[%d] unknown format key (%d, 0x%04x)\n"
             fprintf(self.logfile, msg,
                     xf.xf_index, xf.format_key, xf.format_key)
             xf.format_key = 0
-        cellty_from_fmtty = {
-            FNU: XL_CELL_NUMBER,
-            FUN: XL_CELL_NUMBER,
-            FGE: XL_CELL_NUMBER,
-            FDT: XL_CELL_DATE,
-            FTX: XL_CELL_NUMBER, # Yes, a number can be formatted as text.
-            }
+
         fmt = self.format_map[xf.format_key]
-        cellty = cellty_from_fmtty[fmt.type]
+        cellty = _cellty_from_fmtty[fmt.type]
         self._xf_index_to_xl_type_map[xf.xf_index] = cellty
         # Now for some assertions etc
         if not self.formatting_info:
@@ -973,36 +1006,44 @@ def xf_epilogue(self):
         if xf.is_style:
             continue
         if not(0 <= xf.parent_style_index < num_xfs):
-            fprintf(self.logfile,
-                "WARNING *** XF[%d]: is_style=%d but parent_style_index=%d\n",
-                xf.xf_index, xf.is_style, xf.parent_style_index)
+            if blah1:
+                fprintf(self.logfile,
+                    "WARNING *** XF[%d]: is_style=%d but parent_style_index=%d\n",
+                    xf.xf_index, xf.is_style, xf.parent_style_index)
             # make it conform
             xf.parent_style_index = 0
         if self.biff_version >= 30:
-            assert xf.parent_style_index != xf.xf_index
-            assert self.xf_list[xf.parent_style_index].is_style
-            if verbose1 and xf.parent_style_index > xf.xf_index:
+            if blah1:
+                if xf.parent_style_index == xf.xf_index:
+                    fprintf(self.logfile,
+                        "NOTE !!! XF[%d]: parent_style_index is also %d\n",
+                        xf.xf_index, xf.parent_style_index)
+                elif not self.xf_list[xf.parent_style_index].is_style:
+                    fprintf(self.logfile,
+                        "NOTE !!! XF[%d]: parent_style_index is %d; style flag not set\n",
+                        xf.xf_index, xf.parent_style_index)                
+            if blah1 and xf.parent_style_index > xf.xf_index:
                 fprintf(self.logfile,
                     "NOTE !!! XF[%d]: parent_style_index is %d; out of order?\n",
                     xf.xf_index, xf.parent_style_index)
             parent = self.xf_list[xf.parent_style_index]
             if not xf._alignment_flag and not parent._alignment_flag:
-                if verbose1: check_same(self, xf, parent, 'alignment')
+                if blah1: check_same(self, xf, parent, 'alignment')
             if not xf._background_flag and not parent._background_flag:
-                if verbose1: check_same(self, xf, parent, 'background')
+                if blah1: check_same(self, xf, parent, 'background')
             if not xf._border_flag and not parent._border_flag:
-                if verbose1: check_same(self, xf, parent, 'border')
+                if blah1: check_same(self, xf, parent, 'border')
             if not xf._protection_flag and not parent._protection_flag:
-                if verbose1: check_same(self, xf, parent, 'protection')
+                if blah1: check_same(self, xf, parent, 'protection')
             if not xf._format_flag and not parent._format_flag:
-                if verbose1 and xf.format_key != parent.format_key:
+                if blah1 and xf.format_key != parent.format_key:
                     fprintf(self.logfile,
                         "NOTE !!! XF[%d] fmtk=%d, parent[%d] fmtk=%r\n%r / %r\n",
                         xf.xf_index, xf.format_key, parent.xf_index, parent.format_key,
                         self.format_map[xf.format_key].format_str,
                         self.format_map[parent.format_key].format_str)
             if not xf._font_flag and not parent._font_flag:
-                if verbose1 and xf.font_index != parent.font_index:
+                if blah1 and xf.font_index != parent.font_index:
                     fprintf(self.logfile,
                         "NOTE !!! XF[%d] fontx=%d, parent[%d] fontx=%r\n",
                         xf.xf_index, xf.font_index, parent.xf_index, parent.font_index)
@@ -1024,164 +1065,210 @@ def initialise_book(book):
     for method in methods:
         setattr(book.__class__, method.__name__, method)
 
+##
+# <p>A collection of the border-related attributes of an XF record.
+# Items correspond to those in the Excel UI's Format/Cells/Border tab.</p>
+# <p> An explanations of "colour index" is given in the Formatting
+# section at the start of this document.
+# There are five line style attributes; possible values and the
+# associated meanings are:
+# 0&nbsp;=&nbsp;No line,
+# 1&nbsp;=&nbsp;Thin,
+# 2&nbsp;=&nbsp;Medium,
+# 3&nbsp;=&nbsp;Dashed,
+# 4&nbsp;=&nbsp;Dotted,
+# 5&nbsp;=&nbsp;Thick,
+# 6&nbsp;=&nbsp;Double,
+# 7&nbsp;=&nbsp;Hair,
+# 8&nbsp;=&nbsp;Medium dashed,
+# 9&nbsp;=&nbsp;Thin dash-dotted,
+# 10&nbsp;=&nbsp;Medium dash-dotted,
+# 11&nbsp;=&nbsp;Thin dash-dot-dotted,
+# 12&nbsp;=&nbsp;Medium dash-dot-dotted,
+# 13&nbsp;=&nbsp;Slanted medium dash-dotted.
+# The line styles 8 to 13 appear in BIFF8 files (Excel 97 and later) only.
+# For pictures of the line styles, refer to OOo docs s3.10 (p22)
+# "Line Styles for Cell Borders (BIFF3-BIFF8)".</p>
+# <br /> -- New in version 0.6.1
 class XFBorder(BaseObject, EqNeAttrs):
-    """ A collection of the border-related attributes of an XF record.
 
-    Items correspond to those in the Excel UI's Format/Cells/Border tab.
-    An explanations of "colour index" is given in the Formatting
-    section at the start of this document.
-    There are five line style attributes; possible values and the
-    associated meanings are:
-
-    0 = No line,
-    1 = Thin,
-    2 = Medium,
-    3 = Dashed,
-    4 = Dotted,
-    5 = Thick,
-    6 = Double,
-    7 = Hair,
-    8 = Medium dashed,
-    9 = Thin dash-dotted,
-    10 = Medium dash-dotted,
-    11 = Thin dash-dot-dotted,
-    12 = Medium dash-dot-dotted,
-    13 = Slanted medium dash-dotted.
-    The line styles 8 to 13 appear in BIFF8 files (Excel 97 and later) only.
-    For pictures of the line styles, refer to OOo docs s3.10 (p22)
-    "Line Styles for Cell Borders (BIFF3-BIFF8)".</p>
-    - New in version 0.6.1
-    """
-
+    ##
     # The colour index for the cell's top line
     top_colour_index = 0
+    ##
     # The colour index for the cell's bottom line
     bottom_colour_index = 0
+    ##
     # The colour index for the cell's left line
     left_colour_index = 0
+    ##
     # The colour index for the cell's right line
     right_colour_index = 0
+    ##
     # The colour index for the cell's diagonal lines, if any
     diag_colour_index = 0
+    ##
     # The line style for the cell's top line
     top_line_style = 0
+    ##
     # The line style for the cell's bottom line
     bottom_line_style = 0
+    ##
     # The line style for the cell's left line
     left_line_style = 0
+    ##
     # The line style for the cell's right line
     right_line_style = 0
+    ##
     # The line style for the cell's diagonal lines, if any
     diag_line_style = 0
+    ##
     # 1 = draw a diagonal from top left to bottom right
     diag_down = 0
+    ##
     # 1 = draw a diagonal from bottom left to top right
     diag_up = 0
 
-# New in version 0.6.1
+##
+# A collection of the background-related attributes of an XF record.
+# Items correspond to those in the Excel UI's Format/Cells/Patterns tab.
+# An explanation of "colour index" is given in the Formatting
+# section at the start of this document.
+# <br /> -- New in version 0.6.1
 class XFBackground(BaseObject, EqNeAttrs):
-    """ A collection of the background-related attributes of an XF record.
 
-    Items correspond to those in the Excel UI's Format/Cells/Patterns tab.
-    An explanation of "colour index" is given in the Formatting
-    section at the start of this document.
-
-    """
+    ##
     # See section 3.11 of the OOo docs.
     fill_pattern = 0
+    ##
     # See section 3.11 of the OOo docs.
     background_colour_index = 0
+    ##
     # See section 3.11 of the OOo docs.
     pattern_colour_index = 0
 
-# New in version 0.6.1
-class XFAlignment(BaseObject, EqNeAttrs):
-    """ A collection of the alignment and similar attributes of an XF record.
+##
+# A collection of the alignment and similar attributes of an XF record.
+# Items correspond to those in the Excel UI's Format/Cells/Alignment tab.
+# <br /> -- New in version 0.6.1
 
-    Items correspond to those in the Excel UI's Format/Cells/Alignment tab.
-    """
-    # Values: section 5.115 (p 219) of OOo docs
+class XFAlignment(BaseObject, EqNeAttrs):
+
+    ##
+    # Values: section 6.115 (p 214) of OOo docs
     hor_align = 0
-    # Values: section 5.115 (p 220) of OOo docs
+    ##
+    # Values: section 6.115 (p 215) of OOo docs
     vert_align = 0
-    # Values: section 5.115 (p 220) of OOo docs.
+    ##
+    # Values: section 6.115 (p 215) of OOo docs.<br />
     # Note: file versions BIFF7 and earlier use the documented
     # "orientation" attribute; this will be mapped (without loss)
     # into "rotation".
     rotation = 0
+    ##
     # 1 = text is wrapped at right margin
     text_wrapped = 0
+    ##
     # A number in range(15).
     indent_level = 0
+    ##
     # 1 = shrink font size to fit text into cell.
     shrink_to_fit = 0
+    ##
     # 0 = according to context; 1 = left-to-right; 2 = right-to-left
     text_direction = 0
 
-# New in version 0.6.1
+##
+# A collection of the protection-related attributes of an XF record.
+# Items correspond to those in the Excel UI's Format/Cells/Protection tab.
+# Note the OOo docs include the "cell or style" bit
+# in this bundle of attributes.
+# This is incorrect; the bit is used in determining which bundles to use.
+# <br /> -- New in version 0.6.1
+
 class XFProtection(BaseObject, EqNeAttrs):
-    """ A collection of the protection-related attributes of an XF record.
 
-    Items correspond to those in the Excel UI's Format/Cells/Protection tab.
-    Note the OOo docs include the "cell or style" bit
-    in this bundle of attributes.
-    This is incorrect; the bit is used in determining which bundles to use.
-
-    """
+    ##
     # 1 = Cell is prevented from being changed, moved, resized, or deleted
     # (only if the sheet is protected).
     cell_locked = 0
+    ##
     # 1 = Hide formula so that it doesn't appear in the formula bar when
     # the cell is selected (only if the sheet is protected).
     formula_hidden = 0
 
-# New in version 0.6.1
+##
+# eXtended Formatting information for cells, rows, columns and styles.
+# <br /> -- New in version 0.6.1
+#
+# <p>Each of the 6 flags below describes the validity of
+# a specific group of attributes.
+# <br />
+# In cell XFs, flag==0 means the attributes of the parent style XF are used,
+# (but only if the attributes are valid there); flag==1 means the attributes
+# of this XF are used.<br />
+# In style XFs, flag==0 means the attribute setting is valid; flag==1 means
+# the attribute should be ignored.<br />
+# Note that the API
+# provides both "raw" XFs and "computed" XFs -- in the latter case, cell XFs
+# have had the above inheritance mechanism applied.
+# </p>
+
 class XF(BaseObject):
-    """ eXtended Formatting information for cells, rows, columns and styles.
 
-    Each of the 6 flags below describes the validity of
-    a specific group of attributes.
-
-    In cell XFs, flag==0 means the attributes of the parent style XF are used,
-    (but only if the attributes are valid there); flag==1 means the attributes
-    of this XF are used.
-    In style XFs, flag==0 means the attribute setting is valid; flag==1 means
-    the attribute should be ignored.
-    Note that the API
-    provides both "raw" XFs and "computed" XFs -- in the latter case, cell XFs
-    have had the above inheritance mechanism applied.
-    """
+    ##
     # 0 = cell XF, 1 = style XF
     is_style = 0
+    ##
     # cell XF: Index into Book.xf_list
-    # of this XF's style XF
+    # of this XF's style XF<br />
     # style XF: 0xFFF
     parent_style_index = 0
+    ##
+    #
     _format_flag = 0
+    ##
+    #
     _font_flag = 0
+    ##
+    #
     _alignment_flag = 0
+    ##
+    #
     _border_flag = 0
+    ##
+    #
     _background_flag = 0
+    ##
+    # &nbsp;
     _protection_flag = 0
+    ##
     # Index into Book.xf_list
     xf_index = 0
+    ##
     # Index into Book.font_list
     font_index = 0
+    ##
     # Key into Book.format_map
-    #
+    # <p>
     # Warning: OOo docs on the XF record call this "Index to FORMAT record".
     # It is not an index in the Python sense. It is a key to a map.
-    # It is true **only** for Excel 4.0 and earlier files
+    # It is true <i>only</i> for Excel 4.0 and earlier files
     # that the key into format_map from an XF instance
-    # is the same as the index into format_list, and **only**
+    # is the same as the index into format_list, and <i>only</i>
     # if the index is less than 164.
-    #
+    # </p>
     format_key = 0
+    ##
     # An instance of an XFProtection object.
     protection = None
+    ##
     # An instance of an XFBackground object.
     background = None
+    ##
     # An instance of an XFAlignment object.
     alignment = None
+    ##
     # An instance of an XFBorder object.
     border = None
