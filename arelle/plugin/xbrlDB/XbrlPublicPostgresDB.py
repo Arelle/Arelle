@@ -601,6 +601,7 @@ WITH row_values (%(newCols)s) AS (
                                      0)
                                     for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
                                     for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
+                                    if rel.fromModelObject is not None and rel.toModelObject is not None
                                     for resource in (rel.fromModelObject, rel.toModelObject)
                                     if isinstance(resource, ModelResource)))
         self.resourceId = dict(((roleId, qnId, docId, line, offset), id)
@@ -619,6 +620,7 @@ WITH row_values (%(newCols)s) AS (
                                      resource.xmlLang)
                                     for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
                                     for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
+                                    if rel.fromModelObject is not None and rel.toModelObject is not None
                                     for resource in (rel.fromModelObject, rel.toModelObject)
                                     if isinstance(resource, ModelResource) and XbrlConst.isLabelRole(resource.role)))
     
@@ -645,7 +647,7 @@ WITH row_values (%(newCols)s) AS (
         
         def walkTree(rels, seq, depth, relationshipSet, visited, dbRels, networkId):
             for rel in rels:
-                if rel not in visited:
+                if rel not in visited and rel.toModelObject is not None:
                     visited.add(rel)
                     dbRels.append((rel, seq, depth, networkId))
                     seq += 1
@@ -694,7 +696,8 @@ WITH row_values (%(newCols)s) AS (
                                      sequence,
                                      depth,
                                      self.qnameId.get(rel.preferredLabel))
-                                    for rel, sequence, depth, networkId in dbRels))
+                                    for rel, sequence, depth, networkId in dbRels
+                                    if rel.fromModelObject is not None and rel.toModelObject is not None))
 
     def insertFacts(self):
         accsId = self.accessionId
