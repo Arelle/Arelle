@@ -17,6 +17,8 @@ from arelle.XmlValidate import UNKNOWN, VALID, validate
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.Locale import format_picture
+from arelle import XmlValidate
+from lxml import etree
 from math import isnan, isinf
 
 class xfiFunctionNotAvailable(Exception):
@@ -1151,6 +1153,57 @@ def  format_number(xc, p, args):
     except ValueError as err:
         raise XPathContext.XPathException(p, 'xfie:invalidPictureSyntax', str(err) )
 
+# note that this function was initially in plugin functionsXmlCreation when it was named xfxc:element    
+def  create_element(xc, p, args):
+    if not 2 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
+    qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
+    attrArg = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    # attributes have to be pairs
+    if attrArg:
+        if len(attrArg) & 1 or any(not isinstance(attrArg[i], (QName, _STR_BASE))
+                                   for i in range(0, len(attrArg),2)):
+            raise XPathContext.FunctionArgType(1,"((xs:qname|xs:string),xs:anyAtomicValue)", errCode="xfie:AttributesNotNameValuePairs")
+        else:
+            attrParam = [(attrArg[i],attrArg[i+1]) # need name-value pairs for XmlUtil function
+                         for i in range(0, len(attrArg),2)]
+    else:
+        attrParam = None
+         
+    value = atomicArg(xc, p, args, 2, "xs:anyAtomicType", emptyFallback='') 
+    if not value: # be sure '' is None so no text node is created
+        value = None  
+    if len(args) < 4:
+        childElements = None
+    else:
+        childElements = xc.flattenSequence(args[3])
+    
+    # scratchpad instance document emulates fn:doc( ) to hold XML nodes
+    scratchpadXmlDocUrl = "http://www.xbrl.org/2012/function/creation/xml_scratchpad.xml"
+    if scratchpadXmlDocUrl in xc.modelXbrl.urlDocs:
+        modelDocument = xc.modelXbrl.urlDocs[scratchpadXmlDocUrl]
+    else:
+        # create scratchpad xml document
+        # this will get the fake instance document in the list of modelXbrl docs so that it is garbage collected
+        from arelle import ModelDocument
+        modelDocument = ModelDocument.create(xc.modelXbrl, 
+                                             ModelDocument.Type.UnknownXML, 
+                                             scratchpadXmlDocUrl,
+                                             initialXml="<xfc:dummy xmlns:xfc='http://www.xbrl.org/2012/function/creation'/>")
+        
+    newElement = XmlUtil.addChild(modelDocument.xmlRootElement,
+                                  qn,
+                                  attributes=attrParam,
+                                  text=value)
+    if childElements:
+        for element in childElements:
+            if isinstance(element, etree.ElementBase):
+                newElement.append(element)
+                
+    # node myst be validated for use in instance creation (typed dimension references)
+    XmlValidate.validate(xc.modelXbrl, newElement)
+                
+    return newElement
+
 xfiFunctions = {
     'context': context,
     'unit': unit,
@@ -1248,5 +1301,6 @@ xfiFunctions = {
     'relationship-link-name': relationship_link_name,
     'xbrl-instance': xbrl_instance,
     'format-number':  format_number,
+    'create-element': create_element,
      }
 

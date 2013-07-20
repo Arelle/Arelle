@@ -61,6 +61,10 @@ def validate(modelDocument, schemaElement, targetNamespace):
                              if docRef.referenceType in ("include", "import"))
     if targetNamespace:
         declaredNamespaces.add(targetNamespace)
+        
+    if targetNamespace in ("http://www.w3.org/2001/XMLSchema",
+                           "http://www.w3.org/XML/1998/namespace"):
+        return # don't validate w3c schemas
     
     # check schema semantics
     def resolvedQnames(elt, qnDefs):
@@ -71,7 +75,7 @@ def validate(modelDocument, schemaElement, targetNamespace):
                     qnValue = qname(elt, attr, castException=ValueError, prefixException=ValueError)
                     if qnValue.namespaceURI == XbrlConst.xsd:
                         if attrType != ModelType:
-                            raise ValueError("{0} can not have xml schema namespace")
+                            raise ValueError("{0} can not have xml schema namespace".format(attrName))
                         if qnValue.localName not in {
                                 "anySimpleType", "anyType",
                                 "string", "boolean", "float", "double", "decimal", "duration", "dateTime", "time", "date", 
