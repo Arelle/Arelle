@@ -6,7 +6,7 @@ input and optionally save an (extension) DTS.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, time
+import os, io, time, re
 from arelle import XbrlConst
 
 importColumnHeaders = {
@@ -73,6 +73,7 @@ def loadFromExcel(cntlr, excelFile):
             return None
         return "{0}#{1}_{2}".format(filename, prefix, name)
             
+    isUSGAAP = False
     for iRow in range(1, controlSheet.nrows):
         try:
             row = controlSheet.row(iRow)
@@ -87,6 +88,8 @@ def loadFromExcel(cntlr, excelFile):
             if action == "import":
                 imports[prefix] = ( ("namespace", namespaceURI), ("schemaLocation", filename) )
                 importXmlns[prefix] = namespaceURI
+                if re.match(r"http://[^/]+/us-gaap/", namespaceURI):
+                    isUSGAAP = True
             elif action == "extension":
                 if filetype == "schema":
                     extensionSchemaPrefix = prefix
@@ -235,14 +238,15 @@ def loadFromExcel(cntlr, excelFile):
                         entryList = lbDepthList(defLB, depth)
                         if entryList is not None:
                             entryList.append( (prefix, name, arcrole, []) )
-                    calcParent = cellValue(row, 'calculationParent')
-                    calcWeight = cellValue(row, 'calculationWeight')
-                    if calcParent and calcWeight:
-                        calcParentPrefix, sep, calcParentName = calcParent.partition(":")
-                        entryList = lbDepthList(calLB, 0)
-                        if entryList is not None:
-                            entryList.append( (calcParentPrefix, calcParentName, "_root_", 
-                                               [(prefix, name, XbrlConst.summationItem, calcWeight )]) )
+                    if hasCalLB:
+                        calcParent = cellValue(row, 'calculationParent')
+                        calcWeight = cellValue(row, 'calculationWeight')
+                        if calcParent and calcWeight:
+                            calcParentPrefix, sep, calcParentName = calcParent.partition(":")
+                            entryList = lbDepthList(calLB, 0)
+                            if entryList is not None:
+                                entryList.append( (calcParentPrefix, calcParentName, "_root_", 
+                                                   [(prefix, name, XbrlConst.summationItem, calcWeight )]) )
                         
             # accumulate extension labels
             if useLabels:
@@ -267,6 +271,34 @@ def loadFromExcel(cntlr, excelFile):
                            .format(error=err,
                                    excelRow=iRow),
                             messageCode="importExcel:exception")
+            
+    if isUSGAAP and hasDefLB:
+        # move line items above table
+        def fixUsggapTableDims(lvl1List):
+            foundLineItems = False
+            for i1, lvl1Entry in enumerate(lvl1List):
+                lvl1Pfx, lvl1Name, lvl1Rel, lvl2List = lvl1Entry
+                for i2, lvl2Entry in enumerate(lvl2List):
+                    lvl2Pfx, lvl2Name, lvl2Rel, lvl3List = lvl2Entry
+                    for i3, lvl3Entry in enumerate(lvl3List):
+                        lvl3Pfx, lvl3Name, lvl3Rel, lvl4List = lvl3Entry
+                        if lvl3Name.endswith("LineItems") and lvl2Name.endswith("Table"):
+                            foundLineItems = True
+                            break
+                if foundLineItems:
+                    break
+                else:
+                    fixUsggapTableDims(lvl2List)
+            if foundLineItems:
+                lvl1List.insert(i1 + 1, (lvl3Pfx, lvl3Name, lvl1Rel, lvl4List))  # must keep lvl1Rel if it is __root__
+                lvl4List.insert(0, lvl2Entry)
+                if lvl1Name.endswith("Abstract"):
+                    del lvl1List[i1]
+                del lvl3List[i3]
+                pass
+                
+        fixUsggapTableDims(defLB)
+    
     dts = cntlr.modelManager.create(newDocumentType=ModelDocument.Type.SCHEMA,
                                     url=extensionSchemaFilename,
                                     isEntry=True,
@@ -403,7 +435,7 @@ def loadFromExcel(cntlr, excelFile):
                      
     def hrefConcept(prefix, name):
         qn = schemaElt.prefixedNameQname(prefix + ":" + name)
-        if qn:
+        if qn in dts.qnameConcepts:
             return dts.qnameConcepts[qn]
         return None
             
