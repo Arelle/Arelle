@@ -2120,6 +2120,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     missingItems -= set(concept
                                         for concept in missingItems
                                         if relSet.isRelated(totalConcept, "sibling-or-descendant", concept))
+                    # items not required in sum
+                    unrequiredItems = set(concept
+                                          for concept in missingItems
+                                          if concept.name in ("CommitmentsAndContingencies"))
+                    missingItems -= unrequiredItems
                     if missingItems:
                         if len(missingItems) < len(leastMissingItemsSet):
                             leastMissingItemsSet = missingItems
