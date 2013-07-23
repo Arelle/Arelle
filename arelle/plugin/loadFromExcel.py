@@ -19,6 +19,7 @@ importColumnHeaders = {
     "periodType": "periodType",
     "balance": "balance",
     "depth": "depth",
+    "preferred label": "preferredLabel",
     "calculation parent": "calculationParent", # qname
     "calculation weight": "calculationWeight",
     "標準ラベル（日本語）": ("label", XbrlConst.standardLabel, "ja"),
@@ -55,10 +56,10 @@ def loadFromExcel(cntlr, excelFile):
     defLB = []
     calLB = []
     
-    def lbDepthList(list, depth, parentList=None):
+    def lbDepthList(lbStruct, depth, parentList=None):
         if depth == 0:
-            return list[-1][-1]
-        return lbDepthList(list[-1][-1], depth-1, list)
+            return lbStruct[-1].childStruct
+        return lbDepthList(lbStruct[-1].childStruct, depth-1, list)
     
     extensionElements = {}
     extensionRoles = {} # key is roleURI, value is role definition
@@ -187,11 +188,11 @@ def loadFromExcel(cntlr, excelFile):
                         currentELRdefinition = v
                 if currentELR or currentELRdefinition:
                     if hasPreLB:
-                        preLB.append( (currentELR, currentELRdefinition, "_ELR_", []) )
+                        preLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                     if hasDefLB:
-                        defLB.append( (currentELR, currentELRdefinition, "_ELR_", []) )
+                        defLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                     if hasCalLB:
-                        calLB.append( (currentELR, currentELRdefinition, "_ELR_", []) )
+                        calLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
             elif headerCols:
                 prefix = cellValue(row, 'prefix').strip()
                 name = cellValue(row, 'name').strip()
@@ -229,15 +230,23 @@ def loadFromExcel(cntlr, excelFile):
                 useLabels = True
                 if depth is not None:
                     if hasPreLB:
-                        arcrole = "http://www.xbrl.org/2003/arcrole/parent-child" if depth else "_root_"
                         entryList = lbDepthList(preLB, depth)
+                        preferredLabel = cellValue(row, 'preferredLabel')
+                        if preferredLabel and not preferredLabel.startswith("http://"):
+                            preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
                         if entryList is not None:
-                            entryList.append( (prefix, name, arcrole, []) )
+                            if depth == 0:
+                                entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
+                            else:
+                                entryList.append( LBentry(prefix=prefix, name=name, arcrole=XbrlConst.parentChild,
+                                                          role=preferredLabel) )
                     if hasDefLB:
-                        arcrole = "_dimensions_" if depth else "_root_"
                         entryList = lbDepthList(defLB, depth)
                         if entryList is not None:
-                            entryList.append( (prefix, name, arcrole, []) )
+                            if depth == 0:
+                                entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
+                            else:
+                                entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_") )
                     if hasCalLB:
                         calcParent = cellValue(row, 'calculationParent')
                         calcWeight = cellValue(row, 'calculationWeight')
@@ -245,13 +254,16 @@ def loadFromExcel(cntlr, excelFile):
                             calcParentPrefix, sep, calcParentName = calcParent.partition(":")
                             entryList = lbDepthList(calLB, 0)
                             if entryList is not None:
-                                entryList.append( (calcParentPrefix, calcParentName, "_root_", 
-                                                   [(prefix, name, XbrlConst.summationItem, calcWeight )]) )
+                                entryList.append( LBentry(prefix=calcParentPrefix, name=calcParentName, isRoot=True, childStruct=
+                                                   [LBentry(prefix=prefix, name=name, arcrole=XbrlConst.summationItem, weight=calcWeight )]) )
                         
             # accumulate extension labels
             if useLabels:
                 prefix = cellValue(row, 'prefix').strip()
                 name = cellValue(row, 'name').strip()
+                preferredLabel = cellValue(row, 'preferredLabel')
+                if preferredLabel and not preferredLabel.startswith("http://"):
+                    preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
                 for colItem, iCol in headerCols.items():
                     if isinstance(colItem, tuple):
                         colItemType, role, lang = colItem
@@ -264,6 +276,9 @@ def loadFromExcel(cntlr, excelFile):
                             values = cell.value.split('\n')
                         else:
                             values = ()
+                        if preferredLabel:  # first label column sets preferredLabel if any
+                            role = preferredLabel
+                            preferredLabel = None
                         for value in values:
                             extensionLabels[prefix, name, lang, role] = value.strip()
         except Exception as err:
@@ -274,27 +289,24 @@ def loadFromExcel(cntlr, excelFile):
             
     if isUSGAAP and hasDefLB:
         # move line items above table
-        def fixUsggapTableDims(lvl1List):
+        def fixUsggapTableDims(lvl1Struct):
             foundLineItems = False
-            for i1, lvl1Entry in enumerate(lvl1List):
-                lvl1Pfx, lvl1Name, lvl1Rel, lvl2List = lvl1Entry
-                for i2, lvl2Entry in enumerate(lvl2List):
-                    lvl2Pfx, lvl2Name, lvl2Rel, lvl3List = lvl2Entry
-                    for i3, lvl3Entry in enumerate(lvl3List):
-                        lvl3Pfx, lvl3Name, lvl3Rel, lvl4List = lvl3Entry
-                        if lvl3Name.endswith("LineItems") and lvl2Name.endswith("Table"):
+            for i1, lvl1Entry in enumerate(lvl1Struct):
+                for i2, lvl2Entry in enumerate(lvl1Entry.childStruct):
+                    for i3, lvl3Entry in enumerate(lvl2Entry.childStruct):
+                        if lvl3Entry.name.endswith("LineItems") and lvl2Entry.name.endswith("Table"):
                             foundLineItems = True
                             break
                 if foundLineItems:
                     break
                 else:
-                    fixUsggapTableDims(lvl2List)
+                    fixUsggapTableDims(lvl1Entry.childStruct)
             if foundLineItems:
-                lvl1List.insert(i1 + 1, (lvl3Pfx, lvl3Name, lvl1Rel, lvl4List))  # must keep lvl1Rel if it is __root__
-                lvl4List.insert(0, lvl2Entry)
-                if lvl1Name.endswith("Abstract"):
-                    del lvl1List[i1]
-                del lvl3List[i3]
+                lvl1Struct.insert(i1 + 1, LBentry(prefix=lvl3Entry.prefix, name=lvl3Entry.name, arcrole=lvl1Entry.arcrole, childStruct=lvl3Entry.childStruct))  # must keep lvl1Rel if it is __root__
+                lvl3Entry.childStruct.insert(0, lvl2Entry)
+                if lvl1Entry.name.endswith("Abstract"):
+                    del lvl1Struct[i1]
+                del lvl2Entry.childStruct[i3]
                 pass
                 
         fixUsggapTableDims(defLB)
@@ -325,6 +337,7 @@ def loadFromExcel(cntlr, excelFile):
                            )
     dtsSchemaDocument = dts.modelDocument
     dtsSchemaDocument.inDTS = True  # entry document always in DTS
+    dtsSchemaDocument.targetNamespace = extensionSchemaNamespaceURI # not set until schemaDiscover too late otherwise
     schemaElt = dtsSchemaDocument.xmlRootElement
     
     #foreach linkbase
@@ -439,17 +452,17 @@ def loadFromExcel(cntlr, excelFile):
             return dts.qnameConcepts[qn]
         return None
             
-    def lbTreeWalk(lbType, parentElt, lbList, roleRefs, locs=None, fromPrefix=None, fromName=None):
+    def lbTreeWalk(lbType, parentElt, lbStruct, roleRefs, locs=None, fromPrefix=None, fromName=None):
         order = 1.0
-        for toPrefix, toName, rel, list in lbList:
-            if rel == "_ELR_":
+        for lbEntry in lbStruct:
+            if lbEntry.isELR:
                 role = "unspecified"
-                if toPrefix and toPrefix.startswith("http://"): # have a role specified
-                    role = toPrefix
-                elif toName: #may be a definition
+                if lbEntry.role and lbEntry.role.startswith("http://"): # have a role specified
+                    role = lbEntry.role
+                elif lbEntry.name: #may be a definition
                     for linkroleUri, modelRoleTypes in dts.roleTypes.items():
                         definition = modelRoleTypes[0].definition
-                        if toName == definition:
+                        if lbEntry.name == definition:
                             role = linkroleUri
                             break
                 if role != XbrlConst.defaultLinkRole and role in dts.roleTypes: # add roleRef
@@ -461,8 +474,10 @@ def loadFromExcel(cntlr, excelFile):
                                            attributes=(("{http://www.w3.org/1999/xlink}type", "extended"),
                                                        ("{http://www.w3.org/1999/xlink}role", role)))
                 locs = set()
-                lbTreeWalk(lbType, linkElt, list, roleRefs, locs)
+                lbTreeWalk(lbType, linkElt, lbEntry.childStruct, roleRefs, locs)
             else:
+                toPrefix = lbEntry.prefix
+                toName = lbEntry.name
                 toHref = extensionHref(toPrefix, toName)
                 toLabel = toPrefix + "_" + toName
                 if toHref not in locs:
@@ -472,33 +487,37 @@ def loadFromExcel(cntlr, excelFile):
                                                  ("{http://www.w3.org/1999/xlink}href", toHref),
                                                  ("{http://www.w3.org/1999/xlink}label", toLabel)))        
                     locs.add(toHref)
-                if rel != "_root_":
+                if not lbEntry.isRoot:
                     fromLabel = fromPrefix + "_" + fromName
-                    if lbType == "calculation":
-                        otherAttrs = ( ("weight", list), )
+                    if lbType == "calculation" and lbEntry.weight is not None:
+                        otherAttrs = ( ("weight", lbEntry.weight), )
+                    elif lbType == "presentation" and lbEntry.role is not None:
+                        otherAttrs = ( ("preferredLabel", lbEntry.role), )
                     else:
                         otherAttrs = ( )
-                    if rel == "_dimensions_":  # pick proper consecutive arcrole
+                    if lbEntry.arcrole == "_dimensions_":  # pick proper consecutive arcrole
                         fromConcept = hrefConcept(fromPrefix, fromName)
                         toConcept = hrefConcept(toPrefix, toName)
                         if toConcept is not None and toConcept.isHypercubeItem:
-                            rel = XbrlConst.all
+                            arcrole = XbrlConst.all
                         elif toConcept is not None and toConcept.isDimensionItem:
-                            rel = XbrlConst.hypercubeDimension
+                            arcrole = XbrlConst.hypercubeDimension
                         elif fromConcept is not None and fromConcept.isDimensionItem:
-                            rel = XbrlConst.dimensionDomain
+                            arcrole = XbrlConst.dimensionDomain
                         else:
-                            rel = XbrlConst.domainMember
+                            arcrole = XbrlConst.domainMember
+                    else:
+                        arcrole = lbEntry.arcrole
                     XmlUtil.addChild(parentElt,
                                      XbrlConst.link, lbType + "Arc",
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
-                                                 ("{http://www.w3.org/1999/xlink}arcrole", rel),
+                                                 ("{http://www.w3.org/1999/xlink}arcrole", arcrole),
                                                  ("{http://www.w3.org/1999/xlink}from", fromLabel), 
                                                  ("{http://www.w3.org/1999/xlink}to", toLabel), 
                                                  ("order", order)) + otherAttrs )
                     order += 1.0
-                if lbType != "calculation" or rel == "_root_":
-                    lbTreeWalk(lbType, parentElt, list, roleRefs, locs, toPrefix, toName)
+                if lbType != "calculation" or lbEntry.isRoot:
+                    lbTreeWalk(lbType, parentElt, lbEntry.childStruct, roleRefs, locs, toPrefix, toName)
                     
     for hasLB, lbType, lbLB in ((hasPreLB, "presentation", preLB),
                                 (hasDefLB, "definition", defLB),
@@ -581,6 +600,40 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach):
             for lbDoc in dtsSchemaDocument.referencesDocument.keys():
                 if lbDoc.inDTS and lbDoc.type == ModelDocument.Type.LINKBASE:
                     lbDoc.save(saveToFile(lbDoc.uri))
+
+class LBentry:
+    __slots__ = ("prefix", "name", "arcrole", "role", "childStruct")
+    def __init__(self, prefix=None, name=None, arcrole=None, role=None, weight=None, isELR=False, isRoot=False, childStruct=None):
+        if childStruct is not None:
+            self.childStruct = childStruct
+        else:
+            self.childStruct = []
+        self.prefix = prefix
+        self.name = name
+        if isELR:
+            self.arcrole = "_ELR_"
+        elif isRoot:
+            self.arcrole = "_root_"
+        else:
+            self.arcrole = arcrole
+        if weight is not None:  # summationItem
+            self.role = weight
+        else:
+            self.role = role
+            
+    @property
+    def isELR(self):
+        return self.arcrole == "_ELR_"
+            
+    @property
+    def isRoot(self):
+        return self.arcrole == "_root_"
+    
+    @property
+    def weight(self):
+        if self.arcrole == XbrlConst.summationItem:
+            return self.role
+        return None
 
 __pluginInfo__ = {
     'name': 'Load From Excel',

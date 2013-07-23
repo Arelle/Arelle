@@ -172,7 +172,7 @@ def saveLoadableExcel(dts, excelFile):
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
         if docReference.referenceType == "href" and doc.type == ModelDocument.Type.LINKBASE:
             linkbaseType = ""
-            role = docReference.referringModelObject.get("{http://www.w3.org/1999/xlink}role")
+            role = docReference.referringModelObject.get("{http://www.w3.org/1999/xlink}role") or ""
             if role.startswith("http://www.xbrl.org/2003/role/") and role.endswith("LinkbaseRef"):
                 linkbaseType = os.path.basename(role)[0:-11]
             sheet2.write(sheet2row, 0, "extension", cellFmt) 
