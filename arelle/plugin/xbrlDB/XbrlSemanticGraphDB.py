@@ -35,7 +35,7 @@ import urllib.request
 from urllib.error import HTTPError, URLError
 
 TRACEGREMLINFILE = None
-TRACEGREMLINFILE = r"c:\temp\rexstertrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+#TRACEGREMLINFILE = r"c:\temp\rexstertrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -171,14 +171,17 @@ class XbrlSemanticGraphDatabaseConnection():
         if TRACEGREMLINFILE:
             with io.open(TRACEGREMLINFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> received: \n{0}".format(str(results)))
-        if results['success'] == False:
+        if results.get('success', False) == False:
             raise XPDBException("xsgDB:DatabaseError",
                                 _("%(activity)s not successful: %(error)s"),
                                 activity=activity, error=results.get('error')) 
         return results
     
     def commit(self):
-        pass # TBD  g.commit(), g.rollback() may be not working at least on tinkergraph
+        self.execute("Commit transaction", "g.commit()")
+    
+    def rollback(self):
+        self.execute("Rollback transaction", "g.rollback()")
     
     def loadGraphRootVertices(self):
         self.showStatus("Load/Create graph root vertices")
@@ -189,6 +192,8 @@ class XbrlSemanticGraphDatabaseConnection():
             try {  // not all gremlin servers support key index
                 if (!("_rlkey" in g.getIndexedKeys(Vertex.class))) {
                     g.createKeyIndex("_rlkey", Vertex.class)
+                    //g.createKeyIndex("_class", Vertex.class)
+                    g.commit()
                 }
             } catch (Exception e) {
             }
@@ -264,6 +269,7 @@ class XbrlSemanticGraphDatabaseConnection():
             self.showStatus("DB insertion completed", clearAfter=5000)
         except Exception as ex:
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
+            self.rollback()
             raise
         
     def insertAccession(self, rssItem):
