@@ -56,7 +56,8 @@ class View:
             if isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile = self.outfile
             else:
-                self.csvFile = open(outfile, csvOpenMode, newline=csvOpenNewline)
+                # note: BOM signature required for Excel to open properly with characters > 0x7f 
+                self.csvFile = open(outfile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
             self.csvWriter = csv.writer(self.csvFile, dialect="excel")
         elif self.type == HTML:
             if style == "rendering":
