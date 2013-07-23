@@ -279,7 +279,7 @@ def parseAndRun(args):
                 "\n   Python(r) (c) 2001-2013 Python Software Foundation"
                 "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
                 "\n   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
-                "\n   xlrd (c) 2005-2009 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"
+                "\n   xlrd (c) 2005-2013 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"
                 "\n   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
                 "{1}"
                 ).format(Version.version,
