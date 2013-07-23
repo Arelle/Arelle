@@ -28,8 +28,6 @@
 # Utilities for work with reference to cells and with sheetnames
 
 
-__rev_id__ = """$Id: Utils.py 3844 2009-05-20 01:02:54Z sjmachin $"""
-
 import re
 from struct import pack
 from arelle.xlwt.ExcelMagic import MAX_ROW, MAX_COL
@@ -165,7 +163,7 @@ def cellrange_to_rowcol_pair(cellrange):
     if res:
         row1, col1 = cell_to_rowcol2(res.group(1))
         return row1, col1, row1, col1
-    raise Exception("Unknown cell reference %s" % (cell))
+    raise Exception("Unknown cell reference %s" % (cellrange))
 
 
 def cell_to_packed_rowcol(cell):

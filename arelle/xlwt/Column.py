@@ -16,6 +16,16 @@ class Column(object):
         self.level = 0
         self.collapse = 0
 
+    def set_width(self, width):
+        if not(isinstance(width, int) and 0 <= width <= 65535):
+            raise ValueError("column width (%r) not an int in range(65536)" % width)
+        self._width = width
+
+    def get_width(self):
+        return self._width
+
+    width = property(get_width, set_width)
+
     def set_style(self, style):
         self._xf_index = self._parent_wb.add_style(style)
 

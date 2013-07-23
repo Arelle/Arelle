@@ -33,24 +33,27 @@
             EOF
 '''
 
-from arelle import BIFFRecords
-from arelle import Bitmap
-from arelle import Formatting
-from arelle import Style
+from arelle.xlwt import BIFFRecords
+from arelle.xlwt import Bitmap
+from arelle.xlwt import Formatting
+from arelle.xlwt import Style
 import tempfile
 
 
 class Worksheet(object):
     from arelle.xlwt.Workbook import Workbook
 
+    # a safe default value, 3 is always valid!
+    active_pane = 3
+
     #################################################################
     ## Constructor
     #################################################################
     def __init__(self, sheetname, parent_book, cell_overwrite_ok=False):
-        from arelle import Row
+        from arelle.xlwt import Row
         self.Row = Row #(to_py3): Row.Row -> Row
 
-        from arelle import Column
+        from arelle.xlwt import Column
         self.Column = Column #(to_py3): Column.Column -> Column
 
         self.__name = sheetname
@@ -86,7 +89,9 @@ class Worksheet(object):
         self.__first_visible_col = 0
         self.__grid_colour = 0x40
         self.__preview_magn = 60 # percent
-        self.__normal_magn = 100 # percent
+        self.__normal_magn = 100 # percent  (HF note: Note this differs from version 7.5)
+        self.__scl_magn = None
+        self.explicit_magn_setting = False
 
         self.visibility = 0 # from/to BOUNDSHEET record.
 
@@ -95,6 +100,27 @@ class Worksheet(object):
         self.__vert_split_first_visible = None
         self.__horz_split_first_visible = None
         self.__split_active_pane = None
+
+        # This is a caller-settable flag:
+
+        self.split_position_units_are_twips = False
+
+        # Default is False for backward compatibility with pyExcelerator
+        # and previous versions of xlwt.
+        #   if panes_frozen:
+        #       vert/horz_split_pos are taken as number of rows/cols
+        #   else: # split
+        #       if split_position_units_are_twips:
+        #           vert/horz_split_pos are taken as number of twips
+        #       else:
+        #           vert/horz_split_pos are taken as
+        #           number of rows(cols) * default row(col) height (width) (i.e. 12.75 (8.43) somethings)
+        #           and converted to twips by approximate formulas
+        # Callers who are copying an existing file should use
+        #     xlwt_worksheet.split_position_units_are_twips = True
+        # because that's what's actually in the file.
+
+		# There are 20 twips to a point. There are 72 points to an inch.
 
         self.__row_gut_width = 0
         self.__col_gut_height = 0
@@ -386,6 +412,17 @@ class Worksheet(object):
         return self.__normal_magn
 
     normal_magn = property(get_normal_magn, set_normal_magn)
+
+    #################################################################
+
+    def set_scl_magn(self, value):
+        self.__scl_magn = value
+
+    def get_scl_magn(self):
+        return self.__scl_magn
+
+    scl_magn = property(get_scl_magn, set_scl_magn)
+
 
     #################################################################
 
@@ -995,11 +1032,14 @@ class Worksheet(object):
     ## Methods
     ##################################################################
 
-    def get_parent(self):
-        return self.__parent
+    #def get_parent(self):
+    #    return self.__parent
 
     def write(self, r, c, label=b"", style=Style.default_style):
         self.row(r).write(c, label, style)
+
+    def write_rich_text(self, r, c, rich_text_list, style=Style.default_style):
+        self.row(r).set_cell_rich_text(c, rich_text_list, style)
 
     def merge(self, r1, r2, c1, c2, style=Style.default_style):
         # Stand-alone merge of previously written cells.
@@ -1142,6 +1182,7 @@ class Worksheet(object):
             scl_magn = self.__preview_magn
         else:
             scl_magn = self.__normal_magn
+        # HF note: different in 0.7.5
         return BIFFRecords.Window2Record(
             options, self.__first_visible_row, self.__first_visible_col,
             self.__grid_colour,
@@ -1274,6 +1315,11 @@ class Worksheet(object):
             self.row_tempfile.flush()
             self.row_tempfile.seek(0)
             result.append(self.row_tempfile.read())
+            self.row_tempfile.seek(0, 2) # to EOF
+            # Above seek() is necessary to avoid a spurious IOError
+            # with Errno 0 if the caller continues on writing rows
+            # and flushing row data after the save().
+            # See http://bugs.python.org/issue3207
         result.extend([
             self.__row_blocks_rec(),
             self.__merged_rec(),
