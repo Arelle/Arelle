@@ -9,7 +9,7 @@ import os, sys, traceback, uuid
 import logging
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.UrlUtil import isHttpUrl
@@ -858,10 +858,11 @@ class ModelXbrl:
                                     objectUrl = self.entryLoadingUrl
                         file = UrlUtil.relativeUri(entryUrl, objectUrl)
                         ref = {}
-                        if isinstance(arg,ModelObject):
-                            ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(arg)
-                            ref["sourceLine"] = arg.sourceline
-                            ref["objectId"] = arg.objectId()
+                        if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
+                            _arg = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
+                            ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
+                            ref["sourceLine"] = _arg.sourceline
+                            ref["objectId"] = _arg.objectId()
                             if logHrefObjectProperties:
                                 try:
                                     ref["properties"] = propValues(arg.propertyView)
