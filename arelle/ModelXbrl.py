@@ -232,7 +232,7 @@ class ModelXbrl:
         self.uuid = uuid.uuid1().urn
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
-        self.urlUnloadableDocs = set()
+        self.urlUnloadableDocs = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel = (errorCaptureLevel or logging.getLevelName("INCONSISTENCY"))
         self.errors = []
         self.logCount = {}

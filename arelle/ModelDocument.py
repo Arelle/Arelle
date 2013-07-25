@@ -49,11 +49,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
        not modelXbrl.modelManager.disclosureSystem.hrefValid(normalizedUri):
         blocked = modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences
         if normalizedUri not in modelXbrl.urlUnloadableDocs:
+            # HMRC note, HMRC.blockedFile should be in this list if hmrc-taxonomies.xml is maintained an dup to date
             modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                     _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
                     modelObject=referringElement, url=normalizedUri,
                     blockedIndicator=_(" blocked") if blocked else "")
-            modelXbrl.urlUnloadableDocs.add(normalizedUri)
+            modelXbrl.urlUnloadableDocs[normalizedUri] = blocked
         if blocked:
             return None
     if modelXbrl.fileSource.isMappedUrl(normalizedUri):
@@ -82,7 +83,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.error("FileNotLoadable",
                     _("File can not be loaded: %(fileName)s"),
                     modelObject=referringElement, fileName=normalizedUri)
-            modelXbrl.urlUnloadableDocs.add(normalizedUri)
+            modelXbrl.urlUnloadableDocs[normalizedUri] = True # always blocked if not loadable on this error
         return None
     
     if filepath.endswith(".xlsx") or filepath.endswith(".xls"):
@@ -94,7 +95,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     modelDocument = modelXbrl.urlDocs.get(normalizedUri)
     if modelDocument:
         return modelDocument
-    elif normalizedUri in modelXbrl.urlUnloadableDocs:
+    elif modelXbrl.urlUnloadableDocs.get(normalizedUri):  # only return None if in this list and marked True (really not loadable)
         return None
 
     
