@@ -407,6 +407,6 @@ def roundValue(value, precision=None, decimals=None):
         vRounded = vDecimal
     return vRounded
 
-class wrappedFactWithWeight(ObjectPropertyViewWrapper):
-    def __init__(self, fact, weight):
-        super(wrappedFactWithWeight, self).__init__(fact, ( ("weight", weight), ) )
+
+def wrappedFactWithWeight(fact, weight):
+    return ObjectPropertyViewWrapper(fact, ( ("weight", weight), ) )
