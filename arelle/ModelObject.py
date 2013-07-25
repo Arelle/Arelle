@@ -372,3 +372,14 @@ class ModelAttribute:
         self.xValue = xValue
         self.sValue = sValue
         self.text = text
+
+class ObjectPropertyViewWrapper:  # extraProperties = ( (p1, v1), (p2, v2), ... )
+    __slots__ = ("modelObject", "extraProperties")
+    def __init__(self, modelObject, extraProperties=()):
+        self.modelObject = modelObject
+        self.extraProperties = extraProperties
+        
+    @property
+    def propertyView(self):
+        return self.modelObject.propertyView + self.extraProperties
+                
