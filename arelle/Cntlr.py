@@ -327,7 +327,11 @@ class Cntlr:
         if self.logger is not None:
             self.logger.log(level, message, extra={"messageCode":messageCode,"refs":[{"href": file}]})
         else:
-            print(message) # allows printing on standard out
+            try:
+                print(message)
+            except UnicodeEncodeError:
+                print(message.encode(sys.stdout.encoding, 'backslashreplace')
+                      .decode(sys.stdout.encoding, 'strict'))
             
     def showStatus(self, message, clearAfter=None):
         """Dummy method for specialized controller classes to specialize, 
@@ -518,7 +522,9 @@ class LogToPrintHandler(logging.Handler):
         try:
             print(logEntry, file=file)
         except UnicodeEncodeError:
-            print(logEntry.encode("ascii", "replace").decode("ascii"), file=file)
+            print(logEntry.encode(sys.stdout.encoding, 'backslashreplace')
+                  .decode(sys.stdout.encoding, 'strict'), 
+                  file=file)
 
 class LogHandlerWithXml(logging.Handler):        
     def __init__(self):
@@ -572,7 +578,12 @@ class LogToXmlHandler(LogHandlerWithXml):
             print('<?xml version="1.0" encoding="utf-8"?>')
             print('<log>')
             for logRec in self.logRecordBuffer:
-                print(self.recordToXml(logRec))
+                logRecXml = self.recordToXml(logRec)
+                try:
+                    print(logRecXml)
+                except UnicodeEncodeError:
+                    print(logRecXml.encode(sys.stdout.encoding, 'backslashreplace')
+                          .decode(sys.stdout.encoding, 'strict'))
             print('</log>')
         else:
             print ("filename=" + self.filename)
@@ -651,5 +662,4 @@ class LogToBufferHandler(LogHandlerWithXml):
     
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
-
 
