@@ -267,13 +267,12 @@ def final(val, conceptsUsed):
                     # catches abstract deprecated concepts in linkbases
                     standardConceptsDeprecated[concept].add(rel.locatorOf(concept))
     for concept, locs in standardConceptsUnused.items():
-        if concept.qname.namespaceURI == ugtNamespace:
-            if concept.name in val.usgaapDeprecations:
-                deprecation = val.usgaapDeprecations[concept.name]
-                val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
-                    _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
-                    modelObject=locs, concept=concept.qname,
-                    date=deprecation[0], documentation=deprecation[1])
+        if concept.qname.namespaceURI == ugtNamespace and concept.name in val.usgaapDeprecations:
+            deprecation = val.usgaapDeprecations[concept.name]
+            val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
+                _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
+                modelObject=locs, concept=concept.qname,
+                date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),
