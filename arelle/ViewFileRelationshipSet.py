@@ -25,7 +25,7 @@ class ViewRelationshipSet(ViewFile.View):
         # determine relationships indent depth for dimensions linkbases
         # set up treeView widget and tabbed pane
         if arcrole == XbrlConst.parentChild: # extra columns
-            heading = ["Presentation Relationships", "Type", "References"]
+            heading = ["Presentation Relationships", "Pref. Label", "Type", "References"]
         elif arcrole == XbrlConst.summationItem:    # add columns for calculation relationships
             heading = ["Calculation Relationships", "Weight", "Balance"]
         elif arcrole == "XBRL-dimensions":    # add columns for dimensional information
@@ -135,6 +135,13 @@ class ViewRelationshipSet(ViewFile.View):
                 childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
                                                                       modelObject.linkrole)
             if self.arcrole == XbrlConst.parentChild: # extra columns
+                if isRelation:
+                    preferredLabel = modelObject.preferredLabel
+                    if preferredLabel.startswith("http://www.xbrl.org/2003/role/"):
+                        preferredLabel = os.path.basename(preferredLabel)
+                else:
+                    preferredLabel = None
+                cols.append(preferredLabel)
                 cols.append(concept.niceType)
                 cols.append(viewReferences(concept))
             elif arcrole == XbrlConst.summationItem:

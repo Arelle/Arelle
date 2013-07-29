@@ -65,7 +65,9 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             self.treeView.heading("#0", text=hdr)
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 self.treeView.column("#0", width=300, anchor="w")
-                self.treeView["columns"] = ("type", "references")
+                self.treeView["columns"] = ("preferredLabel", "type", "references")
+                self.treeView.column("preferredLabel", width=64, anchor="w", stretch=False)
+                self.treeView.heading("preferredLabel", text=_("Pref. Label"))
                 self.treeView.column("type", width=100, anchor="w", stretch=False)
                 self.treeView.heading("type", text=_("Type"))
                 self.treeView.column("references", width=200, anchor="w", stretch=False)
@@ -162,6 +164,11 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
             childRelationshipSet = relationshipSet
             if self.arcrole == XbrlConst.parentChild: # extra columns
+                if isRelation:
+                    preferredLabel = modelObject.preferredLabel
+                    if preferredLabel.startswith("http://www.xbrl.org/2003/role/"):
+                        preferredLabel = os.path.basename(preferredLabel)
+                    self.treeView.set(childnode, "preferredLabel", preferredLabel)
                 self.treeView.set(childnode, "type", concept.niceType)
                 self.treeView.set(childnode, "references", viewReferences(concept))
             elif self.arcrole == XbrlConst.summationItem:
