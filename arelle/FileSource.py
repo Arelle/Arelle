@@ -7,10 +7,11 @@ Created on Oct 20, 2010
 import zipfile, os, io, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
+from arelle.TaxonomyPackage import parseTxmyPkg
 from arelle.UrlUtil import isHttpUrl
 
-archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep) + \
-                        ((".zip/", ".eis/", ".xml/", ".xfd/", ".frm/") if os.sep != "/" else ()) #acomodate windows and http styles
+archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
+                        ((".zip/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
 
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
@@ -76,27 +77,30 @@ class FileSource:
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
         self.isRss = (self.type == ".rss" or self.url.endswith(".rss.xml"))
+        self.isInstalledTaxonomyPackage = False
         self.isOpen = False
         self.fs = None
         self.selection = None
         self.filesDir = None
         self.referencedFileSources = {}  # archive file name, fileSource object
-        self.mappedPaths = {}  # remappings of path segments may be loaded by taxonomyPackage manifest
+        self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
         
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
-            self.type == ".xml" and
-            checkIfXmlIsEis):
-            try:
-                file = open(self.cntlr.webCache.getfilename(self.url), 'r', errors='replace')
-                l = file.read(128)
-                file.close()
-                if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<cor[a-z]*:edgarSubmission", l):
-                    self.isEis = True
-            except EnvironmentError as err:
-                if self.cntlr:
-                    self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
-                pass
+            self.type == ".xml"):
+            if os.path.split(self.url)[-1] == TAXONOMY_PACKAGE_FILE_NAME:
+                self.isInstalledTaxonomyPackage = True
+            elif checkIfXmlIsEis:
+                try:
+                    file = open(self.cntlr.webCache.getfilename(self.url), 'r', errors='replace')
+                    l = file.read(128)
+                    file.close()
+                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<cor[a-z]*:edgarSubmission", l):
+                        self.isEis = True
+                except EnvironmentError as err:
+                    if self.cntlr:
+                        self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
+                    pass
             
     def logError(self, err):
         if self.cntlr:
@@ -104,7 +108,7 @@ class FileSource:
 
     def open(self):
         if not self.isOpen:
-            if (self.isZip or self.isEis or self.isXfd or self.isRss) and self.cntlr:
+            if (self.isZip or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
                 self.basefile = self.cntlr.webCache.getfilename(self.url)
             else:
                 self.basefile = self.url
@@ -225,6 +229,25 @@ class FileSource:
                 except etree.LxmlError as err:
                     self.logError(err)
                     return # provide error message later
+            
+            elif self.isInstalledTaxonomyPackage:
+                self.isOpen = True
+                # load mappings
+                try:
+                    metadataFiles = self.taxonomyPackageMetadataFiles
+                    if len(metadataFiles) != 1:
+                        raise IOError(_("Taxonomy package must contain one and only one metadata file: {0}.")
+                                      .format(', '.join(metadataFiles)))
+                    nameToUrls, remappings = parseTxmyPkg(self.cntlr, self.url)
+                    metadataDir = os.path.dirname(self.baseurl) + os.sep
+                    self.mappedPaths = \
+                        dict((prefix, 
+                              remapping if isHttpUrl(remapping)
+                              else (metadataDir + remapping.replace("/", os.sep)))
+                              for prefix, remapping in remappings.items())
+                except EnvironmentError as err:
+                    self.logError(err)
+                    return # provide error message later
 
     def openZipStream(self, sourceZipStream):
         if not self.isOpen:
@@ -254,15 +277,18 @@ class FileSource:
             self.rssDocument.getroot().clear() # unlink nodes
             self.rssDocument = None
             self.isRss = False
+        if self.isInstalledTaxonomyPackage:
+            self.isInstalledTaxonomyPackage = False
+            self.isOpen = False
         self.filesDir = None
         
     @property
     def isArchive(self):
-        return self.isZip or self.isEis or self.isXfd
+        return self.isZip or self.isEis or self.isXfd or self.isInstalledTaxonomyPackage
     
     @property
     def isTaxonomyPackage(self):
-        return self.isZip and self.taxonomyPackageMetadataFiles
+        return (self.isZip and self.taxonomyPackageMetadataFiles) or self.isInstalledTaxonomyPackage
     
     @property
     def taxonomyPackageMetadataFiles(self):
@@ -272,14 +298,17 @@ class FileSource:
         return self.fileSourceContainingFilepath(filepath) is not None
     
     def isMappedUrl(self, url):
-        return any(url.startswith(mapFrom) 
-                   for mapFrom in self.mappedPaths)        
+        if self.mappedPaths is not None:
+            return any(url.startswith(mapFrom) 
+                       for mapFrom in self.mappedPaths)
+        return False        
 
     def mappedUrl(self, url):
-        for mapFrom, mapTo in self.mappedPaths.items():
-            if url.startswith(mapFrom):
-                mappedUri = mapTo + url[len(mapFrom):]
-                break
+        if self.mappedPaths:
+            for mapFrom, mapTo in self.mappedPaths.items():
+                if url.startswith(mapFrom):
+                    url = mapTo + url[len(mapFrom):]
+                    break
         return url
     
     def fileSourceContainingFilepath(self, filepath):
@@ -372,6 +401,11 @@ class FileSource:
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
                 raise ArchiveFileIOError(self, archiveFileName)
+            elif archiveFileSource.isInstalledTaxonomyPackage:
+                # remove TAXONOMY_PACKAGE_FILE_NAME from file path
+                if filepath.startswith(archiveFileSource.basefile):
+                    l = len(archiveFileSource.basefile)
+                    filepath = filepath[0:l - len(TAXONOMY_PACKAGE_FILE_NAME)] + filepath[l:]
         if binary:
             return (openFileStream(self.cntlr, filepath, 'rb'), )
         else:
@@ -435,6 +469,18 @@ class FileSource:
             except (EnvironmentError,
                     etree.LxmlError) as err:
                 pass
+        elif self.isInstalledTaxonomyPackage:
+            files = []
+            baseurlPathLen = len(self.baseurl) - len(TAXONOMY_PACKAGE_FILE_NAME)
+            def packageDirsFiles(dir):
+                for file in os.listdir(dir):
+                    path = dir + "/" + file   # must have / and not \\ even on windows
+                    files.append(path[baseurlPathLen:])
+                    if os.path.isdir(path): 
+                        packageDirsFiles(path)
+            packageDirsFiles(self.baseurl[0:baseurlPathLen - 1])
+            self.filesDir = files
+            
         return self.filesDir
     
     def select(self, selection):

@@ -12,6 +12,7 @@ except ImportError:
 import re, os, sys
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl
+from arelle.TaxonomyPackage import parseTxmyPkg
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -95,7 +96,7 @@ class DialogOpenArchive(Toplevel):
         if openType == ENTRY_POINTS:
             try:
                 metadataFiles = filesource.taxonomyPackageMetadataFiles
-                if len(metadataFiles) > 1:
+                if len(metadataFiles) != 1:
                     raise IOError(_("Taxonomy package contained more than one metadata file: {0}.")
                                   .format(', '.join(metadataFiles)))
                 metadataFile = metadataFiles[0]
@@ -232,6 +233,13 @@ class DialogOpenArchive(Toplevel):
     def ok(self, event=None):
         selection = self.treeView.selection()
         if len(selection) > 0:
+            if hasattr(self, "remappings"):
+                # load file source remappings
+                self.filesource.mappedPaths = \
+                    dict((prefix, 
+                          remapping if isHttpUrl(remapping)
+                          else (self.filesource.baseurl + os.sep + self.metadataFilePrefix +remapping.replace("/", os.sep)))
+                          for prefix, remapping in self.remappings.items())
             if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM):
                 filename = self.filenames[int(selection[0][4:])]
                 if isinstance(filename,tuple):
@@ -247,14 +255,7 @@ class DialogOpenArchive(Toplevel):
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
                 urlOrFile = self.nameToUrls[epName][0]
-                
-                # load file source remappings
-                self.filesource.mappedPaths = \
-                    dict((prefix, 
-                          remapping if isHttpUrl(remapping)
-                          else (self.filesource.baseurl + os.sep + self.metadataFilePrefix +remapping.replace("/", os.sep)))
-                          for prefix, remapping in self.remappings.items())
-    
+                    
                 if not urlOrFile.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
                     if isHttpUrl(urlOrFile):
@@ -309,56 +310,3 @@ class DialogOpenArchive(Toplevel):
             self.toolTipText.set("")
             self.toolTip.configure(state="disabled")
 
-from lxml import etree
-if sys.version[0] >= '3':
-    from urllib.parse import urljoin
-else:
-    from urllib2.urlparse import urljoin
-from arelle import Locale
-
-def parseTxmyPkg(mainWin, metadataFile):
-    unNamedCounter = 1
-    currentLang = Locale.getLanguageCode()
-
-    tree = etree.parse(metadataFile)
-
-    remappings = dict((m.get("prefix"),m.get("replaceWith"))
-                      for m in tree.iter(tag="{http://www.corefiling.com/xbrl/taxonomypackage/v1}remapping"))
-
-    result = {}
-
-    for entryPointSpec in tree.iter(tag="{http://www.corefiling.com/xbrl/taxonomypackage/v1}entryPoint"):
-        name = None
-        
-        # find closest match name node given xml:lang match to current language or no xml:lang
-        for nameNode in entryPointSpec.iter(tag="{http://www.corefiling.com/xbrl/taxonomypackage/v1}name"):
-            xmlLang = nameNode.get('{http://www.w3.org/XML/1998/namespace}lang')
-            if name is None or not xmlLang or currentLang == xmlLang:
-                name = nameNode.text
-                if currentLang == xmlLang: # most prefer one with the current locale's language
-                    break
-
-        if not name:
-            name = _("<unnamed {0}>").format(unNamedCounter)
-            unNamedCounter += 1
-
-        epDocCount = 0
-        for epDoc in entryPointSpec.iterchildren("{http://www.corefiling.com/xbrl/taxonomypackage/v1}entryPointDocument"):
-            if epDocCount:
-                mainWin.addToLog(_("WARNING: skipping multiple-document entry point (not supported)"))
-                continue
-            epDocCount += 1
-            epUrl = epDoc.get('href')
-            base = epDoc.get('{http://www.w3.org/XML/1998/namespace}base') # cope with xml:base
-            if base:
-                resolvedUrl = urljoin(base, epUrl)
-            else:
-                resolvedUrl = epUrl
-    
-            #perform prefix remappings
-            remappedUrl = resolvedUrl
-            for prefix, replace in remappings.items():
-                remappedUrl = remappedUrl.replace(prefix, replace, 1)
-            result[name] = (remappedUrl, resolvedUrl)
-
-    return (result, remappings)
