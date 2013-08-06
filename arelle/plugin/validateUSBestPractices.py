@@ -26,7 +26,8 @@ def setup(val):
     val.ugtNamespace = None
     cntlr = val.modelXbrl.modelManager.cntlr
     # load deprecated concepts for filed year of us-gaap
-    for ugtYear, ugtNamespace, ugtDocLB, ugtEntryXsd in ugtDocs:
+    for ugt in ugtDocs:
+        ugtNamespace = ugt["namespace"]
         if ugtNamespace in val.modelXbrl.namespaceDocs and len(val.modelXbrl.namespaceDocs[ugtNamespace]) > 0:
             val.ugtNamespace = ugtNamespace
             usgaapDoc = val.modelXbrl.namespaceDocs[ugtNamespace][0]
@@ -39,8 +40,9 @@ def setup(val):
             except Exception:
                 if file:
                     file.close()
-                val.modelXbrl.modelManager.addToLog(_("loading us-gaap deprecated concepts in cache"))
+                val.modelXbrl.modelManager.addToLog(_("loading us-gaap {0} deprecated concepts into cache").format(ugt["year"]))
                 startedAt = time.time()
+                ugtDocLB = ugt["docLB"]
                 val.usgaapDeprecations = {}
                 # load without SEC/EFM validation (doc file would not be acceptable)
                 priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
@@ -55,7 +57,8 @@ def setup(val):
                     val.modelXbrl.error("arelle:notLoaded",
                         _("US-GAAP documentation not loaded: %(file)s"),
                         modelXbrl=val, file=os.path.basename(ugtDocLB))
-                else:   # load deprecations
+                else:   
+                    # load deprecations
                     for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
                         modelDocumentation = labelRel.toModelObject
                         conceptName = labelRel.fromModelObject.name
@@ -69,17 +72,23 @@ def setup(val):
                     del deprecationsInstance # dereference closed modelXbrl
                 val.modelXbrl.profileStat(_("build us-gaap deprecated concepts cache"), time.time() - startedAt)
             ugtCalcsJsonFile = usgaapDoc.filepathdir + os.sep + "ugt-calculations.json"
+            ugtDefaultDimensionsJsonFile = usgaapDoc.filepathdir + os.sep + "ugt-default-dimensions.json"
             file = None
             try:
                 file = openFileStream(cntlr, ugtCalcsJsonFile, 'rt', encoding='utf-8')
                 val.usgaapCalculations = json.load(file)
                 file.close()
+                file = openFileStream(cntlr, ugtDefaultDimensionsJsonFile, 'rt', encoding='utf-8')
+                val.usgaapDefaultDimensions = json.load(file)
+                file.close()
             except Exception:
                 if file:
                     file.close()
-                val.modelXbrl.modelManager.addToLog(_("loading us-gaap calculations in cache"))
+                val.modelXbrl.modelManager.addToLog(_("loading us-gaap {0} calculations and default dimensions into cache").format(ugt["year"]))
                 startedAt = time.time()
+                ugtEntryXsd = ugt["entryXsd"]
                 val.usgaapCalculations = {}
+                val.usgaapDefaultDimensions = {}
                 # load without SEC/EFM validation (doc file would not be acceptable)
                 priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
                 val.modelXbrl.modelManager.validateDisclosureSystem = False
@@ -93,7 +102,8 @@ def setup(val):
                     val.modelXbrl.error("arelle:notLoaded",
                         _("US-GAAP calculations not loaded: %(file)s"),
                         modelXbrl=val, file=os.path.basename(ugtEntryXsd))
-                else:   # load calculations
+                else:   
+                    # load calculations
                     for ELR in calculationsInstance.relationshipSet(XbrlConst.summationItem).linkRoleUris:
                         elrRelSet = calculationsInstance.relationshipSet(XbrlConst.summationItem, ELR)
                         definition = ""
@@ -109,9 +119,15 @@ def setup(val):
                         val.usgaapCalculations[ELR] = elrUgtCalcs
                     jsonStr = _STR_UNICODE(json.dumps(val.usgaapCalculations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
                     saveFile(cntlr, ugtCalcsJsonFile, jsonStr)  # 2.7 gets unicode this way
+                    # load default dimensions
+                    for defaultDimRel in calculationsInstance.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
+                        if defaultDimRel.fromModelObject is not None and defaultDimRel.toModelObject is not None:
+                            val.usgaapDefaultDimensions[defaultDimRel.fromModelObject.name] = defaultDimRel.toModelObject.name
+                    jsonStr = _STR_UNICODE(json.dumps(val.usgaapDefaultDimensions, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+                    saveFile(cntlr, ugtDefaultDimensionsJsonFile, jsonStr)  # 2.7 gets unicode this way
                     calculationsInstance.close()
                     del calculationsInstance # dereference closed modelXbrl
-                val.modelXbrl.profileStat(_("build us-gaap calculations cache"), time.time() - startedAt)
+                val.modelXbrl.profileStat(_("build us-gaap calculations and default dimensions cache"), time.time() - startedAt)
             break
     val.deprecatedFactConcepts = defaultdict(list)
     val.deprecatedDimensions = defaultdict(list)
@@ -251,13 +267,12 @@ def final(val, conceptsUsed):
                     # catches abstract deprecated concepts in linkbases
                     standardConceptsDeprecated[concept].add(rel.locatorOf(concept))
     for concept, locs in standardConceptsUnused.items():
-        if concept.qname.namespaceURI == ugtNamespace:
-            if concept.name in val.usgaapDeprecations:
-                deprecation = val.usgaapDeprecations[concept.name]
-                val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
-                    _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
-                    modelObject=locs, concept=concept.qname,
-                    date=deprecation[0], documentation=deprecation[1])
+        if concept.qname.namespaceURI == ugtNamespace and concept.name in val.usgaapDeprecations:
+            deprecation = val.usgaapDeprecations[concept.name]
+            val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
+                _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
+                modelObject=locs, concept=concept.qname,
+                date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),
@@ -285,7 +300,7 @@ def final(val, conceptsUsed):
                 modelObject=locs, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
     val.modelXbrl.profileStat(_("validate US-BGP unused concepts"), time.time() - startedAt)
-        
+
     del standardRelationships, extensionConceptsUnused, standardConceptsUnused, standardConceptsDeprecated, dimensionDefaults
     del val.deprecatedFactConcepts
     del val.deprecatedDimensions
@@ -293,8 +308,7 @@ def final(val, conceptsUsed):
 
     if hasattr(val, 'usgaapCalculations'):
         """
-        The UGT calcuations are loaded and cached from the 2012 US-GAAP.  
-        (This has to be updated!!!)
+        The UGT calcuations are loaded and cached from the US-GAAP.  
         
         UGT calculation link roles are presumed to (and do) reflect the statement sheets they 
         correspond to, and therefore each set of UGT summation-item arc-sets are cached and 
@@ -414,11 +428,40 @@ def final(val, conceptsUsed):
         val.modelXbrl.profileStat(_("validate US-BGP missing calcs"), time.time() - startedAt)
                        
 
+    if hasattr(val, 'usgaapDefaultDimensions'):
+        """
+        The UGT default dimensions are loaded and cached from US-GAAP.  
+        
+        Question E.16 (Updated 02/05/2013):
+        
+        Filers SHOULD also avoid creating new domains or changing default member elements for pre-defined dimensions.
+        """
+        for defaultDimRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
+            if (defaultDimRel.fromModelObject is not None and defaultDimRel.toModelObject is not None and
+                defaultDimRel.fromModelObject.qname.namespaceURI == ugtNamespace and
+                defaultDimRel.fromModelObject.name in val.usgaapDefaultDimensions and
+                (defaultDimRel.toModelObject.qname.namespaceURI != ugtNamespace or
+                 defaultDimRel.toModelObject.name != val.usgaapDefaultDimensions[defaultDimRel.fromModelObject.name])):
+                if defaultDimRel.toModelObject.qname.namespaceURI != ugtNamespace:
+                    msgObjects = (defaultDimRel, defaultDimRel.toModelObject)
+                else:
+                    msgObjects = defaultDimRel
+                val.modelXbrl.log('WARNING-SEMANTIC', "secStaffObservation.E.16.defaultDimension",
+                    _("UGT-defined dimension %(dimension)s has extension defined default %(extensionDefault)s, predefined default is %(predefinedDefault)s"),
+                    modelObject=msgObjects,
+                    dimension=defaultDimRel.fromModelObject.qname,
+                    extensionDefault=defaultDimRel.toModelObject.qname,
+                    predefinedDefault=defaultDimRel.fromModelObject.qname.prefix + ":" + val.usgaapDefaultDimensions[defaultDimRel.fromModelObject.name])
+
+        val.modelXbrl.profileStat(_("validate SEC staff observation E.16 dimensions"), time.time() - startedAt)
+
     del val.linroleDefinitionIsDisclosure
     del val.linkroleDefinitionStatementSheet
     del val.ugtNamespace
     if hasattr(val, 'usgaapDeprecations'):
         del val.usgaapDeprecations
+    if hasattr(val, 'usgaapDefaultDimensions'):
+        del val.usgaapDefaultDimensions
     if hasattr(val, 'usgaapCalculations'):
         del val.usgaapCalculations
     

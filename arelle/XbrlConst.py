@@ -116,6 +116,8 @@ standardReference = "http://www.xbrl.org/2003/role/reference"
 genStandardReference = "http://www.xbrl.org/2010/role/reference"
 periodStartLabel = "http://www.xbrl.org/2003/role/periodStartLabel"
 periodEndLabel = "http://www.xbrl.org/2003/role/periodEndLabel"
+verboseLabel = "http://www.xbrl.org/2003/role/verboseLabel"
+terseLabel = "http://www.xbrl.org/2003/role/terseLabel"
 conceptNameLabelRole = "XBRL-concept-name" # fake label role to show concept QName instead of label
 xlinkLinkbase = "http://www.w3.org/1999/xlink/properties/linkbase"
 
@@ -349,6 +351,7 @@ errMsgPrefixNS = {
     "xbrldfe": "http://xbrl.org/2008/filter/dimension/error",  
     "xffe": "http://www.xbrl.org/2010/function/formula/error",
     "xfie": "http://www.xbrl.org/2008/function/instance/error",
+    "xfxce":"http://www.xbrl.org/2010/function/xml-creation/error",
     "vere": "http://xbrl.org/2010/versioning-base/error",
     "vercue": "http://xbrl.org/2010/versioning-concept-use/error",
     "vercde" :"http://xbrl.org/2010/versioning-concept-details/error",
@@ -545,11 +548,12 @@ def isStandardArcQname(qName):
 def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
-consecutiveArcrole = {
-    all: dimensionDomain, notAll: dimensionDomain,
+consecutiveArcrole = { # can be list of or single arcrole
+    all: (dimensionDomain,hypercubeDimension), notAll: (dimensionDomain,hypercubeDimension),
+    hypercubeDimension: dimensionDomain,
     dimensionDomain: domainMember,
     domainMember: domainMember,
-    dimensionDefault: dimensionDefault}
+    dimensionDefault: ()}
 
 def isTableRenderingArcrole(arcrole):
     return arcrole in {# current PWD 2013-05-17
@@ -558,7 +562,7 @@ def isTableRenderingArcrole(arcrole):
                        # Prior PWD, Montreal and 2013-01-16 
                        tableBreakdown201301, tableAxis2011, tableFilter2011, 
                        tableDefinitionNodeSubtree201301, tableAxisSubtree2011, 
-                       tableFilterNodeFilter2011, tableAxisFilter2011, 
+                       tableFilterNodeFilter2011, tableAxisFilter2011, tableAxisFilter201205,
                        tableTupleContent201301, tableTupleContent2011,
                        tableAxisSubtree2011, tableAxisFilter2011,
                        # original Eurofiling

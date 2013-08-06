@@ -39,7 +39,7 @@ windows
 
 '''
 
-import os, sys, io, re, time
+import os, sys, io, re, time, datetime
 from math import isnan, isinf
 from pg8000 import DBAPI
 from pg8000.errors import CursorClosedError, ConnectionClosedError, InterfaceError, ProgrammingError
@@ -49,8 +49,8 @@ from arelle.ModelValue import qname, dateTime
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle import XbrlConst
 
-#TRACESQLFILE = None
-TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+TRACESQLFILE = None
+#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -74,7 +74,7 @@ def isDBPort(host, port, timeout=10):
     t = 2
     while t < timeout:
         try:
-            DBAPI.connect(user='', host=host, port=int(port) if port else None, socket_timeout=t)
+            DBAPI.connect(user='', host=host, port=int(port or 5432), socket_timeout=t)
         except ProgrammingError:
             return True # success, this is really a postgres socket, wants user name
         except InterfaceError:
@@ -141,7 +141,7 @@ class XbrlPostgresDatabaseConnection():
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         self.conn = DBAPI.connect(user=user, password=password, host=host, 
-                                  port=int(port) if port else None, 
+                                  port=int(port or 5432), 
                                   database=database, 
                                   socket_timeout=timeout or 60)
         self.tableColTypes = {}
@@ -228,7 +228,7 @@ class XbrlPostgresDatabaseConnection():
                                   close=False, commit=False, fetch=False)
         self.showStatus("Dropping prior sequences")
         for sequence in self.sequencesInDB():
-            result = self.execute('DROP SEQUENCE %s' % sequence[0],
+            result = self.execute('DROP SEQUENCE %s' % sequence,
                                   close=False, commit=False, fetch=False)
         self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
                     
@@ -266,7 +266,7 @@ class XbrlPostgresDatabaseConnection():
                 # problem with driver and $$ statements, skip them (for now)
                 stmt = ''
         for sql in sqlstatements:
-            if 'CREATE TABLE' in sql or 'CREATE SEQUENCE' in sql:
+            if 'CREATE TABLE' in sql or 'CREATE SEQUENCE' in sql or 'INSERT INTO' in sql:
                 statusMsg, sep, rest = sql.strip().partition('\n')
                 self.showStatus(statusMsg[0:50])
                 result = self.execute(sql, close=False, commit=False, fetch=False)
@@ -451,14 +451,15 @@ WITH row_values (%(newCols)s) AS (
                                   ('accepted_timestamp', 'entity_id', 'filing_accession_number'), 
                                   ((rssItem.acceptanceDatetime,
                                     True,
-                                    rssItem.filingDate,
-                                    rssItem.cikNumber,
+                                    rssItem.filingDate or datetime.datetime.min,  # NOT NULL
+                                    rssItem.cikNumber or 0,  # NOT NULL
                                     rssItem.companyName,
                                     self.modelXbrl.modelDocument.creationSoftwareComment,
-                                    rssItem.assignedSic,
+                                    rssItem.assignedSic or -1,  # NOT NULL
                                     rssItem.htmlUrl,
                                     rssItem.url,
-                                    rssItem.accessionNumber),))
+                                    rssItem.accessionNumber or 'UNKNOWN'  # NOT NULL
+                                    ),))
             for id, timestamp, cik, accessionNbr in table:
                 self.accessionId = id
                 break
@@ -498,9 +499,9 @@ WITH row_values (%(newCols)s) AS (
     def insertNamespaces(self):
         self.showStatus("insert namespaces")
         table = self.getTable('namespace', 'namespace_id', 
-                              ('uri', 'is_base', 'taxonomy_version_id'), 
+                              ('uri', 'is_base', 'taxonomy_version_id', 'prefix'), 
                               ('uri',), 
-                              tuple((uri, True, 0) 
+                              tuple((uri, True, 0, self.disclosureSystem.standardPrefixes.get(uri,None)) 
                                     for uri in self.disclosureSystem.baseTaxonomyNamespaces))
         self.namespaceId = dict((uri, id)
                                 for id, uri in table)
@@ -514,6 +515,11 @@ WITH row_values (%(newCols)s) AS (
                                     for docUri in self.modelXbrl.urlDocs.keys()))
         self.documentIds = dict((uri, id)
                                 for id, uri in table)
+        table = self.getTable('accession_document_association', 'accession_document_association_id', 
+                              ('accession_id','document_id'), 
+                              ('document_id',), 
+                              tuple((self.accessionId, docId) 
+                                    for docId in self.documentIds.values()))
         
     def insertCustomArcroles(self):
         self.showStatus("insert arcrole types")
@@ -595,6 +601,7 @@ WITH row_values (%(newCols)s) AS (
                                      0)
                                     for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
                                     for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
+                                    if rel.fromModelObject is not None and rel.toModelObject is not None
                                     for resource in (rel.fromModelObject, rel.toModelObject)
                                     if isinstance(resource, ModelResource)))
         self.resourceId = dict(((roleId, qnId, docId, line, offset), id)
@@ -613,6 +620,7 @@ WITH row_values (%(newCols)s) AS (
                                      resource.xmlLang)
                                     for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
                                     for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
+                                    if rel.fromModelObject is not None and rel.toModelObject is not None
                                     for resource in (rel.fromModelObject, rel.toModelObject)
                                     if isinstance(resource, ModelResource) and XbrlConst.isLabelRole(resource.role)))
     
@@ -639,7 +647,7 @@ WITH row_values (%(newCols)s) AS (
         
         def walkTree(rels, seq, depth, relationshipSet, visited, dbRels, networkId):
             for rel in rels:
-                if rel not in visited:
+                if rel not in visited and rel.toModelObject is not None:
                     visited.add(rel)
                     dbRels.append((rel, seq, depth, networkId))
                     seq += 1
@@ -659,19 +667,19 @@ WITH row_values (%(newCols)s) AS (
                 for rootConcept in relationshipSet.rootConcepts:
                     seq = walkTree(relationshipSet.fromModelObject(rootConcept), seq, 1, relationshipSet, set(), dbRels, networkId)
 
-        def conceptId(concept):
+        def conceptElementId(concept):
             if isinstance(concept, ModelConcept):
-                self.elementId.get(self.qnameId.get(concept.qname))
+                return self.elementId.get(self.qnameId.get(concept.qname))
             else:
                 return None            
-        def resourceId(resource):
+        def resourceResourceId(resource):
             if isinstance(resource, ModelResource):
                 return self.resourceId.get((self.uriId[resource.role],
                                             self.qnameId[resource.qname],
                                             self.documentIds[resource.modelDocument.uri],
                                             resource.sourceline, 0))
             else:
-                return 0            
+                return None     
         
         table = self.getTable('relationship', 'relationship_id', 
                               ('network_id', 'from_element_id', 'to_element_id', 'reln_order', 
@@ -679,16 +687,17 @@ WITH row_values (%(newCols)s) AS (
                                'tree_sequence', 'tree_depth', 'preferred_label_role_uri_id'), 
                               ('network_id', 'tree_sequence'), 
                               tuple((networkId,
-                                     conceptId(rel.fromModelObject.qname), # may be None
-                                     conceptId(rel.toModelObject.qname), # may be None
+                                     conceptElementId(rel.fromModelObject), # may be None
+                                     conceptElementId(rel.toModelObject), # may be None
                                      dbNum(rel.order),
-                                     resourceId(rel.fromModelObject.qname), # may be None
-                                     resourceId(rel.toModelObject.qname), # may be None
+                                     resourceResourceId(rel.fromModelObject), # may be None
+                                     resourceResourceId(rel.toModelObject), # may be None
                                      dbNum(rel.weight), # none if no weight
                                      sequence,
                                      depth,
                                      self.qnameId.get(rel.preferredLabel))
-                                    for rel, sequence, depth, networkId in dbRels))
+                                    for rel, sequence, depth, networkId in dbRels
+                                    if rel.fromModelObject is not None and rel.toModelObject is not None))
 
     def insertFacts(self):
         accsId = self.accessionId

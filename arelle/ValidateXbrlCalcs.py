@@ -9,6 +9,7 @@ from math import (log10, isnan, isinf, fabs, trunc, fmod, floor)
 import decimal
 import re
 from arelle import Locale, XbrlConst, XbrlUtil
+from arelle.ModelObject import ObjectPropertyViewWrapper
 
 numberPattern = re.compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
@@ -116,7 +117,7 @@ class ValidateXbrlCalcs:
                                                 dupBindingKeys.add(itemBindKey)
                                             else:
                                                 boundSums[itemBindKey] += roundFact(fact, self.inferDecimals) * weight
-                                                boundSummationItems[itemBindKey].append(fact)
+                                                boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,weight))
                             for sumBindKey in boundSumKeys:
                                 ancestor, contextHash, unit = sumBindKey
                                 factKey = (sumConcept, ancestor, contextHash, unit)
@@ -135,6 +136,7 @@ class ValidateXbrlCalcs:
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
                                                     modelObject=[fact] + boundSummationItems[sumBindKey], 
                                                     concept=sumConcept.qname, linkrole=ELR, 
+                                                    linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
                                                     computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
                                                     contextID=fact.context.id, unitID=fact.unit.id)
@@ -159,13 +161,17 @@ class ValidateXbrlCalcs:
                                                     _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                                     modelObject=(modelRel, eF, aF), 
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
-                                                    linkrole=ELR, contextID=eF.context.id)
+                                                    linkrole=ELR, 
+                                                    linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
+                                                    contextID=eF.context.id)
                                             if not XbrlUtil.vEqual(eF, aF):
                                                 self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                                     modelObject=(modelRel, eF, aF), 
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
-                                                    linkrole=ELR, contextID=eF.context.id)
+                                                    linkrole=ELR,
+                                                    linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
+                                                    contextID=eF.context.id)
                     elif arcrole == XbrlConst.requiresElement:
                         for modelRel in relsSet.modelRelationships:
                             sourceConcept = modelRel.fromModelObject
@@ -176,7 +182,8 @@ class ValidateXbrlCalcs:
                                         _("Requires-Element %(requiringConcept)s missing required fact for %(requiredConcept)s in link role %(linkrole)s"),
                                         modelObject=sourceConcept, 
                                         requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname, 
-                                        linkrole=ELR)
+                                        linkrole=ELR,
+                                        linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR))
         self.modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
         self.modelXbrl.profileActivity() # reset
     
@@ -400,3 +407,6 @@ def roundValue(value, precision=None, decimals=None):
         vRounded = vDecimal
     return vRounded
 
+
+def wrappedFactWithWeight(fact, weight):
+    return ObjectPropertyViewWrapper(fact, ( ("weight", weight), ) )

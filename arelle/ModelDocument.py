@@ -49,11 +49,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
        not modelXbrl.modelManager.disclosureSystem.hrefValid(normalizedUri):
         blocked = modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences
         if normalizedUri not in modelXbrl.urlUnloadableDocs:
+            # HMRC note, HMRC.blockedFile should be in this list if hmrc-taxonomies.xml is maintained an dup to date
             modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                     _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
                     modelObject=referringElement, url=normalizedUri,
                     blockedIndicator=_(" blocked") if blocked else "")
-            modelXbrl.urlUnloadableDocs.add(normalizedUri)
+            modelXbrl.urlUnloadableDocs[normalizedUri] = blocked
         if blocked:
             return None
     if modelXbrl.fileSource.isMappedUrl(normalizedUri):
@@ -82,13 +83,19 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.error("FileNotLoadable",
                     _("File can not be loaded: %(fileName)s"),
                     modelObject=referringElement, fileName=normalizedUri)
-            modelXbrl.urlUnloadableDocs.add(normalizedUri)
+            modelXbrl.urlUnloadableDocs[normalizedUri] = True # always blocked if not loadable on this error
+        return None
+    
+    if filepath.endswith(".xlsx") or filepath.endswith(".xls"):
+        modelXbrl.error("FileNotLoadable",
+                _("File can not be loaded, requires loadFromExcel plug-in: %(fileName)s"),
+                modelObject=referringElement, fileName=normalizedUri)
         return None
     
     modelDocument = modelXbrl.urlDocs.get(normalizedUri)
     if modelDocument:
         return modelDocument
-    elif normalizedUri in modelXbrl.urlUnloadableDocs:
+    elif modelXbrl.urlUnloadableDocs.get(normalizedUri):  # only return None if in this list and marked True (really not loadable)
         return None
 
     
@@ -292,7 +299,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
             
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None):
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, base=None):
     """Returns a new modelDocument, created from scratch, with any necessary header elements 
     
     (such as the schema, instance, or RSS feed top level elements)
@@ -305,7 +312,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
     :param initialXml is initial xml content for xml documents
     :type isEntry: str
     """
-    normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, None)
+    normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
     if isEntry:
         modelXbrl.uri = normalizedUri
         modelXbrl.entryLoadingUrl = normalizedUri
@@ -314,7 +321,9 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir)
     filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri, filenameOnly=True)
     # XML document has nsmap root element to replace nsmap as new xmlns entries are required
-    if type == Type.INSTANCE:
+    if initialXml and type in (Type.INSTANCE, Type.SCHEMA, Type.LINKBASE, Type.RSSFEED):
+        Xml = '<nsmap>{0}</nsmap>'.format(initialXml or '')
+    elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
         Xml = ('<nsmap>'
                '<xbrl xmlns="http://www.xbrl.org/2003/instance"'
@@ -561,6 +570,14 @@ class ModelDocument:
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
+    def save(self, overrideFilepath=None):
+        """Saves current document file.
+        
+        :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
+        """
+        with open( (overrideFilepath or self.filepath), "w", encoding='utf-8') as fh:
+            XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+    
     def close(self, visited=None, urlDocs=None):
         if visited is None: visited = []
         visited.append(self)

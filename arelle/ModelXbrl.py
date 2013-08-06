@@ -9,7 +9,7 @@ import os, sys, traceback, uuid
 import logging
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.UrlUtil import isHttpUrl
@@ -74,7 +74,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
 
-def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None):
+def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None):
     from arelle import (ModelDocument, FileSource)
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
@@ -82,7 +82,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr) # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry)
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, base=base)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
     return modelXbrl
@@ -232,7 +232,7 @@ class ModelXbrl:
         self.uuid = uuid.uuid1().urn
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
-        self.urlUnloadableDocs = set()
+        self.urlUnloadableDocs = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel = (errorCaptureLevel or logging.getLevelName("INCONSISTENCY"))
         self.errors = []
         self.logCount = {}
@@ -421,6 +421,7 @@ class ModelXbrl:
         
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
         """
+        self.modelDocument.save(overrideFilepath)
         with open( (overrideFilepath or self.modelDocument.filepath), "w", encoding='utf-8') as fh:
             XmlUtil.writexml(fh, self.modelDocument.xmlDocument, encoding="utf-8")
     
@@ -857,10 +858,11 @@ class ModelXbrl:
                                     objectUrl = self.entryLoadingUrl
                         file = UrlUtil.relativeUri(entryUrl, objectUrl)
                         ref = {}
-                        if isinstance(arg,ModelObject):
-                            ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(arg)
-                            ref["sourceLine"] = arg.sourceline
-                            ref["objectId"] = arg.objectId()
+                        if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
+                            _arg = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
+                            ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
+                            ref["sourceLine"] = _arg.sourceline
+                            ref["objectId"] = _arg.objectId()
                             if logHrefObjectProperties:
                                 try:
                                     ref["properties"] = propValues(arg.propertyView)

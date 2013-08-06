@@ -65,7 +65,9 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             self.treeView.heading("#0", text=hdr)
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 self.treeView.column("#0", width=300, anchor="w")
-                self.treeView["columns"] = ("type", "references")
+                self.treeView["columns"] = ("preferredLabel", "type", "references")
+                self.treeView.column("preferredLabel", width=64, anchor="w", stretch=False)
+                self.treeView.heading("preferredLabel", text=_("Pref. Label"))
                 self.treeView.column("type", width=100, anchor="w", stretch=False)
                 self.treeView.heading("type", text=_("Type"))
                 self.treeView.column("references", width=200, anchor="w", stretch=False)
@@ -160,12 +162,18 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             else:   # just a resource
                 text = concept.localName
             childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
+            childRelationshipSet = relationshipSet
             if self.arcrole == XbrlConst.parentChild: # extra columns
+                if isRelation:
+                    preferredLabel = modelObject.preferredLabel
+                    if preferredLabel.startswith("http://www.xbrl.org/2003/role/"):
+                        preferredLabel = os.path.basename(preferredLabel)
+                    self.treeView.set(childnode, "preferredLabel", preferredLabel)
                 self.treeView.set(childnode, "type", concept.niceType)
                 self.treeView.set(childnode, "references", viewReferences(concept))
             elif self.arcrole == XbrlConst.summationItem:
                 if isRelation:
-                    self.treeView.set(childnode, "weight", "{:0g} ".format(modelObject.weight))
+                    self.treeView.set(childnode, "weight", "{:+0g} ".format(modelObject.weight))
                 self.treeView.set(childnode, "balance", concept.balance)
             elif self.arcrole == "XBRL-dimensions" and isRelation: # extra columns
                 relArcrole = modelObject.arcrole
@@ -175,6 +183,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "closed", modelObject.closed)
                 elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                     self.treeView.set(childnode, "usable", modelObject.usable)
+                childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
+                                                                      modelObject.linkrole)
             elif self.arcrole == "Table-rendering": # extra columns
                 try:
                     header = concept.header(lang=self.lang,strip=True,evaluate=False)
@@ -204,8 +214,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.tag_has[modelObject.toModelObject.objectId()].append(childnode)
             if concept not in visited:
                 visited.add(concept)
-                for modelRel in relationshipSet.fromModelObject(concept):
-                    nestedRelationshipSet = relationshipSet
+                for modelRel in childRelationshipSet.fromModelObject(concept):
+                    nestedRelationshipSet = childRelationshipSet
                     targetRole = modelRel.targetRole
                     if self.arcrole == XbrlConst.summationItem:
                         childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
@@ -213,7 +223,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                         targetRole = relationshipSet.linkrole
                         childPrefix = ""
                     else:
-                        nestedRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, targetRole)
+                        nestedRelationshipSet = self.modelXbrl.relationshipSet(childRelationshipSet.arcrole, targetRole)
                         childPrefix = "(via targetRole) "
                     toConcept = modelRel.toModelObject
                     if toConcept in visited:

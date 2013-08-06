@@ -7,7 +7,7 @@ Created on Nov 28, 2010
 from arelle import ModelDocument, ViewFile
 import os
 
-def viewTests(modelXbrl, outfile, cols):
+def viewTests(modelXbrl, outfile, cols=None):
     modelXbrl.modelManager.showStatus(_("viewing Tests"))
     view = ViewTests(modelXbrl, outfile, cols)
     view.viewTestcaseIndexElement(modelXbrl.modelDocument)

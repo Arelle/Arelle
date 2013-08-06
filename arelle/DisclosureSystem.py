@@ -40,6 +40,7 @@ class DisclosureSystem:
         self.standardLocalHrefs = set()
         self.standardAuthorities = set()
         self.baseTaxonomyNamespaces = set()
+        self.standardPrefixes = {}
         self.names = None
         self.name = None
         self.validationType = None
@@ -187,6 +188,7 @@ class DisclosureSystem:
             self.familyHrefs = defaultdict(set)
             self.standardLocalHrefs = defaultdict(set)
             self.standardAuthorities = set()
+            self.standardPrefixes = {}
             if not self.standardTaxonomiesUrl:
                 return
             basename = os.path.basename(self.standardTaxonomiesUrl)
@@ -203,6 +205,7 @@ class DisclosureSystem:
                         href = None
                         localHref = None
                         namespaceUri = None
+                        prefix = None
                         attType = None
                         family = None
                         elements = None
@@ -216,6 +219,8 @@ class DisclosureSystem:
                                 localHref = value
                             elif ln == "Namespace":
                                 namespaceUri = value
+                            elif ln == "Prefix":
+                                prefix = value
                             elif ln == "AttType":
                                 attType = value
                             elif ln == "Family":
@@ -233,6 +238,8 @@ class DisclosureSystem:
                                 self.standardAuthorities.add(authority)
                                 if family == "BASE":
                                     self.baseTaxonomyNamespaces.add(namespaceUri)
+                                if prefix:
+                                    self.standardPrefixes[namespaceUri] = prefix
                             if href not in self.standardTaxonomiesDict:
                                 self.standardTaxonomiesDict[href] = "Allowed" + attType
                             if family:

@@ -16,8 +16,10 @@ class ViewTree:
     def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False, lang=None):
         self.tabWin = tabWin
         self.viewFrame = Frame(tabWin)
+        self.viewFrame.view = self
         self.viewFrame.grid(row=0, column=0, sticky=(N, S, E, W))
         tabWin.add(self.viewFrame,text=tabTitle)
+        self.tabTitle = tabTitle # for error messages
         vScrollbar = Scrollbar(self.viewFrame, orient=VERTICAL)
         hScrollbar = Scrollbar(self.viewFrame, orient=HORIZONTAL)
         self.treeView = Treeview(self.viewFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set)
@@ -33,7 +35,8 @@ class ViewTree:
         self.treeView.tag_configure("selected-even", background=highlightColor)
         self.treeView.tag_configure("selected-odd", background=highlightColor)
         self.treeViewSelection = ()
-        self.treeView.bind("<<TreeviewSelect>>", self.treeViewSelectionChange, '+')
+        self.treeView.bind("<<TreeviewSelect>>", self.viewSelectionChange, '+')
+        self.treeView.bind("<1>", self.onViewClick, '+')
         hScrollbar["command"] = self.treeView.xview
         hScrollbar.grid(row=1, column=0, sticky=(E,W))
         vScrollbar["command"] = self.treeView.yview
@@ -63,7 +66,7 @@ class ViewTree:
             if not lang: 
                 self.lang = modelXbrl.modelManager.defaultLang
                 
-    def treeViewSelectionChange(self, event=None):
+    def viewSelectionChange(self, event=None):
         for node in self.treeViewSelection:
             priorTags = self.treeView.item(node)["tags"]
             if priorTags:
@@ -76,12 +79,17 @@ class ViewTree:
             if priorTags:
                 self.treeView.item(node, tags=("selected-" + priorTags[0],))
             
+    def onViewClick(self, *args):
+        self.modelXbrl.modelManager.cntlr.currentView = self
+
     def close(self):
+        del self.viewFrame.view
         if self.modelXbrl:
             self.tabWin.forget(self.viewFrame)
             self.modelXbrl.views.remove(self)
             self.modelXbrl = None
-        
+            self.view = None
+                
     def select(self):
         self.tabWin.select(self.viewFrame)
         
@@ -137,15 +145,16 @@ class ViewTree:
                 return self.menu
             except Exception as ex: # tkinter menu problem maybe
                 self.modelXbrl.info("arelle:internalException",
-                                    _("Exception creating context menu: %(error)s"),
-                                    modelObject=self.modelXbrl.modelDocument, error=str(ex))
+                                    _("Exception creating context menu in %(title)s: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
                 self.menu = None
                 return None
 
     def popUpMenu(self, event):
-        self.menuRow = self.treeView.identify_row(event.y)
-        self.menuCol = self.treeView.identify_column(event.x)
-        self.menu.post( event.x_root, event.y_root )
+        if self.menu:
+            self.menuRow = self.treeView.identify_row(event.y)
+            self.menuCol = self.treeView.identify_column(event.x)
+            self.menu.post( event.x_root, event.y_root )
         
     def expand(self):
         self.setTreeItemOpen(self.menuRow,open=True)
@@ -166,59 +175,101 @@ class ViewTree:
             self.setTreeItemOpen(childNode, open)
             
     def menuAddExpandCollapse(self):
-        self.menu.add_command(label=_("Expand"), underline=0, command=self.expand)
-        self.menu.add_command(label=_("Collapse"), underline=0, command=self.collapse)
-        self.menu.add_command(label=_("Expand all"), underline=0, command=self.expandAll)
-        self.menu.add_command(label=_("Collapse all"), underline=0, command=self.collapseAll)
+        if self.menu:
+            self.menu.add_command(label=_("Expand"), underline=0, command=self.expand)
+            self.menu.add_command(label=_("Collapse"), underline=0, command=self.collapse)
+            self.menu.add_command(label=_("Expand all"), underline=0, command=self.expandAll)
+            self.menu.add_command(label=_("Collapse all"), underline=0, command=self.collapseAll)
         
     def menuAddClipboard(self):
-        if self.modelXbrl.modelManager.cntlr.hasClipboard:
-            clipboardMenu = Menu(self.viewFrame, tearoff=0)
-            clipboardMenu.add_command(label=_("Cell"), underline=0, command=self.copyCellToClipboard)
-            clipboardMenu.add_command(label=_("Row"), underline=0, command=self.copyRowToClipboard)
-            clipboardMenu.add_command(label=_("Table"), underline=0, command=self.copyTableToClipboard)
-            self.menu.add_cascade(label=_("Copy to clipboard"), menu=clipboardMenu, underline=0)
+        if self.menu and self.modelXbrl.modelManager.cntlr.hasClipboard:
+            try:
+                clipboardMenu = Menu(self.viewFrame, tearoff=0)
+                clipboardMenu.add_command(label=_("Cell"), underline=0, command=self.copyCellToClipboard)
+                clipboardMenu.add_command(label=_("Row"), underline=0, command=self.copyRowToClipboard)
+                clipboardMenu.add_command(label=_("Table"), underline=0, command=self.copyTableToClipboard)
+                self.menu.add_cascade(label=_("Copy to clipboard"), menu=clipboardMenu, underline=0)
+            except Exception as ex: # tkinter menu problem maybe
+                self.modelXbrl.info("arelle:internalException",
+                                    _("Exception creating clipboard menu in %(title)s: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
+                self.menu = None
         
     def menuAddLangs(self):
-        langsMenu = Menu(self.viewFrame, tearoff=0)
-        self.menu.add_cascade(label=_("Language"), menu=langsMenu, underline=0)
-        for lang in sorted(self.modelXbrl.langs):
-            langsMenu.add_command(label=lang, underline=0, command=lambda l=lang: self.setLang(l))
+        if self.menu:
+            try:
+                langsMenu = Menu(self.viewFrame, tearoff=0)
+                self.menu.add_cascade(label=_("Language"), menu=langsMenu, underline=0)
+                for lang in sorted(self.modelXbrl.langs):
+                    langsMenu.add_command(label=lang, underline=0, command=lambda l=lang: self.setLang(l))
+            except Exception as ex: # tkinter menu problem maybe
+                self.modelXbrl.info("arelle:internalException",
+                                    _("Exception creating context languages menu in %(title)s: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
+                self.menu = None
 
     def menuAddLabelRoles(self, includeConceptName=False, menulabel=None):
-        if menulabel is None: menulabel = _("Label role")
-        rolesMenu = Menu(self.viewFrame, tearoff=0)
-        self.menu.add_cascade(label=menulabel, menu=rolesMenu, underline=0)
-        from arelle.ModelRelationshipSet import labelroles
-        for x in labelroles(self.modelXbrl, includeConceptName):
-            rolesMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
+        if self.menu:
+            try:
+                if menulabel is None: menulabel = _("Label role")
+                rolesMenu = Menu(self.viewFrame, tearoff=0)
+                self.menu.add_cascade(label=menulabel, menu=rolesMenu, underline=0)
+                from arelle.ModelRelationshipSet import labelroles
+                for x in labelroles(self.modelXbrl, includeConceptName):
+                    rolesMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
+            except Exception as ex: # tkinter menu problem maybe
+                self.modelXbrl.info("arelle:internalException",
+                                    _("Exception creating context label roles menu in %(title)s: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
+                self.menu = None
 
     def menuAddNameStyle(self, menulabel=None):
-        if menulabel is None: menulabel = _("Name Style")
-        nameStyleMenu = Menu(self.viewFrame, tearoff=0)
-        self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
-        from arelle.ModelRelationshipSet import labelroles
-        nameStyleMenu.add_command(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
-        nameStyleMenu.add_command(label=_("No prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
+        if self.menu:
+            try:
+                if menulabel is None: menulabel = _("Name Style")
+                nameStyleMenu = Menu(self.viewFrame, tearoff=0)
+                self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
+                from arelle.ModelRelationshipSet import labelroles
+                nameStyleMenu.add_command(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
+                nameStyleMenu.add_command(label=_("No prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
+            except Exception as ex: # tkinter menu problem maybe
+                self.modelXbrl.info("arelle:internalException",
+                                    _("Exception creating context name style menu in %(title)s: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
+                self.menu = None
 
     def menuAddUnitDisplay(self):
-        rolesMenu = Menu(self.viewFrame, tearoff=0)
-        self.menu.add_cascade(label=_("Units"), menu=rolesMenu, underline=0)
-        rolesMenu.add_command(label=_("Unit ID"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=True))
-        rolesMenu.add_command(label=_("Measures"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=False))
+        if self.menu:
+            try:
+                rolesMenu = Menu(self.viewFrame, tearoff=0)
+                self.menu.add_cascade(label=_("Units"), menu=rolesMenu, underline=0)
+                rolesMenu.add_command(label=_("Unit ID"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=True))
+                rolesMenu.add_command(label=_("Measures"), underline=0, command=lambda: self.setUnitDisplay(unitDisplayID=False))
+            except Exception as ex: # tkinter menu problem maybe
+                self.modelXbrl.info("arelle:internalException",
+                                    _("Exception creating context unit menu in %(title)s: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
+                self.menu = None
 
     def menuAddViews(self, addClose=True, tabWin=None):
-        if tabWin is None: tabWin = self.tabWin
-        viewMenu = Menu(self.viewFrame, tearoff=0)
-        self.menu.add_cascade(label=_("View"), menu=viewMenu, underline=0)
-        newViewsMenu = Menu(self.viewFrame, tearoff=0)
-        if addClose:
-            viewMenu.add_command(label=_("Close"), underline=0, command=self.close)
-        viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
-        newViewsMenu.add_command(label=_("Arcrole group..."), underline=0, command=lambda: self.newArcroleGroupView(tabWin))
-        from arelle.ModelRelationshipSet import baseSetArcroles
-        for x in baseSetArcroles(self.modelXbrl):
-            newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
+        if self.menu:
+            try:
+                if tabWin is None: tabWin = self.tabWin
+                viewMenu = Menu(self.viewFrame, tearoff=0)
+                self.menu.add_cascade(label=_("View"), menu=viewMenu, underline=0)
+                newViewsMenu = Menu(self.viewFrame, tearoff=0)
+                if addClose:
+                    viewMenu.add_command(label=_("Close"), underline=0, command=self.close)
+                viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
+                newViewsMenu.add_command(label=_("Arcrole group..."), underline=0, command=lambda: self.newArcroleGroupView(tabWin))
+                from arelle.ModelRelationshipSet import baseSetArcroles
+                for x in baseSetArcroles(self.modelXbrl):
+                    newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
+            except Exception as ex: # tkinter menu problem maybe
+                self.modelXbrl.info("arelle:internalException",
+                                    _("Exception creating context add-views menu in %(title)s: %(error)s"),
+                                    modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
+                self.menu = None
     
     def newView(self, arcrole, tabWin):
         from arelle import ViewWinRelationshipSet
@@ -299,7 +350,7 @@ class ViewTree:
             self.lastSortColumn = col
         self.treeView.heading(col, image=self.sortImages[reverse])
         self.sortNestedRows('', col, reverse)
-        self.treeViewSelectionChange()  # reselect selected rows
+        self.viewSelectionChange()  # reselect selected rows
         
     def copyCellToClipboard(self, *ignore):
         self.modelXbrl.modelManager.cntlr.clipboardData(

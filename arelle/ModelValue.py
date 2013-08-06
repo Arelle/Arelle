@@ -385,7 +385,7 @@ class gYear():
         self.year = int(year)
 
     def __repr__(self):
-        return "-{0}".format(self.year)
+        return "{0}".format(self.year)
     
 class gMonth():
     def __init__(self, month):

@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from struct import pack
-from arelle.xlwt.UnicodeUtils import upack1, upack2
+from arelle.xlwt.UnicodeUtils import upack1, upack2, upack2rt
 import sys
 
 class SharedStringTable(object):
@@ -9,6 +11,7 @@ class SharedStringTable(object):
     def __init__(self, encoding):
         self.encoding = encoding
         self._str_indexes = {}
+        self._rt_indexes = {}
         self._tally = []
         self._add_calls = 0
         # Following 3 attrs are used for temporary storage in the
@@ -23,7 +26,7 @@ class SharedStringTable(object):
             s = str(s, self.encoding)
         self._add_calls += 1
         if s not in self._str_indexes:
-            idx = len(self._str_indexes)
+            idx = len(self._str_indexes) + len(self._rt_indexes)
             self._str_indexes[s] = idx
             self._tally.append(1)
         else:
@@ -31,8 +34,26 @@ class SharedStringTable(object):
             self._tally[idx] += 1
         return idx
 
+    def add_rt(self, rt):
+        rtList = []
+        for s, xf in rt:
+            if self.encoding != 'ascii' and not isinstance(s, str):
+                s = str(s, self.encoding)
+            rtList.append((s, xf))
+        rt = tuple(rtList)
+        self._add_calls += 1
+        if rt not in self._rt_indexes:
+            idx = len(self._str_indexes) + len(self._rt_indexes)
+            self._rt_indexes[rt] = idx
+            self._tally.append(1)
+        else:
+            idx = self._rt_indexes[rt]
+            self._tally[idx] += 1
+        return idx
+
     def del_str(self, idx):
         # This is called when we are replacing the contents of a string cell.
+        # handles both regular and rt strings
         assert self._tally[idx] > 0
         self._tally[idx] -= 1
         self._add_calls -= 1
@@ -40,19 +61,26 @@ class SharedStringTable(object):
     def str_index(self, s):
         return self._str_indexes[s]
 
+    def rt_index(self, rt):
+        return self._rt_indexes[rt]
+
     def get_biff_record(self):
         self._sst_record = b''
         self._continues = [None, None]
         self._current_piece = pack('<II', 0, 0)
         data = [(idx, s) for s, idx in self._str_indexes.items()]
+        data.extend([(idx, s) for s, idx in self._rt_indexes.items()])
         data.sort() # in index order
         for idx, s in data:
             if self._tally[idx] == 0:
                 s = b''
-            self._add_to_sst(s)
+            if isinstance(s, str):
+                self._add_to_sst(s)
+            else:
+                self._add_rt_to_sst(s)
         del data
         self._new_piece()
-        self._continues[0] = pack('<2HII', self._SST_ID, len(self._sst_record), self._add_calls, len(self._str_indexes))
+        self._continues[0] = pack('<2HII', self._SST_ID, len(self._sst_record), self._add_calls, len(self._str_indexes) + len(self._rt_indexes))
         self._continues[1] = self._sst_record[8:]
         self._sst_record = None
         self._current_piece = None
@@ -64,7 +92,7 @@ class SharedStringTable(object):
     def _add_to_sst(self, s):
         u_str = upack2(s, self.encoding)
         # (to_py3): added b'...'
-        is_unicode_str = u_str[2] == b'\x01'
+        is_unicode_str = u_str[2] == 1 # HF: py 3 has requires int for comparison b'\x01'
         if is_unicode_str:
             atom_len = 5 # 2 byte -- len,
                          # 1 byte -- options,
@@ -76,6 +104,24 @@ class SharedStringTable(object):
 
         self._save_atom(u_str[0:atom_len])
         self._save_splitted(u_str[atom_len:], is_unicode_str)
+
+    def _add_rt_to_sst(self, rt):
+        rt_str, rt_fr = upack2rt(rt, self.encoding)
+        is_unicode_str = rt_str[2] == 9 # HF: py 3 has requires int for comparison b'\x09'
+        if is_unicode_str:
+            atom_len = 7 # 2 byte -- len,
+                         # 1 byte -- options,
+                         # 2 byte -- number of rt runs
+                         # 2 byte -- 1st sym
+        else:
+            atom_len = 6 # 2 byte -- len,
+                         # 1 byte -- options,
+                         # 2 byte -- number of rt runs
+                         # 1 byte -- 1st sym
+        self._save_atom(rt_str[0:atom_len])
+        self._save_splitted(rt_str[atom_len:], is_unicode_str)
+        for i in range(0, len(rt_fr), 4):
+            self._save_atom(rt_fr[i:i+4])
 
     def _new_piece(self):
         if self._sst_record == b'':
@@ -230,7 +276,7 @@ class WriteAccessRecord(BiffRecord):
         uowner = owner[0:0x30]
         uowner_len = len(uowner)
         self._rec_data = pack('%ds%ds' % (uowner_len, 0x70 - uowner_len),
-                              uowner, b' '*(0x70 - uowner_len)) # (to_py3): added b'...'
+                              uowner.encode('utf-8'), b' '*(0x70 - uowner_len)) # (to_py3): added b'...'
 
 
 class DSFRecord(BiffRecord):
@@ -1031,6 +1077,16 @@ class PaletteRecord(BiffRecord):
     """
     _REC_ID = 0x0092
 
+    def __init__(self, custom_palette):
+        n_colours = len(custom_palette)
+        assert n_colours == 56
+        # Pack number of colors with little-endian, what xlrd and excel expect.
+        self._rec_data = pack('<H', n_colours)
+        # Microsoft lists colors in big-endian format with 24 bits/color.
+        # Pad LSB of each color with 0x00, and write out in big-endian.
+        fmt = '>%dI' % n_colours
+        self._rec_data += pack(fmt, *(custom_palette))
+
 
 class BoundSheetRecord(BiffRecord):
     """
@@ -1318,7 +1374,24 @@ class PanesRecord(BiffRecord):
     ------------|-------------      ------------|-------------
     """
     _REC_ID = 0x0041
+    
+    valid_active_pane = {
+        # entries are of the form:
+        # (int(px > 0),int(px>0)) -> allowed values
+        (0,0):(3,),
+        (0,1):(2,3),
+        (1,0):(1,3),
+        (1,1):(0,1,2,3),
+        }
+    
     def __init__(self, px, py, first_row_bottom, first_col_right, active_pane):
+        allowed = self.valid_active_pane.get(
+            (int(px > 0),int(py > 0))
+            )
+        if active_pane not in allowed:
+            raise ValueError('Cannot set active_pane to %i, must be one of %s' % (
+                    active_pane, ', '.join(allowed)
+                    ))
         self._rec_data = pack('<5H', int(px), int(py), int(first_row_bottom),
                               int(first_col_right), int(active_pane))
 

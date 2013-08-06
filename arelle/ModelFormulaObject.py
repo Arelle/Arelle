@@ -123,12 +123,12 @@ class FormulaOptions():
     def __init__(self, savedValues=None):
         self.parameterValues = {} # index is QName, value is typed value
         self.runIDs = None # formula and assertion/assertionset IDs to execute
-        self.traceParameterExpressionResult = True
-        self.traceParameterInputValue = True
+        self.traceParameterExpressionResult = False
+        self.traceParameterInputValue = False
         self.traceCallExpressionSource = False
         self.traceCallExpressionCode = False
         self.traceCallExpressionEvaluation = False
-        self.traceCallExpressionResult = True
+        self.traceCallExpressionResult = False
         self.traceVariableSetExpressionSource = False
         self.traceVariableSetExpressionCode = False
         self.traceVariableSetExpressionEvaluation = False
@@ -143,7 +143,7 @@ class FormulaOptions():
         self.traceVariableExpressionSource = False
         self.traceVariableExpressionCode = False
         self.traceVariableExpressionEvaluation = False
-        self.traceVariableExpressionResult = True
+        self.traceVariableExpressionResult = False
         if isinstance(savedValues, dict):
             self.__dict__.update(savedValues)
             
@@ -1867,14 +1867,15 @@ class ModelInstantDuration(ModelFilter):
     
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         otherFact = xpCtx.inScopeVars.get(self.variable)
-        if otherFact is not None and isinstance(otherFact,ModelFact) and otherFact.isItem and \
-            otherFact.context.isStartEndPeriod:
+        if (otherFact is not None and isinstance(otherFact,ModelFact) and otherFact.isItem and 
+            otherFact.context is not None and otherFact.context.isStartEndPeriod):
             if self.boundary == 'start':
                 otherDatetime = otherFact.context.startDatetime
             else:
                 otherDatetime = otherFact.context.endDatetime
             return set(fact for fact in facts 
-                       if cmplmt ^ (fact.isItem and (fact.context.isInstantPeriod and \
+                       if cmplmt ^ (fact.isItem and (fact.context is not None and
+                                                     fact.context.isInstantPeriod and
                                                      fact.context.instantDatetime == otherDatetime))) 
         return facts # couldn't filter
 

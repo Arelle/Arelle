@@ -272,18 +272,19 @@ def checkDTS(val, modelDocument, visited):
                             modelObject=modelConcept, concept=modelConcept.qname)
                         
                     # 6.8.5 semantic check, check LC3 name
-                    if not name[0].isupper():
-                        val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.firstLetter", "GFM.2.03.05.firstLetter"),
-                            _("Concept %(concept)s name must start with a capital letter"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if namePattern.search(name):
-                        val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.disallowedCharacter", "GFM.2.03.05.disallowedCharacter"),
-                            _("Concept %(concept)s has disallowed name character"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
-                    if len(name) > 200:
-                        val.modelXbrl.log("ERROR-SEMANTIC", "EFM.6.08.05.nameLength",
-                            _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
-                            modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
+                    if name:
+                        if not name[0].isupper():
+                            val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.firstLetter", "GFM.2.03.05.firstLetter"),
+                                _("Concept %(concept)s name must start with a capital letter"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        if namePattern.search(name):
+                            val.modelXbrl.log("ERROR-SEMANTIC", ("EFM.6.08.05.disallowedCharacter", "GFM.2.03.05.disallowedCharacter"),
+                                _("Concept %(concept)s has disallowed name character"),
+                                modelObject=modelConcept, concept=modelConcept.qname)
+                        if len(name) > 200:
+                            val.modelXbrl.log("ERROR-SEMANTIC", "EFM.6.08.05.nameLength",
+                                _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
+                                modelObject=modelConcept, concept=modelConcept.qname, namelength=len(name))
                         
                     if val.validateEFM:
                         label = modelConcept.label(lang="en-US", fallbackToQname=False)
@@ -608,11 +609,11 @@ def checkDTS(val, modelDocument, visited):
                             _('Schema file name warning: %(filename)s, should match %(expectedFilename)s'),
                             modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
             except ValueError:
-                val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                     _('Invalid schema file base name part (date) in "{base}-{yyyymmdd}.xsd": %(filename)s'),
                     modelObject=modelDocument, filename=modelDocument.basename)
         else:
-            val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+            val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                 _('Invalid schema file name, must match "{base}-{yyyymmdd}.xsd": %(filename)s'),
                 modelObject=modelDocument, filename=modelDocument.basename)
 
@@ -622,7 +623,7 @@ def checkDTS(val, modelDocument, visited):
             #6.3.3 filename check
             extLinkElt = XmlUtil.descendant(modelDocument.xmlRootElement, XbrlConst.link, "*", "{http://www.w3.org/1999/xlink}type", "extended")
             if extLinkElt is None:# no ext link element
-                val.modelXbrl.error(("EFM.6.03.03.noLinkElement", "GFM.1.01.01.noLinkElement"),
+                val.modelXbrl.error((val.EFM60303 + ".noLinkElement", "GFM.1.01.01.noLinkElement"),
                     _('Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.'),
                     modelObject=modelDocument, filename=modelDocument.basename)
             elif extLinkElt.localName not in extLinkEltFileNameEnding:
@@ -643,11 +644,11 @@ def checkDTS(val, modelDocument, visited):
                                     _('Linkbase name warning: %(filename)s should match %(expectedFilename)s'),
                                     modelObject=modelDocument, filename=modelDocument.basename, expectedFilename=expectedFilename)
                     except ValueError:
-                        val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                        val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                             _('Invalid linkbase base file name part (date) in "{base}-{yyyymmdd}_{suffix}.xml": %(filename)s'),
                             modelObject=modelDocument, filename=modelDocument.basename)
                 else:
-                    val.modelXbrl.error(("EFM.6.03.03", "GFM.1.01.01"),
+                    val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                         _('Invalid linkbase name, must match "{base}-{yyyymmdd}%(expectedSuffix)s.xml": %(filename)s'),
                         modelObject=modelDocument, filename=modelDocument.basename, expectedSuffix=expectedSuffix)
     visited.remove(modelDocument)

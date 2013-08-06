@@ -5,7 +5,8 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import gc, sys, traceback, logging
-from arelle import (ModelXbrl, Validate, DisclosureSystem)
+from arelle import ModelXbrl, Validate, DisclosureSystem
+from arelle.PluginManager import pluginClassMethods
 
 def initialize(cntlr):
     modelManager = ModelManager(cntlr)
@@ -130,7 +131,14 @@ class ModelManager:
         except AttributeError:
             pass # filesource may be a string, which has no url attribute
         self.filesource = filesource
-        self.modelXbrl = ModelXbrl.load(self, filesource, nextaction)
+        modelXbrl = None # loaded modelXbrl
+        for customLoader in pluginClassMethods("ModelManager.Load"):
+            modelXbrl = customLoader(self, filesource)
+            if modelXbrl is not None:
+                break # custom loader did the loading
+        if modelXbrl is None:  # use default xbrl loader
+            modelXbrl = ModelXbrl.load(self, filesource, nextaction)
+        self.modelXbrl = modelXbrl
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
     
@@ -141,8 +149,8 @@ class ModelManager:
         elif self.modelXbrl is not None:
             self.modelXbrl.saveDTSpackage()
     
-    def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True):
-        self.modelXbrl = ModelXbrl.create(self, newDocumentType, url, schemaRefs, createModelDocument)
+    def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None):
+        self.modelXbrl = ModelXbrl.create(self, newDocumentType, url, schemaRefs, createModelDocument, isEntry, errorCaptureLevel, initialXml, base)
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
     

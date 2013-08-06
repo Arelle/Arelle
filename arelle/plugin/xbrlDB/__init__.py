@@ -17,6 +17,7 @@ import time, os, io, sys, logging
 from arelle.Locale import format_string
 from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
+from .XbrlSemanticRdfDB import insertIntoDB as insertIntoRdfDB, isDBPort as isRdfPort
 
 def xbrlDBmenuEntender(cntlr, menu):
     
@@ -38,6 +39,8 @@ def xbrlDBmenuEntender(cntlr, menu):
                 insertIntoDB = insertIntoPostgresDB
             elif isRexsterPort(host, port):
                 insertIntoDB = insertIntoRexsterDB
+            elif isRdfPort(host, port, db):
+                insertIntoDB = insertIntoRdfDB
             else:
                 from tkinter import messagebox
                 messagebox.showwarning(_("Unable to determine server type!"),
@@ -95,6 +98,8 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
         insertIntoPostgresDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
     elif isRexsterPort(host, port):
         insertIntoRexsterDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
+    elif isRdfPort(host, port, db):
+        insertIntoRdfDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
     else:
         modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return

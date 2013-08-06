@@ -137,6 +137,7 @@
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies.xml"
+     utrUrl="http://www.xbrl.org/utr/2012-11-30/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
@@ -186,7 +187,7 @@
      logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.07.09.roleEnding|EFM.6.07.13.arcroleEnding|EFM.6.10.01.missingLabelLinkbase)"
      />
   <DisclosureSystem 
-     names="US SEC (Edgar Filing Manual, Strict, 2012)|efm-2012|efm-strict-2012"
+     names="US SEC (Edgar Filing Manual, Strict, all years)|efm-all-years|efm-strict-all-years"
      description="US SEC Edgar Filing Manual, 2012\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
@@ -197,7 +198,8 @@
      blockDisallowedReferences="false" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="edgartaxonomies-2012.xml"
+     standardTaxonomiesUrl="edgartaxonomies-all-years.xml"
+     utrUrl="http://www.xbrl.org/utr/2012-11-30/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
@@ -215,7 +217,7 @@
      deiFilerNameElement="EntityRegistrantName"
      />
   <DisclosureSystem 
-     names="US SEC (Edgar Filing Manual, Pragmatic, 2012)|efm-blocking-2012|efm-pragmatic-2012"
+     names="US SEC (Edgar Filing Manual, Pragmatic, all years)|efm-blocking-all-years|efm-pragmatic-all-years"
      description="US SEC Edgar Filing Manual, 2012\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
@@ -226,7 +228,7 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="edgartaxonomies-2012.xml"
+     standardTaxonomiesUrl="edgartaxonomies-all-years.xml"
      utrUrl="http://www.xbrl.org/utr/2012-11-30/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
@@ -257,6 +259,7 @@
      defaultXmlLang="en"
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies.xml"
+     utrUrl="http://www.xbrl.org/utr/2012-11-30/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 

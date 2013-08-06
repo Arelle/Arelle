@@ -1,29 +1,11 @@
 from arelle.ModelValue import qname
+from arelle.XmlValidate import VALID
 import time
 from collections import defaultdict
 
-caNamespace = "http://xbrl.us/corporateActions/2011-05-31"
+caNamespace2011 = "http://xbrl.us/corporateActions/2011-05-31"
+caNamespace2012 = "http://xbrl.us/corporateActions/2012-03-31"
 
-qnEventOptionsSequenceTypedAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:EventOptionsSequenceTypedAxis")
-qnEventTypeAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:EventTypeAxis")
-qnIssueTypeAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:IssueTypeAxis")
-qnMarketTypeAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:MarketTypeAxis")
-qnMandatoryVoluntaryAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:MandatoryVoluntaryAxis")
-qnStatusAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:StatusAxis")
-qnUnderlyingSecuritiesImpactedTypedAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:UnderlyingSecuritiesImpactedTypedAxis")
-qnUnderlyingInstrumentIdentifierSchemeAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:UnderlyingInstrumentIdentifierSchemeAxis")
-qnEventOptionsSequenceTypedAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:EventOptionsSequenceTypedAxis")
-qnPayoutSequenceTypedAxis = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:PayoutSequenceTypedAxis")
-qnPayoutSecurityIdentifierSchemeAxis =  qname("{http://xbrl.us/corporateActions/2011-05-31}ca:PayoutSecurityIdentifierSchemeAxis")
-
-qnCashDividendMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:CashDividendMember")
-qnStockDividendMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:StockDividendMember")
-qnUnitedStatesMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:UnitedStatesMember")
-qnEquityMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:EquityMember")
-qnMandatoryMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:MandatoryMember")
-qnCancelMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:CancelMember")
-qnUnconfirmedMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:UnconfirmedMember")
-qnPreliminaryMember = qname("{http://xbrl.us/corporateActions/2011-05-31}ca:PreliminaryMember")
 
 eventTypeMap = { 
 "CashDividendMember": {"Cash Dividend", "Sale Of Rights"},
@@ -130,8 +112,34 @@ eventTypeMap = {
 
 def checkCorporateActions(val):
     modelXbrl = val.modelXbrl
-    if not caNamespace in modelXbrl.namespaceDocs:
+    if caNamespace2011 in modelXbrl.namespaceDocs:
+        caNamespace = caNamespace2011
+    elif caNamespace2012 in modelXbrl.namespaceDocs:
+        caNamespace = caNamespace2012
+    else:
         return # no corporate actions taxonomy
+
+    #Axes
+    qnEventOptionsSequenceTypedAxis = qname(caNamespace, "ca:EventOptionsSequenceTypedAxis")
+    qnEventTypeAxis = qname(caNamespace, "ca:EventTypeAxis")
+    qnIssueTypeAxis = qname(caNamespace, "ca:IssueTypeAxis")
+    qnMandatoryVoluntaryAxis = qname(caNamespace, "ca:MandatoryVoluntaryAxis")
+    qnMarketTypeAxis = qname(caNamespace, "ca:MarketTypeAxis")
+    qnPayoutSecurityIdentifierSchemeAxis =  qname(caNamespace, "ca:PayoutSecurityIdentifierSchemeAxis")
+    qnPayoutSequenceTypedAxis = qname(caNamespace, "ca:PayoutSequenceTypedAxis")
+    qnStatusAxis = qname(caNamespace, "ca:StatusAxis")
+    qnUnderlyingInstrumentIdentifierSchemeAxis = qname(caNamespace, "ca:UnderlyingInstrumentIdentifierSchemeAxis")
+    qnUnderlyingSecuritiesImpactedTypedAxis = qname(caNamespace, "ca:UnderlyingSecuritiesImpactedTypedAxis")
+    
+    #Members
+    qnCancelMember = qname(caNamespace, "ca:CancelMember")
+    qnCashDividendMember = qname(caNamespace, "ca:CashDividendMember")
+    qnEquityMember = qname(caNamespace, "ca:EquityMember")
+    qnMandatoryMember = qname(caNamespace, "ca:MandatoryMember")
+    qnPreliminaryMember = qname(caNamespace, "ca:PreliminaryMember")
+    qnStockDividendMember = qname(caNamespace, "ca:StockDividendMember")
+    qnUnconfirmedMember = qname(caNamespace, "ca:UnconfirmedMember")
+    qnUnitedStatesMember = qname(caNamespace, "ca:UnitedStatesMember")
 
     startedAt = time.time()
     caFacts = defaultdict(list)
@@ -143,30 +151,35 @@ def checkCorporateActions(val):
             caFacts[f.qname.localName].append(f)
             context = f.context
             qnEventTypeMember = context.dimMemberQname(qnEventTypeAxis)
-            qnMarketTypeMember = context.dimMemberQname(qnMarketTypeAxis)
             qnIssueTypeMember = context.dimMemberQname(qnIssueTypeAxis)
             qnMandatoryVoluntaryMember = context.dimMemberQname(qnMandatoryVoluntaryAxis) 
+            qnMarketTypeMember = context.dimMemberQname(qnMarketTypeAxis)
             if (not hasUsEquityCashDiv and 
                 qnEventTypeMember == qnCashDividendMember and
-                qnMarketTypeMember == qnUnitedStatesMember and
                 qnIssueTypeMember == qnEquityMember and
-                qnMandatoryVoluntaryMember == qnMandatoryMember):
+                qnMandatoryVoluntaryMember == qnMandatoryMember and
+                qnMarketTypeMember == qnUnitedStatesMember):
                 hasUsEquityCashDiv = True
             if (not hasUsEquityStockDiv and 
                 qnEventTypeMember == qnStockDividendMember and
-                qnMarketTypeMember == qnUnitedStatesMember and
                 qnIssueTypeMember == qnEquityMember and
-                qnMandatoryVoluntaryMember == qnMandatoryMember):
+                qnMandatoryVoluntaryMember == qnMandatoryMember and
+                qnMarketTypeMember == qnUnitedStatesMember):
                 hasUsEquityStockDiv = True
             if (not hasCancel and 
                 qnEventTypeMember == qnCancelMember and
-                qnMarketTypeMember == qnCancelMember and
                 qnIssueTypeMember == qnCancelMember and
-                qnMandatoryVoluntaryMember == qnCancelMember):
-                hasUsEquityStockDiv = True
+                qnMandatoryVoluntaryMember == qnCancelMember and
+                qnMarketTypeMember == qnCancelMember):
+                hasCancel = True
 
-    hasEventComplete = any(f.xValue == "Complete"
-                           for f in caFacts["EventCompleteness"])
+    hasEventComplete = False
+    eventCompleteContextHash = None
+    for f in caFacts["EventCompleteness"]:
+        if f.xValue == "Complete":
+            eventCompleteContextHash = f.context.contextDimAwareHash
+            hasEventComplete = True
+            break
     
     if hasEventComplete:
         facts = [f for f in modelXbrl.facts 
@@ -183,28 +196,28 @@ def checkCorporateActions(val):
                 _("Facts have an unconfirmed status, but the event is indicated to be complete: %(facts)s"),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
 
-    for i, localName in ((1, "AnnouncementDate"), (2, "EventCompleteness"), (3, "UniqueUniversalEventIdentifier"),
-                         (4, "AnnouncementIdentifier"), (5, "AnnouncementType"), (6, "EventType"),
-                         (7, "MandatoryVoluntaryChoiceIndicator"), (9, "RecordDate")):
+    for i, localName in ((1, "AnnouncementDate"), 
+                         (2, "EventCompleteness"), 
+                         (3, "UniqueUniversalEventIdentifier"),
+                         (4, "AnnouncementIdentifier"), 
+                         (5, "AnnouncementType"), 
+                         (6, "EventType"),
+                         # 7, 8 below under hasUsEquityCashDiv
+                         (9, "MandatoryVoluntaryChoiceIndicator")):
         if localName not in caFacts:
             modelXbrl.error("US-CA.Exists.{0}".format(i),
                 _("A %(fact)s must exist in the document."),
                 modelObject=modelXbrl, fact=localName)
-    if not any(f.context.hasDimension(qnUnderlyingSecuritiesImpactedTypedAxis) and
-               f.context.hasDimension(qnUnderlyingInstrumentIdentifierSchemeAxis) 
-               for f in caFacts["InstrumentIdentifier"]):
-        modelXbrl.error("US-CA.Exists.7",
-            _("A InstrumentIdentifier must exist in the document for the security impacted by the corporate action."),
-            modelObject=modelXbrl, fact="InstrumentIdentifier")
-        
     if hasEventComplete:
         if not caFacts["EventConfirmationStatus"]:
             modelXbrl.error("US-CA.Exists.10",
                 _("An EventConfirmationStatus must exist in the document if the document is Complete."),
                 modelObject=modelXbrl, fact="EventConfirmationStatus")
         if hasUsEquityCashDiv:
-            for i, localName in ((12, "CountryOfIssuer"), (14, "PaymentDate")):
-                if not caFacts[localName]:
+            for i, localName in ((12, "CountryOfIssuer"), 
+                                 (14, "PaymentDate")):
+                if not any(f.context.contextDimAwareHash == eventCompleteContextHash 
+                           for f in caFacts[localName]):
                     modelXbrl.error("US-CA.Exists.{0}".format(i),
                         _("A %(fact)s must exist in the document if the document is Complete."),
                         modelObject=modelXbrl, fact=localName)
@@ -227,6 +240,18 @@ def checkCorporateActions(val):
     del dupFacts
 
     if hasUsEquityCashDiv:
+        if not any(f.context.hasDimension(qnUnderlyingSecuritiesImpactedTypedAxis) and
+                   f.context.hasDimension(qnUnderlyingInstrumentIdentifierSchemeAxis) 
+                   for f in caFacts["InstrumentIdentifier"]):
+            modelXbrl.error("US-CA.Exists.7",
+                _("A InstrumentIdentifier must exist in the document for the security impacted by the corporate action."),
+                modelObject=modelXbrl, fact="InstrumentIdentifier")
+            
+        if "RecordDate" not in caFacts:
+            modelXbrl.error("US-CA.Exists.8",
+                _("A RecordDate must exist in the document."),
+                modelObject=modelXbrl)
+        
         countOptions = len(caFacts["OptionType"])
         if not countOptions:
             modelXbrl.error("US-CA.atLeastOneOptionIsRequired.16",
@@ -266,10 +291,15 @@ def checkCorporateActions(val):
                     modelObject=f, fact=localName, value=f.value)
     
     for i, localName1, localName2 in ((22, "PaymentDate", "RecordDate"),
-                                      (23, "OrdPaymentDate", "OrdRecordDate")):
+                                      (23, "OrdPaymentDate", "OrdRecordDate"),
+                                      (103, "PaymentDate", "OrdPaymentDate"),
+                                      (104, "AnnouncementDate", "OrdinaryAnnouncementDate"),
+                                      (105, "BooksClosedEndDate", "BooksClosedStartDate")):
         for f1 in caFacts[localName1]:
             for f2 in caFacts[localName2]:
-                if f1.context.endDatetime < f2.context.endDatetime:
+                if (f1.context.contextDimAwareHash == f2.context.contextDimAwareHash and
+                    f1.xValid == VALID and f2.xValid == VALID and
+                    f1.xValue < f2.xValue):
                     modelXbrl.error("US-CA.date.{0}".format(i),
                         _("The %(fact1)s %(value1)s must be later than the %(fact2)s %(value2)s."),
                         modelObject=(f1,f2), fact1=localName1, fact2=localName2, value1=f1.value, value2=f2.value)
@@ -337,7 +367,7 @@ def checkCorporateActions(val):
                 for fTax in caFacts["TaxAmountWithheldFromPayout"]:
                     if (fPayoutAmt.context.contextDimAwareHash == fTax.context.contextDimAwareHash and
                         fPayoutAmt.xValue < fPayoutAmtNetOfTax.xValue + fTax.xValue):
-                        modelXbrl.error("US-CA.ne.26",
+                        modelXbrl.error("US-CA.ne.26c",
                             _("The PayoutAmount of %(payoutAmt)s must always be greater than or equal to the sum of PayoutAmountNetOfTax with a value of "
                               "%(payoutNetOfTax)s and TaxAmountWithheldFromPayout with a value of %(taxAmt)s."),
                             modelObject=(fPayoutAmt, fPayoutAmtNetOfTax, fTax), 
