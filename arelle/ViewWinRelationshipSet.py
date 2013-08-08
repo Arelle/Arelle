@@ -166,7 +166,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 if isRelation:
                     preferredLabel = modelObject.preferredLabel
-                    if preferredLabel.startswith("http://www.xbrl.org/2003/role/"):
+                    if preferredLabel and preferredLabel.startswith("http://www.xbrl.org/2003/role/"):
                         preferredLabel = os.path.basename(preferredLabel)
                     self.treeView.set(childnode, "preferredLabel", preferredLabel)
                 self.treeView.set(childnode, "type", concept.niceType)
