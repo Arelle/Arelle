@@ -35,6 +35,7 @@ from arelle import (DialogURL, DialogLanguage,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
                     ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
+                    ViewWinRoleTypes, ViewFileRoleTypes,
                     ViewWinTests, ViewWinTree, ViewWinVersReport, ViewWinRssFeed,
                     ViewFileTests,
                     ViewFileRenderedGrid,
@@ -477,7 +478,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if not filename:
                     return False
                 try:
-                    ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, view.arcrole, labelrole=view.labelrole, lang=view.lang)
+                    if isinstance(view, ViewWinRoleTypes.ViewRoleTypes):
+                        ViewFileRoleTypes.viewRoleTypes(modelXbrl, filename, view.tabTitle, view.isArcrole, lang=view.lang)
+                    else:
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, view.arcrole, labelrole=view.labelrole, lang=view.lang)
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(

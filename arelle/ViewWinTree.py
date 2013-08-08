@@ -263,7 +263,7 @@ class ViewTree:
                 viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
                 newViewsMenu.add_command(label=_("Arcrole group..."), underline=0, command=lambda: self.newArcroleGroupView(tabWin))
                 from arelle.ModelRelationshipSet import baseSetArcroles
-                for x in baseSetArcroles(self.modelXbrl):
+                for x in baseSetArcroles(self.modelXbrl) + [( " Role Types","!CustomRoleTypes!"), (" Arcrole Types", "!CustomArcroleTypes!")]:
                     newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
             except Exception as ex: # tkinter menu problem maybe
                 self.modelXbrl.info("arelle:internalException",
@@ -272,8 +272,12 @@ class ViewTree:
                 self.menu = None
     
     def newView(self, arcrole, tabWin):
-        from arelle import ViewWinRelationshipSet
-        ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)
+        if arcrole in ("!CustomRoleTypes!", "!CustomArcroleTypes!"):
+            from arelle import ViewWinRoleTypes
+            ViewWinRoleTypes.viewRoleTypes(self.modelXbrl, tabWin, arcrole=="!CustomArcroleTypes!", lang=self.lang)
+        else:
+            from arelle import ViewWinRelationshipSet
+            ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)
             
     def newArcroleGroupView(self, tabWin):
         from arelle.DialogArcroleGroup import getArcroleGroup
