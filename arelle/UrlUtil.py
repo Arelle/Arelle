@@ -6,11 +6,12 @@ Created on Oct 22, 2010
 '''
 import re, os, sys
 if sys.version[0] >= '3':
-    from urllib.parse import urldefrag, unquote, quote
+    from urllib.parse import urldefrag, unquote, quote, urljoin
+    from urllib.request import pathname2url
     isPy3 = True
 else:
-    from urlparse import urldefrag
-    from urllib import quote
+    from urlparse import urldefrag, urljoin
+    from urllib import quote, pathname2url
     from arelle.PythonUtil import py3unquote as unquote
     isPy3 = False
 
@@ -366,6 +367,12 @@ def isAbsolute(url):
 def isHttpUrl(url):
     return url and (url.startswith("http://") or url.startswith("https://"))
 
+def ensureUrl(maybeUrl):
+    if isAbsolute(maybeUrl) or isHttpUrl(maybeUrl):
+        return maybeUrl
+    # probably a local file
+    return urljoin('file:', pathname2url(maybeUrl))
+    
 def parseRfcDatetime(rfc2822date):
     from email.utils import parsedate
     from datetime import datetime
