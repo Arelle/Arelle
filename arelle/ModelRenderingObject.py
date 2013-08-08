@@ -87,7 +87,7 @@ class StructuralNode:
     def aspectValue(self, aspect, inherit=True, dims=None):
         xc = self._rendrCntx
         if self.choiceStructuralNodes:  # use aspects from choice structural node
-            aspects = self.choiceStructuralNodes[self.choiceNodeIndex].aspects
+            aspects = self.choiceStructuralNodes[getattr(self,"choiceNodeIndex",0)].aspects
         else:
             aspects = self.aspects
         if aspect == Aspect.DIMENSIONS:
