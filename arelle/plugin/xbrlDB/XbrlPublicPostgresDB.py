@@ -47,6 +47,7 @@ import socket
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelValue import qname, dateTime
 from arelle.ValidateXbrlCalcs import roundValue
+from arelle.XmlUtil import elementFragmentIdentifier
 from arelle import XbrlConst
 
 TRACESQLFILE = None
@@ -776,7 +777,7 @@ WITH row_values (%(newCols)s) AS (
                                      self.elementId.get(self.qnameId.get(fact.qname)),
                                      roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric else None,
                                      fact.value,
-                                     fact.id,
+                                     elementFragmentIdentifier(fact),
                                      fact.xAttributes['precision'].xValue if ('precision' in fact.xAttributes and isinstance(fact.xAttributes['precision'].xValue,int)) else None,
                                      fact.xAttributes['decimals'].xValue if ('decimals' in fact.xAttributes and isinstance(fact.xAttributes['decimals'].xValue,int)) else None,
                                      'precision' in fact.xAttributes and fact.xAttributes['precision'].xValue == 'INF',

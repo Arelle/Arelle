@@ -62,7 +62,7 @@ def isDBPort(host, port, timeout=10):
             conn = urllib.request.urlopen("http://{0}:{1}/graphs".format(host, port or '8182'))
             return True # success but doesn't need password
         except HTTPError:
-            return True # success, this is really a postgres socket, wants user name
+            return False # success, this is really a postgres socket, wants user name
         except URLError:
             return False # something is there but not postgres
         except socket.timeout:
@@ -820,8 +820,7 @@ class XbrlSemanticGraphDatabaseConnection():
                 datapoint = {'_class': 'data_point',
                              #'name': str(fact.qname), not needed, get from aspect (concept)
                              'source_line': fact.sourceline}
-                if fact.id is not None:
-                    datapoint['xml_id'] = fact.id
+                datapoint['xml_id'] = XmlUtil.elementFragmentIdentifier(fact)
                 if fact.context is not None:
                     datapoint['context'] = fact.contextID
                     context = fact.context

@@ -19,6 +19,12 @@ from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
 from .XbrlSemanticRdfDB import insertIntoDB as insertIntoRdfDB, isDBPort as isRdfPort
 
+dbTypes = {
+    "postgres": insertIntoPostgresDB,
+    "rexster": insertIntoRexsterDB,
+    "rdfDB": insertIntoRdfDB
+    }
+
 def xbrlDBmenuEntender(cntlr, menu):
     
     def storeIntoDBMenuCommand():
@@ -30,31 +36,39 @@ def xbrlDBmenuEntender(cntlr, menu):
         # (user, password, host, port, database)
         priorDBconnection = cntlr.config.get("xbrlDBconnection", None)
         dbConnection = askDatabase(cntlr.parent, priorDBconnection)
-        if dbConnection:
-            host, port, user, password, db, timeout = dbConnection
-            if timeout and timeout.isdigit():
-                timeout = int(timeout)
-            # identify server
-            if isPostgresPort(host, port):
-                insertIntoDB = insertIntoPostgresDB
-            elif isRexsterPort(host, port):
-                insertIntoDB = insertIntoRexsterDB
-            elif isRdfPort(host, port, db):
-                insertIntoDB = insertIntoRdfDB
-            else:
-                from tkinter import messagebox
-                messagebox.showwarning(_("Unable to determine server type!"),
-                                       _("Probing host {0} port {1} unable to determine server type.")
-                                       .format(host, port),
-                                       parent=cntlr.parent)
-                return
-            cntlr.config["xbrlDBconnection"] = dbConnection
-            cntlr.saveConfig()
-        else:  # action cancelled
+        if not dbConnection: # action cancelled
             return
 
         def backgroundStoreIntoDB():
             try: 
+                host, port, user, password, db, timeout, dbType = dbConnection
+                if timeout and timeout.isdigit():
+                    timeout = int(timeout)
+                # identify server
+                if dbType in dbTypes:
+                    insertIntoDB = dbTypes[dbType]
+                else:
+                    cntlr.addToLog(_("Probing host {0} port {1} to determine server database type.")
+                                   .format(host, port))
+                    if isPostgresPort(host, port):
+                        dbType = "postgres"
+                        insertIntoDB = insertIntoPostgresDB
+                    elif isRexsterPort(host, port):
+                        dbType = "rexster"
+                        insertIntoDB = insertIntoRexsterDB
+                    elif isRdfPort(host, port, db):
+                        dbType = "rdfDB"
+                        insertIntoDB = insertIntoRdfDB
+                    else:
+                        cntlr.addToLog(_("Unable to determine server type!\n  ") +
+                                       _("Probing host {0} port {1} unable to determine server type.")
+                                               .format(host, port))
+                        cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, '') # forget type
+                        cntlr.saveConfig()
+                        return
+                    cntlr.addToLog(_("Database type {} identified.").format(dbType))
+                cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, dbType)
+                cntlr.saveConfig()
                 startedAt = time.time()
                 insertIntoDB(cntlr.modelManager.modelXbrl, 
                              host=host, port=port, user=user, password=password, database=db, timeout=timeout)
@@ -69,6 +83,8 @@ def xbrlDBmenuEntender(cntlr, menu):
                      "error": str(ex),
                      "exc_info": True,
                      "traceback": traceback.format_tb(sys.exc_info()[2])})
+                cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, '') # forget type
+                cntlr.saveConfig()
         import threading
         thread = threading.Thread(target=backgroundStoreIntoDB)
         thread.daemon = True
@@ -83,7 +99,7 @@ def xbrlDBmenuEntender(cntlr, menu):
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
     
 def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
-    host = port = user = password = db = timeout = None
+    host = port = user = password = db = timeout = dbType = None
     if isinstance(dbConnection, (list, tuple)): # variable length list
         if len(dbConnection) > 0: host = dbConnection[0]
         if len(dbConnection) > 1: port = dbConnection[1]
@@ -92,17 +108,21 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
         if len(dbConnection) > 4: db = dbConnection[4]
         if len(dbConnection) > 5 and dbConnection[5] and dbConnection[5].isdigit(): 
             timeout = int(dbConnection[5])
+        if len(dbConnection) > 6: dbType = dbConnection[6]
 
     startedAt = time.time()
+    if dbType in dbTypes:
+        insertIntoDB = dbTypes[dbType]
     if isPostgresPort(host, port):
-        insertIntoPostgresDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
+        insertIntoDB = insertIntoPostgresDB
     elif isRexsterPort(host, port):
-        insertIntoRexsterDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
+        insertIntoDB = insertIntoRexsterDB
     elif isRdfPort(host, port, db):
-        insertIntoRdfDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
+        insertIntoDB = insertIntoRdfDB
     else:
         modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return
+    insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
     modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
                           _("stored to database in %.2f secs"), 
                           time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
@@ -113,7 +133,9 @@ def xbrlDBcommandLineOptionExtender(parser):
                       action="store", 
                       dest="storeToXbrlDb", 
                       help=_("Store into XBRL DB.  "
-                             "Provides connection string: host,port,user,password,database[,timeout]. "))
+                             "Provides connection string: host,port,user,password,database[,timeout[,{postgres|rexster|rdfDB}]]. "
+                             "Autodetects database type unless 7th parameter is provided.  "))
+    
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
 
 def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
@@ -190,7 +212,8 @@ __pluginInfo__ = {
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved,\n'
-                'uses: pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (XBRL Public Postgres DB)',
+                'uses: pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (XBRL Public Postgres DB), and\n'
+                '      rdflib, Copyright (c) 2002-2012, RDFLib Team (RDF DB)',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': xbrlDBmenuEntender,
     'CntlrCmdLine.Options': xbrlDBcommandLineOptionExtender,
