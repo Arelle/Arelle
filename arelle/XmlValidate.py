@@ -5,6 +5,7 @@ Created on Feb 20, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import os, re
+from decimal import Decimal
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -309,7 +310,11 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                     sValue = value
                 elif baseXsdType in ("decimal", "float", "double"):
-                    xValue = sValue = float(value)
+                    sValue = float(value)
+                    if baseXsdType == "decimal":
+                        xValue = Decimal(value)
+                    else:
+                        xValue = sValue
                     if facets:
                         if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
                             raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
