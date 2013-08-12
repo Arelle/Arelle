@@ -36,13 +36,15 @@ def askProxy(parent, priorProxySettings):
     return None
 
 def askDatabase(parent, priorDatabaseSettings):
-    if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 6:
-        urlAddr, urlPort, user, password, database, timeout = priorDatabaseSettings
+    if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 7:
+        urlAddr, urlPort, user, password, database, timeout, dbType = priorDatabaseSettings
     else:
-        urlAddr = urlPort = user = password = database = timeout = None
-    dialog = DialogUserPassword(parent, _("XBRL Database Server"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, database=database, showHost=False, showUrl=True, showUser=True, showRealm=False, showDatabase=True)
+        urlAddr = urlPort = user = password = database = timeout = dbType = None
+    dialog = DialogUserPassword(parent, _("XBRL Database Server"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, database=database, timeout=timeout, showHost=False, showUrl=True, showUser=True, showRealm=False, showDatabase=True)
     if dialog.accepted:
-        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout)
+        if urlAddr != dialog.urlAddr or urlPort != dialog.urlPort or database != dialog.database:
+            dbType = None # drop prior setting to force autodetection of dbType
+        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout, dbType)
     return None
 
 

@@ -50,7 +50,7 @@ from urllib.error import HTTPError, URLError
 from lxml import etree
 
 TRACERDFFILE = None
-TRACERDFFILE = r"c:\temp\rdfDBtrace.log"  # uncomment to trace RDF on connection (very big file!!!)
+#TRACERDFFILE = r"c:\temp\rdfDBtrace.log"  # uncomment to trace RDF on connection (very big file!!!)
 
 RDFTURTLEFILE_HOSTNAME = "rdfTurtleFile"
 

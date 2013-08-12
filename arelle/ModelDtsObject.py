@@ -1607,6 +1607,11 @@ class ModelRelationship(ModelObject):
             return order
 
     @property
+    def orderDecimal(self):
+        """(decimal) -- Value of xlink:order attribute, NaN if not convertable to float, or None if not specified"""
+        return decimal.Decimal(self.order)
+
+    @property
     def priority(self):
         """(int) -- Value of xlink:order attribute, or 0 if not specified"""
         try:
