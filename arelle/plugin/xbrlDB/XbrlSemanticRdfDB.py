@@ -244,12 +244,10 @@ class XbrlSemanticRdfDatabaseConnection():
                        'Accept':       'application/sparql-results+json',
                        'Content-Type': "text/turtle; charset='UTF-8'"}
             data = graph.serialize(format='turtle', encoding='utf=8')
-            url = self.url + "/sparql"
         elif query is not None:
             headers = {'User-agent':   'Arelle/1.0',
                        'Accept':       'application/sparql-results+json'}
             data = ("query=" + query).encode('utf-8')
-            url = self.url + "/sparql"
         else:
             return None
         # turtle may be mixture of line strings and strings with \n-separated lines
@@ -261,6 +259,8 @@ class XbrlSemanticRdfDatabaseConnection():
             with io.open(self.turtleFile, "ab") as fh:
                 fh.write(data)
             return None
+        if graph is not None or query is not None:
+            url = self.url + "/sparql"
         request = urllib.request.Request(url,
                                          data=data,
                                          headers=headers)
@@ -412,24 +412,25 @@ class XbrlSemanticRdfDatabaseConnection():
         
     def identifyPreexistingDocuments(self):
         self.existingDocumentUris = set()
-        docFilters = []
-        for modelDocument in self.modelXbrl.urlDocs.values():
-            if modelDocument.type == Type.SCHEMA:
-                docFilters.append('STR(?doc) = "{}"'.format(UrlUtil.ensureUrl(modelDocument.uri)))
-        results = self.execute(
-            "select", 
-            query="""
-                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                PREFIX DTS: <http://xbrl.org/2013/rdf/DTS/>
-                SELECT distinct ?doc WHERE { ?doc rdf:type DTS:Document 
-                FILTER( """ + '\n|| '.join(docFilters) + ") .}")
-        try:
-            for result in results['results']['bindings']:
-                doc = result['doc']
-                if doc.get('type') == 'uri':
-                    self.existingDocumentUris.add(doc['value'])                    
-        except KeyError:
-            pass # no existingDocumentUris
+        if not self.isRdfTurtleFile:
+            docFilters = []
+            for modelDocument in self.modelXbrl.urlDocs.values():
+                if modelDocument.type == Type.SCHEMA:
+                    docFilters.append('STR(?doc) = "{}"'.format(UrlUtil.ensureUrl(modelDocument.uri)))
+            results = self.execute(
+                "select", 
+                query="""
+                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                    PREFIX DTS: <http://xbrl.org/2013/rdf/DTS/>
+                    SELECT distinct ?doc WHERE { ?doc rdf:type DTS:Document 
+                    FILTER( """ + '\n|| '.join(docFilters) + ") .}")
+            try:
+                for result in results['results']['bindings']:
+                    doc = result['doc']
+                    if doc.get('type') == 'uri':
+                        self.existingDocumentUris.add(doc['value'])                    
+            except KeyError:
+                pass # no existingDocumentUris
         
     def insertDocuments(self, g):
         # accession->documents
