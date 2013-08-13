@@ -10,7 +10,7 @@ try:
 except ImportError:
     from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
-from arelle.UiUtil import (checkbox)
+from arelle.UiUtil import checkbox, gridCombobox
 import re, sys
 
 '''
@@ -35,21 +35,24 @@ def askProxy(parent, priorProxySettings):
         return (dialog.useOsProxyCb.value, dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
+DBTypes = ("postgres", "rexster", "rdfDB")
+DBDescriptions = ("Postgres SQL Database",
+                  "Rexter (Titan Cassandra)",
+                  "RDF (Turtle, NanoSparqlServer)")
+
 def askDatabase(parent, priorDatabaseSettings):
     if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 7:
         urlAddr, urlPort, user, password, database, timeout, dbType = priorDatabaseSettings
     else:
         urlAddr = urlPort = user = password = database = timeout = dbType = None
-    dialog = DialogUserPassword(parent, _("XBRL Database Server"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, database=database, timeout=timeout, showHost=False, showUrl=True, showUser=True, showRealm=False, showDatabase=True)
+    dialog = DialogUserPassword(parent, _("XBRL Database Server"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, database=database, timeout=timeout, dbType=dbType, showHost=False, showUrl=True, showUser=True, showRealm=False, showDatabase=True)
     if dialog.accepted:
-        if urlAddr != dialog.urlAddr or urlPort != dialog.urlPort or database != dialog.database:
-            dbType = None # drop prior setting to force autodetection of dbType
-        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout, dbType)
+        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout, dialog.dbType)
     return None
 
 
 class DialogUserPassword(Toplevel):
-    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, database=None, timeout=None, showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False):
+    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, database=None, timeout=None, dbType=None, showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False):
         super(DialogUserPassword, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
@@ -156,6 +159,12 @@ class DialogUserPassword(Toplevel):
             ToolTip(urlAddrEntry, text=_("Enter timeout seconds (optional) or leave blank for default (60 secs.)"), wraplength=360)
             self.enabledWidgets.append(urlTimeoutEntry)
             y += 1
+            dbTypeLabel = Label(frame, text=_("DB type:"), underline=0)
+            dbTypeLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
+            self.cbDbType = gridCombobox(frame, 1, y, values=DBDescriptions, 
+                                         selectindex=DBTypes.index(dbType) if dbType in DBTypes else None)
+            self.cbDbType.grid(columnspan=4, pady=3, padx=3)
+            y += 1
         okButton = Button(frame, text=_("OK"), command=self.ok)
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         okButton.grid(row=y, column=2, sticky=E, pady=3)
@@ -200,6 +209,7 @@ class DialogUserPassword(Toplevel):
         self.password = self.passwordVar.get()
         self.database = self.databaseVar.get()
         self.timeout = self.timeoutVar.get()
+        self.dbType = DBTypes[DBDescriptions.index(self.cbDbType.value)] if self.cbDbType.value in DBDescriptions else None
         if not self.checkEntries():
             return
         self.accepted = True
