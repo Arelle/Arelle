@@ -137,7 +137,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
-        modelXbrl.urlUnloadableDocs.add(normalizedUri)
+        modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to IO issue
         return None
     except (etree.LxmlError,
             SAXParseException,
@@ -151,14 +151,14 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                     modelObject=referringElement, fileName=os.path.basename(uri), 
                     error=str(err), sourceAction=("including" if isIncluded else "importing"), exc_info=True)
-            modelXbrl.urlUnloadableDocs.add(normalizedUri)
+            modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to parser issues
             return None
     except Exception as err:
         modelXbrl.error(type(err).__name__,
                 _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                 modelObject=referringElement, fileName=os.path.basename(uri), 
                 error=str(err), sourceAction=("including" if isIncluded else "importing"))
-        modelXbrl.urlUnloadableDocs.add(normalizedUri)
+        modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to exception issue
         return None
     
     # identify document
