@@ -13,6 +13,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
 from arelle.XmlValidate import UNKNOWN, VALID, validate
 from arelle.PluginManager import pluginClassMethods
+from decimal import Decimal
 from lxml import etree
 
 class XPathException(Exception):
@@ -190,6 +191,12 @@ class XPathContext:
                         op2 = s2[0]
                         from arelle.FunctionUtil import (testTypeCompatiblity)
                         testTypeCompatiblity( self, p, op, op1, op2 )
+                        if type(op1) != type(op2) and op in ('+', '-', '*', 'div', 'idiv', 'mod'):
+                            # check if type promotion needed
+                            if isinstance(op1,Decimal) and isinstance(op2,(int,float)):
+                                op1 = float(op1) # per http://http://www.w3.org/TR/xpath20/#dt-type-promotion 1b
+                            elif isinstance(op2,Decimal) and isinstance(op1,(int,float)):
+                                op2 = float(op2)
                         if op == '+':
                             result = op1 + op2 
                         elif op == '-':
@@ -323,10 +330,10 @@ class XPathContext:
                         for x in s1:
                             if isinstance(t, QNameDef):
                                 if t.namespaceURI == XbrlConst.xsd:
-                                    type = {
+                                    tType = {
                                            "integer": _INT_TYPES,
                                            "string": str,
-                                           "decimal": float,
+                                           "decimal": (Decimal, float),
                                            "double": float,
                                            "float": float,
                                            "boolean": bool,
@@ -335,9 +342,9 @@ class XPathContext:
                                            "date": DateTime,
                                            "dateTime": DateTime,
                                             }.get(t.localName)
-                                    if type:
-                                        result = isinstance(x, type)
-                                        if result and type == DateTime:
+                                    if tType:
+                                        result = isinstance(x, tType)
+                                        if result and tType == DateTime:
                                             result = x.dateOnly == (t.localName == "date")
                             elif isinstance(t, OperationDef):
                                 if t.name == "element":

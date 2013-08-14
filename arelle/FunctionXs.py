@@ -53,7 +53,7 @@ objtype = {
         'dayTimeDuration': ModelValue.DayTimeDuration,
         'float': float,
         'double': float,
-        'decimal': float,
+        'decimal': Decimal,
         'integer': _INT,
         'nonPositiveInteger': _INT,
         'negativeInteger': _INT,
@@ -134,7 +134,7 @@ def double(xc, p, source):
   
 def decimal(xc, p, source):
     try:
-        return float(source)
+        return Decimal(source)
     except ValueError:
         raise FORG0001
   
