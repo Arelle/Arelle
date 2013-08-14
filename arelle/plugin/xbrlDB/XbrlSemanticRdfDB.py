@@ -123,11 +123,11 @@ def initRdflibNamespaces():
                          Type.SCHEMA: XBRL.Schema,
                          Type.LINKBASE: XBRL.Linkbase,
                          Type.UnknownXML: XML.Document}
-        Aspect = Namespace("http://xbrl.org/2013/rdf/Aspect/")
-        AspectType = Namespace("http://xbrl.org/2013/rdf/Aspect/Type/")
-        RoleType = Namespace("http://xbrl.org/2013/rdf/DTS/RoleType/")
-        ArcRoleType = Namespace("http://xbrl.org/2013/rdf/DTS/ArcRoleType/")
-        Relationship = Namespace("http://xbrl.org/2013/rdf/DTS/Relationship/")
+        Aspect = Namespace("http://xbrl.org/2013/rdf/Aspect#")
+        AspectType = Namespace("http://xbrl.org/2013/rdf/Aspect/Type#")
+        RoleType = Namespace("http://xbrl.org/2013/rdf/DTS/RoleType#")
+        ArcRoleType = Namespace("http://xbrl.org/2013/rdf/DTS/ArcRoleType#")
+        Relationship = Namespace("http://xbrl.org/2013/rdf/DTS/Relationship#")
         ArcRoleCycles = Namespace("http://xbrl.org/2013/rdf/DTS/ArcRoleType/Cycles/")
         DataPoint = Namespace("http://xbrl.org/2013/rdf/DataPoint/")
         Context = Namespace("http://xbrl.org/2013/rdf/Context/")
@@ -371,7 +371,7 @@ class XbrlSemanticRdfDatabaseConnection():
         # accession graph -> document vertices
         new_accession = {}
         if self.modelXbrl.modelDocument.creationSoftwareComment:
-            new_accession[':creation_software'] = self.modelXbrl.modelDocument.creationSoftwareComment
+            new_accession['creation_software'] = self.modelXbrl.modelDocument.creationSoftwareComment
         datetimeNow = datetime.datetime.now()
         datetimeNowStr = XmlUtil.dateunionValue(datetimeNow)
         entryUri = URIRef( modelObjectDocumentUri(self.modelXbrl) )
@@ -552,7 +552,7 @@ class XbrlSemanticRdfDatabaseConnection():
                         docUri = modelObjectDocumentUri(modelConcept)
                         #g.add( (doc_uri, XBRL.defines, conceptUri) )
                  
-                        g.add( (conceptUri, RDF.type, Aspect.Concept) )
+                        g.add( (conceptUri, RDF.type, XBRL.Concept) )
                         #g.add( (conceptUri, XBRL.qname, concept_qname_uri) )
                         #g = dump_xbrl_qname(modelConcept.qname, g)
                         g.add( (conceptUri, RDF.type, XBRL.QName) )
@@ -577,7 +577,7 @@ class XbrlSemanticRdfDatabaseConnection():
                         conceptType = modelConcept.type
                         if conceptType is not None:
                             typeUri = modelObjectUri(conceptType)
-                            g.add( (conceptUri, Aspect.type, typeUri) )
+                            g.add( (conceptUri, XBRL.type, typeUri) )
                         
                         substitutionGroup = modelConcept.substitutionGroup
                         if substitutionGroup is not None:
@@ -918,15 +918,17 @@ class XbrlSemanticRdfDatabaseConnection():
                         else:
                             _relProp['from'] = sourceUri
                             _relProp['to'] = targetUri
+                            _arcrole = os.path.basename(rel.arcrole)
                             _relProp['relURI'] = URIRef("{}/Relationship/{}/{}/{}/{}".format(
                                                          self.accessionURI, 
-                                                         os.path.basename(rel.arcrole),
+                                                         _arcrole,
                                                          os.path.basename(rel.linkrole),
                                                          sourceId,
                                                          targetId) )
-                            _relProp['relPredicate'] = XBRL['relationship/{}/{}'.format(
-                                                         os.path.basename(rel.arcrole),
-                                                         os.path.basename(rel.linkrole))]
+                            relPredNS = Namespace("http://xbrl.org/2013/rdf/DTS/Relationship/{}/"
+                                                  .format(_arcrole))
+                            g.bind(_arcrole, relPredNS)
+                            _relProp['relPredicate'] = relPredNS[os.path.basename(rel.linkrole)]
 
                             relE.append(_relProp)
                         seq += 1
