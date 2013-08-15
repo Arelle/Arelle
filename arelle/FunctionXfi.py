@@ -13,7 +13,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelFormulaObject import ModelFormulaResource
-from arelle.XmlValidate import UNKNOWN, VALID, validate
+from arelle.XmlValidate import UNKNOWN, VALID, validate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.Locale import format_picture
@@ -1160,8 +1160,11 @@ def  create_element(xc, p, args):
     attrArg = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
     # attributes have to be pairs
     if attrArg:
-        if len(attrArg) & 1 or any(not isinstance(attrArg[i], (QName, _STR_BASE))
-                                   for i in range(0, len(attrArg),2)):
+        if (len(attrArg) & 1 or 
+            any((not isinstance(arg, (QName, _STR_BASE))) or
+                (isinstance(arg,_STR_BASE) and NCNamePattern.match(arg) is None)
+                for i in range(0, len(attrArg),2)
+                for arg in (attrArg[i],))):
             raise XPathContext.FunctionArgType(1,"((xs:qname|xs:string),xs:anyAtomicValue)", errCode="xfie:AttributesNotNameValuePairs")
         else:
             attrParam = [(attrArg[i],attrArg[i+1]) # need name-value pairs for XmlUtil function
@@ -1176,6 +1179,8 @@ def  create_element(xc, p, args):
         childElements = None
     else:
         childElements = xc.flattenSequence(args[3])
+    if value and childElements:
+        raise XPathContext.FunctionArgType(1,str(value), errCode="xfie:MixedContentError")
     
     # scratchpad instance document emulates fn:doc( ) to hold XML nodes
     scratchpadXmlDocUrl = "http://www.xbrl.org/2012/function/creation/xml_scratchpad.xml"
