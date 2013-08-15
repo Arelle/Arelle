@@ -44,11 +44,12 @@ from math import isnan, isinf
 from pg8000 import DBAPI
 from pg8000.errors import CursorClosedError, ConnectionClosedError, InterfaceError, ProgrammingError
 import socket
+from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelValue import qname, dateTime
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import elementFragmentIdentifier
-from arelle import XbrlConst
+from arelle import UrlUtil, XbrlConst
 
 TRACESQLFILE = None
 #TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
@@ -125,6 +126,9 @@ def dbNum(num):
             return None  # not legal in SQL
         return num
     return None 
+
+def dbStr(s):
+    return "'" + str(s).replace("'","''").replace('%', '%%') + "'"
 
 class XPDBException(Exception):
     def __init__(self, code, message, **kwargs ):
@@ -207,7 +211,15 @@ class XbrlPostgresDatabaseConnection():
             
     def execute(self, sql, commit=False, close=True, fetch=True):
         cursor = self.cursor
-        cursor.execute(sql)
+        try:
+            cursor.execute(sql)
+        except ProgrammingError as ex:  # something wrong with SQL
+            if TRACESQLFILE:
+                with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
+                    fh.write("\n\n>>> EXCEPTION Programming Error {}\n sql {}\n"
+                             .format(str(ex), sql))
+            raise
+
         if fetch:
             result = cursor.fetchall()
         else:
@@ -267,7 +279,9 @@ class XbrlPostgresDatabaseConnection():
                 # problem with driver and $$ statements, skip them (for now)
                 stmt = ''
         for sql in sqlstatements:
-            if 'CREATE TABLE' in sql or 'CREATE SEQUENCE' in sql or 'INSERT INTO' in sql:
+            if any(cmd in sql
+                   for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO',
+                               'CREATE INDEX', 'CREATE UNIQUE INDEX')):
                 statusMsg, sep, rest = sql.strip().partition('\n')
                 self.showStatus(statusMsg[0:50])
                 result = self.execute(sql, close=False, commit=False, fetch=False)
@@ -328,7 +342,8 @@ class XbrlPostgresDatabaseConnection():
                                              for typename in (fulltype.partition(' ')[0],))
         return self.tableColTypes[table]
     
-    def getTable(self, table, idCol, newCols, matchCols, data, commit=False, comparisonOperator='='):
+    def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False, comparisonOperator='=', checkIfExisting=False):
+        # generate SQL
         # note: comparison by = will never match NULL fields
         # use 'IS NOT DISTINCT FROM' to match nulls, but this is not indexed and verrrrry slooooow
         if not data or not newCols or not matchCols:
@@ -359,7 +374,7 @@ class XbrlPostgresDatabaseConnection():
                 elif col is None:
                     colValues.append('NULL')
                 else:
-                    colValues.append("'" + str(col).replace("'","''").replace('%', '%%') + "'")
+                    colValues.append(dbStr(col))
             if not rowValues:  # first row
                 for i, cast in enumerate(colTypeCast):
                     if cast:
@@ -368,24 +383,25 @@ class XbrlPostgresDatabaseConnection():
         values = ", \n".join(rowValues)
         # insert new rows, return id and cols of new and existing rows
         # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
-        sql = '''
+        sql = ('''
 WITH row_values (%(newCols)s) AS (
   VALUES %(values)s
   ), insertions AS (
   INSERT INTO %(table)s (%(newCols)s)
   SELECT %(newCols)s
-  FROM row_values v
+  FROM row_values v''' + ('''
   WHERE NOT EXISTS (SELECT 1 
                     FROM %(table)s x 
-                    WHERE %(match)s)
+                    WHERE %(match)s)''' if checkIfExisting else '') + '''
   RETURNING %(returningCols)s
 )
-(  SELECT %(x_returningCols)s
+(''' + ('''
+   SELECT %(x_returningCols)s
    FROM %(table)s x JOIN row_values v ON (%(match)s)
-) UNION ( 
+) UNION ( ''' if checkIfExisting else '') + '''
    SELECT %(returningCols)s
    FROM insertions
-);''' %     {"table": table,
+);''') %     {"table": table,
              "idCol": idCol,
              "newCols": ', '.join(newCols),
              "returningCols": ', '.join(returningCols),
@@ -400,6 +416,7 @@ WITH row_values (%(newCols)s) AS (
                          .format(self.accessionId, table, len(sql), len(data)))
                 fh.write(sql)
         tableRows = self.execute(sql,commit=commit, close=False)
+
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} result row count {2}\n{3}\n"
@@ -414,6 +431,10 @@ WITH row_values (%(newCols)s) AS (
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
             ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
+                        
+            # find pre-existing documents in server database
+            self.identifyPreexistingDocuments()
+            self.identifyConceptsUsed()
             
             startedAt = time.time()
             self.insertAccession(rssItem)
@@ -449,7 +470,7 @@ WITH row_values (%(newCols)s) AS (
                                   ('accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
                                    'entity_name', 'creation_software', 'standard_industrial_classification', 
                                    'sec_html_url', 'entry_url', 'filing_accession_number'), 
-                                  ('accepted_timestamp', 'entity_id', 'filing_accession_number'), 
+                                  ('filing_accession_number',), 
                                   ((rssItem.acceptanceDatetime,
                                     True,
                                     rssItem.filingDate or datetime.datetime.min,  # NOT NULL
@@ -460,8 +481,9 @@ WITH row_values (%(newCols)s) AS (
                                     rssItem.htmlUrl,
                                     rssItem.url,
                                     rssItem.accessionNumber or 'UNKNOWN'  # NOT NULL
-                                    ),))
-            for id, timestamp, cik, accessionNbr in table:
+                                    ),),
+                                  checkIfExisting=True)
+            for id, filing_accession_number in table:
                 self.accessionId = id
                 break
         
@@ -474,9 +496,10 @@ WITH row_values (%(newCols)s) AS (
         self.showStatus("insert uris")
         table = self.getTable('uri', 'uri_id', 
                               ('uri',), 
-                              ('uri',), 
+                              ('uri',), # indexed match cols
                               tuple((uri,) 
-                                    for uri in uris))
+                                    for uri in uris),
+                              checkIfExisting=True)
         self.uriId = dict((uri, id)
                           for id, uri in table)
                      
@@ -491,31 +514,85 @@ WITH row_values (%(newCols)s) AS (
         self.showStatus("insert qnames")
         table = self.getTable('qname', 'qname_id', 
                               ('namespace', 'local_name'), 
-                              ('namespace', 'local_name'), 
+                              ('namespace', 'local_name'), # indexed match cols
                               tuple((qn.namespaceURI, qn.localName) 
-                                    for qn in qnames))
+                                    for qn in qnames),
+                              checkIfExisting=True)
         self.qnameId = dict((qname(ns, ln), id)
                             for id, ns, ln in table)
                      
     def insertNamespaces(self):
         self.showStatus("insert namespaces")
+        if self.disclosureSystem.baseTaxonomyNamespaces:
+            # use only base taxonomy namespaces in disclosure system
+            namespaceUris = self.disclosureSystem.baseTaxonomyNamespaces
+        else:
+            # use all namespace URIs
+            namespaceUris = self.modelXbrl.namespaceDocs.keys()
         table = self.getTable('namespace', 'namespace_id', 
                               ('uri', 'is_base', 'taxonomy_version_id', 'prefix'), 
-                              ('uri',), 
+                              ('uri',), # indexed matchcol
                               tuple((uri, True, 0, self.disclosureSystem.standardPrefixes.get(uri,None)) 
-                                    for uri in self.disclosureSystem.baseTaxonomyNamespaces))
+                                    for uri in namespaceUris),
+                              checkIfExisting=True)
         self.namespaceId = dict((uri, id)
                                 for id, uri in table)
+        
+    def identifyPreexistingDocuments(self):
+        self.existingDocumentIds = {}
+        docUris = set()
+        for modelDocument in self.modelXbrl.urlDocs.values():
+            if modelDocument.type == Type.SCHEMA:
+                docUris.add(dbStr(modelDocument.uri))
+        if docUris:
+            results = self.execute("SELECT document_id, document_uri FROM document WHERE document_uri IN (" +
+                                   ', '.join(docUris) + ");")
+            self.existingDocumentIds = dict((docUri,docId) for docId, docUri in results)
+        
+    def identifyConceptsUsed(self):
+        # relationshipSets are a dts property
+        self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
+                                 for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys()
+                                 if ELR and (arcrole.startswith("XBRL-") or (linkqname and arcqname))]
+
+        
+        conceptsUsed = set(f.qname for f in self.modelXbrl.factsInInstance)
+        
+        for cntx in self.modelXbrl.contexts.values():
+            for dim in cntx.qnameDims.values():
+                conceptsUsed.add(dim.dimensionQname)
+                if dim.isExplicit:
+                    conceptsUsed.add(dim.memberQname)
+                else:
+                    conceptsUsed.add(dim.typedMember.qname)
+        for defaultDim, defaultDimMember in self.modelXbrl.qnameDimensionDefaults.items():
+            conceptsUsed.add(defaultDim)
+            conceptsUsed.add(defaultDimMember)
+        for relationshipSetKey in self.relationshipSets:
+            relationshipSet = self.modelXbrl.relationshipSet(*relationshipSetKey)
+            for rel in relationshipSet.modelRelationships:
+                if isinstance(rel.fromModelObject, ModelConcept):
+                    conceptsUsed.add(rel.fromModelObject)
+                if isinstance(rel.toModelObject, ModelConcept):
+                    conceptsUsed.add(rel.toModelObject)
+        for qn in (XbrlConst.qnXbrliIdentifier, XbrlConst.qnXbrliPeriod, XbrlConst.qnXbrliUnit):
+            conceptsUsed.add(self.modelXbrl.qnameConcepts[qn])
+        
+        conceptsUsed -= {None}  # remove None if in conceptsUsed
+        self.conceptsUsed = conceptsUsed
         
     def insertDocuments(self):
         self.showStatus("insert documents")
         table = self.getTable('document', 'document_id', 
                               ('document_uri',), 
                               ('document_uri',), 
-                              tuple((docUri,) 
-                                    for docUri in self.modelXbrl.urlDocs.keys()))
+                              set((docUri,) 
+                                  for docUri in self.modelXbrl.urlDocs.keys()
+                                  if docUri not in self.existingDocumentIds),
+                              checkIfExisting=True)
         self.documentIds = dict((uri, id)
                                 for id, uri in table)
+        self.documentIds.update(self.existingDocumentIds)
         table = self.getTable('accession_document_association', 'accession_document_association_id', 
                               ('accession_id','document_id'), 
                               ('document_id',), 
@@ -528,7 +605,8 @@ WITH row_values (%(newCols)s) AS (
                                    self.uriId[arcroleType.arcroleURI]), # key on docId, uriId
                                   arcroleType) # value is roleType object
                                  for arcroleTypes in self.modelXbrl.arcroleTypes.values()
-                                 for arcroleType in arcroleTypes)
+                                 for arcroleType in arcroleTypes
+                                 if arcroleType.modelDocument.uri not in self.existingDocumentIds)
         table = self.getTable('custom_arcrole_type', 'custom_arcrole_type_id', 
                               ('document_id', 'uri_id', 'definition', 'cycles_allowed'), 
                               ('document_id', 'uri_id'), 
@@ -550,7 +628,8 @@ WITH row_values (%(newCols)s) AS (
                                 self.uriId[roleType.roleURI]), # key on docId, uriId
                                roleType) # value is roleType object
                               for roleTypes in self.modelXbrl.roleTypes.values()
-                              for roleType in roleTypes)
+                              for roleType in roleTypes
+                              if roleType.modelDocument.uri not in self.existingDocumentIds)
         table = self.getTable('custom_role_type', 'custom_role_type_id', 
                               ('document_id', 'uri_id', 'definition'), 
                               ('document_id', 'uri_id'), 
@@ -567,6 +646,15 @@ WITH row_values (%(newCols)s) AS (
         
     def insertElements(self):
         self.showStatus("insert elements")
+        
+        filingDocumentConcepts = set()
+        existingDocumentUsedConcepts = set()
+        for concept in self.modelXbrl.qnameConcepts.values():
+            if concept.modelDocument.uri not in self.existingDocumentIds:
+                filingDocumentConcepts.add(concept)
+            elif concept in self.conceptsUsed:
+                existingDocumentUsedConcepts.add(concept)
+                
         table = self.getTable('element', 'element_id', 
                               ('qname_id', 'datatype_qname_id', 'xbrl_base_datatype_qname_id', 'balance_id',
                                'period_type_id', 'substitution_group_qname_id', 'abstract', 'nillable',
@@ -586,35 +674,56 @@ WITH row_values (%(newCols)s) AS (
                                      self.documentIds[concept.modelDocument.uri],
                                      concept.isNumeric,
                                      concept.isMonetary)
-                                    for concept in self.modelXbrl.qnameConcepts.values()))
-        self.elementId = dict((qnameId, id)  # indexed by qnameId, not by qname value
-                              for id, qnameId in table)
+                                    for concept in filingDocumentConcepts)
+                             )
+        self.elementId = dict((qnameId, elementId)  # indexed by qnameId, not by qname value
+                              for elementId, qnameId in table)
         
+        # get existing element IDs
+        if existingDocumentUsedConcepts:
+            conceptQnameIds = []
+            for concept in existingDocumentUsedConcepts:
+                conceptQnameIds.append(str(self.qnameId[concept.qname]))
+            results = self.execute("SELECT element_id, qname_id FROM element WHERE qname_id IN (" +
+                                   ', '.join(conceptQnameIds) + ");")
+            for elementId, qnameId in results:
+                self.elementId[qnameId] = elementId
+        
+    def conceptElementId(self, concept):
+        if isinstance(concept, ModelConcept):
+            return self.elementId.get(self.qnameId.get(concept.qname))
+        else:
+            return None 
+                   
     def insertResources(self):
         self.showStatus("insert resources")
+        # deduplicate resources (may be on multiple arcs)
+        uniqueResources = dict(((self.documentIds[resource.modelDocument.uri],
+                                 resource.sourceline,
+                                 0), resource)
+                               for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
+                               for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
+                               if rel.fromModelObject is not None and rel.toModelObject is not None
+                               for resource in (rel.fromModelObject, rel.toModelObject)
+                               if isinstance(resource, ModelResource))
         table = self.getTable('resource', 'resource_id', 
                               ('role_uri_id', 'qname_id', 'document_id', 'document_line_number', 'document_column_number'), 
-                              ('role_uri_id', 'qname_id', 'document_id', 'document_line_number', 'document_column_number'), 
+                              ('document_id', 'document_line_number', 'document_column_number'), 
                               tuple((self.uriId[resource.role],
                                      self.qnameId[resource.qname],
                                      self.documentIds[resource.modelDocument.uri],
                                      resource.sourceline,
                                      0)
-                                    for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
-                                    for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
-                                    if rel.fromModelObject is not None and rel.toModelObject is not None
-                                    for resource in (rel.fromModelObject, rel.toModelObject)
-                                    if isinstance(resource, ModelResource)))
-        self.resourceId = dict(((roleId, qnId, docId, line, offset), id)
-                               for id, roleId, qnId, docId, line, offset in table)
+                                    for resource in uniqueResources.values()),
+                              checkIfExisting=True)
+        self.resourceId = dict(((docId, line, offset), id)
+                               for id, docId, line, offset in table)
         
         self.showStatus("insert labels")
         table = self.getTable('label_resource', 'resource_id', 
                               ('resource_id', 'label', 'xml_lang'), 
                               ('resource_id',), 
-                              tuple((self.resourceId[self.uriId[resource.role],
-                                                     self.qnameId[resource.qname],
-                                                     self.documentIds[resource.modelDocument.uri],
+                              tuple((self.resourceId[self.documentIds[resource.modelDocument.uri],
                                                      resource.sourceline,
                                                      0],
                                      resource.elementText,
@@ -623,7 +732,8 @@ WITH row_values (%(newCols)s) AS (
                                     for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
                                     if rel.fromModelObject is not None and rel.toModelObject is not None
                                     for resource in (rel.fromModelObject, rel.toModelObject)
-                                    if isinstance(resource, ModelResource) and XbrlConst.isLabelRole(resource.role)))
+                                    if isinstance(resource, ModelResource) and XbrlConst.isLabelRole(resource.role)),
+                              checkIfExisting=True)
     
     def insertNetworks(self):
         self.showStatus("insert networks")
@@ -668,16 +778,9 @@ WITH row_values (%(newCols)s) AS (
                 for rootConcept in relationshipSet.rootConcepts:
                     seq = walkTree(relationshipSet.fromModelObject(rootConcept), seq, 1, relationshipSet, set(), dbRels, networkId)
 
-        def conceptElementId(concept):
-            if isinstance(concept, ModelConcept):
-                return self.elementId.get(self.qnameId.get(concept.qname))
-            else:
-                return None            
         def resourceResourceId(resource):
             if isinstance(resource, ModelResource):
-                return self.resourceId.get((self.uriId[resource.role],
-                                            self.qnameId[resource.qname],
-                                            self.documentIds[resource.modelDocument.uri],
+                return self.resourceId.get((self.documentIds[resource.modelDocument.uri],
                                             resource.sourceline, 0))
             else:
                 return None     
@@ -688,8 +791,8 @@ WITH row_values (%(newCols)s) AS (
                                'tree_sequence', 'tree_depth', 'preferred_label_role_uri_id'), 
                               ('network_id', 'tree_sequence'), 
                               tuple((networkId,
-                                     conceptElementId(rel.fromModelObject), # may be None
-                                     conceptElementId(rel.toModelObject), # may be None
+                                     self.conceptElementId(rel.fromModelObject), # may be None
+                                     self.conceptElementId(rel.toModelObject), # may be None
                                      dbNum(rel.order),
                                      resourceResourceId(rel.fromModelObject), # may be None
                                      resourceResourceId(rel.toModelObject), # may be None
@@ -774,7 +877,7 @@ WITH row_values (%(newCols)s) AS (
                               tuple((accsId,
                                      self.cntxId.get((accsId,fact.contextID)),
                                      self.unitId.get((accsId,fact.unitID)),
-                                     self.elementId.get(self.qnameId.get(fact.qname)),
+                                     self.conceptElementId(fact.concept),
                                      roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric else None,
                                      fact.value,
                                      elementFragmentIdentifier(fact),
